@@ -1,6 +1,5 @@
 package wb.android.camera;
 
-import android.content.Context;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;

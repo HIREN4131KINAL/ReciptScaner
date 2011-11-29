@@ -3,7 +3,6 @@ package wb.android.ui;
 import android.R;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;

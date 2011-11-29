@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 public abstract class CameraActivity extends Activity {
     
@@ -53,7 +54,7 @@ public abstract class CameraActivity extends Activity {
 
     @Override
     protected void onResume() {
-    	if(D) Log.e(TAG, "onResume");
+    	if(D) Log.d(TAG, "onResume");
         super.onResume();
         this.restartCameraService();
     }
@@ -61,13 +62,19 @@ public abstract class CameraActivity extends Activity {
     protected void restartCameraService() {
     	System.gc(); //Garage Collect
         this.setContentView(_preview);
-        _cameraCont.startCamera(_preview); //Opens the default (rear-facing) camera
+        try {
+        	_cameraCont.startCamera(_preview); //Opens the default (rear-facing) camera
+        }
+        catch (RuntimeException e) {
+        	Toast.makeText(this, "Error: Another application is currently controlling the camera", Toast.LENGTH_SHORT).show();
+        	finish();
+		}
         this.postReviewCallback(_cameraCont);
     }
 
     @Override
     protected void onPause() {
-    	if(D) Log.e(TAG, "onPause");
+    	if(D) Log.d(TAG, "onPause");
         super.onPause();  
         // Because the Camera object is a shared resource, be sure to release it when the activity is paused
         _cameraCont.stopCamera();

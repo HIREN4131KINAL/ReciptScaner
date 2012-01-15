@@ -7,7 +7,6 @@ import android.text.format.DateFormat;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
@@ -64,12 +63,12 @@ public class ReceiptAdapter extends BaseAdapter {
 		}
 		else {
 			ReceiptRow receipt = _receipts[i-MAIN_HEADERS];
-			final String currency = SmartReceiptsActivity.CurrencyValue(receipt.price);
+			final String currency = SmartReceiptsActivity.CurrencyValue(receipt.price, receipt.currency);
 			final String date = DateFormat.getDateFormat(_context).format(receipt.date);
 			ListItemView v = new ListItemView(_context, currency, _largestWidth, receipt.name, date);
 			//ListItemView v = new ListItemView(_context, receipt.name + " - " + currency, date);
 			v.setBackgroundResource(R.drawable.list_selector_background); 
-			v.setOnLongClickListener(new EditReceiptClickListener(_context, receipt));
+			v.setOnClickListener(new EditReceiptClickListener(_context, receipt));
 			return v;
 		}
 	}
@@ -89,7 +88,7 @@ public class ReceiptAdapter extends BaseAdapter {
 			if (curr > width)
 				width = curr;
 		}
-		return width*((int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, _context.getResources().getDisplayMetrics()));
+		return width*((int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, _context.getResources().getDisplayMetrics()));
 	}
 	
 	public final void notifyDataSetChanged(final ReceiptRow[] receipts) {
@@ -116,11 +115,11 @@ public class ReceiptAdapter extends BaseAdapter {
 		@Override public final void onClick(final View v) {_activity.emailTrip();}
 	}
 	
-	private final class EditReceiptClickListener implements OnLongClickListener {
+	private final class EditReceiptClickListener implements OnClickListener {
 		private final SmartReceiptsActivity _activity;
 		private final ReceiptRow _receipt;
 		public EditReceiptClickListener(final SmartReceiptsActivity activity, final ReceiptRow receipt) {_activity = activity; _receipt = receipt;}
-		@Override public final boolean onLongClick(final View v) {return _activity.editReceipt(_receipt);}
+		@Override public final void onClick(final View v) {_activity.editReceipt(_receipt);}
 	}
 	
 }

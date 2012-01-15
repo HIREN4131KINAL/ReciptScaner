@@ -6,10 +6,11 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Currency;
 import java.util.HashMap;
+import java.util.Locale;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,21 +21,23 @@ import android.util.Log;
 public final class DatabaseHelper extends SQLiteOpenHelper {
 
 	//Logging Vars
-	private static final boolean D = false;
+	private static final boolean D = true;
 	private static final String TAG = "DatabaseHelper";
 	
 	//Database Info
 	private static final String DATABASE_NAME = "receipts.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	static final String NULL = "null";
+	static final String MULTI_CURRENCY = "XXXXXX";
 	
 	//Caching Vars
 	private TripRow[] _tripsCache;
 	private boolean _areTripsValid;
 	private HashMap<TripRow, ReceiptRow[]> _receiptMapCache;
 	private HashMap<String, String> _categories;
-	private ArrayList<CharSequence> _categoryList;
+	private ArrayList<CharSequence> _categoryList, _currencyList;
 	private Time _now;
+	private SmartReceiptsActivity _activity;
 	
 	//Tables Declarations
 	private static final class TripsTable {
@@ -57,7 +60,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		public static final String COLUMN_DATE = "rcpt_date";
 		public static final String COLUMN_COMMENT = "comment";
 		public static final String COLUMN_EXPENSEABLE = "expenseable";
-		public static final String COLUMN_FULLPAGEIMAGE = "fullpageimage";
+		public static final String COLUMN_ISO4217 = "isocode";
+		public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
 	}
 	private static final class CategoriesTable {
 		private CategoriesTable() {}
@@ -65,11 +69,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		public static final String COLUMN_NAME = "name";
 		public static final String COLUMN_CODE = "code";
 	}
-	
-	public DatabaseHelper(final Context context) {
-		super(context, DATABASE_NAME, null, DATABASE_VERSION); //Requests the default cursor factory
+	public DatabaseHelper(final SmartReceiptsActivity activity) {
+		super(activity, DATABASE_NAME, null, DATABASE_VERSION); //Requests the default cursor factory
 		_areTripsValid = false;
 		_receiptMapCache = new HashMap<TripRow, ReceiptRow[]>();
+		_activity = activity;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,9 +96,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 				+ ReceiptsTable.COLUMN_CATEGORY + " TEXT, "
 				+ ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), "
 				+ ReceiptsTable.COLUMN_COMMENT + " TEXT, "
+				+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
 				+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
 				+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
-				+ ReceiptsTable.COLUMN_FULLPAGEIMAGE + " BOOLEAN DEFAULT 1"
+				+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1"
 				+ ");";
 		final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " ("
 				+ CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
@@ -119,7 +124,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		db.execSQL(header + "\"Laundry\", \"LAUN\");");
 		db.execSQL(header + "\"Lunch\", \"LNCH\");");
 		db.execSQL(header + "\"Other\", \"MISC\");");
-		db.execSQL(header + "\"Parking/Tools\", \"PARK\");");
+		db.execSQL(header + "\"Parking/Tolls\", \"PARK\");");
 		db.execSQL(header + "\"Postage/Shipping\", \"POST\");");
 		db.execSQL(header + "\"Car Rental\", \"RCAR\");");
 		db.execSQL(header + "\"Taxi/Bus\", \"TAXI\");");
@@ -137,10 +142,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public final void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
 		if(D) Log.d(TAG, "Upgrading the database from version " + oldVersion + " to " + newVersion);
-		//TODO: Do this is place instead of dropping the table
-		db.execSQL("DROP TABLE IF EXISTS " + TripsTable.TABLE_NAME);
-		db.execSQL("DROP TABLE IF EXISTS " + ReceiptsTable.TABLE_NAME);
-		onCreate(db);
+		//Alter Receipts Table
+		final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME 
+				+ " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL "
+				+ "DEFAULT " + _activity._currency;
+		if (D) Log.d(TAG, alterReceipts);
+		db.execSQL(alterReceipts);
 	}
 	
 	public final void onDestroy() {
@@ -151,6 +158,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//	TripRow Methods
 	////////////////////////////////////////////////////////////////////////////////////////////////////
+	private final String CURR_CNT_QUERY = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM (SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PARENT + "=? GROUP BY " + ReceiptsTable.COLUMN_ISO4217 + ");";
 	public final TripRow[] getTrips() {
 		if (_areTripsValid)
 			return _tripsCache;
@@ -167,7 +175,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 				final long from = c.getLong(fromIndex);
 				final long to = c.getLong(toIndex);
 				final String price = c.getString(priceIndex);
-				trips[c.getPosition()] = new TripRow(name, from, to, price);
+				final Cursor qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
+				int cnt; String curr = MULTI_CURRENCY;;
+				if (qc != null && qc.moveToFirst() && qc.getColumnCount() > 0) {
+					cnt = qc.getInt(0);
+					if (cnt == 1) curr = qc.getString(1);
+					else if (cnt == 0) curr = _activity._currency;
+					qc.close();
+				}
+				trips[c.getPosition()] = new TripRow(name, from, to, price, curr);
 			} 
 			while (c.moveToNext());
 			c.close(); //Be sure to close the cursor to avoid memory leaks
@@ -189,7 +205,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			return null;
 		else {
 			_areTripsValid = false;
-			return new TripRow(dir, from, to);
+			return new TripRow(dir, from, to, _activity._currency);
 		}
 	}
 	
@@ -202,17 +218,40 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			else {
 				_areTripsValid = false;
 				if (!oldTrip.dir.getName().equalsIgnoreCase(dir.getName())) {
-					ContentValues rcptVals = new ContentValues();
-					rcptVals.put(ReceiptsTable.COLUMN_PARENT, dir.getCanonicalPath());
-					db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] {oldTrip.dir.getCanonicalPath()}); //Consider rollback here
+					if (_receiptMapCache.containsKey(oldTrip)) _receiptMapCache.remove(oldTrip);
+					String oldPath = oldTrip.dir.getCanonicalPath();
+					String newPath = dir.getCanonicalPath();
+					ContentValues rcptVals = new ContentValues(1);
+					rcptVals.put(ReceiptsTable.COLUMN_PARENT, newPath);
+					db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] {oldPath}); //Consider rollback here				
+					//Update paths
+					final Cursor c = db.query(ReceiptsTable.TABLE_NAME, new String[] {ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PATH}, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] {newPath}, null, null, null);
+					if (c != null && c.moveToFirst()) {
+						final int pathIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PATH);
+						final int idIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ID);
+						do {
+							final int id = c.getInt(idIndex);
+							String path = c.getString(pathIndex);
+							path = path.replaceFirst(oldPath, newPath);
+							rcptVals = new ContentValues(1);
+							rcptVals.put(ReceiptsTable.COLUMN_PATH, path);
+						} 
+						while (c.moveToNext());
+						c.close(); //Be sure to close the cursor to avoid memory leaks
+					}
+					else {
+						c.close(); //Be sure to close the cursor to avoid memory leaks
+					}
 				}
-				return new TripRow(dir, from, to);
+				return new TripRow(dir, from, to, oldTrip.currency);
 			}
 		}
 		catch (IOException e) {
+			Log.e(TAG, e.toString());
 			return null;
 		}
 		catch (SQLException e) {
+			Log.e(TAG, e.toString());
 			return null;
 		}
 	}
@@ -233,6 +272,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			return success;
 		}
 		catch (IOException e) {
+			Log.e(TAG, e.toString());
 			return false;
 		}
 	}
@@ -293,6 +333,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 				final int dateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_DATE);
 				final int commentIndex = c.getColumnIndex(ReceiptsTable.COLUMN_COMMENT);
 				final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
+				final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
+				final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
 				do {
 					final int id = c.getInt(idIndex);
 					final String path = c.getString(pathIndex);
@@ -303,7 +345,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 					final long date = c.getLong(dateIndex);
 					final String comment = c.getString(commentIndex);
 					final boolean expensable = c.getInt(expenseableIndex)>0;
-					receipts[c.getPosition()] = new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable);
+					final String currency = c.getString(currencyIndex);
+					final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+					receipts[c.getPosition()] = new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable, currency, fullpage);
 				} 
 				while (c.moveToNext());
 				c.close(); //Be sure to close the cursor to avoid memory leaks
@@ -320,8 +364,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 	
-	public final ReceiptRow insertReceiptFile(final TripRow trip, final File img, final File parentDir, final String name, 
-			final String category, final Date date, final String comment, final String price, final boolean expensable) throws SQLException {
+	public final ReceiptRow insertReceiptFile(final TripRow trip, final File img, final File parentDir, final String name, final String category, 
+			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage) throws SQLException {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 			ContentValues values = new ContentValues(7);
@@ -343,6 +387,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 				values.put(ReceiptsTable.COLUMN_DATE, date.getTime());
 			values.put(ReceiptsTable.COLUMN_COMMENT, comment);
 			values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
+			values.put(ReceiptsTable.COLUMN_ISO4217, currency);
+			values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
 			if (price.length() > 0)
 				values.put(ReceiptsTable.COLUMN_PRICE, price);
 			if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1)
@@ -355,7 +401,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 				if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 					final int id = c.getInt(0);
 					c.close();
-					return new ReceiptRow(id, img, parentDir, name, category, date, comment, price, expensable);
+					return new ReceiptRow(id, img, parentDir, name, category, date, comment, price, expensable, currency, fullpage);
 				}
 				else {
 					c.close();
@@ -368,8 +414,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 	
-	public final ReceiptRow updateReceipt(final ReceiptRow oldReceipt, final TripRow trip, final String name, 
-			final String category, final Date date, final String comment, final String price, final boolean expensable) {
+	public final ReceiptRow updateReceipt(final ReceiptRow oldReceipt, final TripRow trip, final String name, final String category, 
+			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage) {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 			ContentValues values = new ContentValues(5);
@@ -379,12 +425,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			values.put(ReceiptsTable.COLUMN_COMMENT, comment);
 			values.put(ReceiptsTable.COLUMN_PRICE, price);
 			values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
+			values.put(ReceiptsTable.COLUMN_ISO4217, currency);
+			values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
 			if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldReceipt.id)}) == 0))
 				return null;
 			else {
 				_receiptMapCache.remove(trip);
 				this.updateTripPrice(trip);
-				return new ReceiptRow(oldReceipt.id, oldReceipt.img, oldReceipt.parentDir, name, category, date, comment, price, expensable);
+				return new ReceiptRow(oldReceipt.id, oldReceipt.img, oldReceipt.parentDir, name, category, date, comment, price, expensable, currency, fullpage);
 			}
 		}
 		catch (SQLException e) {
@@ -466,6 +514,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		else {
 			c.close(); //Be sure to close the cursor to avoid memory leaks
 		}
+	}
+	
+	public final ArrayList<CharSequence> getCurrenciesList() {
+		if (_currencyList != null) return _currencyList;
+		_currencyList = new ArrayList<CharSequence>();
+		Locale[] locales = Locale.getAvailableLocales();
+		final int size = locales.length;
+		for (int i=0; i<size; i++) {
+			try {
+				CharSequence iso4217 = Currency.getInstance(locales[i]).getCurrencyCode();
+				if (!_currencyList.contains(iso4217))
+					_currencyList.add(iso4217);
+			} catch (IllegalArgumentException ex) {} //Catches unsupported currencies
+		}
+		Collections.sort(_currencyList, _charSequenceComparator);
+		return _currencyList;
 	}
 	
 	public final boolean insertCategory(final String name, final String code) throws SQLException {

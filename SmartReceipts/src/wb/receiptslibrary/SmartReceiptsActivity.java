@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.Locale;
 
 import wb.android.storage.SDCardFileManager;
@@ -35,6 +36,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -59,7 +62,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     static final String SD_ERROR = "Error: Please make sure that your SD Card is available and not mounted to your computer.";
     static final String SD_WARNING = "Warning: Your SD Card is not available or is mounted to your computer. Some images may be inaccessible. Switching to internal storage...";
     static final String DB_ERROR = "Error: Another application is using the SQLite Database.";
-    static final String IMG_ERROR = "Error: The image is currently inaccessible. Try mounting your SD Card.";
+    static final String IMG_ERROR = "Error: The image is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer. If not, click the menu button to retake the photo.";
     static final String ILLEGAL_CHAR_ERROR = "Error: The name contains an illegal character";
     static final String SPACE_ERROR = "Error: The name cannot begin with a space";
     static final String CALENDAR_TAB_ERROR = "Error: Please Touch the Date TextBox to set the Date";
@@ -75,7 +78,6 @@ public abstract class SmartReceiptsActivity extends Activity {
     
 	//Public 
 	public static final Locale LOCALE = Locale.getDefault();
-	public static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.getDefault());
     
     //Activity Request ints
     private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
@@ -98,7 +100,8 @@ public abstract class SmartReceiptsActivity extends Activity {
     private static final String INT_DEFAULT_TRIP_DURATION = "TripDuration";
     private static final String STRING_DEFAULT_EMAIL_TO = "EmailTo";
     private static final String BOOL_PREDICT_CATEGORIES = "PredictCats";
-    private static final String BOOL_INTERNAL_STORAGE = "InternalStorage";
+    private static final String BOOL_MATCH_COMMENT_WITH_CATEGORIES = "MatchCommentCats";
+    private static final String STRING_CURRENCY = "isocurr";
     
     //Receiver Settings
     protected static final String FILTER_ACTION = "wb.receiptslibrary";
@@ -109,7 +112,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     
     private static final CharSequence[] RESERVED_CHARS = {"|","\\","?","*","<","\"",":",">","+","[","]","/","'","\n","\r","\t","\0","\f"};
     
-    //instance variables (not final to improve access perfromance by removing virtual get methods used within dialog interfaces)
+    //instance variables (not final to improve access performance by removing virtual get methods used within dialog interfaces)
     RelativeLayout _mainLayout;
     StorageManager _sdCard;
     TripAdapter _tripAdapter;
@@ -120,9 +123,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     ListView _listView;
     ImageView _imgView;
     MyCalendarDialog _calendar;
-    boolean _isViewingTrip, _firstTrip, _isViewingImg, _predictCategories; 
+    boolean _isViewingTrip, _firstTrip, _isViewingImg, _predictCategories, _matchCommentCats; 
     int _defaultTripDuration;
-    String _emailTo;
+    String _emailTo, _currency;
     
 	/* OCR Stuff:
 	 * 	 1. Check that the DC card is mounted and an OCR isn't currently in progress (boolean checks)
@@ -135,16 +138,22 @@ public abstract class SmartReceiptsActivity extends Activity {
         super.onCreate(savedInstanceState);
         _isViewingTrip = false; _firstTrip = true; _isViewingImg = false;
 	    _currentTrip = null;
+    	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
+    	_defaultTripDuration = prefs.getInt(INT_DEFAULT_TRIP_DURATION, 3);
+    	_emailTo = prefs.getString(STRING_DEFAULT_EMAIL_TO, "");
+    	_predictCategories = prefs.getBoolean(BOOL_PREDICT_CATEGORIES, true);
+    	_matchCommentCats = prefs.getBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, false);
+    	try {
+    		_currency = prefs.getString(STRING_CURRENCY, Currency.getInstance(LOCALE).getCurrencyCode());
+    	} catch (IllegalArgumentException ex) {
+			_currency = "USD";
+		}
 	    _db = new DatabaseHelper(this);
 	    _mainLayout = mainLayout;
         _listView = listView;
         _tripAdapter = new TripAdapter(this, _db.getTrips());
         _receiptAdapter = new ReceiptAdapter(this, new ReceiptRow[0]);
         _listView.setAdapter(_tripAdapter);
-    	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
-    	_defaultTripDuration = prefs.getInt(INT_DEFAULT_TRIP_DURATION, 3);
-    	_emailTo = prefs.getString(STRING_DEFAULT_EMAIL_TO, "");
-    	_predictCategories = prefs.getBoolean(BOOL_PREDICT_CATEGORIES, true);
     }
     
     @Override
@@ -166,28 +175,11 @@ public abstract class SmartReceiptsActivity extends Activity {
     	super.onResume();
     	try {
 			_sdCard = new SDCardFileManager(this);
-			/*
-			SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
-        	if (prefs.getBoolean(BOOL_INTERNAL_STORAGE, false)) {
-        		SharedPreferences.Editor editor = prefs.edit();
-        		editor.putBoolean(BOOL_INTERNAL_STORAGE, false);
-        		editor.commit();
-        	}
-        	*/
 		} 
         catch (SDCardStateException e) {
         	Log.e(TAG, "Using internal memory...");
         	_sdCard = new InternalStorageManager(this);
         	Toast.makeText(SmartReceiptsActivity.this, SD_WARNING, Toast.LENGTH_LONG).show();
-        	/*
-        	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
-        	if (!prefs.getBoolean(BOOL_INTERNAL_STORAGE, false)) {
-        		Toast.makeText(SmartReceiptsActivity.this, SD_WARNING, Toast.LENGTH_LONG).show();
-        		SharedPreferences.Editor editor = prefs.edit();
-        		editor.putBoolean(BOOL_INTERNAL_STORAGE, true);
-        		editor.commit();
-        	}
-        	*/
         }
     }
     
@@ -197,14 +189,20 @@ public abstract class SmartReceiptsActivity extends Activity {
     	_db.onDestroy();
     }
     
-    public static final String CurrencyValue(final String price) {
+    public static final String CurrencyValue(final String price, final Currency	currency) {
     	BigDecimal amnt;
     	if (price == null || price.length() == 0)
     		amnt = new BigDecimal(0);
     	else
     		amnt = new BigDecimal(price);
     	try {
-    		return SmartReceiptsActivity.CURRENCY_FORMAT.format(amnt.doubleValue());
+    		if (currency != null) {
+    			NumberFormat numFormat = NumberFormat.getCurrencyInstance(SmartReceiptsActivity.LOCALE);
+    			numFormat.setCurrency(currency);
+    			return numFormat.format(amnt.doubleValue());
+    		}
+    		else
+    			return "Mixed";
     	} catch (java.lang.NumberFormatException e) {
     		return "$0.00";
     	}
@@ -266,7 +264,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 			 .setLongLivedPositiveButton((newTrip)?"Create":"Update", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
 				@Override
 				public void onClick(DialogInterface dialog, int whichButton) {
-					String name = nameBox.getText().toString();
+					 String name = nameBox.getText().toString().trim();
 					 final String startDate = startBox.getText().toString();
 					 final String endDate = endBox.getText().toString();
 					 //Error Checking
@@ -343,10 +341,10 @@ public abstract class SmartReceiptsActivity extends Activity {
 			 .show();
 	}
     
-    public final void viewTrip(final TripRow trip) {
+    public void viewTrip(final TripRow trip) {
     	_isViewingTrip = true;
     	_currentTrip = trip;
-		final String currency = SmartReceiptsActivity.CurrencyValue(trip.price);
+		final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
     	this.setTitle(currency + " - " + trip.dir.getName());
     	_listView.setAdapter(_receiptAdapter);
     	_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
@@ -381,7 +379,14 @@ public abstract class SmartReceiptsActivity extends Activity {
 		layout.setGravity(Gravity.BOTTOM);
 		layout.setPadding(6, 6, 6, 6);
 		final EditText nameBox = new EditText(this);
+		final LinearLayout pricingLayout = new LinearLayout(this);
+		pricingLayout.setOrientation(LinearLayout.HORIZONTAL);
 		final EditText priceBox = new EditText(this); priceBox.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+		final Spinner currencySpinner = new Spinner(this);
+		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, this._db.getCurrenciesList());
+		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		currencySpinner.setAdapter(currenices); currencySpinner.setPrompt("Currency");
+		pricingLayout.addView(priceBox, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 1f)); pricingLayout.addView(currencySpinner, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 2f));
 		final DateEditText dateBox = new DateEditText(this); dateBox.setFocusableInTouchMode(false); dateBox.setOnClickListener(_dateTextListener);
 		final EditText commentBox = new EditText(this);
 		final Spinner categoriesSpinner = new Spinner(this);
@@ -389,12 +394,14 @@ public abstract class SmartReceiptsActivity extends Activity {
 		categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		categoriesSpinner.setAdapter(categories); categoriesSpinner.setPrompt("Category");
 		final CheckBox expensable = new CheckBox(this); expensable.setText(" Expensable?");
+		final CheckBox fullpage = new CheckBox(this); fullpage.setText(" Full-Page Image?");
 		layout.addView(nameBox, params);
-		layout.addView(priceBox, params);
+		layout.addView(pricingLayout, params);
 		layout.addView(dateBox, params);
 		layout.addView(categoriesSpinner, params);
 		layout.addView(commentBox, params);
 		layout.addView(expensable, params);
+		layout.addView(fullpage, params);
 		scrollView.addView(layout);
 	
 		// Fill out the fields as appropriate
@@ -405,6 +412,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 			dateBox.date = new Date(now.toMillis(false)); dateBox.setText(DateFormat.getDateFormat(this).format(dateBox.date));
 			commentBox.setHint("Comment");
 			expensable.setChecked(true);
+			if (_matchCommentCats) categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener(commentBox, categories));
 			if (_predictCategories) { //Predict Breakfast, Lunch, Dinner by the hour
 				if (now.hour >= 4 && now.hour < 11) { //Breakfast hours
 					int idx = categories.getPosition("Breakfast");
@@ -422,6 +430,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 						categoriesSpinner.setSelection(idx);
 				}
 			}
+			int idx = currenices.getPosition(_currency);
+			if (idx > 0) currencySpinner.setSelection(idx);
 		}
 		else {
 			if (receipt.name.length() == 0) nameBox.setHint("Name"); else nameBox.setText(receipt.name);
@@ -429,7 +439,10 @@ public abstract class SmartReceiptsActivity extends Activity {
 			if (receipt.date == null) dateBox.setHint("Date"); else { dateBox.setText(DateFormat.getDateFormat(this).format(receipt.date)); dateBox.date = receipt.date; }
 			if (receipt.category.length() != 0) categoriesSpinner.setSelection(categories.getPosition(receipt.category));
 			if (receipt.comment.length() == 0) commentBox.setHint("Comment"); else commentBox.setText(receipt.comment);
+			int idx = currenices.getPosition(receipt.currency.getCurrencyCode());
+			if (idx > 0) currencySpinner.setSelection(idx);
 			expensable.setChecked(receipt.expensable);
+			fullpage.setChecked(receipt.fullpage);
 		}
 		
 		//Show Dialog
@@ -443,6 +456,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 					 final String name = nameBox.getText().toString();
 					 String price = priceBox.getText().toString();
 					 final String category = categoriesSpinner.getSelectedItem().toString();
+					 final String currency = currencySpinner.getSelectedItem().toString();
 					 final String comment = commentBox.getText().toString();
 					 if (name.length() == 0) {
 						 Toast.makeText(activity, "Please provide a name for this receipt.", Toast.LENGTH_SHORT).show();
@@ -453,7 +467,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 						 return;
 					 }
 					 if (newReceipt) {//Insert
-						 final ReceiptRow newReceipt = activity._db.insertReceiptFile(trip, img, activity._currentTrip.dir, name, category, dateBox.date, comment, price, expensable.isChecked());
+						 final ReceiptRow newReceipt = activity._db.insertReceiptFile(trip, img, activity._currentTrip.dir, name, category, dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked());
 						 if (newReceipt != null) {
 							 activity._receiptAdapter.notifyDataSetChanged(activity._db.getReceipts(activity._currentTrip));
 							 activity.updateTitlePrice(trip, receipt, newReceipt);
@@ -467,7 +481,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 					 else { //Update
 						 if (price == null || price.length() == 0)
 							 price = "0";
-						 final ReceiptRow updatedReceipt = activity._db.updateReceipt(receipt, trip, name, category, (dateBox.date == null) ? receipt.date : dateBox.date, comment, price, expensable.isChecked());
+						 final ReceiptRow updatedReceipt = activity._db.updateReceipt(receipt, trip, name, category, (dateBox.date == null) ? receipt.date : dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked());
 						 if (updatedReceipt != null) {
 							 activity._receiptAdapter.notifyDataSetChanged(activity._db.getReceipts(activity._currentTrip));
 							 activity.updateTitlePrice(trip, receipt, updatedReceipt);
@@ -475,6 +489,13 @@ public abstract class SmartReceiptsActivity extends Activity {
 						 else {
 							 Toast.makeText(activity, DB_ERROR, Toast.LENGTH_SHORT).show();
 							 return;
+						 }
+						 // Probably should remove this line (still not sure why images are occasionally deleted)
+						 ReceiptRow[] receipts = activity._db.getReceipts(activity._currentTrip);
+						 for(int i=0; i < receipts.length; i++) {
+							 ReceiptRow receipt = receipts[i];
+							 if (receipt.img == null) Log.d(TAG, receipt.name + ": null");
+							 else Log.d(TAG, receipt.name + ": " + receipt.img.getPath() + " -- " + receipt.img.exists());
 						 }
 						 dialog.cancel();
 					 }
@@ -500,7 +521,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 					Float deltaPrice = Float.valueOf(newReceipt.price);
 					float newPrice = oldPrice + deltaPrice;
 					trip.price = Float.toString(newPrice);
-					final String currency = SmartReceiptsActivity.CurrencyValue(trip.price);
+					final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
 					this.setTitle(currency + " - " + trip.dir.getName());
     			} catch (java.lang.NumberFormatException e) {
     	    		return;
@@ -516,7 +537,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 				if (oldReceipt.expensable) newPrice -= subPrice;
 				if (newReceipt.expensable) newPrice += addPrice;
 				trip.price = Float.toString(newPrice);
-				final String currency = SmartReceiptsActivity.CurrencyValue(trip.price);
+				final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
 				this.setTitle(currency + " - " + trip.dir.getName());
 			} catch (java.lang.NumberFormatException e) {
 				return;
@@ -557,6 +578,11 @@ public abstract class SmartReceiptsActivity extends Activity {
 						   dialog.cancel();
 						   return;
 					   }
+					   if (activity._db.getReceipts(activity._currentTrip).length == 0) {
+						   Toast.makeText(activity, "There are no receipts in this report.", Toast.LENGTH_SHORT).show();
+						   dialog.cancel();
+						   return;
+					   }
 		        	   ProgressDialog progress = ProgressDialog.show(SmartReceiptsActivity.this, "", "Building Reports...", true, false);
 		        	   EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(SmartReceiptsActivity.this, activity._sdCard, activity._db, progress, pdfFull.isChecked(), pdfImages.isChecked(), csv.isChecked());
 		        	   attachmentWriter.execute(activity._currentTrip);
@@ -577,9 +603,6 @@ public abstract class SmartReceiptsActivity extends Activity {
 		if (files[EmailAttachmentWriter.FULL_PDF] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.FULL_PDF]));
 		if (files[EmailAttachmentWriter.IMG_PDF] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.IMG_PDF]));
 		if (files[EmailAttachmentWriter.CSV] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.CSV]));
-		//try {
-			//if (files[EmailAttachmentWriter.IMG_PDF] != null) uris.add(Uri.fromFile(new File("/mnt/sdcard/../../" + files[EmailAttachmentWriter.IMG_PDF].getCanonicalPath())));
-		//} catch(IOException ex) {}
 		emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{_emailTo});
 		emailIntent.putExtra(Intent.EXTRA_SUBJECT, "SmartReceipts - " + _currentTrip.dir.getName());
 		if (uris.size() == 1) emailIntent.putExtra(Intent.EXTRA_TEXT, uris.size() + " report attached");
@@ -736,8 +759,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 				                	BigDecimal amnt = new BigDecimal(activity._currentTrip.price);
 				                	BigDecimal delta = new BigDecimal(receipt.price);
 				                	final float priceFloat = amnt.floatValue() - delta.floatValue();
-				    				final String currency = SmartReceiptsActivity.CURRENCY_FORMAT.format(priceFloat);
 				    				_currentTrip.price = Float.toString(priceFloat);
+				    				final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
 				    				activity.setTitle(currency + " - " + activity._currentTrip.dir.getName());
 		                		} catch (java.lang.NumberFormatException e) {}
 		                	}
@@ -790,7 +813,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 							Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Replaced for " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
 			    			_isViewingImg = false;
 			    			this.setContentView(_mainLayout);
-							final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price);
+							final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
 							this.setTitle(currency + " - " + _currentTrip.dir.getName());
 						}
 						else {
@@ -808,23 +831,35 @@ public abstract class SmartReceiptsActivity extends Activity {
     @Override
     public final boolean onKeyDown(final int keyCode, final KeyEvent event) {
     	if (keyCode == KeyEvent.KEYCODE_BACK) {
-    		if (_isViewingImg) {
-    			_isViewingImg = false;
-    			this.setContentView(_mainLayout);
-    			final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price);
-				this.setTitle(currency + " - " + _currentTrip.dir.getName());
-    		}
-    		else if (_isViewingTrip) {
-    			_isViewingTrip = false;
-    			this.setTitle(TITLE);
-    			_listView.setAdapter(_tripAdapter);
-    			_tripAdapter.notifyDataSetChanged(_db.getTrips());
-    			return true;
-    		}
-    		else 
+    		if (!back())
     			return super.onKeyDown(keyCode, event);
+			else
+				return true;
     	}
 		return false;
+    }
+    
+    public boolean back() {
+    	if (_isViewingImg) {
+			_isViewingImg = false;
+			this.setContentView(_mainLayout);
+			final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
+			this.setTitle(currency + " - " + _currentTrip.dir.getName());
+			return true;
+		}
+		else if (_isViewingTrip) {
+			_isViewingTrip = false;
+			this.setTitle(TITLE);
+			_listView.setAdapter(_tripAdapter);
+			_tripAdapter.notifyDataSetChanged(_db.getTrips());
+			return true;
+		}
+		else 
+			return false;
+    }
+    
+    public boolean isHome() {
+    	return (!_isViewingImg && !_isViewingTrip);
     }
     
     public final void initCalendar(DateEditText edit) {
@@ -847,7 +882,6 @@ public abstract class SmartReceiptsActivity extends Activity {
         
     @Override
     public final boolean onCreateOptionsMenu(Menu menu) {
-    	Log.e(TAG, "Viewing img? " + _isViewingImg);
 		MenuItem settings = menu.add(Menu.NONE, SETTINGS_ID, Menu.NONE, "Settings");
 		settings.setIcon(android.R.drawable.ic_menu_preferences);
 		MenuItem categories = menu.add(Menu.NONE, CATEGORIES_ID, Menu.NONE, "Categories");
@@ -904,14 +938,24 @@ public abstract class SmartReceiptsActivity extends Activity {
 	    	final ScrollView scrollView = new ScrollView(this);
 	    	final LinearLayout layout = new LinearLayout(this);
 	    	layout.setOrientation(LinearLayout.VERTICAL); layout.setGravity(Gravity.BOTTOM); layout.setPadding(6, 6, 6, 6);
-	    	final TextView daysText = new TextView(this); daysText.setPadding(6, 0, 6, 0); daysText.setTextSize(16F); daysText.setText("Default Trip Length (Days):");
-	    	final EditText days = new EditText(this); days.setInputType(InputType.TYPE_CLASS_NUMBER); days.setText("" + _defaultTripDuration);
-	    	final TextView emailText = new TextView(this); emailText.setPadding(6, 0, 6, 0); emailText.setTextSize(16F); emailText.setText("Default Email Recipient:");
+	    	final TextView emailText = new TextView(this); emailText.setPadding(6, 10, 6, 0); emailText.setTextSize(16F); emailText.setText("Default Email Recipient:");
 	    	final EditText email = new EditText(this); email.setText(_emailTo);
+	    	final TextView daysText = new TextView(this); daysText.setPadding(6, 10, 6, 0); daysText.setTextSize(16F); daysText.setText("Default Trip Length (Days):");
+	    	final EditText days = new EditText(this); days.setInputType(InputType.TYPE_CLASS_NUMBER); days.setText("" + _defaultTripDuration);
+	    	final TextView currencyText = new TextView(this); currencyText.setPadding(6, 10, 6, 0); currencyText.setTextSize(16F); currencyText.setText("Default Currency:");
+			final Spinner currencySpinner = new Spinner(this);
+			final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, this._db.getCurrenciesList());
+			currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			currencySpinner.setAdapter(currenices); currencySpinner.setPrompt("Default Currency");
+			int idx = currenices.getPosition(_currency);
+			if (idx > 0) currencySpinner.setSelection(idx);
 	    	final CheckBox predictCategoires = new CheckBox(this); predictCategoires.setText(" Predict Receipt Categories"); predictCategoires.setChecked(_predictCategories);
-	    	layout.addView(daysText); layout.addView(days);
+	    	final CheckBox matchCommentsToCategory = new CheckBox(this); matchCommentsToCategory.setText(" Match Comments to Categories"); matchCommentsToCategory.setChecked(_matchCommentCats);
 	    	layout.addView(emailText); layout.addView(email);
+	    	layout.addView(daysText); layout.addView(days);
+	    	layout.addView(currencyText); layout.addView(currencySpinner);
 	    	layout.addView(predictCategoires);
+	    	layout.addView(matchCommentsToCategory);
 	    	scrollView.addView(layout);
 			builder.setTitle("Settings")
 				   .setView(scrollView)
@@ -922,20 +966,28 @@ public abstract class SmartReceiptsActivity extends Activity {
 				        	   if (days.getText().toString() != null && days.getText().toString().length() > 0 && days.getText().toString().length() < 4)
 				        		   activity._defaultTripDuration = Integer.parseInt(days.getText().toString());
 				               activity._emailTo = email.getText().toString();
+				               activity._currency = currencySpinner.getSelectedItem().toString();
 				               activity._predictCategories = predictCategoires.isChecked();
+				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
 				               editor.putInt(INT_DEFAULT_TRIP_DURATION, activity._defaultTripDuration);
 					           editor.putString(STRING_DEFAULT_EMAIL_TO, activity._emailTo);
+					           editor.putString(STRING_CURRENCY, _currency);
 					           editor.putBoolean(BOOL_PREDICT_CATEGORIES, activity._predictCategories);
+					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.commit();
 			        	   } catch (java.lang.NumberFormatException e) {
 			        		   activity._emailTo = email.getText().toString();
+			        		   activity._currency = currencySpinner.getSelectedItem().toString();
 				               activity._predictCategories = predictCategoires.isChecked();
+				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
 					           editor.putString(STRING_DEFAULT_EMAIL_TO, activity._emailTo);
+					           editor.putString(STRING_CURRENCY, _currency);
 					           editor.putBoolean(BOOL_PREDICT_CATEGORIES, activity._predictCategories);
+					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.commit();
 					       }
 			           }
@@ -1123,5 +1175,14 @@ public abstract class SmartReceiptsActivity extends Activity {
 		public final void setEnd(DateEditText end) {_end = end;}
 		@Override public final void onClick(final View v) {_activity.initDurationCalendar((DateEditText)v, _end);}
 	}
+	private final class SpinnerSelectionListener implements OnItemSelectedListener {
+		private final TextView _commentBox;
+		private final ArrayAdapter<CharSequence> _categories;
+		public SpinnerSelectionListener(TextView commentBox, ArrayAdapter<CharSequence> categories) {_commentBox = commentBox; _categories = categories;}
+		@Override public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {_commentBox.setText(_categories.getItem(position));}
+		@Override public void onNothingSelected(AdapterView<?> arg0) {}
+		
+	}
+	
     
 }

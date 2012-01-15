@@ -12,6 +12,7 @@ import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -110,19 +111,27 @@ public class MyCameraActivity extends CameraActivity {
     	_isAutoFocus = prefs.getBoolean(BOOL_AUTO_FOCUS, true);
     	_isColor = prefs.getBoolean(BOOL_COLOR, true);
     	Parameters params = controller.getCameraParams();
-    	focus = params.getSupportedFocusModes();
-    	white = params.getSupportedWhiteBalance();
-    	flash = params.getSupportedFlashModes();
-    	this.setCameraParams(params);
+    	if (params != null) {
+			focus = params.getSupportedFocusModes();
+			white = params.getSupportedWhiteBalance();
+			flash = params.getSupportedFlashModes();
+			this.setCameraParams(params);
+    	}
     	controller.setCameraRotation(90); //This could cause issues with different devices
     }
     
     private final void setCameraParams(Parameters params) {
     	SharedPreferences prefs = getSharedPreferences(CAMERA_PREFS, 0);
-    	if (_isAutoFlash && flash != null && flash.contains(Parameters.FLASH_MODE_AUTO))
-    		params.setFlashMode(Parameters.FLASH_MODE_AUTO);
-    	else
-    		_isAutoFlash = false;
+    	if (android.os.Build.VERSION.SDK_INT >= 14) { //ICS Version
+    		if (flash != null && flash.contains(Parameters.FLASH_MODE_OFF))
+        		params.setFlashMode(Parameters.FLASH_MODE_OFF);
+    	}
+    	else {
+    		if (_isAutoFlash && flash != null && flash.contains(Parameters.FLASH_MODE_AUTO))
+        		params.setFlashMode(Parameters.FLASH_MODE_AUTO);
+        	else
+        		_isAutoFlash = false;	
+    	}
     	if (_isAutoFocus && focus != null && focus.contains(Parameters.FOCUS_MODE_AUTO))
     		params.setFocusMode(Parameters.FOCUS_MODE_AUTO);
     	else
@@ -181,7 +190,10 @@ public class MyCameraActivity extends CameraActivity {
     }
     
     public final void checkCallback() {
+    	ProgressDialog progress = ProgressDialog.show(MyCameraActivity.this, "", "Saving Image...", true);
+    	progress.show();
     	File img = this.handleImage(_jpg, _isColor, _cameraCont.getCameraRotation());
+    	progress.dismiss();
     	try {
         	if (img == null)
         		finish();
@@ -344,6 +356,7 @@ public class MyCameraActivity extends CameraActivity {
     private Bitmap rotate(Bitmap bitmap, int degrees) {
     	if (degrees == 0)
     		return bitmap;
+    	System.gc(); //Avoid Memory Crashes
     	Matrix matrix = new Matrix();
     	matrix.setRotate(degrees, bitmap.getWidth()/2, bitmap.getHeight()/2);
     	return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);

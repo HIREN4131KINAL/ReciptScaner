@@ -3,7 +3,6 @@ package wb.android.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 import android.app.Activity;
 import android.os.Environment;
@@ -21,7 +20,6 @@ public final class SDCardFileManager extends StorageManager {
 	public SDCardFileManager(final Activity activity) throws SDCardStateException {
 		super();
 		final String state = Environment.getExternalStorageState();
-		if (D) Log.e(TAG, state);
 		_allowedStates = null;
 		if (D) Log.d(TAG, "External Storage State: " + state);
 		_root = activity.getExternalFilesDir(null); 

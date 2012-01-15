@@ -61,8 +61,8 @@ public class CustomPreview extends CameraPreview {
 	
 	public final boolean onTouchEvent(MotionEvent event) {
 		if (_isPictureTaken) {
-			final int checkRadiusSquared = _greenCheck.getHeight()<<2;
-			final int xRadiusSquared = _redX.getHeight()<<2;
+			final int checkRadiusSquared = _greenCheck.getHeight()*8;
+			final int xRadiusSquared = _redX.getHeight()*8;
 			final int checkDx = _checkLeft + _greenCheck.getWidth()/2 - ((int)event.getX());
 			final int checkDy = _checkTop + _greenCheck.getHeight()/2 - ((int)event.getY());
 			final int xDx = _xLeft + _redX.getWidth()/2 - ((int)event.getX());

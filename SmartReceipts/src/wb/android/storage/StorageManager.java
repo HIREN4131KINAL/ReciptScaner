@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 
 public abstract class StorageManager {
 	
@@ -61,6 +62,15 @@ public abstract class StorageManager {
 		if (file.isDirectory() && file.listFiles().length > 0)
 			return false;
 		return file.delete();
+	}
+	
+	public final boolean delete(final String filename) {
+		return delete(_root, filename);
+	}
+	
+	public final boolean delete(final File dir, final String filename) {
+		File del = new File(dir, filename);
+		return delete(del);
 	}
 	
 	public final boolean deleteRecursively(final File dir) {
@@ -161,9 +171,7 @@ public abstract class StorageManager {
 		}
 		return true;
 	}
-	
-	
-	
+		
 	public final byte[] read(final File f) {
 		byte[] buffer;
 		FileInputStream fis = null;
@@ -250,6 +258,19 @@ public abstract class StorageManager {
 			}
 		};
 		return list(root, ff);
+	}
+	
+	public final Bitmap getBitmap(final String filename) {
+		return getBitmap(_root, filename);
+	}
+	
+	public final Bitmap getBitmap(final File root, final String filename) {
+		try {
+			File path = new File(root, filename);
+			return BitmapFactory.decodeFile(path.getCanonicalPath());
+		} catch (IOException e) {
+			return null;
+		}
 	}
 	
 	public abstract FileOutputStream getFOS(String filename, int mode) throws FileNotFoundException;

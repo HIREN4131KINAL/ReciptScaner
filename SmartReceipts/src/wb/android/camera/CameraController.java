@@ -26,7 +26,7 @@ public final class CameraController {
 	
 	//instance variables
 	private Camera _camera;
-	private boolean _isPreviewing;
+	private boolean _isPreviewing, _isStarted;
 	private HandledAutoFocusCallback _autoFocusCallback;
 	private JPGCallback _jpgCallback;
 	private int _rotation = 0;
@@ -34,6 +34,7 @@ public final class CameraController {
 	CameraController(final Handler parentHandler) {
 		_camera = null;  
 		_isPreviewing = false;
+		_isStarted = false;
 		_autoFocusCallback = new HandledAutoFocusCallback(parentHandler); 
 		_jpgCallback = new JPGCallback(parentHandler);
 	}
@@ -69,8 +70,8 @@ public final class CameraController {
 		if (D) Log.d(TAG, "Starting Camera");
 		if (_camera == null) {
 			_camera = Camera.open();
+			_isStarted = true;
 			preview.setCameraController(this);
-			preview.setSupportedPreviewSizes(_camera.getParameters().getSupportedPreviewSizes());
 			preview.requestLayout();
 			return true;
 		}
@@ -80,6 +81,7 @@ public final class CameraController {
 	public final void stopCamera() {
 		if (D) Log.d(TAG, "Stopping Camera");
 		if (_camera != null) {
+			_isStarted = false;
 			_camera.stopPreview();
 			_camera.setPreviewCallback(null);
 			_camera.release(); //Since the camera is a shared resource, you have to release it
@@ -114,8 +116,12 @@ public final class CameraController {
 	 * Use this to set optional camera parameters if desired
 	 */
 	public final void setCameraParams(final Parameters params) {
-		if (_camera != null)
-			_camera.setParameters(params);
+		if (_camera != null && params != null) {
+			try {
+				_camera.setParameters(params);
+			}
+			catch (StringIndexOutOfBoundsException ex) {} //Android doesn't check if the Parameters HashMap is empty -> http://grepcode.com/file_/repository.grepcode.com/java/ext/com.google.android/android/2.2_r1.1/android/hardware/Camera.java/?v=source
+		}
 	}
 	
 	public final Parameters getCameraParams() {
@@ -123,6 +129,10 @@ public final class CameraController {
 			return _camera.getParameters();
 		else
 			return null;
+	}
+	
+	public final boolean isStarted() {
+		return _isStarted;
 	}
 
 }

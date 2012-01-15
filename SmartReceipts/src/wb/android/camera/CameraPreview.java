@@ -1,5 +1,6 @@
 package wb.android.camera;
 
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -21,24 +22,23 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	public static final String PORTRAIT = "Portrait";
 	
 	//instance variables
-    final SurfaceHolder holder;
-    private Size _previewSize;
-    private List<Size> _supportedPreviewSizes;
+    final SurfaceHolder _holder;
+    private Size _previewSize, _pictureSize;
     private CameraController _controller;
     private boolean _isPortraitOreintation;
 
     public CameraPreview(final CameraActivity cameraActivity) {
         super(cameraActivity);
-        // Install a SurfaceHolder.Callback so we get notified when the underlying surface is created and destroyed.
-        holder = this.getHolder();
-        holder.addCallback(this);
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        _holder = this.getHolder();
+        _holder.addCallback(this);
+        _holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         _isPortraitOreintation = true;
+        _previewSize = null;
+        _pictureSize = null;
     }
     
     public final void changeOrientation() {
     	_isPortraitOreintation ^= _isPortraitOreintation;
-    	//requestLayout();
     }
     
     public final String orientation() {
@@ -51,10 +51,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     final void setCameraController(final CameraController controller) {
     	_controller = controller;
     }
-    
-    final void setSupportedPreviewSizes(final List<Size> supportedPreviewSizes) {
-    	_supportedPreviewSizes = supportedPreviewSizes;
-    }
 
 
 /********************************************************************************************************
@@ -66,8 +62,87 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-        if (_supportedPreviewSizes != null)
-            _previewSize = getOptimalPreviewSize(_supportedPreviewSizes, width, height);
+        if (!_controller.isStarted()) return; 
+        //Find the Optimal Preview and Camera Sizes for this device
+        Parameters params = _controller.getCameraParams();
+        if (android.os.Build.MODEL.equalsIgnoreCase("DROIDX") || android.os.Build.MODEL.equalsIgnoreCase("DROID X")) {//Droid X seems to have issues with preview sizes that are too large
+        	_previewSize = params.getPreviewSize();
+        }
+        List<Size> previewSizes = params.getSupportedPreviewSizes();
+        List<Size> pictureSizes = params.getSupportedPictureSizes();
+        final float ASPECT_TOLERANCE = 0.1f;
+        float targetRatio = (float) width / height;
+        if (previewSizes == null || pictureSizes == null) return;
+        int num;
+        Size size;
+        // ====== Determine Preview Size ======= \\
+        float minDiff = Float.MAX_VALUE;
+        num = previewSizes.size();
+        // Try to find an preview size match aspect ratio and size
+        if (_previewSize == null) {
+	        for (int i=0; i<num; i++) {
+	        	size = previewSizes.get(i);
+	            float ratio = (float) size.width / size.height;
+	            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+	            if (Math.abs(size.height - height) < minDiff) {
+	                _previewSize = size;
+	                minDiff = Math.abs(size.height - height);
+	            }
+	        }
+        }
+        // Cannot find the one match the aspect ratio for the preview size, ignore the requirement
+        if (_previewSize == null) {
+            minDiff = Float.MAX_VALUE;
+            for (int i=0; i<num; i++) {
+            	size = previewSizes.get(i);
+                if (Math.abs(size.height - height) < minDiff) {
+                    _previewSize = size;
+                    minDiff = Math.abs(size.height - height);
+                }
+            }
+        }
+        // ====== Determine Picture Size ======= \\
+        minDiff = Float.MAX_VALUE;
+        num = pictureSizes.size();
+        targetRatio = (float) _previewSize.width / _previewSize.height;
+        // Try to find an preview size match aspect ratio and size - Try to find with dimensions smaller than 1024
+        if (_pictureSize == null) {
+	        for (int i=0; i<num; i++) {
+	        	size = pictureSizes.get(i);
+	            float ratio = (float) size.width / size.height;
+	            int maxDim = (ratio > 1.0) ? size.width : size.height;
+	            if (maxDim > 1440) continue;
+	            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+	            if (Math.abs(size.height - _previewSize.height) < minDiff) {
+	            	Log.e(TAG, "Thjis");
+	                _pictureSize = size;
+	                minDiff = Math.abs(size.height - _previewSize.height);
+	            }
+	        }
+        }
+        // Try to find the max picture size that matches the preview size's aspect ratio
+        if (_pictureSize == null) {
+	        for (int i=0; i<num; i++) {
+	        	size = pictureSizes.get(i);
+	            float ratio = (float) size.width / size.height;
+	            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+	            if (Math.abs(size.height - _previewSize.height) < minDiff) {
+	                _pictureSize = size;
+	                minDiff = Math.abs(size.height - _previewSize.height);
+	            }
+	        }
+        }
+        // Try to find the closet picture size to the preview size
+        if (_pictureSize == null) {
+            minDiff = Float.MAX_VALUE;
+            for (int i=0; i<num; i++) {
+            	size = pictureSizes.get(i);
+                if (Math.abs(size.height - _previewSize.height) < minDiff) {
+                	_pictureSize = size;
+                    minDiff = Math.abs(size.height - _previewSize.height);
+                }
+            }
+        }
     }
 
     @Override
@@ -103,7 +178,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }*/
     }
 
-    private final Size getOptimalPreviewSize(final List<Size> sizes, final int w, final int h) {
+    /*
+    private final Size getOptimalPreviewSize(final int w, final int h) {
         final double ASPECT_TOLERANCE = 0.1;
         double targetRatio = (double) w / h;
         if (sizes == null) return null;
@@ -133,8 +209,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                 }
             }
         }
+        Log.e(TAG, "oW: " + optimalSize.width + ", oH: " + optimalSize.height);
         return optimalSize;
-    }
+    }*/
 
 /********************************************************************************************************
  * SurfaceHolder.Callback Methods
@@ -143,6 +220,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public final void surfaceCreated(final SurfaceHolder holder) {
     	if (D) Log.d(TAG, "surfaceCreated");   	
     	_controller.setPreviewDisplay(holder);
+    	Parameters params = _controller.getCameraParams();
+    	if (_previewSize != null) params.setPreviewSize(_previewSize.width, _previewSize.height);
+    	if (_pictureSize != null) params.setPictureSize(_pictureSize.width, _pictureSize.height);
+    	_controller.setCameraParams(params);
     	this.setWillNotDraw(false);
     }
 

@@ -49,7 +49,7 @@ public class TripAdapter extends BaseAdapter {
 		}
 		else {
 			TripRow trip = _trips[i-MAIN_HEADERS];
-			final String currency = SmartReceiptsActivity.CurrencyValue(trip.price);
+			final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
 			final String from = DateFormat.getDateFormat(_context).format(trip.from);
 			final String to = DateFormat.getDateFormat(_context).format(trip.to);
 			ListItemView v = new ListItemView(_context, currency, _largestWidth, trip.dir.getName(), from + " to " + to);

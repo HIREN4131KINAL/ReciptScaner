@@ -490,20 +490,13 @@ public abstract class SmartReceiptsActivity extends Activity {
 							 Toast.makeText(activity, DB_ERROR, Toast.LENGTH_SHORT).show();
 							 return;
 						 }
-						 // Probably should remove this line (still not sure why images are occasionally deleted)
-						 ReceiptRow[] receipts = activity._db.getReceipts(activity._currentTrip);
-						 for(int i=0; i < receipts.length; i++) {
-							 ReceiptRow receipt = receipts[i];
-							 if (receipt.img == null) Log.d(TAG, receipt.name + ": null");
-							 else Log.d(TAG, receipt.name + ": " + receipt.img.getPath() + " -- " + receipt.img.exists());
-						 }
 						 dialog.cancel();
 					 }
 				 }
 			 })  
 			 .setNegativeButton("Cancel", new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
 				 public void onClick(DialogInterface dialog, int which) {
-					 if (img != null)
+					 if (img != null && newReceipt)
 						 activity._sdCard.delete(img); //Clean Up On Cancel
 					 dialog.cancel();   
 				 }
@@ -677,7 +670,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 			    	final String selection = NOIMG_EDIT_RECEIPT_ITEMS[item].toString();
 			    	//TODO: Remove the virtual get calls below
 			    	if (selection == NOIMG_EDIT_RECEIPT_ITEMS[0]) //Edit Receipt
-			    		activity.receiptMenu(activity._currentTrip, receipt, receipt.img);
+			    		activity.receiptMenu(activity._currentTrip, receipt, null);
 			    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[1]) { //Take Photo
 			    		try {
 							final Intent intent = new Intent(activity, MyCameraActivity.class);

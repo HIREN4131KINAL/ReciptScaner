@@ -6,9 +6,6 @@ import java.util.List;
 
 import wb.android.camera.CameraActivity;
 import wb.android.camera.CameraController;
-import wb.android.storage.SDCardFileManager;
-import wb.android.storage.InternalStorageManager;
-import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,8 +44,8 @@ public class MyCameraActivity extends CameraActivity {
     private static final String TAG = "MyCameraActivity";
     
     //results codes
-    public static final int PICTURE_SUCCESS = 1;
-    public static final int AUTOFOCUS_FAILED = 2;
+    public static final int PICTURE_SUCCESS = 51;
+    public static final int AUTOFOCUS_FAILED = 52;
     
     //Extras Filepath
     public static final String IMG_FILE = "bitmap";
@@ -77,12 +74,7 @@ public class MyCameraActivity extends CameraActivity {
     	if(D) Log.d(TAG, "onCreate");
     	setResult(Activity.RESULT_CANCELED); //In case the user backs out
     	super.onCreate(savedInstanceState);
-    	try {
-			_sdCard = new SDCardFileManager(this);
-		} 
-        catch (SDCardStateException e) {
-        	_sdCard = new InternalStorageManager(this);
-        }
+    	_sdCard = StorageManager.getInstance(this);
         _photoInProgress = false;
         _photoTakenCallback = false;
         DisplayMetrics metrics = new DisplayMetrics();
@@ -300,9 +292,13 @@ public class MyCameraActivity extends CameraActivity {
     	return false;
     }
     
-    private final File handleImage(final byte[] jpg, final boolean isColor, final int rotation) {
+    private final File handleImage(byte[] jpg, final boolean isColor, final int rotation) {
     	System.gc(); //Avoid Bitmap memory issues (shrink size first to help memory)
-    	Bitmap bitmap = this.rotate(this.shrinkBitmap(jpg, 1024), rotation);
+    	Bitmap shrink = this.shrinkBitmap(jpg, 1024);
+    	jpg = null; //Force Memory free
+    	_jpg = null; //Force Memory free
+    	Bitmap bitmap = this.rotate(shrink, rotation);
+    	shrink = null; //Force Memory free
     	if (!isColor)
     		bitmap = this.toGrayscale(bitmap);
     	Time now = new Time();
@@ -337,7 +333,7 @@ public class MyCameraActivity extends CameraActivity {
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inJustDecodeBounds = true;
         BitmapFactory.decodeByteArray(jpg, 0, jpg.length, opts);
-
+        System.gc();
         //Find the correct scale value. It should be the power of 2.
         int width_tmp=opts.outWidth, height_tmp=opts.outHeight;
         int scale=1;
@@ -346,7 +342,6 @@ public class MyCameraActivity extends CameraActivity {
             height_tmp/=2;
             scale*=2;
         }
-
         //Decode with inSampleSize
         BitmapFactory.Options opts2 = new BitmapFactory.Options();
         opts2.inSampleSize=scale;

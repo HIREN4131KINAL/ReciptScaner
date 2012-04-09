@@ -7,27 +7,76 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.util.Log;
 
-public abstract class StorageManager {
+//There are a lot of helper methods here to make sure that no functionality is lost if a method is overwritten
+public class StorageManager {
+	
+	private static final String TAG = "StorageManager";
 	
 	protected File _root;
-	private FileFilter _filesFilter, _dirsFilter;
 	
-	protected StorageManager() {}
+	private static SDCardFileManager _externalInstance = null;
+	private static InternalStorageManager _internalInstance = null;
+	
+	protected StorageManager(File root) {
+		_root = root;
+	}
+	
+	public static StorageManager getInstance(Activity activity) {
+		if (_externalInstance != null)
+			return _externalInstance;
+		if (_internalInstance != null)
+			return _internalInstance;
+		try {
+			_externalInstance = new SDCardFileManager(activity);
+			return _externalInstance;
+		} catch (SDCardStateException e) {
+			_internalInstance = new InternalStorageManager(activity);
+			return _internalInstance;
+		}
+	}
+	
+	public static final SDCardFileManager getExternalInstance(Activity activity) throws SDCardStateException {
+		if (_externalInstance != null)
+			return _externalInstance;
+		_externalInstance = new SDCardFileManager(activity);
+		return _externalInstance;
+	}
+	
+	public static final SDCardFileManager getExternalInstance(Activity activity, String[] allowedStates) throws SDCardStateException {
+		if (_externalInstance != null)
+			return _externalInstance;
+		_externalInstance = new SDCardFileManager(activity, allowedStates);
+		return _externalInstance;
+	}
+	
+	public static final InternalStorageManager getInternalInstance(Activity activity) {
+		if (_internalInstance != null)
+			return _internalInstance;
+		_internalInstance = new InternalStorageManager(activity);
+		return _internalInstance;
+	}
 
-	public final boolean isRoot(final File dir) {
+	public boolean isRoot(final File dir) {
 		return dir.equals(_root);
 	}
 	
 	// Returns the directory if successfully built. Returns null otherwise
-	public final File mkdir(final String name) {
-		return mkdir(_root, name);
+	public File mkdir(final String name) {
+		return mkdirHelper(_root, name);
 	}
 	
-	public final File mkdir(final File root, final String name) {
+	public File mkdir(final File root, final String name) {
+		return mkdirHelper(root, name);
+	}
+	
+	private final File mkdirHelper(final File root, final String name) {
 		final File dir = new File(root, name);
 		if (!dir.exists()) {
 			final boolean success = dir.mkdir();
@@ -37,15 +86,15 @@ public abstract class StorageManager {
 		return dir;
 	}
 	
-	public final File getFile(final String filename) {
-		return getFile(_root, filename);
+	public File getFile(final String filename) {
+		return new File(_root, filename);
 	}
 	
-	public final File getFile(final File root, final String filename) {
+	public File getFile(final File root, final String filename) {
 		return new File(root, filename);
 	}
 	
-	public final File rename(final File oldFile, final String newName) {
+	public File rename(final File oldFile, final String newName) {
 		final File file = this.getFile(newName);
 		final boolean success = oldFile.renameTo(file);
 		if (success)
@@ -54,7 +103,19 @@ public abstract class StorageManager {
 			return oldFile;
 	}
 	
-	public final boolean delete(final File file) {
+	public boolean delete(final String filename) {
+		return deleteHelper(new File(_root, filename));
+	}
+	
+	public boolean delete(final File dir, final String filename) {
+		return deleteHelper(new File(dir, filename));
+	}
+	
+	public boolean delete(final File file) {
+		return deleteHelper(file);
+	}
+	
+	private final boolean deleteHelper(final File file) {
 		if (file == null || !file.exists())
 			return true;
 		if  (!file.canWrite())
@@ -64,16 +125,7 @@ public abstract class StorageManager {
 		return file.delete();
 	}
 	
-	public final boolean delete(final String filename) {
-		return delete(_root, filename);
-	}
-	
-	public final boolean delete(final File dir, final String filename) {
-		File del = new File(dir, filename);
-		return delete(del);
-	}
-	
-	public final boolean deleteRecursively(final File dir) {
+	public boolean deleteRecursively(final File dir) {
 		if (dir == null || !dir.exists())
 			return true;
 		if (!dir.canWrite())
@@ -89,7 +141,7 @@ public abstract class StorageManager {
 		return dir.delete();
 	}
 	
-	public final boolean deleteAll() {
+	public boolean deleteAll() {
 		final File[] files = _root.listFiles();
 		final int len = files.length;
 		for (int i = 0; i < len; i++) 
@@ -97,11 +149,15 @@ public abstract class StorageManager {
 		return (_root.listFiles().length == 0);
 	}
 	
-	public final boolean write(final String filename, final byte[] data) {
-		return this.write(_root, filename, data);
+	public boolean write(final String filename, final byte[] data) {
+		return writeHelper(_root, filename, data);
 	}
 	
-	public final boolean write(final File dir, final String filename, final byte[] data) {
+	public boolean write(final File dir, final String filename, final byte[] data) {
+		return writeHelper(dir, filename, data);
+	}
+	
+	private final boolean writeHelper(final File dir, final String filename, final byte[] data) {
 		String path = dir.toString();
 		if (!path.endsWith(File.separator))
 			path += File.separator;
@@ -122,11 +178,15 @@ public abstract class StorageManager {
 		return true;
 	}
 	
-	public final boolean write(final String filename, final String data) {
-		return this.write(_root, filename, data);
+	public boolean write(final String filename, final String data) {
+		return writeHelper(_root, filename, data);
 	}
 	
-	public final boolean write(final File dir, final String filename, final String data) {
+	public boolean write(final File dir, final String filename, final String data) {
+		return writeHelper(dir, filename, data);
+	}
+	
+	private final boolean writeHelper(final File dir, final String filename, final String data) {
 		String path = dir.toString();
 		if (!path.endsWith(File.separator))
 			path += File.separator;
@@ -147,11 +207,26 @@ public abstract class StorageManager {
 		return true;
 	}
 	
-	public final boolean writeBitmap(final Bitmap bitmap, final String filename, final CompressFormat format, int quality) {
-		return this.writeBitmap(_root, bitmap, filename, format, quality);
+	public boolean createFile(final File file) {
+		try {
+			if (!file.exists()) {
+				return file.createNewFile();
+			}
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 	
-	public final boolean writeBitmap(final File dir, final Bitmap bitmap, final String filename, final CompressFormat format, int quality) {
+	public boolean writeBitmap(final Bitmap bitmap, final String filename, final CompressFormat format, int quality) {
+		return writeBitmapHelper(_root, bitmap, filename, format, quality);
+	}
+	
+	public boolean writeBitmap(final File dir, final Bitmap bitmap, final String filename, final CompressFormat format, int quality) {
+		return writeBitmapHelper(dir, bitmap, filename, format, quality);
+	}
+	
+	private final boolean writeBitmapHelper(final File dir, final Bitmap bitmap, final String filename, final CompressFormat format, int quality) {
 		String path = dir.toString();
 		if (!path.endsWith(File.separator))
 			path += File.separator;
@@ -161,6 +236,26 @@ public abstract class StorageManager {
 			bitmap.compress(format, quality, fos);
 			fos.close();
 		} catch (IOException e) {
+			Log.e(TAG, e.toString());
+			return false;
+		} finally {
+			try {
+				if (fos != null)
+					fos.close();
+			}
+			catch (IOException e) {}
+		}
+		return true;
+	}
+	
+	public boolean writeBitmap(final Uri imageUri, final Bitmap bitmap, final CompressFormat format, int quality) {
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(imageUri.getPath());
+			bitmap.compress(format, quality, fos);
+			fos.close();
+		} catch (IOException e) {
+			Log.e(TAG, e.toString());
 			return false;
 		} finally {
 			try {
@@ -172,7 +267,7 @@ public abstract class StorageManager {
 		return true;
 	}
 		
-	public final byte[] read(final File f) {
+	public byte[] read(final File f) {
 		byte[] buffer;
 		FileInputStream fis = null;
 		try {
@@ -197,57 +292,65 @@ public abstract class StorageManager {
 		return buffer;
 	}
 	
-	public final File[] listFilesAndDirectories() {
-		return this.listFilesAndDirectories(_root);
-	}
-	
-	public final File[] listFilesAndDirectories(final File root) {
+	public File[] listFilesAndDirectories() {
 		return _root.listFiles();
 	}
 	
-	public final File[] listFiles() {
-		return this.listFiles(_root);
+	public File[] listFilesAndDirectories(final File root) {
+		return root.listFiles();
 	}
 	
-	public final File[] listFiles(final File root) {
-		if (_filesFilter == null) {
-			_filesFilter = new FileFilter() {
-				public final boolean accept(File file) {
-					return !file.isDirectory();
-				}
-			};
-		}
-		return this.list(root, _filesFilter);
+	public File[] listFiles() {
+		return listFilesHelper(_root);
 	}
 	
-	public final File[] listDirs() {
-		return this.listDirs(_root);
+	public File[] listFiles(final File root) {
+		return listFilesHelper(root);
 	}
 	
-	public final File[] listDirs(final File root) {
-		if (_dirsFilter == null) {
-			_dirsFilter = new FileFilter() {
-				public final boolean accept(File file) {
-					return file.isDirectory();
-				}
-			};
-		}
-		return this.list(root, _dirsFilter);
+	private final File[] listFilesHelper(final File root) {
+		FileFilter filesFilter = new FileFilter() {
+			public final boolean accept(File file) {
+				return !file.isDirectory();
+			}
+		};
+		return this.list(root, filesFilter);
 	}
 	
-	public final File[] list(final FileFilter filter) {
-		return this.list(_root, filter);
+	public File[] listDirs() {
+		return listDirsHelper(_root);
 	}
 	
-	public final File[] list(final File root, final FileFilter filter) {
+	public File[] listDirs(final File root) {
+		return listDirsHelper(root);
+	}
+	
+	private final File[] listDirsHelper(final File root) {
+		FileFilter dirsFilter = new FileFilter() {
+			public final boolean accept(File file) {
+				return file.isDirectory();
+			}
+		};
+		return this.list(root, dirsFilter);
+	}
+	
+	public File[] list(final FileFilter filter) {
+		return _root.listFiles(filter);
+	}
+	
+	public File[] list(final File root, final FileFilter filter) {
 		return root.listFiles(filter);
 	}
 	
 	public File[] list(final String extension) {
-		return list(_root, extension);
+		return listHelper(_root, extension);
 	}
 	
-	public final File[] list(final File root, final String extension) {
+	public File[] list(final File root, final String extension) {
+		return listHelper(root, extension);
+	}
+	
+	private final File[] listHelper(final File root, final String extension) {
 		FileFilter ff = new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
@@ -260,11 +363,15 @@ public abstract class StorageManager {
 		return list(root, ff);
 	}
 	
-	public final Bitmap getBitmap(final String filename) {
-		return getBitmap(_root, filename);
+	public Bitmap getBitmap(final String filename) {
+		return getBitmapHelper(_root, filename);
 	}
 	
-	public final Bitmap getBitmap(final File root, final String filename) {
+	public Bitmap getBitmap(final File root, final String filename) {
+		return getBitmapHelper(root, filename);
+	}
+	
+	private final Bitmap getBitmapHelper(final File root, final String filename) {
 		try {
 			File path = new File(root, filename);
 			return BitmapFactory.decodeFile(path.getCanonicalPath());
@@ -273,9 +380,23 @@ public abstract class StorageManager {
 		}
 	}
 	
-	public abstract FileOutputStream getFOS(String filename, int mode) throws FileNotFoundException;
-	public abstract FileOutputStream getFOS(File dir, String filename, int mode) throws FileNotFoundException;
-	public abstract boolean isCurrentStateValid();
-	public abstract boolean isExternal();
+	public boolean isExternal() {
+		return (this instanceof SDCardFileManager);
+	}
+	
+	public FileOutputStream getFOS(String filename) throws FileNotFoundException {
+		return getFOSHelper(_root, filename);
+	}
+	
+	public FileOutputStream getFOS(File dir, String filename) throws FileNotFoundException {
+		return getFOSHelper(dir, filename);
+	}
+	
+	private final FileOutputStream getFOSHelper(File dir, String filename) throws FileNotFoundException {
+		String path = dir.toString();
+		if (!path.endsWith(File.separator))
+			path += File.separator;
+		return new FileOutputStream(path + filename);
+	} 
 	
 }

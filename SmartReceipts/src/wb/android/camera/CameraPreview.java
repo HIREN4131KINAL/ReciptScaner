@@ -68,6 +68,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         if (android.os.Build.MODEL.equalsIgnoreCase("DROIDX") || android.os.Build.MODEL.equalsIgnoreCase("DROID X")) {//Droid X seems to have issues with preview sizes that are too large
         	_previewSize = params.getPreviewSize();
         }
+        if (params == null) return;
         List<Size> previewSizes = params.getSupportedPreviewSizes();
         List<Size> pictureSizes = params.getSupportedPictureSizes();
         final float ASPECT_TOLERANCE = 0.1f;

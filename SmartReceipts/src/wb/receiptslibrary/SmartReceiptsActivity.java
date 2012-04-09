@@ -9,33 +9,42 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Locale;
 
-import wb.android.storage.SDCardFileManager;
-import wb.android.storage.InternalStorageManager;
-import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.util.AppRating;
+import wb.csv.CSVColumns;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
+import android.database.Cursor;
 import android.database.SQLException;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Bitmap.CompressFormat;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.InputType;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -62,7 +71,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     static final String SD_ERROR = "Error: Please make sure that your SD Card is available and not mounted to your computer.";
     static final String SD_WARNING = "Warning: Your SD Card is not available or is mounted to your computer. Some images may be inaccessible. Switching to internal storage...";
     static final String DB_ERROR = "Error: Another application is using the SQLite Database.";
-    static final String IMG_ERROR = "Error: The image is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer. If not, click the menu button to retake the photo.";
+    static final String IMG_OPEN_ERROR = "Error: The image is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer. If not, click the menu button to retake the photo.";
+    static final String IMG_SAVE_ERROR = "Error: The Image Failed to Save Properly";
+    static final String IMG_SEND_ERROR = "Error: The Image was not properly sent to this app";
     static final String ILLEGAL_CHAR_ERROR = "Error: The name contains an illegal character";
     static final String SPACE_ERROR = "Error: The name cannot begin with a space";
     static final String CALENDAR_TAB_ERROR = "Error: Please Touch the Date TextBox to set the Date";
@@ -70,11 +81,13 @@ public abstract class SmartReceiptsActivity extends Activity {
     
     //Menus Items
     private static final CharSequence[] EDIT_TRIP_ITEMS = {"Email Report", "Edit Report", "Delete Report"};
-    private static final CharSequence[] IMG_EDIT_RECEIPT_ITEMS = {"Edit Receipt", "View Receipt Image", "Delete Receipt"};
-    private static final CharSequence[] NOIMG_EDIT_RECEIPT_ITEMS = {"Edit Receipt", "Take Receipt Image", "Delete Receipt"};
+    private static final CharSequence[] IMG_EDIT_RECEIPT_ITEMS = {"Edit Receipt", "View Receipt Image", "Delete Receipt", "Move Up", "Move Down"};
+    private static final CharSequence[] NOIMG_EDIT_RECEIPT_ITEMS = {"Edit Receipt", "Take Receipt Image", "Delete Receipt", "Move Up", "Move Down"};
+    private static final CharSequence[] ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS = {"View Receipt Image", "Attach Image to Receipt"};
+    private static final CharSequence[] ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS = {"Attach Image to Receipt"};
     
     //About
-    private static final String ABOUT = "Smart Receipts v1.1.0\nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License";
+    private static String ABOUT;
     
 	//Public 
 	public static final Locale LOCALE = Locale.getDefault();
@@ -83,6 +96,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
     private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
     private static final int RETAKE_PHOTO_CAMERA_REQUEST = 3;
+    private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 4;
+    private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 5;
+    private static final int NATIVE_RETAKE_PHOTO_CAMERA_REQUEST = 6;
     
     //Camera Request Extras
     static final String STRING_DATA = "strData";
@@ -94,6 +110,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     private static final int SETTINGS_ID = 1;
     private static final int CATEGORIES_ID = 2;
     private static final int RETAKE_PHOTO_ID = 3;
+    private static final int CSV_MENU_ID = 4;
     
     //Preferences
     private static final String SMART_PREFS = "SmartReceiptsPrefFile";
@@ -101,6 +118,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     private static final String STRING_DEFAULT_EMAIL_TO = "EmailTo";
     private static final String BOOL_PREDICT_CATEGORIES = "PredictCats";
     private static final String BOOL_MATCH_COMMENT_WITH_CATEGORIES = "MatchCommentCats";
+    private static final String BOOL_MATCH_NAME_WITH_CATEGORIES = "MatchNameCats";
+    private static final String BOOL_USE_NATIVE_CAMERA = "UseNativeCamera";
+    private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
     private static final String STRING_CURRENCY = "isocurr";
     
     //Receiver Settings
@@ -123,9 +143,10 @@ public abstract class SmartReceiptsActivity extends Activity {
     ListView _listView;
     ImageView _imgView;
     MyCalendarDialog _calendar;
-    boolean _isViewingTrip, _firstTrip, _isViewingImg, _predictCategories, _matchCommentCats; 
+    boolean _isViewingTrip = false, _isViewingImg, _predictCategories, _matchCommentCats, _matchNameCats, _useNativeCamera, _calledFromActionSend, _saveState; 
     int _defaultTripDuration;
     String _emailTo, _currency;
+    Uri _imageUri, _actionSendUri;
     
 	/* OCR Stuff:
 	 * 	 1. Check that the DC card is mounted and an OCR isn't currently in progress (boolean checks)
@@ -136,24 +157,52 @@ public abstract class SmartReceiptsActivity extends Activity {
     protected final void onCreate(final Bundle savedInstanceState, final RelativeLayout mainLayout, final ListView listView) {
     	if(D) Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        _isViewingTrip = false; _firstTrip = true; _isViewingImg = false;
-	    _currentTrip = null;
+        setResult(Activity.RESULT_CANCELED); //In case the user backs out
+        if (this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
+        	_calledFromActionSend = true;
+        	if (this.getIntent().getExtras() != null) {
+    	        String[] proj = {MediaStore.Images.Media.DATA};
+    	        Cursor cursor = managedQuery((Uri) this.getIntent().getExtras().get(Intent.EXTRA_STREAM), proj, null, null, null);
+    	        if (cursor == null) {
+    	        	Toast.makeText(SmartReceiptsActivity.this, IMG_SEND_ERROR, Toast.LENGTH_LONG).show();
+    	        	return;
+    	        }
+    	        int col = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+    	        cursor.moveToFirst();
+    	        _actionSendUri = Uri.fromFile(new File(cursor.getString(col)));
+    	        cursor.close();
+        	}
+        	else {
+        		Toast.makeText(SmartReceiptsActivity.this, IMG_SEND_ERROR, Toast.LENGTH_LONG).show();
+	        	return;
+        	}
+        }
+        else
+        	_calledFromActionSend = false;
+        _isViewingImg = false;
     	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
     	_defaultTripDuration = prefs.getInt(INT_DEFAULT_TRIP_DURATION, 3);
     	_emailTo = prefs.getString(STRING_DEFAULT_EMAIL_TO, "");
     	_predictCategories = prefs.getBoolean(BOOL_PREDICT_CATEGORIES, true);
+    	_useNativeCamera = prefs.getBoolean(BOOL_USE_NATIVE_CAMERA, false);
     	_matchCommentCats = prefs.getBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, false);
+    	_matchNameCats = prefs.getBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, false);
     	try {
     		_currency = prefs.getString(STRING_CURRENCY, Currency.getInstance(LOCALE).getCurrencyCode());
     	} catch (IllegalArgumentException ex) {
 			_currency = "USD";
 		}
-	    _db = new DatabaseHelper(this);
+	    _db = DatabaseHelper.getInstance(this);
 	    _mainLayout = mainLayout;
         _listView = listView;
         _tripAdapter = new TripAdapter(this, _db.getTrips());
         _receiptAdapter = new ReceiptAdapter(this, new ReceiptRow[0]);
         _listView.setAdapter(_tripAdapter);
+        try {
+			ABOUT = "Smart Receipts v." + this.getPackageManager().getPackageInfo(getPackageName(), 0).versionName + "\nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License";
+		} catch (NameNotFoundException e) {
+			ABOUT = "Smart Receipts\nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License";
+		}
     }
     
     @Override
@@ -173,20 +222,62 @@ public abstract class SmartReceiptsActivity extends Activity {
     @Override
     protected final void onResume() {
     	super.onResume();
-    	try {
-			_sdCard = new SDCardFileManager(this);
-		} 
-        catch (SDCardStateException e) {
-        	Log.e(TAG, "Using internal memory...");
-        	_sdCard = new InternalStorageManager(this);
+    	_sdCard = StorageManager.getInstance(this);
+    	if (!_sdCard.isExternal())
         	Toast.makeText(SmartReceiptsActivity.this, SD_WARNING, Toast.LENGTH_LONG).show();
-        }
+    	if (_calledFromActionSend) {
+    		final SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
+    		if (prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true)) {
+	        	BetterDialogBuilder builder = new BetterDialogBuilder(this);
+	        	builder.setTitle("Add Picture to Receipt")
+	        		   .setMessage("Tap on an existing receipt to add this image to it.")
+	        		   .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+	    					@Override
+	    					public void onClick(DialogInterface dialog, int which) {
+	    						dialog.cancel();
+	    					}
+	        		   })
+	        		   .setNegativeButton("Don't Show Again", new DialogInterface.OnClickListener() {
+	    					@Override
+	    					public void onClick(DialogInterface dialog, int which) {
+	    						SharedPreferences.Editor editor = prefs.edit();
+	    						editor.putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, false);
+	    						editor.commit();
+	    						dialog.cancel();
+	    					}
+	        		   })
+	        		   .show();
+    		}
+    	}
+    	if (_isViewingTrip) {
+    		if (_currentTrip != null)
+    			viewTrip(_currentTrip);
+    		else
+    			_isViewingTrip = false;
+    	}
     }
     
     @Override
     protected final void onDestroy() {
     	super.onDestroy();
     	_db.onDestroy();
+    }
+    
+    /**
+     * This method is only called the first time Smart Receipts is run.
+     * It gives a brief overview of how to use the app.
+     */
+    final void onFirstRun() {
+    	BetterDialogBuilder builder = new BetterDialogBuilder(this);
+    	builder.setTitle("Smart Receipts")
+    		   .setMessage("Thanks for downloading Smart Receipts. To get started, tap the \"+ Expense Report\" button. Once you've created a report, tap on it to begin adding receipts. At the end of each week, you can export PDF and CSV reports of your receipt totals. Also, be sure to check out the settings menu to customize this application for your needs. Thanks!")
+    		   .setPositiveButton("Get Started", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+					}
+    		   })
+    		   .show();
     }
     
     public static final String CurrencyValue(final String price, final Currency	currency) {
@@ -255,8 +346,9 @@ public abstract class SmartReceiptsActivity extends Activity {
 			else 
 				endBox.setHint("End Date");
 		}
+		nameBox.setSelection(nameBox.getText().length()); //Put the cursor at the end
 		
-		//Show the Dialog
+		//Show the DialogController
 		final BetterDialogBuilder builder = new BetterDialogBuilder(this);
 		builder.setTitle((newTrip)?"New Expense Report":"Edit Report")
 			 .setCancelable(true)
@@ -351,19 +443,28 @@ public abstract class SmartReceiptsActivity extends Activity {
     }
     
     public final void addPictureReceipt() {
-		try {
-			final Intent intent = new Intent(this, MyCameraActivity.class);
-			String dirPath;
+    	String dirPath;
+    	try {
 			if (_currentTrip.dir.exists())
 				dirPath = _currentTrip.dir.getCanonicalPath();
 			else
 				dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
+		} catch (IOException e) {
+			Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+			return;
+		}
+    	if (_useNativeCamera) {
+        	final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            _imageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + _db.getReceipts(_currentTrip).length + ".jpg"));
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri);
+            startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
+    	}
+    	else {
+			final Intent intent = new Intent(this, MyCameraActivity.class);
 			String[] strings  = new String[] {dirPath, System.currentTimeMillis() + "x" + _db.getReceipts(_currentTrip).length + ".jpg"};
 			intent.putExtra(STRING_DATA, strings);
 			this.startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
-		} catch (IOException e) {
-			Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
-		}
+    	}
     }
     
     public final void addTextReceipt() {
@@ -378,10 +479,10 @@ public abstract class SmartReceiptsActivity extends Activity {
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.BOTTOM);
 		layout.setPadding(6, 6, 6, 6);
-		final EditText nameBox = new EditText(this);
+		final EditText nameBox = new EditText(this); //nameBox.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 		final LinearLayout pricingLayout = new LinearLayout(this);
 		pricingLayout.setOrientation(LinearLayout.HORIZONTAL);
-		final EditText priceBox = new EditText(this); priceBox.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+		final EditText priceBox = new EditText(this); priceBox.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
 		final Spinner currencySpinner = new Spinner(this);
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, this._db.getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -412,7 +513,9 @@ public abstract class SmartReceiptsActivity extends Activity {
 			dateBox.date = new Date(now.toMillis(false)); dateBox.setText(DateFormat.getDateFormat(this).format(dateBox.date));
 			commentBox.setHint("Comment");
 			expensable.setChecked(true);
-			if (_matchCommentCats) categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener(commentBox, categories));
+			if (_matchCommentCats && _matchNameCats) categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener(nameBox, commentBox, categories));
+			else if (_matchCommentCats) categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener(null, commentBox, categories));
+			else if (_matchNameCats) categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener(nameBox, null, categories));
 			if (_predictCategories) { //Predict Breakfast, Lunch, Dinner by the hour
 				if (now.hour >= 4 && now.hour < 11) { //Breakfast hours
 					int idx = categories.getPosition("Breakfast");
@@ -444,8 +547,9 @@ public abstract class SmartReceiptsActivity extends Activity {
 			expensable.setChecked(receipt.expensable);
 			fullpage.setChecked(receipt.fullpage);
 		}
+		nameBox.setSelection(nameBox.getText().length()); //Put the cursor at the end
 		
-		//Show Dialog
+		//Show DialogController
 		final BetterDialogBuilder builder = new BetterDialogBuilder(this);
 		builder.setTitle((newReceipt)?"New Receipt":"Edit Receipt")
 			 .setCancelable(true)
@@ -500,8 +604,17 @@ public abstract class SmartReceiptsActivity extends Activity {
 						 activity._sdCard.delete(img); //Clean Up On Cancel
 					 dialog.cancel();   
 				 }
-			 })
-			 .show();
+			 });
+		final AlertDialog dialog = builder.show();
+		if (newReceipt) {
+			nameBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+				@Override
+				public void onFocusChange(View v, boolean hasFocus) {
+					if (hasFocus && getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES)
+						dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+				}
+			});
+		}
     }
     
     final void updateTitlePrice(TripRow trip, ReceiptRow oldReceipt, ReceiptRow newReceipt) {
@@ -664,51 +777,156 @@ public abstract class SmartReceiptsActivity extends Activity {
 		                dialog.cancel();
 		           }
 		       });
-		if (receipt.img == null) {
-			builder.setItems(NOIMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	final String selection = NOIMG_EDIT_RECEIPT_ITEMS[item].toString();
-			    	//TODO: Remove the virtual get calls below
-			    	if (selection == NOIMG_EDIT_RECEIPT_ITEMS[0]) //Edit Receipt
-			    		activity.receiptMenu(activity._currentTrip, receipt, null);
-			    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[1]) { //Take Photo
-			    		try {
-							final Intent intent = new Intent(activity, MyCameraActivity.class);
+		if (_calledFromActionSend) {
+			if (receipt.img == null) {
+				builder.setItems(ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+					public void onClick(DialogInterface dialog, int item) {
+						final String selection = ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS[item].toString();
+						if (selection == ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS[0]) { //Attach Image to Receipt
 							String dirPath;
-							if (_currentTrip.dir.exists())
-								dirPath = _currentTrip.dir.getCanonicalPath();
-							else
-								dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
-							String[] strings  = new String[] {dirPath, receipt.id + "x.jpg"};
-							intent.putExtra(STRING_DATA, strings);
-							activity.startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
-			    		} catch (IOException e) {
-							   Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+							try {
+								if (_currentTrip.dir.exists())
+									dirPath = _currentTrip.dir.getCanonicalPath();
+								else
+									dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
+							} catch (IOException e) {
+								   Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+								   return;
+							}
+							File imgFile = transformNativeCameraBitmap(_actionSendUri, null, Uri.fromFile(new File(dirPath, receipt.id + "x.jpg")));
+							if (imgFile != null) {
+								Log.e(TAG, imgFile.getPath());
+								final ReceiptRow updatedReceipt = _db.updateReceiptImg(receipt, imgFile);
+								if (updatedReceipt != null) {
+									_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+									Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Added to " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
+									setResult(RESULT_OK, new Intent(Intent.ACTION_SEND, Uri.fromFile(imgFile)));
+									_isViewingTrip = false;
+									finish();
+								}
+								else {
+									Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+									_sdCard.delete(imgFile); //Rollback
+									finish();
+									return;
+								}
+							}
+							else {
+								Toast.makeText(SmartReceiptsActivity.this, IMG_SAVE_ERROR, Toast.LENGTH_SHORT).show();
+								finish();
+							}
 						}
-			    	}
-			    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[2]) //Delete Receipt
-			    		activity.deleteReceipt(receipt);
-			    	dialog.cancel();
-			    }
-			});
+					}
+				});
+			}
+			else {
+				builder.setItems(ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+					public void onClick(DialogInterface dialog, int item) {
+						final String selection = ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS[item].toString();
+						if (selection == ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS[0]) //View Image
+							activity.showImage(receipt);
+						else if (selection == ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS[1]) { //Attach Image to Receipt
+							String dirPath;
+							try {
+								if (_currentTrip.dir.exists())
+									dirPath = _currentTrip.dir.getCanonicalPath();
+								else
+									dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
+							} catch (IOException e) {
+								   Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+								   return;
+							}
+							File imgFile = transformNativeCameraBitmap(_actionSendUri, null, Uri.fromFile(new File(dirPath, receipt.id + "x.jpg")));
+							if (imgFile != null) {
+								Log.e(TAG, imgFile.getPath());
+								final ReceiptRow retakeReceipt = _db.updateReceiptImg(_highlightedReceipt, imgFile);
+								if (retakeReceipt != null) {
+									_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+									Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Replaced for " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
+									setResult(RESULT_OK, new Intent(Intent.ACTION_SEND, Uri.fromFile(imgFile)));
+									_isViewingTrip = false;
+									finish();
+								}
+								else {
+									Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+									//Add overwrite rollback here
+									finish();
+								}
+							}
+							else {
+								Toast.makeText(SmartReceiptsActivity.this, IMG_SAVE_ERROR, Toast.LENGTH_SHORT).show();
+								finish();
+							}
+						}
+					}
+				});
+			}
 		}
 		else {
-			builder.setItems(IMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	final String selection = IMG_EDIT_RECEIPT_ITEMS[item].toString();
-			    	//TODO: Remove the virtual get calls below
-			    	if (selection == IMG_EDIT_RECEIPT_ITEMS[0]) //Edit Receipt
-			    		activity.receiptMenu(_currentTrip, receipt, receipt.img);
-			    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[1]) { //View/Retake Image 
-			    		activity.showImage(receipt);
-			    	}
-			    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[2]) //Delete Receipt
-			    		activity.deleteReceipt(receipt);
-			    	dialog.cancel();
-			    }
-			});
+			if (receipt.img == null) {
+				builder.setItems(NOIMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+					public void onClick(DialogInterface dialog, int item) {
+				    	final String selection = NOIMG_EDIT_RECEIPT_ITEMS[item].toString();
+				    	if (selection == NOIMG_EDIT_RECEIPT_ITEMS[0]) //Edit Receipt
+				    		activity.receiptMenu(activity._currentTrip, receipt, null);
+				    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[1]) { //Take Photo
+							String dirPath;
+							try {
+								if (_currentTrip.dir.exists())
+									dirPath = _currentTrip.dir.getCanonicalPath();
+								else
+									dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
+							} catch (IOException e) {
+								   Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+								   return;
+							}
+				    		if (_useNativeCamera) {
+				            	final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+				                _imageUri = Uri.fromFile(new File(dirPath, receipt.id + "x.jpg"));
+				                intent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri);
+				                startActivityForResult(intent, NATIVE_ADD_PHOTO_CAMERA_REQUEST);
+				        	}
+				        	else {
+								final Intent intent = new Intent(activity, MyCameraActivity.class);
+								String[] strings  = new String[] {dirPath, receipt.id + "x.jpg"};
+								intent.putExtra(STRING_DATA, strings);
+								activity.startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
+				        	}
+				    	}
+				    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[2]) //Delete Receipt
+				    		activity.deleteReceipt(receipt);
+				    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[3]) //Move Up
+				    		activity.moveReceiptUp(receipt);
+				    	else if (selection == NOIMG_EDIT_RECEIPT_ITEMS[4]) //Move Down
+				    		activity.moveReceiptDown(receipt);
+				    	dialog.cancel();
+				    }
+				});
+			}
+			else {
+				builder.setItems(IMG_EDIT_RECEIPT_ITEMS, new DirectDialogOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+				    public void onClick(DialogInterface dialog, int item) {
+				    	final String selection = IMG_EDIT_RECEIPT_ITEMS[item].toString();
+				    	if (selection == IMG_EDIT_RECEIPT_ITEMS[0]) //Edit Receipt
+				    		activity.receiptMenu(_currentTrip, receipt, receipt.img);
+				    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[1]) //View/Retake Image 
+				    		activity.showImage(receipt);
+				    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[2]) //Delete Receipt
+				    		activity.deleteReceipt(receipt);
+				    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[3]) //Move Up
+				    		activity.moveReceiptUp(receipt);
+				    	else if (selection == IMG_EDIT_RECEIPT_ITEMS[4]) //Move Down
+				    		activity.moveReceiptDown(receipt);
+				    	dialog.cancel();
+				    }
+				});
+			}
 		}
-		builder.create().show();
+		builder.show();
     	return true;
     }
     
@@ -721,8 +939,8 @@ public abstract class SmartReceiptsActivity extends Activity {
     			_imgView.setScaleType(ScaleType.FIT_CENTER);
     		}
     		if (!receipt.img.exists())
-    			Toast.makeText(this, IMG_ERROR, Toast.LENGTH_SHORT).show();
-    		System.gc();
+    			Toast.makeText(this, IMG_OPEN_ERROR, Toast.LENGTH_SHORT).show();
+    		System.gc(); 
     		_imgView.setImageBitmap(BitmapFactory.decodeFile(receipt.img.getCanonicalPath()));
     		this.setTitle(receipt.name);
     		this.setContentView(_imgView, params);
@@ -770,54 +988,192 @@ public abstract class SmartReceiptsActivity extends Activity {
 		       .show();
     }
     
+    final void moveReceiptUp(final ReceiptRow receipt) {
+    	_db.moveReceiptUp(_currentTrip, receipt);
+    	_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+    }
+    
+    final void moveReceiptDown(final ReceiptRow receipt) {
+    	_db.moveReceiptDown(_currentTrip, receipt);
+    	_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+    }
+    
     @Override
     protected final void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     	if (D) Log.d(TAG, "Result Code: " + resultCode);
-    	if (resultCode == MyCameraActivity.PICTURE_SUCCESS) {
-	    	switch (requestCode) {
-				case NEW_RECEIPT_CAMERA_REQUEST:
-					if (resultCode == MyCameraActivity.PICTURE_SUCCESS)
-						this.receiptMenu(_currentTrip, null, new File(data.getStringExtra(MyCameraActivity.IMG_FILE)));
-					else
-						Log.e(TAG, "Unexpected Result Code: " + resultCode);
+    	if (resultCode == RESULT_OK) { //-1
+			File imgFile = this.transformNativeCameraBitmap(_imageUri, data, null);
+			if (imgFile == null) {
+				Toast.makeText(this, IMG_SAVE_ERROR, Toast.LENGTH_SHORT).show();
+				return;
+			}
+    		switch (requestCode) {
+				case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
+					this.receiptMenu(_currentTrip, null, imgFile);
 				break;
-				case ADD_PHOTO_CAMERA_REQUEST:
-					if (resultCode == MyCameraActivity.PICTURE_SUCCESS) {
-						File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-						final ReceiptRow updatedReceipt = _db.updateReceiptImg(_highlightedReceipt, img);
-						if (updatedReceipt != null) {
-							_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
-							Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Added to " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
-						}
-						else {
-							Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
-							return;
-						}
+				case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
+					final ReceiptRow updatedReceipt = _db.updateReceiptImg(_highlightedReceipt, imgFile);
+					if (updatedReceipt != null) {
+						_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+						Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Added to " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
 					}
-					else
-						Log.e(TAG, "Unexpected Result Code: " + resultCode);
+					else {
+						Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+						_sdCard.delete(imgFile); //Rollback
+						return;
+					}
 				break;
-				case RETAKE_PHOTO_CAMERA_REQUEST:
-					if (resultCode == MyCameraActivity.PICTURE_SUCCESS) {
-						File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-						final ReceiptRow updatedReceipt = _db.updateReceiptImg(_highlightedReceipt, img);
-						if (updatedReceipt != null) {
-							_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
-							Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Replaced for " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
-			    			_isViewingImg = false;
-			    			this.setContentView(_mainLayout);
-							final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
-							this.setTitle(currency + " - " + _currentTrip.dir.getName());
-						}
-						else {
-							Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
-							return;
-						}
+				case NATIVE_RETAKE_PHOTO_CAMERA_REQUEST:
+					final ReceiptRow retakeReceipt = _db.updateReceiptImg(_highlightedReceipt, imgFile);
+					if (retakeReceipt != null) {
+						_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+						Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Replaced for " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
+		    			_isViewingImg = false;
+		    			this.setContentView(_mainLayout);
+						final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
+						this.setTitle(currency + " - " + _currentTrip.dir.getName());
 					}
-					else
-						Log.e(TAG, "Unexpected Result Code: " + resultCode);
+					else {
+						Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+						//Add overwrite rollback here
+						return;
+					}
+				break;
+				default:
+					Log.e(TAG, "Unrecognized Request Code: " + requestCode);
+					super.onActivityResult(requestCode, resultCode, data);
 				break;
 			}
+    	}
+    	else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) {  //51
+	    	switch (requestCode) {
+				case NEW_RECEIPT_CAMERA_REQUEST:
+					this.receiptMenu(_currentTrip, null, new File(data.getStringExtra(MyCameraActivity.IMG_FILE)));
+				break;
+				case ADD_PHOTO_CAMERA_REQUEST:
+					File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
+					final ReceiptRow updatedReceipt = _db.updateReceiptImg(_highlightedReceipt, img);
+					if (updatedReceipt != null) {
+						_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+						Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Added to " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
+					}
+					else {
+						Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+						return;
+					}
+				break;
+				case RETAKE_PHOTO_CAMERA_REQUEST:
+					File retakeImg = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
+					final ReceiptRow retakeReceipt = _db.updateReceiptImg(_highlightedReceipt, retakeImg);
+					if (retakeReceipt != null) {
+						_receiptAdapter.notifyDataSetChanged(_db.getReceipts(_currentTrip));
+						Toast.makeText(SmartReceiptsActivity.this, "Receipt Image Successfully Replaced for " + _highlightedReceipt.name, Toast.LENGTH_SHORT).show();
+		    			_isViewingImg = false;
+		    			this.setContentView(_mainLayout);
+						final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
+						this.setTitle(currency + " - " + _currentTrip.dir.getName());
+					}
+					else {
+						Toast.makeText(SmartReceiptsActivity.this, DB_ERROR, Toast.LENGTH_SHORT).show();
+						//Add overwrite rollback here
+						return;
+					}
+				break;
+				default:
+					Log.e(TAG, "Unrecognized Request Code: " + requestCode);
+					super.onActivityResult(requestCode, resultCode, data);
+				break;
+			}
+    	}
+    	else {
+			Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
+			super.onActivityResult(requestCode, resultCode, data);
+    	}
+    }
+    
+    //If imageDestination == null, then it's set to the imageUri location
+    private final File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
+		// Move this all to a separate thread
+		System.gc();
+		Uri imageUriCopy;
+		if (imageUri != null)
+			imageUriCopy = Uri.parse(imageUri.toString());
+		else {
+			if (data != null)
+				imageUriCopy = data.getData();
+			else
+				return null;
+		}
+		if (imageDestination == null)
+			imageDestination = imageUriCopy;
+		File imgFile = new File(imageDestination.getPath());
+		final int maxDimension = 1024;
+		BitmapFactory.Options fullOpts = new BitmapFactory.Options();
+		fullOpts.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(imageUriCopy.getPath(), fullOpts);
+		int fullWidth=fullOpts.outWidth, fullHeight=fullOpts.outHeight;
+		fullOpts = null;
+		int scale=1;
+		while(fullWidth > maxDimension && fullHeight > maxDimension){
+			fullWidth>>>=1;
+			fullHeight>>>=1;
+			scale<<=1;
+		}
+		BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
+		smallerOpts.inSampleSize=scale;
+		System.gc();
+		Bitmap smallerSize = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
+		ExifInterface exif;
+		int degrees = 0;
+		try {
+			exif = new ExifInterface(imageUriCopy.getPath());
+			int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+			switch(orientation) {
+				case ExifInterface.ORIENTATION_ROTATE_270:
+					degrees-=90;
+				case ExifInterface.ORIENTATION_ROTATE_180:
+					degrees-=90;
+				case ExifInterface.ORIENTATION_ROTATE_90:
+					degrees-=90;
+			}
+		} catch (IOException e) {}
+		Bitmap endBitmap = smallerSize;
+		if (degrees != 0) {
+			Matrix matrix = new Matrix();
+			matrix.setRotate(degrees, smallerSize.getWidth()/2, smallerSize.getHeight()/2);
+			endBitmap = Bitmap.createBitmap(smallerSize, 0, 0, smallerSize.getWidth(), smallerSize.getHeight(), matrix, false);
+			smallerSize = null;
+		}
+		if (!_sdCard.writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
+			Toast.makeText(this, "Error: The Image Failed to Save Properly", Toast.LENGTH_SHORT).show();
+			imgFile = null;
+		}
+    	return imgFile;
+    }
+    
+    
+    private static final String STATE_IMAGE_URI = "imageUriState";
+    private static final String STATE_CURR_TRIP = "currTripState";
+    private static final String STATE_HIGH_RCPT = "highRcptState";
+    private static final String STATE_VIEW_TRIP = "viewTripState";
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+    	outState.putBoolean(STATE_VIEW_TRIP, _isViewingTrip);
+    	if (_imageUri != null) outState.putString(STATE_IMAGE_URI, _imageUri.toString());
+    	if (_highlightedReceipt != null) outState.putInt(STATE_HIGH_RCPT, _highlightedReceipt.id);
+    	try {if (_currentTrip != null) outState.putString(STATE_CURR_TRIP, _currentTrip.dir.getCanonicalPath());} catch (IOException e) {}
+    	super.onSaveInstanceState(outState);
+    }
+    
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		if (_sdCard == null) _sdCard = StorageManager.getInstance(this); //These null checks aren't needed, because getInstance will handle it
+		if (_db == null) _db = DatabaseHelper.getInstance(this);
+    	if (savedInstanceState != null) {
+    		_isViewingTrip = savedInstanceState.getBoolean(STATE_VIEW_TRIP);
+    		_imageUri = (savedInstanceState.getString(STATE_IMAGE_URI) != null) ? Uri.parse(savedInstanceState.getString(STATE_IMAGE_URI)) : null;
+    		_highlightedReceipt = _db.getReceiptByID(savedInstanceState.getInt(STATE_HIGH_RCPT));
+    		_currentTrip = _db.getTripByName(savedInstanceState.getString(STATE_CURR_TRIP));
     	}
     }
     
@@ -883,6 +1239,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 		about.setIcon(android.R.drawable.ic_menu_info_details);
 		MenuItem retake = menu.add(Menu.NONE, RETAKE_PHOTO_ID, Menu.NONE, "Retake Photo");
 		retake.setIcon(android.R.drawable.ic_menu_camera);
+		MenuItem csv = menu.add(Menu.NONE, CSV_MENU_ID, Menu.NONE, "Customize CSV Output");
+		csv.setIcon(android.R.drawable.ic_menu_set_as);
 		return true;
     }
     
@@ -897,6 +1255,8 @@ public abstract class SmartReceiptsActivity extends Activity {
     		if (about != null) about.setVisible(false);
     		MenuItem retake = menu.getItem(RETAKE_PHOTO_ID);
     		if (retake != null) retake.setVisible(true);
+    		MenuItem csv = menu.getItem(CSV_MENU_ID);
+    		if (retake != null) csv.setVisible(false);
     	}
     	else {
     		MenuItem settings = menu.getItem(SETTINGS_ID);
@@ -907,21 +1267,18 @@ public abstract class SmartReceiptsActivity extends Activity {
     		if (about != null) about.setVisible(true);
     		MenuItem retake = menu.getItem(RETAKE_PHOTO_ID);
     		if (retake != null) retake.setVisible(false);
+    		MenuItem csv = menu.getItem(CSV_MENU_ID);
+    		if (retake != null) csv.setVisible(true);
     	}
     	return true;
     }
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
     	if (item.getItemId() == ABOUT_ID) {
 	    	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
-	    	final ScrollView scrollView = new ScrollView(this);
-	    	final TextView text = new TextView(this); text.setPadding(6, 0, 6, 0); text.setTextSize(16F);
-	    	text.setText(ABOUT);
-	    	scrollView.addView(text, params);
 			builder.setTitle("About")
-				   .setView(scrollView)
+				   .setMessage(ABOUT)
 				   .setCancelable(true)
 				   .show();
 			return true;
@@ -932,7 +1289,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 	    	final LinearLayout layout = new LinearLayout(this);
 	    	layout.setOrientation(LinearLayout.VERTICAL); layout.setGravity(Gravity.BOTTOM); layout.setPadding(6, 6, 6, 6);
 	    	final TextView emailText = new TextView(this); emailText.setPadding(6, 10, 6, 0); emailText.setTextSize(16F); emailText.setText("Default Email Recipient:");
-	    	final EditText email = new EditText(this); email.setText(_emailTo);
+	    	final EditText email = new EditText(this); email.setText(_emailTo); email.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 	    	final TextView daysText = new TextView(this); daysText.setPadding(6, 10, 6, 0); daysText.setTextSize(16F); daysText.setText("Default Trip Length (Days):");
 	    	final EditText days = new EditText(this); days.setInputType(InputType.TYPE_CLASS_NUMBER); days.setText("" + _defaultTripDuration);
 	    	final TextView currencyText = new TextView(this); currencyText.setPadding(6, 10, 6, 0); currencyText.setTextSize(16F); currencyText.setText("Default Currency:");
@@ -943,11 +1300,15 @@ public abstract class SmartReceiptsActivity extends Activity {
 			int idx = currenices.getPosition(_currency);
 			if (idx > 0) currencySpinner.setSelection(idx);
 	    	final CheckBox predictCategoires = new CheckBox(this); predictCategoires.setText(" Predict Receipt Categories"); predictCategoires.setChecked(_predictCategories);
+	    	final CheckBox useNativeCamera = new CheckBox(this); useNativeCamera.setText(" Use Native Camera"); useNativeCamera.setChecked(_useNativeCamera);
+	    	final CheckBox matchNameToCategory = new CheckBox(this); matchNameToCategory.setText(" Match Name to Categories"); matchNameToCategory.setChecked(_matchNameCats);
 	    	final CheckBox matchCommentsToCategory = new CheckBox(this); matchCommentsToCategory.setText(" Match Comments to Categories"); matchCommentsToCategory.setChecked(_matchCommentCats);
 	    	layout.addView(emailText); layout.addView(email);
 	    	layout.addView(daysText); layout.addView(days);
 	    	layout.addView(currencyText); layout.addView(currencySpinner);
 	    	layout.addView(predictCategoires);
+	    	layout.addView(useNativeCamera);
+	    	layout.addView(matchNameToCategory);
 	    	layout.addView(matchCommentsToCategory);
 	    	scrollView.addView(layout);
 			builder.setTitle("Settings")
@@ -961,6 +1322,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 				               activity._emailTo = email.getText().toString();
 				               activity._currency = currencySpinner.getSelectedItem().toString();
 				               activity._predictCategories = predictCategoires.isChecked();
+				               activity._useNativeCamera = useNativeCamera.isChecked();
+				               activity._matchNameCats = matchNameToCategory.isChecked();
 				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
@@ -968,18 +1331,24 @@ public abstract class SmartReceiptsActivity extends Activity {
 					           editor.putString(STRING_DEFAULT_EMAIL_TO, activity._emailTo);
 					           editor.putString(STRING_CURRENCY, _currency);
 					           editor.putBoolean(BOOL_PREDICT_CATEGORIES, activity._predictCategories);
+					           editor.putBoolean(BOOL_USE_NATIVE_CAMERA, activity._useNativeCamera);
+					           editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, activity._matchNameCats);
 					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.commit();
 			        	   } catch (java.lang.NumberFormatException e) {
 			        		   activity._emailTo = email.getText().toString();
 			        		   activity._currency = currencySpinner.getSelectedItem().toString();
 				               activity._predictCategories = predictCategoires.isChecked();
+				               activity._useNativeCamera = useNativeCamera.isChecked();
+				               activity._matchNameCats = matchNameToCategory.isChecked();
 				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
 					           editor.putString(STRING_DEFAULT_EMAIL_TO, activity._emailTo);
 					           editor.putString(STRING_CURRENCY, _currency);
 					           editor.putBoolean(BOOL_PREDICT_CATEGORIES, activity._predictCategories);
+					           editor.putBoolean(BOOL_USE_NATIVE_CAMERA, activity._useNativeCamera);
+					           editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, activity._matchNameCats);
 					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.commit();
 					       }
@@ -991,24 +1360,39 @@ public abstract class SmartReceiptsActivity extends Activity {
 			           }
 			       })
 				   .show();
+			return true;
     	}
     	else if (item.getItemId() == CATEGORIES_ID) {
     		this.showCategoriesMenu();
+    		return true;
     	}
     	else if (item.getItemId() == RETAKE_PHOTO_ID) {
+    		String dirPath;
     		try {
-				final Intent intent = new Intent(this, MyCameraActivity.class);
-				String dirPath;
 				if (_currentTrip.dir.exists())
 					dirPath = _currentTrip.dir.getCanonicalPath();
 				else
 					dirPath = _sdCard.mkdir(_currentTrip.dir.getName()).getCanonicalPath();
+    		} catch (IOException e) {
+				Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
+				return false;
+			}
+    		if (_useNativeCamera) {
+    			final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    			_imageUri = Uri.fromFile(new File(dirPath, _highlightedReceipt.img.getName()));
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri);
+                startActivityForResult(intent, NATIVE_RETAKE_PHOTO_CAMERA_REQUEST);				
+    		}
+    		else {
+	    		final Intent intent = new Intent(this, MyCameraActivity.class);
 				String[] strings  = new String[] {dirPath, _highlightedReceipt.img.getName()};
 				intent.putExtra(STRING_DATA, strings);
 				this.startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
-    		} catch (IOException e) {
-				Toast.makeText(SmartReceiptsActivity.this, SD_ERROR, Toast.LENGTH_LONG).show();
-			}
+    		}
+    	}
+    	else if (item.getItemId() == CSV_MENU_ID) {
+    		this.showCustomCSVMenu();
+    		return true;
     	}
     	return false;
     }
@@ -1126,6 +1510,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 			   .setLongLivedNegativeButton("Delete", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
 					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
+						if (categoriesSpinner.getSelectedItem() == null) //There are no categories left to delete
+							dialog.cancel();
 						final BetterDialogBuilder innerBuilder = new BetterDialogBuilder(activity);
 						innerBuilder.setTitle("Delete " + categoriesSpinner.getSelectedItem().toString() + "?")
 									.setCancelable(true)
@@ -1153,6 +1539,76 @@ public abstract class SmartReceiptsActivity extends Activity {
 			   .show();
     }
     
+    private class CSVColumnSelectionListener implements OnItemSelectedListener {
+    	private DatabaseHelper _db;
+    	private int _index;
+    	private boolean _firstCall; //During the Spinner Creation, onItemSelected() is automatically called. This boolean ignores the initial call
+    	public CSVColumnSelectionListener(DatabaseHelper db, int index) {_db = db; _index = index; _firstCall = true;}
+		@Override
+		public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+			if (_firstCall) { //Ignore creation call
+				_firstCall = false;
+				return;
+			}
+			_db.updateCSVColumn(_index, position);
+		}
+		@Override public void onNothingSelected(AdapterView<?> arg0) {}
+    	
+    }
+    private void showCustomCSVMenu() {
+    	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
+    	ScrollView scrollView = new ScrollView(this);
+    	final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+		final LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.VERTICAL);
+		layout.setGravity(Gravity.BOTTOM);
+		layout.setPadding(6, 6, 6, 6);
+		final CSVColumns csvColumns = _db.getCSVColumns(); 
+		for (int i=0; i < csvColumns.size(); i++) {
+			final LinearLayout horiz = addHorizontalCSVLayoutItem(csvColumns, i);
+			layout.addView(horiz, params);
+		}
+		scrollView.addView(layout);
+		builder.setTitle("Customize CSV File")
+			   .setView(scrollView)
+			   .setCancelable(true)
+			   .setLongLivedPositiveButton("Add Column", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						activity._db.insertCSVColumn();
+						layout.addView(addHorizontalCSVLayoutItem(csvColumns, csvColumns.size() - 1), params);
+					}
+				})
+				.setLongLivedNegativeButton("Remove Column", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						if (csvColumns.isEmpty())
+							return;
+						activity._db.deleteCSVColumn();
+						layout.removeViews(csvColumns.size(), 1);
+					}
+				})
+			   .show();
+    }
+    
+    private final LinearLayout addHorizontalCSVLayoutItem(CSVColumns csvColumns, int i) {
+		final LinearLayout horiz = new LinearLayout(this);
+		final CSVColumnSelectionListener selectionListener = new CSVColumnSelectionListener(_db, i);
+		horiz.setOrientation(LinearLayout.HORIZONTAL);
+		final Spinner spinner = new Spinner(this);
+		final ArrayAdapter<CharSequence> options = CSVColumns.getNewArrayAdapter(this);
+		options.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spinner.setAdapter(options); spinner.setPrompt("Column Type");  spinner.setSelection(options.getPosition(csvColumns.getType(i)));
+		spinner.setOnItemSelectedListener(selectionListener);
+		final TextView textView = new TextView(this);
+		textView.setPadding(12, 0, 0, 0);
+		textView.setText("Col. " + (i+1));
+		textView.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
+		horiz.addView(textView, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 2f)); 
+		horiz.addView(spinner, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 1f));
+		return horiz;
+    }
+    
    	//Private Listener Classes
     private DateEditTextListener _dateTextListener = new DateEditTextListener(this);
 	private DurationDateEditTextListener _defaultDurationListener = new DurationDateEditTextListener(this);	
@@ -1169,13 +1625,14 @@ public abstract class SmartReceiptsActivity extends Activity {
 		@Override public final void onClick(final View v) {_activity.initDurationCalendar((DateEditText)v, _end);}
 	}
 	private final class SpinnerSelectionListener implements OnItemSelectedListener {
-		private final TextView _commentBox;
+		private final TextView _nameBox, _commentBox;
 		private final ArrayAdapter<CharSequence> _categories;
-		public SpinnerSelectionListener(TextView commentBox, ArrayAdapter<CharSequence> categories) {_commentBox = commentBox; _categories = categories;}
-		@Override public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {_commentBox.setText(_categories.getItem(position));}
-		@Override public void onNothingSelected(AdapterView<?> arg0) {}
-		
+		public SpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {_nameBox = nameBox; _commentBox = commentBox; _categories = categories;}
+		@Override public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+			if (_nameBox != null) _nameBox.setText(_categories.getItem(position));
+			if (_commentBox != null) _commentBox.setText(_categories.getItem(position)); 
+		}
+		@Override public void onNothingSelected(AdapterView<?> arg0) {}	
 	}
-	
-    
+	   
 }

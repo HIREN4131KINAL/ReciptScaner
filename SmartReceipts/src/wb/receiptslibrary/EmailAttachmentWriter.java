@@ -5,12 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Set;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -33,6 +31,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.Element;
 
 import wb.android.storage.StorageManager;
+import wb.csv.CSVColumns;
 
 public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 
@@ -78,7 +77,7 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 					if (!dir.exists())
 						dir = _sdCard.mkdir(trip.dir.getName());
 				}
-				final FileOutputStream pdf = _sdCard.getFOS(dir, dir.getName() + ".pdf", Context.MODE_WORLD_READABLE);
+				final FileOutputStream pdf = _sdCard.getFOS(dir, dir.getName() + ".pdf");
 	            Document document = new Document();
 				PdfWriter writer = PdfWriter.getInstance(document, pdf);
 				writer.setPageEvent(new Footer());
@@ -127,7 +126,7 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 					if (!dir.exists())
 						dir = _sdCard.mkdir(trip.dir.getName());
 				}
-				final FileOutputStream pdf = _sdCard.getFOS(dir, dir.getName() + IMAGES_PDF, Context.MODE_WORLD_READABLE);
+				final FileOutputStream pdf = _sdCard.getFOS(dir, dir.getName() + IMAGES_PDF);
 	            Document document = new Document();
 				PdfWriter writer = PdfWriter.getInstance(document, pdf);
 				writer.setPageEvent(new Footer());
@@ -152,16 +151,10 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 				if (!dir.exists())
 					dir = _sdCard.mkdir(trip.dir.getName());
 			}
-			ReceiptRow receipt;
-			String data = "", date;
-			DecimalFormat df = new DecimalFormat();
-			df.setMaximumFractionDigits(2);
-			df.setMinimumFractionDigits(2);
-			for (int i=0; i < len; i++) {
-				receipt = receipts[i];
-				date = DateFormat.getDateFormat(_activity).format(receipt.date);
-				data += _db.getCategoryCode(receipt.category) + "," + receipt.name + "," + df.format(new Float(receipt.price)) + "," + receipt.currency.getCurrencyCode() + "," + date + "\n";
-			}
+			String data = "";
+			CSVColumns columns = _db.getCSVColumns();
+			for (int i=0; i < len; i++)
+				data += columns.print(receipts[i]);
 			String filename = dir.getName() + ".csv";
 			if (!_sdCard.write(dir, filename, data))
 				Log.e(TAG, "Failed to write the csv file");
@@ -171,7 +164,6 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 	}
 	
 	private Document addImageRows(Document document, ReceiptRow[] receipts) {
-			Log.e(TAG, "Writing Images");
 			PdfPTable table = new PdfPTable(2);
 			table.getDefaultCell().disableBorderSide(PdfPCell.LEFT);
 			table.getDefaultCell().disableBorderSide(PdfPCell.RIGHT);
@@ -190,6 +182,8 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			final HashMap<ReceiptRow, Integer> fullpageReceipts = new HashMap<ReceiptRow, Integer>();
 			for (int i=0; i < size; i++) {
 				receipt = receipts[i];
+				if (receipt.img == null)
+					continue;
 				if (receipt.fullpage) {
 					fullpageReceipts.put(receipt, i+1);
 					continue;
@@ -264,7 +258,6 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			//Full Page Stuff Below
 			Set<ReceiptRow> set = fullpageReceipts.keySet();
 			size = fullpageReceipts.size();
-			Log.e(TAG, "" + size);
 			for (ReceiptRow rcpt:set) { //Redo to get rid of iterator
 				try {
 					img1 = Image.getInstance(rcpt.img.getCanonicalPath());

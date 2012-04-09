@@ -3,6 +3,7 @@ package wb.android.ui;
 import android.R;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -121,7 +122,7 @@ public class ListItemView extends LinearLayout {
 		icon.setImageDrawable(context.getResources().getDrawable(drawableID));
 		
 		TextView textName = new TextView(context);
-		textName.setTextSize(24);
+		textName.setTextSize(12f + 0.85f*TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, context.getResources().getDisplayMetrics()));
 		textName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textName.setText(text);
 

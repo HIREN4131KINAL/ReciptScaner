@@ -81,7 +81,7 @@ public class TripAdapter extends BaseAdapter {
 			if (curr > width)
 				width = curr;
 		}
-		return width*((int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, _context.getResources().getDisplayMetrics()));
+		return width*((int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, _context.getResources().getDisplayMetrics()));
 	}
 	
 	private final class NewTripClickListener implements OnClickListener {

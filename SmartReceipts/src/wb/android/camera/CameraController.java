@@ -100,6 +100,8 @@ public final class CameraController {
 	}
 	
 	public final void setCameraRotation(final int degrees) {
+		if (_camera == null)
+			return;
 		if (degrees == 0 || degrees == 90 || degrees == 180 || degrees == 270) {
 			_rotation = degrees;
 			_camera.setDisplayOrientation(degrees);

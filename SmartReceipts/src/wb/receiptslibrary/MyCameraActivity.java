@@ -23,7 +23,6 @@ import android.graphics.Paint;
 import android.graphics.Bitmap.CompressFormat;
 import android.hardware.Camera.Parameters;
 import android.os.Bundle;
-import android.text.format.Time;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -109,7 +108,10 @@ public class MyCameraActivity extends CameraActivity {
 			flash = params.getSupportedFlashModes();
 			this.setCameraParams(params);
     	}
-    	controller.setCameraRotation(90); //This could cause issues with different devices
+    	if (android.os.Build.MODEL.contains("YP-G1CW") || android.os.Build.MODEL.contains("YPG1CW"))
+    		controller.setCameraRotation(-90);
+    	else
+    		controller.setCameraRotation(90); //This could cause issues with different devices
     }
     
     private final void setCameraParams(Parameters params) {
@@ -294,15 +296,36 @@ public class MyCameraActivity extends CameraActivity {
     
     private final File handleImage(byte[] jpg, final boolean isColor, final int rotation) {
     	System.gc(); //Avoid Bitmap memory issues (shrink size first to help memory)
-    	Bitmap shrink = this.shrinkBitmap(jpg, 1024);
-    	jpg = null; //Force Memory free
-    	_jpg = null; //Force Memory free
-    	Bitmap bitmap = this.rotate(shrink, rotation);
-    	shrink = null; //Force Memory free
+        //Decode image size
+    	final int maxDimension = 1024;
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(jpg, 0, jpg.length, opts);
+        int width_tmp=opts.outWidth, height_tmp=opts.outHeight;
+        opts = null;
+        int scale=1;
+        while(width_tmp > maxDimension && height_tmp > maxDimension){
+            width_tmp/=2;
+            height_tmp/=2;
+            scale*=2;
+        }
+        //Decode with inSampleSize
+        BitmapFactory.Options opts2 = new BitmapFactory.Options();
+        opts2.inSampleSize=scale;
+        System.gc();
+        Bitmap shrink = BitmapFactory.decodeByteArray(jpg, 0, jpg.length, opts2);
+    	//jpg = null; //Force Memory free
+    	//_jpg = null; //Force Memory free
+    	Bitmap bitmap = shrink;
+		if (rotation != 0) {
+			Matrix matrix = new Matrix();
+			matrix.setRotate(rotation, shrink.getWidth()/2, shrink.getHeight()/2);
+			bitmap = Bitmap.createBitmap(shrink, 0, 0, shrink.getWidth(), shrink.getHeight(), matrix, false);
+			shrink = null;
+		}
+		System.gc();
     	if (!isColor)
     		bitmap = this.toGrayscale(bitmap);
-    	Time now = new Time();
-    	now.setToNow();
     	if (!_sdCard.writeBitmap(_dir, bitmap, _filename, CompressFormat.JPEG, 85)) {
     		Toast.makeText(MyCameraActivity.this, "Error: The Image Failed to Save Properly", Toast.LENGTH_SHORT).show();
     		return null;
@@ -325,36 +348,6 @@ public class MyCameraActivity extends CameraActivity {
         paint.setColorFilter(f);
         c.drawBitmap(bmpOriginal, 0, 0, paint);
         return bmpGrayscale;
-    }
-    
-  //decodes image and scales it to reduce memory consumption
-    private Bitmap shrinkBitmap(byte[] jpg, int maxDimension) {
-        //Decode image size
-        BitmapFactory.Options opts = new BitmapFactory.Options();
-        opts.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(jpg, 0, jpg.length, opts);
-        System.gc();
-        //Find the correct scale value. It should be the power of 2.
-        int width_tmp=opts.outWidth, height_tmp=opts.outHeight;
-        int scale=1;
-        while(width_tmp > maxDimension && height_tmp > maxDimension){
-            width_tmp/=2;
-            height_tmp/=2;
-            scale*=2;
-        }
-        //Decode with inSampleSize
-        BitmapFactory.Options opts2 = new BitmapFactory.Options();
-        opts2.inSampleSize=scale;
-        return BitmapFactory.decodeByteArray(jpg, 0, jpg.length, opts2);
-    }
-    
-    private Bitmap rotate(Bitmap bitmap, int degrees) {
-    	if (degrees == 0)
-    		return bitmap;
-    	System.gc(); //Avoid Memory Crashes
-    	Matrix matrix = new Matrix();
-    	matrix.setRotate(degrees, bitmap.getWidth()/2, bitmap.getHeight()/2);
-    	return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
     }
     
 }

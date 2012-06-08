@@ -10,6 +10,8 @@ import java.util.Currency;
 import java.util.HashMap;
 import java.util.Locale;
 
+import wb.android.autocomplete.AutoCompleteQueriable;
+import wb.android.storage.StorageManager;
 import wb.csv.CSVColumn;
 import wb.csv.CSVColumns;
 
@@ -21,7 +23,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.format.Time;
 import android.util.Log;
 
-public final class DatabaseHelper extends SQLiteOpenHelper {
+public final class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteQueriable {
 
 	//Logging Vars
 	private static final boolean D = true;
@@ -32,6 +34,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 3;
 	static final String NULL = "null";
 	static final String MULTI_CURRENCY = "XXXXXX";
+	
+	//Tags
+	public static final String TAG_TRIPS = "Trips";
+	public static final String TAG_RECEIPTS = "Receipts";
 	
 	//InstanceVar
 	private static DatabaseHelper INSTANCE = null;
@@ -611,7 +617,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		ReceiptRow[] receipts = getReceipts(trip);
 		int index = 0;
 		for (int i =0; i < receipts.length; i++) {
-			if (receipt == receipts[i]) {
+			if (receipt.id == receipts[i].id) {
 				index = i-1;
 				break;
 			}
@@ -624,7 +630,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			ContentValues upValues = new ContentValues(1);
 			ContentValues downValues = new ContentValues(1);
 			upValues.put(ReceiptsTable.COLUMN_DATE, receipt.date.getTime());
-			downValues.put(ReceiptsTable.COLUMN_DATE, up.date.getTime());
+			if (receipt.date.getTime() != up.date.getTime())
+				downValues.put(ReceiptsTable.COLUMN_DATE, up.date.getTime());
+			else
+				downValues.put(ReceiptsTable.COLUMN_DATE, up.date.getTime()+1L);
 			if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(up.id)}) == 0))
 				return false;
 			if ((db.update(ReceiptsTable.TABLE_NAME, downValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(receipt.id)}) == 0))
@@ -641,7 +650,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		ReceiptRow[] receipts = getReceipts(trip);
 		int index = receipts.length-1;
 		for (int i =0; i < receipts.length; i++) {
-			if (receipt == receipts[i]) {
+			if (receipt.id == receipts[i].id) {
 				index = i+1;
 				break;
 			}
@@ -653,7 +662,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 			final SQLiteDatabase db = this.getReadableDatabase();
 			ContentValues upValues = new ContentValues(1);
 			ContentValues downValues = new ContentValues(1);
-			upValues.put(ReceiptsTable.COLUMN_DATE, down.date.getTime());
+			if (receipt.date.getTime() != down.date.getTime())
+				upValues.put(ReceiptsTable.COLUMN_DATE, down.date.getTime());
+			else
+				upValues.put(ReceiptsTable.COLUMN_DATE, down.date.getTime()-1L);
 			downValues.put(ReceiptsTable.COLUMN_DATE, receipt.date.getTime());
 			if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(receipt.id)}) == 0))
 				return false;
@@ -723,8 +735,32 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 					_currencyList.add(iso4217);
 			} catch (IllegalArgumentException ex) {} //Catches unsupported currencies
 		}
+		addAdditionalCurrencies();
 		Collections.sort(_currencyList, _charSequenceComparator);
 		return _currencyList;
+	}
+	
+	private final void addAdditionalCurrencies() {
+		if (_currencyList == null) return;
+		ArrayList<CharSequence> otherCurrencies = new ArrayList<CharSequence>();
+		otherCurrencies.add("AOA"); otherCurrencies.add("BIF"); otherCurrencies.add("CDF");
+		otherCurrencies.add("DJF"); otherCurrencies.add("ETB");
+		otherCurrencies.add("GMD"); otherCurrencies.add("GHS"); otherCurrencies.add("GNF"); otherCurrencies.add("ISK");
+		otherCurrencies.add("KES"); otherCurrencies.add("LSL"); otherCurrencies.add("LRD");
+		otherCurrencies.add("MWK"); otherCurrencies.add("MUR"); otherCurrencies.add("MRO");
+		otherCurrencies.add("MZM"); otherCurrencies.add("RWF"); otherCurrencies.add("SCR");
+		otherCurrencies.add("SLL"); otherCurrencies.add("SOS"); otherCurrencies.add("THB");
+		otherCurrencies.add("TZS"); otherCurrencies.add("UGX"); 
+		otherCurrencies.add("ZMK"); otherCurrencies.add("ZWD");
+		//otherCurrencies.add("DRC"); otherCurrencies.add("ZOF"); => Bad Currencies
+		CharSequence code;
+		final int size = otherCurrencies.size();
+		for (int i=0; i < size; i++) {
+			code = otherCurrencies.get(i);
+			if (!_currencyList.contains(code))
+				_currencyList.add(code);
+		}
+		
 	}
 	
 	public final boolean insertCategory(final String name, final String code) throws SQLException {
@@ -840,6 +876,27 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	AutoCompleteTextView Methods
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	public Cursor getAutoCompleteCursor(CharSequence text, CharSequence tag) {
+		final SQLiteDatabase db = this.getReadableDatabase();
+		String sqlQuery = "";
+		if (tag == TAG_RECEIPTS) {
+			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_NAME + ") AS _id " + 
+				       " FROM " + ReceiptsTable.TABLE_NAME +
+				       " WHERE " + ReceiptsTable.COLUMN_NAME + " LIKE '%" + text + "%' " +
+				       " ORDER BY " + ReceiptsTable.COLUMN_NAME;
+		}
+		else if (tag == TAG_TRIPS) {
+			sqlQuery = " SELECT DISTINCT SUBSTR(" + TripsTable.COLUMN_NAME + "," + (StorageManager.getRootPath().length() + 2) + ") AS _id " + 
+				       " FROM " + TripsTable.TABLE_NAME +
+				       " WHERE " + TripsTable.COLUMN_NAME + " LIKE '%" + text + "%' " +
+				       " ORDER BY " + TripsTable.COLUMN_NAME;
+		}
+		return db.rawQuery(sqlQuery, null);
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//	Debug Methods
 	////////////////////////////////////////////////////////////////////////////////////////////////////

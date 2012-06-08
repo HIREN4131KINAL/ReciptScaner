@@ -96,6 +96,10 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 				ReceiptRow receipt;
 				for (int i=0; i < len; i++) {
 					receipt = receipts[i];
+					if (_activity._onlyIncludeExpensable && !receipt.expensable) 
+						continue;
+					if (Float.parseFloat(receipt.price) < _activity._minReceiptPrice)
+						continue;
 					table.addCell(receipt.name);
 					table.addCell(SmartReceiptsActivity.CurrencyValue(receipt.price, receipt.currency));
 					table.addCell(DateFormat.getDateFormat(_activity).format(receipt.date));
@@ -153,8 +157,13 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			}
 			String data = "";
 			CSVColumns columns = _db.getCSVColumns();
-			for (int i=0; i < len; i++)
+			for (int i=0; i < len; i++) {
+				if (_activity._onlyIncludeExpensable && !receipts[i].expensable) 
+					continue;
+				if (Float.parseFloat(receipts[i].price) < _activity._minReceiptPrice)
+					continue;
 				data += columns.print(receipts[i]);
+			}
 			String filename = dir.getName() + ".csv";
 			if (!_sdCard.write(dir, filename, data))
 				Log.e(TAG, "Failed to write the csv file");
@@ -182,12 +191,16 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			final HashMap<ReceiptRow, Integer> fullpageReceipts = new HashMap<ReceiptRow, Integer>();
 			for (int i=0; i < size; i++) {
 				receipt = receipts[i];
+				if (_activity._onlyIncludeExpensable && !receipt.expensable) 
+					continue;
 				if (receipt.img == null)
 					continue;
 				if (receipt.fullpage) {
 					fullpageReceipts.put(receipt, i+1);
 					continue;
 				}
+				if (Float.parseFloat(receipt.price) < _activity._minReceiptPrice)
+					continue;
 				if (receipt.img != null && img1 == null) {
 					try {
 						img1 = Image.getInstance(receipt.img.getCanonicalPath());
@@ -259,6 +272,10 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			Set<ReceiptRow> set = fullpageReceipts.keySet();
 			size = fullpageReceipts.size();
 			for (ReceiptRow rcpt:set) { //Redo to get rid of iterator
+				if (_activity._onlyIncludeExpensable && !rcpt.expensable) 
+					continue;
+				if (Float.parseFloat(rcpt.price) < _activity._minReceiptPrice)
+					continue;
 				try {
 					img1 = Image.getInstance(rcpt.img.getCanonicalPath());
 					table = new PdfPTable(1);

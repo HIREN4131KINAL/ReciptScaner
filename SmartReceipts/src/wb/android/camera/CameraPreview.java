@@ -222,9 +222,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     	if (D) Log.d(TAG, "surfaceCreated");   	
     	_controller.setPreviewDisplay(holder);
     	Parameters params = _controller.getCameraParams();
-    	if (_previewSize != null) params.setPreviewSize(_previewSize.width, _previewSize.height);
-    	if (_pictureSize != null) params.setPictureSize(_pictureSize.width, _pictureSize.height);
-    	_controller.setCameraParams(params);
+    	if (params != null) {
+	    	if (_previewSize != null) params.setPreviewSize(_previewSize.width, _previewSize.height);
+	    	if (_pictureSize != null) params.setPictureSize(_pictureSize.width, _pictureSize.height);
+	    	_controller.setCameraParams(params);
+    	}
     	this.setWillNotDraw(false);
     }
 

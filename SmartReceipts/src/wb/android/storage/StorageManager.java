@@ -62,6 +62,15 @@ public class StorageManager {
 		_internalInstance = new InternalStorageManager(activity);
 		return _internalInstance;
 	}
+	
+	public static String getRootPath() {
+		 if (_externalInstance != null)
+			 return _externalInstance._root.getAbsolutePath();
+		 else if (_internalInstance != null)
+			 return _internalInstance._root.getAbsolutePath();
+		 else
+			 return "";
+	}
 
 	public boolean isRoot(final File dir) {
 		return dir.equals(_root);

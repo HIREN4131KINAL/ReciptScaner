@@ -5,13 +5,22 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Set;
 
 import android.app.ProgressDialog;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Paint.Align;
 import android.os.AsyncTask;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
@@ -30,36 +39,44 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.Element;
 
+import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
-import wb.csv.CSVColumns;
 
 public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
+	
+	public enum EmailOptions {
+		PDF_FULL (0),
+		PDF_IMAGES_ONLY (1),
+		CSV (2),
+		ZIP_IMAGES_STAMPED (3);
+		
+		private final int index;
+		EmailOptions(int index) { this.index = index; }
+		int getIndex() { return this.index; }
+	}
 
+	private static final boolean D = true;
 	private static final String TAG = "EmailAttachmentWriter";
 	
 	private final SmartReceiptsActivity _activity;
 	private final StorageManager _sdCard;
 	private final DatabaseHelper _db;
 	private final ProgressDialog _dialog;
-	private final boolean _fullPDF, _imgPDF, _csv;
 	private final File[] _files;
+	private final EnumSet<EmailOptions> _options;
+	private boolean memoryErrorOccured = false;
 
 	private static final String IMAGES_PDF = "Images.pdf";
 	private static final String FOOTER = "Report Generated using Smart Receipts for Android";
 	
-	static final int FULL_PDF = 0;
-	static final int IMG_PDF = 1;
-	static final int CSV = 2;
-	
-	public EmailAttachmentWriter(SmartReceiptsActivity activity, StorageManager sdCard, DatabaseHelper db, ProgressDialog dialog, boolean buildFullPDF, boolean buildImagesPDF, boolean buildCSV) {
+	public EmailAttachmentWriter(SmartReceiptsActivity activity, StorageManager sdCard, DatabaseHelper db, ProgressDialog dialog, EnumSet<EmailOptions> options) {
 		_activity = activity;
 		_sdCard = sdCard;
 		_db = db;
 		_dialog = dialog;
-		_fullPDF = buildFullPDF;
-		_imgPDF = buildImagesPDF;
-		_csv = buildCSV;
-		_files = new File[] {null, null, null};
+		_options = options;
+		_files = new File[] {null, null, null, null};
+		memoryErrorOccured = false;
 	}
 	
 	@Override
@@ -69,7 +86,7 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 		final TripRow trip = trips[0];
 		final ReceiptRow[] receipts = _db.getReceipts(trip, false);
 		final int len = receipts.length;
-		if (_fullPDF) {
+		if (_options.contains(EmailOptions.PDF_FULL)) {
 			try {
 				File dir = trip.dir;
 				if (!dir.exists()) {
@@ -113,7 +130,7 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 				this.addImageRows(document, receipts);
 				document.close();
 				pdf.close();
-				_files[FULL_PDF] = _sdCard.getFile(dir, dir.getName() + ".pdf");
+				_files[EmailOptions.PDF_FULL.getIndex()] = _sdCard.getFile(dir, dir.getName() + ".pdf");
 			} catch (FileNotFoundException e) {
 				Log.e(TAG, e.toString());
 			} catch (DocumentException e) {
@@ -122,7 +139,7 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 				Log.e(TAG, e.toString());
 			}
 		}
-		if (_imgPDF) {
+		if (_options.contains(EmailOptions.PDF_IMAGES_ONLY)) {
 			try {
 				File dir = trip.dir;
 				if (!dir.exists()) {
@@ -138,17 +155,18 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 				this.addImageRows(document, receipts);
 				document.close();
 				pdf.close();
-				_files[IMG_PDF] = _sdCard.getFile(dir, dir.getName() + IMAGES_PDF);
-				
+				_files[EmailOptions.PDF_IMAGES_ONLY.getIndex()] = _sdCard.getFile(dir, dir.getName() + IMAGES_PDF);
 			} catch (FileNotFoundException e) {
 				Log.e(TAG, e.toString());
 			} catch (DocumentException e) {
 				Log.e(TAG, e.toString());
 			} catch (IOException e) {
 				Log.e(TAG, e.toString());
+			} catch (RuntimeException e) {
+				Log.e(TAG, e.toString()); //Document has no pages (likely selected an image pdf with no images)
 			}
 		}
-		if (_csv) {
+		if (_options.contains(EmailOptions.CSV)) {
 			File dir = trip.dir;
 			if (!dir.exists()) {
 				dir = _sdCard.getFile(trip.dir.getName());
@@ -156,21 +174,99 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 					dir = _sdCard.mkdir(trip.dir.getName());
 			}
 			String data = "";
-			CSVColumns columns = _db.getCSVColumns();
+			CSVColumns columns = _db.getCSVColumns(_activity._flex);
 			for (int i=0; i < len; i++) {
 				if (_activity._onlyIncludeExpensable && !receipts[i].expensable) 
 					continue;
 				if (Float.parseFloat(receipts[i].price) < _activity._minReceiptPrice)
 					continue;
-				data += columns.print(receipts[i]);
+				data += columns.print(receipts[i], trip);
 			}
 			String filename = dir.getName() + ".csv";
 			if (!_sdCard.write(dir, filename, data))
 				Log.e(TAG, "Failed to write the csv file");
-			_files[CSV] = _sdCard.getFile(dir, filename);
+			_files[EmailOptions.CSV.getIndex()] = _sdCard.getFile(dir, filename);
+		}
+		if (_options.contains(EmailOptions.ZIP_IMAGES_STAMPED)) { //Get rid of Debug line here
+			File dir = _sdCard.mkdir(trip.dir, trip.dir.getName());
+			for (int i=0; i < len; i++) {
+				if (_activity._onlyIncludeExpensable && !receipts[i].expensable) 
+					continue;
+				if (receipts[i].img == null)
+					continue;
+				try {
+					Bitmap b = stampImage(trip, receipts[i], Bitmap.Config.ARGB_8888);
+					_sdCard.writeBitmap(dir, b, (i+1) + "_" + receipts[i].name + ".jpg", CompressFormat.JPEG, 85);
+					b.recycle();
+				}
+				catch (OutOfMemoryError e) {
+					System.gc();
+					try {
+						Bitmap b = stampImage(trip, receipts[i], Bitmap.Config.RGB_565);
+						_sdCard.writeBitmap(dir, b, (i+1) + "_" + receipts[i].name + ".jpg", CompressFormat.JPEG, 85);
+						b.recycle();
+					}
+					catch (OutOfMemoryError e2) {
+						memoryErrorOccured = true;
+						break;
+					}
+				}
+			}
+			File zip = _sdCard.zipBuffered(dir, 2048);
+			_sdCard.deleteRecursively(dir);
+			_files[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()] = zip;			
 		}
 		return new Long(100L);
 	}
+	
+	private static final float IMG_SCALE_FACTOR = 2.1f;
+	private static final float HW_RATIO = 0.75f;
+    private Bitmap stampImage(final TripRow trip, final ReceiptRow receipt, Bitmap.Config config) {
+        Bitmap foreground = _sdCard.getMutableMemoryEfficientBitmap(receipt.img);
+        int foreWidth = foreground.getWidth(), foreHeight = foreground.getHeight();
+        if (foreHeight > foreWidth) { foreWidth = (int) (foreHeight*HW_RATIO); }
+        else { foreHeight = (int) (foreWidth/HW_RATIO); }
+        int xPad = (int) (foreWidth/IMG_SCALE_FACTOR), yPad = (int) (foreHeight/IMG_SCALE_FACTOR);
+        Bitmap background = Bitmap.createBitmap(foreWidth + xPad, foreHeight + yPad, config);
+        Canvas canvas = new Canvas(background);
+        canvas.drawARGB(0xFF,0xFF,0xFF,0xFF); //This represents White color
+        Paint dither = new Paint(); 
+        dither.setDither(true); dither.setFilterBitmap(false);
+        canvas.drawBitmap(foreground, (background.getWidth() - foreground.getWidth())/2, (background.getHeight() - foreground.getHeight())/2, dither);
+        Paint brush = new Paint();
+        brush.setAntiAlias(true);
+        brush.setTypeface(Typeface.SANS_SERIF);
+        brush.setColor(Color.BLACK);
+        brush.setStyle(Paint.Style.FILL);
+        brush.setTextAlign(Align.LEFT);
+        int num = 5; 
+        if (receipt.extra_edittext_1 != null) num++;
+        if (receipt.extra_edittext_2 != null) num++;
+        if (receipt.extra_edittext_3 != null) num++;
+        float spacing = getOptimalSpacing(num, yPad/2, brush);
+        float y = spacing*4;
+        canvas.drawText(trip.dir.getName(), xPad/2, y, brush); y += spacing;
+        canvas.drawText(DateFormat.getDateFormat(_activity).format(trip.from) + " -- " + DateFormat.getDateFormat(_activity).format(trip.to), xPad/2, y, brush); y += spacing;
+        y = background.getHeight() - yPad/2 + spacing*2;
+        Flex flex = _activity._flex;
+        canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_NAME) + ": " + receipt.name, xPad/2, y, brush); y += spacing;
+        canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.price + " " + receipt.currency.toString(), xPad/2, y, brush); y += spacing;
+        canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_DATE) + ": " + DateFormat.getDateFormat(_activity).format(receipt.date), xPad/2, y, brush); y += spacing;
+        canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.category, xPad/2, y, brush); y += spacing;
+        canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT) + ": " + receipt.comment, xPad/2, y, brush); y += spacing;
+        if (receipt.extra_edittext_1 != null) { canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1) + ": " + receipt.extra_edittext_1, xPad/2, y, brush); y += spacing; }
+        if (receipt.extra_edittext_2 != null) { canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2) + ": " + receipt.extra_edittext_2, xPad/2, y, brush); y += spacing; }
+        if (receipt.extra_edittext_3 != null) { canvas.drawText(flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3) + ": " + receipt.extra_edittext_3, xPad/2, y, brush); y += spacing; }
+        return background;
+    }
+    
+    private float getOptimalSpacing(int count, int space, Paint brush) {
+    	float fontSize = 8f; //Seed
+    	brush.setTextSize(fontSize);
+    	while (space > (count + 2)*brush.getFontSpacing()) { brush.setTextSize(++fontSize);}
+    	brush.setTextSize(--fontSize);
+    	return brush.getFontSpacing();
+    }
 	
 	private Document addImageRows(Document document, ReceiptRow[] receipts) {
 			PdfPTable table = new PdfPTable(2);
@@ -340,6 +436,14 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 	protected void onPostExecute(Long result) {
 		_activity.postCreateAttachments(_files);
 		_dialog.cancel();
+	}
+	
+	@Override
+	protected void onProgressUpdate(Integer... values) {
+		if (memoryErrorOccured) {
+			memoryErrorOccured = false;
+			Toast.makeText(_activity, "Error: Not enough memory to stamp the images. Try stopping some other apps and try again.", Toast.LENGTH_LONG).show();
+		}
 	}
 	
 	private class Footer extends PdfPageEventHelper {

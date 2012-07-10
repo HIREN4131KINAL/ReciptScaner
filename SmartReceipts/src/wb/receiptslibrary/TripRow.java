@@ -32,8 +32,10 @@ public final class TripRow {
 		this.to = endDate;
 		this.price = "0.00";
 		try {
-			if (!currency.equalsIgnoreCase(DatabaseHelper.MULTI_CURRENCY)) this.currency = Currency.getInstance(currency);
-			else this.currency = null;
+			if (!currency.equalsIgnoreCase(DatabaseHelper.MULTI_CURRENCY)) 
+				this.currency = Currency.getInstance(currency);
+			else 
+				this.currency = null;
 		} catch (IllegalArgumentException e) {
 			this.currency = null;
 		}

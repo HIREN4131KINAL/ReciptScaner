@@ -11,9 +11,8 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import wb.android.autocomplete.AutoCompleteQueriable;
+import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
-import wb.csv.CSVColumn;
-import wb.csv.CSVColumns;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -31,7 +30,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	//Database Info
 	private static final String DATABASE_NAME = "receipts.db";
-	private static final int DATABASE_VERSION = 3;
+	private static final int DATABASE_VERSION = 4;
 	static final String NULL = "null";
 	static final String MULTI_CURRENCY = "XXXXXX";
 	
@@ -51,6 +50,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private CSVColumns _csvColumns;
 	private Time _now;
 	private SmartReceiptsActivity _activity;
+	
+	//Hack to prevent Recursive Database Calling
+	private SQLiteDatabase _initDB; //This is only set while either onCreate or onUpdate is running. It is null all other times
 	
 	//Tables Declarations
 	private static final class TripsTable {
@@ -76,6 +78,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_EXPENSEABLE = "expenseable";
 		public static final String COLUMN_ISO4217 = "isocode";
 		public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
+		public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
+		public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
+		public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
 	}
 	private static final class CategoriesTable {
 		private CategoriesTable() {}
@@ -84,7 +89,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_CODE = "code";
 		public static final String COLUMN_BREAKDOWN = "breakdown";
 	}
-	private static final class CSVTable {
+	public static final class CSVTable {
 		private CSVTable() {}
 		public static final String TABLE_NAME = "csvcolumns";
 		public static final String COLUMN_ID = "id";
@@ -109,6 +114,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void onCreate(final SQLiteDatabase db) {
+		_initDB = db;
 		//N.B. This only gets called if you actually request the database using the getDatabase method
 		final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " ("
 				+ TripsTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
@@ -128,7 +134,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
 				+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
 				+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
-				+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1"
+				+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
+				+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
+				+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
+				+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
 				+ ");";
 		final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " ("
 				+ CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
@@ -142,8 +151,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		db.execSQL(receipts);
 		db.execSQL(categories);
 		this.createCSVTable(db);
-		//********** Insert Default Category Entries Into Categories Table *********//
-		final String categoryHeader = "INSERT INTO " + CategoriesTable.TABLE_NAME + "(" + CategoriesTable.COLUMN_NAME + "," + CategoriesTable.COLUMN_CODE + ") VALUES (";
+		_activity.insertCategoryDefaults(this);
+		/*
+		 * final String categoryHeader = "INSERT INTO " + CategoriesTable.TABLE_NAME + "(" + CategoriesTable.COLUMN_NAME + "," + CategoriesTable.COLUMN_CODE + ") VALUES (";
 		db.execSQL(categoryHeader + "\"<Category>\", \"NUL\");");
 		db.execSQL(categoryHeader + "\"Airfare\", \"AIRP\");");
 		db.execSQL(categoryHeader + "\"Breakfast\", \"BRFT\");");
@@ -168,12 +178,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		db.execSQL(categoryHeader + "\"Meals (Justified)\", \"ZMEO\");");
 		db.execSQL(categoryHeader + "\"Stantionery/Stations\", \"ZSTS\");");
 		db.execSQL(categoryHeader + "\"Training Fees\", \"ZTRN\");");
+		 */
 		_activity.onFirstRun();
+		_initDB = null;
 	}
 	
 	@Override
 	public final void onUpgrade(final SQLiteDatabase db, int oldVersion, final int newVersion) {
 		if(D) Log.d(TAG, "Upgrading the database from version " + oldVersion + " to " + newVersion);
+		_initDB = db;
 		if (oldVersion == 1) { // Add currency column to receipts table
 			final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME 
 					+ " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL "
@@ -194,6 +207,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			this.createCSVTable(db);
 			oldVersion++;
 		}
+		if (oldVersion == 3) { // Add extra_edittext columns
+			final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
+					+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
+			final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
+					+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
+			final String alterReceipts3 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
+					+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT";
+			if (D) Log.d(TAG, alterReceipts1);
+			if (D) Log.d(TAG, alterReceipts2);
+			if (D) Log.d(TAG, alterReceipts3);
+			db.execSQL(alterReceipts1);
+			db.execSQL(alterReceipts2);
+			db.execSQL(alterReceipts3);
+			oldVersion++;
+		}
+		_initDB = null;
 	}
 	
 	private final void createCSVTable(final SQLiteDatabase db) { //Called in onCreate and onUpgrade
@@ -203,13 +232,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				+ ");"; 
 		if (D) Log.d(TAG, csv);
 		db.execSQL(csv);
-		//********** Insert Default CSV Entries Into CSV Table *********//
-		final String csvHeader = "INSERT INTO " + CSVTable.TABLE_NAME + " (" + CSVTable.COLUMN_TYPE + ") VALUES (";
-		db.execSQL(csvHeader + "\"" + CSVColumns.CATEGORY_CODE + "\");");
-		db.execSQL(csvHeader + "\"" + CSVColumns.NAME + "\");");
-		db.execSQL(csvHeader + "\"" + CSVColumns.PRICE + "\");");
-		db.execSQL(csvHeader + "\"" + CSVColumns.CURRENCY + "\");");
-		db.execSQL(csvHeader + "\"" + CSVColumns.DATE + "\");");
+		_activity.insertCSVDefaults(this);
 	}
 	
 	public final void onDestroy() {
@@ -238,7 +261,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				final long to = c.getLong(toIndex);
 				final String price = c.getString(priceIndex);
 				final Cursor qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
-				int cnt; String curr = MULTI_CURRENCY;;
+				int cnt; String curr = MULTI_CURRENCY;
 				if (qc != null && qc.moveToFirst() && qc.getColumnCount() > 0) {
 					cnt = qc.getInt(0);
 					if (cnt == 1) curr = qc.getString(1);
@@ -400,6 +423,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1", new String[] {dir}, null, null, null);
 			if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 				final String sum = c.getString(0);
+				trip.price = sum;
 				c.close();
 				ContentValues values = new ContentValues(1);
 				values.put(TripsTable.COLUMN_PRICE, sum);
@@ -436,6 +460,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
 				final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
 				final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
+				final int extra_edittext_1_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1);
+				final int extra_edittext_2_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2);
+				final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
 				do {
 					final int id = c.getInt(idIndex);
 					final String path = c.getString(pathIndex);
@@ -448,7 +475,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final boolean expensable = c.getInt(expenseableIndex)>0;
 					final String currency = c.getString(currencyIndex);
 					final boolean fullpage = !(c.getInt(fullpageIndex)>0);
-					receipts[c.getPosition()] = new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable, currency, fullpage);
+					final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
+					final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
+					final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
+					receipts[c.getPosition()] = new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 				} 
 				while (c.moveToNext());
 				c.close(); //Be sure to close the cursor to avoid memory leaks
@@ -481,6 +511,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
 			final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
 			final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
+			final int extra_edittext_1_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1);
+			final int extra_edittext_2_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2);
+			final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
 			final String path = c.getString(pathIndex);
 			final String name = c.getString(nameIndex);
 			final String parent = c.getString(parentIndex);
@@ -491,8 +524,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final boolean expensable = c.getInt(expenseableIndex)>0;
 			final String currency = c.getString(currencyIndex);
 			final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+			final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
+			final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
+			final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
 			c.close(); //Be sure to close the cursor to avoid memory leaks
-			return new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable, currency, fullpage);
+			return new ReceiptRow(id, path, parent, name, category, date, comment, price, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 		}
 		else {
 			c.close(); //Be sure to close the cursor to avoid memory leaks
@@ -501,7 +537,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	public final ReceiptRow insertReceiptFile(final TripRow trip, final File img, final File parentDir, final String name, final String category, 
-			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage) throws SQLException {
+			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage, String extra_edittext_1,
+			String extra_edittext_2, String extra_edittext_3) throws SQLException {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 			final int rcptCnt = this.getReceipts(trip).length; //Use this to order things more properly
@@ -528,6 +565,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
 			if (price.length() > 0)
 				values.put(ReceiptsTable.COLUMN_PRICE, price);
+			//Extras
+			if (extra_edittext_1 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NULL);
+			else {
+				if (extra_edittext_1.equalsIgnoreCase("null")) extra_edittext_1 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
+			}
+			if (extra_edittext_2 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NULL);
+			else {
+				if (extra_edittext_2.equalsIgnoreCase("null")) extra_edittext_2 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
+			}
+			if (extra_edittext_3 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NULL);
+			else {
+				if (extra_edittext_3.equalsIgnoreCase("null")) extra_edittext_3 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
+			}
+			
 			if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1)
 				return null;
 			else {
@@ -539,7 +596,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int id = c.getInt(0);
 					c.close();
 					date.setTime(date.getTime()+rcptCnt);
-					return new ReceiptRow(id, img, parentDir, name, category, date, comment, price, expensable, currency, fullpage);
+					return new ReceiptRow(id, img, parentDir, name, category, date, comment, price, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 				}
 				else {
 					c.close();
@@ -553,7 +610,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	public final ReceiptRow updateReceipt(final ReceiptRow oldReceipt, final TripRow trip, final String name, final String category, 
-			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage) {
+			final Date date, final String comment, final String price, final boolean expensable, final String currency, final boolean fullpage, 
+			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 			ContentValues values = new ContentValues(8);
@@ -568,12 +626,32 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
 			values.put(ReceiptsTable.COLUMN_ISO4217, currency);
 			values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
+			////Extras
+			if (extra_edittext_1 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NULL);
+			else {
+				if (extra_edittext_1.equalsIgnoreCase("null")) extra_edittext_1 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
+			}
+			if (extra_edittext_2 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NULL);
+			else {
+				if (extra_edittext_2.equalsIgnoreCase("null")) extra_edittext_2 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
+			}
+			if (extra_edittext_3 == null)
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NULL);
+			else {
+				if (extra_edittext_3.equalsIgnoreCase("null")) extra_edittext_3 = "";
+				values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
+			}
+			
 			if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldReceipt.id)}) == 0))
 				return null;
 			else {
 				_receiptMapCache.remove(trip);
 				this.updateTripPrice(trip);
-				return new ReceiptRow(oldReceipt.id, oldReceipt.img, oldReceipt.parentDir, name, category, date, comment, price, expensable, currency, fullpage);
+				return new ReceiptRow(oldReceipt.id, oldReceipt.img, oldReceipt.parentDir, name, category, date, comment, price, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 			}
 		}
 		catch (SQLException e) {
@@ -752,7 +830,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		otherCurrencies.add("SLL"); otherCurrencies.add("SOS"); otherCurrencies.add("THB");
 		otherCurrencies.add("TZS"); otherCurrencies.add("UGX"); 
 		otherCurrencies.add("ZMK"); otherCurrencies.add("ZWD");
-		//otherCurrencies.add("DRC"); otherCurrencies.add("ZOF"); => Bad Currencies
+		//otherCurrencies.add("DRC"); otherCurrencies.add("XOF"); => Bad Currencies
 		CharSequence code;
 		final int size = otherCurrencies.size();
 		for (int i=0; i < size; i++) {
@@ -776,6 +854,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Collections.sort(_categoryList, _charSequenceComparator);
 			return true;
 		}
+	}
+	
+	public final boolean insertCategoryNoCache(final String name, final String code) throws SQLException {
+		final SQLiteDatabase db = (_initDB != null) ? _initDB : this.getReadableDatabase();
+		ContentValues values = new ContentValues(2);
+		values.put(CategoriesTable.COLUMN_NAME, name);
+		values.put(CategoriesTable.COLUMN_CODE, code);
+		if (db.insertOrThrow(CategoriesTable.TABLE_NAME, null, values) == -1)
+			return false;
+		else 
+			return true;
 	}
 	
 	public final boolean updateCategory(final String oldName, final String newName, final String newCode) {
@@ -808,10 +897,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	//	CSV Column Methods
 	////////////////////////////////////////////////////////////////////////////////////////////////////
-	public final CSVColumns getCSVColumns() {
+	public final CSVColumns getCSVColumns(Flex flex) {
 		if (_csvColumns != null)
 			return _csvColumns;
-		_csvColumns = new CSVColumns(_activity, this);
+		_csvColumns = new CSVColumns(_activity, this, flex);
 		final SQLiteDatabase db = this.getReadableDatabase();
 		final Cursor c = db.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
 		if (c != null && c.moveToFirst()) {
@@ -834,7 +923,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean insertCSVColumn() {
 		final SQLiteDatabase db = this.getReadableDatabase();
 		ContentValues values = new ContentValues(1);
-		values.put(CSVTable.COLUMN_TYPE, CSVColumns.BLANK);
+		values.put(CSVTable.COLUMN_TYPE, CSVColumns.BLANK(_activity._flex));
 		if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1)
 			return false;
 		else {
@@ -842,7 +931,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 				final int idx = c.getInt(0);
 				c.close();
-				_csvColumns.add(idx, CSVColumns.BLANK);
+				_csvColumns.add(idx, CSVColumns.BLANK(_activity._flex));
 			}
 			else {
 				c.close();
@@ -850,6 +939,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 			return true;
 		}
+	}
+	
+	public final boolean insertCSVColumnNoCache(String column) {
+		final SQLiteDatabase db = (_initDB != null) ? _initDB : this.getReadableDatabase();
+		ContentValues values = new ContentValues(1);
+		values.put(CSVTable.COLUMN_TYPE, column);
+		if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1)
+			return false;
+		else
+			return true;
 	}
 	
 	public final boolean deleteCSVColumn() {
@@ -895,20 +994,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				       " ORDER BY " + TripsTable.COLUMN_NAME;
 		}
 		return db.rawQuery(sqlQuery, null);
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Debug Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	final void debugClearTables() {
-		if (!D) return; //Only allow this if we're in debug mode
-		_areTripsValid = false;
-		_receiptMapCache.clear();
-		final SQLiteDatabase db = this.getReadableDatabase();
-		db.execSQL("DROP TABLE IF EXISTS " + TripsTable.TABLE_NAME);
-		db.execSQL("DROP TABLE IF EXISTS " + ReceiptsTable.TABLE_NAME);
-		db.execSQL("DROP TABLE IF EXISTS " + CategoriesTable.TABLE_NAME);
-		onCreate(db);
 	}
 
 }

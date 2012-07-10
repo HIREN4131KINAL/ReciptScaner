@@ -13,8 +13,9 @@ import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.flex.Flex;
+import wb.android.flex.Flexable;
 import wb.android.util.AppRating;
-import wb.csv.CSVColumns;
+import wb.receiptslibrary.EmailAttachmentWriter.EmailOptions;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -54,14 +55,11 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 
-public abstract class SmartReceiptsActivity extends Activity {
+public abstract class SmartReceiptsActivity extends Activity implements Flexable {
     
 	//logging variables
-    private static final boolean D = false;
+    private static final boolean D = true;
     private static final String TAG = "SmartReceiptsActivity";
-    
-    //About
-    private static String ABOUT;
     
 	//Public 
 	public static final Locale LOCALE = Locale.getDefault();
@@ -87,41 +85,54 @@ public abstract class SmartReceiptsActivity extends Activity {
     private static final int CSV_MENU_ID = 4;
     
     //Preferences
-    private static final String SMART_PREFS = "SmartReceiptsPrefFile";
-    private static final String INT_DEFAULT_TRIP_DURATION = "TripDuration";
-    private static final String STRING_DEFAULT_EMAIL_TO = "EmailTo";
-    private static final String BOOL_PREDICT_CATEGORIES = "PredictCats";
-    private static final String BOOL_MATCH_COMMENT_WITH_CATEGORIES = "MatchCommentCats";
-    private static final String BOOL_MATCH_NAME_WITH_CATEGORIES = "MatchNameCats";
-    private static final String BOOL_USE_NATIVE_CAMERA = "UseNativeCamera";
-    private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
-    private static final String BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS ="OnlyIncludeExpensable";
-    private static final String STRING_CURRENCY = "isocurr";
-    private static final String FLOAT_MIN_RECEIPT_PRICE = "MinReceiptPrice";
+    protected static final String SMART_PREFS = "SmartReceiptsPrefFile";
+    protected static final String INT_DEFAULT_TRIP_DURATION = "TripDuration";
+    protected static final String STRING_DEFAULT_EMAIL_TO = "EmailTo";
+    protected static final String STRING_USERNAME = "UserName";
+    protected static final String BOOL_PREDICT_CATEGORIES = "PredictCats";
+    protected static final String BOOL_MATCH_COMMENT_WITH_CATEGORIES = "MatchCommentCats";
+    protected static final String BOOL_MATCH_NAME_WITH_CATEGORIES = "MatchNameCats";
+    protected static final String BOOL_USE_NATIVE_CAMERA = "UseNativeCamera";
+    protected static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
+    protected static final String BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS ="OnlyIncludeExpensable";
+    protected static final String STRING_CURRENCY = "isocurr";
+    protected static final String FLOAT_MIN_RECEIPT_PRICE = "MinReceiptPrice";
+    
+    //SubClass Preferences
+    protected static final String SUBCLASS_PREFS = "SubClassPrefs";
+    protected static final String PREF1 = "pref1";
     
     //Receiver Settings
     protected static final String FILTER_ACTION = "wb.receiptslibrary";
     
     //AppRating
     private static final int LAUNCHES_UNTIL_PROMPT = 15;
-    private static final String TITLE = "Smart Receipts";
     
-    //instance variables (not final to improve access performance by removing virtual get methods used within dialog interfaces)
-    RelativeLayout _mainLayout;
+    //Private Instance Variables. Only used in this class
+    private String _title;
+    private RelativeLayout _mainLayout;
+    private ReceiptRow _highlightedReceipt;
+    private ListView _listView;
+    private ImageView _imgView;
+    private boolean _isViewingImg, _calledFromActionSend;
+    private Uri _imageUri, _actionSendUri;
+    
+    //Package-Accessible Instance Variables. None of these require get/set to improve performance
     StorageManager _sdCard;
     TripAdapter _tripAdapter;
     ReceiptAdapter _receiptAdapter;
     DatabaseHelper _db;
     TripRow _currentTrip;
-    ReceiptRow _highlightedReceipt;
-    ListView _listView;
-    ImageView _imgView;
-    boolean _isViewingTrip = false, _isViewingImg, _predictCategories, _matchCommentCats, _matchNameCats, _useNativeCamera, _calledFromActionSend, _saveState, _onlyIncludeExpensable; 
-    int _defaultTripDuration;
-    float _minReceiptPrice;
-    String _emailTo, _currency;
-    Uri _imageUri, _actionSendUri;
-    Flex _flex;
+    boolean _isViewingTrip = false; 
+    
+    //Protected Instance Variables
+    protected Flex _flex;
+    
+    //Preferences
+    protected boolean _predictCategories, _matchCommentCats, _matchNameCats, _useNativeCamera, _onlyIncludeExpensable;
+    protected String _emailTo, _currency, _userID;
+    protected int _defaultTripDuration;
+    protected float _minReceiptPrice;
     
 	/* OCR Stuff:
 	 * 	 1. Check that the DC card is mounted and an OCR isn't currently in progress (boolean checks)
@@ -133,7 +144,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     	if(D) Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setResult(Activity.RESULT_CANCELED); //In case the user backs out
-        _flex = Flex.getInstance(this);
+        _flex = Flex.getInstance(this, this);
         if (this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
         	_calledFromActionSend = true;
         	if (this.getIntent().getExtras() != null) {
@@ -154,7 +165,8 @@ public abstract class SmartReceiptsActivity extends Activity {
         	}
         }
         else
-        _calledFromActionSend = false;
+        	_calledFromActionSend = false;
+        _title = _flex.getString(R.string.APP_TITLE);
         _isViewingImg = false;
     	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
     	_defaultTripDuration = prefs.getInt(INT_DEFAULT_TRIP_DURATION, 3);
@@ -163,8 +175,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     	_useNativeCamera = prefs.getBoolean(BOOL_USE_NATIVE_CAMERA, false);
     	_matchCommentCats = prefs.getBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, false);
     	_matchNameCats = prefs.getBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, false);
-    	_onlyIncludeExpensable = prefs.getBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, false);
+    	_onlyIncludeExpensable = prefs.getBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, true);
     	_minReceiptPrice = prefs.getFloat(FLOAT_MIN_RECEIPT_PRICE, -Float.MAX_VALUE);
+    	_userID = prefs.getString(STRING_USERNAME, "");
     	try {
     		_currency = prefs.getString(STRING_CURRENCY, Currency.getInstance(LOCALE).getCurrencyCode());
     	} catch (IllegalArgumentException ex) {
@@ -176,19 +189,14 @@ public abstract class SmartReceiptsActivity extends Activity {
         _tripAdapter = new TripAdapter(this, _db.getTrips());
         _receiptAdapter = new ReceiptAdapter(this, new ReceiptRow[0]);
         _listView.setAdapter(_tripAdapter);
-        try {
-			ABOUT = "Smart Receipts v." + this.getPackageManager().getPackageInfo(getPackageName(), 0).versionName + "\nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License";
-		} catch (NameNotFoundException e) {
-			ABOUT = "Smart Receipts\nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License";
-		}
-        AppRating.onLaunch(this, LAUNCHES_UNTIL_PROMPT, TITLE, this.getPackageName());
+        AppRating.onLaunch(this, LAUNCHES_UNTIL_PROMPT, _title, this.getPackageName());
     }
     
     @Override
     protected final void onStart() {
     	super.onStart();
         if (!_isViewingTrip || _currentTrip == null)
-	        super.setTitle(TITLE);
+	        super.setTitle(_title);
         else if (_isViewingImg && _highlightedReceipt != null)
         	super.setTitle(_highlightedReceipt.name);
         else
@@ -200,8 +208,8 @@ public abstract class SmartReceiptsActivity extends Activity {
     @Override
     protected final void onResume() {
     	super.onResume();
-    	_flex = Flex.getInstance(this);
-    	_flex.update(this);
+    	_flex = Flex.getInstance(this, this);
+    	_flex.onResume();
     	_sdCard = StorageManager.getInstance(this);
     	if (!_sdCard.isExternal())
         	Toast.makeText(SmartReceiptsActivity.this, _flex.getString(R.string.SD_WARNING), Toast.LENGTH_LONG).show();
@@ -241,6 +249,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     protected void onPause() {
     	super.onPause();
     	DialogController.getInstance(this, _sdCard, _flex).onPause();
+    	if (_flex != null) _flex.onPause();
     }
     
     @Override
@@ -253,12 +262,7 @@ public abstract class SmartReceiptsActivity extends Activity {
      * This method is only called the first time Smart Receipts is run.
      * It gives a brief overview of how to use the app.
      */
-    final void onFirstRun() {
-    	SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, true);
-        _onlyIncludeExpensable = true;
-        editor.commit();
+    protected void onFirstRun() {
     	BetterDialogBuilder builder = new BetterDialogBuilder(this);
     	builder.setTitle(_flex.getString(R.string.DIALOG_WELCOME_TITLE))
     		   .setMessage(_flex.getString(R.string.DIALOG_WELCOME_MESSAGE))
@@ -340,34 +344,9 @@ public abstract class SmartReceiptsActivity extends Activity {
     final void updateTitlePrice(TripRow trip, ReceiptRow oldReceipt, ReceiptRow newReceipt) {
     	if (newReceipt.price == null || newReceipt.price.length() == 0)
     		return;
-    	if (oldReceipt == null) {
-    		if (newReceipt.expensable) {
-    			try {
-					Float oldPrice = Float.valueOf(trip.price);
-					Float deltaPrice = Float.valueOf(newReceipt.price);
-					float newPrice = oldPrice + deltaPrice;
-					trip.price = Float.toString(newPrice);
-					final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
-					this.setTitle(currency + " - " + trip.dir.getName());
-    			} catch (java.lang.NumberFormatException e) {
-    	    		return;
-    	    	}
-    		}
-    	}
     	else {
-    		try {
-	    		Float oldPrice = Float.valueOf(trip.price);
-				Float subPrice = Float.valueOf(oldReceipt.price);
-				Float addPrice = Float.valueOf(newReceipt.price);
-				float newPrice = oldPrice;
-				if (oldReceipt.expensable) newPrice -= subPrice;
-				if (newReceipt.expensable) newPrice += addPrice;
-				trip.price = Float.toString(newPrice);
-				final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
-				this.setTitle(currency + " - " + trip.dir.getName());
-			} catch (java.lang.NumberFormatException e) {
-				return;
-			}
+			final String currency = SmartReceiptsActivity.CurrencyValue(trip.price, trip.currency);
+			this.setTitle(currency + " - " + trip.dir.getName());
 		}
     }
     
@@ -379,11 +358,12 @@ public abstract class SmartReceiptsActivity extends Activity {
 		Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);  
 		emailIntent.setType("application/octet-stream");
 		ArrayList<Uri> uris = new ArrayList<Uri>();
-		if (files[EmailAttachmentWriter.FULL_PDF] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.FULL_PDF]));
-		if (files[EmailAttachmentWriter.IMG_PDF] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.IMG_PDF]));
-		if (files[EmailAttachmentWriter.CSV] != null) uris.add(Uri.fromFile(files[EmailAttachmentWriter.CSV]));
+		if (files[EmailOptions.PDF_FULL.getIndex()] != null) uris.add(Uri.fromFile(files[EmailOptions.PDF_FULL.getIndex()]));
+		if (files[EmailOptions.PDF_IMAGES_ONLY.getIndex()] != null) uris.add(Uri.fromFile(files[EmailOptions.PDF_IMAGES_ONLY.getIndex()]));
+		if (files[EmailOptions.CSV.getIndex()] != null) uris.add(Uri.fromFile(files[EmailOptions.CSV.getIndex()]));
+		if (files[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()] != null) uris.add(Uri.fromFile(files[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]));
 		emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{_emailTo});
-		emailIntent.putExtra(Intent.EXTRA_SUBJECT, "SmartReceipts - " + _currentTrip.dir.getName());
+		emailIntent.putExtra(Intent.EXTRA_SUBJECT, _flex.getString(R.string.EMAIL_DATA_SUBJECT).replaceAll("%REPORT_NAME%", _currentTrip.dir.getName()).replaceAll("%USER_ID%", _userID));
 		if (uris.size() == 1) emailIntent.putExtra(Intent.EXTRA_TEXT, uris.size() + " report attached");
 		if (uris.size() > 1) emailIntent.putExtra(Intent.EXTRA_TEXT, uris.size() + " reports attached");
 		emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
@@ -620,6 +600,7 @@ public abstract class SmartReceiptsActivity extends Activity {
     			Toast.makeText(this, _flex.getString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
     		System.gc(); 
     		_imgView.setImageBitmap(BitmapFactory.decodeFile(receipt.img.getCanonicalPath()));
+    		//_imgView.setImageBitmap(testImageManipulation(receipt));
     		this.setTitle(receipt.name);
     		this.setContentView(_imgView, params);
     	}
@@ -644,14 +625,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 		                			Toast.makeText(activity, _flex.getString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
 		                	}
 		                	if (receipt.price != null && receipt.price.length() != 0) {
-		                		try {
-				                	BigDecimal amnt = new BigDecimal(activity._currentTrip.price);
-				                	BigDecimal delta = new BigDecimal(receipt.price);
-				                	final float priceFloat = amnt.floatValue() - delta.floatValue();
-				    				_currentTrip.price = Float.toString(priceFloat);
-				    				final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
-				    				activity.setTitle(currency + " - " + activity._currentTrip.dir.getName());
-		                		} catch (java.lang.NumberFormatException e) {}
+			    				final String currency = SmartReceiptsActivity.CurrencyValue(_currentTrip.price, _currentTrip.currency);
+			    				activity.setTitle(currency + " - " + activity._currentTrip.dir.getName());
 		                	}
 		                }
 		                else
@@ -891,7 +866,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 		}
 		else if (_isViewingTrip) {
 			_isViewingTrip = false;
-			this.setTitle(TITLE);
+			this.setTitle(_title);
 			_listView.setAdapter(_tripAdapter);
 			_tripAdapter.notifyDataSetChanged(_db.getTrips());
 			return true;
@@ -951,9 +926,13 @@ public abstract class SmartReceiptsActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	if (item.getItemId() == ABOUT_ID) {
+    		String about = _flex.getString(R.string.DIALOG_ABOUT_MESSAGE);
+    		try {
+    			about = about.replace("VERSION_NAME", this.getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+    		} catch (NameNotFoundException e) { }
 	    	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
-			builder.setTitle("About")
-				   .setMessage(ABOUT)
+			builder.setTitle(_flex.getString(R.string.DIALOG_ABOUT_TITLE))
+				   .setMessage(about)
 				   .setCancelable(true)
 				   .show();
 			return true;
@@ -971,6 +950,8 @@ public abstract class SmartReceiptsActivity extends Activity {
 			final Spinner currencySpinner = new Spinner(this);
 			final TextView minPriceText = new TextView(this); minPriceText.setPadding(6, 10, 6, 0); minPriceText.setTextSize(16F); minPriceText.setText("Min. Receipt Price to Report:");
 			final EditText minPrice = new EditText(this); minPrice.setInputType(InputType.TYPE_CLASS_NUMBER); minPrice.setHint("Leave Blank to Include All");
+			final TextView userIDText = new TextView(this); userIDText.setPadding(6, 10, 6, 0); userIDText.setTextSize(16F); userIDText.setText("User ID:");
+			final EditText userID = new EditText(this); userID.setText(_userID);
 			if (_minReceiptPrice != -Float.MAX_VALUE) minPrice.setText(Float.toString(_minReceiptPrice));
 			final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, this._db.getCurrenciesList());
 			currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -986,6 +967,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 	    	layout.addView(daysText); layout.addView(days);
 	    	layout.addView(currencyText); layout.addView(currencySpinner);
 	    	layout.addView(minPriceText); layout.addView(minPrice);
+	    	layout.addView(userIDText); layout.addView(userID);
 	    	layout.addView(predictCategoires);
 	    	layout.addView(useNativeCamera);
 	    	layout.addView(matchNameToCategory);
@@ -1013,6 +995,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 				               activity._matchNameCats = matchNameToCategory.isChecked();
 				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               activity._onlyIncludeExpensable = onlyIncludeExpensableItems.isChecked();
+				               activity._userID = userID.getText().toString();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
 				               editor.putInt(INT_DEFAULT_TRIP_DURATION, activity._defaultTripDuration);
@@ -1024,6 +1007,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 					           editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, activity._matchNameCats);
 					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.putBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, activity._onlyIncludeExpensable);
+					           editor.putString(STRING_USERNAME, activity._userID);
 					           editor.commit();
 			        	   } catch (java.lang.NumberFormatException e) {
 			        		   activity._emailTo = email.getText().toString();
@@ -1033,6 +1017,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 				               activity._matchNameCats = matchNameToCategory.isChecked();
 				               activity._matchCommentCats = matchCommentsToCategory.isChecked();
 				               activity._onlyIncludeExpensable = onlyIncludeExpensableItems.isChecked();
+				               activity._userID = userID.getText().toString();
 				               SharedPreferences prefs = getSharedPreferences(SMART_PREFS, 0);
 				               SharedPreferences.Editor editor = prefs.edit();
 					           editor.putString(STRING_DEFAULT_EMAIL_TO, activity._emailTo);
@@ -1042,6 +1027,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 					           editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, activity._matchNameCats);
 					           editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, activity._matchCommentCats);
 					           editor.putBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, activity._onlyIncludeExpensable);
+					           editor.putString(STRING_USERNAME, activity._userID);
 					           editor.commit();
 					       }
 			           }
@@ -1256,7 +1242,7 @@ public abstract class SmartReceiptsActivity extends Activity {
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.BOTTOM);
 		layout.setPadding(6, 6, 6, 6);
-		final CSVColumns csvColumns = _db.getCSVColumns(); 
+		final CSVColumns csvColumns = _db.getCSVColumns(_flex); 
 		for (int i=0; i < csvColumns.size(); i++) {
 			final LinearLayout horiz = addHorizontalCSVLayoutItem(csvColumns, i);
 			layout.addView(horiz, params);
@@ -1289,9 +1275,19 @@ public abstract class SmartReceiptsActivity extends Activity {
 		final CSVColumnSelectionListener selectionListener = new CSVColumnSelectionListener(_db, i);
 		horiz.setOrientation(LinearLayout.HORIZONTAL);
 		final Spinner spinner = new Spinner(this);
-		final ArrayAdapter<CharSequence> options = CSVColumns.getNewArrayAdapter(this);
+		final ArrayAdapter<CharSequence> options = CSVColumns.getNewArrayAdapter(this, _flex);
 		options.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinner.setAdapter(options); spinner.setPrompt("Column Type");  spinner.setSelection(options.getPosition(csvColumns.getType(i)));
+		spinner.setAdapter(options); spinner.setPrompt("Column Type");
+		String type = csvColumns.getType(i);
+		int pos = options.getPosition(type);
+		if (pos < 0) { //This was a customized, non-accessbile entry
+			options.add(type);
+			spinner.setSelection(options.getPosition(type));
+			spinner.setEnabled(false);
+		}
+		else {
+			spinner.setSelection(pos);
+		}
 		spinner.setOnItemSelectedListener(selectionListener);
 		final TextView textView = new TextView(this);
 		textView.setPadding(12, 0, 0, 0);
@@ -1300,6 +1296,46 @@ public abstract class SmartReceiptsActivity extends Activity {
 		horiz.addView(textView, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 2f)); 
 		horiz.addView(spinner, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 1f));
 		return horiz;
+    }
+    
+    @Override
+    public int getFleXML() {
+    	return Flexable.UNDEFINED;
+    }
+    
+    protected void insertCSVDefaults(final DatabaseHelper db) { //Called in onCreate and onUpgrade
+		db.insertCSVColumnNoCache(CSVColumns.CATEGORY_CODE(_flex));
+		db.insertCSVColumnNoCache(CSVColumns.NAME(_flex));
+		db.insertCSVColumnNoCache(CSVColumns.PRICE(_flex));
+		db.insertCSVColumnNoCache(CSVColumns.CURRENCY(_flex));
+		db.insertCSVColumnNoCache(CSVColumns.DATE(_flex));
+	}
+    
+    protected void insertCategoryDefaults(final DatabaseHelper db) {
+		db.insertCategoryNoCache("<Category>", "NUL");
+		db.insertCategoryNoCache("Airfare", "AIRP");
+		db.insertCategoryNoCache("Breakfast", "BRFT");
+		db.insertCategoryNoCache("Dinner", "DINN");
+		db.insertCategoryNoCache("Entertainment", "ENT");
+		db.insertCategoryNoCache("Gasoline", "GAS");
+		db.insertCategoryNoCache("Gift", "GIFT");
+		db.insertCategoryNoCache("Hotel", "HTL");
+		db.insertCategoryNoCache("Laundry", "LAUN");
+		db.insertCategoryNoCache("Lunch", "LNCH");
+		db.insertCategoryNoCache("Other", "MISC");
+		db.insertCategoryNoCache("Parking/Tolls", "PARK");
+		db.insertCategoryNoCache("Postage/Shipping", "POST");
+		db.insertCategoryNoCache("Car Rental", "RCAR");
+		db.insertCategoryNoCache("Taxi/Bus", "TAXI");
+		db.insertCategoryNoCache("Telephone/Fax", "TELE");
+		db.insertCategoryNoCache("Tip", "TIP");
+		db.insertCategoryNoCache("Train", "TRN");
+		db.insertCategoryNoCache("Books/Periodicals", "ZBKP");
+		db.insertCategoryNoCache("Cell Phone", "ZCEL");
+		db.insertCategoryNoCache("Dues/Subscriptions", "ZDUE");
+		db.insertCategoryNoCache("Meals (Justified)", "ZMEO");
+		db.insertCategoryNoCache("Stantionery/Stations", "ZSTS");
+		db.insertCategoryNoCache("Training Fees", "ZTRN");
     }
 	   
 }

@@ -3,6 +3,7 @@ package wb.receiptslibrary;
 import java.io.File;
 import java.sql.Date;
 import java.util.Calendar;
+import java.util.EnumSet;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -13,7 +14,6 @@ import android.content.res.Configuration;
 import android.database.SQLException;
 import android.text.format.DateFormat;
 import android.text.format.Time;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +35,7 @@ import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
+import wb.receiptslibrary.EmailAttachmentWriter.EmailOptions;
 
 public class DialogController {
 	
@@ -210,6 +212,12 @@ public class DialogController {
 		final CheckBox expensable = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
 		final CheckBox fullpage = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
 		
+		//Extras
+		final LinearLayout extras = (LinearLayout) _flex.getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
+		final EditText extra_edittext_box_1 = (EditText) extras.findViewWithTag(_flex.getString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
+		final EditText extra_edittext_box_2 = (EditText) extras.findViewWithTag(_flex.getString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
+		final EditText extra_edittext_box_3 = (EditText) extras.findViewWithTag(_flex.getString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
+		
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(_activity, android.R.layout.simple_spinner_item, _activity._db.getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		currencySpinner.setAdapter(currenices);
@@ -260,6 +268,9 @@ public class DialogController {
 			if (idx > 0) currencySpinner.setSelection(idx);
 			expensable.setChecked(receipt.expensable);
 			fullpage.setChecked(receipt.fullpage);
+			if (extra_edittext_box_1 != null && receipt.extra_edittext_1 != null) extra_edittext_box_1.setText(receipt.extra_edittext_1);
+			if (extra_edittext_box_2 != null && receipt.extra_edittext_2 != null) extra_edittext_box_2.setText(receipt.extra_edittext_2);
+			if (extra_edittext_box_3 != null && receipt.extra_edittext_3 != null) extra_edittext_box_3.setText(receipt.extra_edittext_3);
 		}
 		nameBox.setSelection(nameBox.getText().length()); //Put the cursor at the end
 		
@@ -276,6 +287,9 @@ public class DialogController {
 					 final String category = categoriesSpinner.getSelectedItem().toString();
 					 final String currency = currencySpinner.getSelectedItem().toString();
 					 final String comment = commentBox.getText().toString();
+					 final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
+					 final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
+					 final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
 					 if (name.length() == 0) {
 						 Toast.makeText(activity, activity._flex.getString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
 						 return;
@@ -297,7 +311,7 @@ public class DialogController {
 						 Toast.makeText(activity, activity._flex.getString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
 					 }
 					 if (newReceipt) {//Insert
-						 final ReceiptRow newReceipt = activity._db.insertReceiptFile(trip, img, activity._currentTrip.dir, name, category, dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked());
+						 final ReceiptRow newReceipt = activity._db.insertReceiptFile(trip, img, activity._currentTrip.dir, name, category, dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked(), extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 if (newReceipt != null) {
 							 activity._receiptAdapter.notifyDataSetChanged(activity._db.getReceipts(activity._currentTrip));
 							 activity.updateTitlePrice(trip, receipt, newReceipt);
@@ -312,7 +326,7 @@ public class DialogController {
 					 else { //Update
 						 if (price == null || price.length() == 0)
 							 price = "0";
-						 final ReceiptRow updatedReceipt = activity._db.updateReceipt(receipt, trip, name, category, (dateBox.date == null) ? receipt.date : dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked());
+						 final ReceiptRow updatedReceipt = activity._db.updateReceipt(receipt, trip, name, category, (dateBox.date == null) ? receipt.date : dateBox.date, comment, price, expensable.isChecked(), currency, fullpage.isChecked(), extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 if (updatedReceipt != null) {
 							 activity._receiptAdapter.notifyDataSetChanged(activity._db.getReceipts(activity._currentTrip));
 							 activity.updateTitlePrice(trip, receipt, updatedReceipt);
@@ -376,14 +390,18 @@ public class DialogController {
     	final CheckBox pdfFull = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
     	final CheckBox pdfImages = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
     	final CheckBox csv = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
+    	final CheckBox zipStampedImages = (CheckBox) _flex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
     	final BetterDialogBuilder builder = new BetterDialogBuilder(_activity);
+    	String msg = _flex.getString(R.string.DIALOG_EMAIL_MESSAGE);
+    	if (msg.length() > 0) 
+    		builder.setMessage(msg);
 		builder.setTitle(_flex.getString(R.string.DIALOG_EMAIL_TITLE))
 			   .setCancelable(true)
 			   .setView(scrollView)
 			   .setPositiveButton(_flex.getString(R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DirectDialogOnClickListener<SmartReceiptsActivity>(_activity) {
 				   @Override
 		           public void onClick(DialogInterface dialog, int id) {
-					   if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked()) {
+					   if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
 						   Toast.makeText(activity, _flex.getString(R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
 						   dialog.cancel();
 						   return;
@@ -394,7 +412,12 @@ public class DialogController {
 						   return;
 					   }
 		        	   ProgressDialog progress = ProgressDialog.show(_activity, "", "Building Reports...", true, false);
-		        	   EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(_activity, activity._sdCard, activity._db, progress, pdfFull.isChecked(), pdfImages.isChecked(), csv.isChecked());
+		        	   EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);
+		        	   if (pdfFull.isChecked()) options.add(EmailOptions.PDF_FULL);
+		        	   if (pdfImages.isChecked()) options.add(EmailOptions.PDF_IMAGES_ONLY);
+		        	   if (csv.isChecked()) options.add(EmailOptions.CSV);
+		        	   if (zipStampedImages.isChecked()) options.add(EmailOptions.ZIP_IMAGES_STAMPED);
+		        	   EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(_activity, activity._sdCard, activity._db, progress, options);
 		        	   attachmentWriter.execute(activity._currentTrip);
 		           }
 		       })
@@ -407,7 +430,6 @@ public class DialogController {
 	}
 	
 	public final void setCachedDate(Date date) {
-		Log.e(TAG, "Viewing Trip: " + _activity._isViewingTrip +"; " + date.toGMTString());
 		if (_activity._isViewingTrip)
 			_dateCache = date;
 	}

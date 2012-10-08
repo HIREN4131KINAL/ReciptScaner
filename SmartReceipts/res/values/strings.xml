@@ -15,6 +15,8 @@
     <string name="SPACE_ERROR">Error: The name cannot begin with a space</string>
     <string name="CALENDAR_TAB_ERROR">Error: Please Touch the Date TextBox to set the Date</string>
     <string name="DURATION_ERROR">Error: The Start Date Must Occur Prior To The End Date</string>
+    <string name="EXPORT_ERROR">Error: Failed to properly export your data. Please make sure your phone is not mounted to your computer.</string>
+    <string name="IMPORT_ERROR">Error: Failed to recognize the file as importable</string>
     
     <!-- ================= DIALOG_WELCOME ==================== -->
     <string name="DIALOG_WELCOME_TITLE">Smart Receipts</string>

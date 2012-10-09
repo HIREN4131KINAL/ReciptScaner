@@ -3,6 +3,7 @@
     
     <!-- =================== App Details ===================== -->
     <string name="APP_TITLE">Smart Receipts</string>
+    <string name="app_name">Smart Receipts</string>
     
     <!-- ============== Start Error Messages ================= -->
     <string name="SD_ERROR">Error: Please make sure that your SD Card is available and not mounted to your computer.</string>

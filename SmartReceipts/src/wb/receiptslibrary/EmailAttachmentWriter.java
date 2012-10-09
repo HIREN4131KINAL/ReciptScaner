@@ -38,6 +38,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.Element;
+import wb.receiptspro.R;
 
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;

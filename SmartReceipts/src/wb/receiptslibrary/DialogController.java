@@ -1,6 +1,7 @@
 package wb.receiptslibrary;
 
 import java.io.File;
+import wb.receiptspro.R;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.EnumSet;

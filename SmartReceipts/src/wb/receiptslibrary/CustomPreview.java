@@ -6,7 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 import wb.android.camera.CameraPreview;
-import wb.receiptslibrary.R;
+import wb.receiptspro.R;
 
 public class CustomPreview extends CameraPreview {
 	

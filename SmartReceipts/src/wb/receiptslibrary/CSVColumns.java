@@ -6,6 +6,7 @@ import java.text.DateFormat;
 
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
+import wb.receiptspro.R;
 import android.widget.ArrayAdapter;
 
 public class CSVColumns {

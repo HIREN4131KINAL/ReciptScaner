@@ -54,6 +54,7 @@ import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
+import wb.receiptspro.R;
 
 public abstract class SmartReceiptsActivity extends Activity implements Flexable {
     

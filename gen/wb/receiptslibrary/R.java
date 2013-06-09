@@ -1941,153 +1941,153 @@ containing a value of this type.
         public static int video_record=0x7f080005;
     }
     public static final class string {
-        public static int CALENDAR_TAB_ERROR=0x7f0e01cd;
-        public static int DB_ERROR=0x7f0e01c7;
-        public static int DIALOG_ABOUT_MESSAGE=0x7f0e0211;
+        public static int CALENDAR_TAB_ERROR=0x7f0e01d1;
+        public static int DB_ERROR=0x7f0e01cb;
+        public static int DIALOG_ABOUT_MESSAGE=0x7f0e0215;
         /**  ==================== DIALOG_ABOUT ====================== 
          */
-        public static int DIALOG_ABOUT_TITLE=0x7f0e0210;
+        public static int DIALOG_ABOUT_TITLE=0x7f0e0214;
         /**  ================ DIALOG (GENERAL) =================== 
          */
-        public static int DIALOG_CANCEL=0x7f0e01d7;
-        public static int DIALOG_EMAIL_CHECKBOX_CSV=0x7f0e01df;
-        public static int DIALOG_EMAIL_CHECKBOX_PDF_FULL=0x7f0e01dd;
-        public static int DIALOG_EMAIL_CHECKBOX_PDF_IMAGES=0x7f0e01de;
-        public static int DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED=0x7f0e01e0;
-        public static int DIALOG_EMAIL_MESSAGE=0x7f0e01dc;
-        public static int DIALOG_EMAIL_NEGATIVE_BUTTON=0x7f0e01e2;
-        public static int DIALOG_EMAIL_POSITIVE_BUTTON=0x7f0e01e1;
+        public static int DIALOG_CANCEL=0x7f0e01db;
+        public static int DIALOG_EMAIL_CHECKBOX_CSV=0x7f0e01e3;
+        public static int DIALOG_EMAIL_CHECKBOX_PDF_FULL=0x7f0e01e1;
+        public static int DIALOG_EMAIL_CHECKBOX_PDF_IMAGES=0x7f0e01e2;
+        public static int DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED=0x7f0e01e4;
+        public static int DIALOG_EMAIL_MESSAGE=0x7f0e01e0;
+        public static int DIALOG_EMAIL_NEGATIVE_BUTTON=0x7f0e01e6;
+        public static int DIALOG_EMAIL_POSITIVE_BUTTON=0x7f0e01e5;
         /**  ================== DIALOG_EMAIL ===================== 
          */
-        public static int DIALOG_EMAIL_TITLE=0x7f0e01db;
-        public static int DIALOG_EMAIL_TOAST_NO_RECEIPTS=0x7f0e01e4;
-        public static int DIALOG_EMAIL_TOAST_NO_SELECTION=0x7f0e01e3;
+        public static int DIALOG_EMAIL_TITLE=0x7f0e01df;
+        public static int DIALOG_EMAIL_TOAST_NO_RECEIPTS=0x7f0e01e8;
+        public static int DIALOG_EMAIL_TOAST_NO_SELECTION=0x7f0e01e7;
         /**  ==================== DIALOG_MILEAGE ====================== 
          */
-        public static int DIALOG_MILES_DELTA=0x7f0e0212;
-        public static int DIALOG_RECEIPTMENU_HINT_CATEGORY=0x7f0e0205;
-        public static int DIALOG_RECEIPTMENU_HINT_COMMENT=0x7f0e0206;
-        public static int DIALOG_RECEIPTMENU_HINT_CURRENCY=0x7f0e0203;
-        public static int DIALOG_RECEIPTMENU_HINT_DATE=0x7f0e0204;
-        public static int DIALOG_RECEIPTMENU_HINT_EXPENSABLE=0x7f0e0207;
-        public static int DIALOG_RECEIPTMENU_HINT_FULLPAGE=0x7f0e0208;
+        public static int DIALOG_MILES_DELTA=0x7f0e0216;
+        public static int DIALOG_RECEIPTMENU_HINT_CATEGORY=0x7f0e0209;
+        public static int DIALOG_RECEIPTMENU_HINT_COMMENT=0x7f0e020a;
+        public static int DIALOG_RECEIPTMENU_HINT_CURRENCY=0x7f0e0207;
+        public static int DIALOG_RECEIPTMENU_HINT_DATE=0x7f0e0208;
+        public static int DIALOG_RECEIPTMENU_HINT_EXPENSABLE=0x7f0e020b;
+        public static int DIALOG_RECEIPTMENU_HINT_FULLPAGE=0x7f0e020c;
         /**  ================= DIALOG_RECEIPTMENU =================== 
          */
-        public static int DIALOG_RECEIPTMENU_HINT_NAME=0x7f0e01ff;
-        public static int DIALOG_RECEIPTMENU_HINT_PRICE=0x7f0e0200;
-        public static int DIALOG_RECEIPTMENU_HINT_PRICE_SHORT=0x7f0e0201;
-        public static int DIALOG_RECEIPTMENU_HINT_TAX=0x7f0e0202;
-        public static int DIALOG_RECEIPTMENU_NEGATIVE_BUTTON=0x7f0e020d;
-        public static int DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE=0x7f0e020b;
-        public static int DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE=0x7f0e020c;
-        public static int DIALOG_RECEIPTMENU_TITLE_EDIT=0x7f0e020a;
-        public static int DIALOG_RECEIPTMENU_TITLE_NEW=0x7f0e0209;
-        public static int DIALOG_RECEIPTMENU_TOAST_BAD_DATE=0x7f0e020f;
-        public static int DIALOG_RECEIPTMENU_TOAST_MISSING_NAME=0x7f0e020e;
-        public static int DIALOG_SETTINGS_CHECKBOX_AUTOCOMPLETE=0x7f0e01f1;
-        public static int DIALOG_SETTINGS_CHECKBOX_COMMENT_TO_CAT=0x7f0e01ef;
-        public static int DIALOG_SETTINGS_CHECKBOX_EXPENSABLE=0x7f0e01f0;
-        public static int DIALOG_SETTINGS_CHECKBOX_NAME_TO_CAT=0x7f0e01ee;
-        public static int DIALOG_SETTINGS_CHECKBOX_NATIVE_CAMERA=0x7f0e01ec;
-        public static int DIALOG_SETTINGS_CHECKBOX_PREDICT=0x7f0e01eb;
-        public static int DIALOG_SETTINGS_CHECKBOX_TAX=0x7f0e01ed;
-        public static int DIALOG_SETTINGS_EDITTEXT_MIN_PRICE=0x7f0e01e9;
-        public static int DIALOG_SETTINGS_TEXTVIEW_CURRENCY=0x7f0e01e7;
-        public static int DIALOG_SETTINGS_TEXTVIEW_DURATION=0x7f0e01e6;
+        public static int DIALOG_RECEIPTMENU_HINT_NAME=0x7f0e0203;
+        public static int DIALOG_RECEIPTMENU_HINT_PRICE=0x7f0e0204;
+        public static int DIALOG_RECEIPTMENU_HINT_PRICE_SHORT=0x7f0e0205;
+        public static int DIALOG_RECEIPTMENU_HINT_TAX=0x7f0e0206;
+        public static int DIALOG_RECEIPTMENU_NEGATIVE_BUTTON=0x7f0e0211;
+        public static int DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE=0x7f0e020f;
+        public static int DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE=0x7f0e0210;
+        public static int DIALOG_RECEIPTMENU_TITLE_EDIT=0x7f0e020e;
+        public static int DIALOG_RECEIPTMENU_TITLE_NEW=0x7f0e020d;
+        public static int DIALOG_RECEIPTMENU_TOAST_BAD_DATE=0x7f0e0213;
+        public static int DIALOG_RECEIPTMENU_TOAST_MISSING_NAME=0x7f0e0212;
+        public static int DIALOG_SETTINGS_CHECKBOX_AUTOCOMPLETE=0x7f0e01f5;
+        public static int DIALOG_SETTINGS_CHECKBOX_COMMENT_TO_CAT=0x7f0e01f3;
+        public static int DIALOG_SETTINGS_CHECKBOX_EXPENSABLE=0x7f0e01f4;
+        public static int DIALOG_SETTINGS_CHECKBOX_NAME_TO_CAT=0x7f0e01f2;
+        public static int DIALOG_SETTINGS_CHECKBOX_NATIVE_CAMERA=0x7f0e01f0;
+        public static int DIALOG_SETTINGS_CHECKBOX_PREDICT=0x7f0e01ef;
+        public static int DIALOG_SETTINGS_CHECKBOX_TAX=0x7f0e01f1;
+        public static int DIALOG_SETTINGS_EDITTEXT_MIN_PRICE=0x7f0e01ed;
+        public static int DIALOG_SETTINGS_TEXTVIEW_CURRENCY=0x7f0e01eb;
+        public static int DIALOG_SETTINGS_TEXTVIEW_DURATION=0x7f0e01ea;
         /**  ================= DIALOG_SETTINGS =================== 
          */
-        public static int DIALOG_SETTINGS_TEXTVIEW_EMAIL=0x7f0e01e5;
-        public static int DIALOG_SETTINGS_TEXTVIEW_MIN_PRICE=0x7f0e01e8;
-        public static int DIALOG_SETTINGS_TEXTVIEW_USER_ID=0x7f0e01ea;
-        public static int DIALOG_TRIPMENU_HINT_END=0x7f0e01f5;
+        public static int DIALOG_SETTINGS_TEXTVIEW_EMAIL=0x7f0e01e9;
+        public static int DIALOG_SETTINGS_TEXTVIEW_MIN_PRICE=0x7f0e01ec;
+        public static int DIALOG_SETTINGS_TEXTVIEW_USER_ID=0x7f0e01ee;
+        public static int DIALOG_TRIPMENU_HINT_END=0x7f0e01f9;
         /**  ================= DIALOG_TRIPMENU =================== 
          */
-        public static int DIALOG_TRIPMENU_HINT_NAME=0x7f0e01f3;
-        public static int DIALOG_TRIPMENU_HINT_START=0x7f0e01f4;
-        public static int DIALOG_TRIPMENU_NEGATIVE_BUTTON=0x7f0e01fa;
-        public static int DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE=0x7f0e01f8;
-        public static int DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE=0x7f0e01f9;
-        public static int DIALOG_TRIPMENU_TITLE_EDIT=0x7f0e01f7;
-        public static int DIALOG_TRIPMENU_TITLE_NEW=0x7f0e01f6;
-        public static int DIALOG_TRIPMENU_TOAST_MISSING_FIELD=0x7f0e01fb;
-        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON=0x7f0e01fe;
-        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END=0x7f0e01fd;
+        public static int DIALOG_TRIPMENU_HINT_NAME=0x7f0e01f7;
+        public static int DIALOG_TRIPMENU_HINT_START=0x7f0e01f8;
+        public static int DIALOG_TRIPMENU_NEGATIVE_BUTTON=0x7f0e01fe;
+        public static int DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE=0x7f0e01fc;
+        public static int DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE=0x7f0e01fd;
+        public static int DIALOG_TRIPMENU_TITLE_EDIT=0x7f0e01fb;
+        public static int DIALOG_TRIPMENU_TITLE_NEW=0x7f0e01fa;
+        public static int DIALOG_TRIPMENU_TOAST_MISSING_FIELD=0x7f0e01ff;
+        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON=0x7f0e0202;
+        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END=0x7f0e0201;
         /**  =============== DIALOG_TRIP_DELETE ================== 
          */
-        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START=0x7f0e01fc;
-        public static int DIALOG_WELCOME_MESSAGE=0x7f0e01d9;
-        public static int DIALOG_WELCOME_POSITIVE_BUTTON=0x7f0e01da;
+        public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START=0x7f0e0200;
+        public static int DIALOG_WELCOME_MESSAGE=0x7f0e01dd;
+        public static int DIALOG_WELCOME_POSITIVE_BUTTON=0x7f0e01de;
         /**  ================= DIALOG_WELCOME ==================== 
          */
-        public static int DIALOG_WELCOME_TITLE=0x7f0e01d8;
-        public static int DURATION_ERROR=0x7f0e01ce;
+        public static int DIALOG_WELCOME_TITLE=0x7f0e01dc;
+        public static int DURATION_ERROR=0x7f0e01d2;
         /**  =================== EMAIL_DATA ====================== 
          */
-        public static int EMAIL_DATA_SUBJECT=0x7f0e01f2;
-        public static int EXPORT_ERROR=0x7f0e01cf;
-        public static int ILLEGAL_CHAR_ERROR=0x7f0e01cb;
-        public static int IMG_OPEN_ERROR=0x7f0e01c8;
-        public static int IMG_SAVE_ERROR=0x7f0e01c9;
-        public static int IMG_SEND_ERROR=0x7f0e01ca;
-        public static int IMPORT_ERROR=0x7f0e01d0;
+        public static int EMAIL_DATA_SUBJECT=0x7f0e01f6;
+        public static int EXPORT_ERROR=0x7f0e01d3;
+        public static int ILLEGAL_CHAR_ERROR=0x7f0e01cf;
+        public static int IMG_OPEN_ERROR=0x7f0e01cc;
+        public static int IMG_SAVE_ERROR=0x7f0e01cd;
+        public static int IMG_SEND_ERROR=0x7f0e01ce;
+        public static int IMPORT_ERROR=0x7f0e01d4;
         /**  A label shown on the action bar. It indicates that the operation
          to import media item(s) [CHAR LIMIT=20] 
          */
         public static int Import=0x7f0e0189;
-        public static int RECEIPTMENU_FIELD_CATEGORY=0x7f0e0218;
-        public static int RECEIPTMENU_FIELD_COMMENT=0x7f0e0219;
-        public static int RECEIPTMENU_FIELD_CURRENCY=0x7f0e0216;
-        public static int RECEIPTMENU_FIELD_DATE=0x7f0e0217;
-        public static int RECEIPTMENU_FIELD_EXPENSABLE=0x7f0e021a;
-        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1=0x7f0e021c;
-        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2=0x7f0e021d;
-        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3=0x7f0e021e;
-        public static int RECEIPTMENU_FIELD_FULL_PAGE=0x7f0e021b;
+        public static int RECEIPTMENU_FIELD_CATEGORY=0x7f0e021c;
+        public static int RECEIPTMENU_FIELD_COMMENT=0x7f0e021d;
+        public static int RECEIPTMENU_FIELD_CURRENCY=0x7f0e021a;
+        public static int RECEIPTMENU_FIELD_DATE=0x7f0e021b;
+        public static int RECEIPTMENU_FIELD_EXPENSABLE=0x7f0e021e;
+        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1=0x7f0e0220;
+        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2=0x7f0e0221;
+        public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3=0x7f0e0222;
+        public static int RECEIPTMENU_FIELD_FULL_PAGE=0x7f0e021f;
         /**  ================= RECEIPTMENU_FIELDS =================== 
          */
-        public static int RECEIPTMENU_FIELD_NAME=0x7f0e0213;
-        public static int RECEIPTMENU_FIELD_PRICE=0x7f0e0214;
-        public static int RECEIPTMENU_FIELD_TAX=0x7f0e0215;
+        public static int RECEIPTMENU_FIELD_NAME=0x7f0e0217;
+        public static int RECEIPTMENU_FIELD_PRICE=0x7f0e0218;
+        public static int RECEIPTMENU_FIELD_TAX=0x7f0e0219;
         /**  ================== RECEIPTMENU_TAGS ==================== 
          */
-        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_1=0x7f0e021f;
-        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_2=0x7f0e0220;
-        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_3=0x7f0e0221;
+        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_1=0x7f0e0223;
+        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_2=0x7f0e0224;
+        public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_3=0x7f0e0225;
         /**  ============== Start Error Messages ================= 
          */
-        public static int SD_ERROR=0x7f0e01c5;
-        public static int SD_WARNING=0x7f0e01c6;
-        public static int SPACE_ERROR=0x7f0e01cc;
+        public static int SD_ERROR=0x7f0e01c9;
+        public static int SD_WARNING=0x7f0e01ca;
+        public static int SPACE_ERROR=0x7f0e01d0;
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
          */
-        public static int abs__action_bar_home_description=0x7f0e01b2;
+        public static int abs__action_bar_home_description=0x7f0e01b6;
         /**  Content description for the action bar "up" affordance. [CHAR LIMIT=NONE] 
          */
-        public static int abs__action_bar_up_description=0x7f0e01b3;
+        public static int abs__action_bar_up_description=0x7f0e01b7;
         /**  Content description for the action menu overflow button. [CHAR LIMIT=NONE] 
          */
-        public static int abs__action_menu_overflow_description=0x7f0e01b4;
+        public static int abs__action_menu_overflow_description=0x7f0e01b8;
         /**  Label for the "Done" button on the far left of action mode toolbars. 
          */
-        public static int abs__action_mode_done=0x7f0e01b5;
+        public static int abs__action_mode_done=0x7f0e01b9;
         /**  Title default for a dialog showing possible activities in ActivityChooserView [CHAR LIMIT=25] 
          */
-        public static int abs__activity_chooser_view_dialog_title_default=0x7f0e01b7;
+        public static int abs__activity_chooser_view_dialog_title_default=0x7f0e01bb;
         /**  Title for a button to expand the list of activities in ActivityChooserView [CHAR LIMIT=25] 
          */
-        public static int abs__activity_chooser_view_see_all=0x7f0e01b6;
+        public static int abs__activity_chooser_view_see_all=0x7f0e01ba;
         /**  Description of the shwoing of a popup window with activities to choose from. [CHAR LIMIT=NONE] 
          */
-        public static int abs__activitychooserview_choose_application=0x7f0e01b9;
+        public static int abs__activitychooserview_choose_application=0x7f0e01bd;
         /**  Title for a dialog showing possible activities for sharing in ShareActionProvider [CHAR LIMIT=25] 
          */
-        public static int abs__share_action_provider_share_with=0x7f0e01b8;
+        public static int abs__share_action_provider_share_with=0x7f0e01bc;
         /**  Description of the choose target button in a ShareActionProvider (share UI). [CHAR LIMIT=NONE] 
          */
-        public static int abs__shareactionprovider_share_with=0x7f0e01ba;
+        public static int abs__shareactionprovider_share_with=0x7f0e01be;
         /**  Description of a share target (both in the list of such or the default share button) in a ShareActionProvider (share UI). [CHAR LIMIT=NONE] 
          */
-        public static int abs__shareactionprovider_share_with_application=0x7f0e01bb;
+        public static int abs__shareactionprovider_share_with_application=0x7f0e01bf;
         /**  alert to the user that the camera fails to read or write the SD card. 
          */
         public static int access_sd_fail=0x7f0e0065;
@@ -2544,7 +2544,7 @@ CHAR LIMIT = NONE]
         /**  Text indicating the height of a media item in details window [CHAR LIMIT=14] 
          */
         public static int height=0x7f0e0164;
-        public static int hello=0x7f0e01bc;
+        public static int hello=0x7f0e01c0;
         /**  The title of the menu item which display online help in browser. [CHAR LIMIT=20]
          */
         public static int help=0x7f0e01a1;
@@ -2618,18 +2618,18 @@ CHAR LIMIT = NONE]
         /**  String indicating how camera shooting feature is used. [CHAR LIMIT=8] 
          */
         public static int manual=0x7f0e0172;
-        public static int menu_main_about=0x7f0e01c1;
-        public static int menu_main_categories=0x7f0e01be;
-        public static int menu_main_csv=0x7f0e01bf;
-        public static int menu_main_export=0x7f0e01c0;
+        public static int menu_main_about=0x7f0e01c5;
+        public static int menu_main_categories=0x7f0e01c2;
+        public static int menu_main_csv=0x7f0e01c3;
+        public static int menu_main_export=0x7f0e01c4;
         /**  ================ Main Menu Options ================== 
          */
-        public static int menu_main_settings=0x7f0e01bd;
+        public static int menu_main_settings=0x7f0e01c1;
         /**  ================ Img Menu Options =================== 
          */
-        public static int menu_receiptimage_retake=0x7f0e01c2;
-        public static int menu_receiptimage_rotate_ccw=0x7f0e01c3;
-        public static int menu_receiptimage_rotate_cw=0x7f0e01c4;
+        public static int menu_receiptimage_retake=0x7f0e01c6;
+        public static int menu_receiptimage_rotate_ccw=0x7f0e01c7;
+        public static int menu_receiptimage_rotate_cw=0x7f0e01c8;
         /**   Name for the overflow menu item for settings [CHAR LIMIT=20] 
          */
         public static int menu_settings=0x7f0e000c;
@@ -2867,10 +2867,12 @@ CHAR LIMIT = NONE]
          */
         public static int pref_camera_smartreceipts_max_dimension_size=0x7f0e01ac;
         public static int pref_camera_smartreceipts_max_dimension_size_1024px=0x7f0e01ae;
-        public static int pref_camera_smartreceipts_max_dimension_size_1024px_value=0x7f0e01b0;
-        public static int pref_camera_smartreceipts_max_dimension_size_default=0x7f0e01af;
+        public static int pref_camera_smartreceipts_max_dimension_size_1024px_value=0x7f0e01b1;
+        public static int pref_camera_smartreceipts_max_dimension_size_512px=0x7f0e01af;
+        public static int pref_camera_smartreceipts_max_dimension_size_512px_value=0x7f0e01b2;
+        public static int pref_camera_smartreceipts_max_dimension_size_default=0x7f0e01b0;
         public static int pref_camera_smartreceipts_max_dimension_size_default_selection=0x7f0e01ad;
-        public static int pref_camera_smartreceipts_max_dimension_size_default_value=0x7f0e01b1;
+        public static int pref_camera_smartreceipts_max_dimension_size_default_value=0x7f0e01b3;
         /**  Default videocamera flash mode setting.
          */
         public static int pref_camera_video_flashmode_default=0x7f0e0091;
@@ -3052,12 +3054,12 @@ CHAR LIMIT = NONE]
          processed. [CHAR LIMIT=50] 
          */
         public static int process_caching_requests=0x7f0e0142;
-        public static int receipt_adapter_distance=0x7f0e01d6;
-        public static int receipt_adapter_email=0x7f0e01d5;
+        public static int receipt_adapter_distance=0x7f0e01da;
+        public static int receipt_adapter_email=0x7f0e01d9;
         /**  ================= Receipt Adapter =================== 
          */
-        public static int receipt_adapter_picture_receipt=0x7f0e01d3;
-        public static int receipt_adapter_text_receipt=0x7f0e01d4;
+        public static int receipt_adapter_picture_receipt=0x7f0e01d7;
+        public static int receipt_adapter_text_receipt=0x7f0e01d8;
         /**  Name for the photo effect that remove red eyes. [CHAR LIMIT=15] 
          */
         public static int redeye=0x7f0e0030;
@@ -3261,6 +3263,8 @@ CHAR LIMIT = NONE]
         /**  Title of the Android Dreams slideshow screensaver. [CHAR LIMIT=20] 
          */
         public static int slideshow_dream_name=0x7f0e0193;
+        public static int smartreceipts_error_media_server_died=0x7f0e01b4;
+        public static int smartreceipts_error_photo_error=0x7f0e01b5;
         /**  Low-memory dialog message [CHAR LIMIT=NONE] 
          */
         public static int spaceIsLow_content=0x7f0e00a6;
@@ -3337,10 +3341,10 @@ CHAR LIMIT = NONE]
         /**  The tilte of a dialog showing trimming in progress. [CHAR LIMIT=20] 
          */
         public static int trimming=0x7f0e01a7;
-        public static int trip_adapter_list_item_to=0x7f0e01d2;
+        public static int trip_adapter_list_item_to=0x7f0e01d6;
         /**  ================== Trip Adapter ===================== 
          */
-        public static int trip_adapter_new_trip=0x7f0e01d1;
+        public static int trip_adapter_new_trip=0x7f0e01d5;
         /**  Toast message shown after we try to make a local album available offline
          [CHAR LIMIT=150] 
          */

@@ -9,6 +9,7 @@ import wb.android.google.camera.data.Exif;
 import wb.android.google.camera.exif.ExifData;
 import wb.android.google.camera.exif.ExifReader;
 import wb.android.storage.StorageManager;
+import wb.android.ui.PinchToZoomImageView;
 
 import android.R.anim;
 import android.app.Activity;
@@ -42,7 +43,7 @@ public class ReceiptImageViewHolder extends ViewHolder<SmartReceiptsActivity>  {
 	
 	private ReceiptRow currentReceipt;
 	private TripRow currentTrip;
-	private ImageView imageView;
+	private PinchToZoomImageView imageView;
 	private boolean mIsRotateOngoing;
 	private Uri _imageUri;
 	
@@ -57,7 +58,7 @@ public class ReceiptImageViewHolder extends ViewHolder<SmartReceiptsActivity>  {
 	public void onCreate() {
     	try {
     		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    		imageView = new ImageView(activity);
+    		imageView = new PinchToZoomImageView(activity);
     		imageView.setScaleType(ScaleType.FIT_CENTER);
     		if (!currentReceipt.img.exists())
     			Toast.makeText(activity, activity.getFlex().getString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
@@ -104,10 +105,18 @@ public class ReceiptImageViewHolder extends ViewHolder<SmartReceiptsActivity>  {
                 return true;
     		}
     		else {
-	    		final Intent intent = new Intent(activity, MyCameraActivity.class);
-				String[] strings  = new String[] {dirPath, currentReceipt.img.getName()};
-				intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-				activity.startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
+    			if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
+    				final Intent intent = new Intent(activity, wb.android.google.camera.CameraActivity.class);
+    				_imageUri = Uri.fromFile(new File(dirPath, currentReceipt.img.getName()));
+    				intent.putExtra(MediaStore.EXTRA_OUTPUT, _imageUri);
+    				activity.startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
+    			}
+    			else {
+		    		final Intent intent = new Intent(activity, MyCameraActivity.class);
+					String[] strings  = new String[] {dirPath, currentReceipt.img.getName()};
+					intent.putExtra(MyCameraActivity.STRING_DATA, strings);
+					activity.startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
+    			}
 				return true;
     		}
     	}
@@ -135,6 +144,7 @@ public class ReceiptImageViewHolder extends ViewHolder<SmartReceiptsActivity>  {
 			}
     		switch (requestCode) {
 				case NATIVE_RETAKE_PHOTO_CAMERA_REQUEST:
+				case RETAKE_PHOTO_CAMERA_REQUEST:
 					final ReceiptRow retakeReceipt = activity.getDB().updateReceiptImg(currentReceipt, imgFile);
 					if (retakeReceipt != null) {
 						imageView.setImageBitmap(BitmapFactory.decodeFile(currentReceipt.img.getAbsolutePath()));

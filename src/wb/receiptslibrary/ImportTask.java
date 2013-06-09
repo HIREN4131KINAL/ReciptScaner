@@ -104,7 +104,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 			Log.e(TAG, e.toString());
 		}
     	DatabaseHelper db = DatabaseHelper.getInstance(activity);
-    	return db.merge(external.getFile("receipts.db").getAbsolutePath(), activity.getPackageName(), overwrite);
+    	return db.merge(external.getFile(ExportTask.DATABASE_EXPORT_NAME).getAbsolutePath(), activity.getPackageName(), overwrite);
     }
 
 }

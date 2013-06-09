@@ -129,17 +129,27 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_TYPE = "type";
 	}
 	
-	private DatabaseHelper(final SmartReceiptsActivity activity) {
-		super(activity, DATABASE_NAME, null, DATABASE_VERSION); //Requests the default cursor factory
+	private DatabaseHelper(final SmartReceiptsActivity activity, String databasePath) {
+		super(activity, databasePath, null, DATABASE_VERSION); //Requests the default cursor factory
 		_areTripsValid = false;
 		_receiptMapCache = new HashMap<TripRow, ReceiptRow[]>();
 		_activity = activity;
 		this.getReadableDatabase(); //Called here, so onCreate gets called on the UI thread
 	}
 	
-	public static final DatabaseHelper getInstance(final SmartReceiptsActivity activity) {
-		if (INSTANCE == null)
-			INSTANCE = new DatabaseHelper(activity);
+	public static final DatabaseHelper getInstance(final SmartReceiptsActivity activity) {		
+		if (INSTANCE == null) {
+			String databasePath = StorageManager.GetRootPath();
+			if (D) {
+				if (databasePath.equals("")) {
+					throw new RuntimeException("The SDCard must be created beforoe GetRootPath is called in DBHelper");
+				}
+			}
+			if (!databasePath.endsWith(File.separator))
+				databasePath = databasePath + File.separator;
+			databasePath = databasePath + DATABASE_NAME;
+			INSTANCE = new DatabaseHelper(activity, databasePath);
+		}
 		return INSTANCE;
 	}
 
@@ -360,7 +370,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	public final void onDestroy() {
 		final SQLiteDatabase db = this.getReadableDatabase();
-		db.close();
+		synchronized (mDatabaseLock) {
+			db.close();
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1388,7 +1400,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private final void addAdditionalCurrencies() {
 		if (_currencyList == null) return;
 		ArrayList<CharSequence> otherCurrencies = new ArrayList<CharSequence>();
-		otherCurrencies.add("AOA"); otherCurrencies.add("ARS"); otherCurrencies.add("BIF"); otherCurrencies.add("BSF"); otherCurrencies.add("CDF");
+		otherCurrencies.add("AOA"); otherCurrencies.add("ARS"); otherCurrencies.add("AED"); otherCurrencies.add("BIF"); otherCurrencies.add("BSF"); otherCurrencies.add("CDF");
 		otherCurrencies.add("CLP"); otherCurrencies.add("DJF"); otherCurrencies.add("ETB"); 
 		otherCurrencies.add("GMD"); otherCurrencies.add("GHS"); otherCurrencies.add("GNF"); otherCurrencies.add("ISK");
 		otherCurrencies.add("KES"); otherCurrencies.add("LSL"); otherCurrencies.add("LRD");

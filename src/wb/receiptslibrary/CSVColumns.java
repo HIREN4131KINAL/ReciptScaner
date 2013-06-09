@@ -17,6 +17,8 @@ public class CSVColumns {
 	private static final String REPORT_NAME = "Report Name";
 	private static final String REPORT_START_DATE = "Report Start Date";
 	private static final String REPORT_END_DATE = "Report End Date";
+	private static final String IMAGE_FILE_NAME = "Image Name";
+	private static final String IMAGE_PATH = "Image Path";
 	private static String COMMENT = null;
 	private static String CURRENCY = null;
 	private static String DATE = null;
@@ -96,6 +98,19 @@ public class CSVColumns {
 		return print;
 	}
 	
+	public final String printHeaders() { 
+		final int size = _csvColumns.size();
+		String print = "";
+		for (int i=0; i < size; i++) {
+			print += _csvColumns.get(i).columnType;
+			if (i == (size - 1))
+				print += "\n";
+			else
+				print += ",";
+		}
+		return print;
+	}
+	
 	private static final String QUOTE = "\"";
 	private static final String ESCAPED_QUOTE = "\"\"";
 	private static final String[] STRINGS_THAT_MUST_BE_QUOTED = { ",", "\"", "\n", "\r\n" };
@@ -127,6 +142,10 @@ public class CSVColumns {
 			csv = _dateFormat.format(currentTrip.to);
 		else if (column.columnType.equals(USER_ID))
 			csv = _activity.getPreferences().getUserID();
+		else if (column.columnType.equals(IMAGE_FILE_NAME))
+			csv = (receipt.img == null) ? "" : receipt.img.getName();
+		else if (column.columnType.equals(IMAGE_PATH))
+			csv = (receipt.img == null) ? "" : receipt.img.getAbsolutePath();
 		else if (column.columnType.equalsIgnoreCase(EXTRA_EDITTEXT_1))
 			csv = receipt.extra_edittext_1;
 		else if (column.columnType.equalsIgnoreCase(EXTRA_EDITTEXT_2))
@@ -180,6 +199,8 @@ public class CSVColumns {
 		options.add(COMMENT);
 		options.add(CURRENCY);
 		options.add(DATE);
+		options.add(IMAGE_FILE_NAME);
+		options.add(IMAGE_PATH);
 		options.add(NAME);
 		options.add(PRICE);
 		options.add(REPORT_NAME);

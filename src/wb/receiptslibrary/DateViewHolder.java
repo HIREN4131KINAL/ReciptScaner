@@ -87,7 +87,7 @@ public class DateViewHolder extends ViewHolder<SmartReceiptsActivity>{
 		private DateEditText mEnd;
 		public DurationDateEditTextListener(DateViewHolder holder) {mHolder = holder;}
 		public final void setEnd(DateEditText end) {mEnd = end;}
-		@Override public final void onClick(final View v) {mHolder.initDurationCalendar((DateEditText)v, mEnd);if (D) Log.d(TAG, "Here2");}
+		@Override public final void onClick(final View v) {mHolder.initDurationCalendar((DateEditText)v, mEnd);}
 	}
 	private final class SpinnerSelectionListener implements OnItemSelectedListener {
 		private final TextView mNameBox, mCommentBox;

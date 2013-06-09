@@ -6,12 +6,14 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.List;
 
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.google.camera.PhotoModule;
+import wb.android.google.camera.app.GalleryApp;
 import wb.receiptslibrary.EmailAttachmentWriter.EmailOptions;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -83,6 +85,7 @@ public class ReceiptViewHolder extends DateViewHolder implements DatabaseHelper.
 		
 		activity.getDB().registerReceiptRowListener(this);
 		activity.getDB().getReceiptsParallel(currentTrip);
+		activity.SRLog("/ReceiptView");
 	}
 	
 	@Override
@@ -128,7 +131,7 @@ public class ReceiptViewHolder extends DateViewHolder implements DatabaseHelper.
     	if (D) Log.d(TAG, "Request Code: " + requestCode);
     	if (resultCode == Activity.RESULT_OK) { //-1
     		File imgFile = new File(_imageUri.getPath());
-    		if (requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
+    		if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
     			activity.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
     			imgFile = activity.transformNativeCameraBitmap(_imageUri, data, null);
     		}
@@ -189,6 +192,12 @@ public class ReceiptViewHolder extends DateViewHolder implements DatabaseHelper.
     	}
     	else {
 			if (D) Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
+			List<String> errors = ((GalleryApp)activity.getApplication()).getErrorList();
+	    	final int size = errors.size();
+	    	for (int i=0; i < size; i++) {
+	    		activity.SRErrorLog(errors.get(i));
+	    	}
+	    	errors.clear();
 			super.onActivityResult(requestCode, resultCode, data);
     	}
     }

@@ -186,6 +186,8 @@ public class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long>{
 			}
 			String data = "";
 			CSVColumns columns = _db.getCSVColumns(receiptViewHolder.getActivity()._flex);
+			if (preferences.includeCSVHeaders())
+				data += columns.printHeaders();
 			for (int i=0; i < len; i++) {
 				if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipts[i].expensable) 
 					continue;

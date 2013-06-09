@@ -9,6 +9,7 @@ import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
+import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
 import android.app.Activity;
@@ -29,6 +30,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
@@ -89,7 +92,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
         _preferences = new Preferences(this);
         _calledFromActionSend = false;
 	    _db = DatabaseHelper.getInstance(this);
-        if (this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
+        if (this.getIntent() != null && this.getIntent().getAction() != null && this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
         	_calledFromActionSend = true;
         	if (this.getIntent().getExtras() != null) {
     	        String[] proj = {MediaStore.Images.Media.DATA};
@@ -110,6 +113,33 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
         	}
         }
         _factory.buildHomeHolder(mainLayout, listView);
+        AppRating.onLaunch(this, LAUNCHES_UNTIL_PROMPT, "Smart Receipts", getPackageName());
+    }
+    
+    //This is called after _sdCard is available but before _db is
+    //This was added after version 78 (version 79 is the first "new" one)
+    void onVersionUpgrade(int oldVersion, int newVersion) {
+    	if(D) Log.d(TAG, "Upgrading the app from version " + oldVersion + " to " + newVersion);
+    	if (oldVersion <= 78) {
+			try {
+				StorageManager external = StorageManager.getExternalInstance(this);
+				File db = this.getDatabasePath(DatabaseHelper.DATABASE_NAME); //Internal db file
+				if (db != null && db.exists()) {
+					File sdDB = external.getFile("receipts.db"); 
+					if (sdDB.exists())
+						sdDB.delete();
+					if (D) Log.d(TAG, "Copying the database file from: " + db.getAbsolutePath() + " to " + sdDB.getAbsolutePath());
+					try {
+						external.copy(db, sdDB, true);
+					}
+					catch (IOException e) {
+						if (D) Log.e(TAG, e.toString());
+					}
+				}
+			}
+			catch (SDCardStateException e) { }
+			oldVersion++;
+		}
     }
     
     @Override
@@ -204,8 +234,12 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     }
     void showCustomCSVMenu() {
     	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
+    	final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    	final LinearLayout parent = new LinearLayout(this);
+    	parent.setOrientation(LinearLayout.VERTICAL);
+    	parent.setGravity(Gravity.BOTTOM);
+    	parent.setPadding(6, 6, 6, 6);
     	ScrollView scrollView = new ScrollView(this);
-    	final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
 		final LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.BOTTOM);
@@ -216,8 +250,20 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 			layout.addView(horiz, params);
 		}
 		scrollView.addView(layout);
+		final CheckBox checkBox = new CheckBox(this);
+		checkBox.setText("Include Header Columns");
+		checkBox.setChecked(_preferences.includeCSVHeaders());
+		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				_preferences.setIncludeCSVHeaders(isChecked);
+			}
+			
+		});
+		parent.addView(checkBox, params);
+		parent.addView(scrollView, params);
 		builder.setTitle("Customize CSV File")
-			   .setView(scrollView)
+			   .setView(parent)
 			   .setCancelable(true)
 			   .setLongLivedPositiveButton("Add Column", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
 					@Override
@@ -406,6 +452,14 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     
     void toastShort(int stringID) {
     	Toast.makeText(this, getFlex().getString(stringID), Toast.LENGTH_SHORT).show();
+    }
+    
+    public void SRLog(String msg) {
+    	//Utility method if I ever decide to log app usage patterns
+    }
+    
+    public void SRErrorLog(String msg) {
+    	//Utility method if I ever decide to log errors
     }
 	   
 }

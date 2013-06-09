@@ -69,6 +69,7 @@ public class TripViewHolder extends DateViewHolder implements BooleanTaskComplet
 			    })
 			   .show();
         }
+        activity.SRLog("/TripView");
 	}
 	
 	public void onPause() {

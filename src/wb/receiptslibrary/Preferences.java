@@ -3,8 +3,13 @@ package wb.receiptslibrary;
 import java.util.Currency;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.util.Log;
 
 public class Preferences {
+	
+	private static final String TAG = "Preferences";
+	private static final boolean D = true;
 	
 	//Preference Identifiers - Global
     private static final String SMART_PREFS = "SmartReceiptsPrefFile";
@@ -21,11 +26,13 @@ public class Preferences {
     private static final String BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS ="EnableAutoCompleteSuggestions";
     private static final String STRING_CURRENCY = "isocurr";
     private static final String FLOAT_MIN_RECEIPT_PRICE = "MinReceiptPrice";
+    private static final String INT_VERSION_CODE = "VersionCode";
+    private static final String BOOL_INCL_CSV_HEADERS = "IncludeCSVHeaders";
 	
 	//Preference Instance Variables
-    private boolean predictCategories, matchCommentCats, matchNameCats, useNativeCamera, onlyIncludeExpensable, showActionSendHelpDialog, includeTaxField, enableAutoCompleteSuggestions;
+    private boolean predictCategories, matchCommentCats, matchNameCats, useNativeCamera, onlyIncludeExpensable, showActionSendHelpDialog, includeTaxField, enableAutoCompleteSuggestions, includeCSVHeaders;
     private String emailTo, currency, userID;
-    private int defaultTripDuration;
+    private int defaultTripDuration, versionCode;
     private float minReceiptPrice;
     
     //Other Instance Variables
@@ -51,7 +58,29 @@ public class Preferences {
     	} catch (IllegalArgumentException ex) {
     		this.currency = "USD";
 		}
+    	this.versionCode = prefs.getInt(INT_VERSION_CODE, 78);
+    	this.includeCSVHeaders = prefs.getBoolean(BOOL_INCL_CSV_HEADERS, false);
+    	testVersionCode();
 	}
+    
+    //This was added after version 78 (version 79 is the first "new" one)
+    private void testVersionCode() {
+    	int newVersion = -1;
+    	try {
+    		newVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionCode;
+    		if (newVersion > this.versionCode) {
+    	        activity.onVersionUpgrade(versionCode, newVersion);
+    	        SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
+    	        SharedPreferences.Editor editor = prefs.edit();
+    	        editor.putInt(INT_VERSION_CODE, versionCode);
+    	        editor.commit();
+    	        this.versionCode = newVersion;
+    		}
+    	}
+    	catch (NameNotFoundException e) { 
+    		if (D) Log.e(TAG, e.toString());
+    	}
+    }
     
     public void commit() {
     	SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
@@ -176,6 +205,18 @@ public class Preferences {
 
 	public void setShowActionSendHelpDialog(boolean showActionSendHelpDialog) {
 		this.showActionSendHelpDialog = showActionSendHelpDialog;
+	}
+	
+	public boolean includeCSVHeaders() {
+		return includeCSVHeaders;
+	}
+	
+	public void setIncludeCSVHeaders(boolean includeCSVHeaders) {
+		this.includeCSVHeaders = includeCSVHeaders;
+		SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(BOOL_INCL_CSV_HEADERS, this.includeCSVHeaders);
+        editor.commit();
 	}
     
 }

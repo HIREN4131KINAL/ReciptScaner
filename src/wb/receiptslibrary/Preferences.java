@@ -70,11 +70,11 @@ public class Preferences {
     		newVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionCode;
     		if (newVersion > this.versionCode) {
     	        activity.onVersionUpgrade(versionCode, newVersion);
+    	        this.versionCode = newVersion;
     	        SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
     	        SharedPreferences.Editor editor = prefs.edit();
     	        editor.putInt(INT_VERSION_CODE, versionCode);
     	        editor.commit();
-    	        this.versionCode = newVersion;
     		}
     	}
     	catch (NameNotFoundException e) { 

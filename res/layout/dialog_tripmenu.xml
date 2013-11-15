@@ -13,11 +13,11 @@
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_TRIPMENU_HINT_NAME"
     		android:maxLength="50" />
-        <wb.receiptslibrary.DateEditText android:id="@+id/DIALOG_TRIPMENU_START"
+        <wb.receiptslibrary.date.DateEditText android:id="@+id/DIALOG_TRIPMENU_START"
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_TRIPMENU_HINT_START" />
-        <wb.receiptslibrary.DateEditText android:id="@+id/DIALOG_TRIPMENU_END"
+        <wb.receiptslibrary.date.DateEditText android:id="@+id/DIALOG_TRIPMENU_END"
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_TRIPMENU_HINT_END" />

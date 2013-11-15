@@ -3,22 +3,27 @@ package wb.receiptslibrary;
 import java.io.File;
 import java.io.IOException;
 
-import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.dialog.BetterDialogBuilder;
-import wb.android.dialog.DirectDialogOnClickListener;
 import wb.android.dialog.DirectLongLivedOnClickListener;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
+import wb.receiptslibrary.fragments.ReceiptImageFragment;
+import wb.receiptslibrary.fragments.ReceiptsFragment;
+import wb.receiptslibrary.fragments.Settings;
+import wb.receiptslibrary.fragments.TripFragment;
+import wb.receiptslibrary.model.ReceiptRow;
+import wb.receiptslibrary.model.TripRow;
+import wb.receiptslibrary.persistence.DatabaseHelper;
+import wb.receiptslibrary.persistence.PersistenceManager;
+import wb.receiptslibrary.persistence.Preferences;
+import wb.receiptslibrary.workers.WorkerManager;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -41,19 +46,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.wb.navigation.ViewController;
-import com.wb.navigation.WBActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 
-public abstract class SmartReceiptsActivity extends WBActivity implements Flexable {
+public abstract class SmartReceiptsActivity extends SherlockFragmentActivity implements Flexable, Navigable {
     
 	//logging variables
-    public static final boolean D = true;
     private static final String TAG = "SmartReceiptsActivity";
     
     //Camera Request Extras
-    static final String STRING_DATA = "strData";
-    static final int DIR = 0;
-    static final int NAME = 1;
+    public static final String STRING_DATA = "strData";
+    public static final int DIR = 0;
+    public static final int NAME = 1;
     
     //Receiver Settings
     protected static final String FILTER_ACTION = "wb.receiptslibrary";
@@ -66,32 +69,26 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     private boolean _calledFromActionSend;
     
     //Package-Accessible Instance Variables. None of these require get/set to improve performance
-    private StorageManager _sdCard;
-    private DatabaseHelper _db; 
     protected Flex _flex;
-    private ViewHolderFactory _factory;
-    private Preferences _preferences;
+    
+    private WorkerManager mWorkerManager;
+    private PersistenceManager mPersistenceManager;
 	
 	//Preference Identifiers - SubClasses Only
     protected static final String SUBCLASS_PREFS = "SubClassPrefs";
     protected static final String PREF1 = "pref1";
     
-    @Override
-	protected final ViewController buildController() {
-		ViewController controller = new ViewController(this);
-		_factory = new ViewHolderFactory(controller, this);
-		return controller;
-	}
+    //Settings
+    private Settings mSettings; 
     
     protected final void onCreate(final Bundle savedInstanceState, final RelativeLayout mainLayout, final ListView listView) {
-    	if(D) Log.d(TAG, "onCreate");
+    	if (BuildConfig.DEBUG) Log.d(TAG, "onCreate");
     	super.onCreate(savedInstanceState);
         setResult(Activity.RESULT_CANCELED); //In case the user backs out
         _flex = Flex.getInstance(this, this);
-        _sdCard = StorageManager.getInstance(this);
-        _preferences = new Preferences(this);
         _calledFromActionSend = false;
-	    _db = DatabaseHelper.getInstance(this);
+        mWorkerManager = new WorkerManager(this);
+        mPersistenceManager = new PersistenceManager(this);
         if (this.getIntent() != null && this.getIntent().getAction() != null && this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
         	_calledFromActionSend = true;
         	if (this.getIntent().getExtras() != null) {
@@ -112,14 +109,16 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 	        	return;
         	}
         }
-        _factory.buildHomeHolder(mainLayout, listView);
+        setContentView(R.layout.main);
+        viewTrips();
         AppRating.onLaunch(this, LAUNCHES_UNTIL_PROMPT, "Smart Receipts", getPackageName());
     }
     
     //This is called after _sdCard is available but before _db is
     //This was added after version 78 (version 79 is the first "new" one)
-    void onVersionUpgrade(int oldVersion, int newVersion) {
-    	if(D) Log.d(TAG, "Upgrading the app from version " + oldVersion + " to " + newVersion);
+    //Make this a listener
+    public void onVersionUpgrade(int oldVersion, int newVersion) {
+    	if (BuildConfig.DEBUG) Log.d(TAG, "Upgrading the app from version " + oldVersion + " to " + newVersion);
     	if (oldVersion <= 78) {
 			try {
 				StorageManager external = StorageManager.getExternalInstance(this);
@@ -128,12 +127,12 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 					File sdDB = external.getFile("receipts.db"); 
 					if (sdDB.exists())
 						sdDB.delete();
-					if (D) Log.d(TAG, "Copying the database file from: " + db.getAbsolutePath() + " to " + sdDB.getAbsolutePath());
+					if (BuildConfig.DEBUG) Log.d(TAG, "Copying the database file from " + db.getAbsolutePath() + " to " + sdDB.getAbsolutePath());
 					try {
 						external.copy(db, sdDB, true);
 					}
 					catch (IOException e) {
-						if (D) Log.e(TAG, e.toString());
+						if (BuildConfig.DEBUG) Log.e(TAG, e.toString());
 					}
 				}
 			}
@@ -145,13 +144,9 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     @Override
     protected void onStart() {
     	super.onStart();
-    	if (_sdCard == null)
-    		_sdCard = StorageManager.getInstance(this);
-    	if (_sdCard != null && !_sdCard.isExternal())
+    	if (!mPersistenceManager.getStorageManager().isExternal())
     		Toast.makeText(SmartReceiptsActivity.this, _flex.getString(R.string.SD_WARNING), Toast.LENGTH_LONG).show();
-    }
-    
-    public abstract String getPackageName(); 
+    } 
     
     @Override
     protected final void onResume() {
@@ -159,7 +154,8 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     	_flex = Flex.getInstance(this, this);
     	_flex.onResume();
     	if (_calledFromActionSend) {
-    		if (_preferences.showActionSendHelpDialog()) {
+    		final Preferences preferences = mPersistenceManager.getPreferences();
+    		if (preferences.showActionSendHelpDialog()) {
 	        	BetterDialogBuilder builder = new BetterDialogBuilder(this);
 	        	builder.setTitle("Add Picture to Receipt")
 	        		   .setMessage("Tap on an existing receipt to add this image to it.")
@@ -172,8 +168,8 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 	        		   .setNegativeButton("Don't Show Again", new DialogInterface.OnClickListener() {
 	    					@Override
 	    					public void onClick(DialogInterface dialog, int which) {
-	    						_preferences.setShowActionSendHelpDialog(false);
-	    						_preferences.commit();
+	    						preferences.setShowActionSendHelpDialog(false);
+	    						preferences.commit();
 	    						dialog.cancel();
 	    					}
 	        		   })
@@ -191,14 +187,14 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     @Override
     protected final void onDestroy() {
     	super.onDestroy();
-    	if (_db != null) _db.onDestroy();
+    	getPersistenceManager().onDestroy();
     }
     
     /**
      * This method is only called the first time Smart Receipts is run.
      * It gives a brief overview of how to use the app.
      */
-    protected void onFirstRun() {
+    public void onFirstRun() {
     	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
     	builder.setTitle(_flex.getString(R.string.DIALOG_WELCOME_TITLE))
     		   .setMessage(_flex.getString(R.string.DIALOG_WELCOME_MESSAGE))
@@ -232,7 +228,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 		@Override public void onNothingSelected(AdapterView<?> arg0) {}
     	
     }
-    void showCustomCSVMenu() {
+    public void showCustomCSVMenu() {
     	final BetterDialogBuilder builder = new BetterDialogBuilder(this);
     	final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
     	final LinearLayout parent = new LinearLayout(this);
@@ -244,7 +240,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.setGravity(Gravity.BOTTOM);
 		layout.setPadding(6, 6, 6, 6);
-		final CSVColumns csvColumns = _db.getCSVColumns(_flex); 
+		final CSVColumns csvColumns = getPersistenceManager().getDatabase().getCSVColumns(_flex); 
 		for (int i=0; i < csvColumns.size(); i++) {
 			final LinearLayout horiz = addHorizontalCSVLayoutItem(csvColumns, i);
 			layout.addView(horiz, params);
@@ -252,11 +248,11 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 		scrollView.addView(layout);
 		final CheckBox checkBox = new CheckBox(this);
 		checkBox.setText("Include Header Columns");
-		checkBox.setChecked(_preferences.includeCSVHeaders());
+		checkBox.setChecked(getPersistenceManager().getPreferences().includeCSVHeaders());
 		checkBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				_preferences.setIncludeCSVHeaders(isChecked);
+				getPersistenceManager().getPreferences().setIncludeCSVHeaders(isChecked);
 			}
 			
 		});
@@ -268,7 +264,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 			   .setLongLivedPositiveButton("Add Column", new DirectLongLivedOnClickListener<SmartReceiptsActivity>(this) {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						activity._db.insertCSVColumn();
+						activity.getPersistenceManager().getDatabase().insertCSVColumn();
 						layout.addView(addHorizontalCSVLayoutItem(csvColumns, csvColumns.size() - 1), params);
 					}
 				})
@@ -277,7 +273,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 					public void onClick(DialogInterface dialog, int which) {
 						if (csvColumns.isEmpty())
 							return;
-						activity._db.deleteCSVColumn();
+						activity.getPersistenceManager().getDatabase().deleteCSVColumn();
 						layout.removeViews(csvColumns.size(), 1);
 					}
 				})
@@ -286,7 +282,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     
     private final LinearLayout addHorizontalCSVLayoutItem(CSVColumns csvColumns, int i) {
 		final LinearLayout horiz = new LinearLayout(this);
-		final CSVColumnSelectionListener selectionListener = new CSVColumnSelectionListener(_db, i);
+		final CSVColumnSelectionListener selectionListener = new CSVColumnSelectionListener(getPersistenceManager().getDatabase(), i);
 		horiz.setOrientation(LinearLayout.HORIZONTAL);
 		final Spinner spinner = new Spinner(this);
 		final ArrayAdapter<CharSequence> options = CSVColumns.getNewArrayAdapter(this, _flex);
@@ -317,7 +313,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
     	return Flexable.UNDEFINED;
     }
     
-    protected void insertCSVDefaults(final DatabaseHelper db) { //Called in onCreate and onUpgrade
+    public void insertCSVDefaults(final DatabaseHelper db) { //Called in onCreate and onUpgrade
 		db.insertCSVColumnNoCache(CSVColumns.CATEGORY_CODE(_flex));
 		db.insertCSVColumnNoCache(CSVColumns.NAME(_flex));
 		db.insertCSVColumnNoCache(CSVColumns.PRICE(_flex));
@@ -325,7 +321,7 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 		db.insertCSVColumnNoCache(CSVColumns.DATE(_flex));
 	}
     
-    protected void insertCategoryDefaults(final DatabaseHelper db) {
+    public void insertCategoryDefaults(final DatabaseHelper db) {
 		db.insertCategoryNoCache("<Category>", "NUL");
 		db.insertCategoryNoCache("Airfare", "AIRP");
 		db.insertCategoryNoCache("Breakfast", "BRFT");
@@ -348,118 +344,92 @@ public abstract class SmartReceiptsActivity extends WBActivity implements Flexab
 		db.insertCategoryNoCache("Cell Phone", "ZCEL");
 		db.insertCategoryNoCache("Dues/Subscriptions", "ZDUE");
 		db.insertCategoryNoCache("Meals (Justified)", "ZMEO");
-		db.insertCategoryNoCache("Stantionery/Stations", "ZSTS");
+		db.insertCategoryNoCache("Stationery/Stations", "ZSTS");
 		db.insertCategoryNoCache("Training Fees", "ZTRN");
     }
-    ///////////////////////////////////////////////////////////////////////////////////
-    //Dynamic Shared Code (Make either static or multithreaded
     
-    //If imageDestination == null, then it's set to the imageUri location
-    final File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
-		// Move this all to a separate thread
-		System.gc();
-		Uri imageUriCopy;
-		if (imageUri != null)
-			imageUriCopy = Uri.parse(imageUri.toString());
-		else {
-			if (data != null)
-				imageUriCopy = data.getData();
-			else
-				return null;
-		}
-		if (imageDestination == null)
-			imageDestination = imageUriCopy;
-		File imgFile = new File(imageDestination.getPath());
-		final int maxDimension = 1024;
-		BitmapFactory.Options fullOpts = new BitmapFactory.Options();
-		fullOpts.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(imageUriCopy.getPath(), fullOpts);
-		int fullWidth=fullOpts.outWidth, fullHeight=fullOpts.outHeight;
-		fullOpts = null;
-		int scale=1;
-		while(fullWidth > maxDimension && fullHeight > maxDimension){
-			fullWidth>>>=1;
-			fullHeight>>>=1;
-			scale<<=1;
-		}
-		BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
-		smallerOpts.inSampleSize=scale;
-		System.gc();
-		Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
-		if (!this.getStorageManager().writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
-			Toast.makeText(this, "Error: The Image Failed to Save Properly", Toast.LENGTH_SHORT).show();
-			imgFile = null;
-		}
-    	return imgFile;
-    }
-    
-    final void deleteDuplicateGalleryImage() { //Deletes any gallery images that were taken within the last 5 seconds (i.e. duplicates)
-    	try {
-	    	final String[] imageColumns = { MediaStore.Images.Media._ID };
-	    	Cursor c = MediaStore.Images.Media.query(this.getContentResolver(), MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageColumns, MediaStore.Images.Media.DATE_TAKEN + " > " + (System.currentTimeMillis() - 5000), null); //Get all images that occured within the last 5secs
-	        if(c.moveToFirst()){
-	            int id = c.getInt(c.getColumnIndex(MediaStore.Images.Media._ID));
-	            this.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media._ID + "=?", new String[]{ Integer.toString(id) } );
-	        }
-	        c.close();
-    	}
-    	catch (Exception e) { } //Ignore any errors
-    }
-    
-    
-    ///////////////////////////////////////////////////////////////////////////////////
-    void naviagateBackwards() {
-    	_factory.naviagateBackwards();
-    }
-    
-    void navigateToShowReceiptImage(TripRow currentTrip, ReceiptRow currentReceipt) {
-		_factory.buildReceiptImageViewHolder(currentTrip, currentReceipt);
-	}
-    
-    
-    ///////////////////////////////////////////////////////////////////////////////////
-    
-    Preferences getPreferences() {
-    	return _preferences;
-    }
-    
-    DatabaseHelper getDB() {
-    	if (_db == null) _db = DatabaseHelper.getInstance(this);
-    	return _db;
-    }
-    
-    Flex getFlex() {
+    public Flex getFlex() {
     	return _flex;
     }
     
-    StorageManager getStorageManager() {
-    	return _sdCard;
-    }
-    
-    boolean calledFromActionSend() {
+    public boolean calledFromActionSend() {
     	return _calledFromActionSend;
     }
     
-    Uri actionSendUri() {
+    public Uri actionSendUri() {
     	return _actionSendUri;
     }
     
+    ///////////////////////////////////////////////////////////////////////
+    public WorkerManager getWorkerManager() {
+    	if (mWorkerManager == null) {
+    		mWorkerManager = new WorkerManager(this);
+    	}
+    	return mWorkerManager;
+    }
+    
+    public PersistenceManager getPersistenceManager() {
+    	if (mPersistenceManager == null) {
+    		mPersistenceManager = new PersistenceManager(this);
+    	}
+    	return mPersistenceManager;
+    }
+    
     ///////////////////////
-    // Utils
-    void toastLong(int stringID) {
-    	Toast.makeText(this, getFlex().getString(stringID), Toast.LENGTH_LONG).show();
+    @Override
+    public void naviagteBackwards() {
+    	getSupportFragmentManager().popBackStack();
     }
     
-    void toastShort(int stringID) {
-    	Toast.makeText(this, getFlex().getString(stringID), Toast.LENGTH_SHORT).show();
-    }
+    @Override
+	public void viewTrips() {
+		getSupportFragmentManager().beginTransaction()
+								   .replace(R.id.content_frame, TripFragment.newInstance())
+								   .addToBackStack(null)
+								   .commit();
+	}
+	
+    @Override
+	public void viewReceipts(TripRow trip) {
+		getSupportFragmentManager().beginTransaction()
+								   .replace(R.id.content_frame, ReceiptsFragment.newInstance(trip))
+								   .addToBackStack(null)
+								   .commit();
+	}
+	
+    @Override
+	public void viewReceiptImage(ReceiptRow receipt, TripRow trip) {
+		getSupportFragmentManager().beginTransaction()
+								   .replace(R.id.content_frame, ReceiptImageFragment.newInstance(receipt, trip))
+								   .addToBackStack(null)
+								   .commit();
+	}
+	
+    @Override
+	public void viewSettings() {
+		getSettings().showSettingsMenu(this);
+	}
+	
+    @Override
+	public void viewCategories() {
+		getSettings().showCategoriesMenu(this);
+	}
+	
+    @Override
+	public void viewAbout() {
+		getSettings().showAbout(this);
+	}
+	
+    @Override
+	public void viewExport() {
+		getSettings().showExport(this);
+	}
     
-    public void SRLog(String msg) {
-    	//Utility method if I ever decide to log app usage patterns
-    }
-    
-    public void SRErrorLog(String msg) {
-    	//Utility method if I ever decide to log errors
+    private Settings getSettings() {
+    	if (mSettings == null) {
+    		mSettings = new Settings();
+    	}
+    	return mSettings;
     }
 	   
 }

@@ -1,11 +1,11 @@
 package wb.receiptslibrary;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.text.DateFormat;
 
 import wb.android.flex.Flex;
-import wb.android.flex.Flexable;
+import wb.receiptslibrary.model.ReceiptRow;
+import wb.receiptslibrary.model.TripRow;
+import wb.receiptslibrary.persistence.DatabaseHelper;
 import android.widget.ArrayAdapter;
 
 public class CSVColumns {
@@ -30,8 +30,6 @@ public class CSVColumns {
 	private static String EXTRA_EDITTEXT_3= null;
 		
 	private final ArrayList<CSVColumn> _csvColumns;
-	private final DecimalFormat _decimalFormat;
-	private final DateFormat _dateFormat;
 	private final DatabaseHelper _db;
 	private final ArrayList<CharSequence> _options;
 	private final SmartReceiptsActivity _activity;
@@ -39,11 +37,6 @@ public class CSVColumns {
 	public CSVColumns(SmartReceiptsActivity activity, DatabaseHelper db, Flex flex) {
 		_activity = activity;
 		_csvColumns = new ArrayList<CSVColumn>();
-		_decimalFormat = new DecimalFormat();
-		_decimalFormat.setMaximumFractionDigits(2);
-		_decimalFormat.setMinimumFractionDigits(2);
-		_decimalFormat.setGroupingUsed(false);
-		_dateFormat = android.text.format.DateFormat.getDateFormat(activity);
 		_db = db;
 		COMMENT = flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT);
 		CURRENCY = flex.getString(R.string.RECEIPTMENU_FIELD_CURRENCY);
@@ -115,43 +108,43 @@ public class CSVColumns {
 	private static final String ESCAPED_QUOTE = "\"\"";
 	private static final String[] STRINGS_THAT_MUST_BE_QUOTED = { ",", "\"", "\n", "\r\n" };
 	private final String build(CSVColumn column, ReceiptRow receipt, TripRow currentTrip) {
-		String csv;
+		String csv;		
 		if (column.columnType.equals(BLANK))
 			csv = "";
 		else if (column.columnType.equals(CATEGORY_CODE))
-			csv = _db.getCategoryCode(receipt.category);
+			csv = _db.getCategoryCode(receipt.getCategory());
 		else if (column.columnType.equals(CATEGORY_NAME))
-			csv = receipt.category;
+			csv = receipt.getCategory();
 		else if (column.columnType.equals(COMMENT))
-			csv = receipt.comment;
+			csv = receipt.getComment();
 		else if (column.columnType.equals(CURRENCY))
-			csv = receipt.currency.getCurrencyCode(); 
+			csv = receipt.getCurrencyCode(); 
 		else if (column.columnType.equals(DATE))
-			csv = _dateFormat.format(receipt.date);
+			csv = receipt.getFormattedDate(_activity);
 		else if (column.columnType.equals(NAME))
-			csv = receipt.name;
+			csv = receipt.getName();
 		else if (column.columnType.equals(PRICE))
-			csv = _decimalFormat.format(Float.valueOf(receipt.price));
+			csv = receipt.getDecimalFormattedPrice();
 		else if (column.columnType.equals(TAX))
-			csv = _decimalFormat.format(Float.valueOf(receipt.tax));
+			csv = receipt.getDecimalFormattedTax();
 		else if (column.columnType.equals(REPORT_NAME))
-			csv = currentTrip.dir.getName();
+			csv = currentTrip.getName();
 		else if (column.columnType.equals(REPORT_START_DATE))
-			csv = _dateFormat.format(currentTrip.from);
+			csv = currentTrip.getFormattedStartDate(_activity);
 		else if (column.columnType.equals(REPORT_END_DATE))
-			csv = _dateFormat.format(currentTrip.to);
+			csv = currentTrip.getFormattedEndDate(_activity);
 		else if (column.columnType.equals(USER_ID))
-			csv = _activity.getPreferences().getUserID();
+			csv = _activity.getPersistenceManager().getPreferences().getUserID();
 		else if (column.columnType.equals(IMAGE_FILE_NAME))
-			csv = (receipt.img == null) ? "" : receipt.img.getName();
+			csv = (receipt.getImage() == null) ? "" : receipt.getImage().getName();
 		else if (column.columnType.equals(IMAGE_PATH))
-			csv = (receipt.img == null) ? "" : receipt.img.getAbsolutePath();
+			csv = (receipt.getImage() == null) ? "" : receipt.getImage().getAbsolutePath();
 		else if (column.columnType.equalsIgnoreCase(EXTRA_EDITTEXT_1))
-			csv = receipt.extra_edittext_1;
+			csv = receipt.getExtraEditText1();
 		else if (column.columnType.equalsIgnoreCase(EXTRA_EDITTEXT_2))
-			csv = receipt.extra_edittext_2;
+			csv = receipt.getExtraEditText2();
 		else if (column.columnType.equalsIgnoreCase(EXTRA_EDITTEXT_3))
-			csv = receipt.extra_edittext_3;
+			csv = receipt.getExtraEditText3();
 		else
 			csv = column.columnType;
 		if (csv == null)

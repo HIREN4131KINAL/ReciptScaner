@@ -37,7 +37,7 @@
 	            android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CURRENCY"
 			    android:layout_weight=".25" />
     	</LinearLayout>
-    	<wb.receiptslibrary.DateEditText android:id="@+id/DIALOG_RECEIPTMENU_DATE"
+    	<wb.receiptslibrary.date.DateEditText android:id="@+id/DIALOG_RECEIPTMENU_DATE"
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_RECEIPTMENU_HINT_DATE" />

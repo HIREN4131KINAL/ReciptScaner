@@ -2,14 +2,15 @@ package wb.receiptslibrary.workers;
 
 import java.io.File;
 
+import wb.android.flex.Flex;
+import wb.android.storage.StorageManager;
 import wb.receiptslibrary.R;
-import wb.receiptslibrary.SmartReceiptsActivity;
-
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.widget.Toast;
@@ -18,8 +19,13 @@ public class ImageGalleryWorker extends WorkerChild {
 
 	private static final int GALLERY_TIME_DIFF_MILLIS = 5000; //5secs
 	
-	ImageGalleryWorker(WorkerManager manager) {
+	private final StorageManager mStorageManager;
+	private final Flex mFlex;
+	
+	ImageGalleryWorker(WorkerManager manager, StorageManager storageManager, Flex flex) {
 		super(manager);
+		mStorageManager = storageManager;
+		mFlex = flex;
 	}
 
 	/**
@@ -32,16 +38,16 @@ public class ImageGalleryWorker extends WorkerChild {
     public void deleteDuplicateGalleryImage() {
     	Cursor c = null;
     	try {
-    		SmartReceiptsActivity activity = mWorkerManager.getSmartReceiptsActivity();
+    		final Context context = mWorkerManager.getContext();
 	    	final String[] imageColumns = { MediaStore.Images.Media._ID };
-	    	c = MediaStore.Images.Media.query(activity.getContentResolver(), 
+	    	c = MediaStore.Images.Media.query(context.getContentResolver(), 
 	    									  MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
 	    									  imageColumns, 
 	    									  MediaStore.Images.Media.DATE_TAKEN + " > " + (System.currentTimeMillis() - GALLERY_TIME_DIFF_MILLIS), 
 	    									  null);
 	        if(c.moveToFirst()){
 	            int id = c.getInt(c.getColumnIndex(MediaStore.Images.Media._ID));
-	            activity.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
+	            context.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
 	            												   MediaStore.Images.Media._ID + "=?", 
 	            												   new String[]{ Integer.toString(id) } );
 	        }
@@ -95,9 +101,9 @@ public class ImageGalleryWorker extends WorkerChild {
 		smallerOpts.inSampleSize=scale;
 		System.gc();
 		Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
-		SmartReceiptsActivity activity = mWorkerManager.getSmartReceiptsActivity();
-		if (!activity.getPersistenceManager().getStorageManager().writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
-			Toast.makeText(activity, activity.getFlex().getString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+		final Context context = mWorkerManager.getContext();
+		if (!mStorageManager.writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
+			Toast.makeText(context, mFlex.getString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
 			imgFile = null;
 		}
     	return imgFile;

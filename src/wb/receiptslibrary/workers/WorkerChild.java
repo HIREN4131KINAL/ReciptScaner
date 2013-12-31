@@ -4,11 +4,11 @@ class WorkerChild {
 
 	protected final WorkerManager mWorkerManager;
 	
-	WorkerChild(WorkerManager manager) {
+	protected WorkerChild(WorkerManager manager) {
 		mWorkerManager = manager;
 	}
 	
-	WorkerManager getWorkerManager() {
+	protected WorkerManager getWorkerManager() {
 		return mWorkerManager;
 	}
 }

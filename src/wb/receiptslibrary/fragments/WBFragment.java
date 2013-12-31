@@ -1,96 +1,61 @@
 package wb.receiptslibrary.fragments;
 
 import wb.android.flex.Flex;
-import wb.receiptslibrary.Navigable;
-import wb.receiptslibrary.R;
-import wb.receiptslibrary.SmartReceiptsActivity;
+import wb.receiptslibrary.SmartReceiptsApplication;
 import wb.receiptslibrary.date.DateManager;
 import wb.receiptslibrary.persistence.PersistenceManager;
 import wb.receiptslibrary.workers.WorkerManager;
+import android.app.Application;
+import android.os.Bundle;
 
 import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 
 public class WBFragment extends SherlockFragment {
 
-	private SmartReceiptsActivity mSmartReceiptsActivity;
-	private Navigable mNavigable;
+	private SmartReceiptsApplication mApplication;
 	private DateManager mDateManager;
 	
-	Flex getFlex() {
-		return getSmartReceiptsActivity().getFlex();
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mApplication = getSmartReceiptsApplication();
+		setRetainInstance(true);
 	}
 	
-	String getFlexString(int id) {
-		return getSmartReceiptsActivity().getFlex().getString(id);
+	protected Flex getFlex() {
+		return mApplication.getFlex();
 	}
 	
-	DateManager getDateManager() {
+	protected String getFlexString(int id) {
+		return mApplication.getFlex().getString(id);
+	}
+	
+	protected DateManager getDateManager() {
 		if (mDateManager == null) {
-			mDateManager = new DateManager(getSmartReceiptsActivity());
+			mDateManager = new DateManager(getSherlockActivity(), mApplication.getPersistenceManager().getPreferences());
 		}
 		return mDateManager;
 	}
 	
-	PersistenceManager getPersistenceManager() {
-		return getSmartReceiptsActivity().getPersistenceManager();
+	protected PersistenceManager getPersistenceManager() {
+		return mApplication.getPersistenceManager();
 	}
 	
-	WorkerManager getWorkerManager() {
-		return getSmartReceiptsActivity().getWorkerManager();
+	protected WorkerManager getWorkerManager() {
+		return mApplication.getWorkerManager();
 	}
 	
-	SmartReceiptsActivity getSmartReceiptsActivity() {
-		if (mSmartReceiptsActivity == null) {
-			if ((getSherlockActivity() instanceof SmartReceiptsActivity))
-				mSmartReceiptsActivity = (SmartReceiptsActivity) getSherlockActivity();
-			else
-				throw new ClassCastException("This method requires that the Activity is an instance of SmartReceiptsActivity");
+	public SmartReceiptsApplication getSmartReceiptsApplication() {
+		if (mApplication == null) {
+			final Application application = getSherlockActivity().getApplication();
+			if (application instanceof SmartReceiptsApplication) {
+				mApplication = (SmartReceiptsApplication) application;
+			}
+			else {
+				throw new RuntimeException("The Application must be an instance a SmartReceiptsApplication");
+			}
 		}
-		return mSmartReceiptsActivity;
+		return mApplication;
 	}
 	
-	Navigable getNavigator() {
-		if (mNavigable == null) {
-			SmartReceiptsActivity activity = getSmartReceiptsActivity();
-			if ((activity instanceof Navigable))
-				mNavigable = (Navigable) activity;
-			else
-				throw new ClassCastException("This method requires that SmartReceiptsActivity implements Navigable"); 
-		}
-		return mNavigable;
-	}
-	
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.menu_main, menu);
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-    	if (item.getItemId() == R.id.menu_main_about) {
-    		getNavigator().viewAbout();
-			return true;
-    	}
-    	else if (item.getItemId() == R.id.menu_main_settings) {
-    		getNavigator().viewSettings();
-    		return true;
-    	}
-    	else if (item.getItemId() == R.id.menu_main_categories) {
-    		getNavigator().viewCategories();
-    		return true;
-    	}
-    	else if (item.getItemId() == R.id.menu_main_csv) {
-    		getSmartReceiptsActivity().showCustomCSVMenu();
-    		return true;
-    	}
-    	else if (item.getItemId() == R.id.menu_main_export) {
-    		getNavigator().viewExport();
-    		return true;
-    	}
-    	return false;
-	}
-
 }

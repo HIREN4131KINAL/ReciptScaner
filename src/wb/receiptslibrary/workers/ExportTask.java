@@ -4,45 +4,42 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 
-import com.actionbarsherlock.internal.widget.ActionBarView.HomeView;
-
-import android.app.Activity;
-import android.net.Uri;
-import android.util.Log;
 import wb.android.async.ProgressTask;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import wb.receiptslibrary.BuildConfig;
-import wb.receiptslibrary.SmartReceiptsActivity;
 import wb.receiptslibrary.persistence.DatabaseHelper;
+import wb.receiptslibrary.persistence.PersistenceManager;
+import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 
 public class ExportTask extends ProgressTask<Void, Uri> {
 
 	private static final String TAG = "ExportTask";
-	private static final boolean D = true;
 	
 	private static final String EXPORT_FILENAME = "SmartReceipts.smr";
 	static final String DATABASE_EXPORT_NAME = "receipts_backup.db";
 	private static final String DATABASE_JOURNAL = "receipts.db-journal";
 	
-	private SmartReceiptsActivity mActivity;
+	private PersistenceManager mPersistenceManager;
 	private Listener mListener;
 	
 	public interface Listener {
-		public void onExportComplete(SmartReceiptsActivity activity, Uri uri);
+		public void onExportComplete(Uri uri);
 	}
 	
-	public ExportTask(SmartReceiptsActivity activity, Listener listener, String progressMessage) {
-		super(activity, progressMessage, true);
-		mActivity = activity;
+	public ExportTask(Context context, String progressMessage, PersistenceManager persistenceManager, Listener listener) {
+		super(context, progressMessage, true);
+		mPersistenceManager = persistenceManager;
 		mListener = listener;
 	}
 
 	@Override
 	protected Uri doInBackground(Void... voids) {
 		try {
-			StorageManager external = StorageManager.getExternalInstance(mActivity);
-			StorageManager internal = StorageManager.getInternalInstance(mActivity);
+			StorageManager external = mPersistenceManager.getExternalStorageManager();
+			StorageManager internal = mPersistenceManager.getInternalStorageManager();
 			external.delete(external.getFile(EXPORT_FILENAME)); //Remove old export
 			try {
 				external.copy(external.getFile(DatabaseHelper.DATABASE_NAME), external.getFile(DATABASE_EXPORT_NAME), true);
@@ -97,7 +94,7 @@ public class ExportTask extends ProgressTask<Void, Uri> {
 
 	@Override
 	protected void onTaskCompleted(Uri uri) {
-		mListener.onExportComplete(mActivity, uri);
+		mListener.onExportComplete(uri);
 	}
 
 }

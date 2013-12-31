@@ -7,6 +7,9 @@ import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
 import wb.receiptslibrary.R;
+import wb.receiptslibrary.activities.ReceiptsActivity;
+import wb.receiptslibrary.activities.Sendable;
+import wb.receiptslibrary.activities.SmartReceiptsActivity;
 import wb.receiptslibrary.date.DateEditText;
 import wb.receiptslibrary.model.TripRow;
 import wb.receiptslibrary.persistence.DatabaseHelper;
@@ -18,6 +21,7 @@ import android.content.Intent;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.text.method.TextKeyListener;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,17 +29,22 @@ import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+// TODO: Extend ListFragment
 public class TripFragment extends WBFragment implements BooleanTaskCompleteDelegate, DatabaseHelper.TripRowListener {
 
-	@SuppressWarnings("unused") private static final String TAG = "TripViewHolder";
+	public static final String TAG = "TripViewHolder";
 	
 	private static final CharSequence[] RESERVED_CHARS = {"|","\\","?","*","<","\"",":",">","+","[","]","/","'","\n","\r","\t","\0","\f"};
 	
 	private TripAdapter mAdapter;
 	private AutoCompleteAdapter mAutoCompleteAdapter;
+	private ListView mListView;
+	private ProgressBar mProgressBar;
 	private boolean mIsFirstPass;  //Tracks that this is the first time we're using this
+	private boolean mIsDualPane;
 	
 	public static TripFragment newInstance() {
 		return new TripFragment();
@@ -46,18 +55,19 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		mIsFirstPass = true;
+        mIsDualPane = getResources().getBoolean(R.bool.isTablet);
 		mAdapter = new TripAdapter(this, new TripRow[0]); //Quick Hack to provide an empty set
-		final DatabaseHelper db = getPersistenceManager().getDatabase();
-		db.registerTripRowListener(this);
-		db.getTripsParallel();
+		getPersistenceManager().getDatabase().registerTripRowListener(this);
 	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		getWorkerManager().getLogger().logInformation("/TripView");
 		View rootView = inflater.inflate(getLayoutId(), container, false);
-		ListView listView = (ListView) rootView.findViewById(R.id.listview);
-		listView.setAdapter(mAdapter);
+		mListView = (ListView) rootView.findViewById(R.id.listview);
+		mProgressBar = (ProgressBar) rootView.findViewById(R.id.progress);
+		mListView.setAdapter(mAdapter);
+		getWorkerManager().getAdManager().handleAd(rootView);
 		return rootView;
 	}
 	
@@ -76,10 +86,10 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 	@Override
 	public void onResume() {
 		super.onResume();
-		getSherlockActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+		getPersistenceManager().getDatabase().getTripsParallel();
 		getSherlockActivity().getSupportActionBar().setTitle(getFlexString(R.string.app_name));
 		// Handle Import Code
-		if (getSherlockActivity().getIntent().getAction().equalsIgnoreCase(Intent.ACTION_VIEW)) {
+		if (getSherlockActivity().getIntent().getAction() != null && getSherlockActivity().getIntent().getAction().equalsIgnoreCase(Intent.ACTION_VIEW)) {
         	final Uri uri = getSherlockActivity().getIntent().getData();
         	final CheckBox overwrite = new CheckBox(getSherlockActivity()); overwrite.setText(" Overwrite Existing Data?");
         	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
@@ -89,7 +99,7 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 			   .setPositiveButton("Import", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						(new ImportTask(getSmartReceiptsActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked())).execute(uri);
+						(new ImportTask(getSherlockActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
 					}
 			    })
 			   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -129,15 +139,16 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 		//Fill Out Fields
 		if (newTrip) {
 			if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
-				if (mAutoCompleteAdapter == null) mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getSherlockActivity(), getPersistenceManager().getDatabase(), DatabaseHelper.TAG_TRIPS);
+				final DatabaseHelper db = getPersistenceManager().getDatabase();
+				if (mAutoCompleteAdapter == null) mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getSherlockActivity(), DatabaseHelper.TAG_TRIPS, db, null);
 				nameBox.setAdapter(mAutoCompleteAdapter);
 			}
 			startBox.setFocusableInTouchMode(false); startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));
 		}
 		else {
 			if (trip.getDirectory() != null) nameBox.setText(trip.getName());
-			if (trip.getStartDate() != null) { startBox.setText(trip.getFormattedStartDate(getSherlockActivity())); startBox.date = trip.getStartDate(); }
-			if (trip.getEndDate() != null) { endBox.setText(trip.getFormattedEndDate(getSherlockActivity())); endBox.date = trip.getEndDate(); }
+			if (trip.getStartDate() != null) { startBox.setText(trip.getFormattedStartDate(getSherlockActivity(), getPersistenceManager().getPreferences().getDateSeparator())); startBox.date = trip.getStartDate(); }
+			if (trip.getEndDate() != null) { endBox.setText(trip.getFormattedEndDate(getSherlockActivity(), getPersistenceManager().getPreferences().getDateSeparator())); endBox.date = trip.getEndDate(); }
 			startBox.setFocusableInTouchMode(false); startBox.setOnClickListener(getDateManager().getDateEditTextListener());
 		}
 		endBox.setFocusableInTouchMode(false); endBox.setOnClickListener(getDateManager().getDateEditTextListener());
@@ -213,7 +224,7 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 							   .setPositiveButton("Import", new DialogInterface.OnClickListener() {
 									@Override
 									public void onClick(DialogInterface dialog, int which) {
-										(new ImportTask(getSmartReceiptsActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked())).execute(uri);
+										(new ImportTask(getSherlockActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
 									}
 							    })
 							   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -259,13 +270,12 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
     }
 	
 	public void emailTrip(TripRow trip) {
-    	EmailAssistant assistant = new EmailAssistant(getSmartReceiptsActivity(), trip);
-    	assistant.emailTrip();
+    	EmailAssistant.email(getSmartReceiptsApplication(), getSherlockActivity(), trip);
     }
 	
 	public final void deleteTrip(final TripRow trip) {
     	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
-		builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END))
+		builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END))
 			   .setCancelable(true)
 			   .setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
@@ -296,6 +306,8 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 
 	@Override
 	public void onTripRowsQuerySuccess(TripRow[] trips) {
+		mListView.setVisibility(View.VISIBLE);
+		mProgressBar.setVisibility(View.GONE);
 		mAdapter.notifyDataSetChanged(trips);
 		if (mIsFirstPass) { //Pre-Cache the receipts for the top two trips
 			if (trips.length > 0) {
@@ -306,12 +318,20 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 			}
 			mIsFirstPass = false;
 		}
+		if (mIsDualPane) {
+			final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
+			if (trips.length > 0 && detailsFragment == null) {
+				// If we have trips and no fragment is present
+				// Add whatever the last fragment was, so something shows up there
+				getFragmentManager().beginTransaction().replace(R.id.content_details, ReceiptsFragment.newInstance(), ReceiptsFragment.TAG).commit();
+			}
+		}
 	}
 
 	@Override
 	public void onTripRowInsertSuccess(TripRow trip) {
+		viewReceipts(trip);
 		getPersistenceManager().getDatabase().getTripsParallel();
-		getNavigator().viewReceipts(trip);
 	}
 
 	@Override
@@ -328,20 +348,43 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 	@Override
 	public void onTripRowUpdateSuccess(TripRow trip) {
 		getPersistenceManager().getDatabase().getTripsParallel();
-		getNavigator().viewReceipts(trip);
+		viewReceipts(trip);
+	}
+	
+	public void viewReceipts(TripRow trip) {
+		if (mIsDualPane) {
+			getFragmentManager().beginTransaction().replace(R.id.content_details, ReceiptsFragment.newInstance(trip), ReceiptsFragment.TAG).commit();
+		}
+		else {
+			final Intent intent = new Intent(getSherlockActivity(), ReceiptsActivity.class);
+			intent.putExtra(TripRow.PARCEL_KEY, trip);
+			intent.putExtra(SmartReceiptsActivity.ACTION_SEND_URI, ((Sendable)getSherlockActivity()).actionSendUri());
+			startActivity(intent);
+		}
 	}
 
 	@Override
-	public void onTripRowUpdateFailure(TripRow oldTrip, File directory) {
+	public void onTripRowUpdateFailure(TripRow newTrip, TripRow oldTrip, File directory) {
 		Toast.makeText(getSherlockActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 		getPersistenceManager().getStorageManager().rename(directory, oldTrip.getName());
+		if (mIsDualPane) {
+			getFragmentManager().beginTransaction().replace(R.id.content_details, ReceiptsFragment.newInstance(newTrip), ReceiptsFragment.TAG).commit();
+		}
 	}
 
 	@Override
 	public void onTripDeleteSuccess(TripRow oldTrip) {
 		if (oldTrip != null) {
-			if (!getPersistenceManager().getStorageManager().deleteRecursively(oldTrip.getDirectory()))
+			if (!getPersistenceManager().getStorageManager().deleteRecursively(oldTrip.getDirectory())) {
 	    		Toast.makeText(getSherlockActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+			}
+		}
+		if (mIsDualPane) {
+			final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
+			if (detailsFragment != null) {
+				getFragmentManager().beginTransaction().remove(detailsFragment).commit();
+				getSherlockActivity().getSupportActionBar().setTitle(getFlexString(R.string.app_name));
+			}
 		}
 		getPersistenceManager().getDatabase().getTripsParallel();
 	}

@@ -6,6 +6,8 @@ import wb.android.flex.Flex;
 import wb.receiptslibrary.model.ReceiptRow;
 import wb.receiptslibrary.model.TripRow;
 import wb.receiptslibrary.persistence.DatabaseHelper;
+import wb.receiptslibrary.persistence.PersistenceManager;
+import android.content.Context;
 import android.widget.ArrayAdapter;
 
 public class CSVColumns {
@@ -29,15 +31,31 @@ public class CSVColumns {
 	private static String EXTRA_EDITTEXT_2 = null;
 	private static String EXTRA_EDITTEXT_3= null;
 		
-	private final ArrayList<CSVColumn> _csvColumns;
-	private final DatabaseHelper _db;
-	private final ArrayList<CharSequence> _options;
-	private final SmartReceiptsActivity _activity;
+	private final ArrayList<CSVColumn> mCSVColumns;
+	private final DatabaseHelper mDB;
+	private final ArrayList<CharSequence> mOptions;
+	private final Context mContext;
+	private final PersistenceManager mPersistenceManager;
 	
-	public CSVColumns(SmartReceiptsActivity activity, DatabaseHelper db, Flex flex) {
-		_activity = activity;
-		_csvColumns = new ArrayList<CSVColumn>();
-		_db = db;
+	public CSVColumns(Context context, DatabaseHelper db, Flex flex, PersistenceManager persistenceManager) {
+		mContext = context;
+		mCSVColumns = new ArrayList<CSVColumn>();
+		mDB = db;
+		mPersistenceManager = persistenceManager;
+		mOptions = getOptionsList(flex);
+		init(flex);
+	}
+	
+	public CSVColumns(Context context, SmartReceiptsApplication application) {
+		mContext = context;
+		mCSVColumns = new ArrayList<CSVColumn>();
+		mPersistenceManager = application.getPersistenceManager();
+		mDB = mPersistenceManager.getDatabase();
+		mOptions = getOptionsList(application.getFlex());
+		init(application.getFlex());
+	}
+	
+	private void init(Flex flex) {
 		COMMENT = flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT);
 		CURRENCY = flex.getString(R.string.RECEIPTMENU_FIELD_CURRENCY);
 		DATE = flex.getString(R.string.RECEIPTMENU_FIELD_DATE);
@@ -47,31 +65,30 @@ public class CSVColumns {
 		EXTRA_EDITTEXT_1 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
 		EXTRA_EDITTEXT_2 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
 		EXTRA_EDITTEXT_3 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
-		_options = getOptionsList(flex);
 	}
 	
 	public final void add() {
-		_csvColumns.add(new CSVColumn(_csvColumns.size() + 1, BLANK));
+		mCSVColumns.add(new CSVColumn(mCSVColumns.size() + 1, BLANK));
 	}
 	
 	public final void add(int index, String columnType) {
-		_csvColumns.add(new CSVColumn(index, columnType));
+		mCSVColumns.add(new CSVColumn(index, columnType));
 	}
 	
 	public final void add(String columnType) {
-		_csvColumns.add(new CSVColumn(_csvColumns.size() + 1, columnType));
+		mCSVColumns.add(new CSVColumn(mCSVColumns.size() + 1, columnType));
 	}
 	
 	public final CSVColumn update(int arrayListIndex, int optionIndex) {
-		CSVColumn column = _csvColumns.get(arrayListIndex);
-		if (optionIndex < _options.size()) //No customizations added
-			column.columnType = (String) _options.get(optionIndex);
+		CSVColumn column = mCSVColumns.get(arrayListIndex);
+		if (optionIndex < mOptions.size()) //No customizations added
+			column.columnType = (String) mOptions.get(optionIndex);
 		return column;
 	}
 	
 	public final int removeLast() {
-		if (!_csvColumns.isEmpty()) {
-			CSVColumn column = _csvColumns.remove(_csvColumns.size() - 1);
+		if (!mCSVColumns.isEmpty()) {
+			CSVColumn column = mCSVColumns.remove(mCSVColumns.size() - 1);
 			return column.index;
 		}
 		else
@@ -79,10 +96,10 @@ public class CSVColumns {
 	}
 	
 	public final String print(ReceiptRow receipt, TripRow currentTrip) { 
-		final int size = _csvColumns.size();
+		final int size = mCSVColumns.size();
 		String print = "";
 		for (int i=0; i < size; i++) {
-			print += build(_csvColumns.get(i), receipt, currentTrip);
+			print += build(mCSVColumns.get(i), receipt, currentTrip);
 			if (i == (size - 1))
 				print += "\n";
 			else
@@ -92,10 +109,10 @@ public class CSVColumns {
 	}
 	
 	public final String printHeaders() { 
-		final int size = _csvColumns.size();
+		final int size = mCSVColumns.size();
 		String print = "";
 		for (int i=0; i < size; i++) {
-			print += _csvColumns.get(i).columnType;
+			print += mCSVColumns.get(i).columnType;
 			if (i == (size - 1))
 				print += "\n";
 			else
@@ -112,7 +129,7 @@ public class CSVColumns {
 		if (column.columnType.equals(BLANK))
 			csv = "";
 		else if (column.columnType.equals(CATEGORY_CODE))
-			csv = _db.getCategoryCode(receipt.getCategory());
+			csv = mDB.getCategoryCode(receipt.getCategory());
 		else if (column.columnType.equals(CATEGORY_NAME))
 			csv = receipt.getCategory();
 		else if (column.columnType.equals(COMMENT))
@@ -120,7 +137,7 @@ public class CSVColumns {
 		else if (column.columnType.equals(CURRENCY))
 			csv = receipt.getCurrencyCode(); 
 		else if (column.columnType.equals(DATE))
-			csv = receipt.getFormattedDate(_activity);
+			csv = receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator());
 		else if (column.columnType.equals(NAME))
 			csv = receipt.getName();
 		else if (column.columnType.equals(PRICE))
@@ -130,11 +147,11 @@ public class CSVColumns {
 		else if (column.columnType.equals(REPORT_NAME))
 			csv = currentTrip.getName();
 		else if (column.columnType.equals(REPORT_START_DATE))
-			csv = currentTrip.getFormattedStartDate(_activity);
+			csv = currentTrip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator());
 		else if (column.columnType.equals(REPORT_END_DATE))
-			csv = currentTrip.getFormattedEndDate(_activity);
+			csv = currentTrip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator());
 		else if (column.columnType.equals(USER_ID))
-			csv = _activity.getPersistenceManager().getPreferences().getUserID();
+			csv = mPersistenceManager.getPreferences().getUserID();
 		else if (column.columnType.equals(IMAGE_FILE_NAME))
 			csv = (receipt.getImage() == null) ? "" : receipt.getImage().getName();
 		else if (column.columnType.equals(IMAGE_PATH))
@@ -161,16 +178,16 @@ public class CSVColumns {
 	}
 	
 	public final int size() {
-		return _csvColumns.size();
+		return mCSVColumns.size();
 	}
 	
 	public final boolean isEmpty() {
-		return _csvColumns.isEmpty();
+		return mCSVColumns.isEmpty();
 	}
 	
 	public final String getType(int columnIndex) {
-		if (columnIndex >= 0 && columnIndex < _csvColumns.size())
-			return _csvColumns.get(columnIndex).columnType;
+		if (columnIndex >= 0 && columnIndex < mCSVColumns.size())
+			return mCSVColumns.get(columnIndex).columnType;
 		else
 			return "";
 	}
@@ -207,8 +224,8 @@ public class CSVColumns {
 		return options;
 	}
 	
-	public static final ArrayAdapter<CharSequence> getNewArrayAdapter(SmartReceiptsActivity activity, Flex flex) {
-		return new ArrayAdapter<CharSequence>(activity, android.R.layout.simple_spinner_item, getOptionsList(flex));
+	public static final ArrayAdapter<CharSequence> getNewArrayAdapter(Context context, Flex flex) {
+		return new ArrayAdapter<CharSequence>(context, android.R.layout.simple_spinner_item, getOptionsList(flex));
 	}
 	
 	public static final String BLANK(Flex flex) {

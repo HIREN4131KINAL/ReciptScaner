@@ -9,24 +9,26 @@ import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
-import wb.receiptslibrary.SmartReceiptsActivity;
 import wb.receiptslibrary.persistence.DatabaseHelper;
+import wb.receiptslibrary.persistence.PersistenceManager;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
 public class ImportTask extends BooleanProgressTask<Uri> {
 
 	private static final String TAG = "ImportTask";
-	private static final boolean D = true;
 	
-	private final boolean overwrite;
-	private SmartReceiptsActivity activity;
+	private PersistenceManager mPersistenceManager;
+	private Context mContext;
+	private final boolean mOverwrite;
 	
-	public ImportTask(SmartReceiptsActivity activity, BooleanTaskCompleteDelegate delegate, String progressMessage, int taskID, boolean overwrite) {
-		super(activity, delegate, progressMessage, taskID);
-		this.activity = activity;
-		this.overwrite = overwrite;
+	public ImportTask(Context context, BooleanTaskCompleteDelegate delegate, String progressMessage, int taskID, boolean overwrite, PersistenceManager persistenceManager) {
+		super(context, delegate, progressMessage, taskID);
+		mContext = context;
+		mPersistenceManager = persistenceManager;
+		mOverwrite = overwrite;
 	}
 
 	@Override
@@ -36,12 +38,12 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 		Uri uri = uris[0];
 		if (uri != null) {
 			try {
-	    		SDCardFileManager external = StorageManager.getExternalInstance(activity);
+	    		SDCardFileManager external = mPersistenceManager.getExternalStorageManager();
 	    		String scheme = uri.getScheme();
 	    		if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
 	    			InputStream is = null;
 	    			try {
-	    				ContentResolver cr = activity.getContentResolver();
+	    				ContentResolver cr = mContext.getContentResolver();
 	                    is = cr.openInputStream(uri);
 	                	File dest = external.getFile("smart.zip");
 	                	if (!external.copy(is, dest, true)) {
@@ -49,7 +51,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 	                		return false;
 	                	}
 	                	is.close();
-	                	return importAll(external, dest, overwrite);
+	                	return importAll(external, dest, mOverwrite);
 	                } 
 	                catch(Exception e) {
 	                	Log.e(TAG, e.toString());
@@ -75,7 +77,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 	    			if (!external.move(src, dest)) {
 	            		return false;
 	    			}
-	    			return importAll(external, dest, overwrite);	
+	    			return importAll(external, dest, mOverwrite);	
 	    		}
 			}
 			catch (SDCardStateException e) {
@@ -90,7 +92,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 	private boolean importAll(SDCardFileManager external, File file, final boolean overwrite) {
     	if (! external.unzip(file, overwrite))
     		return false;
-    	StorageManager internal = StorageManager.getInternalInstance(activity);
+    	StorageManager internal = mPersistenceManager.getInternalStorageManager();
     	File sdPrefs = external.getFile("shared_prefs");
     	File prefs = internal.getFile(internal.getRoot().getParentFile(), "shared_prefs");
     	try {
@@ -105,8 +107,8 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 		} catch (IOException e) {
 			Log.e(TAG, e.toString());
 		}
-    	DatabaseHelper db = DatabaseHelper.getInstance(activity);
-    	return db.merge(external.getFile(ExportTask.DATABASE_EXPORT_NAME).getAbsolutePath(), activity.getPackageName(), overwrite);
+    	DatabaseHelper db = mPersistenceManager.getDatabase();
+    	return db.merge(external.getFile(ExportTask.DATABASE_EXPORT_NAME).getAbsolutePath(), mContext.getPackageName(), overwrite);
     }
 
 }

@@ -3,16 +3,19 @@ package wb.receiptslibrary.model;
 import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.TimeZone;
 
-import wb.receiptslibrary.model.TripRow.Builder;
+import wb.receiptslibrary.date.DateUtils;
 import wb.receiptslibrary.persistence.DatabaseHelper;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
-public class ReceiptRow implements Parcelable{
+public class ReceiptRow implements Parcelable {
 
+	public static final String PARCEL_KEY = "wb.receiptslibrary.ReceiptRow";
+	
 	private static final String EMPTY_PRICE = "0.00";
 	
 	private final int mId;
@@ -20,6 +23,7 @@ public class ReceiptRow implements Parcelable{
 	private String mName, mCategory, mComment, mPrice, mTax;
 	private String mExtraEditText1, mExtraEditText2, mExtraEditText3;
 	private Date mDate;
+	private TimeZone mTimeZone;
 	private boolean mIsExpensable, mIsFullPage;
 	private WBCurrency mCurrency;
 	private DecimalFormat mDecimalFormat;
@@ -55,21 +59,30 @@ public class ReceiptRow implements Parcelable{
 		return mName;
 	}
 	
+	public boolean hasImage() {
+		return (mImg != null && mImg.exists());
+	}
+	
 	public File getImage() {
 		return mImg;
 	}
 	
 	public String getImagePath() {
 		if (hasImage()) {
-			return getImage().getAbsolutePath();
+			return mImg.getAbsolutePath();
 		}
 		else {
 			return "";
 		}
 	}
 	
-	public boolean hasImage() {
-		return (getImage() != null && getImage().exists());
+	public String getImageName() {
+		if (hasImage()) {
+			return mImg.getName();
+		}
+		else {
+			return "";
+		}
 	}
 	
 	public String getSource() {
@@ -157,7 +170,23 @@ public class ReceiptRow implements Parcelable{
 	}
 	
 	public String getFormattedDate(Context context) {
-		return android.text.format.DateFormat.getDateFormat(context).format(getDate());
+		final TimeZone timeZone = (mTimeZone != null) ? mTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		return format.format(mDate);
+	}
+	
+	public String getFormattedDate(Context context, String separator) {
+		final TimeZone timeZone = (mTimeZone != null) ? mTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		String formattedDate = format.format(mDate);
+		formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
+		return formattedDate;
+	}
+	
+	public TimeZone getTimeZone() {
+		return mTimeZone;
 	}
 
 	public boolean isExpensable() {
@@ -190,6 +219,10 @@ public class ReceiptRow implements Parcelable{
 	
 	void setDate(Date date) {
 		mDate = date;
+	}
+	
+	void setTimeZone(TimeZone timeZone) {
+		mTimeZone = timeZone;
 	}
 	
 	public void setImage(File img) {
@@ -270,6 +303,7 @@ public class ReceiptRow implements Parcelable{
 	}
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public String toString() {
 		return this.getClass().getSimpleName() + "::\n" + "["
 											   + "source => " + getSource() + "; \n"
@@ -336,18 +370,20 @@ public class ReceiptRow implements Parcelable{
 	
 	public static final class Builder {
 		
-		public File _img;
-		public String _name, _category, _comment, _price, _tax;
-		public String _extraEditText1, _extraEditText2, _extraEditText3;
-		public Date _date;
-		public int _id;
-		public boolean _isExpenseable, _isFullPage;
-		public WBCurrency _currency;
-		public SourceEnum _source;
+		private File _img;
+		private String _name, _category, _comment, _price, _tax;
+		private String _extraEditText1, _extraEditText2, _extraEditText3;
+		private Date _date;
+		private TimeZone _timezone;
+		private int _id;
+		private boolean _isExpenseable, _isFullPage;
+		private WBCurrency _currency;
+		private SourceEnum _source;
 		
 		public Builder(int id) {
 			_id = id;
 			_source = SourceEnum.Undefined;
+			_timezone = TimeZone.getDefault();
 		}
 		
 		public Builder setName(String name) {
@@ -387,6 +423,18 @@ public class ReceiptRow implements Parcelable{
 		
 		public Builder setDate(long datetime) {
 			_date = new Date(datetime);
+			return this;
+		}
+		
+		public Builder setTimeZone(String timeZoneId) {
+			if (timeZoneId != null) {
+				_timezone = TimeZone.getTimeZone(timeZoneId);
+			}
+			return this;
+		}
+		
+		public Builder setTimeZone(TimeZone timeZone) {
+			_timezone = timeZone;
 			return this;
 		}
 		
@@ -443,6 +491,7 @@ public class ReceiptRow implements Parcelable{
 			receipt.setExtraEditText2(_extraEditText2);
 			receipt.setExtraEditText3(_extraEditText3);
 			receipt.setDate(_date);
+			receipt.setTimeZone(_timezone);
 			receipt.setIsExpenseable(_isExpenseable);
 			receipt.setIsFullPage(_isFullPage);
 			receipt.setCurrency(_currency);

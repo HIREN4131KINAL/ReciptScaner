@@ -12,14 +12,18 @@ import wb.android.google.camera.PhotoModule;
 import wb.android.google.camera.app.GalleryApp;
 import wb.receiptslibrary.BuildConfig;
 import wb.receiptslibrary.R;
+import wb.receiptslibrary.activities.ReceiptImageActivity;
+import wb.receiptslibrary.activities.Sendable;
 import wb.receiptslibrary.date.DateEditText;
 import wb.receiptslibrary.legacycamera.MyCameraActivity;
 import wb.receiptslibrary.model.ReceiptRow;
 import wb.receiptslibrary.model.TripRow;
 import wb.receiptslibrary.persistence.DatabaseHelper;
 import wb.receiptslibrary.persistence.Preferences;
+import wb.receiptslibrary.utils.Utils;
 import wb.receiptslibrary.workers.EmailAssistant;
 import wb.receiptslibrary.workers.ImageGalleryWorker;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -37,10 +41,12 @@ import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.text.method.TextKeyListener;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -51,15 +57,14 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.view.MenuItem;
-
 public class ReceiptsFragment extends WBFragment implements DatabaseHelper.ReceiptRowListener {
 
-	private static final String TAG = "ReceiptsFragment";
+	public static final String TAG = "ReceiptsFragment";
 	
 	//Activity Request ints
     private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
@@ -78,35 +83,48 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	private TripRow mCurrentTrip;
 	private Uri mImageUri;
 	private AutoCompleteAdapter mAutoCompleteAdapter;
+	private ListView mListView;
+	private ProgressBar mProgressBar;
 	private Date mCachedDate;
+	private Time mNow;
+	private boolean mIsDualPane;
 	
 	// Cached views for autocomplete
 	private AutoCompleteTextView mNameBox;
 	private EditText mPriceBox;
 	private Spinner mCategoriesSpinner;
 	
-	private static final String BUNDLE_TRIP_PARCEL_KEY = "wb.receiptslibrary.model.TripRow#Parcel";
+	public static ReceiptsFragment newInstance() {
+		ReceiptsFragment fragment = new ReceiptsFragment();
+		return fragment;
+	}
+	
 	public static ReceiptsFragment newInstance(TripRow currentTrip) {
 		ReceiptsFragment fragment = new ReceiptsFragment();
 		Bundle args = new Bundle();
-		args.putParcelable(BUNDLE_TRIP_PARCEL_KEY, currentTrip);
+		args.putParcelable(TripRow.PARCEL_KEY, currentTrip);
 		fragment.setArguments(args);
 		return fragment;
 	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		if (BuildConfig.DEBUG) Log.d(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		mAdapter = new ReceiptAdapter(this, new ReceiptRow[0]);
+		mIsDualPane = getResources().getBoolean(R.bool.isTablet);
 		getWorkerManager().getLogger().logInformation("/ReceiptView");
 	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		if (BuildConfig.DEBUG) Log.d(TAG, "onCreateView");
 		View rootView = inflater.inflate(getLayoutId(), container, false);
-		ListView listView = (ListView) rootView.findViewById(R.id.listview);
-		listView.setAdapter(mAdapter);
+		mListView = (ListView) rootView.findViewById(R.id.listview);
+		mProgressBar = (ProgressBar) rootView.findViewById(R.id.progress);
+		mListView.setAdapter(mAdapter);
+		getWorkerManager().getAdManager().handleAd(rootView);
 		return rootView;
 	}
 	
@@ -115,7 +133,9 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	}
 	
 	@Override
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public void onPause() {
+		if (BuildConfig.DEBUG) Log.d(TAG, "onPause");
 		super.onPause();
 		if (mAutoCompleteAdapter != null) {
 			mAutoCompleteAdapter.onPause();
@@ -130,7 +150,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	    	editor.putInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, id);
 	    	final String uriPath = (mImageUri == null) ? null : mImageUri.toString();
 	    	editor.putString(PREFERENCE_IMAGE_URI, uriPath);
-	    	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
+	    	if (Utils.ApiHelper.hasGingerbread())
 	    		editor.apply();
 	    	else
 	    		editor.commit();
@@ -140,11 +160,12 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	
 	@Override
 	public void onResume() {
+		if (BuildConfig.DEBUG) Log.d(TAG, "onResume");
 		super.onResume();
 		getPersistenceManager().getDatabase().registerReceiptRowListener(this);
 		if (mCurrentTrip == null) {
 			if (getArguments() != null) {
-				Parcelable parcel = getArguments().getParcelable(BUNDLE_TRIP_PARCEL_KEY);
+				Parcelable parcel = getArguments().getParcelable(TripRow.PARCEL_KEY);
 				if (parcel == null || !(parcel instanceof TripRow)) {
 					restoreData();
 				}
@@ -156,7 +177,9 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				restoreData();
 			}
 		}
-		getSherlockActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		else {
+			getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+		}
 	}
 	
 	// Restore persistent data
@@ -164,7 +187,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		final DatabaseHelper db = getPersistenceManager().getDatabase();
 		SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
 		final String tripName = preferences.getString(PREFERENCE_TRIP_NAME, "");
-		mCurrentTrip = db.getTripByName(tripName);
+		setTrip(db.getTripByName(tripName));
     	final int receiptId = preferences.getInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, -1);
     	if (receiptId > 0) {
     		mHighlightedReceipt = db.getReceiptByID(receiptId);
@@ -173,29 +196,30 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
     	if (uriPath != null) {
     		mImageUri = Uri.parse(uriPath);
     	}
-    	this.updateActionBarTitle();
 	}
 	
 	@Override
 	public void onDestroy() {
+		if (BuildConfig.DEBUG) Log.d(TAG, "onDestroy");
 		super.onDestroy();
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 	}
 	
 	public void setTrip(TripRow trip) {
-		mCurrentTrip = trip;
-		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-		this.updateActionBarTitle();
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == android.R.id.home) {
-			getNavigator().naviagteBackwards();
-			return true;
+		if (trip == null) {
+			if (mIsDualPane) {
+				getFragmentManager().beginTransaction().remove(this).commit();
+			}
+			else { // Shouldn't be reached. Try to make more robust checks if possible 
+				Toast.makeText(getSherlockActivity(), "Error: Invalid State Reached", Toast.LENGTH_SHORT).show();
+				getSherlockActivity().finish();
+			}
 		}
-		else
-			return super.onOptionsItemSelected(item);
+		else {
+			mCurrentTrip = trip;
+			getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+			this.updateActionBarTitle();
+		}
 	}
 	
 	@Override
@@ -352,7 +376,8 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		if (newReceipt) {
 			if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
 				if (mAutoCompleteAdapter == null) {
-					mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getSherlockActivity(), getPersistenceManager().getDatabase(), DatabaseHelper.TAG_RECEIPTS);
+					final DatabaseHelper db = getPersistenceManager().getDatabase();
+					mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getSherlockActivity(), DatabaseHelper.TAG_RECEIPTS, db, db);
 				}
 				else {
 					mAutoCompleteAdapter.reset();
@@ -362,9 +387,19 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				mCategoriesSpinner = categoriesSpinner;
 				mPriceBox = priceBox;
 			}
-			Time now = new Time(); now.setToNow();
-			if (mCachedDate == null) dateBox.date = new Date(now.toMillis(false));
-			else dateBox.date = mCachedDate;
+			mNow = new Time(); 
+			mNow.setToNow();
+			if (mCachedDate == null) {
+				if (getPersistenceManager().getPreferences().defaultToFirstReportDate()) {
+					dateBox.date = mCurrentTrip.getStartDate();
+				}
+				else {
+					dateBox.date = new Date(mNow.toMillis(false));
+				}
+			}
+			else { 
+				dateBox.date = mCachedDate;
+			}
 			dateBox.setText(DateFormat.getDateFormat(getSherlockActivity()).format(dateBox.date));
 			expensable.setChecked(true);
 			Preferences preferences = getPersistenceManager().getPreferences();
@@ -372,17 +407,17 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 			else if (preferences.matchCommentToCategory()) categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));
 			else if (preferences.matchNameToCategory()) categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
 			if (preferences.predictCategories()) { //Predict Breakfast, Lunch, Dinner by the hour
-				if (now.hour >= 4 && now.hour < 11) { //Breakfast hours
+				if (mNow.hour >= 4 && mNow.hour < 11) { //Breakfast hours
 					int idx = categories.getPosition("Breakfast");
 					if (idx > 0)
 						categoriesSpinner.setSelection(idx);
 				}
-				else if (now.hour >= 11 && now.hour < 16) { //Lunch hours
+				else if (mNow.hour >= 11 && mNow.hour < 16) { //Lunch hours
 					int idx = categories.getPosition("Lunch");
 					if (idx > 0)
 						categoriesSpinner.setSelection(idx);
 				}
-				else if (now.hour >= 16 && now.hour < 23) { //Dinner hours
+				else if (mNow.hour >= 16 && mNow.hour < 23) { //Dinner hours
 					int idx = categories.getPosition("Dinner");
 					if (idx > 0)
 						categoriesSpinner.setSelection(idx);
@@ -394,7 +429,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		else {
 			if (receipt.getName().length() != 0) { nameBox.setText(receipt.getName()); }
 			if (receipt.getPrice().length() != 0) { priceBox.setText(receipt.getPrice()); }
-			if (receipt.getDate() != null) { dateBox.setText(receipt.getFormattedDate(getSherlockActivity())); dateBox.date = receipt.getDate(); }
+			if (receipt.getDate() != null) { dateBox.setText(receipt.getFormattedDate(getSherlockActivity(), getPersistenceManager().getPreferences().getDateSeparator())); dateBox.date = receipt.getDate(); }
 			if (receipt.getCategory().length() != 0) { categoriesSpinner.setSelection(categories.getPosition(receipt.getCategory())); }
 			if (receipt.getComment().length() != 0) { commentBox.setText(receipt.getComment()); }
 			if (receipt.getTax().length() != 0) { taxBox.setText(receipt.getTax()); }
@@ -435,6 +470,9 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 					 if (dateBox.date == null) {
 						 Toast.makeText(getSherlockActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
 						 return;
+					 }
+					 else if (!dateBox.date.equals(mNow)){
+						 mCachedDate = (Date) dateBox.date.clone();
 					 }
 					 Calendar receiptCalendar = Calendar.getInstance(); receiptCalendar.setTime(dateBox.date); 
 					 receiptCalendar.set(Calendar.HOUR_OF_DAY, 0); receiptCalendar.set(Calendar.MINUTE, 0); receiptCalendar.set(Calendar.SECOND, 0); receiptCalendar.set(Calendar.MILLISECOND, 0);
@@ -537,7 +575,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		                dialog.cancel();
 		           }
 		       });
-		if (getSmartReceiptsActivity().calledFromActionSend()) {
+		if (((Sendable)getSherlockActivity()).wasCalledFromSendAction()) {
 			if (receipt.getImage() == null) {
 				final String[] actionSendNoImgEditReceiptItems = getFlex().getStringArray(R.array.ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS);
 				builder.setItems(actionSendNoImgEditReceiptItems, new DialogInterface.OnClickListener() {
@@ -551,9 +589,10 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 								dirPath = dir.getAbsolutePath();
 							else
 								dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(getSmartReceiptsActivity().actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
+							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(((Sendable)getSherlockActivity()).actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 							if (imgFile != null) {
-								Log.e(TAG, imgFile.getPath());
+								// TODO: Move off the main thread
+								// TODO: Close app (or set mActionUri to null)
 								final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptImg(receipt, imgFile);
 								if (updatedReceipt != null) {
 									getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
@@ -591,7 +630,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 								dirPath = dir.getAbsolutePath();
 							else
 								dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(getSmartReceiptsActivity().actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
+							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(((Sendable)getSherlockActivity()).actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 							if (imgFile != null) {
 								Log.e(TAG, imgFile.getPath());
 								final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptImg(mHighlightedReceipt, imgFile);
@@ -655,9 +694,11 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				    	}
 				    	else if (selection == noImgEditReceiptItems[2]) //Delete Receipt
 				    		ReceiptsFragment.this.deleteReceipt(receipt);
-				    	else if (selection == noImgEditReceiptItems[3]) //Move Up
+				    	else if (selection == noImgEditReceiptItems[3]) //Move-Copy
+				    		ReceiptsFragment.this.moveOrCopy(receipt);
+				    	else if (selection == noImgEditReceiptItems[4]) //Swap Up
 				    		ReceiptsFragment.this.moveReceiptUp(receipt);
-				    	else if (selection == noImgEditReceiptItems[4]) //Move Down
+				    	else if (selection == noImgEditReceiptItems[5]) //Swap Down
 				    		ReceiptsFragment.this.moveReceiptDown(receipt);
 				    	dialog.cancel();
 				    }
@@ -675,9 +716,11 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				    		ReceiptsFragment.this.showImage(receipt);
 				    	else if (selection == imgEditReceiptItems[2]) //Delete Receipt
 				    		ReceiptsFragment.this.deleteReceipt(receipt);
-				    	else if (selection == imgEditReceiptItems[3]) //Move Up
+				    	else if (selection == imgEditReceiptItems[3]) //Move-Copy
+				    		ReceiptsFragment.this.moveOrCopy(receipt);
+				    	else if (selection == imgEditReceiptItems[4]) //Swap Up
 				    		ReceiptsFragment.this.moveReceiptUp(receipt);
-				    	else if (selection == imgEditReceiptItems[4]) //Move Down
+				    	else if (selection == imgEditReceiptItems[5]) //Swap Down
 				    		ReceiptsFragment.this.moveReceiptDown(receipt);
 				    	dialog.cancel();
 				    }
@@ -689,12 +732,14 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
     }
     
     public void emailTrip() {
-    	EmailAssistant assistant = new EmailAssistant(getSmartReceiptsActivity(), mCurrentTrip);
-    	assistant.emailTrip();
+    	EmailAssistant.email(getSmartReceiptsApplication(), getSherlockActivity(), mCurrentTrip);
     }
     
     private final void showImage(final ReceiptRow receipt) {
-    	getNavigator().viewReceiptImage(receipt, mCurrentTrip);
+		final Intent intent = new Intent(getActivity(), ReceiptImageActivity.class);
+    	intent.putExtra(ReceiptRow.PARCEL_KEY, receipt);
+    	intent.putExtra(TripRow.PARCEL_KEY, mCurrentTrip);
+    	startActivity(intent);
     }
     
     public final void deleteReceipt(final ReceiptRow receipt) {
@@ -709,6 +754,36 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		       .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		                dialog.cancel();
+		           }
+		       })
+		       .show();
+    }
+    
+    public void moveOrCopy(final ReceiptRow receipt) {
+    	final DatabaseHelper db = getPersistenceManager().getDatabase();
+    	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
+    	final LinearLayout outerLayout = new LinearLayout(getSherlockActivity());
+		outerLayout.setOrientation(LinearLayout.VERTICAL);
+		outerLayout.setGravity(Gravity.BOTTOM);
+		outerLayout.setPadding(10, 0, 10, 10);
+		final Spinner tripsSpinner = new Spinner(getSherlockActivity());
+		final ArrayAdapter<CharSequence> tripNames = new ArrayAdapter<CharSequence>(getSherlockActivity(), android.R.layout.simple_spinner_item, db.getTripNames());
+		tripNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		tripsSpinner.setAdapter(tripNames); tripsSpinner.setPrompt("Trip");
+		outerLayout.addView(tripsSpinner, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		builder.setTitle("Move/Copy " + receipt.getName() + "?")
+			   .setView(outerLayout)
+			   .setCancelable(true)
+			   .setPositiveButton("Move", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		        	   db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+		        	   dialog.cancel();
+		           }
+		       })
+		       .setNegativeButton("Copy", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		        	   db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+		        	   dialog.cancel();
 		           }
 		       })
 		       .show();
@@ -731,6 +806,9 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 
 	@Override
 	public void onReceiptRowsQuerySuccess(ReceiptRow[] receipts) {
+		getPersistenceManager().getDatabase().getTripsParallel();
+		mListView.setVisibility(View.VISIBLE);
+		mProgressBar.setVisibility(View.GONE);
 		mAdapter.notifyDataSetChanged(receipts);
 		updateActionBarTitle();
 	}
@@ -812,6 +890,28 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		
 		@Override 
 		public void onNothingSelected(AdapterView<?> arg0) {}	
+	}
+
+	@Override
+	public void onReceiptCopySuccess(TripRow tripRow) {
+		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+		Toast.makeText(getSherlockActivity(), getFlexString(R.string.toast_receipt_copy), Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onReceiptCopyFailure() {
+		Toast.makeText(getSherlockActivity(), getFlexString(R.string.COPY_ERROR), Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onReceiptMoveSuccess(TripRow tripRow) {
+		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+		Toast.makeText(getSherlockActivity(), getFlexString(R.string.toast_receipt_move), Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onReceiptMoveFailure() {
+		Toast.makeText(getSherlockActivity(), getFlexString(R.string.MOVE_ERROR), Toast.LENGTH_SHORT).show();
 	}
 	
 }

@@ -8,7 +8,7 @@ package wb.receiptslibrary.workers;
  */
 public class Logger extends WorkerChild {
 
-	Logger(WorkerManager manager) {
+	protected Logger(WorkerManager manager) {
 		super(manager);
 	}
 

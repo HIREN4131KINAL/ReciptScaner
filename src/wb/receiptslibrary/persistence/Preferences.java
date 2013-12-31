@@ -4,8 +4,10 @@ import java.util.Currency;
 import java.util.Locale;
 
 import wb.receiptslibrary.BuildConfig;
-import wb.receiptslibrary.SmartReceiptsActivity;
-
+import wb.receiptslibrary.date.DateUtils;
+import wb.receiptslibrary.utils.Utils;
+import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
@@ -14,7 +16,6 @@ import android.util.Log;
 public class Preferences {
 	
 	private static final String TAG = "Preferences";
-	private static final boolean D = true;
 	
 	//Preference Identifiers - Global
     private static final String SMART_PREFS = "SmartReceiptsPrefFile";
@@ -30,22 +31,31 @@ public class Preferences {
     private static final String BOOL_INCLUDE_TAX_FIELD ="IncludeTaxField";
     private static final String BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS ="EnableAutoCompleteSuggestions";
     private static final String STRING_CURRENCY = "isocurr";
+    private static final String STRING_DATE_SEPARATOR = "dateseparator";
     private static final String FLOAT_MIN_RECEIPT_PRICE = "MinReceiptPrice";
     private static final String INT_VERSION_CODE = "VersionCode";
     private static final String BOOL_INCL_CSV_HEADERS = "IncludeCSVHeaders";
+    private static final String BOOL_DEFAULT_TO_FIRST_TRIP_DATE = "DefaultToFirstReportDate";
+    private static final String STRING_LAST_ACTIVITY_TAG = "LastActivityTag";
 	
 	//Preference Instance Variables
-    private boolean predictCategories, matchCommentCats, matchNameCats, useNativeCamera, onlyIncludeExpensable, showActionSendHelpDialog, includeTaxField, enableAutoCompleteSuggestions, includeCSVHeaders;
-    private String emailTo, currency, userID;
+    private boolean predictCategories, matchCommentCats, matchNameCats, useNativeCamera, 
+    				onlyIncludeExpensable, showActionSendHelpDialog, includeTaxField, 
+    				enableAutoCompleteSuggestions, includeCSVHeaders, defaultToFirstReportDate;
+    private String emailTo, currency, userID, dateSeparator;
     private int defaultTripDuration, versionCode;
     private float minReceiptPrice;
     
     //Other Instance Variables
-    private SmartReceiptsActivity activity;
+    private Context mContext;
     
-    Preferences(SmartReceiptsActivity activity) {
-		this.activity = activity;
-		SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
+    public interface VersionUpgradeListener {
+    	public void onVersionUpgrade(int oldVersion, int newVersion);
+    }
+    
+    Preferences(Context context) {
+		this.mContext = context;
+		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
 		this.defaultTripDuration = prefs.getInt(INT_DEFAULT_TRIP_DURATION, 3);
 		this.minReceiptPrice = prefs.getFloat(FLOAT_MIN_RECEIPT_PRICE, -Float.MAX_VALUE);
 		this.emailTo = prefs.getString(STRING_DEFAULT_EMAIL_TO, "");
@@ -65,30 +75,37 @@ public class Preferences {
 		}
     	this.versionCode = prefs.getInt(INT_VERSION_CODE, 78);
     	this.includeCSVHeaders = prefs.getBoolean(BOOL_INCL_CSV_HEADERS, false);
-    	testVersionCode();
+    	this.dateSeparator = prefs.getString(STRING_DATE_SEPARATOR, DateUtils.getDateSeparator(context));
+    	this.defaultToFirstReportDate = prefs.getBoolean(BOOL_DEFAULT_TO_FIRST_TRIP_DATE, false);
 	}
     
-    //This was added after version 78 (version 79 is the first "new" one)
-    private void testVersionCode() {
-    	int newVersion = -1;
-    	try {
-    		newVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionCode;
-    		if (newVersion > this.versionCode) {
-    	        activity.onVersionUpgrade(versionCode, newVersion);
-    	        this.versionCode = newVersion;
-    	        SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
-    	        SharedPreferences.Editor editor = prefs.edit();
-    	        editor.putInt(INT_VERSION_CODE, versionCode);
-    	        editor.commit();
-    		}
+    // This was added after version 78 (version 79 is the first "new" one)
+    public void setVersionUpgradeListener(VersionUpgradeListener listener) {
+    	if (listener != null) {
+    		int newVersion = -1;
+        	try {
+        		newVersion = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionCode;
+        		if (newVersion > this.versionCode) {
+        	        listener.onVersionUpgrade(versionCode, newVersion);
+        	        this.versionCode = newVersion;
+        	        SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
+        	        SharedPreferences.Editor editor = prefs.edit();
+        	        editor.putInt(INT_VERSION_CODE, versionCode);
+        	        editor.commit();
+        		}
+        	}
+        	catch (NameNotFoundException e) { 
+        		if (BuildConfig.DEBUG) Log.e(TAG, e.toString());
+        	}
     	}
-    	catch (NameNotFoundException e) { 
-    		if (BuildConfig.DEBUG) Log.e(TAG, e.toString());
+    	else {
+    		if (BuildConfig.DEBUG) Log.e(TAG, "A null VersionUpgradeListener was provided. Updates will not be registered");
     	}
     }
     
-    public void commit() {
-    	SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	public void commit() {
+    	SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(INT_DEFAULT_TRIP_DURATION, defaultTripDuration);
         editor.putFloat(FLOAT_MIN_RECEIPT_PRICE, minReceiptPrice);
@@ -103,7 +120,9 @@ public class Preferences {
         editor.putBoolean(BOOL_INCLUDE_TAX_FIELD, includeTaxField);
         editor.putBoolean(BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS, enableAutoCompleteSuggestions);
         editor.putString(STRING_USERNAME, userID);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
+        editor.putString(STRING_DATE_SEPARATOR, dateSeparator);
+        editor.putBoolean(BOOL_DEFAULT_TO_FIRST_TRIP_DATE, defaultToFirstReportDate);
+        if (Utils.ApiHelper.hasGingerbread())
     		editor.apply();
     	else
     		editor.commit();
@@ -159,6 +178,10 @@ public class Preferences {
 		this.includeTaxField = includeTaxField;
 	}
 	
+	public void setDateSeparator(String dateSeparator) {
+		this.dateSeparator = dateSeparator;
+	}
+	
 	public boolean enableAutoCompleteSuggestions() {
 		return enableAutoCompleteSuggestions;
 	}
@@ -206,6 +229,14 @@ public class Preferences {
 	public void setMinimumReceiptPriceToIncludeInReports(float minReceiptPrice) {
 		this.minReceiptPrice = minReceiptPrice;
 	}
+	
+	public boolean defaultToFirstReportDate() {
+		return defaultToFirstReportDate;
+	}
+	
+	public void setDefaultToFirstReportDate(boolean defaultToFirstReportDate) {
+		this.defaultToFirstReportDate = defaultToFirstReportDate;
+	}
 
 	public boolean showActionSendHelpDialog() {
 		return showActionSendHelpDialog;
@@ -219,12 +250,36 @@ public class Preferences {
 		return includeCSVHeaders;
 	}
 	
+	public boolean showAds() {
+		return false;
+	}
+	
 	public void setIncludeCSVHeaders(boolean includeCSVHeaders) {
 		this.includeCSVHeaders = includeCSVHeaders;
-		SharedPreferences prefs = activity.getSharedPreferences(SMART_PREFS, 0);
+		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(BOOL_INCL_CSV_HEADERS, this.includeCSVHeaders);
         editor.commit();
+	}
+	
+	public String getDateSeparator() {
+		return dateSeparator;
+	}
+	
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	public void writeLastActivityTag(String tag) {
+		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(STRING_LAST_ACTIVITY_TAG, tag);
+		if (Utils.ApiHelper.hasGingerbread())
+    		editor.apply();
+    	else
+    		editor.commit();
+	}
+	
+	public String getLastActivityTag() {
+		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
+		return prefs.getString(STRING_LAST_ACTIVITY_TAG, "");
 	}
     
 }

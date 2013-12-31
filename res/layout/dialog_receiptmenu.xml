@@ -12,6 +12,7 @@
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_RECEIPTMENU_HINT_NAME" 
+    		android:completionThreshold="1"
     		android:maxLength="50" />
     	<LinearLayout
 	        android:orientation="horizontal"

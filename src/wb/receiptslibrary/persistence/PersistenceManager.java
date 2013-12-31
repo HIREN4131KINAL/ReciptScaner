@@ -4,26 +4,33 @@ import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
-import wb.receiptslibrary.SmartReceiptsActivity;
+import wb.receiptslibrary.SmartReceiptsApplication;
 
 public class PersistenceManager {
 
-	private SmartReceiptsActivity mActivity;
+	private SmartReceiptsApplication mApplication;
 	private DatabaseHelper mDatabase;
 	private StorageManager mStorageManager;
 	private SDCardFileManager mExternalStorageManager;
 	private InternalStorageManager mInternalStorageManager;
 	private Preferences mPreferences;
 	
-	public PersistenceManager(SmartReceiptsActivity activity) {
-		mActivity = activity;
-		mStorageManager = StorageManager.getInstance(mActivity);
-		mDatabase = DatabaseHelper.getInstance(mActivity);
-		mPreferences = new Preferences(mActivity);
+	public PersistenceManager(SmartReceiptsApplication application) {
+		mApplication =  application;
+		mStorageManager = StorageManager.getInstance(application);
+		mPreferences = new Preferences(application);
+		mDatabase = DatabaseHelper.getInstance(application, this);
+		// mPreferences.setVersionUpgradeListener(mApplication); Don't call this here, b/c we'll have a npe in Application
 	}
 	
 	public void onDestroy() {
 		mDatabase.onDestroy();
+		mApplication = null;
+		mStorageManager = null;
+		mExternalStorageManager = null;
+		mInternalStorageManager = null;
+		mDatabase = null;
+		mPreferences = null;
 	}
 	
 	public DatabaseHelper getDatabase() {
@@ -43,7 +50,7 @@ public class PersistenceManager {
 				mExternalStorageManager = (SDCardFileManager) mStorageManager;
 			}
 			else {
-				mExternalStorageManager = StorageManager.getExternalInstance(mActivity);
+				mExternalStorageManager = StorageManager.getExternalInstance(mApplication);
 			}
 		}
 		return mExternalStorageManager;
@@ -58,7 +65,7 @@ public class PersistenceManager {
 				mInternalStorageManager = (InternalStorageManager) mStorageManager;
 			}
 			else {
-				mInternalStorageManager = StorageManager.getInternalInstance(mActivity);
+				mInternalStorageManager = StorageManager.getInternalInstance(mApplication);
 			}
 		}
 		return mInternalStorageManager;

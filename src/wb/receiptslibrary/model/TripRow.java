@@ -3,21 +3,24 @@ package wb.receiptslibrary.model;
 import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.TimeZone;
 
-
+import wb.receiptslibrary.date.DateUtils;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.text.format.DateFormat;
 
 public final class TripRow implements Parcelable {
+	
+	public static final String PARCEL_KEY = "wb.receiptslibrary.TripRow";
 	
 	private static final String EMPTY_PRICE = "0.00";
 	
 	private final File mReportDirectory;
 	private String mPrice;
 	private Date mStartDate, mEndDate;
+	private TimeZone mStartTimeZone, mEndTimeZone;
 	private WBCurrency mCurrency;
 	private float mMiles;
 	private SourceEnum mSource;
@@ -62,7 +65,23 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getFormattedStartDate(Context context) {
-		return DateFormat.getDateFormat(context).format(mStartDate);
+		final TimeZone timeZone = (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		return format.format(mStartDate);
+	}
+	
+	public String getFormattedStartDate(Context context, String separator) {
+		final TimeZone timeZone = (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		String formattedDate = format.format(mStartDate);
+		formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
+		return formattedDate;
+	}
+	
+	public TimeZone getStartTimeZone() {
+		return mStartTimeZone;
 	}
 	
 	public Date getEndDate() {
@@ -70,7 +89,23 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getFormattedEndDate(Context context) {
-		return DateFormat.getDateFormat(context).format(mEndDate);
+		final TimeZone timeZone = (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		return format.format(mEndDate);
+	}
+	
+	public String getFormattedEndDate(Context context, String separator) {
+		final TimeZone timeZone = (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
+		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+		format.setTimeZone(timeZone);
+		String formattedDate = format.format(mEndDate);
+		formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
+		return formattedDate;
+	}
+	
+	public TimeZone getEndTimeZone() {
+		return mEndTimeZone;
 	}
 	
 	public String getPrice() {
@@ -91,8 +126,8 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getCurrencyFormattedPrice() {
-		if (getCurrency() != null) {
-			return getCurrency().format(mPrice);
+		if (mCurrency != null) {
+			return mCurrency.format(mPrice);
 		}
 		else {
 			return "Mixed";
@@ -140,8 +175,20 @@ public final class TripRow implements Parcelable {
 		mCurrency = currency;
 	}
 	
+	public void setCurrency(String currencyCode) {
+		mCurrency = WBCurrency.getInstance(currencyCode);
+	}
+	
 	public void setMileage(float mileage) {
 		mMiles = mileage;
+	}
+	
+	void setStartTimeZone(TimeZone startTimeZone) {
+		mStartTimeZone = startTimeZone;
+	}
+	
+	void setEndTimeZone(TimeZone endTimeZone) {
+		mEndTimeZone = endTimeZone;
 	}
 	
 	@Override
@@ -170,6 +217,7 @@ public final class TripRow implements Parcelable {
 	}
 	
 	@Override
+	@SuppressWarnings("deprecation")
 	public String toString() {
 		return this.getClass().getSimpleName() + "::\n" + "["
 											   + "source => " + getSource() + "; \n"
@@ -208,17 +256,21 @@ public final class TripRow implements Parcelable {
 
 	public static class Builder {
 		
-		public File _dir;
-		public String _price;
-		public Date _startDate, _endDate;
-		public WBCurrency _currency;
-		public float _miles;
-		public SourceEnum _source;
+		private File _dir;
+		private String _price;
+		private Date _startDate, _endDate;
+		private TimeZone _startTimeZone, _endTimeZone;
+		private WBCurrency _currency;
+		private float _miles;
+		private SourceEnum _source;
 		
 		public Builder() {
 			_price = EMPTY_PRICE;
 			_miles = 0;
 			_source = SourceEnum.Undefined;
+			_startTimeZone = TimeZone.getDefault();
+			_endTimeZone = TimeZone.getDefault();
+			//Be sure to update reset here too
 		}
 		
 		public Builder setDirectory(File directory) {
@@ -241,7 +293,7 @@ public final class TripRow implements Parcelable {
 		
 		public Builder setStartDate(Date startDate) {
 			if (startDate == null) {
-				throw new IllegalArgumentException("The start mDate cannot be null");
+				throw new IllegalArgumentException("The start date cannot be null");
 			}
 			_startDate = startDate;
 			return this;
@@ -254,7 +306,7 @@ public final class TripRow implements Parcelable {
 		
 		public Builder setEndDate(Date endDate) {
 			if (endDate == null) {
-				throw new IllegalArgumentException("The end mDate cannot be null");
+				throw new IllegalArgumentException("The end date cannot be null");
 			}
 			_endDate = endDate;
 			return this;
@@ -265,6 +317,30 @@ public final class TripRow implements Parcelable {
 			return this;
 		}
 		
+		public Builder setStartTimeZone(TimeZone startTimeZone) {
+			_startTimeZone = startTimeZone;
+			return this;
+		}
+		
+		public Builder setStartTimeZone(String timeZoneId) {
+			if (timeZoneId != null) {
+				_startTimeZone = TimeZone.getTimeZone(timeZoneId);
+			}
+			return this;
+		}
+		
+		public Builder setEndTimeZone(TimeZone endTimeZone) {
+			_endTimeZone = endTimeZone;
+			return this;
+		}
+		
+		public Builder setEndTimeZone(String timeZoneId) {
+			if (timeZoneId != null) {
+				_endTimeZone = TimeZone.getTimeZone(timeZoneId);
+			}
+			return this;
+		}
+		
 		public Builder setCurrency(WBCurrency currency) {
 			_currency = currency;
 			return this;
@@ -272,7 +348,7 @@ public final class TripRow implements Parcelable {
 		
 		public Builder setCurrency(String currencyCode) {
 			if (TextUtils.isEmpty(currencyCode)) {
-				throw new IllegalArgumentException("The mCurrency code cannot be null or empty");
+				throw new IllegalArgumentException("The currency code cannot be null or empty");
 			}
 			_currency = WBCurrency.getInstance(currencyCode);
 			return this;
@@ -289,13 +365,18 @@ public final class TripRow implements Parcelable {
 		}
 		
 		public TripRow build() {
-			return new TripRow(_dir, _price, _startDate, _endDate, _currency, _miles, _source);
+			TripRow tripRow =  new TripRow(_dir, _price, _startDate, _endDate, _currency, _miles, _source);
+			tripRow.setStartTimeZone(_startTimeZone);
+			tripRow.setEndTimeZone(_endTimeZone);
+			return tripRow;
 		}
 		
 		public void reset() {
 			_dir = null;
 			_startDate = null;
 			_endDate = null;
+			_startTimeZone = TimeZone.getDefault();
+			_endTimeZone = TimeZone.getDefault();
 			_currency = null;
 			_price = EMPTY_PRICE;
 			_miles = 0;

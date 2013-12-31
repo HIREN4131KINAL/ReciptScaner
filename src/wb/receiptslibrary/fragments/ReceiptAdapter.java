@@ -17,13 +17,12 @@ public class ReceiptAdapter extends BaseAdapter {
 	
 	//Number of Headers (i.e. New Trip)
 	private static final int MAIN_HEADERS = 4;
-	private static final int COUNT = 2;
 
 	static enum ViewType {ADD_RECEIPT, EMAIL};
 	
 	private ReceiptRow[] receipts;
 	private final ReceiptsFragment mFragment;
-	private int largestWidth;
+	private float largestWidth;
 	private final LayoutInflater inflater;
 	
 	public ReceiptAdapter(final ReceiptsFragment fragment, final ReceiptRow[] receipts) {
@@ -72,20 +71,40 @@ public class ReceiptAdapter extends BaseAdapter {
 			ReceiptRow receipt = receipts[i-MAIN_HEADERS]; 
 			convertView = new ListItemView(mFragment.getActivity(), 
 										   receipt.getCurrencyFormattedPrice(), 
-										   largestWidth, 
+										   (int) largestWidth, 
 										   receipt.getName(), 
-										   receipt.getFormattedDate(mFragment.getActivity()));
+										   receipt.getFormattedDate(mFragment.getActivity(), mFragment.getPersistenceManager().getPreferences().getDateSeparator()),
+										   R.drawable.default_selector);
 			convertView.setOnClickListener(new EditReceiptClickListener(mFragment, receipt));
 		}
 		return convertView;
 	}
 	
+	/*
+	private final float layoutWidthHack() {
+		Paint paint = new Paint();
+		paint.setAntiAlias(true);
+		paint.setTextSize(24);
+		paint.setTypeface(Typeface.DEFAULT_BOLD);
+		String currString;
+		float maxWidth = -1f, currWidth;
+		for (int i = 0; i < receipts.length; i++) {
+			currString = receipts[i].getCurrencyFormattedPrice();
+			if (currString != null) {
+				currWidth = paint.measureText(currString);
+				if (currWidth > maxWidth) {
+					maxWidth = currWidth;
+				}
+			}
+		}
+		return maxWidth + 3*Utils.convertPixelsToDp(20);
+	}*/
+	
 	private final int layoutWidthHack() {
 		int width = 0;
-		final int size = receipts.length;
 		int curr, decIdx;
 		String price;
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < receipts.length; i++) {
 			price = receipts[i].getCurrencyFormattedPrice();
 			decIdx = price.indexOf(".");
 			if (decIdx == -1)

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory 
+        android:title="@string/pref_account_header"
+        android:key="pref_account_category_key">
+        <CheckBoxPreference
+            android:key="PredictCats"
+            android:title="@string/pref_account_predict_categories_title"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="UseNativeCamera"
+            android:title="@string/pref_account_use_native_camera_title"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="IncludeTaxField"
+            android:title="@string/pref_account_include_tax_field_title"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="MatchNameCats"
+            android:title="@string/pref_account_match_name_to_category_title"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="MatchCommentCats"
+            android:title="@string/pref_account_match_name_to_category_title"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="OnlyIncludeExpensable"
+            android:title="@string/pref_account_expensable_only_title"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="EnableAutoCompleteSuggestions"
+            android:title="@string/pref_account_enable_autocomplete_title"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+</PreferenceScreen>
+
+<!-- 
+    <string name="pref_account_trip_duration_title">Default Trip Length (Days):</string>
+    <string name="pref_account_trip_duration_key">TripDuration</string>
+    <string name="pref_account_default_email_title">Default Email Recipient:</string>
+    <string name="pref_account_default_email_key">EmailTo</string>
+    <string name="pref_account_username_title">User ID:</string>
+    <string name="pref_account_username_key">UserName</string>
+    <string name="pref_account_predict_categories_title">Predict Receipt Categories</string>
+    <string name="pref_account_predict_categories_key">PredictCats</string>
+    <string name="pref_account_show_help_dialog_key">ShowHelpDialog</string>
+    <string name="pref_account_default_currency_title">Default Currency:</string>
+    <string name="pref_account_default_currency_key">isocurr</string>
+    <string name="pref_account_minimum_receipts_price_title">Min. Receipt Price to Report:</string>
+    <string name="pref_account_minimum_receipts_price_key">MinReceiptPrice</string>
+    <string name="pref_account_version_code_key">VersionCode</string>
+    <string name="pref_account_include_csv_headers_key">IncludeCSVHeaders</string>
+ -->

@@ -8,7 +8,7 @@ import wb.android.camera.CameraActivity;
 import wb.android.camera.CameraController;
 import wb.android.storage.StorageManager;
 import wb.receiptslibrary.BuildConfig;
-import wb.receiptslibrary.SmartReceiptsActivity;
+import wb.receiptslibrary.activities.SmartReceiptsActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;

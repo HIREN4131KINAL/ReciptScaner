@@ -2,6 +2,7 @@ package wb.receiptslibrary.workers;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -88,31 +89,31 @@ public class EmailAssistant {
 	
 	public final void emailTrip() {
 		if (!mPersistenceManager.getStorageManager().isExternal()) {
-    		Toast.makeText(mContext, mFlex.getString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+    		Toast.makeText(mContext, mFlex.getString(mContext, R.string.SD_ERROR), Toast.LENGTH_LONG).show();
     		return;
     	}
-    	View scrollView = mFlex.getView(R.layout.dialog_email);
-    	final CheckBox pdfFull = (CheckBox) mFlex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
-    	final CheckBox pdfImages = (CheckBox) mFlex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
-    	final CheckBox csv = (CheckBox) mFlex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
-    	final CheckBox zipStampedImages = (CheckBox) mFlex.getSubView(scrollView, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
+    	View scrollView = mFlex.getView(mContext, R.layout.dialog_email);
+    	final CheckBox pdfFull = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
+    	final CheckBox pdfImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
+    	final CheckBox csv = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
+    	final CheckBox zipStampedImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
     	final BetterDialogBuilder builder = new BetterDialogBuilder(mContext);
-    	String msg = mFlex.getString(R.string.DIALOG_EMAIL_MESSAGE);
+    	String msg = mFlex.getString(mContext, R.string.DIALOG_EMAIL_MESSAGE);
     	if (msg.length() > 0) 
     		builder.setMessage(msg);
-			builder.setTitle(mFlex.getString(R.string.DIALOG_EMAIL_TITLE))
+			builder.setTitle(mFlex.getString(mContext, R.string.DIALOG_EMAIL_TITLE))
 			   .setCancelable(true)
 			   .setView(scrollView)
-			   .setPositiveButton(mFlex.getString(R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+			   .setPositiveButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
 				   @Override
 		           public void onClick(DialogInterface dialog, int id) {
 					   if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
-						   Toast.makeText(mContext, mFlex.getString(R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
+						   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
 						   dialog.cancel();
 						   return;
 					   }
 					   if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).length == 0) {
-						   Toast.makeText(mContext, mFlex.getString(R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
+						   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
 						   dialog.cancel();
 						   return;
 					   }
@@ -126,7 +127,7 @@ public class EmailAssistant {
 		        	   attachmentWriter.execute(mTrip);
 		           }
 		       })
-		       .setNegativeButton(mFlex.getString(R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
+		       .setNegativeButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		                dialog.cancel();
 		           }
@@ -143,7 +144,7 @@ public class EmailAssistant {
 		if (attachments[EmailOptions.CSV.getIndex()] != null) uris.add(Uri.fromFile(attachments[EmailOptions.CSV.getIndex()]));
 		if (attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()] != null) uris.add(Uri.fromFile(attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]));
 		emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{mPersistenceManager.getPreferences().getDefaultEmailReceipient()});
-		emailIntent.putExtra(Intent.EXTRA_SUBJECT, mFlex.getString(R.string.EMAIL_DATA_SUBJECT).replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()));
+		emailIntent.putExtra(Intent.EXTRA_SUBJECT, mFlex.getString(mContext, R.string.EMAIL_DATA_SUBJECT).replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()));
 		/*Works for Google Drive. Breaks the rest
 		ArrayList<String> extra_text = new ArrayList<String>(); //Need this part to fix a Bundle casting bug
 		if (uris.size() == 1) extra_text.add(uris.size() + " report attached");
@@ -156,11 +157,17 @@ public class EmailAssistant {
     	mContext.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
 	}
 	
+	private static class FullPageReceiptHolder {
+		public FullPageReceiptHolder(ReceiptRow receipt, int number) { this.receipt = receipt; this.number = number; } 
+		public ReceiptRow receipt;
+		public int number;
+	}
+	
 	private class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, Long> {
 		
 		private final StorageManager mStorageManager;
 		private final DatabaseHelper mDB;
-		private final ProgressDialog mProgressDialog;
+		private final WeakReference<ProgressDialog> mProgressDialog;
 		private final File[] mFiles;
 		private final EnumSet<EmailOptions> mOptions;
 		private boolean memoryErrorOccured = false;
@@ -173,7 +180,7 @@ public class EmailAssistant {
 									 EnumSet<EmailOptions> options) {
 			mStorageManager = persistenceManager.getStorageManager();
 			mDB = persistenceManager.getDatabase();
-			mProgressDialog = dialog;
+			mProgressDialog = new WeakReference<ProgressDialog>(dialog);
 			mOptions = options;
 			mFiles = new File[] {null, null, null, null};
 			memoryErrorOccured = false;
@@ -330,6 +337,9 @@ public class EmailAssistant {
 		private static final float IMG_SCALE_FACTOR = 2.1f;
 		private static final float HW_RATIO = 0.75f;
 	    private Bitmap stampImage(final TripRow trip, final ReceiptRow receipt, Bitmap.Config config) {
+	    	if (!receipt.hasImage()) {
+	    		return null;
+	    	}
 	        Bitmap foreground = mStorageManager.getMutableMemoryEfficientBitmap(receipt.getImage());
 	        if (foreground != null) { // It can be null if file not found
 		        int foreWidth = foreground.getWidth(), foreHeight = foreground.getHeight();
@@ -357,14 +367,14 @@ public class EmailAssistant {
 		        canvas.drawText(trip.getName(), xPad/2, y, brush); y += spacing;
 		        canvas.drawText(trip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()) + " -- " + trip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad/2, y, brush); y += spacing;
 		        y = background.getHeight() - yPad/2 + spacing*2;
-		        canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_NAME) + ": " + receipt.getName(), xPad/2, y, brush); y += spacing;
-		        canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getPrice() + " " + receipt.getCurrencyCode(), xPad/2, y, brush); y += spacing;
-		        canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_DATE) + ": " + receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad/2, y, brush); y += spacing;
-		        canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.getCategory(), xPad/2, y, brush); y += spacing;
-		        canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_COMMENT) + ": " + receipt.getComment(), xPad/2, y, brush); y += spacing;
-		        if (receipt.hasExtraEditText1()) { canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1) + ": " + receipt.getExtraEditText1(), xPad/2, y, brush); y += spacing; }
-		        if (receipt.hasExtraEditText2()) { canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2) + ": " + receipt.getExtraEditText2(), xPad/2, y, brush); y += spacing; }
-		        if (receipt.hasExtraEditText3()) { canvas.drawText(mFlex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3) + ": " + receipt.getExtraEditText3(), xPad/2, y, brush); y += spacing; }
+		        canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_NAME) + ": " + receipt.getName(), xPad/2, y, brush); y += spacing;
+		        canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getPrice() + " " + receipt.getCurrencyCode(), xPad/2, y, brush); y += spacing;
+		        canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_DATE) + ": " + receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad/2, y, brush); y += spacing;
+		        canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.getCategory(), xPad/2, y, brush); y += spacing;
+		        canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_COMMENT) + ": " + receipt.getComment(), xPad/2, y, brush); y += spacing;
+		        if (receipt.hasExtraEditText1()) { canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1) + ": " + receipt.getExtraEditText1(), xPad/2, y, brush); y += spacing; }
+		        if (receipt.hasExtraEditText2()) { canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2) + ": " + receipt.getExtraEditText2(), xPad/2, y, brush); y += spacing; }
+		        if (receipt.hasExtraEditText3()) { canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3) + ": " + receipt.getExtraEditText3(), xPad/2, y, brush); y += spacing; }
 		        return background;
 	        }
 	        else {
@@ -404,7 +414,7 @@ public class EmailAssistant {
 			Image img1 = null, img2 = null;
 			ReceiptRow receipt1 = null;
 			int num1 = 0, flag = 0;
-			final HashMap<ReceiptRow, Integer> fullpageReceipts = new HashMap<ReceiptRow, Integer>();
+			final ArrayList<FullPageReceiptHolder> fullpageReceipts = new ArrayList<EmailAssistant.FullPageReceiptHolder>();
 			for (int i=0; i < size; i++) {
 				receipt = receipts[i];
 				if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) 
@@ -412,7 +422,7 @@ public class EmailAssistant {
 				if (!receipt.hasImage())
 					continue;
 				if (receipt.isFullPage()) {
-					fullpageReceipts.put(receipt, i+1);
+					fullpageReceipts.add(new FullPageReceiptHolder(receipt, i+1));
 					continue;
 				}
 				if (receipt.getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports())
@@ -482,15 +492,13 @@ public class EmailAssistant {
 			}
 			document.newPage();
 			//Full Page Stuff Below
-			Set<ReceiptRow> set = fullpageReceipts.keySet();
-			size = fullpageReceipts.size();
-			for (ReceiptRow rcpt:set) { //Redo to get rid of iterator
-				if (preferences.onlyIncludeExpensableReceiptsInReports() && !rcpt.isExpensable()) 
+			for (FullPageReceiptHolder holder : fullpageReceipts) { //TODO: Redo to get rid of iterator
+				if (preferences.onlyIncludeExpensableReceiptsInReports() && !holder.receipt.isExpensable()) 
 					continue;
-				if (rcpt.getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports())
+				if (holder.receipt.getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports())
 					continue;
 				try {
-					img1 = Image.getInstance(rcpt.getImage().getCanonicalPath());
+					img1 = Image.getInstance(holder.receipt.getImage().getCanonicalPath());
 					table = new PdfPTable(1);
 					table.getDefaultCell().disableBorderSide(PdfPCell.LEFT);
 					table.getDefaultCell().disableBorderSide(PdfPCell.RIGHT);
@@ -500,7 +508,7 @@ public class EmailAssistant {
 					table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
 					table.getDefaultCell().setVerticalAlignment(Element.ALIGN_CENTER);
 					table.setSplitLate(false);
-					table.addCell(fullpageReceipts.get(rcpt).intValue() + "  \u2022  " + rcpt.getName() + "  \u2022  " + rcpt.getFormattedDate(mContext, preferences.getDateSeparator()));
+					table.addCell(holder.number + "  \u2022  " + holder.receipt.getName() + "  \u2022  " + holder.receipt.getFormattedDate(mContext, preferences.getDateSeparator()));
 					table.addCell(getFullCell(img1));
 					table.completeRow();
 					document.add(table);
@@ -542,7 +550,11 @@ public class EmailAssistant {
 		@Override
 		protected void onPostExecute(Long result) {
 			EmailAssistant.this.onAttachmentsCreated(mFiles);
-			mProgressDialog.cancel();
+			ProgressDialog dialog = mProgressDialog.get();
+			if (dialog != null) {
+				dialog.dismiss();
+				dialog = null;
+			}
 		}
 		
 		@Override

@@ -68,15 +68,15 @@ public class ReceiptImageActivity extends WBActivity {
 			return true;
 		}
 		else if (item.getItemId() == R.id.menu_main_settings) {
-	    	getSmartReceiptsApplication().getSettings().showSettingsMenu();
+	    	getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_about) {
-            getSmartReceiptsApplication().getSettings().showAbout();
+            getSmartReceiptsApplication().getSettings().showAbout(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_categories) {
-	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu();
+	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_csv) {

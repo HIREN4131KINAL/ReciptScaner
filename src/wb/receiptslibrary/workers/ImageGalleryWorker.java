@@ -103,7 +103,7 @@ public class ImageGalleryWorker extends WorkerChild {
 		Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
 		final Context context = mWorkerManager.getContext();
 		if (!mStorageManager.writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
-			Toast.makeText(context, mFlex.getString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
 			imgFile = null;
 		}
     	return imgFile;

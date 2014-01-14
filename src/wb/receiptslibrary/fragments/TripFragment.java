@@ -6,6 +6,7 @@ import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
+import wb.android.storage.StorageManager;
 import wb.receiptslibrary.R;
 import wb.receiptslibrary.activities.ReceiptsActivity;
 import wb.receiptslibrary.activities.Sendable;
@@ -23,9 +24,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.method.TextKeyListener;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -88,28 +91,27 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 		super.onResume();
 		getPersistenceManager().getDatabase().getTripsParallel();
 		getSherlockActivity().getSupportActionBar().setTitle(getFlexString(R.string.app_name));
-		// Handle Import Code
-		if (getSherlockActivity().getIntent().getAction() != null && getSherlockActivity().getIntent().getAction().equalsIgnoreCase(Intent.ACTION_VIEW)) {
-        	final Uri uri = getSherlockActivity().getIntent().getData();
-        	final CheckBox overwrite = new CheckBox(getSherlockActivity()); overwrite.setText(" Overwrite Existing Data?");
-        	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
-        	builder.setTitle("Import")
-        	   .setView(overwrite)
-			   .setCancelable(true)
-			   .setPositiveButton("Import", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						(new ImportTask(getSherlockActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
-					}
-			    })
-			   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						return;
-					}
-			    })
-			   .show();
-        }
+		// Handles PDF and SMR imports
+		if (!getSmartReceiptsApplication().isAttachComplete()) {
+			if (getSherlockActivity().getIntent().getAction() != null && getSherlockActivity().getIntent().getAction().equalsIgnoreCase(Intent.ACTION_VIEW)) {
+	        	final Uri uri = getSherlockActivity().getIntent().getData();
+	        	if (uri != null) {
+	        		final String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(getActivity().getContentResolver().getType(uri));
+	        		if (extension != null && extension.equalsIgnoreCase("pdf")) {
+	        			addPDF(uri);
+	        		}
+	        		else if (extension != null && extension.equalsIgnoreCase("smr")) {
+	        			performImport(uri);
+	        		}
+	        		else {
+	        			Toast.makeText(getSherlockActivity(), getFlex().getString(getActivity(), R.string.IMPORT_ERROR), Toast.LENGTH_SHORT).show();
+	        		}
+	        	}
+	        	else {
+	        		Toast.makeText(getSherlockActivity(), getFlex().getString(getActivity(), R.string.IMPORT_ERROR), Toast.LENGTH_SHORT).show();
+	        	}
+	        }
+		}
 	}
 	
 	@Override
@@ -127,10 +129,10 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 
     	final boolean newTrip = (trip == null);
     	
-		final View scrollView = getFlex().getView(R.layout.dialog_tripmenu);
-		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(scrollView, R.id.DIALOG_TRIPMENU_NAME);
-		final DateEditText startBox = (DateEditText) getFlex().getSubView(scrollView, R.id.DIALOG_TRIPMENU_START);
-		final DateEditText endBox = (DateEditText) getFlex().getSubView(scrollView, R.id.DIALOG_TRIPMENU_END);
+		final View scrollView = getFlex().getView(getSherlockActivity(), R.layout.dialog_tripmenu);
+		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_TRIPMENU_NAME);
+		final DateEditText startBox = (DateEditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_TRIPMENU_START);
+		final DateEditText endBox = (DateEditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_TRIPMENU_END);
 		
 		//Show default dictionary with auto-complete
 		TextKeyListener input = TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES);
@@ -216,24 +218,7 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 						File smr = persistenceManager.getStorageManager().getFile("SmartReceipts.smr");
 						if (smr != null && smr.exists()) {
 							final Uri uri = Uri.fromFile(smr);
-				        	final CheckBox overwrite = new CheckBox(getSherlockActivity()); overwrite.setText(" Overwrite Existing Data?");
-				        	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
-				        	builder.setTitle("Import")
-				        	   .setView(overwrite)
-							   .setCancelable(true)
-							   .setPositiveButton("Import", new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										(new ImportTask(getSherlockActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
-									}
-							    })
-							   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										return;
-									}
-							    })
-							   .show();
+				        	performImport(uri);
 						}
 					 }
 					 dialog.cancel();   
@@ -244,7 +229,7 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 	
 	public final boolean editTrip(final TripRow trip) {
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
-		final String[] editTripItems = getFlex().getStringArray(R.array.EDIT_TRIP_ITEMS);
+		final String[] editTripItems = getFlex().getStringArray(getSherlockActivity(), R.array.EDIT_TRIP_ITEMS);
 		builder.setTitle(trip.getName())
 			   .setCancelable(true)
 			   .setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
@@ -300,6 +285,7 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
     		else {
     			Toast.makeText(getSherlockActivity(), getFlexString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
     		}
+    		getSmartReceiptsApplication().markAsAttached(true);
     		getPersistenceManager().getDatabase().getTripsParallel();
     	}
     }
@@ -392,6 +378,31 @@ public class TripFragment extends WBFragment implements BooleanTaskCompleteDeleg
 	@Override
 	public void onTripDeleteFailure() {
 		Toast.makeText(getSherlockActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+	}
+	
+	private void performImport(final Uri uri) {
+    	final CheckBox overwrite = new CheckBox(getSherlockActivity()); overwrite.setText(" Overwrite Existing Data?");
+    	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
+    	builder.setTitle("Import")
+    	   .setView(overwrite)
+		   .setCancelable(true)
+		   .setPositiveButton("Import", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					(new ImportTask(getSherlockActivity(), TripFragment.this, "Importing your files...", IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
+				}
+		    })
+		   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					return;
+				}
+		    })
+		   .show();
+	}
+	
+	private void addPDF(Uri uri) {
+		Toast.makeText(getActivity(), "PDF!!!", Toast.LENGTH_LONG).show();
 	}
 	
 }

@@ -46,6 +46,10 @@
     <string name="receipt_adapter_email">Email Report</string>
     <string name="receipt_adapter_distance">Distance -\u0020</string>
     
+    <!-- ==================== Cards ========================= -->
+    <string name="card_overflow_contentDescription">Receipt Options</string>
+    <string name="card_thumbnail_contentDescription">Receipt Thumbnail</string>
+    
     <!-- ================ DIALOG (GENERAL) =================== -->
     <string name="DIALOG_CANCEL">Cancel</string>
     

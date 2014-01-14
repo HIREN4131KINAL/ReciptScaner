@@ -27,7 +27,7 @@ public class WBFragment extends SherlockFragment {
 	}
 	
 	protected String getFlexString(int id) {
-		return mApplication.getFlex().getString(id);
+		return mApplication.getFlex().getString(getSherlockActivity(), id);
 	}
 	
 	protected DateManager getDateManager() {

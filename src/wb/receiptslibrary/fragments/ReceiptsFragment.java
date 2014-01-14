@@ -6,10 +6,13 @@ import java.util.Calendar;
 import java.util.List;
 
 import wb.android.autocomplete.AutoCompleteAdapter;
+import wb.android.cache.ImageCache;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
 import wb.android.google.camera.PhotoModule;
 import wb.android.google.camera.app.GalleryApp;
+import wb.android.workers.DiskImageFetcher;
+import wb.android.workers.ImageWorker;
 import wb.receiptslibrary.BuildConfig;
 import wb.receiptslibrary.R;
 import wb.receiptslibrary.activities.ReceiptImageActivity;
@@ -50,7 +53,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
@@ -77,8 +82,12 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
   	private static final String PREFERENCE_TRIP_NAME = "tripName";
   	private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
   	private static final String PREFERENCE_IMAGE_URI = "imageUri";
+  	
+  	//Defaults
+  	private static final float IMAGE_CACHE_SIZE = 0.35f; // Set memory cache to 35% of mem class
 	
 	private ReceiptAdapter mAdapter;
+  	//private ReceiptCardAdapter mAdapter;
 	private ReceiptRow mHighlightedReceipt;
 	private TripRow mCurrentTrip;
 	private Uri mImageUri;
@@ -88,6 +97,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	private Date mCachedDate;
 	private Time mNow;
 	private boolean mIsDualPane;
+	//private DiskImageFetcher mImageFetcher;
 	
 	// Cached views for autocomplete
 	private AutoCompleteTextView mNameBox;
@@ -113,8 +123,13 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		mAdapter = new ReceiptAdapter(this, new ReceiptRow[0]);
+		//mAdapter = new ReceiptCardAdapter(this, new ReceiptRow[0]);
 		mIsDualPane = getResources().getBoolean(R.bool.isTablet);
 		getWorkerManager().getLogger().logInformation("/ReceiptView");
+		//ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(getSherlockActivity(), "imgs");
+		//cacheParams.setMemCacheSizePercent(getSherlockActivity(), IMAGE_CACHE_SIZE);
+		//mImageFetcher = new DiskImageFetcher(getSherlockActivity(), (int) getResources().getDimension(R.dimen.card_thumbnail_size));
+		//mImageFetcher.addImageCache(getFragmentManager(), cacheParams);
 	}
 	
 	@Override
@@ -122,14 +137,30 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		if (BuildConfig.DEBUG) Log.d(TAG, "onCreateView");
 		View rootView = inflater.inflate(getLayoutId(), container, false);
 		mListView = (ListView) rootView.findViewById(R.id.listview);
+		//mListView = (ListView) rootView.findViewById(android.R.id.list);
 		mProgressBar = (ProgressBar) rootView.findViewById(R.id.progress);
 		mListView.setAdapter(mAdapter);
+		/*
+		mListView.setOnScrollListener(new OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // Pause ImageFetcher to ensure smoother scrolling when flinging
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+                    mImageFetcher.setPauseWork(true);
+                } else {
+                	mImageFetcher.setPauseWork(false);
+                }
+			}
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
+		});*/
 		getWorkerManager().getAdManager().handleAd(rootView);
 		return rootView;
 	}
 	
 	public int getLayoutId() {
 		return R.layout.listlayout;
+		//return R.layout.receipt_card_list;
 	}
 	
 	@Override
@@ -155,6 +186,11 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	    	else
 	    		editor.commit();
     	}
+		/*
+		if (mImageFetcher != null) {
+    		mImageFetcher.setExitTasksEarly(true); //Stop fetching images
+    		mImageFetcher.flushCache();
+		}*/
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 	}
 	
@@ -179,7 +215,10 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		}
 		else {
 			getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-		}
+		}/*
+		if (mImageFetcher != null) {
+			mImageFetcher.setExitTasksEarly(false); // Allow more images to load
+		}*/
 	}
 	
 	// Restore persistent data
@@ -201,7 +240,10 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	@Override
 	public void onDestroy() {
 		if (BuildConfig.DEBUG) Log.d(TAG, "onDestroy");
-		super.onDestroy();
+		super.onDestroy();/*
+		if (mImageFetcher != null) {
+    		mImageFetcher.closeCache();
+		}*/
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 	}
 	
@@ -227,7 +269,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
     	if (BuildConfig.DEBUG) Log.d(TAG, "Result Code: " + resultCode);
     	if (BuildConfig.DEBUG) Log.d(TAG, "Request Code: " + requestCode);
     	if (resultCode == Activity.RESULT_OK) { //-1
-    		File imgFile = new File(mImageUri.getPath());
+    		File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
     		if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
     			final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
     			worker.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
@@ -339,19 +381,19 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		    
 	public final void receiptMenu(final TripRow trip, final ReceiptRow receipt, final File img) {
 		final boolean newReceipt = (receipt == null);
-		final View scrollView = getFlex().getView(R.layout.dialog_receiptmenu);
-		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_NAME);
-		final EditText priceBox = (EditText) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_PRICE);
-		final EditText taxBox = (EditText) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_TAX);
-		final Spinner currencySpinner = (Spinner) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
-		final DateEditText dateBox = (DateEditText) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_DATE);
-		final EditText commentBox = (EditText) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_COMMENT);
-		final Spinner categoriesSpinner =  (Spinner) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
-		final CheckBox expensable = (CheckBox) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
-		final CheckBox fullpage = (CheckBox) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
+		final View scrollView = getFlex().getView(getSherlockActivity(), R.layout.dialog_receiptmenu);
+		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_NAME);
+		final EditText priceBox = (EditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_PRICE);
+		final EditText taxBox = (EditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_TAX);
+		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
+		final DateEditText dateBox = (DateEditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_DATE);
+		final EditText commentBox = (EditText) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_COMMENT);
+		final Spinner categoriesSpinner =  (Spinner) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
+		final CheckBox expensable = (CheckBox) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
+		final CheckBox fullpage = (CheckBox) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
 		
 		//Extras
-		final LinearLayout extras = (LinearLayout) getFlex().getSubView(scrollView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
+		final LinearLayout extras = (LinearLayout) getFlex().getSubView(getSherlockActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
 		final EditText extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
 		final EditText extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
 		final EditText extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
@@ -368,6 +410,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getSherlockActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		currencySpinner.setAdapter(currenices);
+		//TODO: Merge all date stuff into a single class (done in WBLibrary)
 		dateBox.setFocusableInTouchMode(false); dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
 		final ArrayAdapter<CharSequence> categories = new ArrayAdapter<CharSequence>(getSherlockActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
 		categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -474,18 +517,11 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 					 else if (!dateBox.date.equals(mNow)){
 						 mCachedDate = (Date) dateBox.date.clone();
 					 }
-					 Calendar receiptCalendar = Calendar.getInstance(); receiptCalendar.setTime(dateBox.date); 
-					 receiptCalendar.set(Calendar.HOUR_OF_DAY, 0); receiptCalendar.set(Calendar.MINUTE, 0); receiptCalendar.set(Calendar.SECOND, 0); receiptCalendar.set(Calendar.MILLISECOND, 0);
-					 Calendar tripCalendar = Calendar.getInstance(); tripCalendar.setTime(trip.getStartDate());
-					 tripCalendar.set(Calendar.HOUR_OF_DAY, 0); tripCalendar.set(Calendar.MINUTE, 0); tripCalendar.set(Calendar.SECOND, 0); tripCalendar.set(Calendar.MILLISECOND, 0);
-					 if (receiptCalendar.compareTo(tripCalendar) < 0) {
+					 
+					 if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
 						 Toast.makeText(getSherlockActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
 					 }
-					 tripCalendar.setTime(trip.getEndDate());
-					 tripCalendar.set(Calendar.HOUR_OF_DAY, 0); tripCalendar.set(Calendar.MINUTE, 0); tripCalendar.set(Calendar.SECOND, 0); tripCalendar.set(Calendar.MILLISECOND, 0);
-					 if (receiptCalendar.compareTo(tripCalendar) > 0) {
-						 Toast.makeText(getSherlockActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
-					 }
+					 
 					 if (newReceipt) {//Insert
 						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 getDateManager().setDateEditTextListenerDialogHolder(null);
@@ -544,17 +580,19 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 	public final void showMileage() {
     	final String milesString = mCurrentTrip.getMilesAsString();
     	final BetterDialogBuilder builder = new BetterDialogBuilder(getSherlockActivity());
-    	final View linearLayout = getFlex().getView(R.layout.dialog_mileage);
-		final EditText milesBox = (EditText) getFlex().getSubView(linearLayout, R.id.DIALOG_MILES_DELTA);
+    	final View linearLayout = getFlex().getView(getSherlockActivity(), R.layout.dialog_mileage);
+		final EditText milesBox = (EditText) getFlex().getSubView(getSherlockActivity(), linearLayout, R.id.DIALOG_MILES_DELTA);
 		builder.setTitle("Total: " + milesString)
 			   .setCancelable(true)
 			   .setView(linearLayout)
 			   .setPositiveButton("Add", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
-		        	   if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesString, milesBox.getText().toString()))
+		        	   if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesString, milesBox.getText().toString())) {
 		        		   Toast.makeText(getSherlockActivity(), "Bad Input", Toast.LENGTH_SHORT).show();
-		        	   else
+		        	   }
+		        	   else {
 		        		   mAdapter.notifyDataSetChanged();
+		        	   }
 		           }
 			   })
 			   .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -577,12 +615,13 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		       });
 		if (((Sendable)getSherlockActivity()).wasCalledFromSendAction()) {
 			if (receipt.getImage() == null) {
-				final String[] actionSendNoImgEditReceiptItems = getFlex().getStringArray(R.array.ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS);
+				final String[] actionSendNoImgEditReceiptItems = getFlex().getStringArray(getSherlockActivity(), R.array.ACTION_SEND_NOIMG_EDIT_RECEIPT_ITEMS);
 				builder.setItems(actionSendNoImgEditReceiptItems, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int item) {
 						final String selection = actionSendNoImgEditReceiptItems[item].toString();
 						if (selection == actionSendNoImgEditReceiptItems[0]) { //Attach Image to Receipt
+							getSmartReceiptsApplication().markAsAttached(true);
 							String dirPath;
 							File dir = mCurrentTrip.getDirectory();
 							if (dir.exists())
@@ -592,7 +631,6 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(((Sendable)getSherlockActivity()).actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 							if (imgFile != null) {
 								// TODO: Move off the main thread
-								// TODO: Close app (or set mActionUri to null)
 								final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptImg(receipt, imgFile);
 								if (updatedReceipt != null) {
 									getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
@@ -616,7 +654,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				});
 			}
 			else {
-				final String[] actionSendImgEditReceiptItems = getFlex().getStringArray(R.array.ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS);
+				final String[] actionSendImgEditReceiptItems = getFlex().getStringArray(getSherlockActivity(), R.array.ACTION_SEND_IMG_EDIT_RECEIPT_ITEMS);
 				builder.setItems(actionSendImgEditReceiptItems, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int item) {
@@ -624,6 +662,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 						if (selection == actionSendImgEditReceiptItems[0]) //View Image
 							ReceiptsFragment.this.showImage(receipt);
 						else if (selection == actionSendImgEditReceiptItems[1]) { //Attach Image to Receipt
+							getSmartReceiptsApplication().markAsAttached(true);
 							String dirPath;
 							File dir = mCurrentTrip.getDirectory();
 							if (dir.exists())
@@ -632,7 +671,6 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 								dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 							File imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(((Sendable)getSherlockActivity()).actionSendUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 							if (imgFile != null) {
-								Log.e(TAG, imgFile.getPath());
 								final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptImg(mHighlightedReceipt, imgFile);
 								if (retakeReceipt != null) {
 									getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
@@ -657,7 +695,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		}
 		else {
 			if (receipt.getImage() == null) {
-				final String[] noImgEditReceiptItems = getFlex().getStringArray(R.array.NOIMG_EDIT_RECEIPT_ITEMS);
+				final String[] noImgEditReceiptItems = getFlex().getStringArray(getSherlockActivity(), R.array.NOIMG_EDIT_RECEIPT_ITEMS);
 				builder.setItems(noImgEditReceiptItems, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int item) {
@@ -705,7 +743,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 				});
 			}
 			else {
-				final String[] imgEditReceiptItems = getFlex().getStringArray(R.array.IMG_EDIT_RECEIPT_ITEMS);
+				final String[] imgEditReceiptItems = getFlex().getStringArray(getSherlockActivity(), R.array.IMG_EDIT_RECEIPT_ITEMS);
 				builder.setItems(imgEditReceiptItems, new DialogInterface.OnClickListener() {
 					@Override
 				    public void onClick(DialogInterface dialog, int item) {
@@ -789,6 +827,10 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
 		       .show();
     }
     
+    ImageWorker getImageFetcher() {
+    	//return mImageFetcher;
+    	return null;
+    }
     
     final void moveReceiptUp(final ReceiptRow receipt) {
     	getPersistenceManager().getDatabase().moveReceiptUp(mCurrentTrip, receipt);
@@ -801,7 +843,7 @@ public class ReceiptsFragment extends WBFragment implements DatabaseHelper.Recei
     }
     
     public final String getMilesString() {
-    	return mCurrentTrip.getMilesAsString();
+    	return mCurrentTrip.getMilesAsString(); // Crash occurs here - Probably due to timing issue
     }
 
 	@Override

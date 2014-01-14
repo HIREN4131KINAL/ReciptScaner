@@ -42,8 +42,8 @@ public class CSVColumns {
 		mCSVColumns = new ArrayList<CSVColumn>();
 		mDB = db;
 		mPersistenceManager = persistenceManager;
-		mOptions = getOptionsList(flex);
-		init(flex);
+		mOptions = getOptionsList(context, flex);
+		init(context, flex);
 	}
 	
 	public CSVColumns(Context context, SmartReceiptsApplication application) {
@@ -51,20 +51,20 @@ public class CSVColumns {
 		mCSVColumns = new ArrayList<CSVColumn>();
 		mPersistenceManager = application.getPersistenceManager();
 		mDB = mPersistenceManager.getDatabase();
-		mOptions = getOptionsList(application.getFlex());
-		init(application.getFlex());
+		mOptions = getOptionsList(context, application.getFlex());
+		init(context, application.getFlex());
 	}
 	
-	private void init(Flex flex) {
-		COMMENT = flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT);
-		CURRENCY = flex.getString(R.string.RECEIPTMENU_FIELD_CURRENCY);
-		DATE = flex.getString(R.string.RECEIPTMENU_FIELD_DATE);
-		NAME = flex.getString(R.string.RECEIPTMENU_FIELD_NAME);
-		PRICE = flex.getString(R.string.RECEIPTMENU_FIELD_PRICE);
-		TAX = flex.getString(R.string.RECEIPTMENU_FIELD_TAX);
-		EXTRA_EDITTEXT_1 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
-		EXTRA_EDITTEXT_2 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
-		EXTRA_EDITTEXT_3 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
+	private void init(Context context, Flex flex) {
+		COMMENT = flex.getString(context, R.string.RECEIPTMENU_FIELD_COMMENT);
+		CURRENCY = flex.getString(context, R.string.RECEIPTMENU_FIELD_CURRENCY);
+		DATE = flex.getString(context, R.string.RECEIPTMENU_FIELD_DATE);
+		NAME = flex.getString(context, R.string.RECEIPTMENU_FIELD_NAME);
+		PRICE = flex.getString(context, R.string.RECEIPTMENU_FIELD_PRICE);
+		TAX = flex.getString(context, R.string.RECEIPTMENU_FIELD_TAX);
+		EXTRA_EDITTEXT_1 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
+		EXTRA_EDITTEXT_2 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
+		EXTRA_EDITTEXT_3 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
 	}
 	
 	public final void add() {
@@ -192,17 +192,17 @@ public class CSVColumns {
 			return "";
 	}
 	
-	private static final ArrayList<CharSequence> getOptionsList(Flex flex) {
+	private static final ArrayList<CharSequence> getOptionsList(Context context, Flex flex) {
 		ArrayList<CharSequence> options = new ArrayList<CharSequence>(10);
-		if (COMMENT == null) COMMENT = flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT);
-		if (CURRENCY == null) CURRENCY = flex.getString(R.string.RECEIPTMENU_FIELD_CURRENCY);
-		if (DATE == null) DATE = flex.getString(R.string.RECEIPTMENU_FIELD_DATE);
-		if (NAME == null) NAME = flex.getString(R.string.RECEIPTMENU_FIELD_NAME);
-		if (PRICE == null) PRICE = flex.getString(R.string.RECEIPTMENU_FIELD_PRICE);
-		if (TAX == null) TAX = flex.getString(R.string.RECEIPTMENU_FIELD_TAX);
-		if (EXTRA_EDITTEXT_1 == null) EXTRA_EDITTEXT_1 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
-		if (EXTRA_EDITTEXT_2 == null) EXTRA_EDITTEXT_2 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
-		if (EXTRA_EDITTEXT_3 == null) EXTRA_EDITTEXT_3 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
+		if (COMMENT == null) COMMENT = flex.getString(context, R.string.RECEIPTMENU_FIELD_COMMENT);
+		if (CURRENCY == null) CURRENCY = flex.getString(context, R.string.RECEIPTMENU_FIELD_CURRENCY);
+		if (DATE == null) DATE = flex.getString(context, R.string.RECEIPTMENU_FIELD_DATE);
+		if (NAME == null) NAME = flex.getString(context, R.string.RECEIPTMENU_FIELD_NAME);
+		if (PRICE == null) PRICE = flex.getString(context, R.string.RECEIPTMENU_FIELD_PRICE);
+		if (TAX == null) TAX = flex.getString(context, R.string.RECEIPTMENU_FIELD_TAX);
+		if (EXTRA_EDITTEXT_1 == null) EXTRA_EDITTEXT_1 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
+		if (EXTRA_EDITTEXT_2 == null) EXTRA_EDITTEXT_2 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
+		if (EXTRA_EDITTEXT_3 == null) EXTRA_EDITTEXT_3 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
 		options.add(BLANK);
 		options.add(CATEGORY_CODE);
 		options.add(CATEGORY_NAME);
@@ -225,7 +225,7 @@ public class CSVColumns {
 	}
 	
 	public static final ArrayAdapter<CharSequence> getNewArrayAdapter(Context context, Flex flex) {
-		return new ArrayAdapter<CharSequence>(context, android.R.layout.simple_spinner_item, getOptionsList(flex));
+		return new ArrayAdapter<CharSequence>(context, android.R.layout.simple_spinner_item, getOptionsList(context, flex));
 	}
 	
 	public static final String BLANK(Flex flex) {
@@ -255,49 +255,95 @@ public class CSVColumns {
 	public static final String EXPENSE_REPORT_END(Flex flex) {
 		return REPORT_END_DATE;
 	}
-	
-	public static final String COMMENT(Flex flex) {
-		if (COMMENT == null) COMMENT = flex.getString(R.string.RECEIPTMENU_FIELD_COMMENT);
+
+	public static final String COMMENT(Context context, Flex flex) {
+		if (COMMENT == null) {
+			try {
+				COMMENT = flex.getString(context, R.string.RECEIPTMENU_FIELD_COMMENT);
+			}
+			catch (Exception e) {
+				COMMENT = "Comment"; // Fallback for select 2.X phones that crash under application context
+			}
+		}
 		return COMMENT;
 	}
 	
-	public static final String CURRENCY(Flex flex) {
-		if (CURRENCY == null) CURRENCY = flex.getString(R.string.RECEIPTMENU_FIELD_CURRENCY);
+	public static final String CURRENCY(Context context, Flex flex) {
+		if (CURRENCY == null) {
+			try {
+				CURRENCY = flex.getString(context, R.string.RECEIPTMENU_FIELD_CURRENCY);
+			}
+			catch (Exception e) {
+				CURRENCY = "Currency"; // Fallback for select 2.X phones that crash under application context
+			}
+		}
 		return CURRENCY;
 	}
 	
-	public static final String DATE(Flex flex) {
-		if (DATE == null) DATE = flex.getString(R.string.RECEIPTMENU_FIELD_DATE);
+	public static final String DATE(Context context, Flex flex) {
+		if (DATE == null) {
+			try {
+				DATE = flex.getString(context, R.string.RECEIPTMENU_FIELD_DATE);
+			}
+			catch (Exception e) {
+				DATE = "Date"; // Fallback for select 2.X phones that crash under application context
+			}
+			
+		} 
 		return DATE;
 	}
 	
-	public static final String NAME(Flex flex) {
-		if (NAME == null) NAME = flex.getString(R.string.RECEIPTMENU_FIELD_NAME);
+	public static final String NAME(Context context, Flex flex) {
+		if (NAME == null) {
+			try {
+				NAME = flex.getString(context, R.string.RECEIPTMENU_FIELD_NAME);
+			}
+			catch (Exception e) {
+				NAME = "Name"; // Fallback for select 2.X phones that crash under application context
+			}
+			
+		} 
 		return NAME;
 	}
 	
-	public static final String PRICE(Flex flex) {
-		if (PRICE == null) PRICE = flex.getString(R.string.RECEIPTMENU_FIELD_PRICE);
+	public static final String PRICE(Context context, Flex flex) {
+		if (PRICE == null) {
+			try {
+				PRICE = flex.getString(context, R.string.RECEIPTMENU_FIELD_PRICE);
+			}
+			catch (Exception e) {
+				PRICE = "Price"; // Fallback for select 2.X phones that crash under application context
+			}
+			
+		} 
 		return PRICE;
 	}
 	
-	public static final String TAX(Flex flex) {
-		if (TAX == null) TAX = flex.getString(R.string.RECEIPTMENU_FIELD_TAX);
+	public static final String TAX(Context context, Flex flex) {
+		if (TAX == null) {
+			try {
+				TAX = flex.getString(context, R.string.RECEIPTMENU_FIELD_TAX);
+			}
+			catch (Exception e) {
+				TAX = "Tax"; // Fallback for select 2.X phones that crash under application context
+			}
+			
+		} 
 		return TAX;
 	}
 	
-	public static final String EXTRA_EDITTEXT_1(Flex flex) {
-		if (EXTRA_EDITTEXT_1 == null) EXTRA_EDITTEXT_1 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
+	public static final String EXTRA_EDITTEXT_1(Context context, Flex flex) {
+		if (EXTRA_EDITTEXT_1 == null) EXTRA_EDITTEXT_1 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
 		return EXTRA_EDITTEXT_1;
 	}
 	
-	public static final String EXTRA_EDITTEXT_2(Flex flex) {
-		if (EXTRA_EDITTEXT_2 == null) EXTRA_EDITTEXT_2 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
+	public static final String EXTRA_EDITTEXT_2(Context context, Flex flex) {
+		if (EXTRA_EDITTEXT_2 == null) EXTRA_EDITTEXT_2 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
 		return EXTRA_EDITTEXT_2;
 	}
 	
-	public static final String EXTRA_EDITTEXT_3(Flex flex) {
-		if (EXTRA_EDITTEXT_3 == null) EXTRA_EDITTEXT_3 = flex.getString(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
+	public static final String EXTRA_EDITTEXT_3(Context context, Flex flex) {
+		if (EXTRA_EDITTEXT_3 == null) EXTRA_EDITTEXT_3 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
 		return EXTRA_EDITTEXT_3;
 	}
 

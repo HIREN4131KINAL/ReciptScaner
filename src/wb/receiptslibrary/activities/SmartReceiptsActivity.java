@@ -106,7 +106,7 @@ public class SmartReceiptsActivity extends WBActivity implements Sendable  {
     protected void onStart() {
     	super.onStart();
     	if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal())
-    		Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(R.string.SD_WARNING), Toast.LENGTH_LONG).show();
+    		Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
     }
     
 	@Override
@@ -118,15 +118,15 @@ public class SmartReceiptsActivity extends WBActivity implements Sendable  {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.menu_main_settings) {
-	    	getSmartReceiptsApplication().getSettings().showSettingsMenu();
+	    	getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_about) {
-            getSmartReceiptsApplication().getSettings().showAbout();
+            getSmartReceiptsApplication().getSettings().showAbout(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_categories) {
-	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu();
+	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_csv) {
@@ -149,9 +149,10 @@ public class SmartReceiptsActivity extends WBActivity implements Sendable  {
     
     @Override
     public boolean wasCalledFromSendAction() {
-    	//Duplicated code with ReceiptsActivity. Fix by creating superclass
-    	
-    	if (this.getIntent() != null && this.getIntent().getAction() != null && this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND)) {
+    	if (this.getIntent() != null && 
+    		this.getIntent().getAction() != null && 
+    		this.getIntent().getAction().equalsIgnoreCase(Intent.ACTION_SEND) &&
+    		!this.getSmartReceiptsApplication().isAttachComplete()) {
         	if (this.getIntent().getExtras() != null) {
         		if (mActionSendUri == null) {
         			Cursor cursor = null;
@@ -174,7 +175,7 @@ public class SmartReceiptsActivity extends WBActivity implements Sendable  {
     	        return true;
         	}
         	else {
-        		Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(R.string.IMG_SEND_ERROR), Toast.LENGTH_LONG).show();
+        		Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.IMG_SEND_ERROR), Toast.LENGTH_LONG).show();
 	        	return false;
         	}
         }

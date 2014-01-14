@@ -15,4 +15,12 @@
     <dimen name="list_border">12dp</dimen>
     <dimen name="image_overlay">60dp</dimen>
     
+    <!-- Cards -->
+    <dimen name="card_divider_padding">6dp</dimen>
+    <dimen name="card_price_size">22sp</dimen>
+    <dimen name="card_name_size">22sp</dimen>
+    <dimen name="card_date_size">18sp</dimen>
+    <dimen name="card_name_date_margin">2dp</dimen>
+    <dimen name="card_thumbnail_size">72dp</dimen>
+    
 </resources>

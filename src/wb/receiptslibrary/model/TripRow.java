@@ -3,6 +3,7 @@ package wb.receiptslibrary.model;
 import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.TimeZone;
 
 import wb.receiptslibrary.date.DateUtils;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 
 public final class TripRow implements Parcelable {
 	
@@ -106,6 +108,53 @@ public final class TripRow implements Parcelable {
 	
 	public TimeZone getEndTimeZone() {
 		return mEndTimeZone;
+	}
+	
+	/**
+	 * Tests if a particular date is included with the bounds of this particular trip
+	 * When performing the test, it uses the local time zone for the date, and the defined
+	 * time zones for the start and end date bounds. The start date time is assumed to occur 
+	 * at 00:01 of the start day and the end date is assumed to occur at 23:59 of the end day.
+	 * The reasoning behind this is to ensure that it appears properly from a UI perspective.
+	 * Since the initial date only shows the day itself, it may include an arbitrary time that
+	 * is never shown to the user. Setting the time aspect manually accounts for this. This returns
+	 * false if the date is null.
+	 * @param date - the date to test
+	 * @return true if it is contained within. false otherwise
+	 */
+	public boolean isDateInsideTripBounds(Date date) {
+		if (date == null)
+			return false;
+		
+		//Build a calendar for the date we intend to test
+		Calendar testCalendar = Calendar.getInstance(); 
+		testCalendar.setTime(date);
+		testCalendar.setTimeZone(TimeZone.getDefault());
+		
+		//Build a calendar for the start date
+		Calendar startCalendar = Calendar.getInstance(); 
+		startCalendar.setTime(mStartDate);
+		startCalendar.setTimeZone((mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault());
+		startCalendar.set(Calendar.HOUR_OF_DAY, 0); 
+		startCalendar.set(Calendar.MINUTE, 0); 
+		startCalendar.set(Calendar.SECOND, 0); 
+		startCalendar.set(Calendar.MILLISECOND, 0);
+		
+		//Build a calendar for the start date
+		Calendar endCalendar = Calendar.getInstance(); 
+		endCalendar.setTime(mEndDate);
+		endCalendar.setTimeZone((mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault());
+		endCalendar.set(Calendar.HOUR_OF_DAY, 23); 
+		endCalendar.set(Calendar.MINUTE, 59); 
+		endCalendar.set(Calendar.SECOND, 59); 
+		endCalendar.set(Calendar.MILLISECOND, 999);
+		
+		if (testCalendar.compareTo(startCalendar) >= 0 && testCalendar.compareTo(endCalendar) <= 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	public String getPrice() {
@@ -274,9 +323,6 @@ public final class TripRow implements Parcelable {
 		}
 		
 		public Builder setDirectory(File directory) {
-			if (!directory.isDirectory()) {
-				throw new IllegalArgumentException("The report file must be a directory");
-			}
 			_dir = directory;
 			return this;
 		}

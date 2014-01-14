@@ -3,6 +3,8 @@ package wb.receiptslibrary.persistence;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Date;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -885,8 +887,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean addMiles(final TripRow trip, final String current, final String delta) {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
-			final float currentMiles = Float.parseFloat(current);
-			final float deltaMiles = Float.parseFloat(delta);
+			
+			DecimalFormat format = new DecimalFormat();
+			format.setMaximumFractionDigits(2);
+			format.setMinimumFractionDigits(2);
+			format.setGroupingUsed(false);
+			
+			final float currentMiles = format.parse(current).floatValue();
+			final float deltaMiles = format.parse(delta).floatValue();
 			float total = currentMiles + deltaMiles;
 			if (total < 0)
 				total = 0;
@@ -896,6 +904,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			return (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?", new String[] {trip.getName()}) > 0);
 		}
 		catch (NumberFormatException e) {
+			return false;
+		} catch (ParseException e) {
 			return false;
 		}
 	}

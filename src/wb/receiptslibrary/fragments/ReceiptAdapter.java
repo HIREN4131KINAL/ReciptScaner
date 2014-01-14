@@ -64,7 +64,7 @@ public class ReceiptAdapter extends BaseAdapter {
 		else if (i == 3) {
 			convertView = inflater.inflate(R.layout.list_item_mileage, null);
 			TextView textConvertView = (TextView) convertView;
-			textConvertView.setText(mFragment.getFlex().getString(R.string.receipt_adapter_distance) + mFragment.getMilesString());
+			textConvertView.setText(mFragment.getFlex().getString(mFragment.getSherlockActivity(), R.string.receipt_adapter_distance) + mFragment.getMilesString());
 			convertView.setOnClickListener(new MileageClickListener(mFragment));
 		}
 		else {

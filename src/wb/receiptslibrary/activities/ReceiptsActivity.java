@@ -72,15 +72,15 @@ public class ReceiptsActivity extends WBActivity implements Sendable {
 			return true;
 		}
 	    else if (item.getItemId() == R.id.menu_main_settings) {
-	    	getSmartReceiptsApplication().getSettings().showSettingsMenu();
+	    	getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_about) {
-            getSmartReceiptsApplication().getSettings().showAbout();
+            getSmartReceiptsApplication().getSettings().showAbout(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_categories) {
-	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu();
+	    	getSmartReceiptsApplication().getSettings().showCategoriesMenu(this);
             return true;
 	    }
 	    else if (item.getItemId() == R.id.menu_main_csv) {
@@ -103,7 +103,7 @@ public class ReceiptsActivity extends WBActivity implements Sendable {
 	
 	@Override
     public boolean wasCalledFromSendAction() {
-    	return (mActionSendUri != null);
+    	return (!getSmartReceiptsApplication().isAttachComplete() && mActionSendUri != null);
     }
     
     @Override

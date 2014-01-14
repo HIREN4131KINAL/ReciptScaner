@@ -11,6 +11,7 @@ import wb.receiptslibrary.persistence.DatabaseHelper;
 import wb.receiptslibrary.persistence.PersistenceManager;
 import wb.receiptslibrary.persistence.Preferences;
 import wb.receiptslibrary.workers.ExportTask;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -54,24 +55,24 @@ public class Settings implements ExportTask.Listener {
 		mFlex = app.getFlex();
 	}
 		
-	public void showSettingsMenu() {
+	public void showSettingsMenu(final Context context) {
 		final Preferences preferences = mPersistenceManager.getPreferences();
     	final BetterDialogBuilder builder = new BetterDialogBuilder(mApp.getCurrentActivity());
-    	final View scrollView = mFlex.getView(R.layout.dialog_settings);
-    	final EditText email = (EditText) mFlex.getSubView(scrollView, R.id.dialog_settings_email); 
-    	final EditText days = (EditText) mFlex.getSubView(scrollView, R.id.dialog_settings_duration);
-    	final Spinner currencySpinner = (Spinner) mFlex.getSubView(scrollView, R.id.dialog_settings_currency);
-    	final Spinner dateSeparatorSpinner = (Spinner) mFlex.getSubView(scrollView, R.id.dialog_settings_date_separator);
-    	final EditText minPrice = (EditText) mFlex.getSubView(scrollView, R.id.dialog_settings_minprice);
-    	final EditText userID = (EditText) mFlex.getSubView(scrollView, R.id.dialog_settings_userid);
-    	final CheckBox predictCategoires = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_predictcategories);
-    	final CheckBox useNativeCamera = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_usenativecamera);
-    	final CheckBox includeTaxField = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_tax);
-    	final CheckBox matchNameToCategory = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_matchnametocategory);
-    	final CheckBox matchCommentsToCategory = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_matchcommenttocategory);
-    	final CheckBox onlyIncludeExpensableItems = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_onlyreportexpensable);
-    	final CheckBox enableAutoCompleteSuggestions = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_enableautocompletesuggestions);
-    	final CheckBox defaultToFirstReportDate = (CheckBox) mFlex.getSubView(scrollView, R.id.dialog_settings_defaultToFirstReportDate);
+    	final View scrollView = mFlex.getView(context, R.layout.dialog_settings);
+    	final EditText email = (EditText) mFlex.getSubView(context, scrollView, R.id.dialog_settings_email); 
+    	final EditText days = (EditText) mFlex.getSubView(context, scrollView, R.id.dialog_settings_duration);
+    	final Spinner currencySpinner = (Spinner) mFlex.getSubView(context, scrollView, R.id.dialog_settings_currency);
+    	final Spinner dateSeparatorSpinner = (Spinner) mFlex.getSubView(context, scrollView, R.id.dialog_settings_date_separator);
+    	final EditText minPrice = (EditText) mFlex.getSubView(context, scrollView, R.id.dialog_settings_minprice);
+    	final EditText userID = (EditText) mFlex.getSubView(context, scrollView, R.id.dialog_settings_userid);
+    	final CheckBox predictCategoires = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_predictcategories);
+    	final CheckBox useNativeCamera = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_usenativecamera);
+    	final CheckBox includeTaxField = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_tax);
+    	final CheckBox matchNameToCategory = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_matchnametocategory);
+    	final CheckBox matchCommentsToCategory = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_matchcommenttocategory);
+    	final CheckBox onlyIncludeExpensableItems = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_onlyreportexpensable);
+    	final CheckBox enableAutoCompleteSuggestions = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_enableautocompletesuggestions);
+    	final CheckBox defaultToFirstReportDate = (CheckBox) mFlex.getSubView(context, scrollView, R.id.dialog_settings_defaultToFirstReportDate);
 
     	email.setText(preferences.getDefaultEmailReceipient());
     	days.setText(Integer.toString(preferences.getDefaultTripDuration()));
@@ -149,7 +150,7 @@ public class Settings implements ExportTask.Listener {
 			   .show();
 	}
 	
-	public void showCategoriesMenu() {
+	public void showCategoriesMenu(final Context context) {
     	final BetterDialogBuilder builder = new BetterDialogBuilder(mApp.getCurrentActivity());
 		final LinearLayout outerLayout = new LinearLayout(mApp.getCurrentActivity());
 		outerLayout.setOrientation(LinearLayout.VERTICAL);
@@ -193,7 +194,7 @@ public class Settings implements ExportTask.Listener {
 													categoriesSpinner.setSelection(categories.getPosition(name));
 												}
 												else {
-													Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+													Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(context, R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 												}
 											}
 											catch (SQLException e) {
@@ -242,7 +243,7 @@ public class Settings implements ExportTask.Listener {
 													categoriesSpinner.setSelection(categories.getPosition(newName));
 												}
 												else {
-													Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+													Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(context, R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 												}
 											}
 											catch (SQLException e) {
@@ -275,7 +276,7 @@ public class Settings implements ExportTask.Listener {
 												categories.notifyDataSetChanged();
 											}
 											else {
-												Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+												Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(context, R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 											}
 										}
 									})
@@ -291,13 +292,13 @@ public class Settings implements ExportTask.Listener {
 			   .show();
     }
 	
-	public void showAbout() {
-		String about = mFlex.getString(R.string.DIALOG_ABOUT_MESSAGE);
+	public void showAbout(Context context) {
+		String about = mFlex.getString(context, R.string.DIALOG_ABOUT_MESSAGE);
 		try {
 			about = about.replace("VERSION_NAME", mApp.getCurrentActivity().getPackageManager().getPackageInfo(mApp.getCurrentActivity().getPackageName(), 0).versionName);
 		} catch (NameNotFoundException e) { }
     	final BetterDialogBuilder builder = new BetterDialogBuilder(mApp.getCurrentActivity());
-		builder.setTitle(mFlex.getString(R.string.DIALOG_ABOUT_TITLE))
+		builder.setTitle(mFlex.getString(context, R.string.DIALOG_ABOUT_TITLE))
 			   .setMessage(about)
 			   .setCancelable(true)
 			   .show();
@@ -427,7 +428,7 @@ public class Settings implements ExportTask.Listener {
 	@Override
 	public void onExportComplete(Uri uri) {
 		if (uri == null) {
-            Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
+            Toast.makeText(mApp.getCurrentActivity(), mFlex.getString(mApp.getCurrentActivity(), R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
             return;
 		}
         Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);

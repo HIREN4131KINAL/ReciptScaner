@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.TimeZone;
 
+import wb.android.storage.StorageManager;
 import wb.receiptslibrary.date.DateUtils;
 import wb.receiptslibrary.persistence.DatabaseHelper;
 import android.content.Context;
@@ -19,7 +20,7 @@ public class ReceiptRow implements Parcelable {
 	private static final String EMPTY_PRICE = "0.00";
 	
 	private final int mId;
-	private File mImg;
+	private File mFile;
 	private String mName, mCategory, mComment, mPrice, mTax;
 	private String mExtraEditText1, mExtraEditText2, mExtraEditText3;
 	private Date mDate;
@@ -40,7 +41,7 @@ public class ReceiptRow implements Parcelable {
 		mComment = in.readString();
 		mPrice = in.readString();
 		mTax = in.readString();
-		mImg = new File(in.readString());
+		mFile = new File(in.readString());
 		mDate = new Date(in.readLong());
 		mCurrency = WBCurrency.getInstance(in.readString());
 		mIsExpensable = (in.readByte() != 0);
@@ -60,16 +61,50 @@ public class ReceiptRow implements Parcelable {
 	}
 	
 	public boolean hasImage() {
-		return (mImg != null && mImg.exists());
+		if (mFile != null && mFile.exists()) {
+			final String extension = StorageManager.getExtension(mFile);
+			if (extension != null && (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg") ||extension.equalsIgnoreCase("png"))) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public boolean hasPDF() {
+		if (mFile != null && mFile.exists()) {
+			final String extension = StorageManager.getExtension(mFile);
+			if (extension != null && extension.equalsIgnoreCase("pdf")) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
 	}
 	
 	public File getImage() {
-		return mImg;
+		return mFile;
+	}
+	
+	public File getPDF() {
+		return mFile;
+	}
+	
+	public File getFile() {
+		return mFile;
 	}
 	
 	public String getImagePath() {
 		if (hasImage()) {
-			return mImg.getAbsolutePath();
+			return mFile.getAbsolutePath();
 		}
 		else {
 			return "";
@@ -78,7 +113,7 @@ public class ReceiptRow implements Parcelable {
 	
 	public String getImageName() {
 		if (hasImage()) {
-			return mImg.getName();
+			return mFile.getName();
 		}
 		else {
 			return "";
@@ -225,8 +260,24 @@ public class ReceiptRow implements Parcelable {
 		mTimeZone = timeZone;
 	}
 	
+	public void setFile(File file) {
+		mFile = file;
+	}
+	
+	/**
+	 * This is identical to calling setFile
+	 * @param img
+	 */
 	public void setImage(File img) {
-		mImg = img;
+		mFile = img;
+	}
+	
+	/**
+	 * This is identical to calling setFile
+	 * @param pdf
+	 */
+	public void setPDF(File pdf) {
+		mFile = pdf;
 	}
 	
 	void setCurrency(WBCurrency currency) {
@@ -370,7 +421,7 @@ public class ReceiptRow implements Parcelable {
 	
 	public static final class Builder {
 		
-		private File _img;
+		private File _file;
 		private String _name, _category, _comment, _price, _tax;
 		private String _extraEditText1, _extraEditText2, _extraEditText3;
 		private Date _date;
@@ -412,7 +463,12 @@ public class ReceiptRow implements Parcelable {
 		}
 		
 		public Builder setImage(File image) {
-			_img = image;
+			_file = image;
+			return this;
+		}
+		
+		public Builder setPDF(File pdf) {
+			_file = pdf;
 			return this;
 		}
 		
@@ -486,7 +542,7 @@ public class ReceiptRow implements Parcelable {
 			receipt.setComment(_comment);
 			receipt.setPrice(_price);
 			receipt.setTax(_tax);
-			receipt.setImage(_img);
+			receipt.setFile(_file);
 			receipt.setExtraEditText1(_extraEditText1);
 			receipt.setExtraEditText2(_extraEditText2);
 			receipt.setExtraEditText3(_extraEditText3);

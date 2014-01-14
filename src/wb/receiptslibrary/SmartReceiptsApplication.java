@@ -36,7 +36,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private Flex mFlex;
     private Activity mCurrentActivity;
     private Settings mSettings;
-    private boolean mDeferFirstRunDialog;
+    private boolean mDeferFirstRunDialog, mIsAttachComplete;
 	
 	@Override
 	public void onCreate() {
@@ -46,6 +46,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		mWorkerManager = instantiateWorkerManager();
 		mPersistenceManager = instantiatePersistenceManager();
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null in onVersionUpgrade
+		mIsAttachComplete = false;
 	}
 	
 	@Override
@@ -127,9 +128,9 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     		if (BuildConfig.DEBUG) Log.d(TAG, "Launching first run dialog");
     		mDeferFirstRunDialog = false;
         	final BetterDialogBuilder builder = new BetterDialogBuilder(mCurrentActivity);
-        	builder.setTitle(mFlex.getString(R.string.DIALOG_WELCOME_TITLE))
-        		   .setMessage(mFlex.getString(R.string.DIALOG_WELCOME_MESSAGE))
-        		   .setPositiveButton(mFlex.getString(R.string.DIALOG_WELCOME_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+        	builder.setTitle(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_TITLE))
+        		   .setMessage(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_MESSAGE))
+        		   .setPositiveButton(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
     					@Override
     					public void onClick(DialogInterface dialog, int which) {
     						dialog.cancel();
@@ -179,10 +180,10 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	@Override
 	public void insertCSVDefaults(final DatabaseHelper db) { //Called in onCreate and onUpgrade
 		db.insertCSVColumnNoCache(CSVColumns.CATEGORY_CODE(mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.NAME(mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.PRICE(mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.CURRENCY(mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.DATE(mFlex));
+		db.insertCSVColumnNoCache(CSVColumns.NAME(getApplicationContext(), mFlex));
+		db.insertCSVColumnNoCache(CSVColumns.PRICE(getApplicationContext(), mFlex));
+		db.insertCSVColumnNoCache(CSVColumns.CURRENCY(getApplicationContext(), mFlex));
+		db.insertCSVColumnNoCache(CSVColumns.DATE(getApplicationContext(), mFlex));
 	}
 	
 	/**
@@ -219,6 +220,23 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	
 	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
 		return SmartReceiptsActivity.class;
+	}
+	
+	/**
+	 * Used to track whether the attach process has completed. Can be used for PDF imports,
+	 * image imports, SMR imports, etc
+	 * @return true if the attach process has been marked as complete (this must be manually set)
+	 */
+	public boolean isAttachComplete() {
+		return mIsAttachComplete;
+	}
+	
+	/**
+	 * Marks the attach process as having been completed (or not)
+	 * @param attached
+	 */
+	public void markAsAttached(boolean attached) {
+		mIsAttachComplete = attached;
 	}
 
 }

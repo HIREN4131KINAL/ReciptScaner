@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wb.android.ui.UpNavigationSlidingPaneLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/slidingpanelayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <FrameLayout
+        android:id="@+id/content_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="left" />
+    <FrameLayout
+        android:id="@+id/content_details"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="right" />  
+</wb.android.ui.UpNavigationSlidingPaneLayout>

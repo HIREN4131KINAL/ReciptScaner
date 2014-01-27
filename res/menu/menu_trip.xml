@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/trip_action_new"
+          android:icon="@drawable/ic_action_new"
+          android:title="@string/trip_action_new"
+          android:showAsAction="always|withText" />
+    <item android:id="@+id/menu_main_settings"
+        android:title="@string/menu_main_settings"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_main_categories"
+        android:title="@string/menu_main_categories"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_main_csv"
+        android:title="@string/menu_main_csv"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_main_pdf"
+        android:title="@string/menu_main_pdf"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_main_export"
+        android:title="@string/menu_main_export"
+        android:showAsAction="never" />
+    <item android:id="@+id/menu_main_about"
+        android:title="@string/menu_main_about"
+        android:showAsAction="never" />
+</menu>

@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.SmartReceipts" parent="Theme.Sherlock">
-         
+		<!-- ****** Remember to update v11 Theme as well ****** -->
+        <item name="actionBarStyle">@style/Widget.SmartReceipts.ActionBar</item>
+        <!-- <item name="popupMenuStyle">@style/Widget.SmartReceipts.PopupMenu</item>  --> 
+        <item name="android:windowBackground">@color/dark_purple</item>
 	</style>
+	
+    <style name="Widget.SmartReceipts.ActionBar" parent="Widget.Sherlock.ActionBar">
+        <item name="background">@color/smart_receipts_purple</item>
+        <item name="android:background">@color/smart_receipts_purple</item>
+    </style>
+    
+    <style name="Widget.SmartReceipts.PopupMenu" parent="Widget.Sherlock.PopupMenu">
+        <item name="android:popupBackground">@color/smart_receipts_purple</item>
+    </style>
+	
     <style name="ApapterItem">
         <item name="android:layout_width">fill_parent</item>
 		<item name="android:layout_height">wrap_content</item>

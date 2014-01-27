@@ -19,6 +19,7 @@ The following resources were used to develop this application:
 - [ActionBarSherlock](http://actionbarsherlock.com/). The Action Bar Sherlock library provides cross-platfrom ActionBar support.
 - [AndroidCamera](https://github.com/wbaumann/AndroidCamera). This library is a modified version of the Camera & Galler3d applications, which were modified for Smart Receipts.
 - [WBMiniLibrary](https://github.com/wbaumann/WBMiniLibrary). This is a simple library project, which I built for storage, camera, and other utility functions.
+- [MuPDF](http://www.mupdf.com/). An open-source (native) PDF viewer library
 
 License
 --------------

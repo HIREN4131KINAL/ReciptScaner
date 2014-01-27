@@ -9,6 +9,9 @@
     <item android:id="@+id/menu_main_csv"
         android:title="@string/menu_main_csv"
         android:showAsAction="never" />
+    <item android:id="@+id/menu_main_pdf"
+        android:title="@string/menu_main_pdf"
+        android:showAsAction="never" />
     <item android:id="@+id/menu_main_export"
         android:title="@string/menu_main_export"
         android:showAsAction="never" />

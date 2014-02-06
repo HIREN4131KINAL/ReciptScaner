@@ -278,8 +278,7 @@ public class EmailAssistant {
 					results.didPDFFailCompletely = true; //TODO: Add error messages to each of these
 				}
 				finally {
-					if (writer != null && !writer.isCloseStream()) writer.close();
-					if (document != null) document.close();
+					if (document != null) document.close(); //Close me first
 					if (pdfStream != null) StorageManager.closeQuietly(pdfStream);
 				}
 			}
@@ -307,8 +306,12 @@ public class EmailAssistant {
 					results.didSimplePDFFailCompletely = true; //TODO: Add error messages to each of these
 				}
 				finally {
-					if (writer != null && !writer.isCloseStream()) writer.close();
-					if (document != null) document.close();
+					try {
+						if (document != null) document.close();
+					}
+					catch (RuntimeException e) {
+						// Document has no pages exception
+					}
 					if (pdfStream != null) StorageManager.closeQuietly(pdfStream);
 				}
 			}

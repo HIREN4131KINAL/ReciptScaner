@@ -40,7 +40,6 @@ public class Attachment {
 				mIsValid = true;
 			}
 			else if (Intent.ACTION_SEND.equals(mAction) && intent.getExtras() != null) {
-				Log.e(TAG, "======================================================");
 				mUri = resolveUri((Uri) intent.getExtras().get(Intent.EXTRA_STREAM), resolver, MediaStore.Images.ImageColumns.DATA);
 				mExtension = (mUri != null) ? mUri.toString().substring(mUri.toString().lastIndexOf(".") + 1) : new String();
 				mIsValid = true;
@@ -60,12 +59,13 @@ public class Attachment {
 	}
 	
 	private String getExtension(ContentResolver resolver, Uri uri) {
-		String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(resolver.getType(uri));
+		String extension = mUri.toString().substring(mUri.toString().lastIndexOf(".") + 1);
+		extension = (!TextUtils.isEmpty(extension) && extension.length() < 5) ? extension : MimeTypeMap.getSingleton().getExtensionFromMimeType(resolver.getType(uri));
 		if (!TextUtils.isEmpty(extension)) {
 			return extension.toLowerCase(Locale.US);
 		}
 		else {
-			return new String();
+			return SMR_EXTENSION; //q&d hack
 		}
 	}
 	

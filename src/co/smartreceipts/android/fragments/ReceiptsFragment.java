@@ -858,14 +858,24 @@ public class ReceiptsFragment extends WBListFragment implements DatabaseHelper.R
 			   .setCancelable(true)
 			   .setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
-		        	   db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-		        	   dialog.cancel();
+		        	   if (tripsSpinner.getSelectedItem() != null) {
+			        	   db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+			        	   dialog.cancel();
+		        	   }
+		        	   else {
+		        		   ReceiptsFragment.this.onReceiptMoveFailure();
+		        	   }
 		           }
 		       })
 		       .setNegativeButton(R.string.copy, new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
-		        	   db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-		        	   dialog.cancel();
+		        	   if (tripsSpinner.getSelectedItem() != null) {
+			        	   db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+			        	   dialog.cancel();
+			           }
+		        	   else {
+		        		   ReceiptsFragment.this.onReceiptCopyFailure();
+		        	   }
 		           }
 		       })
 		       .show();

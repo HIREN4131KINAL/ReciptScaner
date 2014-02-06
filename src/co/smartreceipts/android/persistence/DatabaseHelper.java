@@ -20,6 +20,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.text.format.Time;
@@ -2182,18 +2183,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						final long from = c.getLong(fromIndex);
 						final long to = c.getLong(toIndex);
-						final String fromTimeZome = c.getString(fromTimeZoneIndex);
-						final String toTimeZome = c.getString(toTimeZoneIndex);
 						final String price = c.getString(priceIndex);
 						final int mileage = c.getInt(mileageIndex);
-						ContentValues values = new ContentValues(5);
+						ContentValues values = new ContentValues(7);
 						values.put(TripsTable.COLUMN_NAME, name);
 						values.put(TripsTable.COLUMN_FROM, from);
 						values.put(TripsTable.COLUMN_TO, to);
-						values.put(TripsTable.COLUMN_FROM_TIMEZONE, fromTimeZome);
-						values.put(TripsTable.COLUMN_TO_TIMEZONE, toTimeZome);
 						values.put(TripsTable.COLUMN_PRICE, price);
 						values.put(TripsTable.COLUMN_MILEAGE, mileage);
+						if (fromTimeZoneIndex > 0) {
+							final String fromTimeZome = c.getString(fromTimeZoneIndex);
+							values.put(TripsTable.COLUMN_FROM_TIMEZONE, fromTimeZome);
+						}
+						if (toTimeZoneIndex > 0) {
+							final String toTimeZome = c.getString(toTimeZoneIndex);
+							values.put(TripsTable.COLUMN_TO_TIMEZONE, toTimeZome);
+						}
 						if (overwrite) currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 						else currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 					} 
@@ -2250,11 +2255,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final String comment = c.getString(commentIndex);
 						final boolean expensable = c.getInt(expenseableIndex)>0;
 						final String currency = c.getString(currencyIndex);
-						final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+						final boolean fullpage = (c.getInt(fullpageIndex)>0);
 						final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 						final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 						final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
-						final String timeZone = c.getString(timeZoneIndex);
 						final String tax = c.getString(taxIndex);
 						final String paymentMethod = c.getString(paymentMethodIndex);
 						countCursor = currDB.rawQuery(queryCount, new String[] {newPath, name, Long.toString(date)});
@@ -2277,7 +2281,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
 							values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
 							values.put(ReceiptsTable.COLUMN_TAX, tax);
-							values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
+							if (timeZoneIndex > 0) {
+								final String timeZone = c.getString(timeZoneIndex);
+								values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
+							}
 							values.put(ReceiptsTable.COLUMN_PAYMENTMETHOD, paymentMethod);
 							if (count > 0 && overwrite) { //Update
 								currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(updateID)});
@@ -2344,23 +2351,28 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				//Merge PDF
 				//No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't enough outlying data) => Always overwirte
 				if(BuildConfig.DEBUG) Log.d(TAG, "Merging PDF");
-				c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
-				if (c != null && c.moveToFirst()) {
-					currDB.delete(PDFTable.TABLE_NAME, null, null); //DELETE FROM PDFTable
-					final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
-					final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
-					do {
-						final int index = c.getInt(idxIndex);
-						final String type = c.getString(typeIndex);
-						ContentValues values = new ContentValues(2);
-						values.put(PDFTable.COLUMN_ID, index);
-						values.put(PDFTable.COLUMN_TYPE, type);
-						currDB.insert(PDFTable.TABLE_NAME, null, values);
-					} 
-					while (c.moveToNext());
+				try {
+					c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
+					if (c != null && c.moveToFirst()) {
+						currDB.delete(PDFTable.TABLE_NAME, null, null); //DELETE FROM PDFTable
+						final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
+						final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
+						do {
+							final int index = c.getInt(idxIndex);
+							final String type = c.getString(typeIndex);
+							ContentValues values = new ContentValues(2);
+							values.put(PDFTable.COLUMN_ID, index);
+							values.put(PDFTable.COLUMN_TYPE, type);
+							currDB.insert(PDFTable.TABLE_NAME, null, values);
+						} 
+						while (c.moveToNext());
+					}
+					else {
+						return false;
+					}
 				}
-				else {
-					return false;
+				catch (SQLiteException e) {
+					if (BuildConfig.DEBUG) Log.e(TAG, e.toString(), e); // Occurs if PDF Table does not exist
 				}
 				return true;
 			}
@@ -2369,7 +2381,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				return false;
 			}
 			finally {
-				if (c != null) c.close();
+				if (c != null) c.close(); //TODO: Close these for each individual item!!
 				if (countCursor != null) countCursor.close();
 				if (importDB != null) importDB.close();
 			}

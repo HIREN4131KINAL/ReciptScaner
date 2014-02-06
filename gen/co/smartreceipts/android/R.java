@@ -17,6 +17,7 @@ public final class R {
     }
     public static final class array {
         /**  ============== Start String Arrays ================== 
+ ============== Start String Arrays ================== 
          */
         public static int EDIT_TRIP_ITEMS=0x7f0c0029;
         public static int camera_flashmode_icons=0x7f0c000c;
@@ -2302,9 +2303,11 @@ containing a value of this type.
         public static int DB_ERROR=0x7f0a0243;
         public static int DIALOG_ABOUT_MESSAGE=0x7f0a02ad;
         /**  ==================== DIALOG_ABOUT ====================== 
+ ==================== DIALOG_ABOUT ====================== 
          */
         public static int DIALOG_ABOUT_TITLE=0x7f0a02ac;
         /**  ================ DIALOG (GENERAL) =================== 
+ ================ DIALOG (GENERAL) =================== 
          */
         public static int DIALOG_CANCEL=0x7f0a026c;
         public static int DIALOG_EMAIL_CHECKBOX_CSV=0x7f0a0276;
@@ -2315,11 +2318,13 @@ containing a value of this type.
         public static int DIALOG_EMAIL_NEGATIVE_BUTTON=0x7f0a0279;
         public static int DIALOG_EMAIL_POSITIVE_BUTTON=0x7f0a0278;
         /**  ================== DIALOG_EMAIL ===================== 
+ ================== DIALOG_EMAIL ===================== 
          */
         public static int DIALOG_EMAIL_TITLE=0x7f0a0272;
         public static int DIALOG_EMAIL_TOAST_NO_RECEIPTS=0x7f0a027b;
         public static int DIALOG_EMAIL_TOAST_NO_SELECTION=0x7f0a027a;
         /**  ==================== DIALOG_MILEAGE ====================== 
+ ==================== DIALOG_MILEAGE ====================== 
          */
         public static int DIALOG_MILES_DELTA=0x7f0a02ae;
         public static int DIALOG_RECEIPTMENU_HINT_CATEGORY=0x7f0a029e;
@@ -2329,6 +2334,7 @@ containing a value of this type.
         public static int DIALOG_RECEIPTMENU_HINT_EXPENSABLE=0x7f0a02a0;
         public static int DIALOG_RECEIPTMENU_HINT_FULLPAGE=0x7f0a02a1;
         /**  ================= DIALOG_RECEIPTMENU =================== 
+ ================= DIALOG_RECEIPTMENU =================== 
          */
         public static int DIALOG_RECEIPTMENU_HINT_NAME=0x7f0a0298;
         public static int DIALOG_RECEIPTMENU_HINT_PRICE=0x7f0a0299;
@@ -2353,6 +2359,7 @@ containing a value of this type.
         public static int DIALOG_SETTINGS_TEXTVIEW_CURRENCY=0x7f0a027e;
         public static int DIALOG_SETTINGS_TEXTVIEW_DURATION=0x7f0a027d;
         /**  ================= DIALOG_SETTINGS =================== 
+ ================= DIALOG_SETTINGS =================== 
          */
         public static int DIALOG_SETTINGS_TEXTVIEW_EMAIL=0x7f0a027c;
         public static int DIALOG_SETTINGS_TEXTVIEW_MIN_PRICE=0x7f0a027f;
@@ -2360,6 +2367,7 @@ containing a value of this type.
         public static int DIALOG_SETTINGS_TEXTVIEW_USER_ID=0x7f0a0281;
         public static int DIALOG_TRIPMENU_HINT_END=0x7f0a028e;
         /**  ================= DIALOG_TRIPMENU =================== 
+ ================= DIALOG_TRIPMENU =================== 
          */
         public static int DIALOG_TRIPMENU_HINT_NAME=0x7f0a028c;
         public static int DIALOG_TRIPMENU_HINT_START=0x7f0a028d;
@@ -2372,15 +2380,18 @@ containing a value of this type.
         public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON=0x7f0a0297;
         public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END=0x7f0a0296;
         /**  =============== DIALOG_TRIP_DELETE ================== 
+ =============== DIALOG_TRIP_DELETE ================== 
          */
         public static int DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START=0x7f0a0295;
         public static int DIALOG_WELCOME_MESSAGE=0x7f0a026e;
         public static int DIALOG_WELCOME_POSITIVE_BUTTON=0x7f0a026f;
         /**  ================= DIALOG_WELCOME ==================== 
+ ================= DIALOG_WELCOME ==================== 
          */
         public static int DIALOG_WELCOME_TITLE=0x7f0a026d;
         public static int DURATION_ERROR=0x7f0a024c;
         /**  =================== EMAIL_DATA ====================== 
+ =================== EMAIL_DATA ====================== 
          */
         public static int EMAIL_DATA_SUBJECT=0x7f0a028b;
         public static int EXPORT_ERROR=0x7f0a024d;
@@ -2404,16 +2415,19 @@ containing a value of this type.
         public static int RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3=0x7f0a02ba;
         public static int RECEIPTMENU_FIELD_FULL_PAGE=0x7f0a02b7;
         /**  ================= RECEIPTMENU_FIELDS =================== 
+ ================= RECEIPTMENU_FIELDS =================== 
          */
         public static int RECEIPTMENU_FIELD_NAME=0x7f0a02af;
         public static int RECEIPTMENU_FIELD_PRICE=0x7f0a02b0;
         public static int RECEIPTMENU_FIELD_TAX=0x7f0a02b1;
         /**  ================== RECEIPTMENU_TAGS ==================== 
+ ================== RECEIPTMENU_TAGS ==================== 
          */
         public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_1=0x7f0a02bb;
         public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_2=0x7f0a02bc;
         public static int RECEIPTMENU_TAG_EXTRA_EDITTEXT_3=0x7f0a02bd;
         /**  ============== Start Error Messages ================= 
+ ============== Start Error Messages ================= 
          */
         public static int SD_ERROR=0x7f0a0241;
         public static int SD_WARNING=0x7f0a0242;
@@ -2523,6 +2537,7 @@ CHAR LIMIT = NONE]
         public static int action_send_replace=0x7f0a02e0;
         public static int action_send_view=0x7f0a02de;
         /**  ================ General Strings ================== 
+ ================ General Strings ================== 
          */
         public static int add=0x7f0a01f9;
         /**  The title of menu item where user can add a new account 
@@ -2536,6 +2551,7 @@ CHAR LIMIT = NONE]
          */
         public static int aperture=0x7f0a019b;
         /**  =================== App Details ===================== 
+ =================== App Details ===================== 
          */
         public static int app_name=0x7f0a0000;
         /**   Label for the apply effect button [CHAR LIMIT=15] 
@@ -2633,6 +2649,7 @@ CHAR LIMIT = NONE]
          */
         public static int capital_on=0x7f0a010b;
         /**  ==================== Cards ========================= 
+ ==================== Cards ========================= 
          */
         public static int card_overflow_contentDescription=0x7f0a026a;
         public static int card_thumbnail_contentDescription=0x7f0a026b;
@@ -2667,6 +2684,7 @@ CHAR LIMIT = NONE]
         public static int category_meals_justified=0x7f0a0237;
         public static int category_meals_justified_code=0x7f0a0238;
         /**  ================ Categories ================== 
+ ================ Categories ================== 
          */
         public static int category_name=0x7f0a020b;
         public static int category_null=0x7f0a020d;
@@ -2700,6 +2718,7 @@ CHAR LIMIT = NONE]
         public static int close=0x7f0a016a;
         public static int column=0x7f0a01fc;
         /**  ============== CSV/PDF Columns ================== 
+ ============== CSV/PDF Columns ================== 
          */
         public static int column_item_blank=0x7f0a02be;
         public static int column_item_category_code=0x7f0a02bf;
@@ -2760,6 +2779,7 @@ CHAR LIMIT = NONE]
         public static int csv_table_remove_column=0x7f0a02fc;
         public static int csv_table_right_header=0x7f0a02fa;
         /**  ================== CSV Table ==================== 
+ ================== CSV Table ==================== 
          */
         public static int csv_table_title=0x7f0a02f8;
         /**   Label for the curves filter button [CHAR LIMIT=15] 
@@ -2810,18 +2830,21 @@ CHAR LIMIT = NONE]
         public static int dialog_custom_csv_positive=0x7f0a02e3;
         public static int dialog_custom_csv_spinner=0x7f0a02e6;
         /**  ================== Preference Dialog ==================== 
+ ================== Preference Dialog ==================== 
          */
         public static int dialog_custom_csv_title=0x7f0a02e1;
         public static int dialog_custom_pdf_title=0x7f0a02e2;
         public static int dialog_export_positive=0x7f0a02ab;
         public static int dialog_export_text=0x7f0a02aa;
         /**  ==================== dialog_export ====================== 
+ ==================== dialog_export ====================== 
          */
         public static int dialog_export_title=0x7f0a02a9;
         public static int dialog_legacy_camera_color=0x7f0a02fe;
         public static int dialog_legacy_camera_flash=0x7f0a0300;
         public static int dialog_legacy_camera_focus=0x7f0a02ff;
         /**  ================== Legacy Camera ==================== 
+ ================== Legacy Camera ==================== 
          */
         public static int dialog_legacy_camera_title=0x7f0a02fd;
         /**  Dialog "OK" button. Dismisses dialog. 
@@ -3141,9 +3164,11 @@ CHAR LIMIT = NONE]
         public static int menu_main_export=0x7f0a01f7;
         public static int menu_main_pdf=0x7f0a01f6;
         /**  ================ Main Menu Options ================== 
+ ================ Main Menu Options ================== 
          */
         public static int menu_main_settings=0x7f0a01f3;
         /**  ================ Img Menu Options =================== 
+ ================ Img Menu Options =================== 
          */
         public static int menu_receiptimage_retake=0x7f0a023d;
         public static int menu_receiptimage_rotate_ccw=0x7f0a023e;
@@ -3305,9 +3330,11 @@ CHAR LIMIT = NONE]
         public static int pref_account_enable_autocomplete_title=0x7f0a02f4;
         public static int pref_account_expensable_only_title=0x7f0a02f2;
         /**  ================== Preference Fragments ==================== 
+ ================== Preference Fragments ==================== 
          */
         public static int pref_account_fragment=0x7f0a02f7;
         /**  ================== Preferences ==================== 
+ ================== Preferences ==================== 
          */
         public static int pref_account_header=0x7f0a02ea;
         public static int pref_account_include_tax_field_title=0x7f0a02f3;
@@ -3608,10 +3635,12 @@ CHAR LIMIT = NONE]
          */
         public static int process_caching_requests=0x7f0a0171;
         /**  ============== Progress Messages ================= 
+ ============== Progress Messages ================= 
          */
         public static int progress_import=0x7f0a0240;
         public static int receipt=0x7f0a0206;
         /**  ================= Receipt Actions =================== 
+ ================= Receipt Actions =================== 
          */
         public static int receipt_action_camera=0x7f0a0265;
         public static int receipt_action_distance=0x7f0a0269;
@@ -3621,6 +3650,7 @@ CHAR LIMIT = NONE]
         public static int receipt_adapter_distance=0x7f0a0262;
         public static int receipt_adapter_email=0x7f0a0261;
         /**  ================= Receipt Adapter =================== 
+ ================= Receipt Adapter =================== 
          */
         public static int receipt_adapter_picture_receipt=0x7f0a025f;
         public static int receipt_adapter_text_receipt=0x7f0a0260;
@@ -3921,6 +3951,7 @@ CHAR LIMIT = NONE]
         public static int toast_pdf_open_error=0x7f0a0245;
         public static int toast_pdf_save_error=0x7f0a0247;
         /**  ============== Toast Messages ================= 
+ ============== Toast Messages ================= 
          */
         public static int toast_receipt_copy=0x7f0a0254;
         public static int toast_receipt_image_added=0x7f0a0256;
@@ -3942,10 +3973,12 @@ CHAR LIMIT = NONE]
          */
         public static int trimming=0x7f0a01d6;
         /**  ================= Trip Actions =================== 
+ ================= Trip Actions =================== 
          */
         public static int trip_action_new=0x7f0a0264;
         public static int trip_adapter_list_item_to=0x7f0a025d;
         /**  ================== Trip Adapter ===================== 
+ ================== Trip Adapter ===================== 
          */
         public static int trip_adapter_new_trip=0x7f0a025c;
         public static int trip_no_data=0x7f0a025e;

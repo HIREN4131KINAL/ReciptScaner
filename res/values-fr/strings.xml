@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- =================== App Details ===================== -->
+    <string name="app_name">Smart Receipts</string>
+    
+    <!-- ================ Main Menu Options ================== -->
+    <string name="menu_main_settings">Paramètres</string>
+    <string name="menu_main_categories">Catégories</string>
+    <string name="menu_main_csv">Personnaliser le CSV</string>
+    <string name="menu_main_pdf">Personnaliser le PDF</string>
+    <string name="menu_main_export">Sauvegarde</string>
+    <string name="menu_main_about">A propos</string>
+    
+    <!-- ================ General Strings ================== -->
+	<string name="add">Add</string>
+	<string name="add_item">Add %s</string>
+	<string name="category">Category</string>
+	<string name="column">Column</string>
+	<string name="copy">Copy</string>
+	<string name="default_currency">Monnaie: </string>
+    <string name="delete">Delete</string>
+    <string name="delete_item">Delete %s?</string>
+    <string name="edit">Edit</string>
+    <string name="export">Export</string>
+    <string name="image">Image</string>
+    <string name="import_string">Import</string>
+    <string name="move">Move</string>
+    <string name="move_copy_item">Move/Copy %s?</string>
+    <string name="no">No</string>
+    <string name="pdf">PDF</string>
+    <string name="report">Report</string>
+    <string name="receipt">Receipt</string>
+    <string name="save">Save</string>
+    <string name="total_item">Total: %s</string>
+    <string name="type">Type</string>
+	<string name="update">Update</string>
+    <string name="yes">Yes</string>
+	<string name="yes_as_pdf">Yes - As PDF</string>
+	
+	<!-- ================ Categories ================== -->
+	<string name="category_name">Nom: </string>
+	<string name="category_code">Code: </string>
+	<string name="category_null">&lt;Catégorie&gt;</string>
+	<string name="category_null_code">NUL</string>
+	<string name="category_airfare">Airfare</string>
+	<string name="category_airfare_code">AIRP</string>
+	<string name="category_breakfast">Petit-Déjeuner</string>
+	<string name="category_breakfast_code">BRFT</string>
+	<string name="category_dinner">Diner</string>
+	<string name="category_dinner_code">DINN</string>
+	<string name="category_entertainment">Entertainment</string>
+	<string name="category_entertainment_code">ENT</string>
+	<string name="category_gasoline">Carburant</string>
+	<string name="category_gasoline_code">GAS</string>
+	<string name="category_gift">Cadeau</string>
+	<string name="category_gift_code">GIFT</string>
+	<string name="category_hotel">Hôtel</string>
+	<string name="category_hotel_code">HTL</string>
+	<string name="category_laundry">Laundry</string>
+	<string name="category_laundry_code">LAUN</string>
+	<string name="category_lunch">Déjeuner</string>
+	<string name="category_lunch_code">LNCH</string>
+	<string name="category_other">Autre</string>
+	<string name="category_other_code">MISC</string>
+	<string name="category_parking_tolls">Parking/Péage</string>
+	<string name="category_parking_tolls_code">PARK</string>
+	<string name="category_postage_shipping">Postage/Shipping</string>
+	<string name="category_postage_shipping_code">POST</string>
+	<string name="category_car_rental">Location Voiture</string>
+	<string name="category_car_rental_code">RCAR</string>
+	<string name="category_taxi_bus">Taxi/Bus</string>
+	<string name="category_taxi_bus_code">TAXI</string>
+	<string name="category_telephone_fax">Téléphone/Fax</string>
+	<string name="category_telephone_fax_code">TELE</string>
+	<string name="category_tip">Tip</string>
+	<string name="category_tip_code">TIP</string>
+	<string name="category_train">Train</string>
+	<string name="category_train_code">TRN</string>
+	<string name="category_books_periodicals">Books/Periodicals</string>
+	<string name="category_books_periodicals_code">ZBKP</string>
+	<string name="category_cell_phone">Téléphone Mobile</string>
+	<string name="category_cell_phone_code">ZCEL</string>
+	<string name="category_dues_subscriptions">Dues/Subscriptions</string>
+	<string name="category_dues_subscriptions_code">ZDUE</string>
+	<string name="category_meals_justified">Meals (Justified)</string>
+	<string name="category_meals_justified_code">ZMEO</string>
+	<string name="category_stationery_stations">Stationery/Stations</string>
+	<string name="category_stationery_stations_code">ZSTS</string>
+	<string name="category_training_fees">Training Fees</string>
+	<string name="category_training_fees_code">ZTRN</string>
+    
+    <!-- ================ Img Menu Options =================== -->
+    <string name="menu_receiptimage_retake">Retake Photo</string>
+    <string name="menu_receiptimage_rotate_ccw">Rotate CCW</string>
+    <string name="menu_receiptimage_rotate_cw">Rotate CW</string>
+    
+    <!-- ============== Progress Messages ================= -->
+    <string name="progress_import">Importing your files&#8230;</string>
+    
+    <!-- ============== Start Error Messages ================= -->
+    <string name="SD_ERROR">Erreur: Vérifier que votre carte SD est présente et pas utilisée par votre ordinateur.</string>
+    <string name="SD_WARNING">Attention: Votre carte SD n\'est pas disponible ou est utilisée par votre ordinateur. Certaines photos ne seront pas accessible. Utilisation de la mémoire interne&#8230;</string>
+    <string name="DB_ERROR">Erreur: Une autre application utilise la base SQLite.</string>
+    <string name="IMG_OPEN_ERROR">Erreur: La photo n\'est pas accesible ou corronpue. Votre carte SD est indisponible ou toujours utilisée par votre ordinateur. Dans le cas contraire, presser le bouton menu pour prendre à nouveau une photo.</string>
+    <string name="toast_pdf_open_error">Erreur: Le fichier PDF n\'est pas accesible ou corrompu. Votre carte SD ests indisponible ou toujours utilisée par votre ordinateur.</string>
+    <string name="IMG_SAVE_ERROR">Erreur: Impossible d\'enregistrer la photo.</string>
+    <string name="toast_pdf_save_error">Erreur: Impossible d\'enregistrer le fichier PDF.</string>
+    <string name="IMG_SEND_ERROR">Error: The Image was not properly sent to this app</string>
+    <string name="ILLEGAL_CHAR_ERROR">Erreur: Le nom contient un mauvais charactere</string>
+    <string name="SPACE_ERROR">Erreur: Le nom ne doit pas débuter par un espace</string>
+    <string name="CALENDAR_TAB_ERROR">Erreur: Merci de mettre une date</string>
+    <string name="DURATION_ERROR">Erreur: La date de début doit précédé la date de fin</string>
+    <string name="EXPORT_ERROR">Erreur: Impossible d\'exporter vos données. Vérifier que votre téléphone n\'est pas utilisé par votre ordinateur.</string>
+    <string name="IMPORT_ERROR">Erreur: Impossible d\'identifier le fichier a importer</string>
+    <string name="MOVE_ERROR">Erreur: Impossible de déplaçer le ticket</string>
+    <string name="COPY_ERROR">Erreur: Impossible de copier le ticket</string>
+    <string name="toast_error_trip_exists">Erreur: Une note de frais avec ce nom existe déjà</string>
+    <string name="toast_error_category_exists">Erreur: Une catégorie avec le même nom existe déjà</string>
+    <string name="toast_error_invalid_input">Invalid Input</string>
+    
+    <!-- ============== Toast Messages ================= -->
+     <string name="toast_receipt_copy">Successfully copied the receipt</string>
+     <string name="toast_receipt_move">Successfully moved the receipt</string>
+     <string name="toast_receipt_image_added">Successfully added a new image to %s</string>
+     <string name="toast_receipt_image_replaced">Successfully replaced a new image for %s</string>
+     <string name="toast_receipt_pdf_added">Successfully added a new PDF to %s</string>
+     <string name="toast_receipt_pdf_replaced">Successfully replaced a new PDF for %s</string>
+     <string name="toast_import_complete">Successfully imported all files. Please re-launch the app.</string>
+     <string name="toast_import_complete_simple">Successfully imported all files.</string>
+    
+    <!-- ================== Trip Adapter ===================== -->
+    <string name="trip_adapter_new_trip">Note de Frais</string>
+    <string name="trip_adapter_list_item_to">\u0020to\u0020</string>
+    <string name="trip_no_data">You don\'t seem to have any reports defined at the moment. Try clicking the "+" (plus) button up top to get started.\n\nSmart Receipts lets you create Expense reports, track receipts within each, and quickly generate PDF &amp; CSV reports for your receipt totals. It\'s quick and easy! Also, be sure to check out the menu to customize the categories, reports, and other settings to best suit for your needs.</string>
+    
+    <!-- ================= Receipt Adapter =================== -->
+    <string name="receipt_adapter_picture_receipt">Reçu avec photo</string>
+    <string name="receipt_adapter_text_receipt">Reçu sans photo</string>
+    <string name="receipt_adapter_email">Rapport par mail</string>
+    <string name="receipt_adapter_distance">Distance -\u0020</string>
+    <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the \"Picture\" or \"Text-Only\" option below to get started&#8230;</string>
+    
+    <!-- ================= Trip Actions =================== -->
+    <string name="trip_action_new">New Report</string>
+    
+    <!-- ================= Receipt Actions =================== -->
+    <string name="receipt_action_camera">Picture</string>
+    <string name="receipt_action_gallery">Gallery</string>
+    <string name="receipt_action_text">Text-Only</string>
+    <string name="receipt_action_send">Generate</string>
+    <string name="receipt_action_distance">Distance</string>
+    
+    <!-- ==================== Cards ========================= -->
+    <string name="card_overflow_contentDescription">Receipt Options</string>
+    <string name="card_thumbnail_contentDescription">Receipt Thumbnail</string>
+    
+    <!-- ================ DIALOG (GENERAL) =================== -->
+    <string name="DIALOG_CANCEL">Cancel</string>
+    
+    <!-- ================= DIALOG_WELCOME ==================== -->
+    <string name="DIALOG_WELCOME_TITLE">@string/app_name</string>
+    <string name="DIALOG_WELCOME_MESSAGE">Thanks for downloading Smart Receipts. To get started, tap the "Expense Report" button. Once you\'ve created a report, tap on it to begin adding receipts. At the end of each week, you can export PDF and CSV reports of your receipt totals. Also, be sure to check out the settings menu to customize this application for your needs. Thanks!</string>
+    <string name="DIALOG_WELCOME_POSITIVE_BUTTON">Get Started</string>
+    <string name="dialog_pro_welcome_title">@string/app_name</string>
+    <string name="dialog_pro_welcome_message">It seems that you previously used the Free version of Smart Receipts. Would you like to import that data?</string>
+    
+    <!-- ================== DIALOG_EMAIL ===================== -->
+    <string name="DIALOG_EMAIL_TITLE">Select Attachments&#8230;</string>
+    <string name="DIALOG_EMAIL_MESSAGE"></string>
+    <string name="DIALOG_EMAIL_CHECKBOX_PDF_FULL">Full PDF Report</string>
+    <string name="DIALOG_EMAIL_CHECKBOX_PDF_IMAGES">PDF Report - No Table</string>
+    <string name="DIALOG_EMAIL_CHECKBOX_CSV">CSV File</string>
+    <string name="DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED">ZIP - Stamped JPGs</string>
+    <string name="DIALOG_EMAIL_POSITIVE_BUTTON">Email</string>
+    <string name="DIALOG_EMAIL_NEGATIVE_BUTTON">Cancel</string>
+    <string name="DIALOG_EMAIL_TOAST_NO_SELECTION">Please Check At Least Attachment Option</string>
+    <string name="DIALOG_EMAIL_TOAST_NO_RECEIPTS">There are No Receipts in this Report</string>
+    
+    <!-- ================= DIALOG_SETTINGS =================== -->
+    <string name="DIALOG_SETTINGS_TEXTVIEW_EMAIL">Default Email Recipient:</string>
+    <string name="DIALOG_SETTINGS_TEXTVIEW_DURATION">Default Trip Length (Days):</string>
+    <string name="DIALOG_SETTINGS_TEXTVIEW_CURRENCY">Default Currency:</string>
+    <string name="DIALOG_SETTINGS_TEXTVIEW_MIN_PRICE">Min. Receipt Price to Report:</string>
+    <string name="DIALOG_SETTINGS_EDITTEXT_MIN_PRICE">Leave Blank to Include All</string>
+    <string name="DIALOG_SETTINGS_TEXTVIEW_USER_ID">User ID:</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_PREDICT">Predict Receipt Categories</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_NATIVE_CAMERA">Use Native Camera</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_TAX">Include Tax Field For Receipts</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_NAME_TO_CAT">Match Name to Categories</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_COMMENT_TO_CAT">Match Comments to Categories</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_EXPENSABLE">Only Report Expensable Receipts</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_AUTOCOMPLETE">Enable AutoComplete Suggestions</string>
+    <string name="DIALOG_SETTINGS_TEXTVIEW_SEPARATOR">Date Separator:</string>
+    <string name="DIALOG_SETTINGS_DEFAULT_TO_FIRST_DATE">Default Receipt Date to Report Start Date</string>
+    
+    <!-- =================== EMAIL_DATA ====================== -->
+    <string name="EMAIL_DATA_SUBJECT">SmartReceipts - %REPORT_NAME%</string>
+    
+    <!-- ================= DIALOG_TRIPMENU =================== -->
+    <string name="DIALOG_TRIPMENU_HINT_NAME">Nom</string>
+    <string name="DIALOG_TRIPMENU_HINT_START">Date de Début</string>
+    <string name="DIALOG_TRIPMENU_HINT_END">Date de Fin</string>
+    <string name="DIALOG_TRIPMENU_TITLE_NEW">Nouvelle Note de Frais</string>
+    <string name="DIALOG_TRIPMENU_TITLE_EDIT">Modifier</string>
+    <string name="DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE">Créer</string>
+    <string name="DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE">Modifier</string>
+    <string name="DIALOG_TRIPMENU_NEGATIVE_BUTTON">Annuler</string>
+    <string name="DIALOG_TRIPMENU_TOAST_MISSING_FIELD">Merci de remplir tous les champs</string>
+    
+    <!-- =============== DIALOG_TRIP_DELETE ================== -->
+    <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START">Effaçer </string>
+    <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END">\?</string>
+    <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON">Effaçer</string>
+    
+    <!-- ================= DIALOG_RECEIPTMENU =================== -->
+    <string name="DIALOG_RECEIPTMENU_HINT_NAME">Nom</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_PRICE">Prix (ex. 150.00)</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_PRICE_SHORT">Prix</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_TAX">Tva</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_CURRENCY">Monnaie</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Catégorie</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Commentaire</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE"> Expensable?</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
+    <string name="DIALOG_RECEIPTMENU_TITLE_NEW">Nouvelle Note de Frais</string>
+    <string name="DIALOG_RECEIPTMENU_TITLE_EDIT">Editer</string>
+    <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE">Créer</string>
+    <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE">Editer</string>
+    <string name="DIALOG_RECEIPTMENU_NEGATIVE_BUTTON">Annuler</string>
+    <string name="DIALOG_RECEIPTMENU_TOAST_MISSING_NAME">Merci de choisir un nom pour cette note de frais</string>
+    <string name="DIALOG_RECEIPTMENU_TOAST_BAD_DATE">Warning: This Receipt\'s Date falls outside the specified range for this Report</string>
+    
+    <!-- ==================== dialog_export ====================== -->
+    <string name="dialog_export_title">Export your receipts?</string>
+    <string name="dialog_export_text">You can reimport your data by clicking on the SmartReceipts.SMR file, which is generated by clicking below.</string>
+    <string name="dialog_export_positive">Export</string>
+    
+    <!-- ==================== DIALOG_ABOUT ====================== -->
+    <string name="DIALOG_ABOUT_TITLE">A Propos</string>
+    <string name="DIALOG_ABOUT_MESSAGE">Smart Receipts v.VERSION_NAME \nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License</string>
+    
+    <!-- ==================== DIALOG_MILEAGE ====================== -->
+    <string name="DIALOG_MILES_DELTA">Distance</string>
+    
+    <!-- ================= RECEIPTMENU_FIELDS =================== -->
+    <string name="RECEIPTMENU_FIELD_NAME">Name</string>
+    <string name="RECEIPTMENU_FIELD_PRICE">Price</string>
+    <string name="RECEIPTMENU_FIELD_TAX">Tax</string>
+    <string name="RECEIPTMENU_FIELD_CURRENCY">Currency</string>
+    <string name="RECEIPTMENU_FIELD_DATE">Date</string>
+    <string name="RECEIPTMENU_FIELD_CATEGORY">Category</string>
+    <string name="RECEIPTMENU_FIELD_COMMENT">Comment</string>
+    <string name="RECEIPTMENU_FIELD_EXPENSABLE">Expensable</string>
+    <string name="RECEIPTMENU_FIELD_FULL_PAGE">Full Page</string>
+    <string name="RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1"></string>
+    <string name="RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2"></string>
+    <string name="RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3"></string>
+    
+    <!-- ================== RECEIPTMENU_TAGS ==================== -->
+    <string name="RECEIPTMENU_TAG_EXTRA_EDITTEXT_1">extra_edittext_1</string>
+    <string name="RECEIPTMENU_TAG_EXTRA_EDITTEXT_2">extra_edittext_2</string>
+    <string name="RECEIPTMENU_TAG_EXTRA_EDITTEXT_3">extra_edittext_3</string>
+    
+    <!-- ============== Start String Arrays ================== -->
+    <string-array name="EDIT_TRIP_ITEMS">
+    	<item>Email Report</item>
+    	<item>Edit Report</item>
+    	<item>Delete Report</item>    
+    </string-array> 
+    
+    <!-- ============== CSV/PDF Columns ================== -->
+    <string name="column_item_blank">Blank Column</string>
+	<string name="column_item_category_code">Category Code</string>
+	<string name="column_item_category_name">Category Name</string>
+	<string name="column_item_user_id">User ID</string>
+	<string name="column_item_report_name">Report Name</string>
+	<string name="column_item_report_start_date">Report Start Date</string>
+	<string name="column_item_report_end_date">Report End Date</string>
+	<string name="column_item_image_file_name">Image Name</string>
+	<string name="column_item_image_path">Image Path</string>
+	<string name="column_item_comment">@string/RECEIPTMENU_FIELD_COMMENT</string>
+	<string name="column_item_currency">@string/RECEIPTMENU_FIELD_CURRENCY</string>
+	<string name="column_item_date">@string/RECEIPTMENU_FIELD_DATE</string>
+	<string name="column_item_name">@string/RECEIPTMENU_FIELD_NAME</string>
+	<string name="column_item_price">@string/RECEIPTMENU_FIELD_PRICE</string>
+	<string name="column_item_tax">@string/RECEIPTMENU_FIELD_TAX</string>
+	<string name="column_item_pictured">Pictured</string>
+	<string name="column_item_expensable">Expensable</string>
+	<string name="column_item_index">Receipt Index</string>
+	<string name="column_item_extra_edittext_1"></string>
+	<string name="column_item_extra_edittext_2"></string>
+	<string name="column_item_extra_edittext_3"></string>
+    
+    <string name="receipt_dialog_action_edit">Editer la note de frais</string>
+    <string name="receipt_dialog_action_view">Voir note de frais %s</string>
+    <string name="receipt_dialog_action_camera">Photographier la note de frais</string>
+    <string name="receipt_dialog_action_delete">Effaçer la note de frais</string>
+    <string name="receipt_dialog_action_move_copy">Move/Copy</string>
+    <string name="receipt_dialog_action_swap_up">Swap Up</string>
+    <string name="receipt_dialog_action_swap_down">Swap Down</string>
+	
+    <string name="dialog_attachment_title">Add %s to Receipt</string>
+    <string name="dialog_attachment_text">Tap on an existing receipt to add this %s to it</string>
+    <string name="dialog_attachment_positive">Okay</string>
+    <string name="dialog_attachment_negative">Don\'t Show Again</string>
+    <string name="action_send_view">View Existing Receipt %s</string>
+    <string name="action_send_attach">Attach %s to Receipt</string>
+    <string name="action_send_replace">Replace Receipt %s</string>
+    
+    <!-- ================== Preference Dialog ==================== -->
+	<string name="dialog_custom_csv_title">Personnaliser le CSV</string>
+	<string name="dialog_custom_pdf_title">Personnaliser le PDF</string>
+	<string name="dialog_custom_csv_positive">Ajouter une colonne</string>
+	<string name="dialog_custom_csv_negative">Retirer une colonne</string>
+	<string name="dialog_custom_csv_checkbox">Include Header Columns</string>
+	<string name="dialog_custom_csv_spinner">Column Type</string>
+	<string name="dialog_category_add">Ajouter une Catégorie</string>
+	<string name="dialog_category_edit">Editer une Catégorie</string>
+	<string name="dialog_category_select">Choisir une Catégorie</string>
+	
+    <!-- ================== Preferences ==================== -->
+    <string name="pref_account_header">Account Settings</string>
+    <string name="pref_account_trip_duration_title">Durée du Voyage (jours):</string>
+    <string name="pref_account_default_email_title">Adresse Email:</string>
+    <string name="pref_account_username_title">Identifiant:</string>
+    <string name="pref_account_predict_categories_title">Predict Receipt Categories</string>
+    <string name="pref_account_match_comment_to_category_title">Match Comments to Categories</string>
+    <string name="pref_account_match_name_to_category_title">Match Name to Categories</string>
+    <string name="pref_account_use_native_camera_title">Use Native Camera</string>
+    <string name="pref_account_expensable_only_title">Only Report Expensable Receipts</string>
+    <string name="pref_account_include_tax_field_title">Include Tax Field For Receipts</string>
+    <string name="pref_account_enable_autocomplete_title">Enable AutoComplete Suggestions</string>
+    <string name="pref_account_default_currency_title">Monnaie:</string>
+    <string name="pref_account_minimum_receipts_price_title">Min. Receipt Price to Report:</string>
+    
+    <!-- ================== Preference Fragments ==================== -->
+    <string name="pref_account_fragment">wb.receiptslibrary.fragments.preferences.AccountSettingsPreferenceFragment</string>
+    
+    <string-array name="settings_titles">
+        <item>@string/pref_account_header</item>
+    </string-array>
+    <string-array name="settings_fragments">
+        <item>@string/pref_account_fragment</item>
+    </string-array>
+    
+    <!-- ================== CSV Table ==================== -->
+    <string name="csv_table_title">Personnaliser le CSV</string>
+	<string name="csv_table_left_header">Column</string>
+	<string name="csv_table_right_header">Type</string>
+	<string name="csv_table_add_column">Add Column</string>
+	<string name="csv_table_remove_column">Remove Column</string>
+	
+	<!-- ================== Legacy Camera ==================== -->
+    <string name="dialog_legacy_camera_title">Camera Settings</string>
+	<string name="dialog_legacy_camera_color">Save as Color Image</string>
+	<string name="dialog_legacy_camera_focus">Auto Focus</string>
+	<string name="dialog_legacy_camera_flash">Auto Flash</string>
+</resources>

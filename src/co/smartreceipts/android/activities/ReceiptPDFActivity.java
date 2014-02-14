@@ -39,7 +39,7 @@ public class ReceiptPDFActivity extends WBActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == android.R.id.home) {
-			final Intent upIntent = new Intent(this, SmartReceiptsActivity.class);
+			final Intent upIntent = new Intent(this, getSmartReceiptsApplication().getTopLevelActivity());
 			if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
 	            // This activity is NOT part of this app's task, so create a new task
 	            // when navigating up, with a synthesized back stack.

@@ -33,7 +33,7 @@ public final class TripRow implements Parcelable {
 		mStartDate = startDate;
 		mEndDate = endDate;
 		mCurrency = currency;
-		mMiles = 0;
+		mMiles = miles;
 		mSource = source;
 	}
 	
@@ -44,6 +44,8 @@ public final class TripRow implements Parcelable {
 		mEndDate = new Date(in.readLong());
 		mCurrency = WBCurrency.getInstance(in.readString());
 		mMiles = in.readFloat();
+		mStartTimeZone = TimeZone.getTimeZone(in.readString());
+		mEndTimeZone = TimeZone.getTimeZone(in.readString());
 		mSource = SourceEnum.Parcel;
 	}
 	
@@ -66,14 +68,14 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getFormattedStartDate(Context context) {
-		final TimeZone timeZone = (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
+		final TimeZone timeZone = getStartTimeZone();
 		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
 		format.setTimeZone(timeZone);
 		return format.format(mStartDate);
 	}
 	
 	public String getFormattedStartDate(Context context, String separator) {
-		final TimeZone timeZone = (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
+		final TimeZone timeZone = getStartTimeZone();
 		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
 		format.setTimeZone(timeZone);
 		String formattedDate = format.format(mStartDate);
@@ -82,7 +84,7 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public TimeZone getStartTimeZone() {
-		return mStartTimeZone;
+		return (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
 	}
 	
 	public Date getEndDate() {
@@ -90,14 +92,14 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getFormattedEndDate(Context context) {
-		final TimeZone timeZone = (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
+		final TimeZone timeZone = getEndTimeZone();
 		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
 		format.setTimeZone(timeZone);
 		return format.format(mEndDate);
 	}
 	
 	public String getFormattedEndDate(Context context, String separator) {
-		final TimeZone timeZone = (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
+		final TimeZone timeZone = getEndTimeZone();
 		java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
 		format.setTimeZone(timeZone);
 		String formattedDate = format.format(mEndDate);
@@ -106,7 +108,7 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public TimeZone getEndTimeZone() {
-		return mEndTimeZone;
+		return (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
 	}
 	
 	/**
@@ -252,6 +254,8 @@ public final class TripRow implements Parcelable {
 		dest.writeLong(getEndDate().getTime());
 		dest.writeString(getCurrencyCode());
 		dest.writeFloat(getMileage());
+		dest.writeString(getStartTimeZone().getID());
+		dest.writeString(getEndTimeZone().getID());
 	}
 	
 	private DecimalFormat getDecimalFormat() {

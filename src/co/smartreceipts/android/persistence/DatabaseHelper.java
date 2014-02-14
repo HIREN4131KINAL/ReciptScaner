@@ -385,6 +385,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 			if (oldVersion == 9) { //Added a PDF table
 				this.createPDFTable(db);
+				oldVersion++;
 			}
 			_initDB = null;
 		}

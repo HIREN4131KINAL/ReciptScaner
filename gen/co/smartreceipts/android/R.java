@@ -2536,6 +2536,10 @@ CHAR LIMIT = NONE]
         public static int action_send_attach=0x7f0a02df;
         public static int action_send_replace=0x7f0a02e0;
         public static int action_send_view=0x7f0a02de;
+        public static int actionbar_subtitle_chart=0x7f0a02f8;
+        /**  ================== ActionBar ==================== 
+         */
+        public static int actionbar_subtitle_list=0x7f0a02f7;
         /**  ================ General Strings ================== 
  ================ General Strings ================== 
          */
@@ -2774,14 +2778,14 @@ CHAR LIMIT = NONE]
         /**  Name for the photo effect that applies cross-process effect. [CHAR LIMIT=15] 
          */
         public static int crossprocess=0x7f0a006e;
-        public static int csv_table_add_column=0x7f0a02fb;
-        public static int csv_table_left_header=0x7f0a02f9;
-        public static int csv_table_remove_column=0x7f0a02fc;
-        public static int csv_table_right_header=0x7f0a02fa;
+        public static int csv_table_add_column=0x7f0a02fd;
+        public static int csv_table_left_header=0x7f0a02fb;
+        public static int csv_table_remove_column=0x7f0a02fe;
+        public static int csv_table_right_header=0x7f0a02fc;
         /**  ================== CSV Table ==================== 
  ================== CSV Table ==================== 
          */
-        public static int csv_table_title=0x7f0a02f8;
+        public static int csv_table_title=0x7f0a02fa;
         /**   Label for the curves filter button [CHAR LIMIT=15] 
          */
         public static int curvesRGB=0x7f0a005c;
@@ -2840,13 +2844,13 @@ CHAR LIMIT = NONE]
  ==================== dialog_export ====================== 
          */
         public static int dialog_export_title=0x7f0a02a9;
-        public static int dialog_legacy_camera_color=0x7f0a02fe;
-        public static int dialog_legacy_camera_flash=0x7f0a0300;
-        public static int dialog_legacy_camera_focus=0x7f0a02ff;
+        public static int dialog_legacy_camera_color=0x7f0a0300;
+        public static int dialog_legacy_camera_flash=0x7f0a0302;
+        public static int dialog_legacy_camera_focus=0x7f0a0301;
         /**  ================== Legacy Camera ==================== 
  ================== Legacy Camera ==================== 
          */
-        public static int dialog_legacy_camera_title=0x7f0a02fd;
+        public static int dialog_legacy_camera_title=0x7f0a02ff;
         /**  Dialog "OK" button. Dismisses dialog. 
          */
         public static int dialog_ok=0x7f0a00d7;
@@ -3332,7 +3336,7 @@ CHAR LIMIT = NONE]
         /**  ================== Preference Fragments ==================== 
  ================== Preference Fragments ==================== 
          */
-        public static int pref_account_fragment=0x7f0a02f7;
+        public static int pref_account_fragment=0x7f0a02f9;
         /**  ================== Preferences ==================== 
  ================== Preferences ==================== 
          */

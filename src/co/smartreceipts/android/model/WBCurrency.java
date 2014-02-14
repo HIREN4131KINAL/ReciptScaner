@@ -36,7 +36,7 @@ public class WBCurrency {
 			if (EXTRA_CODES.contains(currencyCode))
 				return new WBCurrency(currencyCode);
 			else
-				return null;
+				return new WBCurrency(Currency.getInstance(Locale.getDefault())); //Graceful error to default
 		}
 	}
 	

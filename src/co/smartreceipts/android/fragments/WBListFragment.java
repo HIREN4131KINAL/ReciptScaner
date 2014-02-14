@@ -32,26 +32,26 @@ public class WBListFragment extends SherlockListFragment {
 	}
 	
 	protected Flex getFlex() {
-		return mApplication.getFlex();
+		return getSmartReceiptsApplication().getFlex();
 	}
 	
 	protected String getFlexString(int id) {
-		return mApplication.getFlex().getString(getSherlockActivity(), id);
+		return getSmartReceiptsApplication().getFlex().getString(getSherlockActivity(), id);
 	}
 	
 	protected DateManager getDateManager() {
 		if (mDateManager == null) {
-			mDateManager = new DateManager(getSherlockActivity(), mApplication.getPersistenceManager().getPreferences());
+			mDateManager = new DateManager(getSherlockActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferences());
 		}
 		return mDateManager;
 	}
 	
 	protected PersistenceManager getPersistenceManager() {
-		return mApplication.getPersistenceManager();
+		return getSmartReceiptsApplication().getPersistenceManager();
 	}
 	
 	protected WorkerManager getWorkerManager() {
-		return mApplication.getWorkerManager();
+		return getSmartReceiptsApplication().getWorkerManager();
 	}
 	
 	public SmartReceiptsApplication getSmartReceiptsApplication() {

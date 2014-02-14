@@ -8,15 +8,18 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.fragments.ReceiptsChartFragment;
 import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.Preferences;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
@@ -212,12 +215,19 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 		if (!mIsDualPane) {
 			enableUpNavigation(true);
 			supportInvalidateOptionsMenu();
+			/*
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.sherlock_spinner_item, new String[] { "Item 1", "Item 2" });
+			adapter.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
+			getSupportActionBar().setDisplayShowTitleEnabled(false);
+	        getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+	        getSupportActionBar().setListNavigationCallbacks(adapter, null);
+	        */
 		}
 	}
 
 	@Override
 	public void viewReceipts(TripRow trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, ReceiptsFragment.newInstance(trip), ReceiptsFragment.TAG).commitAllowingStateLoss();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, ReceiptsFragment.newListInstance(trip), ReceiptsChartFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
 			enableUpNavigation(true);
 			mSlidingPaneLayout.closePane();

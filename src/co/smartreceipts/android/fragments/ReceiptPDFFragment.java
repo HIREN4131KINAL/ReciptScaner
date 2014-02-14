@@ -49,8 +49,14 @@ public class ReceiptPDFFragment extends WBFragment {
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		mReaderView = new MuPDFReaderView(getSherlockActivity()); //Can't inflate b/c this takes activity... rewrite this class?
-		mReaderView.setAdapter(mAdapter);
-		return mReaderView;
+		try {
+			mReaderView = new MuPDFReaderView(getSherlockActivity()); //Can't inflate b/c this takes activity... rewrite this class?
+			mReaderView.setAdapter(mAdapter);
+			return mReaderView;
+		} catch (Exception e) {
+			if (BuildConfig.DEBUG) Log.e(TAG, e.toString());
+			Toast.makeText(getSherlockActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
+			return new View(getSherlockActivity());
+		}
 	}
 }

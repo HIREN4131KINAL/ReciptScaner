@@ -103,7 +103,7 @@
     <string name="SD_WARNING">Warning: Your SD Card is not available or is mounted to your computer. Some images may be inaccessible. Switching to internal storage&#8230;</string>
     <string name="DB_ERROR">Error: Another application is using the SQLite Database.</string>
     <string name="IMG_OPEN_ERROR">Error: The image is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer. If not, click the menu button to retake the photo.</string>
-    <string name="toast_pdf_open_error">Error: The pdf is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer.</string>
+    <string name="toast_pdf_open_error">Error: Failed to open the PDF. PDF viewing may not be supported on your platform.</string>
     <string name="IMG_SAVE_ERROR">Error: The Image Failed to Save Properly</string>
     <string name="toast_pdf_save_error">Error: The pdf failed to save properly.</string>
     <string name="IMG_SEND_ERROR">Error: The Image was not properly sent to this app</string>
@@ -334,6 +334,10 @@
     <string name="pref_account_enable_autocomplete_title">Enable AutoComplete Suggestions</string>
     <string name="pref_account_default_currency_title">Default Currency:</string>
     <string name="pref_account_minimum_receipts_price_title">Min. Receipt Price to Report:</string>
+    
+    <!-- ================== ActionBar ==================== -->
+    <string name="actionbar_subtitle_list">List View</string>
+    <string name="actionbar_subtitle_chart">Chart View</string>
     
     <!-- ================== Preference Fragments ==================== -->
     <string name="pref_account_fragment">wb.receiptslibrary.fragments.preferences.AccountSettingsPreferenceFragment</string>

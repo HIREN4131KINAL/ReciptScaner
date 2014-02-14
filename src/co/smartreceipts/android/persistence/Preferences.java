@@ -64,7 +64,7 @@ public class Preferences {
 		this.useNativeCamera = prefs.getBoolean(BOOL_USE_NATIVE_CAMERA, false);
 		this.matchCommentCats = prefs.getBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, false);
 		this.matchNameCats = prefs.getBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, false);
-		this.onlyIncludeExpensable = prefs.getBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, true);
+		this.onlyIncludeExpensable = prefs.getBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, false);
 		this.showActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
 		this.includeTaxField = prefs.getBoolean(BOOL_INCLUDE_TAX_FIELD, false);
 		this.enableAutoCompleteSuggestions = prefs.getBoolean(BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS, true);

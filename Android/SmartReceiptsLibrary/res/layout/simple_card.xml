@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/content"
+    style="@style/Widget.SmartReceipts.RelativeLayout.Card" 
+    android:layout_width="match_parent"
+	android:layout_height="wrap_content" >
+
+	<TextView
+        android:id="@+id/price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/card_thumbnail_margins"
+        android:textColor="@color/card_price"
+        android:textSize="@dimen/card_price_size"
+        android:textStyle="bold" />
+    
+    <LinearLayout
+        android:id="@+id/data_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/card_name_date_margin"
+        android:layout_toRightOf="@id/price"
+        android:gravity="center_vertical"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@android:id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/card_name_date_separator"
+            android:textColor="@color/card_name"
+            android:textSize="@dimen/card_name_size"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@android:id/summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/card_date_size" />
+
+        <TextView
+            android:id="@android:id/text1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/card_date_size" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@android:id/text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/data_layout"
+        android:layout_alignParentRight="true"
+        android:textSize="@dimen/card_date_size"
+        android:textStyle="italic" />
+
+</RelativeLayout>

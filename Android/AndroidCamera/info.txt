@@ -1,0 +1,2 @@
+CameraSwitcher Class can have the SR options.
+See how they did it

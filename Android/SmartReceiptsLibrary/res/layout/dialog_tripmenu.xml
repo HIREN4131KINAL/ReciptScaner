@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+        android:padding="6dp">
+        <AutoCompleteTextView android:id="@+id/dialog_tripmenu_name"
+            android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:hint="@string/DIALOG_TRIPMENU_HINT_NAME"
+    		android:maxLength="50">
+    		<requestFocus />
+   		</AutoCompleteTextView>
+        <co.smartreceipts.android.date.DateEditText android:id="@+id/dialog_tripmenu_start"
+            android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:hint="@string/DIALOG_TRIPMENU_HINT_START" />
+        <co.smartreceipts.android.date.DateEditText android:id="@+id/dialog_tripmenu_end"
+            android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:hint="@string/DIALOG_TRIPMENU_HINT_END" />
+        <Spinner android:id="@+id/dialog_tripmenu_currency"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:drawSelectorOnTop="true"
+            android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CURRENCY" />
+        <EditText android:id="@+id/dialog_tripmenu_comment"
+		    android:layout_width="fill_parent" 
+		    android:layout_height="wrap_content"
+		    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT" />
+    </LinearLayout>
+</ScrollView>

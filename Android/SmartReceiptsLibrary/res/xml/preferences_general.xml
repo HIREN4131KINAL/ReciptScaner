@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wb="http://schemas.android.com/apk/res-auto" >
+    <PreferenceCategory 
+        android:title="@string/pref_general_header"
+        android:key="pref_general_category_key">
+        <co.smartreceipts.android.fragments.preferences.DefaultDurationEditTextPreference  
+            android:key="@string/pref_general_trip_duration_key"
+            android:title="@string/pref_general_trip_duration_title"
+            android:inputType="number"
+            android:defaultValue="3" />
+        <wb.android.preferences.SummaryListPreference
+            android:key="@string/pref_general_default_currency_key"
+            android:title="@string/pref_general_default_currency_title" />
+        <wb.android.preferences.SummaryListPreference
+            android:key="@string/pref_general_default_date_separator_key"
+            android:title="@string/pref_general_default_date_separator_title" />
+	</PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/receipt"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/card_background" >
+
+    <LinearLayout
+        android:id="@+id/receipt_image_border"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="5dp"
+        android:padding="2dp" >
+
+        <ImageView
+            android:id="@+id/receipt_image"
+            android:layout_width="@dimen/card_thumbnail_size"
+            android:layout_height="@dimen/card_thumbnail_size"
+            android:contentDescription="@string/card_thumbnail_contentDescription"
+            android:src="@drawable/empty_photo" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/overflow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:contentDescription="@string/card_overflow_contentDescription"
+        android:gravity="center_vertical|center_horizontal"
+        android:src="@drawable/ic_menu_overflow" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@id/receipt_image_border"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@android:id/content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/card_name_date_margin"
+            android:textSize="@dimen/card_price_size"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@android:id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/card_name_size" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@android:id/summary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/overflow"
+        android:textSize="@dimen/card_date_size"
+        android:textStyle="italic" />
+
+</RelativeLayout>

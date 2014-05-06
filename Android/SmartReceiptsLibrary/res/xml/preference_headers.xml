@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_general_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_general_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_receipt_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_receipt_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_output_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_output_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_email_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_email_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_camera_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_camera_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_layout_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_layout_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_help_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_help_header" />
+    </header>
+    <header
+	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+	    android:title="@string/pref_about_header">
+		<extra android:name="@string/pref_header_key" android:value="@string/pref_about_header" />
+    </header>
+    
+</preference-headers>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" 
+    xmlns:wb="http://schemas.android.com/apk/res-auto" >
+	<PreferenceCategory
+	    android:title="@string/pref_output_header"
+	    android:key="pref_output_category_key">
+		<Preference 
+		    android:key="@string/pref_output_custom_csv_key" 
+			android:title="@string/pref_output_custom_csv_title" />
+		<Preference 
+		    android:key="@string/pref_output_custom_pdf_key" 
+			android:title="@string/pref_output_custom_pdf_key" />
+	   <CheckBoxPreference
+	       android:key="@string/pref_output_csv_header_key"
+	       android:title="@string/pref_output_csv_header_title"
+	       android:summary="@string/pref_output_csv_header_summary"
+	       android:defaultValue="false"/>
+	   <wb.android.preferences.EmptyValueSummaryEditTextPreference
+	       android:key="@string/pref_output_username_key"
+	       android:title="@string/pref_output_username_title"
+	       wb:emptyValue="@string/pref_output_username_emptyValue" />
+	</PreferenceCategory>
+</PreferenceScreen>

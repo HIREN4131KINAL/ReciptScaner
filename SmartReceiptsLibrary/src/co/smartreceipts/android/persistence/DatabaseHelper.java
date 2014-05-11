@@ -2166,10 +2166,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 				c = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[] { ReceiptsTable.TABLE_NAME });
 				if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-					return c.getInt(0);
+					return c.getInt(0) + 1;
 				}
 				else {
-					return -1;
+					return 1;
 				}
 			}
 		}
@@ -3032,42 +3032,50 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	@Override
 	public void onItemSelected(CharSequence text, CharSequence tag) {
 		//TODO: Make Async
+		
 		Cursor c = null;
 		SQLiteDatabase db = null;
 		final String name = text.toString();
 		if (tag == TAG_RECEIPTS) {
 			String category = null, price = null, tmp = null;
-			synchronized (mDatabaseLock) {
-				try {
-					db = this.getReadableDatabase();
-					c = db.query(ReceiptsTable.TABLE_NAME,
-								 new String[] {ReceiptsTable.COLUMN_CATEGORY, ReceiptsTable.COLUMN_PRICE},
-								 ReceiptsTable.COLUMN_NAME + "= ?",
-								 new String[] {name},
-								 null,
-								 null,
-								 ReceiptsTable.COLUMN_DATE + " DESC",
-								 "2");
-					if (c != null && c.getCount() == 2) {
-						if (c.moveToFirst()) {
-							category = c.getString(0);
-							price = c.getString(1);
-							if (c.moveToNext()) {
-								tmp = c.getString(0);
-								if (!category.equalsIgnoreCase(tmp)) {
-									category = null;
-								}
-								tmp = c.getString(1);
-								if (!price.equalsIgnoreCase(tmp)) {
-									price = null;
+			// If we're not predicting, return
+			if (!mPersistenceManager.getPreferences().predictCategories()) {
+				// price = null;
+				// category = null
+			}
+			else {
+				synchronized (mDatabaseLock) {
+					try {
+						db = this.getReadableDatabase();
+						c = db.query(ReceiptsTable.TABLE_NAME,
+									 new String[] {ReceiptsTable.COLUMN_CATEGORY, ReceiptsTable.COLUMN_PRICE},
+									 ReceiptsTable.COLUMN_NAME + "= ?",
+									 new String[] {name},
+									 null,
+									 null,
+									 ReceiptsTable.COLUMN_DATE + " DESC",
+									 "2");
+						if (c != null && c.getCount() == 2) {
+							if (c.moveToFirst()) {
+								category = c.getString(0);
+								price = c.getString(1);
+								if (c.moveToNext()) {
+									tmp = c.getString(0);
+									if (!category.equalsIgnoreCase(tmp)) {
+										category = null;
+									}
+									tmp = c.getString(1);
+									if (!price.equalsIgnoreCase(tmp)) {
+										price = null;
+									}
 								}
 							}
 						}
 					}
-				}
-				finally {
-					if (c != null) {
-						c.close();
+					finally {
+						if (c != null) {
+							c.close();
+						}
 					}
 				}
 			}

@@ -367,7 +367,7 @@
     <string name="pref_receipt_customize_categories_title">Customize Receipt Categories</string>
     <string name="pref_receipt_predict_categories_key" translatable="false">PredictCats</string>
     <string name="pref_receipt_predict_categories_title">Predict Receipt Categories</string>
-    <string name="pref_receipt_predict_categories_summary">Auto-fill category based on time of day</string>
+    <string name="pref_receipt_predict_categories_summary">Auto-fill category based on prior data</string>
     <string name="pref_receipt_match_name_to_category_key" translatable="false">MatchNameCats</string>
     <string name="pref_receipt_match_name_to_category_title">Match Name to Categories</string>
     <string name="pref_receipt_match_name_to_category_summary">Automatically set name to category</string>

@@ -85,7 +85,9 @@ public class ExportTask extends ProgressTask<Void, Uri> {
 			File zip = external.zipBuffered(8192, new FileFilter() {
 				@Override
 				public boolean accept(File file) {
-					return !file.getName().equalsIgnoreCase(DatabaseHelper.DATABASE_NAME) && !file.getName().equalsIgnoreCase(DATABASE_JOURNAL);
+					return !file.getName().equalsIgnoreCase(DatabaseHelper.DATABASE_NAME) && 
+						   !file.getName().equalsIgnoreCase(DATABASE_JOURNAL) &&
+						   !file.getName().endsWith(".smr"); //Ignore previous backups
 				}
 			});
 			// TODO: Catch null pointer here

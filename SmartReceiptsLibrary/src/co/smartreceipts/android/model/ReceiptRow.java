@@ -109,7 +109,7 @@ public class ReceiptRow implements Parcelable {
 			return context.getString(R.string.pdf);
 		}
 		else {
-			return context.getString(R.string.text);
+			return new String();
 		}
 	}
 

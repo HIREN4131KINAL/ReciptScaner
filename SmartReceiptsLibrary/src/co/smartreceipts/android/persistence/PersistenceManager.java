@@ -20,7 +20,6 @@ public class PersistenceManager {
 		mStorageManager = StorageManager.getInstance(application);
 		mPreferences = new Preferences(application, application.getFlex());
 		mDatabase = DatabaseHelper.getInstance(application, this);
-		// mPreferences.setVersionUpgradeListener(mApplication); Don't call this here, b/c we'll have a npe in Application
 	}
 
 	public void onDestroy() {

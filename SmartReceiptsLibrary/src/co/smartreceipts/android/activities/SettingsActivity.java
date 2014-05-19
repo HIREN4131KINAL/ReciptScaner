@@ -14,6 +14,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceFragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference;
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
+import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -97,6 +99,16 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		mIsUsingHeaders = getResources().getBoolean(R.bool.isTablet);
 		if (mIsUsingHeaders) {
 			loadHeadersFromResource(R.xml.preference_headers, target);
+		}
+	}
+	
+	@Override
+	protected boolean isValidFragment(String fragmentName) {
+		if (PreferenceHeaderFragment.class.getName().equals(fragmentName)) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 

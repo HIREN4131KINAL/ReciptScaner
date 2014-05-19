@@ -482,7 +482,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					}
 				}
 			}
-			int idx = currenices.getPosition(mCurrentTrip.getDefaultCurrencyCode());
+			int idx = currenices.getPosition((mCurrentTrip != null) ? mCurrentTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
 			}

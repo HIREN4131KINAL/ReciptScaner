@@ -187,11 +187,13 @@ public class GalleryActionBar implements OnNavigationListener {
 
     @TargetApi(ApiHelper.VERSION_CODES.HONEYCOMB)
     public GalleryActionBar(AbstractGalleryActivity activity) {
-        mActionBar = activity.getActionBar();
-        mContext = activity.getAndroidContext();
-        mActivity = activity;
-        mInflater = ((Activity) mActivity).getLayoutInflater();
-        mCurrentIndex = 0;
+    	if (ApiHelper.HAS_ACTION_BAR) {
+	        mActionBar = activity.getActionBar();
+	        mContext = activity.getAndroidContext();
+	        mActivity = activity;
+	        mInflater = ((Activity) mActivity).getLayoutInflater();
+	        mCurrentIndex = 0;
+    	}
     }
 
     private void createDialogData() {

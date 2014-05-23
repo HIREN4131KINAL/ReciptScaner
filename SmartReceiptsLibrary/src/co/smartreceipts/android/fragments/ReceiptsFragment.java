@@ -117,6 +117,10 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 			Log.d(TAG, "onResume");
 		}
 		super.onResume();
+		ensureValidCurrentTrip();
+	}
+	
+	protected void ensureValidCurrentTrip() {
 		if (mCurrentTrip == null) {
 			if (getArguments() != null) {
 				Parcelable parcel = getArguments().getParcelable(TripRow.PARCEL_KEY);

@@ -72,12 +72,18 @@ public class WBListFragment extends ListFragment {
 
 	public SmartReceiptsApplication getSmartReceiptsApplication() {
 		if (mApplication == null) {
-			final Application application = getActivity().getApplication();
-			if (application instanceof SmartReceiptsApplication) {
-				mApplication = (SmartReceiptsApplication) application;
+			if (getActivity() != null) {
+				final Application application = getActivity().getApplication();
+				if (application instanceof SmartReceiptsApplication) {
+					mApplication = (SmartReceiptsApplication) application;
+				}
+				else {
+					throw new RuntimeException("The Application must be an instance a SmartReceiptsApplication");
+				}
 			}
 			else {
-				throw new RuntimeException("The Application must be an instance a SmartReceiptsApplication");
+				// We're in a weird state and probably will crash soon... But just in case
+				mApplication = SmartReceiptsApplication.getInstance();
 			}
 		}
 		return mApplication;

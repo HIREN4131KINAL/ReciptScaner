@@ -53,6 +53,9 @@ public class Attachment {
 			mUri = null; mAction = null; mExtension = null;
 			mIsValid = false;
 		}
+		if (mUri == null) {
+			mIsValid = false;
+		}
 		if (BuildConfig.DEBUG) Log.d(TAG, "Action: " + mAction);
 		if (BuildConfig.DEBUG) Log.d(TAG, "Extension: " + mExtension);
 		if (BuildConfig.DEBUG) Log.d(TAG, "Uri: " + mUri);
@@ -79,7 +82,12 @@ public class Attachment {
 	        else { 
 	            cursor.moveToFirst();
 	            int idx = cursor.getColumnIndex(column); 
-	            return Uri.fromFile(new File(cursor.getString(idx)));
+	            if (idx > 0) {
+	            	return Uri.fromFile(new File(cursor.getString(idx)));
+	            }
+	            else {
+	            	return null;
+	            }
 	        }
 		}
 		finally {

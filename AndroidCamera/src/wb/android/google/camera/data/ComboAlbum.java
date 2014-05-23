@@ -84,8 +84,10 @@ public class ComboAlbum extends MediaSet implements ContentListener {
     public long reload() {
         boolean changed = false;
         for (int i = 0, n = mSets.length; i < n; ++i) {
-            long version = mSets[i].reload();
-            if (version > mDataVersion) changed = true;
+        	if (mSets[i] != null) {
+	            long version = mSets[i].reload();
+	            if (version > mDataVersion) changed = true;
+        	}
         }
         if (changed) mDataVersion = nextVersionNumber();
         return mDataVersion;

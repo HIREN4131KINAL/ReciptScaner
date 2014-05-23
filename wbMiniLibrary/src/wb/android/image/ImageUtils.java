@@ -30,6 +30,9 @@ public class ImageUtils {
 	 * bitmap instance will be returned if an {@link OutOfMemoryException} occurs
 	 */
 	public static Bitmap convertToGrayScale(Bitmap bitmap, Bitmap.Config config) {
+		if (bitmap == null || config == null) {
+			return bitmap;
+		}
 		try {
 		    Bitmap bmpGrayscale = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), config);
 		    Canvas c = new Canvas(bmpGrayscale);

@@ -302,6 +302,7 @@
 	<string name="column_item_report_comment">Report Comment</string>
 	<string name="column_item_image_file_name">Image Name</string>
 	<string name="column_item_image_path">Image Path</string>
+	<!-- **Please note that for flex purposes, some of these use the legacy names above** -->
 	<string name="column_item_comment">@string/RECEIPTMENU_FIELD_COMMENT</string>
 	<string name="column_item_currency">@string/RECEIPTMENU_FIELD_CURRENCY</string>
 	<string name="column_item_date">@string/RECEIPTMENU_FIELD_DATE</string>

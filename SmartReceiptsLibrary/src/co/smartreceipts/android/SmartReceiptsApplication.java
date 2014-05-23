@@ -11,6 +11,7 @@ import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
@@ -43,16 +44,26 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private Activity mCurrentActivity;
     private Settings mSettings;
     private boolean mDeferFirstRunDialog;
+    
+    /**
+     * The {@link Application} class is a singleton, so we can cache it here for emergency restoration
+     */
+    private static SmartReceiptsApplication sApplication;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		preloadSharedPreferences();
+		sApplication = this;
 		mDeferFirstRunDialog = false;
 		mFlex = instantiateFlex();
 		mWorkerManager = instantiateWorkerManager();
 		mPersistenceManager = instantiatePersistenceManager();
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null in onVersionUpgrade
+	}
+	
+	public static final SmartReceiptsApplication getInstance() {
+		return sApplication;
 	}
 
 	@Override

@@ -71,6 +71,10 @@ public class Columns {
 	}
 
 	private void init(Context context, Flex flex) {
+		/*
+		 * Do to the way flex works atm, some of these have to point to the raw name (i.e. R.string.RECEIPTMENU*)
+		 * As opposed to the current approach (R.string.column_item_*). Keep this in mind for future changes
+		 */
 		ColumnName.BLANK = flex.getString(context, R.string.column_item_blank);
 		ColumnName.CATEGORY_CODE = flex.getString(context, R.string.column_item_category_code);
 		ColumnName.CATEGORY_NAME = flex.getString(context, R.string.column_item_category_name);
@@ -81,19 +85,19 @@ public class Columns {
 		ColumnName.REPORT_COMMENT = flex.getString(context, R.string.column_item_report_comment);
 		ColumnName.IMAGE_FILE_NAME = flex.getString(context, R.string.column_item_image_file_name);
 		ColumnName.IMAGE_PATH = flex.getString(context, R.string.column_item_image_path);
-		ColumnName.COMMENT = flex.getString(context, R.string.column_item_comment);
-		ColumnName.CURRENCY = flex.getString(context, R.string.column_item_currency);
-		ColumnName.DATE = flex.getString(context, R.string.column_item_date);
-		ColumnName.NAME = flex.getString(context, R.string.column_item_name);
-		ColumnName.PRICE = flex.getString(context, R.string.column_item_price);
-		ColumnName.TAX = flex.getString(context, R.string.column_item_tax);
+		ColumnName.COMMENT = flex.getString(context, R.string.RECEIPTMENU_FIELD_COMMENT);
+		ColumnName.CURRENCY = flex.getString(context, R.string.RECEIPTMENU_FIELD_CURRENCY);
+		ColumnName.DATE = flex.getString(context, R.string.RECEIPTMENU_FIELD_DATE);
+		ColumnName.NAME = flex.getString(context, R.string.RECEIPTMENU_FIELD_NAME);
+		ColumnName.PRICE = flex.getString(context, R.string.RECEIPTMENU_FIELD_PRICE);
+		ColumnName.TAX = flex.getString(context, R.string.RECEIPTMENU_FIELD_TAX);
 		ColumnName.PICTURED = flex.getString(context, R.string.column_item_pictured);
 		ColumnName.EXPENSABLE = flex.getString(context, R.string.column_item_expensable);
 		ColumnName.INDEX = flex.getString(context, R.string.column_item_index);
 		ColumnName.ID = flex.getString(context, R.string.column_item_id);
-		ColumnName.EXTRA_EDITTEXT_1 = flex.getString(context, R.string.column_item_extra_edittext_1);
-		ColumnName.EXTRA_EDITTEXT_2 = flex.getString(context, R.string.column_item_extra_edittext_2);
-		ColumnName.EXTRA_EDITTEXT_3 = flex.getString(context, R.string.column_item_extra_edittext_3);
+		ColumnName.EXTRA_EDITTEXT_1 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
+		ColumnName.EXTRA_EDITTEXT_2 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
+		ColumnName.EXTRA_EDITTEXT_3 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
 	}
 
 	public int size() {

@@ -464,7 +464,13 @@ public class Settings implements ExportTask.Listener {
         emailIntent.setType("application/octet-stream");
         emailIntent.putExtra(Intent.EXTRA_STREAM, uri);
         if (mApp != null) {
-        	mApp.getCurrentActivity().startActivity(Intent.createChooser(emailIntent, "Export To..."));
+        	if (mApp.getCurrentActivity() != null) {
+        		mApp.getCurrentActivity().startActivity(Intent.createChooser(emailIntent, "Export To..."));
+        	}
+        	else {
+        		emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        		mApp.getApplicationContext().startActivity(Intent.createChooser(emailIntent, "Export To..."));
+        	}
         }
 	}
 	

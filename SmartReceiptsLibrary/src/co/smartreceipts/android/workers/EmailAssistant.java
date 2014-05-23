@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
@@ -703,8 +704,17 @@ public class EmailAssistant {
 						catch (RuntimeException e) {
 							page--; // Move the page back one
 							if (mContext != null) {
-								// TODO: Move this check up a level, so we can alert the user in advance
-								Toast.makeText(mContext, mContext.getString(R.string.toast_error_password_protected_pdf), Toast.LENGTH_LONG).show();
+								// TODO: Move this check up a level (i.e. to our model/attachment), so we can alert the user in advance
+								if (mContext instanceof Activity) {
+									// TODO: Figure out a real reporting mechanism, so we're not just randomly throwing out toast messages
+									Activity activity = (Activity) mContext;
+									activity.runOnUiThread(new Runnable() {
+										@Override
+										public void run() {
+											Toast.makeText(mContext, mContext.getString(R.string.toast_error_password_protected_pdf), Toast.LENGTH_SHORT).show();
+										}
+									});
+								}
 							}
 						}
 						table.completeRow();

@@ -96,6 +96,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private TextView mNoDataAlert;
 	private Attachable mAttachable;
 	private View mAdView;
+	
+	private boolean mShowDialogOnResume = false;
+	private File mImageFile;
 
 	// Cached views for autocomplete
 	private AutoCompleteTextView mNameBox;
@@ -203,6 +206,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		getWorkerManager().getAdManager().onAdResumed(mAdView);
 		getPersistenceManager().getDatabase().registerReceiptRowListener(this);
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+		if (mShowDialogOnResume) {
+			receiptMenu(mCurrentTrip, null, mImageFile);
+			mShowDialogOnResume = false;
+		}
 	}
 
 	// Restore persistent data (Called serially)
@@ -261,6 +268,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     	if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Request Code: " + requestCode);
 		}
+    	
+    	// Need to make this call here, since users with "Don't keep activities" will hit this call
+    	// before any of onCreate/onStart/onResume is called. This should restore our current trip (what
+    	// onResume() would normally do to prevent a variety of crashes that we might encounter
+    	ensureValidCurrentTrip();
+    	
     	if (resultCode == Activity.RESULT_OK) { //-1
     		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); //Added here since onActivityResult is called before onResume
     		File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
@@ -276,7 +289,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     		switch (requestCode) {
 				case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
 				case NEW_RECEIPT_CAMERA_REQUEST:
-					receiptMenu(mCurrentTrip, null, imgFile);
+					if (this.isResumed()) {
+						receiptMenu(mCurrentTrip, null, imgFile);
+					}
+					else {
+						mShowDialogOnResume = true;
+						mImageFile = imgFile;
+					}
 				break;
 				case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
 				case ADD_PHOTO_CAMERA_REQUEST:
@@ -303,7 +322,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); //Added here since onActivityResult is called before onResume
 	    	switch (requestCode) {
 				case NEW_RECEIPT_CAMERA_REQUEST:
-					receiptMenu(mCurrentTrip, null, new File(data.getStringExtra(MyCameraActivity.IMG_FILE)));
+					File imgFile = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
+					if (this.isResumed()) {
+						receiptMenu(mCurrentTrip, null, imgFile);
+					}
+					else {
+						mShowDialogOnResume = true;
+						mImageFile = imgFile;
+					}
 				break;
 				case ADD_PHOTO_CAMERA_REQUEST:
 					File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
@@ -598,8 +624,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			nameBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 				@Override
 				public void onFocusChange(View v, boolean hasFocus) {
-					if (hasFocus && getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
-						dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+					if (hasFocus && getActivity() != null) {
+						if (getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
+							dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+						}
 					}
 				}
 			});
@@ -608,8 +636,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
-					InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
+					if (getActivity() != null) {
+						InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+						imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
+					}
 				}
 				return false;
 			}
@@ -618,8 +648,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
-					InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-					imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
+					if (getActivity() != null) {
+						InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+						imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
+					}
 				}
 				return false;
 			}

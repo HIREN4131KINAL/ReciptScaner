@@ -27,30 +27,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private static final String INT_VERSION_CODE = "VersionCode";
     private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
 
-    /*
-    private static final String INT_DEFAULT_TRIP_DURATION = "TripDuration";
-    private static final String STRING_DEFAULT_EMAIL_TO = "EmailTo";
-    private static final String STRING_USERNAME = "UserName";
-    private static final String BOOL_PREDICT_CATEGORIES = "PredictCats";
-    private static final String BOOL_MATCH_COMMENT_WITH_CATEGORIES = "MatchCommentCats";
-    private static final String BOOL_MATCH_NAME_WITH_CATEGORIES = "MatchNameCats";
-    private static final String BOOL_USE_NATIVE_CAMERA = "UseNativeCamera";
-    private static final String BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS ="OnlyIncludeExpensable";
-    private static final String BOOL_INCLUDE_TAX_FIELD ="IncludeTaxField";
-    private static final String BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS ="EnableAutoCompleteSuggestions";
-    private static final String STRING_CURRENCY = "isocurr";
-    private static final String STRING_DATE_SEPARATOR = "dateseparator";
-    private static final String FLOAT_MIN_RECEIPT_PRICE = "MinReceiptPrice";
-    private static final String BOOL_INCL_CSV_HEADERS = "IncludeCSVHeaders";
-    private static final String BOOL_DEFAULT_TO_FIRST_TRIP_DATE = "DefaultToFirstReportDate";
-    private static final String STRING_LAST_ACTIVITY_TAG = "LastActivityTag";
-    */
-
-    //TODO:
-    // mDefaultTaxPercentage, mShowReceiptID
-    // mEmailCC, mEmailBCC, mEmailSubject;
-    // mCameraGrayScale
-
 	// General Preferences
     private int mDefaultTripDuration;
     private String mDefaultCurrency, mDateSeparator;
@@ -59,11 +35,11 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
     private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mDefaultToFirstReportDate,
-    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField;
+    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice;
 
     // Output Preferences
     private String mUserID;
-    private boolean mIncludeCSVHeaders;
+    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -149,6 +125,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	private void initIncludeTaxField(SharedPreferences prefs) {
 		this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), false);
 	}
+	
+	private void initUsePreTaxPrice(SharedPreferences prefs) {
+		this.mUsePreTaxPrice = prefs.getBoolean(mContext.getString(R.string.pref_receipt_pre_tax_key), true);
+	}
 
 	private void initUserID(SharedPreferences prefs) {
 		this.mUserID = prefs.getString(mContext.getString(R.string.pref_output_username_key), "");
@@ -156,6 +136,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 	private void initIncludeCSVHeaders(SharedPreferences prefs) {
 		this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), false);
+	}
+	
+	private void initUseFileExplorerForOutput(SharedPreferences prefs) {
+		this.mUseFileExplorerForOutput = prefs.getBoolean(mContext.getString(R.string.pref_output_launch_file_explorer_key), false);
 	}
 
 	private void initEmailTo(SharedPreferences prefs) {
@@ -193,7 +177,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	private void initShowPhotoPDFMarker(SharedPreferences prefs) {
 		this.mShowPhotoPDFMarker = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_photo_key), false);
 	}
-
 
     Preferences(Context context, Flex flex) {
 		this.mContext = context;

@@ -383,6 +383,10 @@
     <string name="pref_receipt_include_tax_field_summary">Adds a line item for taxes</string>
     <string name="pref_receipt_tax_percent_key" translatable="false">TaxPercentage</string>
     <string name="pref_receipt_tax_percent_title">Default Tax Percentage</string>
+    <string name="pref_receipt_pre_tax_key" translatable="false">PreTax</string>
+    <string name="pref_receipt_pre_tax_title">Assume Price is Pre-Tax</string>
+    <string name="pref_receipt_pre_tax_summary_on">Calculates Tax From a Pre-Tax Price</string>
+    <string name="pref_receipt_pre_tax_summary_off">Calculates Tax From a Post-Tax Price</string>
     <string name="pref_receipt_enable_autocomplete_key" translatable="false">EnableAutoCompleteSuggestions</string>
     <string name="pref_receipt_enable_autocomplete_title">Enable AutoComplete Suggestions</string>
     <string name="pref_receipt_enable_autocomplete_summary">Suggest values from previous entries</string>
@@ -408,6 +412,9 @@
     <string name="pref_output_csv_header_key" translatable="false">IncludeCSVHeaders</string>
     <string name="pref_output_csv_header_title">Show CSV Headers</string>
     <string name="pref_output_csv_header_summary">Prints a CSV header row</string>
+    <string name="pref_output_launch_file_explorer_key" translatable="false">UseFileExplorer</string>
+    <string name="pref_output_launch_file_explorer_title">Output to File Explorer</string>
+    <string name="pref_output_launch_file_explorer_summary">Generated reports are not emailed</string>
     
     <!-- ============== Preference Email ================= -->
     <string name="pref_email_default_email_to_key" translatable="false">EmailTo</string>

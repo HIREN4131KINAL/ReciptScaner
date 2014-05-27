@@ -80,8 +80,14 @@
         <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"
-            android:inputType="number"
+            android:inputType="number|numberDecimal"
             android:defaultValue="0" />
+        <CheckBoxPreference
+            android:key="@string/pref_receipt_pre_tax_key"
+            android:title="@string/pref_receipt_pre_tax_title"
+            android:summaryOn="@string/pref_receipt_pre_tax_summary_on"
+            android:summaryOff="@string/pref_receipt_pre_tax_summary_off"
+            android:defaultValue="true"/>
     </PreferenceCategory>
     
     <PreferenceCategory 
@@ -100,6 +106,11 @@
             android:key="@string/pref_output_username_key"
             android:title="@string/pref_output_username_title"
             wb:emptyValue="@string/pref_output_username_emptyValue" />
+        <CheckBoxPreference
+            android:key="@string/pref_output_launch_file_explorer_key"
+            android:title="@string/pref_output_launch_file_explorer_title"
+            android:summary="@string/pref_output_launch_file_explorer_summary"
+            android:defaultValue="false"/>
 	</PreferenceCategory>
     
     <PreferenceCategory 

@@ -229,31 +229,54 @@ public class EmailAssistant {
 		emailIntent.putStringArrayListExtra(Intent.EXTRA_TEXT, extra_text);
 		*/
 
-		final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
-		emailIntent.setType("application/octet-stream");
-		final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
-		final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
-		final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
-		emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
-		emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
-		emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-		emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()));
-		emailIntent.putExtra(Intent.EXTRA_TEXT, body);
-		emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-		try {
-			mContext.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+		if (!mPersistenceManager.getPreferences().getUsesFileExporerForOutputIntent()) {
+			// Action Send Output
+			final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
+			emailIntent.setType("application/octet-stream");
+			final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
+			final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
+			final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
+			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
+			emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
+			emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
+			emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()));
+			emailIntent.putExtra(Intent.EXTRA_TEXT, body);
+			emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+			try {
+				mContext.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+			}
+			catch (ActivityNotFoundException e) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+				builder.setTitle(R.string.error_no_send_intent_dialog_title)
+					   .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
+					   .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					       @Override
+						public void onClick(DialogInterface dialog, int id) {
+					            dialog.cancel();
+					       }
+					   })
+					   .show();
+			}
 		}
-		catch (ActivityNotFoundException e) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-			builder.setTitle(R.string.error_no_send_intent_dialog_title)
-				   .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
-				   .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-				       @Override
-					public void onClick(DialogInterface dialog, int id) {
-				            dialog.cancel();
-				       }
-				   })
-				   .show();
+		else {
+			final Intent fileIntent = new Intent(android.content.Intent.ACTION_GET_CONTENT);
+			fileIntent.setType("file/*");
+			fileIntent.addCategory(Intent.CATEGORY_OPENABLE);
+			try {
+				mContext.startActivity(Intent.createChooser(fileIntent, "Send mail..."));
+			}
+			catch (ActivityNotFoundException e) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+				builder.setTitle(R.string.error_no_send_intent_dialog_title)
+					   .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
+					   .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					       @Override
+						public void onClick(DialogInterface dialog, int id) {
+					            dialog.cancel();
+					       }
+					   })
+					   .show();
+			}
 		}
 	}
 

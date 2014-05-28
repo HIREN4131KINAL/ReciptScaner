@@ -340,10 +340,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		this.initMatchCommentCats(prefs);
 		this.initShowReceiptID(prefs);
 		this.initIncludeTaxField(prefs);
+		this.initUsePreTaxPrice(prefs);
 
 		// Output Preferences
 		this.initUserID(prefs);
 		this.initIncludeCSVHeaders(prefs);
+		this.initUseFileExplorerForOutput(prefs);
 
 	    // Email Preferences
 		this.initEmailTo(prefs);
@@ -582,6 +584,14 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 	public String getDateSeparator() {
 		return mDateSeparator;
+	}
+	
+	public boolean getUsesPreTaxPrice() {
+		return this.mUsePreTaxPrice;
+	}
+	
+	public boolean getUsesFileExporerForOutputIntent() {
+		return this.mUseFileExplorerForOutput;
 	}
 
 	/*

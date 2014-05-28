@@ -367,6 +367,7 @@
     <!-- ============== Preference Receipt ================= -->
     <string name="pref_receipt_customize_categories_key" translatable="false">CustomCategories</string>
     <string name="pref_receipt_customize_categories_title">Customize Receipt Categories</string>
+    <string name="pref_receipt_customize_categories_summary">Tap here to add/edit your categories</string>
     <string name="pref_receipt_predict_categories_key" translatable="false">PredictCats</string>
     <string name="pref_receipt_predict_categories_title">Predict Receipt Categories</string>
     <string name="pref_receipt_predict_categories_summary">Auto-fill category based on prior data</string>

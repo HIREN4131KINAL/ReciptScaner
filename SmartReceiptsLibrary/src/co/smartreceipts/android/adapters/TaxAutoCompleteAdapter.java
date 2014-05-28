@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import co.smartreceipts.android.model.TaxItem;
+import co.smartreceipts.android.persistence.Preferences;
 
 public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements TextWatcher, View.OnFocusChangeListener {
 	
@@ -28,6 +29,7 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	private final TaxItem mDefaultValue;
 	private final WeakReference<TextView> mPriceBox;
 	private final WeakReference<AutoCompleteTextView> mTaxBox;
+	private final Preferences mPreferences;
 	
 	/**
 	 * The internal {@link List<T>} that the {@link ArrayAdapter<T>} uses to track entries caused
@@ -36,17 +38,18 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	private final Vector<TaxItem> mData;
 	
 	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox) {
-		this(context, priceBox, taxBox, 0);
+		this(context, priceBox, taxBox, null, 0);
 	}
 	
-	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, float defaultValue) {
+	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, Preferences preferences, float defaultValue) {
 		super(context, android.R.layout.two_line_list_item);
 		mInflater = LayoutInflater.from(context);
 		mData = new Vector<TaxItem>();
 		mListItemId = android.R.layout.two_line_list_item;
-		mDefaultValue = new TaxItem(defaultValue);
+		mDefaultValue = new TaxItem(defaultValue, preferences);
 		mPriceBox = new WeakReference<TextView>(priceBox);
 		mTaxBox = new WeakReference<AutoCompleteTextView>(taxBox);
+		mPreferences = preferences;
 		priceBox.addTextChangedListener(this);
 		taxBox.setOnFocusChangeListener(this);
 	}
@@ -79,7 +82,6 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		TextView priceBox = mPriceBox.get();
-		Log.e("XX", "" + position);
 		if (priceBox == null || TextUtils.isEmpty(priceBox.getText())) {
 			return null;
 		}
@@ -120,9 +122,9 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 				if (this.hasDefaultValue()) {
 					mData.add(mDefaultValue);
 				}
-				mData.add(new TaxItem(VAT_5_5));
-				mData.add(new TaxItem(VAT_10));
-				mData.add(new TaxItem(VAT_20));
+				mData.add(new TaxItem(VAT_5_5, mPreferences));
+				mData.add(new TaxItem(VAT_10, mPreferences));
+				mData.add(new TaxItem(VAT_20, mPreferences));
 			}
 			TextView taxBox = mTaxBox.get();
 			if (this.hasDefaultValue() && taxBox != null) {

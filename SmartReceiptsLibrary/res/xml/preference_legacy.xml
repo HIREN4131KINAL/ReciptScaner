@@ -32,7 +32,8 @@
         android:title="@string/pref_receipt_header"
         android:key="pref_receipt_category_key">
 		<Preference android:key="@string/pref_receipt_customize_categories_key" 
-			android:title="@string/pref_receipt_customize_categories_title" />
+			android:title="@string/pref_receipt_customize_categories_title"
+			android:summary="@string/pref_receipt_customize_categories_summary" />
         <CheckBoxPreference
             android:key="@string/pref_receipt_predict_categories_key"
             android:title="@string/pref_receipt_predict_categories_title"

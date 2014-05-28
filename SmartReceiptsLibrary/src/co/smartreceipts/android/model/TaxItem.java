@@ -1,9 +1,11 @@
 package co.smartreceipts.android.model;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 
 import android.util.Log;
 import co.smartreceipts.android.BuildConfig;
+import co.smartreceipts.android.persistence.Preferences;
 
 public class TaxItem {
 	
@@ -11,22 +13,26 @@ public class TaxItem {
 	
 	private BigDecimal mPercent;
 	private BigDecimal mPrice, mTax;
+	private boolean mUsePreTaxPrice;
 	
-	public TaxItem(String percent) {
+	public TaxItem(String percent, Preferences preferences) {
 		try {
 			mPercent = new BigDecimal(percent);
 		}
 		catch (NumberFormatException e) {
 			mPercent = null;
 		}
+		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
 	}
 	
-	public TaxItem(float percent) {
+	public TaxItem(float percent, Preferences preferences) {
 		mPercent = new BigDecimal(percent);
+		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
 	}
 	
-	public TaxItem(BigDecimal percent) {
+	public TaxItem(BigDecimal percent, Preferences preferences) {
 		mPercent = percent;
+		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
 	}
 	
 	public BigDecimal getPercent() {
@@ -62,7 +68,12 @@ public class TaxItem {
 			mTax = null;
 		}
 		else {
-			mTax = mPercent.multiply(mPrice).divide(new BigDecimal(100));
+			if (mUsePreTaxPrice) {
+				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100));
+			}
+			else {
+				mTax = mPrice.divide(mPercent.add(new BigDecimal(1))).divide(new BigDecimal(100));
+			}
 		}
 		return mTax;
 	}
@@ -73,7 +84,11 @@ public class TaxItem {
 			return new String();
 		}
 		else {
-			return mTax.toPlainString(); //Need to use decimal format
+			DecimalFormat format = new DecimalFormat();
+			format.setMaximumFractionDigits(2);
+			format.setMinimumFractionDigits(2);
+			format.setGroupingUsed(false);
+			return format.format(mTax.doubleValue());
 		}
 	}
 

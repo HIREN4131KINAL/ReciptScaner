@@ -465,7 +465,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				mPriceBox = priceBox;
 			}
 			if (getPersistenceManager().getPreferences().includeTaxField()) {
-				taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
+				taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
 			}
 			mNow = new Time();
 			mNow.setToNow();

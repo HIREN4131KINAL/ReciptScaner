@@ -88,7 +88,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
   	private ReceiptCardAdapter mAdapter;
 	private ReceiptRow mHighlightedReceipt;
 	private Uri mImageUri;
-	private AutoCompleteAdapter mAutoCompleteAdapter;
+	private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
 	private Date mCachedDate;
 	private String mCachedCategory;
 	private Time mNow;
@@ -173,8 +173,11 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onPause");
 		}
-		if (mAutoCompleteAdapter != null) {
-			mAutoCompleteAdapter.onPause();
+		if (mReceiptsNameAutoCompleteAdapter != null) {
+			mReceiptsNameAutoCompleteAdapter.onPause();
+		}
+		if (mReceiptsCommentAutoCompleteAdapter != null) {
+			mReceiptsCommentAutoCompleteAdapter.onPause();
 		}
 		mCachedDate = null;
 		mCachedCategory = null;
@@ -411,7 +414,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		final AutoCompleteTextView taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_TAX);
 		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
 		final DateEditText dateBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_DATE);
-		final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_COMMENT);
+		final AutoCompleteTextView commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_COMMENT);
 		final Spinner categoriesSpinner =  (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
 		final CheckBox expensable = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
 		final CheckBox fullpage = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
@@ -442,14 +445,21 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
 		if (newReceipt) {
 			if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
-				if (mAutoCompleteAdapter == null) {
-					final DatabaseHelper db = getPersistenceManager().getDatabase();
-					mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS, db, db);
+				final DatabaseHelper db = getPersistenceManager().getDatabase();
+				if (mReceiptsNameAutoCompleteAdapter == null) {
+					mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
 				}
 				else {
-					mAutoCompleteAdapter.reset();
+					mReceiptsNameAutoCompleteAdapter.reset();
 				}
-				nameBox.setAdapter(mAutoCompleteAdapter);
+				if (mReceiptsCommentAutoCompleteAdapter == null) {
+					mReceiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
+				}
+				else {
+					mReceiptsCommentAutoCompleteAdapter.reset();
+				}
+				nameBox.setAdapter(mReceiptsNameAutoCompleteAdapter);
+				commentBox.setAdapter(mReceiptsCommentAutoCompleteAdapter);
 				mNameBox = nameBox;
 				mCategoriesSpinner = categoriesSpinner;
 				mPriceBox = priceBox;

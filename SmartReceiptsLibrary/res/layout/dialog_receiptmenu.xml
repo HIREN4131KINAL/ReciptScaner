@@ -48,10 +48,11 @@
 	            android:layout_height="wrap_content"
 	            android:drawSelectorOnTop="true"
 	            android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CATEGORY" />
-    	<EditText android:id="@+id/DIALOG_RECEIPTMENU_COMMENT"
+    	<AutoCompleteTextView android:id="@+id/DIALOG_RECEIPTMENU_COMMENT"
 			    android:layout_width="fill_parent" 
 			    android:layout_height="0dip"
 			    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT"
+				android:completionThreshold="1"
 			    android:layout_weight="1" />
     	<LinearLayout android:id="@+id/DIALOG_RECEIPTMENU_EXTRAS"
 	        android:orientation="vertical"

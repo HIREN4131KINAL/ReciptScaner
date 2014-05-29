@@ -42,6 +42,10 @@ public class AutoCompleteAdapter extends CursorAdapter implements Filterable, Fi
 		mCol = col;
 	}
 	
+	public static AutoCompleteAdapter getInstance(Activity activity, CharSequence mTag, QueryListener queryListener) {
+		return getInstance(activity, mTag, queryListener, null, 0);
+	}
+	
 	public static AutoCompleteAdapter getInstance(Activity activity, CharSequence mTag, QueryListener queryListener, ItemSelectedListener itemSelectedListener) {
 		return getInstance(activity, mTag, queryListener, itemSelectedListener, 0);
 	}

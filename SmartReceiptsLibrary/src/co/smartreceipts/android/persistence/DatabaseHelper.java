@@ -53,7 +53,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	//Tags
 	public static final String TAG_TRIPS = "Trips";
-	public static final String TAG_RECEIPTS = "Receipts";
+	public static final String TAG_RECEIPTS_NAME = "Receipts";
+	public static final String TAG_RECEIPTS_COMMENT = "Receipts_Comment";
+
 
 	//InstanceVar
 	private static DatabaseHelper INSTANCE = null;
@@ -3012,11 +3014,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		//TODO: Fix SQL vulnerabilities
 		final SQLiteDatabase db = this.getReadableDatabase();
 		String sqlQuery = "";
-		if (tag == TAG_RECEIPTS) {
+		if (tag == TAG_RECEIPTS_NAME) {
 			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_NAME + ") AS _id " +
 				       " FROM " + ReceiptsTable.TABLE_NAME +
 				       " WHERE " + ReceiptsTable.COLUMN_NAME + " LIKE '%" + text + "%' " +
 				       " ORDER BY " + ReceiptsTable.COLUMN_NAME;
+		}
+		else if (tag == TAG_RECEIPTS_COMMENT) {
+			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_COMMENT + ") AS _id " +
+				       " FROM " + ReceiptsTable.TABLE_NAME +
+				       " WHERE " + ReceiptsTable.COLUMN_COMMENT + " LIKE '%" + text + "%' " +
+				       " ORDER BY " + ReceiptsTable.COLUMN_COMMENT;
 		}
 		else if (tag == TAG_TRIPS) {
 			sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_NAME + ") AS _id " +
@@ -3036,7 +3044,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		Cursor c = null;
 		SQLiteDatabase db = null;
 		final String name = text.toString();
-		if (tag == TAG_RECEIPTS) {
+		if (tag == TAG_RECEIPTS_NAME) {
 			String category = null, price = null, tmp = null;
 			// If we're not predicting, return
 			if (!mPersistenceManager.getPreferences().predictCategories()) {

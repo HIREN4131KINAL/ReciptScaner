@@ -637,9 +637,11 @@ public class EmailAssistant {
 						}
 						continue;
 					}
-					table.addCell(receipt1.getIndex() + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+					int num1 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt1.getId() : receipt1.getIndex();
+					int num2 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
+					table.addCell(num1 + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
 					table.addCell("");
-					table.addCell(receipt.getIndex() + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+					table.addCell(num2 + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
 					table.addCell(getCell(img1));
 					table.addCell("");
 					table.addCell(getCell(img2));
@@ -660,7 +662,8 @@ public class EmailAssistant {
 				}
 			}
 			if (img1 != null) {
-				table.addCell(receipt1.getIndex() + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+				int num1 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt1.getId() : receipt1.getIndex();
+				table.addCell(num1 + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
 				table.addCell(" ");
 				table.addCell(" ");
 				table.addCell(getCell(img1));

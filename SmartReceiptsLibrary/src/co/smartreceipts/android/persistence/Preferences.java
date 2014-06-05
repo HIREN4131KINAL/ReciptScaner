@@ -39,7 +39,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Output Preferences
     private String mUserID;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput;
+    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -141,6 +141,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	private void initUseFileExplorerForOutput(SharedPreferences prefs) {
 		this.mUseFileExplorerForOutput = prefs.getBoolean(mContext.getString(R.string.pref_output_launch_file_explorer_key), false);
 	}
+	
+	private void initIncludeReceiptIdNotIndex(SharedPreferences prefs) {
+		this.mIncludeIDNotIndex = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_id_by_photo_key), false);
+	}
 
 	private void initEmailTo(SharedPreferences prefs) {
 		this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), "");
@@ -221,10 +225,13 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		this.initMatchCommentCats(prefs);
 		this.initShowReceiptID(prefs);
 		this.initIncludeTaxField(prefs);
+		this.initUsePreTaxPrice(prefs);
 
 		// Output Preferences
 		this.initUserID(prefs);
 		this.initIncludeCSVHeaders(prefs);
+		this.initIncludeReceiptIdNotIndex(prefs);
+		this.initUseFileExplorerForOutput(prefs);
 
 	    // Email Preferences
 		this.initEmailTo(prefs);
@@ -354,275 +361,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		this.initShowPhotoPDFMarker(prefs);
 	}
 
-	/*
-	@Override
-	public boolean onPreferenceChange(Preference preference, Object value) {
-		final String key = preference.getKey();
-
-
-		////////////////////////
-		// General Preferences
-		////////////////////////
-		if (key.equals(mContext.getString(R.string.pref_general_trip_duration_key))) {
-			if (value instanceof Integer) {
-				this.mDefaultTripDuration = (Integer) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_general_default_date_separator_key))) {
-			if (value instanceof String) {
-				this.mDateSeparator = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_general_default_currency_key))) {
-			if (value instanceof String) {
-				this.mDefaultCurrency = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		////////////////////////
-		// Receipt Preferences
-		////////////////////////
-		else if (key.equals(mContext.getString(R.string.pref_receipt_minimum_receipts_price_key))) {
-			if (value instanceof Float) {
-				this.mMinReceiptPrice = (Float) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_include_tax_percent_key))) {
-			if (value instanceof Integer) {
-				this.mDefaultTaxPercentage = (Integer) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_predict_categories_key))) {
-			if (value instanceof Boolean) {
-				this.mPredictCategories = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_enable_autocomplete_key))) {
-			if (value instanceof Boolean) {
-				this.mEnableAutoCompleteSuggestions = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_expensable_only_key))) {
-			if (value instanceof Boolean) {
-				this.mOnlyIncludeExpensable = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_default_to_report_start_date_key))) {
-			if (value instanceof Boolean) {
-				this.mDefaultToFirstReportDate = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_match_name_to_category_key))) {
-			if (value instanceof Boolean) {
-				this.mMatchNameCats = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_match_comment_to_category_key))) {
-			if (value instanceof Boolean) {
-				this.mMatchCommentCats = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_show_id_key))) {
-			if (value instanceof Boolean) {
-				this.mShowReceiptID = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_receipt_include_tax_field_key))) {
-			if (value instanceof Boolean) {
-				this.mIncludeTaxField = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		// Output Preferences
-		else if (key.equals(mContext.getString(R.string.pref_output_username_key))) {
-			if (value instanceof String) {
-				this.mUserID = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_output_csv_header_key))) {
-			if (value instanceof Boolean) {
-				this.mIncludeCSVHeaders = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		////////////////////////
-		// Email Preferences
-		////////////////////////
-		else if (key.equals(mContext.getString(R.string.pref_email_default_email_to_key))) {
-			if (value instanceof String) {
-				this.mEmailTo = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_email_default_email_cc_key))) {
-			if (value instanceof String) {
-				this.mEmailCC = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_email_default_email_bcc_key))) {
-			if (value instanceof String) {
-				this.mEmailBCC = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_email_default_email_subject_key))) {
-			if (value instanceof String) {
-				this.mEmailSubject = (String) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		////////////////////////
-		// Camera Preferences
-		////////////////////////
-		else if (key.equals(mContext.getString(R.string.pref_camera_use_native_camera_key))) {
-			if (value instanceof Boolean) {
-				this.mUseNativeCamera = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_camera_bw_key))) {
-			if (value instanceof Boolean) {
-				this.mCameraGrayScale = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		////////////////////////
-		// Layout Preferences
-		////////////////////////
-		else if (key.equals(mContext.getString(R.string.pref_layout_display_date_key))) {
-			if (value instanceof Boolean) {
-				this.mShowDate = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_layout_display_category_key))) {
-			if (value instanceof Boolean) {
-				this.mShowCategory = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		else if (key.equals(mContext.getString(R.string.pref_layout_display_photo_key))) {
-			if (value instanceof Boolean) {
-				this.mShowPhotoPDFMarker = (Boolean) value;
-				return true;
-			}
-			else {
-				if (BuildConfig.DEBUG) Log.e(TAG, "Invalid value class type - " + value);
-				return false;
-			}
-		}
-		// Default Return
-		else {
-			return false;
-		}
-	}
-    */
-
 	public boolean predictCategories() {
 		return mPredictCategories;
 	}
@@ -669,6 +407,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 	public void setIncludeTaxField(boolean includeTaxField) {
 		this.mIncludeTaxField = includeTaxField;
+	}
+	
+	public boolean usePreTaxPrice() {
+		return this.mUsePreTaxPrice;
 	}
 
 	public void setDateSeparator(String dateSeparator) {
@@ -721,6 +463,14 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 	public void setMinimumReceiptPriceToIncludeInReports(float minReceiptPrice) {
 		this.mMinReceiptPrice = minReceiptPrice;
+	}
+	
+	public boolean getUseFileExplorerForOutput() {
+		return this.mUseFileExplorerForOutput;
+	}
+	
+	public boolean includeReceiptIdInsteadOfIndexByPhoto() {
+		return this.mIncludeIDNotIndex;
 	}
 
 	public boolean defaultToFirstReportDate() {

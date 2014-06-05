@@ -36,6 +36,7 @@
     <string name="item_name">Name:</string>
     <string name="move">Move</string>
     <string name="move_copy_item">Move/Copy %s?</string>
+    <string name="next_id">Next ID: %s</string>
     <string name="no">No</string>
     <string name="pdf">PDF</string>
     <string name="report">Report</string>
@@ -415,6 +416,9 @@
     <string name="pref_output_launch_file_explorer_key" translatable="false">UseFileExplorer</string>
     <string name="pref_output_launch_file_explorer_title">Output to File Explorer</string>
     <string name="pref_output_launch_file_explorer_summary">Generated reports are not emailed</string>
+    <string name="pref_output_print_receipt_id_by_photo_key" translatable="false">PrintByIDPhotoKey</string>
+    <string name="pref_output_print_receipt_id_by_photo_title">Print ID By Photo</string>
+    <string name="pref_output_print_receipt_id_by_photo_summary">Shows the Receipt ID instead of Index</string>
     
     <!-- ============== Preference Email ================= -->
     <string name="pref_email_default_email_to_key" translatable="false">EmailTo</string>

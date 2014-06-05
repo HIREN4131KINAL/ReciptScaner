@@ -1514,8 +1514,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt) throws SQLException {
-
-		return insertReceiptHelper(parent, receipt.getFile(), receipt.getName(), receipt.getCategory(),
+		return insertReceiptSerial(parent, receipt, receipt.getFile());
+	}
+	
+	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt, File newFile) throws SQLException {
+		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(),
 								   receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(),
 								   receipt.getTax(), receipt.isExpensable(), receipt.getCurrencyCode(),
 								   receipt.isFullPage(), receipt.getExtraEditText1(), receipt.getExtraEditText2(),
@@ -1580,8 +1583,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		if (price.length() > 0) {
 			values.put(ReceiptsTable.COLUMN_PRICE, price);
 		}
-		if (tax.length() > 0)
-		 {
+		if (tax.length() > 0) {
 			values.put(ReceiptsTable.COLUMN_TAX, tax);
 		//Extras
 		}
@@ -1594,6 +1596,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			String newName = stringBuilder.toString();
 			File file = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), newName);
 			if (!file.exists()) { //If this file doesn't exist, let's rename our current one
+				if (BuildConfig.DEBUG) {
+					Log.e(TAG, "Changing image name from: " + img.getName() + " to: " + newName);
+				}
 				img = mPersistenceManager.getStorageManager().rename(img, newName); //Returns oldFile on failure
 			}
 			values.put(ReceiptsTable.COLUMN_PATH, img.getName());
@@ -1941,14 +1946,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		File newFile = null;
 		final StorageManager storageManager = mPersistenceManager.getStorageManager();
 		if (receipt.hasFile()) {
-			Log.e(TAG, "hasFile");
 			try {
 				newFile = storageManager.getFile(newTrip.getDirectory(), receipt.getFileName());
-				Log.e(TAG, newFile.getAbsolutePath());
 				if (!storageManager.copy(receipt.getFile(), newFile, true)) {
-					Log.e(TAG, "Fail");
 					newFile = null; //Unset on failed copy
 					return false;
+				}
+				else {
+					if (BuildConfig.DEBUG) {
+						Log.d(TAG, "Successfully created a copy of " + receipt.getFileName() + " for " + receipt.getName() + " at " + newFile.getAbsolutePath());
+					}
 				}
 			} catch (IOException e) {
 				if (BuildConfig.DEBUG) {
@@ -1957,7 +1964,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				return false;
 			}
 		}
-		if (insertReceiptSerial(newTrip, receipt) != null) { // i.e. successfully inserted
+		if (insertReceiptSerial(newTrip, receipt, newFile) != null) { // i.e. successfully inserted
 			return true;
 		}
 		else {

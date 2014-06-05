@@ -184,8 +184,13 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 			return;
 		}
     	getActivity().setTitle(mCurrentTrip.getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
-    	if (!mCurrentTrip.isDailySubTotalEmpty()) {
-    		getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getCurrencyFormattedDailySubTotal()));
+    	if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+    		getSupportActionBar().setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
+    	}
+    	else {
+	    	if (!mCurrentTrip.isDailySubTotalEmpty()) {
+	    		getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getCurrencyFormattedDailySubTotal()));
+	    	}
     	}
 	}
 

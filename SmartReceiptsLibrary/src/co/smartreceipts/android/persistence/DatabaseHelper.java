@@ -56,7 +56,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public static final String TAG_RECEIPTS_NAME = "Receipts";
 	public static final String TAG_RECEIPTS_COMMENT = "Receipts_Comment";
 
-
 	//InstanceVar
 	private static DatabaseHelper INSTANCE = null;
 
@@ -64,6 +63,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private TripRow[] mTripsCache;
 	private boolean mAreTripsValid;
 	private final HashMap<TripRow, ReceiptRow[]> mReceiptCache;
+	private int mNextReceiptAutoIncrementId = -1;
 	private HashMap<String, String> mCategories;
 	private ArrayList<CharSequence> mCategoryList, mCurrencyList;
 	private CSVColumns mCSVColumns;
@@ -1655,6 +1655,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (mReceiptCache.containsKey(trip)) {
 					mReceiptCache.remove(trip);
 				}
+				mNextReceiptAutoIncrementId = -1;
 			}
 		}
 		return insertReceipt;
@@ -1816,6 +1817,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		synchronized (mReceiptCacheLock) {
+			mNextReceiptAutoIncrementId = -1;
 			if (updatedReceipt != null) {
 				mReceiptCache.remove(trip);
 			}
@@ -2049,6 +2051,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 			this.updateTripPrice(currentTrip);
 			synchronized (mReceiptCacheLock) {
+				mNextReceiptAutoIncrementId = -1;
 				mReceiptCache.remove(currentTrip);
 			}
 		}
@@ -2168,6 +2171,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	private int getNextReceiptAutoIncremenetIdHelper() {
+		if (mNextReceiptAutoIncrementId > 0) {
+			return mNextReceiptAutoIncrementId;
+		}
 		SQLiteDatabase db = getReadableDatabase();
 		Cursor c = null;
 		try {
@@ -2175,11 +2181,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 				c = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[] { ReceiptsTable.TABLE_NAME });
 				if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-					return c.getInt(0) + 1;
+					mNextReceiptAutoIncrementId = c.getInt(0) + 1;
 				}
 				else {
-					return 1;
+					mNextReceiptAutoIncrementId = 1;
 				}
+				return mNextReceiptAutoIncrementId;
 			}
 		}
 		finally {

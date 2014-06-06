@@ -44,6 +44,7 @@
     <string name="reports_attached">%s report attached</string>
     <string name="receipt">Receipt</string>
     <string name="save">Save</string>
+    <string name="send_file">Get File&#8230;</string>
     <string name="send_email">Send Email&#8230;</string>
     <string name="support">%s - Support</string>
     <string name="total_item">Total: %s</string>
@@ -472,6 +473,8 @@
 	<!-- ================ Error Feedback ==================== -->
 	<string name="error_no_send_intent_dialog_title">No Send App Found</string>
 	<string name="error_no_send_intent_dialog_message">We could not find an email application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
+	<string name="error_no_file_intent_dialog_title">No File App Found</string>
+	<string name="error_no_file_intent_dialog_message">We could not find an file browser application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
 	
     <!-- ================== ActionBar ===================== -->
     <string name="actionbar_subtitle_list">List View</string>

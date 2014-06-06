@@ -210,6 +210,7 @@ public class EmailAssistant {
 				bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getAbsolutePath()));
 			}
 		}
+		
 		//TODO: Check if we've defined the subject in our preferences
 		String body = bodyBuilder.toString();
 		if (body.length() > 0) {
@@ -243,7 +244,7 @@ public class EmailAssistant {
 			emailIntent.putExtra(Intent.EXTRA_TEXT, body);
 			emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
 			try {
-				mContext.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+				mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
 			}
 			catch (ActivityNotFoundException e) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -261,14 +262,17 @@ public class EmailAssistant {
 		else {
 			final Intent fileIntent = new Intent(android.content.Intent.ACTION_GET_CONTENT);
 			fileIntent.setType("file/*");
-			fileIntent.addCategory(Intent.CATEGORY_OPENABLE);
+			if (path != null) {
+				File parentDirectory = new File(path);
+				fileIntent.setData(Uri.fromFile(parentDirectory));
+			}
 			try {
-				mContext.startActivity(Intent.createChooser(fileIntent, "Send mail..."));
+				mContext.startActivity(Intent.createChooser(fileIntent, mContext.getString(R.string.send_file)));
 			}
 			catch (ActivityNotFoundException e) {
 				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-				builder.setTitle(R.string.error_no_send_intent_dialog_title)
-					   .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
+				builder.setTitle(R.string.error_no_file_intent_dialog_title)
+					   .setMessage(mContext.getString(R.string.error_no_file_intent_dialog_message, path))
 					   .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 					       @Override
 						public void onClick(DialogInterface dialog, int id) {
@@ -660,11 +664,9 @@ public class EmailAssistant {
 						}
 						continue;
 					}
-					int num1 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt1.getId() : receipt1.getIndex();
-					int num2 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
-					table.addCell(num1 + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+					addHeaderCell(table, receipt1);
 					table.addCell("");
-					table.addCell(num2 + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+					addHeaderCell(table, receipt);
 					table.addCell(getCell(img1));
 					table.addCell("");
 					table.addCell(getCell(img2));
@@ -685,8 +687,7 @@ public class EmailAssistant {
 				}
 			}
 			if (img1 != null) {
-				int num1 = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt1.getId() : receipt1.getIndex();
-				table.addCell(num1 + "  \u2022  " + receipt1.getName() + "  \u2022  " + receipt1.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+				addHeaderCell(table, receipt1);
 				table.addCell(" ");
 				table.addCell(" ");
 				table.addCell(getCell(img1));
@@ -708,6 +709,11 @@ public class EmailAssistant {
 			}
 			return document;
 		}
+		
+		private void addHeaderCell(PdfPTable table, ReceiptRow receipt) {
+			int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
+			table.addCell(num + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+		}
 
 		private void addFullPageImage(Document document, ReceiptRow receipt, PdfWriter writer) {
 			if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
@@ -723,7 +729,7 @@ public class EmailAssistant {
 					int numPages = reader.getNumberOfPages();
 					for (int page = 0; page < numPages;) {
 						table = getSingleElementTable();
-						table.addCell(receipt.getIndex() + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+						addHeaderCell(table, receipt);
 						try {
 							table.addCell(Image.getInstance(writer.getImportedPage(reader, ++page)));
 						}
@@ -752,7 +758,7 @@ public class EmailAssistant {
 				}
 				else if (receipt.isFullPage() && receipt.hasFile()) {
 					table = getSingleElementTable();
-					table.addCell(receipt.getIndex() + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+					addHeaderCell(table, receipt);
 					table.addCell(getFullCell(Image.getInstance(receipt.getFilePath())));
 					table.completeRow();
 					document.add(table);

@@ -209,6 +209,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 
     private void initAllPreferences(SharedPreferences prefs) {
+    	if (BuildConfig.DEBUG) {
+    		Log.d(TAG, "Initializing Shared Preferences");
+    	}
     	// General Preferences
 		this.initDefaultTripDuration(prefs);
 		this.initDefaultDateSeparator(prefs);
@@ -318,49 +321,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		if (TextUtils.isEmpty(key)) {
 			return; // Exit early if bad key
 		}
-
-		/*
-		 * In practice, I should just init the one that changed...
-		 * But this way is easier so whatever
-		 */
-
-		// General Preferences
-		this.initDefaultTripDuration(prefs);
-		this.initDefaultDateSeparator(prefs);
-		this.initDefaultCurrency(prefs);
-
-		// Receipt Preferences
-		this.initMinReceiptPrice(prefs);
-		this.initDefaultTaxPercentage(prefs);
-		this.initPredictCategories(prefs);
-		this.initEnableAutoCompleteSuggestions(prefs);
-		this.initOnlyIncludeExpensable(prefs);
-		this.initDefaultToFirstReportDate(prefs);
-		this.initMatchNameCats(prefs);
-		this.initMatchCommentCats(prefs);
-		this.initShowReceiptID(prefs);
-		this.initIncludeTaxField(prefs);
-		this.initUsePreTaxPrice(prefs);
-
-		// Output Preferences
-		this.initUserID(prefs);
-		this.initIncludeCSVHeaders(prefs);
-		this.initUseFileExplorerForOutput(prefs);
-
-	    // Email Preferences
-		this.initEmailTo(prefs);
-		this.initEmailCC(prefs);
-		this.initEmailBCC(prefs);
-		this.initEmailSubject(prefs);
-
-	    // Camera Preferences
-		this.initUseNativeCamera(prefs);
-		this.initCameraGrayScale(prefs);
-
-	    // Layout Preferences
-		this.initShowDate(prefs);
-		this.initShowCategory(prefs);
-		this.initShowPhotoPDFMarker(prefs);
+		initAllPreferences(prefs);
 	}
 
 	public boolean predictCategories() {
@@ -465,10 +426,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
 	public void setMinimumReceiptPriceToIncludeInReports(float minReceiptPrice) {
 		this.mMinReceiptPrice = minReceiptPrice;
-	}
-	
-	public boolean getUseFileExplorerForOutput() {
-		return this.mUseFileExplorerForOutput;
 	}
 	
 	public boolean includeReceiptIdInsteadOfIndexByPhoto() {

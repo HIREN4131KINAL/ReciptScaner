@@ -133,6 +133,11 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 			}
 		}
 		else {
+			TextView taxBox = mTaxBox.get();
+			if (this.hasDefaultValue() && taxBox != null) {
+				mDefaultValue.setPrice("0");
+				taxBox.setText(mDefaultValue.toString());
+			}
 			mData.clear();
 		}
 	}

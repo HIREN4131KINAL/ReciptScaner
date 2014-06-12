@@ -1,8 +1,10 @@
 package co.smartreceipts.android.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
+import android.text.TextUtils;
 import android.util.Log;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.persistence.Preferences;
@@ -10,6 +12,8 @@ import co.smartreceipts.android.persistence.Preferences;
 public class TaxItem {
 	
 	private static final String TAG = "TaxItem";
+	
+	private static final int SCALE = 2;
 	
 	private BigDecimal mPercent;
 	private BigDecimal mPrice, mTax;
@@ -49,6 +53,10 @@ public class TaxItem {
 	}
 	
 	public void setPrice(String price) {
+		if (TextUtils.isEmpty(price)) {
+			mPrice = new BigDecimal(0);
+			getTax();
+		}
 		try {
 			mPrice = new BigDecimal(price.trim());
 			getTax();
@@ -68,11 +76,12 @@ public class TaxItem {
 			mTax = null;
 		}
 		else {
+			Log.d(TAG, mPrice.toString());
 			if (mUsePreTaxPrice) {
-				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100));
+				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100), SCALE, RoundingMode.HALF_UP);
 			}
 			else {
-				mTax = mPrice.divide(mPercent.add(new BigDecimal(1))).divide(new BigDecimal(100));
+				mTax = mPrice.subtract(mPrice.divide(mPercent.divide(new BigDecimal(100), 10, RoundingMode.HALF_EVEN).add(new BigDecimal(1)), SCALE, RoundingMode.HALF_UP));
 			}
 		}
 		return mTax;

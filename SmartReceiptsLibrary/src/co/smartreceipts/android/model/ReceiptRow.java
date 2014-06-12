@@ -10,6 +10,7 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.view.FocusFinder;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -18,12 +19,12 @@ public class ReceiptRow implements Parcelable {
 
 	public static final String PARCEL_KEY = "co.smartreceipts.android.ReceiptRow";
 
-	private static final String EMPTY_PRICE = "0.00";
-
 	private final int mId;
+	private TripRow mTrip;
 	private int mIndex; // Tracks the index in the list (if specified)
 	private File mFile;
-	private String mName, mCategory, mComment, mPrice, mTax;
+	private String mName, mCategory, mComment; 
+	private float mPrice, mTax;
 	private String mExtraEditText1, mExtraEditText2, mExtraEditText3;
 	private Date mDate;
 	private TimeZone mTimeZone;
@@ -38,13 +39,15 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	private ReceiptRow(Parcel in) {
+		mTrip = in.readParcelable(TripRow.class.getClassLoader());
 		mId = in.readInt();
 		mName = in.readString();
 		mCategory = in.readString();
 		mComment = in.readString();
-		mPrice = in.readString();
-		mTax = in.readString();
-		mFile = new File(in.readString());
+		mPrice = in.readFloat();
+		mTax = in.readFloat();
+		final String fileName = in.readString();
+		mFile = TextUtils.isEmpty(fileName) ? null : new File(fileName);
 		mDate = new Date(in.readLong());
 		mCurrency = WBCurrency.getInstance(in.readString());
 		mIsExpensable = (in.readByte() != 0);
@@ -53,11 +56,20 @@ public class ReceiptRow implements Parcelable {
 		mExtraEditText2 = in.readString();
 		mExtraEditText3 = in.readString();
 		mIndex = in.readInt();
+		mTimeZone = TimeZone.getTimeZone(in.readString());
 		mSource = SourceEnum.Parcel;
 	}
 
 	public int getId() {
 		return mId;
+	}
+	
+	public TripRow getTrip() {
+		return mTrip;
+	}
+	
+	public boolean hasTrip() {
+		return mTrip != null;
 	}
 
 	public String getName() {
@@ -156,16 +168,11 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getPrice() {
-		return mPrice;
+		return Float.toString(mPrice);
 	}
 
 	public float getPriceAsFloat() {
-		try {
-			return Float.valueOf(getPrice());
-		}
-		catch(NumberFormatException e) {
-			return 0f;
-		}
+		return mPrice;
 	}
 
 	public String getDecimalFormattedPrice() {
@@ -186,7 +193,7 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getTax() {
-		return mTax;
+		return Float.toString(mTax);
 	}
 
 	public float getTaxAsFloat() {
@@ -266,6 +273,10 @@ public class ReceiptRow implements Parcelable {
 	public int getIndex() {
 		return mIndex;
 	}
+	
+	public void setTrip(TripRow trip) {
+		mTrip = trip;
+	}
 
 	void setName(String name) {
 		mName = name;
@@ -312,18 +323,21 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	void setPrice(String price) {
-		if (TextUtils.isEmpty(price)) {
-			mPrice = EMPTY_PRICE;
-		} else {
-			mPrice = price;
-		}
+		mPrice = tryParse(price);
 	}
 
 	void setTax(String tax) {
-		if (TextUtils.isEmpty(tax)) {
-			mTax = EMPTY_PRICE;
-		} else {
-			mTax = tax;
+		mTax = tryParse(tax);
+	}
+	
+	private float tryParse(String number) {
+		if (TextUtils.isEmpty(number)) {
+			return 0f;
+		}
+		try {
+			return Float.parseFloat(number);	
+		} catch (NumberFormatException e) {
+			return 0f;
 		}
 	}
 
@@ -440,12 +454,13 @@ public class ReceiptRow implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeParcelable(getTrip(), flags);
 		dest.writeInt(getId());
 		dest.writeString(getName());
 		dest.writeString(getCategory());
 		dest.writeString(getComment());
-		dest.writeString(getPrice());
-		dest.writeString(getTax());
+		dest.writeFloat(getPriceAsFloat());
+		dest.writeFloat(getTaxAsFloat());
 		dest.writeString(getFilePath());
 		dest.writeLong(getDate().getTime());
 		dest.writeString(getCurrencyCode());
@@ -455,24 +470,33 @@ public class ReceiptRow implements Parcelable {
 		dest.writeString(getExtraEditText2());
 		dest.writeString(getExtraEditText3());
 		dest.writeInt(getIndex());
+		dest.writeString(mTimeZone.getID());
 	}
 
 	public static final class Builder {
 
+		private TripRow _trip;
 		private File _file;
 		private String _name, _category, _comment, _price, _tax;
 		private String _extraEditText1, _extraEditText2, _extraEditText3;
 		private Date _date;
 		private TimeZone _timezone;
 		private final int _id;
+		private int _index;
 		private boolean _isExpenseable, _isFullPage;
 		private WBCurrency _currency;
 		private SourceEnum _source;
 
 		public Builder(int id) {
 			_id = id;
+			_index = -1;
 			_source = SourceEnum.Undefined;
 			_timezone = TimeZone.getDefault();
+		}
+		
+		public Builder setTrip(TripRow trip) {
+			_trip = trip;
+			return this;
 		}
 
 		public Builder setName(String name) {
@@ -571,6 +595,11 @@ public class ReceiptRow implements Parcelable {
 			_extraEditText3 = extraEditText3;
 			return this;
 		}
+		
+		public Builder setIndex(int index) {
+			_index = index;
+			return this;
+		}
 
 		//TODO: Use this method
 		public Builder setSourceAsCache() {
@@ -580,6 +609,7 @@ public class ReceiptRow implements Parcelable {
 
 		public ReceiptRow build() {
 			ReceiptRow receipt = new ReceiptRow(_id);
+			receipt.setTrip(_trip);
 			receipt.setName(_name);
 			receipt.setCategory(_category);
 			receipt.setComment(_comment);
@@ -594,6 +624,7 @@ public class ReceiptRow implements Parcelable {
 			receipt.setIsExpenseable(_isExpenseable);
 			receipt.setIsFullPage(_isFullPage);
 			receipt.setCurrency(_currency);
+			receipt.setIndex(_index);
 			receipt.setSource(_source);
 			return receipt;
 		}

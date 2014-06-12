@@ -48,20 +48,29 @@ public class WBCurrency {
 	}
 	
 	public final String format(final String price) {
-		BigDecimal amnt = stringToBigDecimal(price);
+		return format(stringToBigDecimal(price));
+	}
+	
+	public final String format(final float price) {
+		return format(new BigDecimal(price));
+	}
+	
+	public final String format(final BigDecimal price) {
     	try {
     		if (currency != null) {
 				NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 				numFormat.setCurrency(currency);
-				return numFormat.format(amnt.doubleValue());
+				return numFormat.format(price.doubleValue());
     		}
     		else {
-    			return code + formatStringAsStrictDecimal(amnt);
+    			return code + formatStringAsStrictDecimal(price);
     		}
     	} catch (java.lang.NumberFormatException e) {
     		return "$0.00";
     	}
 	}
+	
+	
 	
 	private BigDecimal stringToBigDecimal(String input) {
 		try {

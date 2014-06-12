@@ -13,7 +13,7 @@
 			    android:layout_width="match_parent"
 	            android:layout_height="50dp"
 			    ads:adUnitId="@string/adUnitId"
-			    ads:adSize="BANNER"/>
+			    ads:adSize="SMART_BANNER"/>
    	</RelativeLayout> 	 
 	<ListView style="@style/Widget.SmartReceipts.ListView"
 		android:id="@android:id/list" 

@@ -679,7 +679,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			   .setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
 		           @Override
 				public void onClick(DialogInterface dialog, int id) {
-		        	   if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesString, milesBox.getText().toString())) {
+		        	   if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesBox.getText().toString())) {
 		        		   Toast.makeText(getActivity(), R.string.toast_error_invalid_input, Toast.LENGTH_SHORT).show();
 		        	   }
 		        	   else {

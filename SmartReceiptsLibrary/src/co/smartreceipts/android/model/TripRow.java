@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.Calendar;
+import java.util.Currency;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import android.content.Context;
@@ -19,7 +21,8 @@ public final class TripRow implements Parcelable {
 	private static final String EMPTY_PRICE = "0.00";
 	
 	private final File mReportDirectory;
-	private String mPrice, mDailySubTotal, mComment;
+	private String mComment;
+	private float mPrice, mDailySubTotal;
 	private Date mStartDate, mEndDate;
 	private TimeZone mStartTimeZone, mEndTimeZone;
 	private WBCurrency mCurrency, mDefaultCurrency;
@@ -29,7 +32,7 @@ public final class TripRow implements Parcelable {
 	
 	private TripRow(File directory, String price, Date startDate, Date endDate, WBCurrency currency, float miles, SourceEnum source) {
 		mReportDirectory = directory;
-		mPrice = price;
+		mPrice = tryParse(price);
 		mStartDate = startDate;
 		mEndDate = endDate;
 		mCurrency = currency;
@@ -39,17 +42,28 @@ public final class TripRow implements Parcelable {
 	
 	private TripRow(Parcel in) {
 		mReportDirectory = new File(in.readString());
-		mPrice = in.readString();
+		mPrice = in.readFloat();
 		mStartDate = new Date(in.readLong());
 		mEndDate = new Date(in.readLong());
 		mCurrency = WBCurrency.getInstance(in.readString());
 		mMiles = in.readFloat();
 		mStartTimeZone = TimeZone.getTimeZone(in.readString());
 		mEndTimeZone = TimeZone.getTimeZone(in.readString());
-		mDailySubTotal = in.readString();
+		mDailySubTotal = in.readFloat();
 		mComment = in.readString();
 		mDefaultCurrency = WBCurrency.getInstance(in.readString());
 		mSource = SourceEnum.Parcel;
+	}
+	
+	private float tryParse(String number) {
+		if (TextUtils.isEmpty(number)) {
+			return 0f;
+		}
+		try {
+			return Float.parseFloat(number);	
+		} catch (NumberFormatException e) {
+			return 0f;
+		}
 	}
 	
 	// TODO: Add null safety checks?
@@ -162,7 +176,7 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getPrice() {
-		return mPrice;
+		return Float.toString(mPrice);
 	}
 	
 	public float getPriceAsFloat() {
@@ -180,7 +194,7 @@ public final class TripRow implements Parcelable {
 	
 	public String getCurrencyFormattedPrice() {
 		if (mCurrency != null) {
-			return mCurrency.format(mPrice);
+			return mCurrency.format(getPriceAsFloat());
 		}
 		else {
 			return "Mixed";
@@ -188,11 +202,11 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public boolean isPriceEmpty() {
-		return TextUtils.isEmpty(mPrice);
+		return TextUtils.isEmpty(getPrice());
 	}
 	
 	public String getDailySubTotal() {
-		return mDailySubTotal;
+		return Float.toString(mDailySubTotal);
 	}
 	
 	public float getDailySubTotalAsFloat() {
@@ -218,7 +232,7 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public boolean isDailySubTotalEmpty() {
-		return TextUtils.isEmpty(mPrice);
+		return TextUtils.isEmpty(getDailySubTotal());
 	}
 	
 	public WBCurrency getCurrency() {
@@ -239,11 +253,11 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public String getDefaultCurrencyCode() {
-		if (mCurrency != null) {
+		if (mDefaultCurrency != null) {
 			return mDefaultCurrency.getCurrencyCode();
 		}
 		else {
-			return WBCurrency.MISSING_CURRENCY;
+			return Currency.getInstance(Locale.getDefault()).getCurrencyCode();
 		}
 	}
 	
@@ -268,11 +282,11 @@ public final class TripRow implements Parcelable {
 	}
 	
 	public void setPrice(String price) {
-		mPrice = price;
+		mPrice = tryParse(price);
 	}
 	
 	public void setDailySubTotal(String dailyTotal) {
-		mDailySubTotal = dailyTotal;
+		mDailySubTotal = tryParse(dailyTotal);
 	}
 	
 	public void setCurrency(WBCurrency currency) {
@@ -315,14 +329,14 @@ public final class TripRow implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(getDirectoryPath());
-		dest.writeString(getPrice());
+		dest.writeFloat(getPriceAsFloat());
 		dest.writeLong(getStartDate().getTime());
 		dest.writeLong(getEndDate().getTime());
 		dest.writeString(getCurrencyCode());
 		dest.writeFloat(getMileage());
 		dest.writeString(getStartTimeZone().getID());
 		dest.writeString(getEndTimeZone().getID());
-		dest.writeString(getDailySubTotal());
+		dest.writeFloat(getDailySubTotalAsFloat());
 		dest.writeString(getComment());
 		dest.writeString(getDefaultCurrencyCode());
 	}
@@ -485,6 +499,11 @@ public final class TripRow implements Parcelable {
 		
 		public Builder setDefaultCurrency(WBCurrency currency) {
 			_defaultCurrency = currency;
+			return this;
+		}
+		
+		public Builder setDefaultCurrency(String currencyCode) {
+			_defaultCurrency = WBCurrency.getInstance(currencyCode);
 			return this;
 		}
 		

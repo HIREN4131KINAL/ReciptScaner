@@ -85,6 +85,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private final Object mDatabaseLock = new Object();
 	private final Object mReceiptCacheLock = new Object();
 	private final Object mTripCacheLock = new Object();
+	
+	// Misc Vars
+	private boolean mIsDBOpen = false;
 
 	//Hack to prevent Recursive Database Calling
 	private SQLiteDatabase _initDB; //This is only set while either onCreate or onUpdate is running. It is null all other times
@@ -194,7 +197,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public static final DatabaseHelper getInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
-		if (INSTANCE == null || !INSTANCE.getReadableDatabase().isOpen()) { //If we don't have an instance or it's closed
+		if (INSTANCE == null || !INSTANCE.isOpen()) { //If we don't have an instance or it's closed
 			String databasePath = StorageManager.GetRootPath();
 			if (BuildConfig.DEBUG) {
 				if (databasePath.equals("")) {
@@ -208,6 +211,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			INSTANCE = new DatabaseHelper(application, persistenceManager, databasePath);
 		}
 		return INSTANCE;
+	}
+	
+	public static final DatabaseHelper getNewInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
+		String databasePath = StorageManager.GetRootPath();
+		if (BuildConfig.DEBUG) {
+			if (databasePath.equals("")) {
+				throw new RuntimeException("The SDCard must be created beforoe GetRootPath is called in DBHelper");
+			}
+		}
+		if (!databasePath.endsWith(File.separator)) {
+			databasePath = databasePath + File.separator;
+		}
+		databasePath = databasePath + DATABASE_NAME;
+		return new DatabaseHelper(application, persistenceManager, databasePath);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,24 +480,30 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			_initDB = null;
 		}
 	}
+	
+	@Override
+	public void onOpen(SQLiteDatabase db) {
+		super.onOpen(db);
+		mIsDBOpen = true;
+	}
+	
+	@Override
+	public synchronized void close() {
+		super.close();
+		mIsDBOpen = false;
+	}
 
 	public boolean isOpen() {
-		return this.getReadableDatabase().isOpen();
+		return mIsDBOpen;
 	}
 
 	public void onDestroy() {
 		try {
-			synchronized (mDatabaseLock) {
-				if (this.getReadableDatabase() != null && this.getReadableDatabase().isOpen()) {
-					this.getReadableDatabase().close();
-				}
-				if (this.getWritableDatabase() != null && this.getWritableDatabase().isOpen()) {
-					this.getWritableDatabase().close();
-				}
-			}
+			this.close();
 		}
 		catch (Exception e) {
 			// This can be called from finalize, so operate cautiously
+			System.out.println(e.toString());
 		}
 	}
 
@@ -843,9 +866,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 										   		   .setEndDate(to)
 										   		   .setStartTimeZone(TimeZone.getDefault())
 										   		   .setEndTimeZone(TimeZone.getDefault())
-										   		   .setCurrency(mPersistenceManager.getPreferences().getDefaultCurreny())
+										   		   .setCurrency(defaultCurrencyCode)
 										   		   .setComment(comment)
-										   		   .setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny())
+										   		   .setDefaultCurrency(defaultCurrencyCode)
 										   		   .setSourceAsCache()
 										   		   .build();
 			}
@@ -1095,7 +1118,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final boolean addMiles(final TripRow trip, final String current, final String delta) {
+	public final boolean addMiles(final TripRow trip, final String delta) {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1104,7 +1127,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			format.setMinimumFractionDigits(2);
 			format.setGroupingUsed(false);
 
-			final float currentMiles = format.parse(current).floatValue();
+			final float currentMiles = trip.getMileage();
 			final float deltaMiles = format.parse(delta).floatValue();
 			float total = currentMiles + deltaMiles;
 			if (total < 0) {
@@ -1246,6 +1269,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public ReceiptRow[] getReceiptsSerial(final TripRow trip) {
 		synchronized (mReceiptCacheLock) {
 			if (mReceiptCache.containsKey(trip)) {
+				System.out.println("Returning Cached Value");
 				return mReceiptCache.get(trip);
 			}
 		}
@@ -1350,7 +1374,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
 						}
 						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-						receipts[c.getPosition()] =  builder.setName(name)
+						receipts[c.getPosition()] =  builder.setTrip(trip)
+															.setName(name)
 															.setCategory(category)
 															.setImage(img)
 															.setDate(date)
@@ -1361,6 +1386,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 															.setIsExpenseable(expensable)
 															.setCurrency(currency)
 															.setIsFullPage(fullpage)
+															.setIndex(c.getPosition()+1)
 															.setExtraEditText1(extra_edittext_1)
 															.setExtraEditText2(extra_edittext_2)
 															.setExtraEditText3(extra_edittext_3)
@@ -1458,7 +1484,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						img = storageManager.getFile(storageManager.getFile(parent), path);
 					}
 					ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-					return builder.setName(name)
+					return builder.setTrip(getTripByName(parent))
+								  .setName(name)
 								  .setCategory(category)
 								  .setImage(img)
 								  .setDate(date)
@@ -1623,7 +1650,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int id = c.getInt(0);
 						date.setTime(date.getTime()+rcptNum);
 						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-						insertReceipt = builder.setName(name)
+						insertReceipt = builder.setTrip(trip)
+								 			   .setName(name)
 											   .setCategory(category)
 											   .setImage(img)
 											   .setDate(date)
@@ -1631,6 +1659,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 											   .setComment(comment)
 											   .setPrice(price)
 											   .setTax(tax)
+											   .setIndex(rcptNum)
 											   .setIsExpenseable(expensable)
 											   .setCurrency(currency)
 											   .setIsFullPage(fullpage)
@@ -1794,7 +1823,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				} else {
 					this.updateTripPrice(trip);
 					ReceiptRow.Builder builder = new ReceiptRow.Builder(oldReceipt.getId());
-					updatedReceipt = builder.setName(name)
+					updatedReceipt = builder.setTrip(trip)
+											.setName(name)
 										   	.setCategory(category)
 										   	.setFile(oldReceipt.getFile())
 										   	.setDate(date)
@@ -1805,6 +1835,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 										   	.setIsExpenseable(expensable)
 										   	.setCurrency(currency)
 										   	.setIsFullPage(fullpage)
+										   	.setIndex(oldReceipt.getIndex())
 										   	.setExtraEditText1(extra_edittext_1)
 										   	.setExtraEditText2(extra_edittext_2)
 										   	.setExtraEditText3(extra_edittext_3)
@@ -1884,6 +1915,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldReceipt.getId())}) == 0)) {
 					return null;
 				} else {
+					synchronized (mReceiptCacheLock) {
+						mNextReceiptAutoIncrementId = -1;
+						mReceiptCache.remove(oldReceipt.getTrip());
+					}
 					oldReceipt.setFile(file);
 					return oldReceipt;
 				}

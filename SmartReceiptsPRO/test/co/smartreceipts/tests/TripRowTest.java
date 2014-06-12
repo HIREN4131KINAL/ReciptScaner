@@ -1,40 +1,26 @@
 package co.smartreceipts.tests;
 
 import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.sql.Date;
-import java.util.TimeZone;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
+import android.os.Parcel;
+import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.tests.utils.ReceiptUtils;
+import co.smartreceipts.tests.utils.TestUtils;
+import co.smartreceipts.tests.utils.TripUtils;
+import co.smartreceipts.tests.utils.TripUtils.Constants;
 
+@Config(emulateSdk = 18) 
 @RunWith(RobolectricTestRunner.class)
 public class TripRowTest {
-
-	private static final float EPSILON = 0.0001f;
-
-	private static class Constants {
-		public static final String CURRENCY_CODE = "USD";
-		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); //1
-		public static final long START_DATE_MILLIS = System.currentTimeMillis();
-		public static final Date START_DATE = new Date(START_DATE_MILLIS);
-		public static final long END_DATE_MILLIS = System.currentTimeMillis();
-		public static final Date END_DATE = new Date(END_DATE_MILLIS);
-		public static final File DIRECTORY = new File("Report");
-		public static final TimeZone START_TIMEZONE = TimeZone.getDefault();
-		public static final String START_TIMEZONE_CODE = START_TIMEZONE.getID();
-		public static final TimeZone END_TIMEZONE = TimeZone.getDefault();
-		public static final String END_TIMEZONE_CODE = END_TIMEZONE.getID();
-		public static final String PRICE = "12.55";
-		public static final float MILEAGE = 40.3121f;
-	}
 
 	/**
 	 * TripRowA and TripRowB should be expected as having all member variables be equal.
@@ -52,6 +38,7 @@ public class TripRowTest {
 	private TripRow.Builder getTripRowABuilder() {
 		TripRow.Builder builderA = new TripRow.Builder();
 		builderA.setCurrency(Constants.CURRENCY_CODE)
+				.setDefaultCurrency(Constants.CURRENCY_CODE)
 				.setDirectory(Constants.DIRECTORY)
 				.setEndDate(Constants.END_DATE_MILLIS)
 				.setEndTimeZone(Constants.END_TIMEZONE_CODE)
@@ -70,6 +57,7 @@ public class TripRowTest {
 	private TripRow.Builder getTripRowBBuilder() {
 		TripRow.Builder builderB = new TripRow.Builder();
 		builderB.setCurrency(Constants.CURRENCY)
+				.setDefaultCurrency(Constants.CURRENCY_CODE)
 				.setDirectory(Constants.DIRECTORY)
 				.setEndDate(Constants.END_DATE)
 				.setEndTimeZone(Constants.END_TIMEZONE)
@@ -124,7 +112,7 @@ public class TripRowTest {
 	@Test
 	public void testReceiptRowPriceAndCurrency() {
 		assertEquals(mTripRowA.getPrice(), mTripRowB.getPrice());
-		assertEquals(mTripRowA.getPriceAsFloat(), mTripRowB.getPriceAsFloat(), EPSILON);
+		assertEquals(mTripRowA.getPriceAsFloat(), mTripRowB.getPriceAsFloat(), TestUtils.EPSILON);
 		assertEquals(mTripRowA.getDecimalFormattedPrice(), mTripRowB.getDecimalFormattedPrice());
 		assertEquals(mTripRowA.getCurrencyCode(), mTripRowB.getCurrencyCode());
 		assertEquals(mTripRowA.getCurrencyFormattedPrice(), mTripRowB.getCurrencyFormattedPrice());
@@ -134,9 +122,20 @@ public class TripRowTest {
 
 	@Test
 	public void testTripRowMileage() {
-		assertEquals(mTripRowA.getMileage(), mTripRowB.getMileage(), EPSILON);
+		assertEquals(mTripRowA.getMileage(), mTripRowB.getMileage(), TestUtils.EPSILON);
 		assertEquals(mTripRowA.getMilesAsString(), mTripRowB.getMilesAsString());
-		assertEquals(mTripRowA.getMileage(), Constants.MILEAGE, EPSILON);
+		assertEquals(mTripRowA.getMileage(), Constants.MILEAGE, TestUtils.EPSILON);
+	}
+	
+	@Test
+	public void parcelTest() {
+		Parcel parcelA = Parcel.obtain();
+		mTripRowA.writeToParcel(parcelA, 0);
+		parcelA.setDataPosition(0);
+		TripRow parcelTripRowA = TripRow.CREATOR.createFromParcel(parcelA);
+		assertNotNull(parcelTripRowA);
+		assertEquals(mTripRowA, parcelTripRowA);
+		TripUtils.assertFieldEquality(mTripRowA, parcelTripRowA);
 	}
 
 

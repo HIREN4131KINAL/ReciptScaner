@@ -18,7 +18,7 @@ import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.shadows.ShadowPreferenceActivity;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(reportSdk = 18, shadows = {ShadowPreferenceActivity.class} )
+@Config(emulateSdk = 18, reportSdk = 18, shadows = {ShadowPreferenceActivity.class} )
 public class PreferencesTest {
 
 	private SmartReceiptsApplication mApp;

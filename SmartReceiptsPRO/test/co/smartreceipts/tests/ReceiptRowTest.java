@@ -1,47 +1,29 @@
 package co.smartreceipts.tests;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
-import java.sql.Date;
-import java.util.TimeZone;
+import java.lang.reflect.Constructor;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
+import android.os.Parcel;
 import android.text.TextUtils;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.tests.utils.ReceiptUtils;
+import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
+import co.smartreceipts.tests.utils.TestUtils;
 
+@Config(emulateSdk = 18) 
 @RunWith(RobolectricTestRunner.class)
 public class ReceiptRowTest {
-
-	private static final float EPSILON = 0.0001f;
-
-	private static class Constants {
-		public static final int ID = 0;
-		public static final String CATEGORY = "Lunch";
-		public static final String COMMENT = "";
-		public static final String CURRENCY_CODE = "USD";
-		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); //1
-		public static final long DATE_MILLIS = System.currentTimeMillis();
-		public static final Date DATE = new Date(DATE_MILLIS);
-		public static final String EXTRA1 = "extra1";
-		public static final String EXTRA2 = "";
-		public static final String EXTRA3 = "";
-		public static final File IMAGE_FILE = new File("/Android/data/wb.receipts/files/Report/img.png");
-		public static final File PDF_FILE = new File("/Android/data/wb.receipts/files/Report/pdf.pdf");
-		public static final boolean IS_EXPENSABLE = true;
-		public static final boolean IS_FULLPAGE = false;
-		public static final String NAME = "Name";
-		public static final String PRICE = "12.55";
-		public static final String TAX = "0.37";
-		public static final TimeZone TIMEZONE = TimeZone.getDefault();
-		public static final String TIMEZONE_CODE = TIMEZONE.getID();
-	}
 
 	/*
 	 * ReceiptRowA and ReceiptRowB should be expected as having all member variables be equal.
@@ -55,6 +37,8 @@ public class ReceiptRowTest {
 	 * ReceiptRowC has a difference File (PDF) than ReceiptRow A or B. All other data is the same
 	 */
 	private ReceiptRow mReceiptRowC;
+	
+	private SmartReceiptsApplication mApp;
 
 	/**
 	 * Generates a builder for mReceiptRowA. This builder user primitives/Strings
@@ -70,7 +54,7 @@ public class ReceiptRowTest {
 				.setExtraEditText1(Constants.EXTRA1)
 				.setExtraEditText2(Constants.EXTRA2)
 				.setExtraEditText3(Constants.EXTRA3)
-				.setFile(Constants.IMAGE_FILE)
+				.setFile(getFile(Constants.IMAGE_FILE_NAME))
 				.setIsExpenseable(Constants.IS_EXPENSABLE)
 				.setIsFullPage(Constants.IS_FULLPAGE)
 				.setName(Constants.NAME)
@@ -87,6 +71,7 @@ public class ReceiptRowTest {
 	 */
 	private ReceiptRow.Builder getReceiptRowBBuilder() {
 		ReceiptRow.Builder builderB = new ReceiptRow.Builder(Constants.ID);
+		mApp.getPersistenceManager().getStorageManager().createFile(Constants.IMAGE_FILE);
 		builderB.setCategory(Constants.CATEGORY)
 				.setComment(Constants.COMMENT)
 				.setCurrency(Constants.CURRENCY)
@@ -94,7 +79,7 @@ public class ReceiptRowTest {
 				.setExtraEditText1(Constants.EXTRA1)
 				.setExtraEditText2(Constants.EXTRA2)
 				.setExtraEditText3(Constants.EXTRA3)
-				.setImage(Constants.IMAGE_FILE)
+				.setFile(getFile(Constants.IMAGE_FILE_NAME))
 				.setIsExpenseable(Constants.IS_EXPENSABLE)
 				.setIsFullPage(Constants.IS_FULLPAGE)
 				.setName(Constants.NAME)
@@ -111,12 +96,21 @@ public class ReceiptRowTest {
 	 */
 	private ReceiptRow.Builder getReceiptRowCBuilder() {
 		ReceiptRow.Builder builderC = getReceiptRowABuilder();
-		builderC.setPDF(Constants.PDF_FILE);
+		mApp.getPersistenceManager().getStorageManager().createFile(Constants.PDF_FILE);
+		builderC.setPDF(getFile(Constants.PDF_FILE_NAME));
 		return builderC;
 	}
-
+	
+	private File getFile(String name) {
+		File tripDir = mApp.getPersistenceManager().getStorageManager().mkdir(co.smartreceipts.tests.utils.TripUtils.Constants.DIRECTORY_NAME);
+		File file = new File(tripDir, name);
+		mApp.getPersistenceManager().getStorageManager().createFile(file);
+		return file;
+	}
+	
 	@Before
 	public void setUp() throws Exception {
+		mApp = (SmartReceiptsApplication) Robolectric.application;
 		mReceiptRowA = getReceiptRowABuilder().build();
 		mReceiptRowB = getReceiptRowBBuilder().build();
 		mReceiptRowC = getReceiptRowCBuilder().build();
@@ -127,6 +121,13 @@ public class ReceiptRowTest {
 		mReceiptRowA = null;
 		mReceiptRowB = null;
 		mReceiptRowC = null;
+		mApp = null;
+	}
+	
+	@Test
+	public void fileCreationSuccess() {
+		assertTrue(getFile(Constants.IMAGE_FILE_NAME).exists());
+		assertTrue(getFile(Constants.PDF_FILE_NAME).exists());
 	}
 
 	@Test
@@ -186,14 +187,14 @@ public class ReceiptRowTest {
 		assertEquals(mReceiptRowA.getFileName(), mReceiptRowB.getFileName());
 		assertEquals(mReceiptRowA.getFilePath(), mReceiptRowB.getFilePath());
 		assertEquals(mReceiptRowA.hasImage(), mReceiptRowB.hasImage());
-		assertEquals(mReceiptRowA.getFile(), Constants.IMAGE_FILE);
-		assertEquals(mReceiptRowC.getFile(), Constants.PDF_FILE);
+		assertEquals(mReceiptRowA.getFile(), getFile(Constants.IMAGE_FILE_NAME));
+		assertEquals(mReceiptRowC.getFile(), getFile(Constants.PDF_FILE_NAME));
 	}
 
 	@Test
 	public void testReceiptRowPriceAndCurrency() {
 		assertEquals(mReceiptRowA.getPrice(), mReceiptRowB.getPrice());
-		assertEquals(mReceiptRowA.getPriceAsFloat(), mReceiptRowB.getPriceAsFloat(), EPSILON);
+		assertEquals(mReceiptRowA.getPriceAsFloat(), mReceiptRowB.getPriceAsFloat(), TestUtils.EPSILON);
 		assertEquals(mReceiptRowA.getDecimalFormattedPrice(), mReceiptRowB.getDecimalFormattedPrice());
 		assertEquals(mReceiptRowA.getCurrencyCode(), mReceiptRowB.getCurrencyCode());
 		assertEquals(mReceiptRowA.getCurrencyFormattedPrice(), mReceiptRowB.getCurrencyFormattedPrice());
@@ -204,12 +205,32 @@ public class ReceiptRowTest {
 	@Test
 	public void testReceiptRowTaxAndCurrency() {
 		assertEquals(mReceiptRowA.getTax(), mReceiptRowB.getTax());
-		assertEquals(mReceiptRowA.getTaxAsFloat(), mReceiptRowB.getTaxAsFloat(), EPSILON);
+		assertEquals(mReceiptRowA.getTaxAsFloat(), mReceiptRowB.getTaxAsFloat(), TestUtils.EPSILON);
 		assertEquals(mReceiptRowA.getDecimalFormattedTax(), mReceiptRowB.getDecimalFormattedTax());
 		assertEquals(mReceiptRowA.getCurrencyCode(), mReceiptRowB.getCurrencyCode());
 		assertEquals(mReceiptRowA.getCurrencyFormattedTax(), mReceiptRowB.getCurrencyFormattedTax());
 		assertEquals(mReceiptRowA.getTax(), Constants.TAX);
 		assertEquals(mReceiptRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+	}
+	
+	@Test
+	public void parcelTest() {
+		Parcel parcelA = Parcel.obtain();
+		mReceiptRowA.writeToParcel(parcelA, 0);
+		parcelA.setDataPosition(0);
+		ReceiptRow parcelReceiptRowA = ReceiptRow.CREATOR.createFromParcel(parcelA);
+		assertNotNull(parcelReceiptRowA);
+		assertEquals(mReceiptRowA, parcelReceiptRowA);
+		ReceiptUtils.assertFieldEquality(parcelReceiptRowA, mReceiptRowA);
+		
+		Parcel parcelD = Parcel.obtain();
+		ReceiptRow receiptRowD = getReceiptRowABuilder().setFile(null).build();
+		receiptRowD.writeToParcel(parcelD, 0);
+		parcelD.setDataPosition(0);
+		ReceiptRow parcelReceiptRowD = ReceiptRow.CREATOR.createFromParcel(parcelD);
+		assertNotNull(parcelReceiptRowD);
+		assertEquals(receiptRowD, parcelReceiptRowD);
+		ReceiptUtils.assertFieldEqualityPlusIndex(parcelReceiptRowD, receiptRowD);
 	}
 
 }

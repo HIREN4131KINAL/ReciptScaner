@@ -1,7 +1,6 @@
 package co.smartreceipts.tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -11,9 +10,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import android.os.Parcel;
-import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
-import co.smartreceipts.tests.utils.ReceiptUtils;
 import co.smartreceipts.tests.utils.TestUtils;
 import co.smartreceipts.tests.utils.TripUtils;
 import co.smartreceipts.tests.utils.TripUtils.Constants;

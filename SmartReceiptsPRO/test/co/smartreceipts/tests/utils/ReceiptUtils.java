@@ -45,20 +45,19 @@ public class ReceiptUtils {
 		assertEquals(receipt1.getExtraEditText2(), receipt2.getExtraEditText2());
 		assertEquals(receipt1.getExtraEditText3(), receipt2.getExtraEditText3());
 		assertEquals(receipt1.getFile(), receipt2.getFile());
-		assertEquals(receipt1.getId(), receipt2.getId());
 		assertEquals(receipt1.getName(), receipt2.getName());
 		assertEquals(receipt1.getPriceAsFloat(), receipt2.getPriceAsFloat(), TestUtils.EPSILON);
 		assertEquals(receipt1.getTaxAsFloat(), receipt2.getTaxAsFloat(), TestUtils.EPSILON);
 		assertEquals(receipt1.getTimeZone(), receipt2.getTimeZone());
-		assertEquals(receipt1.getTrip(), receipt2.getTrip());
 		assertEquals(receipt1.getTrip(), receipt2.getTrip());
 	}
 	
 	/**
 	 * We do not guarantee that indices are set, but this test still performs the full set
 	 */
-	public static void assertFieldEqualityPlusIndex(ReceiptRow receipt1, ReceiptRow receipt2) {
+	public static void assertFieldEqualityPlusIdAndIndex(ReceiptRow receipt1, ReceiptRow receipt2) {
 		assertFieldEquality(receipt1, receipt2);
+		assertEquals(receipt1.getId(), receipt2.getId());
 		assertEquals(receipt1.getIndex(), receipt2.getIndex());
 	}
 

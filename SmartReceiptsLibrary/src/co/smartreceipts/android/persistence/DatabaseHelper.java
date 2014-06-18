@@ -1269,7 +1269,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public ReceiptRow[] getReceiptsSerial(final TripRow trip) {
 		synchronized (mReceiptCacheLock) {
 			if (mReceiptCache.containsKey(trip)) {
-				System.out.println("Returning Cached Value");
 				return mReceiptCache.get(trip);
 			}
 		}
@@ -2513,6 +2512,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean insertCSVColumn() {
 		ContentValues values = new ContentValues(1);
 		values.put(CSVTable.COLUMN_TYPE, CSVColumns.BLANK(mFlex));
+		if (mCSVColumns == null) {
+			getCSVColumns();
+		}
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			Cursor c = null;
@@ -2524,11 +2526,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int idx = c.getInt(0);
-						c.close();
 						mCSVColumns.add(idx, CSVColumns.BLANK(mFlex));
 					}
 					else {
-						c.close();
 						return false;
 					}
 					return true;
@@ -2640,6 +2640,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean insertPDFColumn() {
 		ContentValues values = new ContentValues(1);
 		values.put(PDFTable.COLUMN_TYPE, PDFColumns.BLANK(mFlex));
+		if (mPDFColumns == null) {
+			getPDFColumns();
+		}
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			Cursor c = null;
@@ -2651,11 +2654,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int idx = c.getInt(0);
-						c.close();
 						mPDFColumns.add(idx, PDFColumns.BLANK(mFlex));
 					}
 					else {
-						c.close();
 						return false;
 					}
 					return true;

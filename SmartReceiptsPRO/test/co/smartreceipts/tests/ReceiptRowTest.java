@@ -3,7 +3,6 @@ package co.smartreceipts.tests;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
 
 import org.junit.After;
 import org.junit.Before;
@@ -230,7 +229,7 @@ public class ReceiptRowTest {
 		ReceiptRow parcelReceiptRowD = ReceiptRow.CREATOR.createFromParcel(parcelD);
 		assertNotNull(parcelReceiptRowD);
 		assertEquals(receiptRowD, parcelReceiptRowD);
-		ReceiptUtils.assertFieldEqualityPlusIndex(parcelReceiptRowD, receiptRowD);
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parcelReceiptRowD, receiptRowD);
 	}
 
 }

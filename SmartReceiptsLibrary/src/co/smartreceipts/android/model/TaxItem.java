@@ -14,6 +14,7 @@ public class TaxItem {
 	private static final String TAG = "TaxItem";
 	
 	private static final int SCALE = 2;
+	private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_EVEN;
 	
 	private BigDecimal mPercent;
 	private BigDecimal mPrice, mTax;
@@ -26,17 +27,37 @@ public class TaxItem {
 		catch (NumberFormatException e) {
 			mPercent = null;
 		}
-		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
 	}
 	
 	public TaxItem(float percent, Preferences preferences) {
 		mPercent = new BigDecimal(percent);
-		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
 	}
 	
 	public TaxItem(BigDecimal percent, Preferences preferences) {
 		mPercent = percent;
-		mUsePreTaxPrice = (preferences == null) ? false : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
+	}
+	
+	public TaxItem(BigDecimal percent, boolean usePreTaxPrice) {
+		mPercent = percent;
+		mUsePreTaxPrice = usePreTaxPrice;
+	}
+	
+	public TaxItem(String percent, boolean usePreTaxPrice) {
+		try {
+			mPercent = new BigDecimal(percent);
+		}
+		catch (NumberFormatException e) {
+			mPercent = null;
+		}
+		mUsePreTaxPrice = usePreTaxPrice;
+	}
+	
+	public TaxItem(float percent, boolean usePreTaxPrice) {
+		mPercent = new BigDecimal(percent);
+		mUsePreTaxPrice = usePreTaxPrice;
 	}
 	
 	public BigDecimal getPercent() {
@@ -45,10 +66,11 @@ public class TaxItem {
 	
 	public String getPercentAsString() {
 		if (mPercent == null) {
-			return new String();
+			return "";
 		}
 		else {
-			return mPercent.toPlainString() + "%";
+			BigDecimal scaledPercent = mPercent.setScale(SCALE, ROUNDING_MODE);
+			return getDecimalFormat().format(scaledPercent.doubleValue()) + "%";
 		}
 	}
 	
@@ -78,10 +100,10 @@ public class TaxItem {
 		else {
 			Log.d(TAG, mPrice.toString());
 			if (mUsePreTaxPrice) {
-				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100), SCALE, RoundingMode.HALF_UP);
+				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100), SCALE, ROUNDING_MODE);
 			}
 			else {
-				mTax = mPrice.subtract(mPrice.divide(mPercent.divide(new BigDecimal(100), 10, RoundingMode.HALF_EVEN).add(new BigDecimal(1)), SCALE, RoundingMode.HALF_UP));
+				mTax = mPrice.subtract(mPrice.divide(mPercent.divide(new BigDecimal(100), 10, ROUNDING_MODE).add(new BigDecimal(1)), SCALE, ROUNDING_MODE));
 			}
 		}
 		return mTax;
@@ -90,15 +112,19 @@ public class TaxItem {
 	@Override
 	public String toString() {
 		if (mTax == null) {
-			return new String();
+			return "";
 		}
 		else {
-			DecimalFormat format = new DecimalFormat();
-			format.setMaximumFractionDigits(2);
-			format.setMinimumFractionDigits(2);
-			format.setGroupingUsed(false);
-			return format.format(mTax.doubleValue());
+			return getDecimalFormat().format(mTax.doubleValue());
 		}
+	}
+	
+	private DecimalFormat getDecimalFormat() {
+		DecimalFormat format = new DecimalFormat();
+		format.setMaximumFractionDigits(2);
+		format.setMinimumFractionDigits(2);
+		format.setGroupingUsed(false);
+		return format;
 	}
 
 }

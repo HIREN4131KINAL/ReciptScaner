@@ -29,5 +29,13 @@
             android:title="@string/pref_output_print_receipt_id_by_photo_title"
             android:summary="@string/pref_output_print_receipt_id_by_photo_summary"
             android:defaultValue="false "/>
+		<!-- 
+		<CheckBoxPreference
+            android:key="@string/pref_output_optimize_space_key"
+            android:title="@string/pref_output_optimize_space_title"
+            android:summaryOn="@string/pref_output_optimize_space_summaryOn"
+            android:summaryOff="@string/pref_output_optimize_space_summaryOff"
+            android:defaultValue="true"/>
+             -->
 	</PreferenceCategory>
 </PreferenceScreen>

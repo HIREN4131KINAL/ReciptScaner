@@ -43,6 +43,11 @@
 	        android:title="@string/pref_receipt_show_id_title"
 	        android:summary="@string/pref_receipt_show_id_summary"
 	        android:defaultValue="false"/>
+	    <CheckBoxPreference
+	        android:key="@string/pref_receipt_full_page_key"
+	        android:title="@string/pref_receipt_full_page_title"
+	        android:summary="@string/pref_receipt_full_page_summary"
+	        android:defaultValue="false"/>
 	    <co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference
 	        android:key="@string/pref_receipt_minimum_receipts_price_key"
 	        android:title="@string/pref_receipt_minimum_receipts_price_title"

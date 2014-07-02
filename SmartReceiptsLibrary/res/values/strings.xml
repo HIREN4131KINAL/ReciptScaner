@@ -403,6 +403,9 @@
     <string name="pref_receipt_show_id_key" translatable="false">ShowReceiptID</string>
     <string name="pref_receipt_show_id_title">Show Receipt ID</string>
     <string name="pref_receipt_show_id_summary">Displays an auto-generated ID field</string>
+    <string name="pref_receipt_full_page_key" translatable="false">UseFullPage</string>
+    <string name="pref_receipt_full_page_title">Assume Full Page</string>
+    <string name="pref_receipt_full_page_summary">Marks Receipts as Full Page by Default</string>
     
     <!-- ============= Preference Output ================= -->
     <string name="pref_output_custom_csv_key" translatable="false">CustomizeCSVOutput</string>
@@ -421,6 +424,10 @@
     <string name="pref_output_print_receipt_id_by_photo_key" translatable="false">PrintByIDPhotoKey</string>
     <string name="pref_output_print_receipt_id_by_photo_title">Print ID By Photo</string>
     <string name="pref_output_print_receipt_id_by_photo_summary">Shows the Receipt ID instead of Index</string>
+    <string name="pref_output_optimize_space_key" translatable="false">OptimizeSpace</string>
+    <string name="pref_output_optimize_space_title">Optimize Receipt Space</string>
+    <string name="pref_output_optimize_space_summaryOn">Attempt to reduce the number of PDF pages</string>
+    <string name="pref_output_optimize_space_summaryOff">Keep exact receipt order</string>
     
     <!-- ============== Preference Email ================= -->
     <string name="pref_email_default_email_to_key" translatable="false">EmailTo</string>

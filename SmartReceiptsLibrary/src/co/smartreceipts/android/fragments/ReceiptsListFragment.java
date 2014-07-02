@@ -522,6 +522,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
 			}
+			fullpage.setChecked(preferences.shouldDefaultToFullPage());
 		}
 		else {
 			if (!TextUtils.isEmpty(receipt.getName())) { nameBox.setText(receipt.getName()); }

@@ -69,6 +69,11 @@
 	        android:title="@string/pref_receipt_show_id_title"
 	        android:summary="@string/pref_receipt_show_id_summary"
 	        android:defaultValue="false"/>
+        <CheckBoxPreference
+	        android:key="@string/pref_receipt_full_page_key"
+	        android:title="@string/pref_receipt_full_page_title"
+	        android:summary="@string/pref_receipt_full_page_summary"
+	        android:defaultValue="false"/>
         <co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference
             android:key="@string/pref_receipt_minimum_receipts_price_key"
             android:title="@string/pref_receipt_minimum_receipts_price_title"
@@ -117,6 +122,14 @@
             android:title="@string/pref_output_print_receipt_id_by_photo_title"
             android:summary="@string/pref_output_print_receipt_id_by_photo_summary"
             android:defaultValue="false "/>
+        <!-- 
+        <CheckBoxPreference
+            android:key="@string/pref_output_optimize_space_key"
+            android:title="@string/pref_output_optimize_space_title"
+            android:summaryOn="@string/pref_output_optimize_space_summaryOn"
+            android:summaryOff="@string/pref_output_optimize_space_summaryOff"
+            android:defaultValue="true"/>
+             -->
 	</PreferenceCategory>
     
     <PreferenceCategory 

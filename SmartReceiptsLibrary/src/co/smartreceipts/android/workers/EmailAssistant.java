@@ -131,47 +131,47 @@ public class EmailAssistant {
     	if (msg.length() > 0) {
 			builder.setMessage(msg);
 		}
-			builder.setTitle(mFlex.getString(mContext, R.string.DIALOG_EMAIL_TITLE))
-			   .setCancelable(true)
-			   .setView(scrollView)
-			   .setPositiveButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-				   @Override
-		           public void onClick(DialogInterface dialog, int id) {
-					   if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
-						   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
-						   dialog.cancel();
-						   return;
-					   }
-					   if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).length == 0) {
-						   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
-						   dialog.cancel();
-						   return;
-					   }
-		        	   ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
-		        	   EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);
-		        	   if (pdfFull.isChecked()) {
-						options.add(EmailOptions.PDF_FULL);
-					}
-		        	   if (pdfImages.isChecked()) {
-						options.add(EmailOptions.PDF_IMAGES_ONLY);
-					}
-		        	   if (csv.isChecked()) {
-						options.add(EmailOptions.CSV);
-					}
-		        	   if (zipStampedImages.isChecked()) {
-						options.add(EmailOptions.ZIP_IMAGES_STAMPED);
-					}
-		        	   EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
-		        	   attachmentWriter.execute(mTrip);
-		           }
-		       })
-		       .setNegativeButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       })
-		       .show();
+		builder.setTitle(mFlex.getString(mContext, R.string.DIALOG_EMAIL_TITLE))
+		   .setCancelable(true)
+		   .setView(scrollView)
+		   .setPositiveButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+			   @Override
+	           public void onClick(DialogInterface dialog, int id) {
+				   if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
+					   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
+					   dialog.cancel();
+					   return;
+				   }
+				   if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).length == 0) {
+					   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
+					   dialog.cancel();
+					   return;
+				   }
+	        	   ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
+	        	   EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);
+	        	   if (pdfFull.isChecked()) {
+					options.add(EmailOptions.PDF_FULL);
+				}
+	        	   if (pdfImages.isChecked()) {
+					options.add(EmailOptions.PDF_IMAGES_ONLY);
+				}
+	        	   if (csv.isChecked()) {
+					options.add(EmailOptions.CSV);
+				}
+	        	   if (zipStampedImages.isChecked()) {
+					options.add(EmailOptions.ZIP_IMAGES_STAMPED);
+				}
+	        	   EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
+	        	   attachmentWriter.execute(mTrip);
+	           }
+	       })
+	       .setNegativeButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
+	           @Override
+			public void onClick(DialogInterface dialog, int id) {
+	                dialog.cancel();
+	           }
+	       })
+	       .show();
 	}
 
 	public void onAttachmentsCreated(File[] attachments) {

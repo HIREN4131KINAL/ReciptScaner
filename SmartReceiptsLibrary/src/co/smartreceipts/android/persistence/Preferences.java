@@ -35,11 +35,11 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
     private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mDefaultToFirstReportDate,
-    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice;
+    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage;
 
     // Output Preferences
     private String mUserID;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex;
+    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mOptimizePDFSpace;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -129,6 +129,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	private void initUsePreTaxPrice(SharedPreferences prefs) {
 		this.mUsePreTaxPrice = prefs.getBoolean(mContext.getString(R.string.pref_receipt_pre_tax_key), true);
 	}
+	
+	private void initDefaultToFullPage(SharedPreferences prefs) {
+		this.mDefaultToFullPage = prefs.getBoolean(mContext.getString(R.string.pref_receipt_full_page_key), false);
+	}
 
 	private void initUserID(SharedPreferences prefs) {
 		this.mUserID = prefs.getString(mContext.getString(R.string.pref_output_username_key), "");
@@ -144,6 +148,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	
 	private void initIncludeReceiptIdNotIndex(SharedPreferences prefs) {
 		this.mIncludeIDNotIndex = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_id_by_photo_key), false);
+	}
+	
+	private void initOptimizeSpaceForPDFOutput(SharedPreferences prefs) {
+		this.mOptimizePDFSpace = prefs.getBoolean(mContext.getString(R.string.pref_output_optimize_space_key), true);
 	}
 
 	private void initEmailTo(SharedPreferences prefs) {
@@ -229,12 +237,14 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		this.initShowReceiptID(prefs);
 		this.initIncludeTaxField(prefs);
 		this.initUsePreTaxPrice(prefs);
+		this.initDefaultToFullPage(prefs);
 
 		// Output Preferences
 		this.initUserID(prefs);
 		this.initIncludeCSVHeaders(prefs);
 		this.initIncludeReceiptIdNotIndex(prefs);
 		this.initUseFileExplorerForOutput(prefs);
+		this.initOptimizeSpaceForPDFOutput(prefs);
 
 	    // Email Preferences
 		this.initEmailTo(prefs);
@@ -374,6 +384,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	
 	public boolean usePreTaxPrice() {
 		return this.mUsePreTaxPrice;
+	}
+	
+	public boolean shouldDefaultToFullPage() {
+		return this.mDefaultToFullPage;
 	}
 
 	public void setDateSeparator(String dateSeparator) {

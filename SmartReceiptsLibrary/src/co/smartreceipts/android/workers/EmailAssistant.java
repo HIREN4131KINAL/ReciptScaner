@@ -726,6 +726,7 @@ public class EmailAssistant {
 			try {
 				if (receipt.hasPDF()) {
 					PdfReader reader = new PdfReader(new FileInputStream(receipt.getFile()));
+					PdfReader.unethicalreading = true; // Reduce errors due to "owner password not found"
 					int numPages = reader.getNumberOfPages();
 					for (int page = 0; page < numPages;) {
 						table = getSingleElementTable();
@@ -734,7 +735,6 @@ public class EmailAssistant {
 							table.addCell(Image.getInstance(writer.getImportedPage(reader, ++page)));
 						}
 						catch (RuntimeException e) {
-							page--; // Move the page back one
 							if (mContext != null) {
 								// TODO: Move this check up a level (i.e. to our model/attachment), so we can alert the user in advance
 								if (mContext instanceof Activity) {

@@ -28,7 +28,7 @@ public class ReceiptRow implements Parcelable {
 	private String mExtraEditText1, mExtraEditText2, mExtraEditText3;
 	private Date mDate;
 	private TimeZone mTimeZone;
-	private boolean mIsExpensable, mIsFullPage;
+	private boolean mIsExpensable, mIsFullPage, mIsSelected;
 	private WBCurrency mCurrency;
 	private DecimalFormat mDecimalFormat;
 	private SourceEnum mSource;
@@ -36,6 +36,7 @@ public class ReceiptRow implements Parcelable {
 	private ReceiptRow(int id) {
 		mId = id;
 		mIndex = -1;
+		mIsSelected = false;
 	}
 
 	private ReceiptRow(Parcel in) {
@@ -58,6 +59,7 @@ public class ReceiptRow implements Parcelable {
 		mIndex = in.readInt();
 		mTimeZone = TimeZone.getTimeZone(in.readString());
 		mSource = SourceEnum.Parcel;
+		mIsSelected = false;
 	}
 
 	public int getId() {
@@ -261,6 +263,10 @@ public class ReceiptRow implements Parcelable {
 	public boolean isFullPage() {
 		return mIsFullPage;
 	}
+	
+	public boolean isSelected() {
+		return mIsSelected;
+	}
 
 	public WBCurrency getCurrency() {
 		return mCurrency;
@@ -348,7 +354,11 @@ public class ReceiptRow implements Parcelable {
 	void setIsFullPage(boolean isFullPage) {
 		mIsFullPage = isFullPage;
 	}
-
+	
+	public void setIsSelected(boolean isSelected) {
+		mIsSelected = isSelected;
+	}
+	
 	void setSource(SourceEnum source) {
 		mSource = source;
 	}

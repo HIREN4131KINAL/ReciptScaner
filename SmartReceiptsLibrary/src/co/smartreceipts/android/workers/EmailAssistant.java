@@ -752,6 +752,7 @@ public class EmailAssistant {
 									});
 								}
 							}
+							break;
 						}
 						table.completeRow();
 						document.add(table);

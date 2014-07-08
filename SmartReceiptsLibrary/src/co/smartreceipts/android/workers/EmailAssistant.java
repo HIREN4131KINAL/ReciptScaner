@@ -364,7 +364,7 @@ public class EmailAssistant {
 				PdfWriter writer = null;
 				try {
 					//Setup work
-					PDFColumns columns = mDB.getPDFColumns();
+					mStorageManager.delete(dir, dir.getName() + ".pdf");
 					pdfStream = mStorageManager.getFOS(dir, dir.getName() + ".pdf");
 		            document = new Document();
 					writer = PdfWriter.getInstance(document, pdfStream);
@@ -376,6 +376,7 @@ public class EmailAssistant {
 								+ "From: " + trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())
 								+ " To: " + trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator()) + "\n"
 								+ "Distance Traveled: " + trip.getMilesAsString() + "\n\n\n"));
+					PDFColumns columns = mDB.getPDFColumns();
 					PdfPTable table = columns.getTableWithHeaders();
 					ReceiptRow receipt;
 					for (int i=0; i < len; i++) {
@@ -418,6 +419,7 @@ public class EmailAssistant {
 				PdfWriter writer = null;
 				try {
 					//Setup work
+					mStorageManager.delete(dir, dir.getName() + IMAGES_PDF);
 					pdfStream = mStorageManager.getFOS(dir, dir.getName() + IMAGES_PDF);
 		            document = new Document();
 					writer = PdfWriter.getInstance(document, pdfStream);
@@ -454,6 +456,7 @@ public class EmailAssistant {
 				}
 			}
 			if (mOptions.contains(EmailOptions.CSV)) {
+				mStorageManager.delete(dir, dir.getName() + ".csv");
 				String data = "";
 				CSVColumns columns = mDB.getCSVColumns();
 				if (mPreferences.includeCSVHeaders()) {
@@ -476,6 +479,7 @@ public class EmailAssistant {
 				}
 			}
 			if (mOptions.contains(EmailOptions.ZIP_IMAGES_STAMPED)) {
+				mStorageManager.delete(dir, dir.getName() + ".zip");
 				dir = mStorageManager.mkdir(trip.getDirectory(), trip.getName());
 				for (int i=0; i < len; i++) {
 					if (!filterOutReceipt(mPreferences, receipts[i]) && receipts[i].hasImage()) {
@@ -726,6 +730,7 @@ public class EmailAssistant {
 			try {
 				if (receipt.hasPDF()) {
 					PdfReader reader = new PdfReader(new FileInputStream(receipt.getFile()));
+					PdfReader.unethicalreading = true; // Reduce errors due to "owner password not found"
 					int numPages = reader.getNumberOfPages();
 					for (int page = 0; page < numPages;) {
 						table = getSingleElementTable();
@@ -734,7 +739,6 @@ public class EmailAssistant {
 							table.addCell(Image.getInstance(writer.getImportedPage(reader, ++page)));
 						}
 						catch (RuntimeException e) {
-							page--; // Move the page back one
 							if (mContext != null) {
 								// TODO: Move this check up a level (i.e. to our model/attachment), so we can alert the user in advance
 								if (mContext instanceof Activity) {
@@ -748,6 +752,7 @@ public class EmailAssistant {
 									});
 								}
 							}
+							break;
 						}
 						table.completeRow();
 						document.add(table);

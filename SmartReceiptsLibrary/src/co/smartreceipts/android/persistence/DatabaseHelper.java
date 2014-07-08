@@ -1269,6 +1269,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public ReceiptRow[] getReceiptsSerial(final TripRow trip) {
 		synchronized (mReceiptCacheLock) {
 			if (mReceiptCache.containsKey(trip)) {
+				System.out.println("Returning Cached Value");
 				return mReceiptCache.get(trip);
 			}
 		}

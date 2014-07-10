@@ -1,5 +1,8 @@
 package co.smartreceipts.android.filters;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 
 /**
@@ -18,5 +21,12 @@ public interface Filter<T> {
 	 * @return {@link true} if it should be accepted, {@link false} otherwise
 	 */
 	public boolean accept(T t);
+	
+	/**
+	 * @return a {@link JSONObject} that represents this particular filter. This is used to enable us to
+	 * reconstruct filters if persistence is desired.
+	 * @throws {@link JSONException} if invalid parameters were present
+	 */
+	public JSONObject getJsonRepresentation() throws JSONException;
 
 }

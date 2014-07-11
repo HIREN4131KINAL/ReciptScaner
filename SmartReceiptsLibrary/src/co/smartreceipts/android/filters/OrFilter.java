@@ -51,7 +51,7 @@ public abstract class OrFilter<T> implements Filter<T> {
 		final List<Filter<T>> filters = new ArrayList<Filter<T>>();
 		final JSONArray filtersArray = json.getJSONArray(OR_FILTERS);
 		for (int i=0; i < filtersArray.length(); i++) {
-			filters.add(getFilter(json));
+			filters.add(getFilter(filtersArray.getJSONObject(i)));
 		}
 		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
 	}
@@ -99,5 +99,36 @@ public abstract class OrFilter<T> implements Filter<T> {
 		json.put(OR_FILTERS, filtersArray);
 		return json;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mFilters == null) ? 0 : mFilters.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		
+		OrFilter<?> other = (OrFilter<?>) obj;
+		if (mFilters == null) {
+			if (other.mFilters != null) {
+				return false;
+			}
+		} 
+		else if (!mFilters.equals(other.mFilters)) {
+			return false;
+		}
+		return true;
+	}
+	
+	
 
 }

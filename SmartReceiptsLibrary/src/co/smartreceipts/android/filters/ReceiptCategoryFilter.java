@@ -57,4 +57,34 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 		return json;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mCategory == null) ? 0 : mCategory.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		
+		ReceiptCategoryFilter other = (ReceiptCategoryFilter) obj;
+		if (mCategory == null) {
+			if (other.mCategory != null) {
+				return false;
+			}
+		} 
+		else if (!mCategory.equals(other.mCategory)) {
+			return false;
+		}
+		return true;
+	}
+	
+	
+
 }

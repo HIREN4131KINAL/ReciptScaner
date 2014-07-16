@@ -10,7 +10,6 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.view.FocusFinder;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -493,7 +492,7 @@ public class ReceiptRow implements Parcelable {
 		private TimeZone _timezone;
 		private final int _id;
 		private int _index;
-		private boolean _isExpenseable, _isFullPage;
+		private boolean _isExpenseable, _isFullPage, _isSelected;
 		private WBCurrency _currency;
 		private SourceEnum _source;
 
@@ -580,6 +579,11 @@ public class ReceiptRow implements Parcelable {
 			_isFullPage = isFullPage;
 			return this;
 		}
+		
+		public Builder setIsSelected(boolean isSelected) {
+			_isSelected = isSelected;
+			return this;
+		}
 
 		public Builder setCurrency(WBCurrency currency) {
 			_currency = currency;
@@ -633,6 +637,7 @@ public class ReceiptRow implements Parcelable {
 			receipt.setTimeZone(_timezone);
 			receipt.setIsExpenseable(_isExpenseable);
 			receipt.setIsFullPage(_isFullPage);
+			receipt.setIsSelected(_isSelected);
 			receipt.setCurrency(_currency);
 			receipt.setIndex(_index);
 			receipt.setSource(_source);

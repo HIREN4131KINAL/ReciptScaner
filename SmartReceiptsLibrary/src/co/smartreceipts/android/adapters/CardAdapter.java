@@ -1,5 +1,7 @@
 package co.smartreceipts.android.adapters;
 
+import java.util.List;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -21,7 +23,7 @@ public class CardAdapter<T> extends BaseAdapter {
 	private final LayoutInflater mInflater;
 	private final Preferences mPreferences;
 	private final Context mContext;
-	private T[] mData;
+	private List<T> mData;
 	private int mMinPriceWidth, mMaxPriceWidth, mCurrentPriceWidth;
 	private final float mCardPriceTextSize;
 	
@@ -43,7 +45,7 @@ public class CardAdapter<T> extends BaseAdapter {
 			return 0;
 		}
 		else {
-			return mData.length;
+			return mData.size();
 		}
 	}
 
@@ -53,7 +55,7 @@ public class CardAdapter<T> extends BaseAdapter {
 			return null;
 		}
 		else {
-			return mData[i];
+			return mData.get(i);
 		}
 	}
 	
@@ -116,8 +118,9 @@ public class CardAdapter<T> extends BaseAdapter {
 			paint.setTextSize(mCardPriceTextSize);
 			paint.setTypeface(Typeface.DEFAULT_BOLD); // Set in the Price field
 			int curr = mMinPriceWidth, measured;
-			for (int i=0; i < mData.length; i++) {
-				measured = (int) paint.measureText(getPrice(mData[i]));
+			final int size = mData.size();
+			for (int i=0; i < size; i++) {
+				measured = (int) paint.measureText(getPrice(mData.get(i)));
 				if (measured > curr) {
 					curr = measured;
 				}
@@ -160,7 +163,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		return R.dimen.card_price_size;
 	}
 	
-	public final synchronized void notifyDataSetChanged(T[] newData) {
+	public final synchronized void notifyDataSetChanged(List<T> newData) {
 		mData = newData;
 		getPriceLayoutWidth();
 		super.notifyDataSetChanged();

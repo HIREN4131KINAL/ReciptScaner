@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
@@ -142,7 +143,7 @@ public class EmailAssistant {
 					   dialog.cancel();
 					   return;
 				   }
-				   if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).length == 0) {
+				   if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).size() == 0) {
 					   Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
 					   dialog.cancel();
 					   return;
@@ -342,11 +343,11 @@ public class EmailAssistant {
 
 			// Set up our initial variables
 			final TripRow trip = trips[0];
-			final ReceiptRow[] receipts = mDB.getReceiptsSerial(trip, false);
-			final int len = receipts.length;
+			final List<ReceiptRow> receipts = mDB.getReceiptsSerial(trip, false);
+			final int len = receipts.size();
 			final WriterResults results = new WriterResults();
 			for (int i=0; i < len; i++) {
-				receipts[i].setIndex(i+1); //Set all indicies
+				receipts.get(i).setIndex(i+1); //Set all indicies
 			}
 
 			// Make our trip output directory exists in a good state
@@ -380,7 +381,7 @@ public class EmailAssistant {
 					PdfPTable table = columns.getTableWithHeaders();
 					ReceiptRow receipt;
 					for (int i=0; i < len; i++) {
-						receipt = receipts[i];
+						receipt = receipts.get(i);
 						if (!filterOutReceipt(mPreferences, receipt)) {
 							columns.print(table, receipt, trip);
 						}
@@ -463,8 +464,8 @@ public class EmailAssistant {
 					data += columns.printHeaders();
 				}
 				for (int i=0; i < len; i++) {
-					if (!filterOutReceipt(mPreferences, receipts[i])) {
-						data += columns.print(receipts[i], trip);
+					if (!filterOutReceipt(mPreferences, receipts.get(i))) {
+						data += columns.print(receipts.get(i), trip);
 					}
 				}
 				String filename = dir.getName() + ".csv";
@@ -482,11 +483,11 @@ public class EmailAssistant {
 				mStorageManager.delete(dir, dir.getName() + ".zip");
 				dir = mStorageManager.mkdir(trip.getDirectory(), trip.getName());
 				for (int i=0; i < len; i++) {
-					if (!filterOutReceipt(mPreferences, receipts[i]) && receipts[i].hasImage()) {
+					if (!filterOutReceipt(mPreferences, receipts.get(i)) && receipts.get(i).hasImage()) {
 							try {
-								Bitmap b = stampImage(trip, receipts[i], Bitmap.Config.ARGB_8888);
+								Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
 								if (b != null) {
-									mStorageManager.writeBitmap(dir, b, (i+1) + "_" + receipts[i].getName() + ".jpg", CompressFormat.JPEG, 85);
+									mStorageManager.writeBitmap(dir, b, (i+1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
 									b.recycle();
 									b = null;
 								}
@@ -494,9 +495,9 @@ public class EmailAssistant {
 							catch (OutOfMemoryError e) {
 								System.gc();
 								try {
-									Bitmap b = stampImage(trip, receipts[i], Bitmap.Config.RGB_565);
+									Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
 									if (b != null) {
-										mStorageManager.writeBitmap(dir, b, (i+1) + "_" + receipts[i].getName() + ".jpg", CompressFormat.JPEG, 85);
+										mStorageManager.writeBitmap(dir, b, (i+1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
 										b.recycle();
 									}
 								}
@@ -619,10 +620,10 @@ public class EmailAssistant {
 	    }
 
 	    private static final float BIG_COLUMN_DIVIDER = 2.1f;
-		private Document addImageRows(Document document, ReceiptRow[] receipts, PdfWriter writer) {
+		private Document addImageRows(Document document, List<ReceiptRow> receipts, PdfWriter writer) {
 			// Set up
 			PdfPTable table = getPanedPdfPTable();
-			int size = receipts.length;
+			final int size = receipts.size();
 			ReceiptRow receipt;
 			Image img1 = null, img2 = null;
 			ReceiptRow receipt1 = null; // Tracks the receipt in the left column (if any)
@@ -631,7 +632,7 @@ public class EmailAssistant {
 			final ArrayList<ReceiptRow> fullpageReceipts = new ArrayList<ReceiptRow>(); //Includes Full Page Images && PDFs
 
 			for (int i=0; i < size; i++) {
-				receipt = receipts[i];
+				receipt = receipts.get(i);
 				if (filterOutReceipt(mPreferences, receipt)) { // Don't include receipts that have been explicitly filtered out
 					continue;
 				}

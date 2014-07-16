@@ -1,6 +1,7 @@
 package co.smartreceipts.android.fragments;
 
 import java.io.File;
+import java.util.Arrays;
 
 import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.autocomplete.AutoCompleteAdapter;
@@ -363,7 +364,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		else {
 			mNoDataAlert.setVisibility(View.INVISIBLE);
 		}
-		mAdapter.notifyDataSetChanged(trips);
+		mAdapter.notifyDataSetChanged(Arrays.asList(trips));
 		if (mIsFirstPass) { //Pre-Cache the receipts for the top two trips
 			mIsFirstPass = false;
 			if (trips.length > 0) {

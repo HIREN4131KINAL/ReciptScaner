@@ -281,7 +281,7 @@ public class ReceiptsChartFragment extends ReceiptsFragment implements DatabaseH
 
 
 	@Override
-	public void onGraphQuerySuccess(ReceiptRow[] receipts) {
+	public void onGraphQuerySuccess(List<ReceiptRow> receipts) {
 		// TODO Auto-generated method stub
 
 	}

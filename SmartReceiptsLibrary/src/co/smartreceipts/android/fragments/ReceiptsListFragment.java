@@ -382,20 +382,20 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}
 		if (getPersistenceManager().getPreferences().useNativeCamera()) {
 			final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-			mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).length + ".jpg"));
+			mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
 			intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
 			startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
 		}
 		else {
 			if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
 				final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-				mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).length + ".jpg"));
+				mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
 				intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
 				startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
 			}
 			else {
 				final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-				String[] strings  = new String[] {dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).length + ".jpg"};
+				String[] strings  = new String[] {dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
 				intent.putExtra(MyCameraActivity.STRING_DATA, strings);
 				startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
 			}
@@ -998,10 +998,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
 	@Override
-	public void onReceiptRowsQuerySuccess(ReceiptRow[] receipts) {
+	public void onReceiptRowsQuerySuccess(List<ReceiptRow> receipts) {
 		mProgressDialog.setVisibility(View.GONE);
 		getListView().setVisibility(View.VISIBLE);
-		if (receipts == null || receipts.length == 0) {
+		if (receipts == null || receipts.size() == 0) {
 			mNoDataAlert.setVisibility(View.VISIBLE);
 		}
 		else {

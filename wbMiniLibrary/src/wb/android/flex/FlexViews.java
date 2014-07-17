@@ -53,7 +53,8 @@ class FlexViews {
 		LAYOUT_WEIGHT ("android:layout_weight"),
 		LAYOUT_WIDTH ("android:layout_width"),
 		TAG ("android:tag"),
-		VISIBILITY ("android:visibility");
+		VISIBILITY ("android:visibility"), 
+		TEXT ("android:text");
 		
 		private String name;
 		private Attribute(String name) {this.name = name;}

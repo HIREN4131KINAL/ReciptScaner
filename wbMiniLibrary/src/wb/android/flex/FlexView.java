@@ -19,7 +19,7 @@ class FlexView {
 	
 	//View Tags
 	@SuppressWarnings("unused")
-	private String android_checked, android_layout_height, android_layout_weight, android_layout_width, android_id, android_tag, android_visibility;
+	private String android_checked, android_layout_height, android_layout_weight, android_layout_width, android_id, android_tag, android_visibility, android_text;
 	
 	//Cached from Tags
 	private LinearLayout.LayoutParams params;
@@ -37,6 +37,7 @@ class FlexView {
 		android_tag = attributes.getValue(FlexViews.Attribute.TAG.tagName());
 		android_visibility = attributes.getValue(FlexViews.Attribute.VISIBILITY.tagName());
 		android_checked = attributes.getValue(FlexViews.Attribute.CHECKED.tagName());
+		android_text = attributes.getValue(FlexViews.Attribute.TEXT.tagName());
 	}
 	
 	void buildAndAddToParent(Context context, ViewGroup parent) throws FlexFailedException {
@@ -144,7 +145,12 @@ class FlexView {
 	
 	void update(EditText editText) {
 		updateView(editText);
-		if (android_hint != null) editText.setHint(android_hint);
+		if (android_hint != null) {
+			editText.setHint(android_hint);
+		}
+		if (android_text != null) {
+			editText.setText(android_text);
+		}
 	}
 	
 	void update(CheckBox checkBox) {
@@ -152,6 +158,9 @@ class FlexView {
 		if (android_checked != null) {
 			if (android_checked.equalsIgnoreCase("true")) checkBox.setChecked(true);
 			else if (android_checked.equalsIgnoreCase("false")) checkBox.setChecked(false);
+		}
+		if (android_text != null) {
+			checkBox.setText(android_text);
 		}
 	}
 	

@@ -8,11 +8,18 @@ import java.util.Currency;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
+import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.date.DateUtils;
+import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.filters.FilterFactory;
 
 public final class TripRow implements Parcelable {
 	
@@ -29,6 +36,7 @@ public final class TripRow implements Parcelable {
 	private float mMiles;
 	private SourceEnum mSource;
 	private DecimalFormat mDecimalFormat;
+	private Filter<ReceiptRow> mFilter;
 	
 	private TripRow(File directory, String price, Date startDate, Date endDate, WBCurrency currency, float miles, SourceEnum source) {
 		mReportDirectory = directory;
@@ -305,6 +313,18 @@ public final class TripRow implements Parcelable {
 		mDefaultCurrency = WBCurrency.getInstance(currencyCode);
 	}
 	
+	public Filter<ReceiptRow> getFilter() {
+		return mFilter;
+	}
+	
+	public boolean hasFilter() {
+		return mFilter != null;
+	}
+	
+	public void setFilter(Filter<ReceiptRow> filter) {
+		mFilter = filter;
+	}
+	
 	public void setMileage(float mileage) {
 		mMiles = mileage;
 	}
@@ -397,6 +417,7 @@ public final class TripRow implements Parcelable {
 		private TimeZone _startTimeZone, _endTimeZone;
 		private WBCurrency _currency, _defaultCurrency;
 		private float _miles;
+		private Filter<ReceiptRow> _filter;
 		private SourceEnum _source;
 		
 		public Builder() {
@@ -527,6 +548,27 @@ public final class TripRow implements Parcelable {
 			return this;
 		}
 		
+		public Builder setFilter(Filter<ReceiptRow> filter) {
+			_filter = filter;
+			return this;
+		}
+		
+		public Builder setFilter(JSONObject json) {
+			try {
+				_filter = FilterFactory.getReceiptFilter(json);
+			} 
+			catch (JSONException e) { }
+			return this;
+		}
+		
+		public Builder setFilter(String json) {
+			try {
+				_filter = FilterFactory.getReceiptFilter(new JSONObject(json));
+			} 
+			catch (JSONException e) { }
+			return this;
+		}
+		
 		public Builder setSourceAsCache() {
 			_source = SourceEnum.Cache;
 			return this;
@@ -539,6 +581,7 @@ public final class TripRow implements Parcelable {
 			tripRow.setDefaultCurrency(_defaultCurrency);
 			tripRow.setComment(_comment);
 			tripRow.setDailySubTotal(_dailySubTotal);
+			tripRow.setFilter(_filter);
 			return tripRow;
 		}
 		

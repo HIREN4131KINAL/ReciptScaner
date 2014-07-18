@@ -143,6 +143,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_MILEAGE = "miles_new";
 		public static final String COLUMN_COMMENT = "trips_comment";
 		public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
+		public static final String COLUMN_FILTERS = "trips_filters";
 	}
 	private static final class ReceiptsTable {
 	private ReceiptsTable() {}
@@ -244,7 +245,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					/*+ TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "*/
 					+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, "
 					+ TripsTable.COLUMN_COMMENT + " TEXT, "
-					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT"
+					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, "
+					+ TripsTable.COLUMN_FILTERS + " TEXT"
 					+ ");";
 			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " ("
 					+ ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -312,7 +314,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 
 			_initDB = db;
-			if (oldVersion == 1) { // Add mCurrency column to receipts table
+			if (oldVersion <= 1) { // Add mCurrency column to receipts table
 				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
 						+ " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL "
 						+ "DEFAULT " + mPersistenceManager.getPreferences().getDefaultCurreny();
@@ -320,9 +322,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					Log.d(TAG, alterReceipts);
 				}
 				db.execSQL(alterReceipts);
-				oldVersion++;
 			}
-			if (oldVersion == 2) { // Add the mileage field to trips, add the breakdown boolean to categories, and create the CSV table
+			if (oldVersion <= 2) { // Add the mileage field to trips, add the breakdown boolean to categories, and create the CSV table
 				final String alterCategories = "ALTER TABLE " + CategoriesTable.TABLE_NAME
 						+ " ADD " + CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
 				if(D) {
@@ -330,9 +331,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				}
 				db.execSQL(alterCategories);
 				this.createCSVTable(db);
-				oldVersion++;
 			}
-			if (oldVersion == 3) { // Add extra_edittext columns
+			if (oldVersion <= 3) { // Add extra_edittext columns
 				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
 						+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
 				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
@@ -351,9 +351,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterReceipts1);
 				db.execSQL(alterReceipts2);
 				db.execSQL(alterReceipts3);
-				oldVersion++;
 			}
-			if (oldVersion == 4) { //Change Mileage to Decimal instead of Integer
+			if (oldVersion <= 4) { //Change Mileage to Decimal instead of Integer
 				final String alterMiles = "ALTER TABLE " + TripsTable.TABLE_NAME
 						+ " ADD " + TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00";
 				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
@@ -372,12 +371,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterMiles);
 				db.execSQL(alterReceipts1);
 				db.execSQL(alterReceipts2);
-				oldVersion++;
 			}
-			if (oldVersion == 5) {
-				oldVersion++; //Skipped b/c I forgot to include the update stuff
+			if (oldVersion <= 5) {
+				//Skipped b/c I forgot to include the update stuff
 			}
-			if (oldVersion == 6) { //Fix the database to replace absolute paths with relative ones
+			if (oldVersion <= 6) { //Fix the database to replace absolute paths with relative ones
 				final Cursor tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] {TripsTable.COLUMN_NAME}, null, null, null, null, null);
 				if (tripsCursor != null && tripsCursor.moveToFirst()) {
 					final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME);
@@ -437,17 +435,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					while (receiptsCursor.moveToNext());
 				}
 				receiptsCursor.close();
-				oldVersion++;
 			}
-			if (oldVersion == 7) { //Added a timezone column to the receipts table
+			if (oldVersion <= 7) { //Added a timezone column to the receipts table
 				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterReceipts);
 				}
 				db.execSQL(alterReceipts);
-				oldVersion++;
 			}
-			if (oldVersion == 8) { //Added a timezone column to the trips table
+			if (oldVersion <= 8) { //Added a timezone column to the trips table
 				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
 				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
 				if (BuildConfig.DEBUG) {
@@ -458,13 +454,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				}
 				db.execSQL(alterTrips1);
 				db.execSQL(alterTrips2);
-				oldVersion++;
 			}
-			if (oldVersion == 9) { //Added a PDF table
+			if (oldVersion <= 9) { //Added a PDF table
 				this.createPDFTable(db);
-				oldVersion++;
 			}
-			if (oldVersion == 10) {
+			if (oldVersion <= 10) {
 				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
 				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
 				if (BuildConfig.DEBUG) {
@@ -475,7 +469,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				}
 				db.execSQL(alterTrips1);
 				db.execSQL(alterTrips2);
-				oldVersion++;
+			}
+			if (oldVersion <= 11) { //Added trips filters and mileage table
+				final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
+				if (BuildConfig.DEBUG) {
+					Log.d(TAG, alterTrips);
+				}
+				db.execSQL(alterTrips);
 			}
 			_initDB = null;
 		}
@@ -634,6 +634,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
+					final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
 					do {
 						final String name = c.getString(nameIndex);
 						final long from = c.getLong(fromIndex);
@@ -644,6 +645,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final float miles = c.getFloat(milesIndex);
 						final String comment = c.getString(commentIndex);
 						final String defaultCurrency = c.getString(defaultCurrencyIndex);
+						final String filterJson = c.getString(filterIndex);
 						qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
 						int cnt; String curr = MULTI_CURRENCY;
 						if (qc != null) {
@@ -667,6 +669,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 														.setCurrency(curr)
 														.setMileage(miles)
 														.setComment(comment)
+														.setFilter(filterJson)
 														.setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny())
 														.setSourceAsCache()
 														.build();
@@ -775,6 +778,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
+					final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
 					final long from = c.getLong(fromIndex);
 					final long to = c.getLong(toIndex);
 					final String fromTimeZone = c.getString(fromTimeZoneIndex);
@@ -783,6 +787,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					//final String price = c.getString(priceIndex);
 					final String comment = c.getString(commentIndex);
 					final String defaultCurrency = c.getString(defaultCurrencyIndex);
+					final String filterJson = c.getString(filterIndex);
 					qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
 					int cnt; String curr = MULTI_CURRENCY;;
 					if (qc != null && qc.moveToFirst() && qc.getColumnCount() > 0) {
@@ -804,6 +809,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 											  .setCurrency(curr)
 											  .setMileage(miles)
 											  .setComment(comment)
+											  .setFilter(filterJson)
 											  .setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny())
 											  .setSourceAsCache()
 											  .build();

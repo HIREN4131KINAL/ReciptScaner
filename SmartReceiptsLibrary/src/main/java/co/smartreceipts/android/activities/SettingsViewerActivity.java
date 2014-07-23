@@ -46,7 +46,7 @@ public class SettingsViewerActivity extends WBActivity {
 			return extras.getString(KEY_FLAG);
 		}
 		else {
-			return new String();
+			return "";
 		}
 	}
 	

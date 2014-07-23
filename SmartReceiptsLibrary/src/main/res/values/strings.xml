@@ -267,7 +267,11 @@
     <string name="DIALOG_ABOUT_MESSAGE">Smart Receipts v.VERSION_NAME \nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License</string>
     
     <!-- ==================== DIALOG_MILEAGE ====================== -->
-    <string name="DIALOG_MILES_DELTA">Distance</string>
+    <string name="dialog_mileage_distance">Distance</string>
+    <string name="dialog_mileage_location">Location</string>
+    <string name="dialog_mileage_date">Date</string>
+    <string name="dialog_mileage_rate">Rate</string>
+    <string name="dialog_mileage_comment">Comment</string>
     
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>
@@ -275,8 +279,14 @@
 	<string name="dialog_filter_positive_button">Add Filter</string>
 	<string name="dialog_filter_negative_button">Remove Filter</string>
 	
-   
-    
+    <!-- ==================== dialog miles ======================== -->
+    <string name="dialog_mileage_title_create">Add Distance</string>
+    <string name="dialog_mileage_title_update">Update Distance</string>
+    <string name="dialog_mileage_positive_create">Add</string>
+    <string name="dialog_mileage_positive_update">Update</string>
+    <string name="dialog_mileage_neutral_delete">Delete</string>
+    <string name="distance_action_new">@string/dialog_mileage_title_create</string>
+        
     <!-- ================= RECEIPTMENU_FIELDS =================== -->
     <string name="RECEIPTMENU_FIELD_NAME">Name</string>
     <string name="RECEIPTMENU_FIELD_PRICE">Price</string>
@@ -464,6 +474,12 @@
     <string name="pref_camera_bw_key" translatable="false">SaveBW</string>
     <string name="pref_camera_bw_title">Convert to Grayscale</string>
     <string name="pref_camera_bw_summary">Saves image in black and white</string>
+    
+    <!-- ============= Preference Distance ================= -->
+    <string name="pref_distance_rate_key" translatable="false">MileageRate</string>
+    <string name="pref_distance_rate_title">Gas Rate</string>
+    <string name="pref_distance_rate_unset">The rate per km/mi travelled</string>
+    <string name="pref_distance_rate_set">%2f per km/mi</string>
     
     <!-- ============= Preference Layout ================= -->
     <string name="pref_layout_display_date_key" translatable="false">LayoutIncludeReceiptDate</string>

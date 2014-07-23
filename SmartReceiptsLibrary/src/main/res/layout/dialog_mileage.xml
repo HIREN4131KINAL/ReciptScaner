@@ -1,12 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" 
-    android:padding="6dp">
-	<EditText android:id="@+id/DIALOG_MILES_DELTA"
-		android:inputType="number|numberSigned|numberDecimal"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:hint="@string/DIALOG_MILES_DELTA" />
-</LinearLayout>
+    android:orientation="vertical" >
+    <LinearLayout 
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+        android:padding="6dp">
+        <LinearLayout
+	        android:orientation="horizontal"
+	        android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content">
+			<EditText android:id="@+id/dialog_mileage_distance"
+			    android:focusableInTouchMode="true"
+				android:inputType="number|numberSigned|numberDecimal"
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content"
+				android:hint="@string/dialog_mileage_distance"
+				android:layout_weight="3" >
+				<requestFocus />
+		    </EditText>
+		    <EditText android:id="@+id/dialog_mileage_rate"
+				android:inputType="number|numberDecimal"
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content"
+				android:hint="@string/dialog_mileage_rate"
+				android:layout_weight="7" />
+	    </LinearLayout>
+		<EditText android:id="@+id/dialog_mileage_location"
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:hint="@string/dialog_mileage_location" />
+		<co.smartreceipts.android.date.DateEditText android:id="@+id/dialog_mileage_date"
+            android:layout_width="fill_parent"
+    		android:layout_height="wrap_content"
+    		android:hint="@string/dialog_mileage_date" />
+		<EditText android:id="@+id/dialog_mileage_comment"
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:hint="@string/dialog_mileage_comment" />
+	</LinearLayout>
+</ScrollView>

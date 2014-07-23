@@ -2,10 +2,14 @@ package co.smartreceipts.android.model;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.text.DecimalFormat;
 import java.util.TimeZone;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import co.smartreceipts.android.date.DateUtils;
 
 public class DistanceRow implements Parcelable {
 
@@ -19,6 +23,7 @@ public class DistanceRow implements Parcelable {
 	private final TimeZone mTimezone;
 	private final BigDecimal mRate;
 	private final String mComment;
+    private DecimalFormat mDecimalFormat;
 
 	public DistanceRow(long id, TripRow trip, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
 		mId = id;
@@ -76,9 +81,21 @@ public class DistanceRow implements Parcelable {
 		return mDistance;
 	}
 
+    public String getDecimalFormattedDistance() {
+        return getDecimalFormat().format(getDistance());
+    }
+
 	public Date getDate() {
 		return mDate;
 	}
+
+    public String getFormattedDate(Context context, String separator) {
+        java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
+        format.setTimeZone(mTimezone);
+        String formattedDate = format.format(mDate);
+        formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
+        return formattedDate;
+    }
 
 	public TimeZone getTimezone() {
 		return mTimezone;
@@ -95,6 +112,16 @@ public class DistanceRow implements Parcelable {
 	public String getComment() {
 		return mComment;
 	}
+
+    private DecimalFormat getDecimalFormat() {
+        if (mDecimalFormat == null) {
+            mDecimalFormat = new DecimalFormat();
+            mDecimalFormat.setMaximumFractionDigits(2);
+            mDecimalFormat.setMinimumFractionDigits(2);
+            mDecimalFormat.setGroupingUsed(false);
+        }
+        return mDecimalFormat;
+    }
 
 	public static final class Builder {
 		private long _id;

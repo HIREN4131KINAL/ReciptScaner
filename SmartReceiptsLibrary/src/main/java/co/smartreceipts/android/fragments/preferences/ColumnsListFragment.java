@@ -36,7 +36,7 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.settings_list, container, false);
+		View rootView = inflater.inflate(R.layout.simple_list, container, false);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
 		mAdapter = getAdapter();
 		mListView.setAdapter(mAdapter);

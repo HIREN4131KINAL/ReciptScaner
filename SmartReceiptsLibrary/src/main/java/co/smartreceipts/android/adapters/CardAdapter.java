@@ -1,5 +1,7 @@
 package co.smartreceipts.android.adapters;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.content.Context;
@@ -28,16 +30,21 @@ public class CardAdapter<T> extends BaseAdapter {
 	private final float mCardPriceTextSize;
 	
 	public CardAdapter(Context context, Preferences preferences) {
-		mInflater = LayoutInflater.from(context);
-		mPreferences = preferences;
-		mContext = context;
-		final Resources resources = mContext.getResources();
-		final DisplayMetrics metrics = resources.getDisplayMetrics();
-		mMaxPriceWidth = (int) (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width 
-		mMinPriceWidth = (int) (metrics.widthPixels / MIN_PRICE_WIDTH_DIVIDER); // Set to 1/6 width
-		mCurrentPriceWidth = mMinPriceWidth;
-		mCardPriceTextSize = resources.getDimension(getCardPriceTextSizeResouce());
+		this(context, preferences, Collections.<T>emptyList());
 	}
+
+    public CardAdapter(Context context, Preferences preferences, List<T> data) {
+        mInflater = LayoutInflater.from(context);
+        mPreferences = preferences;
+        mContext = context;
+        mData = new ArrayList<T>(data);
+        final Resources resources = mContext.getResources();
+        final DisplayMetrics metrics = resources.getDisplayMetrics();
+        mMaxPriceWidth = (int) (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width
+        mMinPriceWidth = (int) (metrics.widthPixels / MIN_PRICE_WIDTH_DIVIDER); // Set to 1/6 width
+        mCurrentPriceWidth = mMinPriceWidth;
+        mCardPriceTextSize = resources.getDimension(getCardPriceTextSizeResouce());
+    }
 
 	@Override
 	public int getCount() {
@@ -136,7 +143,7 @@ public class CardAdapter<T> extends BaseAdapter {
 	}
 	
 	protected String getPrice(T data) {
-		return new String();
+		return "";
 	}
 	
 	protected void setPriceTextView(TextView textView, T data) {
@@ -164,7 +171,7 @@ public class CardAdapter<T> extends BaseAdapter {
 	}
 	
 	public final synchronized void notifyDataSetChanged(List<T> newData) {
-		mData = newData;
+		mData = new ArrayList<T>(newData);
 		getPriceLayoutWidth();
 		super.notifyDataSetChanged();
 	}

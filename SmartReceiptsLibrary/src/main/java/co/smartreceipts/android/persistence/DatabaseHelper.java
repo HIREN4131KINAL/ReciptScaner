@@ -465,7 +465,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 					while (tripsCursor.moveToNext());
 				}
-				// TODO: Finally clause here
+				// TODO: Finally close here
 				tripsCursor.close();
 
 				final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] { ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH }, null, null, null, null, null);
@@ -1327,20 +1327,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	public List<DistanceRow> getDistanceSerial(final boolean desc) {
-		return this.getDistanceHelper(desc);
+		return this.getDistanceHelper();
 	}
 	
-	public void getDistanceParallel(final boolean desc){
+	public void getDistanceParallel(){
 		if (mDistanceRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No DistanceRowListener was registered.");
 			}
 		}
 		
-		(new GetDistanceWorker(desc)).execute();
+		(new GetDistanceWorker()).execute();
 	}
 	
-	private List<DistanceRow> getDistanceHelper(final boolean desc) {
+	private List<DistanceRow> getDistanceHelper() {
 		List<DistanceRow> distanceRows;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -1353,7 +1353,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							 null, // binding
 							 null,
 							 null,
-							 DistanceTable.COLUMN_DATE + ((desc)?" DESC":" ASC"));
+                             null);
 				if (c != null && c.moveToFirst()) {
 					distanceRows = new ArrayList<DistanceRow>(c.getCount());
 					final int idIndex = c.getColumnIndex(DistanceTable.COLUMN_ID);
@@ -1399,15 +1399,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	private class GetDistanceWorker extends AsyncTask<Void, Void, List<DistanceRow>> {
 
-		private final boolean mDesc;
-
-		public GetDistanceWorker(boolean desc) { 
-			mDesc = desc; 
-		}
 
 		@Override
 		protected List<DistanceRow> doInBackground(Void... params) {
-			return getDistanceHelper(mDesc);
+			return getDistanceHelper();
 		}
 
 		@Override

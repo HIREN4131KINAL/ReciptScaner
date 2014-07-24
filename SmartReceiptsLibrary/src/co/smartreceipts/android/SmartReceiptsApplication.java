@@ -86,23 +86,37 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 			Log.d(TAG, "Preloading Shared Preferences");
 		}
 		final WeakReference<Context> appContext = new WeakReference<Context>(this);
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				SharedPreferenceDefinitions[] definitions = SharedPreferenceDefinitions.values();
-				for (SharedPreferenceDefinitions definition : definitions) {
-					Context context = appContext.get();
-					if (context != null) {
-						context.getSharedPreferences(definition.toString(), 0);
+		try {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						SharedPreferenceDefinitions[] definitions = SharedPreferenceDefinitions.values();
+						for (SharedPreferenceDefinitions definition : definitions) {
+							Context context = appContext.get();
+							if (context != null) {
+								context.getSharedPreferences(definition.toString(), 0);
+							}
+						}
+						// Load AppRating Prefs (these are hidden normally)
+						Context context = appContext.get();
+						if (context != null) {
+							context.getSharedPreferences(AppRating.getApplicationName(context) + "rating", 0);
+						}
+					}
+					catch (Exception e) {
+						// Bugsense was reporting a large crash count due to an NPE on threaded method
+						// The stack trace wasn't valuable at all, so I'm just using an ugly try-catch
+						// here (since I think this is the only Thread instance I use anyway).
 					}
 				}
-				// Load AppRating Prefs (these are hidden normally)
-				Context context = appContext.get();
-				if (context != null) {
-					context.getSharedPreferences(AppRating.getApplicationName(context) + "rating", 0);
-				}
-			}
-		}).start();
+			}).start();
+		}
+		catch (Exception e) {
+			// Bugsense was reporting a large crash count due to an NPE on threaded method
+			// The stack trace wasn't valuable at all, so I'm just using an ugly try-catch
+			// here (since I think this is the only Thread instance I use anyway).
+		}
 	}
 
 	public synchronized void setCurrentActivity(Activity activity) {

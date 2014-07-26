@@ -48,7 +48,12 @@ public class WBListFragment extends ListFragment {
 	}
 
 	protected String getFlexString(int id) {
-		return getSmartReceiptsApplication().getFlex().getString(getActivity(), id);
+		if (isAdded()) {
+			return getSmartReceiptsApplication().getFlex().getString(getActivity(), id);
+		}
+		else {
+			return "";
+		}
 	}
 
 	protected DateManager getDateManager() {

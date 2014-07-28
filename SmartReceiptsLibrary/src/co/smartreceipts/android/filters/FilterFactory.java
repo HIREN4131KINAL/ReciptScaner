@@ -3,6 +3,9 @@ package co.smartreceipts.android.filters;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.view.LayoutInflater;
+import android.view.View;
+
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 
@@ -18,6 +21,12 @@ public class FilterFactory {
 	static final String CLASS_NAME = "class";
 
 	private FilterFactory() { }
+	
+	public static final View getReceiptFiltersView(Filter<ReceiptRow> filter, LayoutInflater inflater) {
+	
+		return null;
+	}
+	
 	
 	/**
 	 * Builds a {@link Filter} for a {@link ReceiptRow} based on a {@link JSONObject}

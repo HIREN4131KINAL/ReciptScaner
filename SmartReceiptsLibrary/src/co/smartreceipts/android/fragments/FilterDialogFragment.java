@@ -1,24 +1,45 @@
 package co.smartreceipts.android.fragments;
 
+import java.util.List;
+
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.filters.ReceiptAndFilter;
+import co.smartreceipts.android.model.ReceiptRow;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.view.LayoutInflater;
+import android.view.View;
 
-public class FilterDialogFragment extends DialogFragment {
+public class FilterDialogFragment extends DialogFragment implements OnClickListener {
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		final LayoutInflater inflater = LayoutInflater.from(getActivity());
 		
-		builder.setPositiveButton(getString(R.string.dialog_filter_positive_button), this);
-		builder.setNegativeButton(getString(R.string.dialog_filter_positive_button), this);
+		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setPositiveButton(R.string.dialog_filter_positive_button, this);
+		builder.setNegativeButton(R.string.dialog_filter_negative_button, this);
 		
 		return builder.create();
 	}
 	
 	
-	private View buildViewsFromFilters(List<Filter<ReceiptRow>> filters) {
-		
+	private View buildViewsFromFilters(Filter<ReceiptRow> filter) {
+		if (filter instanceof ReceiptAndFilter) {
+			
+		}
 		return null;
+	}
+
+
+	@Override
+	public void onClick(DialogInterface dialog, int which) {
+		// TODO Auto-generated method stub
+		
 	}
 }

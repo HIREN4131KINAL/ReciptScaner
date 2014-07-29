@@ -1,5 +1,6 @@
 package co.smartreceipts.android.filters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -62,6 +63,23 @@ public abstract class NotFilter<T> implements Filter<T> {
 		json.put(FilterFactory.CLASS_NAME, this.getClass().getName());
 		json.put(NOT_FILTER, mFilter.getJsonRepresentation());
 		return json;
+	}
+
+	@Override
+	public List<Filter<T>> getChildren() {
+		final ArrayList<Filter<T>> children = new ArrayList<Filter<T>>();
+		children.add(mFilter);
+		return children;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
 	}
 
 	@Override

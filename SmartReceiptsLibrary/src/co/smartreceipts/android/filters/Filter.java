@@ -1,8 +1,12 @@
 package co.smartreceipts.android.filters;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.string;
+import android.widget.EditText;
 
 
 /**
@@ -28,5 +32,25 @@ public interface Filter<T> {
 	 * @throws {@link JSONException} if invalid parameters were present
 	 */
 	public JSONObject getJsonRepresentation() throws JSONException;
+
+
+	/**
+	 * @return a complete {@link List} of {@link Filter} objects that are considered as children to this {@link Filter}
+	 *         or {@code null} if it does not contain any children
+	 */
+	public List<Filter<T>> getChildren();
+
+
+	/**
+	 * @return an Android {@link string} resource for this filter's display name
+	 */
+	public int getNameResource();
+
+
+	/**
+	 * @return a representation of an {@link EditText} input type, which can be applied by a calling method via
+	 *         {@link EditText#setInputType(int)}.
+	 */
+	public int getEditTextInputType();
 
 }

@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import android.view.LayoutInflater;
 import android.view.View;
-
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 
@@ -23,11 +22,25 @@ public class FilterFactory {
 	private FilterFactory() { }
 	
 	public static final View getReceiptFiltersView(Filter<ReceiptRow> filter, LayoutInflater inflater) {
-	
+		if (filter instanceof ReceiptAndFilter) {
+			final ReceiptAndFilter receiptAndFilter = (ReceiptAndFilter) filter;
+		}
+		else if (filter instanceof ReceiptOrFilter) {
+			final ReceiptOrFilter receiptOrFilter = (ReceiptOrFilter) filter;
+		}
+		else if (filter instanceof ReceiptNotFilter) {
+			final ReceiptNotFilter receiptNotFilter = (ReceiptNotFilter) filter;
+		}
 		return null;
 	}
 	
 	
+	private static final View getReceiptFiltersView(Filter<ReceiptRow> filter, LayoutInflater inflater, String prefix,
+			String suffix) {
+
+		return null;
+	}
+
 	/**
 	 * Builds a {@link Filter} for a {@link ReceiptRow} based on a {@link JSONObject}
 	 * 

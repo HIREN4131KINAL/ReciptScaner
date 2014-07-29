@@ -1,6 +1,7 @@
 package co.smartreceipts.android.filters;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.json.JSONException;
@@ -42,6 +43,21 @@ public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
 		json.put(DATE, mDate.getTime());
 		json.put(TIMEZONE, mTimeZone.getID());
 		return json;
+	}
+
+	@Override
+	public List<Filter<TripRow>> getChildren() {
+		return null;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
 	}
 
 	@Override

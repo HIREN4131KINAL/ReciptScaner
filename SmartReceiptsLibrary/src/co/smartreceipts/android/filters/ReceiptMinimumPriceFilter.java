@@ -1,5 +1,7 @@
 package co.smartreceipts.android.filters;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,6 +42,21 @@ public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
 		json.put(MIN_PRICE, mMinPrice);
 		json.put(CURRENCY_CODE, mCurrencyCode);
 		return json;
+	}
+
+	@Override
+	public List<Filter<ReceiptRow>> getChildren() {
+		return null;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 package co.smartreceipts.android.filters;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,10 +45,24 @@ public class TripMinimumPriceFilter implements Filter<TripRow>{
 	}
 
 	@Override
+	public List<Filter<TripRow>> getChildren() {
+		return null;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		// TODO is it the correct way to generate hash?
 		result = prime * result
 				+ ((mCurrencyCode == null) ? 0 : mCurrencyCode.hashCode())
 				+ (int) (mMinPrice * 100);

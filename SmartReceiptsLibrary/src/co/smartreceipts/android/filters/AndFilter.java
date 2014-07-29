@@ -41,6 +41,7 @@ public abstract class AndFilter<T> implements Filter<T> {
 		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
 	}
 
+
 	/**
 	 * A package-private constructor that enables us to recreate this filter via
 	 * a {@link JSONObject} representation
@@ -106,6 +107,21 @@ public abstract class AndFilter<T> implements Filter<T> {
 		json.put(FilterFactory.CLASS_NAME, this.getClass().getName());
 		json.put(AND_FILTERS, filtersArray);
 		return json;
+	}
+
+	@Override
+	public List<Filter<T>> getChildren() {
+		return new ArrayList<Filter<T>>(mFilters);
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
 	}
 
 	@Override

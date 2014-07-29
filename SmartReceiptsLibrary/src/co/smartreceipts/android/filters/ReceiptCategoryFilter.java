@@ -1,5 +1,7 @@
 package co.smartreceipts.android.filters;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,6 +60,21 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
+	public List<Filter<ReceiptRow>> getChildren() {
+		return null;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -84,7 +101,5 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 		}
 		return true;
 	}
-	
-	
 
 }

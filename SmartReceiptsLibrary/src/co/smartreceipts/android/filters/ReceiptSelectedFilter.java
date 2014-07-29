@@ -1,5 +1,7 @@
 package co.smartreceipts.android.filters;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,6 +27,21 @@ public class ReceiptSelectedFilter implements Filter<ReceiptRow> {
 		final JSONObject json = new JSONObject();
 		json.put(FilterFactory.CLASS_NAME, this.getClass().getName());
 		return json;
+	}
+
+	@Override
+	public List<Filter<ReceiptRow>> getChildren() {
+		return null;
+	}
+
+	@Override
+	public int getNameResource() {
+		return 0;
+	}
+
+	@Override
+	public int getEditTextInputType() {
+		return 0;
 	}
 
 	@Override

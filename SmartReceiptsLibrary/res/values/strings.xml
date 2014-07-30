@@ -520,4 +520,22 @@
 	<string name="dialog_sql_corrupt_intent_text">Help - my database was corrupted. How can you help me restore things?</string>
 	<string name="dialog_sql_corrupt_chooser">Send Email&#8230;</string>
 	
+	<!-- ======================= Filters ====================== -->
+	<string name="filter_name_and">And</string>
+	<string name="filter_name_not">Not</string>
+	<string name="filter_name_or">Or</string>
+	<string name="filter_name_receipt_category">Category</string>
+	<string name="filter_name_receipt_expensable">Is Expensable</string>
+	<string name="filter_name_receipt_max_price">Max Price</string>
+	<string name="filter_name_receipt_min_price">Min Price</string>
+	<string name="filter_name_receipt_on_or_after">On Or After</string>
+	<string name="filter_name_receipt_on_or_before">On Or Before</string>
+	<string name="filter_name_receipt_selected">Is Selected</string>
+	<string name="filter_name_trip_ends_on_or_after">Ends On Or After</string>
+	<string name="filter_name_trip_ends_on_or_before">Ends On Or Before</string>
+	<string name="filter_name_trip_max_price">Max Price</string>
+	<string name="filter_name_trip_min_price">Min Price</string>
+	<string name="filter_name_trip_starts_on_or_after">Starts On Or After</string>
+	<string name="filter_name_trip_starts_on_or_before">Starts On Or Before</string>
+	
 </resources>

@@ -5,6 +5,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.ReceiptRow;
 
 public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
@@ -51,12 +52,12 @@ public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
 
 	@Override
 	public int getNameResource() {
-		return 0;
+		return R.string.filter_name_receipt_min_price;
 	}
 
 	@Override
-	public int getEditTextInputType() {
-		return 0;
+	public FilterType getType() {
+		return FilterType.Float;
 	}
 
 	@Override

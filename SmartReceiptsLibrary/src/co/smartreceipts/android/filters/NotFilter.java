@@ -6,6 +6,8 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.smartreceipts.android.R;
+
 /**
  * A filter implementation that combines multiple other {@link Filter}
  * implementations in the manner of a logical NOT operation.
@@ -74,12 +76,12 @@ public abstract class NotFilter<T> implements Filter<T> {
 
 	@Override
 	public int getNameResource() {
-		return 0;
+		return R.string.filter_name_not;
 	}
 
 	@Override
-	public int getEditTextInputType() {
-		return 0;
+	public FilterType getType() {
+		return FilterType.Composite;
 	}
 
 	@Override

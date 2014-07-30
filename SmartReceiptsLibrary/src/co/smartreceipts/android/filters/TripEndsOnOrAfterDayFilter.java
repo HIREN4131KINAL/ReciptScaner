@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.TripRow;
 
 public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
@@ -52,12 +53,12 @@ public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
 
 	@Override
 	public int getNameResource() {
-		return 0;
+		return R.string.filter_name_trip_ends_on_or_after;
 	}
 
 	@Override
-	public int getEditTextInputType() {
-		return 0;
+	public FilterType getType() {
+		return FilterType.Date;
 	}
 
 	@Override

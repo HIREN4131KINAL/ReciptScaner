@@ -6,7 +6,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.R.string;
-import android.widget.EditText;
 
 
 /**
@@ -48,9 +47,8 @@ public interface Filter<T> {
 
 
 	/**
-	 * @return a representation of an {@link EditText} input type, which can be applied by a calling method via
-	 *         {@link EditText#setInputType(int)}.
+	 * @return the {@link FilterType} of this particular filter
 	 */
-	public int getEditTextInputType();
+	public FilterType getType();
 
 }

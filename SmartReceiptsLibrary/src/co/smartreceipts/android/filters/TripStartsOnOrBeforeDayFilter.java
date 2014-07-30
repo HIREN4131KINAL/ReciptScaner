@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.TripRow;
 
 public class TripStartsOnOrBeforeDayFilter implements Filter<TripRow> {
@@ -52,12 +53,12 @@ public class TripStartsOnOrBeforeDayFilter implements Filter<TripRow> {
 
 	@Override
 	public int getNameResource() {
-		return 0;
+		return R.string.filter_name_trip_starts_on_or_before;
 	}
 
 	@Override
-	public int getEditTextInputType() {
-		return 0;
+	public FilterType getType() {
+		return FilterType.Date;
 	}
 
 	@Override

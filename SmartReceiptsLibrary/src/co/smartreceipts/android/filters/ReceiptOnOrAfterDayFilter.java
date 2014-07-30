@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.ReceiptRow;
 
 public class ReceiptOnOrAfterDayFilter implements Filter<ReceiptRow> {
@@ -52,12 +53,12 @@ public class ReceiptOnOrAfterDayFilter implements Filter<ReceiptRow> {
 
 	@Override
 	public int getNameResource() {
-		return 0;
+		return R.string.filter_name_receipt_on_or_after;
 	}
 
 	@Override
-	public int getEditTextInputType() {
-		return 0;
+	public FilterType getType() {
+		return FilterType.Date;
 	}
 
 	@Override

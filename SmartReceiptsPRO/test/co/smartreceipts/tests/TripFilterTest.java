@@ -14,8 +14,10 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
+import co.smartreceipts.android.filters.FilterType;
 import co.smartreceipts.android.filters.TripAndFilter;
 import co.smartreceipts.android.filters.TripEndsOnOrAfterDayFilter;
 import co.smartreceipts.android.filters.TripEndsOnOrBeforeDayFilter;
@@ -73,6 +75,8 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripHigh));
 		assertFalse(filter.accept(tripLow));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_min_price);
+		assertEquals(filter.getType(), FilterType.Float);
 	}
 
 	@Test
@@ -89,6 +93,8 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripHigh));
 		assertTrue(filter.accept(tripLow));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_max_price);
+		assertEquals(filter.getType(), FilterType.Float);
 	}
 
 	@Test
@@ -102,6 +108,8 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripFuture));
 		assertFalse(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_starts_on_or_after);
+		assertEquals(filter.getType(), FilterType.Date);
 	}
 
 	@Test
@@ -115,6 +123,8 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripFuture));
 		assertTrue(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_starts_on_or_before);
+		assertEquals(filter.getType(), FilterType.Date);
 	}
 
 	@Test
@@ -128,6 +138,8 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripFuture));
 		assertFalse(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_ends_on_or_after);
+		assertEquals(filter.getType(), FilterType.Date);
 	}
 
 	@Test
@@ -141,6 +153,8 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripFuture));
 		assertTrue(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
+		assertEquals(filter.getNameResource(), R.string.filter_name_trip_ends_on_or_before);
+		assertEquals(filter.getType(), FilterType.Date);
 	}
 
 	@Test
@@ -163,6 +177,8 @@ public class TripFilterTest {
 		assertFalse(orFilter.accept(tripNormal)); // rejected
 		
 		assertEquals(orFilter, FilterFactory.getTripFilter(orFilter.getJsonRepresentation()));
+		assertEquals(orFilter.getNameResource(), R.string.filter_name_or);
+		assertEquals(orFilter.getType(), FilterType.Composite);
 	}
 
 	@Test
@@ -191,6 +207,8 @@ public class TripFilterTest {
 		assertFalse(andFilter.accept(tripFutureLow));
 		
 		assertEquals(andFilter, FilterFactory.getTripFilter(andFilter.getJsonRepresentation()));
+		assertEquals(andFilter.getNameResource(), R.string.filter_name_and);
+		assertEquals(andFilter.getType(), FilterType.Composite);
 	}
 	
 	@Test
@@ -211,6 +229,8 @@ public class TripFilterTest {
 		assertFalse(notFilter.accept(tripLow));
 		
 		assertEquals(notFilter, FilterFactory.getTripFilter(notFilter.getJsonRepresentation()));
+		assertEquals(notFilter.getNameResource(), R.string.filter_name_not);
+		assertEquals(notFilter.getType(), FilterType.Composite);
 	}
 	
 	@Test

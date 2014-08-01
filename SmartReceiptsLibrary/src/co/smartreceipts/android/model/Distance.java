@@ -159,4 +159,79 @@ public class Distance implements Parcelable {
 			return new Distance[size];
 		}
 	};
+
+	@Override
+	public String toString() {
+		return "Distance ["
+				+ "mLocation=" + mLocation
+				+ ", mDistance=" + mDistance
+				+ ", mDate=" + mDate
+				+ ", mTimezone=" + mTimezone
+				+ ", mRate=" + mRate
+				+ ", mComment=" + mComment
+				+ "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((mComment == null) ? 0 : mComment.hashCode());
+		result = prime * result + ((mDate == null) ? 0 : mDate.hashCode());
+		result = prime * result + ((mDistance == null) ? 0 : mDistance.hashCode());
+		result = prime * result + ((mLocation == null) ? 0 : mLocation.hashCode());
+		result = prime * result + ((mRate == null) ? 0 : mRate.hashCode());
+		result = prime * result + ((mTimezone == null) ? 0 : mTimezone.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+
+		Distance other = (Distance) obj;
+
+		if (mComment == null) {
+			if (other.mComment != null)
+				return false;
+		} else if (!mComment.equals(other.mComment))
+			return false;
+
+		if (mDate == null) {
+			if (other.mDate != null)
+				return false;
+		} else if (!mDate.equals(other.mDate))
+			return false;
+
+		if (mDistance == null) {
+			if (other.mDistance != null)
+				return false;
+		} else if (!mDistance.equals(other.mDistance))
+			return false;
+
+		if (mLocation == null) {
+			if (other.mLocation != null)
+				return false;
+		} else if (!mLocation.equals(other.mLocation))
+			return false;
+
+		if (mRate == null) {
+			if (other.mRate != null)
+				return false;
+		} else if (!mRate.equals(other.mRate))
+			return false;
+
+		if (mTimezone == null) {
+			if (other.mTimezone != null)
+				return false;
+		} else if (!mTimezone.equals(other.mTimezone))
+			return false;
+
+		return true;
+	}
 }

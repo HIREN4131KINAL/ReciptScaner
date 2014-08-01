@@ -179,6 +179,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	private static final class ReceiptsTable {
+		
 		private ReceiptsTable() {
 		}
 
@@ -211,7 +212,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_CODE = "code";
 		public static final String COLUMN_BREAKDOWN = "breakdown";
 	}
-
+	
+	private static final class DistanceTable {
+		private DistanceTable() {}
+		public static final String TABLE_NAME = "mileage";
+		public static final String COLUMN_ID = "id"; 
+		public static final String COLUMN_PARENT = "parent"; 
+		public static final String COLUMN_DISTANCE = "distance"; 
+		public static final String COLUMN_LOCATION = "location"; 
+		public static final String COLUMN_DATE = "date"; 
+		public static final String COLUMN_TIMEZONE = "timezone"; 
+		public static final String COLUMN_COMMENT = "comment"; 
+		public static final String COLUMN_RATE = "rate"; 
+	}
+	
 	public static final class CSVTable {
 		private CSVTable() {
 		}
@@ -289,12 +303,44 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public void onCreate(final SQLiteDatabase db) {
 		synchronized (mDatabaseLock) {
 			_initDB = db;
-			// N.B. This only gets called if you actually request the database using the getDatabase method
-			final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " (" + TripsTable.COLUMN_NAME + " TEXT PRIMARY KEY, " + TripsTable.COLUMN_FROM + " DATE, " + TripsTable.COLUMN_TO + " DATE, " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT, " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT, "
-			/* + TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, " */
-			+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, " + TripsTable.COLUMN_COMMENT + " TEXT, " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, " + TripsTable.COLUMN_FILTERS + " TEXT" + ");";
-			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " (" + ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + ReceiptsTable.COLUMN_PATH + " TEXT, " + ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME + " ON DELETE CASCADE, " + ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", " + ReceiptsTable.COLUMN_CATEGORY + " TEXT, " + ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT, " + ReceiptsTable.COLUMN_COMMENT + " TEXT, " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, " + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, " + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, " + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT" + ");";
-			final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " (" + CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, " + CategoriesTable.COLUMN_CODE + " TEXT, " + CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1" + ");";
+			//N.B. This only gets called if you actually request the database using the getDatabase method
+			final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " ("
+					+ TripsTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
+					+ TripsTable.COLUMN_FROM + " DATE, "
+					+ TripsTable.COLUMN_TO + " DATE, "
+					+ TripsTable.COLUMN_FROM_TIMEZONE + " TEXT, "
+					+ TripsTable.COLUMN_TO_TIMEZONE + " TEXT, "
+					/*+ TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "*/
+					+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, "
+					+ TripsTable.COLUMN_COMMENT + " TEXT, "
+					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, "
+					+ TripsTable.COLUMN_FILTERS + " TEXT"
+					+ ");";
+			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " ("
+					+ ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+					+ ReceiptsTable.COLUMN_PATH + " TEXT, "
+					+ ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME + " ON DELETE CASCADE, "
+					+ ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", "
+					+ ReceiptsTable.COLUMN_CATEGORY + " TEXT, "
+					+ ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), "
+					+ ReceiptsTable.COLUMN_TIMEZONE + " TEXT, "
+					+ ReceiptsTable.COLUMN_COMMENT + " TEXT, "
+					+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
+					+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
+					+ ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
+					+ ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
+					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
+					+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
+					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
+					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
+					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
+					+ ");";
+			final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " ("
+					+ CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
+					+ CategoriesTable.COLUMN_CODE + " TEXT, "
+					+ CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
+					+ ");";
+			
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, trips);
 			}
@@ -310,6 +356,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			this.createCSVTable(db);
 			this.createPDFTable(db);
 			this.createPaymentMethodsTable(db);
+			this.createDistanceTable(db);
 			mCustomizations.insertCategoryDefaults(this);
 			mCustomizations.onFirstRun();
 			_initDB = null;
@@ -489,6 +536,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterTrips);
 				db.execSQL(alterReceipts);
 			}
+			if (oldVersion <= 12) { //Added better distance tracking
+				this.createDistanceTable(db);
+			}
 			_initDB = null;
 		}
 	}
@@ -566,6 +616,23 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		db.execSQL(pdf);
 		mCustomizations.insertPDFDefaults(this);
+	}
+	
+	private final void createDistanceTable(final SQLiteDatabase db){
+		final String distance = "CREATE TABLE " + DistanceTable.TABLE_NAME + " ("
+				+ DistanceTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ DistanceTable.COLUMN_PARENT + " TEXT REFERENCES "+ TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
+				+ DistanceTable.COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
+				+ DistanceTable.COLUMN_LOCATION + " TEXT,"
+				+ DistanceTable.COLUMN_DATE + " DATE,"
+				+ DistanceTable.COLUMN_TIMEZONE + " TEXT,"
+				+ DistanceTable.COLUMN_COMMENT + " TEXT,"
+				+ DistanceTable.COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00 );";
+		
+		if(BuildConfig.DEBUG) {
+			Log.d(TAG, distance);
+		}
+		db.execSQL(distance);
 	}
 
 	private final void createPaymentMethodsTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade

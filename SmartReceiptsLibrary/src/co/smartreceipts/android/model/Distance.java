@@ -9,6 +9,8 @@ import android.os.Parcelable;
 
 public class Distance implements Parcelable {
 
+	public static final String PARCEL_KEY = "co.smartreceipts.android.Distance";
+	
 	private String mLocation;
 	private BigDecimal mDistance;
 	private Date mDate;

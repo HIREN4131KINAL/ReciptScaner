@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public class Distance {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Distance implements Parcelable {
 
 	private String mLocation;
 	private BigDecimal mDistance;
@@ -12,6 +15,34 @@ public class Distance {
 	private String mTimezone;
 	private BigDecimal mRate;
 	private String mComment;
+
+	public Distance() {
+	}
+
+	protected Distance(Parcel in) {
+		mLocation = in.readString();
+		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
+		long tmpDate = in.readLong();
+		mDate = tmpDate != -1 ? new Date(tmpDate) : null;
+		mTimezone = in.readString();
+		mRate = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
+		mComment = in.readString();
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(mLocation);
+		dest.writeValue(mDistance);
+		dest.writeLong(mDate != null ? mDate.getTime() : -1L);
+		dest.writeString(mTimezone);
+		dest.writeValue(mRate);
+		dest.writeString(mComment);
+	}
 
 	public String getLocation() {
 		return mLocation;
@@ -116,4 +147,16 @@ public class Distance {
 		}
 
 	}
+
+	public static final Parcelable.Creator<Distance> CREATOR = new Parcelable.Creator<Distance>() {
+		@Override
+		public Distance createFromParcel(Parcel in) {
+			return new Distance(in);
+		}
+
+		@Override
+		public Distance[] newArray(int size) {
+			return new Distance[size];
+		}
+	};
 }

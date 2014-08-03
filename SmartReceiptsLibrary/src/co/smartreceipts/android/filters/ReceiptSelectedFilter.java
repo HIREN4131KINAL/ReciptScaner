@@ -42,7 +42,7 @@ public class ReceiptSelectedFilter implements Filter<ReceiptRow> {
 
 	@Override
 	public FilterType getType() {
-		return FilterType.Float;
+		return FilterType.Boolean;
 	}
 
 	@Override

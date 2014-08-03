@@ -83,7 +83,7 @@ public class ReceiptsDBTest {
 		assertNotNull(receipts);
 		assertEquals(receipts.length, 1);
 		assertEquals(insertReceipt, receipts[0]);
-		assertNotEquals(img, insertReceipt.getFile());
+		assertNotSame(img, insertReceipt.getFile());
 		assertEquals(insertReceipt.getFileName(), insertReceipt.getIndex() + "_" + insertReceipt.getName() + ".jpg");
 		ReceiptUtils.assertFieldEqualityPlusIndex(insertReceipt, receipts[0]);
 	}

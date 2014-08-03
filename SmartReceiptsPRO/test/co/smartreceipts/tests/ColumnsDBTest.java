@@ -86,7 +86,7 @@ public class ColumnsDBTest {
 		assertTrue(mDB.insertCSVColumnNoCache(Columns.CATEGORY_CODE(mApp.getFlex())));
 		final int lastIdx = columns.size() - 1;
 		final Column lastCol = columns.get(lastIdx);
-		assertNotEquals(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
+		assertNotSame(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
 	}
 	
 	@Test
@@ -95,7 +95,7 @@ public class ColumnsDBTest {
 		assertTrue(mDB.insertPDFColumnNoCache(Columns.CATEGORY_CODE(mApp.getFlex())));
 		final int lastIdx = columns.size() - 1;
 		final Column lastCol = columns.get(lastIdx);
-		assertNotEquals(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
+		assertNotSame(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
 	}
 	
 	@Test

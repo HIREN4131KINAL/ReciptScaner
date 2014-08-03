@@ -554,18 +554,22 @@ public final class TripRow implements Parcelable {
 		}
 		
 		public Builder setFilter(JSONObject json) {
-			try {
-				_filter = FilterFactory.getReceiptFilter(json);
-			} 
-			catch (JSONException e) { }
+			if (json != null) {
+				try {
+					_filter = FilterFactory.getReceiptFilter(json);
+				} 
+				catch (JSONException e) { }
+			}
 			return this;
 		}
 		
 		public Builder setFilter(String json) {
-			try {
-				_filter = FilterFactory.getReceiptFilter(new JSONObject(json));
-			} 
-			catch (JSONException e) { }
+			if (!TextUtils.isEmpty(json)) {
+				try {
+					_filter = FilterFactory.getReceiptFilter(new JSONObject(json));
+				} 
+				catch (JSONException e) { }
+			}
 			return this;
 		}
 		

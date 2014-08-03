@@ -1,6 +1,10 @@
 package co.smartreceipts.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.sql.Date;
@@ -17,8 +21,10 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 import co.smartreceipts.tests.utils.ReceiptUtils;
+import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
+
+import java.util.List;
 
 @Config(emulateSdk = 18) 
 @RunWith(RobolectricTestRunner.class)
@@ -78,29 +84,29 @@ public class ReceiptsDBTest {
 	public void insert1() {
 		File img = new File(mTripRow.getDirectory(), Constants.IMAGE_FILE_NAME);
 		ReceiptRow insertReceipt = insertDefaultReceipt();
-		ReceiptRow[] receipts = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(insertReceipt);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 1);
-		assertEquals(insertReceipt, receipts[0]);
+		assertEquals(receipts.size(), 1);
+		assertEquals(insertReceipt, receipts.get(0));
 		assertNotSame(img, insertReceipt.getFile());
 		assertEquals(insertReceipt.getFileName(), insertReceipt.getIndex() + "_" + insertReceipt.getName() + ".jpg");
-		ReceiptUtils.assertFieldEqualityPlusIndex(insertReceipt, receipts[0]);
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(insertReceipt, receipts.get(0));
 	}
 	
 	@Test
 	public void insert2() {
 		ReceiptRow insertReceipt1 = insertDefaultReceipt();
 		ReceiptRow insertReceipt2 = mDB.insertReceiptSerial(mTripRow, insertReceipt1);
-		ReceiptRow[] receipts = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(insertReceipt1);
 		assertNotNull(insertReceipt2);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 2);
-		assertEquals(insertReceipt1, receipts[1]);
-		assertEquals(insertReceipt2, receipts[0]);
-		ReceiptUtils.assertFieldEquality(insertReceipt1, receipts[1]);
-		ReceiptUtils.assertFieldEquality(insertReceipt2, receipts[0]);
+		assertEquals(receipts.size(), 2);
+		assertEquals(insertReceipt1, receipts.get(1));
+		assertEquals(insertReceipt2, receipts.get(0));
+		ReceiptUtils.assertFieldEquality(insertReceipt1, receipts.get(1));
+		ReceiptUtils.assertFieldEquality(insertReceipt2, receipts.get(0));
 	}
 	
 	@Test
@@ -130,13 +136,13 @@ public class ReceiptsDBTest {
 														   null, 
 														   "2", 
 														   null);
-		ReceiptRow[] receipts = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 1);
+		assertEquals(receipts.size(), 1);
 		assertEquals(updateReceipt, insertReceipt);
-		assertEquals(updateReceipt, receipts[0]);
-		ReceiptUtils.assertFieldEqualityPlusIndex(updateReceipt, receipts[0]);
+		assertEquals(updateReceipt, receipts.get(0));
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
 	}
 	
 	@Test 
@@ -154,34 +160,34 @@ public class ReceiptsDBTest {
 		// PDF Update test
 		ReceiptRow insertReceipt = insertDefaultReceipt();
 		ReceiptRow updateReceipt = mDB.updateReceiptFile(insertReceipt, pdf);
-		ReceiptRow[] receipts = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 1);
+		assertEquals(receipts.size(), 1);
 		assertEquals(updateReceipt, insertReceipt);
-		assertEquals(updateReceipt, receipts[0]);
+		assertEquals(updateReceipt, receipts.get(0));
 		assertTrue(updateReceipt.hasPDF());
-		ReceiptUtils.assertFieldEqualityPlusIndex(updateReceipt, receipts[0]);
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
 		
 		// Image Update test
 		updateReceipt = mDB.updateReceiptFile(insertReceipt, img);
 		receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 1);
+		assertEquals(receipts.size(), 1);
 		assertEquals(updateReceipt, insertReceipt);
-		assertEquals(updateReceipt, receipts[0]);
+		assertEquals(updateReceipt, receipts.get(0));
 		assertTrue(updateReceipt.hasImage());
-		ReceiptUtils.assertFieldEqualityPlusIndex(updateReceipt, receipts[0]);
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
 		
 		// Bad File Update test
 		updateReceipt = mDB.updateReceiptFile(insertReceipt, bad);
 		receipts = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
-		assertEquals(receipts.length, 1);
+		assertEquals(receipts.size(), 1);
 		assertEquals(updateReceipt, insertReceipt);
-		assertEquals(updateReceipt, receipts[0]);
+		assertEquals(updateReceipt, receipts.get(0));
 		assertFalse(updateReceipt.hasFile());
 	}
 	
@@ -189,18 +195,18 @@ public class ReceiptsDBTest {
 	public void copyImg() {
 		ReceiptRow imgReceipt = insertDefaultReceipt();
 		assertTrue(mDB.copyReceiptSerial(imgReceipt, mTripRow2));
-		ReceiptRow[] receipts1 = mDB.getReceiptsSerial(mTripRow);
-		ReceiptRow[] receipts2 = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts1 = mDB.getReceiptsSerial(mTripRow);
+		List<ReceiptRow> receipts2 = mDB.getReceiptsSerial(mTripRow);
 		assertNotNull(imgReceipt);
 		assertNotNull(receipts1);
 		assertNotNull(receipts2);
-		assertEquals(receipts1.length, 1);
-		assertEquals(receipts2.length, 1);
+		assertEquals(receipts1.size(), 1);
+		assertEquals(receipts2.size(), 1);
 		assertTrue(imgReceipt.hasImage());
-		assertTrue(receipts1[0].hasImage());
-		assertTrue(receipts2[0].hasImage());
-		assertEquals(imgReceipt, receipts1[0]); // receipts2[0] will have a different id
-		ReceiptUtils.assertFieldEqualityPlusIndex(imgReceipt, receipts1[0]);
+		assertTrue(receipts1.get(0).hasImage());
+		assertTrue(receipts2.get(0).hasImage());
+		assertEquals(imgReceipt, receipts1.get(0)); // receipts2.get(0) will have a different id
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(imgReceipt, receipts1.get(0));
 	}
 
 }

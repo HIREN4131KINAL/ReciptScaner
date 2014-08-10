@@ -1552,6 +1552,126 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		
 	}
 	
+	public void updateDistanceSerial(
+			final DistanceRow oldDistance,
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment) {
+		
+		updateDistanceHelper(oldDistance, location, distance, date, timezone, rate, comment);
+	}
+	
+	public void updateDistanceParallel(
+			final DistanceRow oldDistance,
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment) {
+		
+		if (mDistanceRowListener == null) {
+			if (BuildConfig.DEBUG) {
+				Log.d(TAG, "No DistanceRowListener was registered.");
+			}
+		}
+		
+		new UpdateDistanceWorker(oldDistance, location, distance, date, timezone, rate, comment).execute();
+	}
+	
+	private DistanceRow updateDistanceHelper(
+			final DistanceRow oldDistance,
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment){
+		
+		ContentValues values = new ContentValues(6);
+		values.put(DistanceTable.COLUMN_LOCATION, location); 
+		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
+		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
+		values.put(DistanceTable.COLUMN_TIMEZONE, timezone); 
+		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue()); 
+		values.put(DistanceTable.COLUMN_COMMENT, comment); 
+		
+		DistanceRow toReturn = null;
+		long id = oldDistance.getId();
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = this.getWritableDatabase();
+			if (db.update(DistanceTable.TABLE_NAME, values, 
+					DistanceTable.COLUMN_ID +" = ?", 
+					new String[]{ String.valueOf(id) }) > 0) {
+				
+				toReturn =  new DistanceRow.Builder(id)
+					.setLocation(location)
+					.setDistance(distance)
+					.setDate(date)
+					.setTimezone(timezone)
+					.setRate(rate)
+					.setComment(comment)
+					.build();
+
+			} else {
+				toReturn = null;
+			}
+		}
+		
+		return toReturn;
+	}
+	
+	private class UpdateDistanceWorker extends AsyncTask<Void, Void, DistanceRow> {
+
+	final DistanceRow mOldDistance;
+	final String mLocation; 
+	final BigDecimal mDistance; 
+	final Date mDate; 
+	final String mTimezone; 
+	final BigDecimal mRate; 
+	final String mComment;
+
+		public UpdateDistanceWorker (
+				final DistanceRow oldDistance,
+				final String location, 
+				final BigDecimal distance, 
+				final Date date, 
+				final String timezone, 
+				final BigDecimal rate, 
+				final String comment){
+			
+
+			mOldDistance = oldDistance;
+			mLocation = location; 
+			mDistance = distance; 
+			mDate = date; 
+			mTimezone = timezone; 
+			mRate = rate; 
+			mComment = comment;
+
+		}
+		
+		@Override
+		protected DistanceRow doInBackground(Void... params) {
+			return updateDistanceHelper(mOldDistance, mLocation, mDistance, mDate, mTimezone, mRate, mComment);
+		}
+		
+		@Override
+		protected void onPostExecute(DistanceRow result) {
+			if (mDistanceRowListener == null)
+				return;
+			
+			if (result == null)
+				mDistanceRowListener.onDistanceRowUpdateFailure();
+			else
+				mDistanceRowListener.onDistanceRowUpdateSuccess(result);
+		}
+		
+	}
+	
 	public boolean deleteDistanceSerial(DistanceRow distance) {
 		return deleteDistanceHelper(distance);
 	}

@@ -116,6 +116,11 @@ public class Distance implements Parcelable {
 			_date = date;
 			return this;
 		}
+		
+		public Builder setDate(long date) {
+			_date = new Date(date);
+			return this;
+		}
 
 		public Builder setTimezone(String timezone) {
 			_timezone = timezone;

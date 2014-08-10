@@ -2,6 +2,7 @@ package co.smartreceipts.android.persistence;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -33,6 +34,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.Columns.Column;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
@@ -82,6 +84,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	// Listeners
 	private TripRowListener mTripRowListener;
 	private ReceiptRowListener mReceiptRowListener;
+	private DistanceRowListener mDistanceRowListener;
 	private ReceiptRowGraphListener mReceiptRowGraphListener;
 
 	// Locks
@@ -139,6 +142,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public void onReceiptMoveFailure();
 
 		public void onReceiptDeleteFailure();
+	}
+	
+	public interface DistanceRowListener {
+		public void onDistanceRowsQuerySuccess(List<Distance> distance);
+		public void onDistanceRowInsertSuccess(Distance distance);
+		public void onDistanceRowInsertFailure(SQLException error); 
+		public void onDistanceRowUpdateSuccess(Distance distance);
+		public void onDistanceRowUpdateFailure(); //For rollback info
+		public void onDistanceDeleteSuccess(Distance distance);
+		public void onDistanceDeleteFailure();
 	}
 
 	public interface ReceiptRowGraphListener {
@@ -1301,10 +1314,112 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			queryTripDailyPrice(trip);
 		}
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	Distance Methods
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	public void registerDistanceRowListener(DistanceRowListener listener) {
+		mDistanceRowListener = listener;
+	}
 
-	// //////////////////////////////////////////////////////////////////////////////////////////////////
-	// ReceiptRow Methods
-	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	public void unregisterDistanceRowListener() {
+		mDistanceRowListener = null;
+	}
+	
+	public List<Distance> getDistanceSerial(final boolean desc) {
+		return this.getDistanceHelper(desc);
+	}
+	
+	public void getDistanceParallel(final boolean desc){
+		if (mDistanceRowListener == null) {
+			if (BuildConfig.DEBUG) {
+				Log.d(TAG, "No DistanceRowListener was registered.");
+			}
+		}
+		
+		(new GetDistanceWorker(desc)).execute();
+	}
+	
+	public List<Distance> getDistanceHelper(final boolean desc) {
+		List<Distance> distanceRows;
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			Cursor c = null;
+			try {
+				db = this.getReadableDatabase();
+				c = db.query(DistanceTable.TABLE_NAME,
+							 null,
+							 null, // condition
+							 null, // binding
+							 null,
+							 null,
+							 DistanceTable.COLUMN_DATE + ((desc)?" DESC":" ASC"));
+				if (c != null && c.moveToFirst()) {
+					distanceRows = new ArrayList<Distance>(c.getCount());
+					final int locationIndex = c.getColumnIndex(DistanceTable.COLUMN_LOCATION);
+					final int distanceIndex = c.getColumnIndex(DistanceTable.COLUMN_DISTANCE);
+					final int dateIndex = c.getColumnIndex(DistanceTable.COLUMN_DATE);
+					final int timezoneIndex = c.getColumnIndex(DistanceTable.COLUMN_TIMEZONE);
+					final int rateIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE);
+					final int commentIndex = c.getColumnIndex(DistanceTable.COLUMN_COMMENT);
+					do {
+						final String location = c.getString(locationIndex);
+						final BigDecimal distance = BigDecimal.valueOf(c.getDouble(distanceIndex));
+						final long date = c.getLong(dateIndex);
+						final String timezone = c.getString(timezoneIndex);
+						final BigDecimal rate = BigDecimal.valueOf(c.getDouble(rateIndex));
+						final String comment = c.getString(commentIndex);
+						
+						Distance.Builder builder = new Distance.Builder();
+						distanceRows.add(builder
+								.setLocation(location)
+								.setDistance(distance)
+								.setDate(date)
+								.setTimezone(timezone)
+								.setRate(rate)
+								.setComment(comment)
+								.build());
+					}
+					while (c.moveToNext());
+				}
+				else {
+					distanceRows = new ArrayList<Distance>();
+				}
+			}
+			finally { // Close the cursor and db to avoid memory leaks
+				if (c != null) {
+					c.close();
+				}
+			}
+		}
+		
+		return distanceRows;
+	}
+	private class GetDistanceWorker extends AsyncTask<Void, Void, List<Distance>> {
+
+		private final boolean mDesc;
+
+		public GetDistanceWorker(boolean desc) { 
+			mDesc = desc; 
+		}
+
+		@Override
+		protected List<Distance> doInBackground(Void... params) {
+			return getDistanceHelper(mDesc);
+		}
+
+		@Override
+		protected void onPostExecute(List<Distance> result) {
+			if (mDistanceRowListener != null) {
+				mDistanceRowListener.onDistanceRowsQuerySuccess(result);
+			}
+		}
+
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	ReceiptRow Methods
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	public void registerReceiptRowListener(ReceiptRowListener listener) {
 		mReceiptRowListener = listener;
 	}

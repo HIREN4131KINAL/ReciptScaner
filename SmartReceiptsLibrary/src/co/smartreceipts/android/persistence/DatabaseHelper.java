@@ -34,7 +34,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.Columns.Column;
-import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.DistanceRow;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
@@ -145,12 +145,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	public interface DistanceRowListener {
-		public void onDistanceRowsQuerySuccess(List<Distance> distance);
-		public void onDistanceRowInsertSuccess(Distance distance);
+		public void onDistanceRowsQuerySuccess(List<DistanceRow> distance);
+		public void onDistanceRowInsertSuccess(DistanceRow distance);
 		public void onDistanceRowInsertFailure(SQLException error); 
-		public void onDistanceRowUpdateSuccess(Distance distance);
+		public void onDistanceRowUpdateSuccess(DistanceRow distance);
 		public void onDistanceRowUpdateFailure(); //For rollback info
-		public void onDistanceDeleteSuccess(Distance distance);
+		public void onDistanceDeleteSuccess(DistanceRow distance);
 		public void onDistanceDeleteFailure();
 	}
 
@@ -1326,7 +1326,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mDistanceRowListener = null;
 	}
 	
-	public List<Distance> getDistanceSerial(final boolean desc) {
+	public List<DistanceRow> getDistanceSerial(final boolean desc) {
 		return this.getDistanceHelper(desc);
 	}
 	
@@ -1340,8 +1340,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetDistanceWorker(desc)).execute();
 	}
 	
-	public List<Distance> getDistanceHelper(final boolean desc) {
-		List<Distance> distanceRows;
+	public List<DistanceRow> getDistanceHelper(final boolean desc) {
+		List<DistanceRow> distanceRows;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			Cursor c = null;
@@ -1355,7 +1355,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							 null,
 							 DistanceTable.COLUMN_DATE + ((desc)?" DESC":" ASC"));
 				if (c != null && c.moveToFirst()) {
-					distanceRows = new ArrayList<Distance>(c.getCount());
+					distanceRows = new ArrayList<DistanceRow>(c.getCount());
 					final int locationIndex = c.getColumnIndex(DistanceTable.COLUMN_LOCATION);
 					final int distanceIndex = c.getColumnIndex(DistanceTable.COLUMN_DISTANCE);
 					final int dateIndex = c.getColumnIndex(DistanceTable.COLUMN_DATE);
@@ -1370,7 +1370,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final BigDecimal rate = BigDecimal.valueOf(c.getDouble(rateIndex));
 						final String comment = c.getString(commentIndex);
 						
-						Distance.Builder builder = new Distance.Builder();
+						DistanceRow.Builder builder = new DistanceRow.Builder();
 						distanceRows.add(builder
 								.setLocation(location)
 								.setDistance(distance)
@@ -1383,7 +1383,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					while (c.moveToNext());
 				}
 				else {
-					distanceRows = new ArrayList<Distance>();
+					distanceRows = new ArrayList<DistanceRow>();
 				}
 			}
 			finally { // Close the cursor and db to avoid memory leaks
@@ -1396,7 +1396,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return distanceRows;
 	}
 	
-	private class GetDistanceWorker extends AsyncTask<Void, Void, List<Distance>> {
+	private class GetDistanceWorker extends AsyncTask<Void, Void, List<DistanceRow>> {
 
 		private final boolean mDesc;
 
@@ -1405,19 +1405,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected List<Distance> doInBackground(Void... params) {
+		protected List<DistanceRow> doInBackground(Void... params) {
 			return getDistanceHelper(mDesc);
 		}
 
 		@Override
-		protected void onPostExecute(List<Distance> result) {
+		protected void onPostExecute(List<DistanceRow> result) {
 			if (mDistanceRowListener != null) {
 				mDistanceRowListener.onDistanceRowsQuerySuccess(result);
 			}
 		}
 	}
 	
-	public Distance insertDistanceSerial(
+	public DistanceRow insertDistanceSerial(
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1445,7 +1445,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		new InsertDistanceWorker(location, distance, date, timezone, rate, comment).execute();
 	}
 
-	public Distance insertDistanceHelper(
+	public DistanceRow insertDistanceHelper(
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1461,14 +1461,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue()); 
 		values.put(DistanceTable.COLUMN_COMMENT, comment); 
 		
-		Distance toReturn = null;
+		DistanceRow toReturn = null;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			db = this.getWritableDatabase();
 			if (db.insertOrThrow(DistanceTable.TABLE_NAME, null, values) == -1) {
 				return null;
 			} else {
-				toReturn =  new Distance.Builder()
+				toReturn =  new DistanceRow.Builder()
 						.setLocation(location)
 						.setDistance(distance)
 						.setDate(date)
@@ -1489,7 +1489,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return toReturn;
 	}
 	
-	private class InsertDistanceWorker extends AsyncTask<Void, Void, Distance>{
+	private class InsertDistanceWorker extends AsyncTask<Void, Void, DistanceRow>{
 		final private String mLocation;
 		final private BigDecimal mDistance;
 		final private Date mDate;
@@ -1516,7 +1516,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected Distance doInBackground(Void... params) {
+		protected DistanceRow doInBackground(Void... params) {
 			try {
 				return insertDistanceHelper(mLocation, mDistance, mDate, mTimezone, mRate, mComment);
 			} catch (SQLException exception) {
@@ -1526,7 +1526,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		
 		@Override
-		protected void onPostExecute(Distance result) {
+		protected void onPostExecute(DistanceRow result) {
 			if (mDistanceRowListener == null)
 				return;
 			

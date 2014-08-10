@@ -7,7 +7,7 @@ import java.util.TimeZone;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Distance implements Parcelable {
+public class DistanceRow implements Parcelable {
 
 	public static final String PARCEL_KEY = "co.smartreceipts.android.Distance";
 	
@@ -18,10 +18,10 @@ public class Distance implements Parcelable {
 	private BigDecimal mRate;
 	private String mComment;
 
-	public Distance() {
+	public DistanceRow() {
 	}
 
-	protected Distance(Parcel in) {
+	protected DistanceRow(Parcel in) {
 		mLocation = in.readString();
 		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		long tmpDate = in.readLong();
@@ -142,8 +142,8 @@ public class Distance implements Parcelable {
 			return this;
 		}
 
-		public Distance build() {
-			Distance distance = new Distance();
+		public DistanceRow build() {
+			DistanceRow distance = new DistanceRow();
 			distance.setLocation(_location);
 			distance.setDistance(_distance);
 			distance.setDate(_date);
@@ -155,15 +155,15 @@ public class Distance implements Parcelable {
 
 	}
 
-	public static final Parcelable.Creator<Distance> CREATOR = new Parcelable.Creator<Distance>() {
+	public static final Parcelable.Creator<DistanceRow> CREATOR = new Parcelable.Creator<DistanceRow>() {
 		@Override
-		public Distance createFromParcel(Parcel in) {
-			return new Distance(in);
+		public DistanceRow createFromParcel(Parcel in) {
+			return new DistanceRow(in);
 		}
 
 		@Override
-		public Distance[] newArray(int size) {
-			return new Distance[size];
+		public DistanceRow[] newArray(int size) {
+			return new DistanceRow[size];
 		}
 	};
 
@@ -201,7 +201,7 @@ public class Distance implements Parcelable {
 		if (getClass() != obj.getClass())
 			return false;
 
-		Distance other = (Distance) obj;
+		DistanceRow other = (DistanceRow) obj;
 
 		if (mComment == null) {
 			if (other.mComment != null)

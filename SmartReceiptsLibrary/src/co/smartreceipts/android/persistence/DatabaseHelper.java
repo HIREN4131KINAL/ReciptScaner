@@ -215,7 +215,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	private static final class DistanceTable {
 		private DistanceTable() {}
-		public static final String TABLE_NAME = "mileage";
+		public static final String TABLE_NAME = "distance";
 		public static final String COLUMN_ID = "id"; 
 		public static final String COLUMN_PARENT = "parent"; 
 		public static final String COLUMN_DISTANCE = "distance"; 

@@ -11,6 +11,7 @@ public class DistanceRow implements Parcelable {
 
 	public static final String PARCEL_KEY = "co.smartreceipts.android.Distance";
 	
+	private long mId;
 	private String mLocation;
 	private BigDecimal mDistance;
 	private Date mDate;
@@ -18,10 +19,12 @@ public class DistanceRow implements Parcelable {
 	private BigDecimal mRate;
 	private String mComment;
 
-	public DistanceRow() {
+	public DistanceRow(long id) {
+		mId = id;
 	}
 
 	protected DistanceRow(Parcel in) {
+		mId = in.readLong();
 		mLocation = in.readString();
 		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		long tmpDate = in.readLong();
@@ -38,12 +41,21 @@ public class DistanceRow implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeLong(mId);
 		dest.writeString(mLocation);
 		dest.writeValue(mDistance);
 		dest.writeLong(mDate != null ? mDate.getTime() : -1L);
 		dest.writeString(mTimezone);
 		dest.writeValue(mRate);
 		dest.writeString(mComment);
+	}
+	
+	public long getId() {
+		return mId;
+	}
+	
+	public void setId(long id) {
+		mId = id;
 	}
 
 	public String getLocation() {
@@ -95,6 +107,7 @@ public class DistanceRow implements Parcelable {
 	}
 
 	public static final class Builder {
+		private long _id;
 		private String _location;
 		private BigDecimal _distance;
 		private Date _date;
@@ -102,6 +115,10 @@ public class DistanceRow implements Parcelable {
 		private BigDecimal _rate;
 		private String _comment;
 
+		public Builder(long id){
+			_id = id;
+		}
+		
 		public Builder setLocation(String location) {
 			_location = location;
 			return this;
@@ -143,7 +160,7 @@ public class DistanceRow implements Parcelable {
 		}
 
 		public DistanceRow build() {
-			DistanceRow distance = new DistanceRow();
+			DistanceRow distance = new DistanceRow(_id);
 			distance.setLocation(_location);
 			distance.setDistance(_distance);
 			distance.setDate(_date);
@@ -183,6 +200,7 @@ public class DistanceRow implements Parcelable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + Long.valueOf(mId).hashCode();
 		result = prime * result + ((mComment == null) ? 0 : mComment.hashCode());
 		result = prime * result + ((mDate == null) ? 0 : mDate.hashCode());
 		result = prime * result + ((mDistance == null) ? 0 : mDistance.hashCode());
@@ -203,6 +221,9 @@ public class DistanceRow implements Parcelable {
 
 		DistanceRow other = (DistanceRow) obj;
 
+		if (mId != other.mId)
+			return false;
+		
 		if (mComment == null) {
 			if (other.mComment != null)
 				return false;

@@ -1356,6 +1356,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							 DistanceTable.COLUMN_DATE + ((desc)?" DESC":" ASC"));
 				if (c != null && c.moveToFirst()) {
 					distanceRows = new ArrayList<DistanceRow>(c.getCount());
+					final int idIndex = c.getColumnIndex(DistanceTable.COLUMN_ID);
 					final int locationIndex = c.getColumnIndex(DistanceTable.COLUMN_LOCATION);
 					final int distanceIndex = c.getColumnIndex(DistanceTable.COLUMN_DISTANCE);
 					final int dateIndex = c.getColumnIndex(DistanceTable.COLUMN_DATE);
@@ -1363,6 +1364,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int rateIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE);
 					final int commentIndex = c.getColumnIndex(DistanceTable.COLUMN_COMMENT);
 					do {
+						final long id = c.getLong(idIndex);
 						final String location = c.getString(locationIndex);
 						final BigDecimal distance = BigDecimal.valueOf(c.getDouble(distanceIndex));
 						final long date = c.getLong(dateIndex);
@@ -1370,8 +1372,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final BigDecimal rate = BigDecimal.valueOf(c.getDouble(rateIndex));
 						final String comment = c.getString(commentIndex);
 						
-						DistanceRow.Builder builder = new DistanceRow.Builder();
-						distanceRows.add(builder
+						distanceRows.add(new DistanceRow.Builder(id)
 								.setLocation(location)
 								.setDistance(distance)
 								.setDate(date)
@@ -1463,19 +1464,31 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		
 		DistanceRow toReturn = null;
 		synchronized (mDatabaseLock) {
-			SQLiteDatabase db = null;
-			db = this.getWritableDatabase();
+			SQLiteDatabase db = this.getWritableDatabase();
 			if (db.insertOrThrow(DistanceTable.TABLE_NAME, null, values) == -1) {
-				return null;
+				toReturn = null;
 			} else {
-				toReturn =  new DistanceRow.Builder()
-						.setLocation(location)
-						.setDistance(distance)
-						.setDate(date)
-						.setTimezone(timezone)
-						.setRate(rate)
-						.setComment(comment)
-						.build();
+				Cursor cur = null;
+				try{
+					cur = db.rawQuery("SELECT last_insert_rowid()", null);
+					if (cur != null && cur.moveToFirst() && cur.getColumnCount() > 0) {
+						final long id = cur.getInt(0);
+						toReturn =  new DistanceRow.Builder(id)
+								.setLocation(location)
+								.setDistance(distance)
+								.setDate(date)
+								.setTimezone(timezone)
+								.setRate(rate)
+								.setComment(comment)
+								.build();
+					}
+				} finally {
+					if (cur != null)
+						cur.close();
+					
+					if (db != null)
+						db.close();
+				}
 			}
 		}
 		

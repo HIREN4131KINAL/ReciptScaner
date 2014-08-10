@@ -1340,7 +1340,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetDistanceWorker(desc)).execute();
 	}
 	
-	public List<DistanceRow> getDistanceHelper(final boolean desc) {
+	private List<DistanceRow> getDistanceHelper(final boolean desc) {
 		List<DistanceRow> distanceRows;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -1446,7 +1446,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		new InsertDistanceWorker(location, distance, date, timezone, rate, comment).execute();
 	}
 
-	public DistanceRow insertDistanceHelper(
+	private DistanceRow insertDistanceHelper(
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1548,6 +1548,63 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			} else {
 				mDistanceRowListener.onDistanceRowInsertSuccess(result);
 			}
+		}
+		
+	}
+	
+	public boolean deleteDistanceSerial(DistanceRow distance) {
+		return deleteDistanceHelper(distance);
+	}
+	
+	public void deleteDistanceParallel(DistanceRow distance) {
+		if (mDistanceRowListener == null) {
+			if (BuildConfig.DEBUG) {
+				Log.d(TAG, "No DistanceRowListener was registered.");
+			}
+		}
+
+		new DeleteDistanceWorker().execute(distance);
+	}
+	
+	private boolean deleteDistanceHelper(DistanceRow distance) {
+		int result = -1;
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			db = this.getWritableDatabase();
+			try {
+				result = db.delete(DistanceTable.TABLE_NAME, 
+						DistanceTable.COLUMN_ID + " = ?", 
+						new String[] { String.valueOf(distance.getId()) });
+			} catch (Exception e){
+				return false;
+			}
+		}
+		
+		return result > 0;
+	}
+	
+	private class DeleteDistanceWorker extends AsyncTask<DistanceRow, Void, Boolean>{
+
+		private DistanceRow mDistanceRow;
+		
+		@Override
+		protected Boolean doInBackground(DistanceRow... params) {
+			if(params.length < 1)
+				return false;
+			
+			mDistanceRow = params[0];
+			return deleteDistanceHelper(mDistanceRow);
+		}
+		
+		@Override
+		protected void onPostExecute(Boolean result) {
+			if(mDistanceRowListener == null)
+				return;
+			
+			if(result)
+				mDistanceRowListener.onDistanceDeleteSuccess(mDistanceRow);
+			else
+				mDistanceRowListener.onDistanceDeleteFailure();
 		}
 		
 	}

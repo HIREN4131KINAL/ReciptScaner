@@ -1395,6 +1395,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		
 		return distanceRows;
 	}
+	
 	private class GetDistanceWorker extends AsyncTask<Void, Void, List<Distance>> {
 
 		private final boolean mDesc;
@@ -1414,7 +1415,128 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				mDistanceRowListener.onDistanceRowsQuerySuccess(result);
 			}
 		}
+	}
+	
+	public Distance insertDistanceSerial(
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment){
+		
+		return insertDistanceHelper(location, distance, date, timezone, rate, comment);
+	}
+	
+	public void insertDistanceParallel(
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment){
+		
+		if (mDistanceRowListener == null) {
+			if (BuildConfig.DEBUG) {
+				Log.d(TAG, "No DistanceRowListener was registered.");
+			}
+		}
+		
+		new InsertDistanceWorker(location, distance, date, timezone, rate, comment).execute();
+	}
 
+	public Distance insertDistanceHelper(
+			final String location, 
+			final BigDecimal distance, 
+			final Date date, 
+			final String timezone, 
+			final BigDecimal rate, 
+			final String comment){
+		
+		ContentValues values = new ContentValues(6);
+		values.put(DistanceTable.COLUMN_LOCATION, location); 
+		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
+		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
+		values.put(DistanceTable.COLUMN_TIMEZONE, timezone); 
+		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue()); 
+		values.put(DistanceTable.COLUMN_COMMENT, comment); 
+		
+		Distance toReturn = null;
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			db = this.getWritableDatabase();
+			if (db.insertOrThrow(DistanceTable.TABLE_NAME, null, values) == -1) {
+				return null;
+			} else {
+				toReturn =  new Distance.Builder()
+						.setLocation(location)
+						.setDistance(distance)
+						.setDate(date)
+						.setTimezone(timezone)
+						.setRate(rate)
+						.setComment(comment)
+						.build();
+			}
+		}
+		
+		if (this.getReadableDatabase() != null) {
+			String databasePath = this.getReadableDatabase().getPath();
+			if (!TextUtils.isEmpty(databasePath)) {
+				backUpDatabase(databasePath);
+			}
+		}
+		
+		return toReturn;
+	}
+	
+	private class InsertDistanceWorker extends AsyncTask<Void, Void, Distance>{
+		final private String mLocation;
+		final private BigDecimal mDistance;
+		final private Date mDate;
+		final private String mTimezone;
+		final private BigDecimal mRate;
+		final private String mComment;
+		
+		private SQLException mException;
+		
+		public InsertDistanceWorker(
+				final String location, 
+				final BigDecimal distance, 
+				final Date date, 
+				final String timezone, 
+				final BigDecimal rate, 
+				final String comment){
+			
+			mLocation = location;
+			mDistance = distance;
+			mDate = date;
+			mTimezone = timezone;
+			mRate = rate;
+			mComment = comment;
+		}
+
+		@Override
+		protected Distance doInBackground(Void... params) {
+			try {
+				return insertDistanceHelper(mLocation, mDistance, mDate, mTimezone, mRate, mComment);
+			} catch (SQLException exception) {
+				mException = exception;
+				return null;
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(Distance result) {
+			if (mDistanceRowListener == null)
+				return;
+			
+			if (result == null || mException != null) { // implies exception
+				mDistanceRowListener.onDistanceRowInsertFailure(mException);
+			} else {
+				mDistanceRowListener.onDistanceRowInsertSuccess(result);
+			}
+		}
+		
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -94,6 +94,11 @@
             android:summaryOn="@string/pref_receipt_pre_tax_summary_on"
             android:summaryOff="@string/pref_receipt_pre_tax_summary_off"
             android:defaultValue="true"/>
+		<CheckBoxPreference
+	        android:key="@string/pref_receipt_use_payment_methods_key"
+	        android:title="@string/pref_receipt_use_payment_methods_title"
+	        android:summary="@string/pref_receipt_use_payment_methods_summary"
+	        android:defaultValue="false"/>
      	<Preference 
 		    android:key="@string/pref_receipt_payment_methods_key" 
 			android:title="@string/pref_receipt_payment_methods_title"

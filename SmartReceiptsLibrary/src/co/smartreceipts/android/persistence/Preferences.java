@@ -35,7 +35,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
     private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mDefaultToFirstReportDate,
-    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage;
+    				mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
+    				mUsePaymentMethods;
 
     // Output Preferences
     private String mUserID;
@@ -132,6 +133,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	
 	private void initDefaultToFullPage(SharedPreferences prefs) {
 		this.mDefaultToFullPage = prefs.getBoolean(mContext.getString(R.string.pref_receipt_full_page_key), false);
+	}
+	
+	private void initUsePaymentMethods(SharedPreferences prefs) {
+		this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), false);
 	}
 
 	private void initUserID(SharedPreferences prefs) {
@@ -238,6 +243,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 		this.initIncludeTaxField(prefs);
 		this.initUsePreTaxPrice(prefs);
 		this.initDefaultToFullPage(prefs);
+		this.initUsePaymentMethods(prefs);
 
 		// Output Preferences
 		this.initUserID(prefs);

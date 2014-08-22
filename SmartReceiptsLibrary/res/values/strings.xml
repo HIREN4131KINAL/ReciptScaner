@@ -414,6 +414,9 @@
     <string name="pref_receipt_full_page_key" translatable="false">UseFullPage</string>
     <string name="pref_receipt_full_page_title">Assume Full Page</string>
     <string name="pref_receipt_full_page_summary">Marks Receipts as Full Page by Default</string>
+    <string name="pref_receipt_use_payment_methods_key" translatable="false">UsePaymentMethods</string>
+    <string name="pref_receipt_use_payment_methods_title">Enable Payment Methods</string>
+    <string name="pref_receipt_use_payment_methods_summary">Select to track payment methods for receipts</string>
     <string name="pref_receipt_payment_methods_key" translatable="false">PaymentMethods</string>
     <string name="pref_receipt_payment_methods_title">Customize Payment Methods</string>
     <string name="pref_receipt_payment_methods_summary">Tap here to add/edit payment methods</string>

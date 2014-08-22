@@ -301,4 +301,13 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return SmartReceiptsActivity.class;
 	}
 
+	@Override
+	public void insertPaymentMethodDefaults(DatabaseHelper db) {
+		db.insertPaymentMethod(getString(R.string.payment_method_default_corporate_card));
+		db.insertPaymentMethod(getString(R.string.payment_method_default_personal_card));
+		db.insertPaymentMethod(getString(R.string.payment_method_default_cash));
+		db.insertPaymentMethod(getString(R.string.payment_method_default_check));
+		
+	}
+
 }

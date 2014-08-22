@@ -546,5 +546,9 @@
 	<string name="payment_methods">Payment Methods</string>
 	<string name="payment_method_add">Add Payment Method</string>
 	<string name="payment_method_edit">Edit Payment Method</string>
+	<string name="payment_method_default_cash">Cash</string>
+	<string name="payment_method_default_check">Check</string>
+	<string name="payment_method_default_personal_card">Personal Card</string>
+	<string name="payment_method_default_corporate_card">Corporate Card</string>
 	
 </resources>

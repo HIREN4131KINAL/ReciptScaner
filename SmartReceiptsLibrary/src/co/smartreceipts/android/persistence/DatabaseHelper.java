@@ -129,6 +129,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public void insertCategoryDefaults(DatabaseHelper db);
 		public void insertCSVDefaults(DatabaseHelper db);
 		public void insertPDFDefaults(DatabaseHelper db);
+		public void insertPaymentMethodDefaults(DatabaseHelper db);
 	}
 
 	//Tables Declarations
@@ -589,6 +590,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Log.d(TAG, sql);
 		}
 		db.execSQL(sql);
+		mCustomizations.insertPaymentMethodDefaults(this);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -158,12 +158,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_CATEGORY = "category";
 		public static final String COLUMN_PRICE = "price";
 		public static final String COLUMN_TAX = "tax";
-		public static final String COLUMN_PAYMENTMETHOD = "paymentmethod";
 		public static final String COLUMN_DATE = "rcpt_date";
 		public static final String COLUMN_TIMEZONE = "timezone";
 		public static final String COLUMN_COMMENT = "comment";
 		public static final String COLUMN_EXPENSEABLE = "expenseable";
 		public static final String COLUMN_ISO4217 = "isocode";
+		public static final String COLUMN_PAYMENT_METHOD_KEY = "paymentMethodKey";
 		public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
 		public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
 		public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
@@ -269,7 +269,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
 					+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
 					+ ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
-					+ ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT, "
+					+ ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
 					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
 					+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
 					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
@@ -367,20 +367,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						+ " ADD " + TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00";
 				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
 						+ " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
-				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterMiles);
-				}
-				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterReceipts1);
 				}
-				if (BuildConfig.DEBUG) {
-					Log.d(TAG, alterReceipts2);
-				}
-				db.execSQL(alterMiles);
-				db.execSQL(alterReceipts1);
-				db.execSQL(alterReceipts2);
 			}
 			if (oldVersion <= 5) {
 				//Skipped b/c I forgot to include the update stuff
@@ -480,13 +470,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterTrips1);
 				db.execSQL(alterTrips2);
 			}
-			if (oldVersion <= 11) { //Added trips filters and mileage table
+			if (oldVersion <= 11) { //Added trips filters, payment methods, and mileage table
+				this.createPaymentMethodsTable(db);
 				final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
+				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterTrips);
+					Log.d(TAG, alterReceipts);
 				}
 				db.execSQL(alterTrips);
-				this.createPaymentMethodsTable(db);
+				db.execSQL(alterReceipts);
 			}
 			_initDB = null;
 		}
@@ -3022,7 +3015,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
 						final int taxIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TAX);
 						final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
-						final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENTMETHOD);
+						final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY);
 						do {
 							final String oldPath = c.getString(pathIndex);
 							String newPath = new String(oldPath);
@@ -3052,7 +3045,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 							final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
 							final String tax = c.getString(taxIndex);
-							final String paymentMethod = c.getString(paymentMethodIndex);
+							final int paymentMethod = c.getInt(paymentMethodIndex);
 							countCursor = currDB.rawQuery(queryCount, new String[] {newPath, name, Long.toString(date)});
 							if (countCursor != null && countCursor.moveToFirst()) {
 								int count = countCursor.getInt(0);
@@ -3076,7 +3069,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									final String timeZone = c.getString(timeZoneIndex);
 									values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
 								}
-								values.put(ReceiptsTable.COLUMN_PAYMENTMETHOD, paymentMethod);
+								values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY, paymentMethod);
 								if (count > 0 && overwrite) { //Update
 									currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(updateID)});
 								}

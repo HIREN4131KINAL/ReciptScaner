@@ -34,6 +34,7 @@ import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.Columns.Column;
 import co.smartreceipts.android.model.PDFColumns;
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.model.WBCurrency;
@@ -47,7 +48,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	//Database Info
 	public static final String DATABASE_NAME = "receipts.db";
-	private static final int DATABASE_VERSION = 11;
+	private static final int DATABASE_VERSION = 12;
 	public static final String NO_DATA = "null"; //TODO: Just set to null
 	static final String MULTI_CURRENCY = "XXXXXX";
 
@@ -68,6 +69,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private ArrayList<CharSequence> mCategoryList, mCurrencyList;
 	private CSVColumns mCSVColumns;
 	private PDFColumns mPDFColumns;
+	private List<PaymentMethod> mPaymentMethods;
 	private Time mNow;
 
 	// Other vars
@@ -185,6 +187,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_ID = "id";
 		public static final String COLUMN_TYPE = "type";
 	}
+	public static final class PaymentMethodsTable {
+		private PaymentMethodsTable() {}
+		public static final String TABLE_NAME = "paymentmethods";
+		public static final String COLUMN_ID = "id";
+		public static final String COLUMN_METHOD = "method";
+	}
 
 	private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
 		super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); //Requests the default cursor factory
@@ -286,6 +294,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			db.execSQL(categories);
 			this.createCSVTable(db);
 			this.createPDFTable(db);
+			this.createPaymentMethodsTable(db);
 			mCustomizations.insertCategoryDefaults(this);
 			mCustomizations.onFirstRun();
 			_initDB = null;
@@ -476,6 +485,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					Log.d(TAG, alterTrips);
 				}
 				db.execSQL(alterTrips);
+				this.createPaymentMethodsTable(db);
 			}
 			_initDB = null;
 		}
@@ -568,6 +578,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		db.execSQL(pdf);
 		mCustomizations.insertPDFDefaults(this);
+	}
+	
+	private final void createPaymentMethodsTable(final SQLiteDatabase db) { //Called in onCreate and onUpgrade
+		final String sql = "CREATE TABLE " + PaymentMethodsTable.TABLE_NAME + " ("
+							+ PDFTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+							+ PaymentMethodsTable.COLUMN_METHOD + " TEXT"
+							+ ");";
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, sql);
+		}
+		db.execSQL(sql);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2577,7 +2598,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean deleteCSVColumn() {
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
-			db = this.getReadableDatabase();
+			db = this.getWritableDatabase();
 			int idx = mCSVColumns.removeLast();
 			if (idx < 0) {
 				return false;
@@ -2598,7 +2619,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
-				db = this.getReadableDatabase();
+				db = this.getWritableDatabase();
 				if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[] {Integer.toString(column.getIndex())}) == 0) {
 					return false;
 				} else {
@@ -2705,7 +2726,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean deletePDFColumn() {
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
-			db = this.getReadableDatabase();
+			db = this.getWritableDatabase();
 			int idx = mPDFColumns.removeLast();
 			if (idx < 0) {
 				return false;
@@ -2726,7 +2747,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
-				db = this.getReadableDatabase();
+				db = this.getWritableDatabase();
 				if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[] {Integer.toString(column.getIndex())}) == 0) {
 					return false;
 				} else {
@@ -2738,7 +2759,166 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 	}
-
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	PaymentMethod Methods
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Fetches the list of all {@link PaymentMethod}. This is done on the calling thread.
+	 * 
+	 * @return the {@link List} of {@link PaymentMethod} objects that we've saved
+	 */
+	public final List<PaymentMethod> getPaymentMethods() {
+		if (mPaymentMethods != null) {
+			return mPaymentMethods;
+		}
+		mPaymentMethods = new ArrayList<PaymentMethod>();
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			Cursor c = null;
+			try {
+				db = this.getReadableDatabase();
+				c = db.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
+				if (c != null && c.moveToFirst()) {
+					final int idIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_ID);
+					final int methodIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_METHOD);
+					do {
+						final int id = c.getInt(idIndex);
+						final String method = c.getString(methodIndex);
+						final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+						mPaymentMethods.add(builder.setId(id).setMethod(method).build());
+					}
+					while (c.moveToNext());
+				}
+				return mPaymentMethods;
+			}
+			finally { // Close the cursor and db to avoid memory leaks
+				if (c != null) {
+					c.close();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Inserts a new {@link PaymentMethod} into our database. This method also automatically updates the underlying
+	 * list that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+	 * 
+	 * @param method - a {@link String} representing the current method
+	 * @return a new {@link PaymentMethod} if it was successfully inserted, {@code null} if not
+	 */
+	public final PaymentMethod insertPaymentMethod(final String method) {
+		ContentValues values = new ContentValues(1);
+		values.put(PaymentMethodsTable.COLUMN_METHOD, method);
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			Cursor c = null;
+			try {
+				db = this.getWritableDatabase();
+				if (db.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
+					return null;
+				} else {
+					final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+					final PaymentMethod paymentMethod;
+					c = db.rawQuery("SELECT last_insert_rowid()", null);
+					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
+						final int id = c.getInt(0);
+						paymentMethod = builder.setId(id).setMethod(method).build();
+					}
+					else {
+						paymentMethod = builder.setId(-1).setMethod(method).build();
+					}
+					if (mPaymentMethods != null) {
+						mPaymentMethods.add(paymentMethod);
+					}
+					return paymentMethod;
+				}
+			}
+			finally { // Close the cursor and db to avoid memory leaks
+				if (c != null) {
+					c.close();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Updates a Payment method with a new method type. This method also automatically updates the underlying
+	 * list that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+	 * 
+	 * @param oldPaymentMethod - the old method to update
+	 * @param newMethod - the new string to use as the method
+	 * @return the new {@link PaymentMethod}
+	 */
+	public final PaymentMethod updatePaymentMethod(final PaymentMethod oldPaymentMethod, final String newMethod) {
+		if (oldPaymentMethod == null) {
+			Log.e(TAG, "The oldPaymentMethod is null. No update can be performed");
+			return null;
+		}
+		if (oldPaymentMethod.getMethod() == null && newMethod == null) {
+			return oldPaymentMethod;
+		}
+		else if (newMethod != null && newMethod.equals(oldPaymentMethod.getMethod())) {
+			return oldPaymentMethod;
+		}
+		
+		ContentValues values = new ContentValues(1);
+		values.put(PaymentMethodsTable.COLUMN_METHOD, newMethod);
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			try {
+				db = this.getWritableDatabase();
+				if (db.update(PaymentMethodsTable.TABLE_NAME, values, PaymentMethodsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldPaymentMethod.getId())}) > 0) {
+					final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+					final PaymentMethod upddatePaymentMethod = builder.setId(oldPaymentMethod.getId()).setMethod(newMethod).build();
+					if (mPaymentMethods != null) {
+						final int oldListIndex = mPaymentMethods.indexOf(oldPaymentMethod);
+						if (oldListIndex >= 0) {
+							mPaymentMethods.remove(oldPaymentMethod);
+							mPaymentMethods.add(oldListIndex, upddatePaymentMethod);
+						}
+						else {
+							mPaymentMethods.add(upddatePaymentMethod);
+						}
+					}
+					return upddatePaymentMethod;
+				} else {
+					return null;
+				}
+			}
+			catch (SQLException e) {
+				return null;
+			}
+		}
+	}
+	
+	/**
+	 * Deletes a {@link PaymentMethod} from our database. This method also automatically updates the underlying
+	 * list that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+	 * 
+	 * @param paymentMethod - the {@link PaymentMethod} to delete
+	 * @return {@code true} if is was successfully remove. {@code false} otherwise
+	 */
+	public final boolean deletePaymenthMethod(final PaymentMethod paymentMethod) {
+		synchronized (mDatabaseLock) {
+			SQLiteDatabase db = null;
+			db = this.getWritableDatabase();
+			if (db.delete(PaymentMethodsTable.TABLE_NAME, PaymentMethodsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(paymentMethod.getId())}) > 0) {
+				if (mPaymentMethods != null) {
+					mPaymentMethods.remove(paymentMethod);
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//	Utilities
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	public final synchronized boolean merge(String dbPath, String packageName, boolean overwrite) {
 		mAreTripsValid = false;
 		mReceiptCache.clear();

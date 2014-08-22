@@ -5,6 +5,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.preferences.CSVColumnsListFragment;
 import co.smartreceipts.android.fragments.preferences.CategoriesListFragment;
 import co.smartreceipts.android.fragments.preferences.PDFColumnsListFragment;
+import co.smartreceipts.android.fragments.preferences.PaymentMethodsListFragment;
 
 public class SettingsViewerActivity extends WBActivity {
 	
@@ -29,6 +30,9 @@ public class SettingsViewerActivity extends WBActivity {
 			}
 			else if (key.equalsIgnoreCase(getString(R.string.pref_output_custom_pdf_key))) {
 				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, PDFColumnsListFragment.newInstance(), PDFColumnsListFragment.TAG).commitAllowingStateLoss();
+			}
+			else if (key.equals(getString(R.string.pref_receipt_payment_methods_key))) {
+				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, PaymentMethodsListFragment.newInstance(), PaymentMethodsListFragment.TAG).commitAllowingStateLoss();
 			}
 			else {
 				finish(); //Unknown Key was passed

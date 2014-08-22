@@ -185,6 +185,8 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 	public void configurePreferencesReceipts(UniversalPreferences universal) {
 		// Set on Preference Click Listeners for all that require it
 		universal.findPreference(R.string.pref_receipt_customize_categories_key).setOnPreferenceClickListener(this);
+		universal.findPreference(R.string.pref_receipt_payment_methods_key).setOnPreferenceClickListener(this);
+
 
 		// Here we restore our current values (easier than getting the FloatEditText stuff to work)
 		Preferences preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences();
@@ -240,7 +242,8 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		String key = preference.getKey();
 		if (key.equals(getString(R.string.pref_receipt_customize_categories_key)) ||
 			key.equals(getString(R.string.pref_output_custom_csv_key)) ||
-			key.equals(getString(R.string.pref_output_custom_pdf_key))) {
+			key.equals(getString(R.string.pref_output_custom_pdf_key)) ||
+			key.equals(getString(R.string.pref_receipt_payment_methods_key))) {
 
 			final Intent intent = new Intent(this, SettingsViewerActivity.class);
 			intent.putExtra(SettingsViewerActivity.KEY_FLAG, key);

@@ -543,6 +543,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 	public void setmShowPhotoPDFMarker(boolean showPhotoPDFMarker) {
 		this.mShowPhotoPDFMarker = showPhotoPDFMarker;
 	}
+	
+	public boolean getUsesPaymentMethods() {
+		return this.mUsePaymentMethods; 
+	}
 
 	public boolean showAds() {
 		return false;

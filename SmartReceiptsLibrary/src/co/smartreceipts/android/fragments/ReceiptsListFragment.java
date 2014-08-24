@@ -62,6 +62,7 @@ import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Attachment;
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -418,6 +419,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		final Spinner categoriesSpinner =  (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
 		final CheckBox expensable = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
 		final CheckBox fullpage = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
+		final Spinner paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_receiptmenu_payment_methods_spinner);
 
 		//Extras
 		final LinearLayout extras = (LinearLayout) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
@@ -523,6 +525,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				currencySpinner.setSelection(idx);
 			}
 			fullpage.setChecked(preferences.shouldDefaultToFullPage());
+			if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+				final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<PaymentMethod>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
+				paymentMethodsSpinner.setVisibility(View.VISIBLE);
+				paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+				paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+			}
 		}
 		else {
 			if (!TextUtils.isEmpty(receipt.getName())) { nameBox.setText(receipt.getName()); }
@@ -537,6 +545,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 			expensable.setChecked(receipt.isExpensable());
 			fullpage.setChecked(receipt.isFullPage());
+			if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+				final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<PaymentMethod>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
+				final PaymentMethod oldPaymentMethod = receipt.getPaymentMethod();
+				paymentMethodsSpinner.setVisibility(View.VISIBLE);
+				paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+				paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+				if (oldPaymentMethod != null) {
+					final int paymentIdx = paymentMethodsAdapter.getPosition(oldPaymentMethod);
+					if (paymentIdx > 0) {
+						paymentMethodsSpinner.setSelection(paymentIdx);
+					}
+				}
+			}
 			if (extra_edittext_box_1 != null && receipt.hasExtraEditText1()) {
 				extra_edittext_box_1.setText(receipt.getExtraEditText1());
 			}
@@ -586,6 +607,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					 final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
 					 final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
 					 final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
+					 final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
 					 if (name.length() == 0) {
 						 Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
 						 return;
@@ -604,7 +626,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					 }
 
 					 if (newReceipt) {//Insert
-						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), null, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 getDateManager().setDateEditTextListenerDialogHolder(null);
 						 dialog.cancel();
 					 }
@@ -612,7 +634,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 						 if (TextUtils.isEmpty(price)) {
 							price = "0";
 						}
-						 getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), null, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+						 getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 getDateManager().setDateEditTextListenerDialogHolder(null);
 						 dialog.cancel();
 					 }

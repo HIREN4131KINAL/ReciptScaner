@@ -54,6 +54,12 @@
 			    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT"
 				android:completionThreshold="1"
 			    android:layout_weight="1" />
+    	<Spinner android:id="@+id/dialog_receiptmenu_payment_methods_spinner"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:drawSelectorOnTop="true"
+	            android:prompt="@string/payment_method"
+	            android:visibility="gone" />
     	<LinearLayout android:id="@+id/DIALOG_RECEIPTMENU_EXTRAS"
 	        android:orientation="vertical"
 	        android:layout_width="fill_parent"

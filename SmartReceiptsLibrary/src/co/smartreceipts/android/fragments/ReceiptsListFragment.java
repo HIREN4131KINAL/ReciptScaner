@@ -604,7 +604,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					 }
 
 					 if (newReceipt) {//Insert
-						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), extra_edittext_1, extra_edittext_2, extra_edittext_3);
+						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), null, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 getDateManager().setDateEditTextListenerDialogHolder(null);
 						 dialog.cancel();
 					 }
@@ -612,7 +612,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 						 if (TextUtils.isEmpty(price)) {
 							price = "0";
 						}
-						 getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), extra_edittext_1, extra_edittext_2, extra_edittext_3);
+						 getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), null, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 						 getDateManager().setDateEditTextListenerDialogHolder(null);
 						 dialog.cancel();
 					 }

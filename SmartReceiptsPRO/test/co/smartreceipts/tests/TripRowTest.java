@@ -42,7 +42,8 @@ public class TripRowTest {
 				.setMileage(Constants.MILEAGE)
 				.setPrice(Constants.PRICE)
 				.setStartDate(Constants.START_DATE_MILLIS)
-				.setStartTimeZone(Constants.START_TIMEZONE_CODE);
+				.setStartTimeZone(Constants.START_TIMEZONE_CODE)
+				.setComment(Constants.COMMENT);
 		return builderA;
 	}
 
@@ -61,7 +62,8 @@ public class TripRowTest {
 				.setMileage(Constants.MILEAGE)
 				.setPrice(Constants.PRICE)
 				.setStartDate(Constants.START_DATE)
-				.setStartTimeZone(Constants.START_TIMEZONE);
+				.setStartTimeZone(Constants.START_TIMEZONE)
+				.setComment(Constants.COMMENT);
 		return builderB;
 	}
 
@@ -122,6 +124,12 @@ public class TripRowTest {
 		assertEquals(mTripRowA.getMileage(), mTripRowB.getMileage(), TestUtils.EPSILON);
 		assertEquals(mTripRowA.getMilesAsString(), mTripRowB.getMilesAsString());
 		assertEquals(mTripRowA.getMileage(), Constants.MILEAGE, TestUtils.EPSILON);
+	}
+	
+	@Test
+	public void testTripRowComment() {
+		assertEquals(mTripRowA.getComment(), mTripRowB.getComment());
+		assertEquals(mTripRowA.getComment(), Constants.COMMENT);
 	}
 	
 	@Test

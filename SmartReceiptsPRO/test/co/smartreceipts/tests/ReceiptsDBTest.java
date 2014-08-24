@@ -19,6 +19,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -64,6 +65,12 @@ public class ReceiptsDBTest {
 		return insertDefaultReceipt(img);
 	}
 	
+	private ReceiptRow insertDefaultReceipt(PaymentMethod method) {
+		File img = new File(mTripRow.getDirectory(), Constants.IMAGE_FILE_NAME);
+		mApp.getPersistenceManager().getStorageManager().createFile(img);
+		return insertDefaultReceipt(img, method);
+	}
+	
 	private ReceiptRow insertDefaultReceipt(File file) {
 		return mDB.insertReceiptSerial(mTripRow, 
 									  file, 
@@ -76,6 +83,25 @@ public class ReceiptsDBTest {
 									  Constants.IS_EXPENSABLE, 
 									  Constants.CURRENCY_CODE, 
 									  Constants.IS_FULLPAGE, 
+									  null, 
+									  Constants.EXTRA1, 
+									  Constants.EXTRA2, 
+									  Constants.EXTRA3);
+	}
+	
+	private ReceiptRow insertDefaultReceipt(File file, PaymentMethod method) {
+		return mDB.insertReceiptSerial(mTripRow, 
+									  file, 
+									  Constants.NAME, 
+									  Constants.CATEGORY, 
+									  Constants.DATE, 
+									  Constants.COMMENT, 
+									  Constants.PRICE, 
+									  Constants.TAX, 
+									  Constants.IS_EXPENSABLE, 
+									  Constants.CURRENCY_CODE, 
+									  Constants.IS_FULLPAGE, 
+									  method, 
 									  Constants.EXTRA1, 
 									  Constants.EXTRA2, 
 									  Constants.EXTRA3);
@@ -121,8 +147,31 @@ public class ReceiptsDBTest {
 	}
 	
 	@Test
-	public void update() {
-		ReceiptRow insertReceipt = insertDefaultReceipt();
+	public void insertNonNullPaymentMethod() {
+		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
+		final ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
+		ReceiptRow findReceipt = mDB.getReceiptByID(insertReceipt.getId());
+		assertNotNull(insertReceipt);
+		assertNotNull(findReceipt);
+		assertEquals(insertReceipt, findReceipt);
+		ReceiptUtils.assertFieldEquality(insertReceipt, findReceipt);
+	}
+	
+	@Test
+	public void insertNullPaymentMethod() {
+		final PaymentMethod paymentMethod = null;
+		final ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
+		ReceiptRow findReceipt = mDB.getReceiptByID(insertReceipt.getId());
+		assertNotNull(insertReceipt);
+		assertNotNull(findReceipt);
+		assertEquals(insertReceipt, findReceipt);
+		ReceiptUtils.assertFieldEquality(insertReceipt, findReceipt);
+	}
+	
+	@Test
+	public void updateWithNullPaymentMethod() {
+		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
+		ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
 		ReceiptRow updateReceipt = mDB.updateReceiptSerial(insertReceipt, 
 														   mTripRow, 
 														   Constants.NAME + "x", 
@@ -134,6 +183,36 @@ public class ReceiptsDBTest {
 														   !Constants.IS_EXPENSABLE, 
 														   "EUR", 
 														   !Constants.IS_FULLPAGE, 
+														   null, 
+														   null, 
+														   "2", 
+														   null);
+		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTripRow);
+		assertNotNull(updateReceipt);
+		assertNotNull(receipts);
+		assertEquals(receipts.size(), 1);
+		assertEquals(updateReceipt, insertReceipt);
+		assertEquals(updateReceipt, receipts.get(0));
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
+	}
+	
+	@Test
+	public void updateWithNonNullPaymentMethod() {
+		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
+		final PaymentMethod nullPaymentMethod = null;
+		ReceiptRow insertReceipt = insertDefaultReceipt(nullPaymentMethod);
+		ReceiptRow updateReceipt = mDB.updateReceiptSerial(insertReceipt, 
+														   mTripRow, 
+														   Constants.NAME + "x", 
+														   Constants.CATEGORY + "x", 
+														   new Date(Constants.DATE_MILLIS + 2000), 
+														   Constants.COMMENT + "x", 
+														   "10.0", 
+														   "2.00", 
+														   !Constants.IS_EXPENSABLE, 
+														   "EUR", 
+														   !Constants.IS_FULLPAGE, 
+														   paymentMethod, 
 														   null, 
 														   "2", 
 														   null);

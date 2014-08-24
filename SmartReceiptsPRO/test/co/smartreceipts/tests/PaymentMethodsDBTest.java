@@ -47,14 +47,14 @@ public class PaymentMethodsDBTest {
 	}
 	
 	@Test
-	public void getEmptyList() {
+	public void getMethodsList() {
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
 		assertNotNull(paymentMethods);
-		assertEquals(0, paymentMethods.size());
+		assertTrue(paymentMethods.size() > 0);
 	}
 	
 	@Test
-	public void getEmptyCachedList() {
+	public void getMethodsCachedList() {
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
 		final List<PaymentMethod> cachedPaymentMethods = mDB.getPaymentMethods();
 		assertEquals(cachedPaymentMethods, paymentMethods);
@@ -73,18 +73,33 @@ public class PaymentMethodsDBTest {
 		assertNotNull(paymentMethod);
 		assertEquals(METHOD, paymentMethod.getMethod());
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
-		assertEquals(1, paymentMethods.size());
-		assertEquals(paymentMethod, paymentMethods.get(0));
+		assertEquals(paymentMethod, paymentMethods.get(paymentMethods.size() - 1));
 	}
 	
 	@Test
 	public void getThenInsertPaymentMethod() {
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
+		final int initialSize = paymentMethods.size();
 		final PaymentMethod paymentMethod = mDB.insertPaymentMethod(METHOD);
 		assertNotNull(paymentMethod);
 		assertEquals(METHOD, paymentMethod.getMethod());
-		assertEquals(1, paymentMethods.size());
-		assertEquals(paymentMethod, paymentMethods.get(0));
+		assertEquals(initialSize + 1, paymentMethods.size());
+		assertEquals(paymentMethod, paymentMethods.get(initialSize));
+	}
+	
+	@Test
+	public void findPaymentMethodById() {
+		final PaymentMethod paymentMethod = mDB.insertPaymentMethod(METHOD);
+		final PaymentMethod foundMethod = mDB.findPaymentMethodById(paymentMethod.getId());
+		assertNotNull(foundMethod);
+		assertEquals(paymentMethod, foundMethod);
+	}
+	
+	@Test
+	public void findPaymentMethodByMissingId() {
+		final int missingId = -1;
+		final PaymentMethod foundMethod = mDB.findPaymentMethodById(missingId);
+		assertEquals(foundMethod, null);
 	}
 	
 	@Test
@@ -104,20 +119,20 @@ public class PaymentMethodsDBTest {
 		assertEquals(METHOD2, updatedPaymentMethod.getMethod());
 		assertNotSame(oldPaymentMethod, updatedPaymentMethod);
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
-		assertEquals(1, paymentMethods.size());
-		assertEquals(updatedPaymentMethod, paymentMethods.get(0));
+		assertEquals(updatedPaymentMethod, paymentMethods.get(paymentMethods.size() - 1));
 	}
 	
 	@Test
 	public void getThenUpdatePaymentMethod() {
 		final List<PaymentMethod> paymentMethods = mDB.getPaymentMethods();
+		final int initialSize = paymentMethods.size();
 		final PaymentMethod oldPaymentMethod = mDB.insertPaymentMethod(METHOD);
 		final PaymentMethod updatedPaymentMethod = mDB.updatePaymentMethod(oldPaymentMethod, METHOD2);
 		assertNotNull(updatedPaymentMethod);
 		assertEquals(METHOD2, updatedPaymentMethod.getMethod());
 		assertNotSame(oldPaymentMethod, updatedPaymentMethod);
-		assertEquals(1, paymentMethods.size());
-		assertEquals(updatedPaymentMethod, paymentMethods.get(0));
+		assertEquals(initialSize + 1, paymentMethods.size());
+		assertEquals(updatedPaymentMethod, paymentMethods.get(initialSize));
 	}
 	
 	@Test

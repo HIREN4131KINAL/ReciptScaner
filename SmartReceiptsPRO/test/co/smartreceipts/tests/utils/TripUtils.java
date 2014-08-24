@@ -14,7 +14,7 @@ public class TripUtils {
 
 	public static class Constants {
 		public static final String CURRENCY_CODE = "USD";
-		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); //1
+		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE);
 		public static final long START_DATE_MILLIS = System.currentTimeMillis();
 		public static final Date START_DATE = new Date(START_DATE_MILLIS);
 		public static final long END_DATE_MILLIS = System.currentTimeMillis();
@@ -28,6 +28,21 @@ public class TripUtils {
 		public static final String COMMENT = "Comment";
 		public static final String PRICE = "12.55";
 		public static final float MILEAGE = 40.3121f;
+	}
+	
+	public static final TripRow getDefaultTripRow() {
+		TripRow.Builder builder = new TripRow.Builder();
+		builder.setCurrency(Constants.CURRENCY_CODE)
+			   .setDefaultCurrency(Constants.CURRENCY_CODE)
+			   .setDirectory(Constants.DIRECTORY)
+			   .setEndDate(Constants.END_DATE_MILLIS)
+			   .setEndTimeZone(Constants.END_TIMEZONE_CODE)
+			   .setMileage(Constants.MILEAGE)
+			   .setPrice(Constants.PRICE)
+			   .setStartDate(Constants.START_DATE_MILLIS)
+			   .setStartTimeZone(Constants.START_TIMEZONE_CODE)
+			   .setComment(Constants.COMMENT);
+		return builder.build();
 	}
 	
 	public static void assertFieldEquality(TripRow trip1, TripRow trip2) {

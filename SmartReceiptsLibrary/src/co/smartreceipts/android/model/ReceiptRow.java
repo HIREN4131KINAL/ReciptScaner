@@ -20,6 +20,7 @@ public class ReceiptRow implements Parcelable {
 
 	private final int mId;
 	private TripRow mTrip;
+	private PaymentMethod mPaymentMethod;
 	private int mIndex; // Tracks the index in the list (if specified)
 	private File mFile;
 	private String mName, mCategory, mComment; 
@@ -40,6 +41,7 @@ public class ReceiptRow implements Parcelable {
 
 	private ReceiptRow(Parcel in) {
 		mTrip = in.readParcelable(TripRow.class.getClassLoader());
+		mPaymentMethod = in.readParcelable(PaymentMethod.class.getClassLoader());
 		mId = in.readInt();
 		mName = in.readString();
 		mCategory = in.readString();
@@ -71,6 +73,14 @@ public class ReceiptRow implements Parcelable {
 	
 	public boolean hasTrip() {
 		return mTrip != null;
+	}
+	
+	public PaymentMethod getPaymentMethod() {
+		return mPaymentMethod;
+	}
+	
+	public boolean hasPaymentMethod() {
+		return mPaymentMethod != null;
 	}
 
 	public String getName() {
@@ -282,6 +292,10 @@ public class ReceiptRow implements Parcelable {
 	public void setTrip(TripRow trip) {
 		mTrip = trip;
 	}
+	
+	public void setPaymentMethod(PaymentMethod method) {
+		mPaymentMethod = method;
+	}
 
 	void setName(String name) {
 		mName = name;
@@ -464,6 +478,7 @@ public class ReceiptRow implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeParcelable(getTrip(), flags);
+		dest.writeParcelable(getPaymentMethod(), flags);
 		dest.writeInt(getId());
 		dest.writeString(getName());
 		dest.writeString(getCategory());
@@ -485,6 +500,7 @@ public class ReceiptRow implements Parcelable {
 	public static final class Builder {
 
 		private TripRow _trip;
+		private PaymentMethod _paymentMethod;
 		private File _file;
 		private String _name, _category, _comment, _price, _tax;
 		private String _extraEditText1, _extraEditText2, _extraEditText3;
@@ -505,6 +521,11 @@ public class ReceiptRow implements Parcelable {
 		
 		public Builder setTrip(TripRow trip) {
 			_trip = trip;
+			return this;
+		}
+		
+		public Builder setPaymentMethod(PaymentMethod method) {
+			_paymentMethod = method;
 			return this;
 		}
 
@@ -624,6 +645,7 @@ public class ReceiptRow implements Parcelable {
 		public ReceiptRow build() {
 			ReceiptRow receipt = new ReceiptRow(_id);
 			receipt.setTrip(_trip);
+			receipt.setPaymentMethod(_paymentMethod);
 			receipt.setName(_name);
 			receipt.setCategory(_category);
 			receipt.setComment(_comment);

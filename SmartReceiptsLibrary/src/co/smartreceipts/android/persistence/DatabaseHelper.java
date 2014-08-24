@@ -163,7 +163,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_COMMENT = "comment";
 		public static final String COLUMN_EXPENSEABLE = "expenseable";
 		public static final String COLUMN_ISO4217 = "isocode";
-		public static final String COLUMN_PAYMENT_METHOD_KEY = "paymentMethodKey";
+		public static final String COLUMN_PAYMENT_METHOD_ID = "paymentMethodKey";
 		public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
 		public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
 		public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
@@ -269,7 +269,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
 					+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
 					+ ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
-					+ ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
+					+ ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
 					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
 					+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
 					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
@@ -473,7 +473,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (oldVersion <= 11) { //Added trips filters, payment methods, and mileage table
 				this.createPaymentMethodsTable(db);
 				final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
-				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
+				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterTrips);
 					Log.d(TAG, alterReceipts);
@@ -1371,6 +1371,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
 					final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
 					final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
+					final int paymentMethodIdIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID); 
 					final int extra_edittext_1_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1);
 					final int extra_edittext_2_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2);
 					final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
@@ -1387,6 +1388,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final boolean expensable = c.getInt(expenseableIndex)>0;
 						final String currency = c.getString(currencyIndex);
 						final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+						final int paymentMethodId = c.getInt(paymentMethodIdIndex); // Not using a join, since we need the list for inserts
 						final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 						final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 						final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -1408,6 +1410,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 											.setCurrency(currency)
 											.setIsFullPage(fullpage)
 											.setIndex(c.getPosition()+1)
+											.setPaymentMethod(findPaymentMethodById(paymentMethodId))
 											.setExtraEditText1(extra_edittext_1)
 											.setExtraEditText2(extra_edittext_2)
 											.setExtraEditText3(extra_edittext_3)
@@ -1481,6 +1484,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
 					final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
 					final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
+					final int paymentMethodIdIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID); 
 					final int extra_edittext_1_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1);
 					final int extra_edittext_2_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2);
 					final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
@@ -1496,6 +1500,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final boolean expensable = c.getInt(expenseableIndex)>0;
 					final String currency = c.getString(currencyIndex);
 					final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+					final int paymentMethodId = c.getInt(paymentMethodIdIndex); // Not using a join, since we need the list for inserts
 					final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 					final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 					final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -1517,6 +1522,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 								  .setIsExpenseable(expensable)
 								  .setCurrency(currency)
 								  .setIsFullPage(fullpage)
+								  .setPaymentMethod(findPaymentMethodById(paymentMethodId))
 								  .setExtraEditText1(extra_edittext_1)
 								  .setExtraEditText2(extra_edittext_2)
 								  .setExtraEditText3(extra_edittext_3)
@@ -1542,33 +1548,33 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(),
 								   receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(),
 								   receipt.getTax(), receipt.isExpensable(), receipt.getCurrencyCode(),
-								   receipt.isFullPage(), receipt.getExtraEditText1(), receipt.getExtraEditText2(),
+								   receipt.isFullPage(), receipt.getPaymentMethod(), receipt.getExtraEditText1(), receipt.getExtraEditText2(),
 								   receipt.getExtraEditText3());
 	}
 
 	public ReceiptRow insertReceiptSerial(TripRow trip, File img, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
+			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		return insertReceiptHelper(trip, img, name, category, date, null, comment, price, tax, expensable, currency,
-				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+				fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
 	public void insertReceiptParallel(TripRow trip, File img, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
 			}
 		}
 		(new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency,
-				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
+				fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
 	private ReceiptRow insertReceiptHelper(TripRow trip, File img, String name, String category, Date date,
 			TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency,
-			boolean fullpage, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
+			boolean fullpage, PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		final int rcptNum = this.getReceiptsSerial(trip).size() + 1; //Use this to order things more properly
 		StringBuilder stringBuilder = new StringBuilder(rcptNum+"_");
@@ -1625,6 +1631,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_PATH, img.getName());
 		}
 
+		if (method != null) {
+			values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, method.getId());
+		}
+		else {
+			final Integer integer = null;
+			values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
+		}
+		
 		if (extra_edittext_1 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
 		} else {
@@ -1684,6 +1698,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 											   .setIsExpenseable(expensable)
 											   .setCurrency(currency)
 											   .setIsFullPage(fullpage)
+											   .setPaymentMethod(method)
 											   .setExtraEditText1(extra_edittext_1)
 											   .setExtraEditText2(extra_edittext_2)
 											   .setExtraEditText3(extra_edittext_3)
@@ -1717,12 +1732,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private final File mImg;
 		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
 		private final Date mDate;
+		private final PaymentMethod mPaymentMethod;
 		private final boolean mExpensable, mFullpage;
 		private SQLException mException;
 
 		public InsertReceiptWorker(TripRow trip, File img, String name, String category, Date date,
 				String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+				PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mTrip = trip;
 			mImg = img;
 			mName = name;
@@ -1734,6 +1750,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			mExpensable = expensable;
 			mCurrency = currency;
 			mFullpage = fullpage;
+			mPaymentMethod = method;
 			mExtra_edittext_1 = extra_edittext_1;
 			mExtra_edittext_2 = extra_edittext_2;
 			mExtra_edittext_3 = extra_edittext_3;
@@ -1742,7 +1759,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		@Override
 		protected ReceiptRow doInBackground(Void... params) {
 			try {
-				return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+				return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 			}
 			catch (SQLException ex) {
 				mException = ex;
@@ -1764,13 +1781,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	public ReceiptRow updateReceiptSerial(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
-		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
 	public void updateReceiptParallel(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
@@ -1778,12 +1795,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		(new UpdateReceiptWorker(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency,
-				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
+				fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
 	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		ContentValues values = new ContentValues(10);
 		values.put(ReceiptsTable.COLUMN_NAME, name.trim());
@@ -1809,6 +1826,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(ReceiptsTable.COLUMN_ISO4217, currency);
 		values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
 		////Extras
+		
+		if (method != null) {
+			values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, method.getId());
+		}
+		else {
+			final Integer integer = null;
+			values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
+		}
+		
 		if (extra_edittext_1 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
 		} else {
@@ -1857,6 +1883,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 										   	.setCurrency(currency)
 										   	.setIsFullPage(fullpage)
 										   	.setIndex(oldReceipt.getIndex())
+										   	.setPaymentMethod(method)
 										   	.setExtraEditText1(extra_edittext_1)
 										   	.setExtraEditText2(extra_edittext_2)
 										   	.setExtraEditText3(extra_edittext_3)
@@ -1883,11 +1910,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private final TripRow mTrip;
 		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
 		private final Date mDate;
+		private final PaymentMethod mPaymentMethod;
 		private final boolean mExpensable, mFullpage;
 
 		public UpdateReceiptWorker(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
 				String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+				PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mOldReceipt = oldReceipt;
 			mTrip = trip;
 			mName = name;
@@ -1899,6 +1927,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			mExpensable = expensable;
 			mCurrency = currency;
 			mFullpage = fullpage;
+			mPaymentMethod = method;
 			mExtra_edittext_1 = extra_edittext_1;
 			mExtra_edittext_2 = extra_edittext_2;
 			mExtra_edittext_3 = extra_edittext_3;
@@ -1906,7 +1935,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		@Override
 		protected ReceiptRow doInBackground(Void... params) {
-			return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+			return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 		}
 
 		@Override
@@ -2796,6 +2825,24 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	/**
+	 * Attempts to fetch a payment method for a given primary key id
+	 * 
+	 * @param id - the id of the desired {@link PaymentMethod}
+	 * @return a {@link PaymentMethod} if the id matches or {@code null} if none is found
+	 */
+	public final PaymentMethod findPaymentMethodById(final int id) {
+		final List<PaymentMethod> methodsSnapshot = new ArrayList<PaymentMethod>(getPaymentMethods());
+		final int size = methodsSnapshot.size();
+		for (int i = 0; i < size; i++) {
+			final PaymentMethod method = methodsSnapshot.get(i);
+			if (method.getId() == id) {
+				return method; 
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Inserts a new {@link PaymentMethod} into our database. This method also automatically updates the underlying
 	 * list that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
 	 * 
@@ -2832,6 +2879,36 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			finally { // Close the cursor and db to avoid memory leaks
 				if (c != null) {
 					c.close();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Inserts a new {@link PaymentMethod} into our database. This method does not update the underlying
+	 * list that is returned via {{@link #getPaymentMethods()}
+	 * 
+	 * @param method - a {@link String} representing the current method
+	 * @return {@code true} if it was properly inserted. {@code false} if not
+	 */
+	public final boolean insertPaymentMethodNoCache(final String method) {
+		ContentValues values = new ContentValues(1);
+		values.put(PaymentMethodsTable.COLUMN_METHOD, method);
+		if (_initDB != null) {
+			if (_initDB.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		else {
+			synchronized (mDatabaseLock) {
+				SQLiteDatabase db = null;
+				db = this.getWritableDatabase();
+				if (db.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
+					return false;
+				} else {
+					return true;
 				}
 			}
 		}
@@ -3015,7 +3092,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int extra_edittext_3_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3);
 						final int taxIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TAX);
 						final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
-						final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY);
+						final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID);
 						do {
 							final String oldPath = c.getString(pathIndex);
 							String newPath = new String(oldPath);
@@ -3069,7 +3146,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									final String timeZone = c.getString(timeZoneIndex);
 									values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
 								}
-								values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_KEY, paymentMethod);
+								values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, paymentMethod);
 								if (count > 0 && overwrite) { //Update
 									currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(updateID)});
 								}

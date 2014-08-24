@@ -7,6 +7,7 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.WBCurrency;
 
@@ -50,6 +51,7 @@ public class ReceiptUtils {
 		assertEquals(receipt1.getTaxAsFloat(), receipt2.getTaxAsFloat(), TestUtils.EPSILON);
 		assertEquals(receipt1.getTimeZone(), receipt2.getTimeZone());
 		assertEquals(receipt1.getTrip(), receipt2.getTrip());
+		assertEquals(receipt1.getPaymentMethod(), receipt2.getPaymentMethod());
 	}
 	
 	/**

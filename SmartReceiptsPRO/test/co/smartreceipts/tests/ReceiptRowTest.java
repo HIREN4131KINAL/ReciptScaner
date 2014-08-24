@@ -17,6 +17,7 @@ import android.text.TextUtils;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.tests.utils.ReceiptUtils;
+import co.smartreceipts.tests.utils.TripUtils;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 import co.smartreceipts.tests.utils.TestUtils;
 
@@ -59,7 +60,8 @@ public class ReceiptRowTest {
 				.setName(Constants.NAME)
 				.setPrice(Constants.PRICE)
 				.setTax(Constants.TAX)
-				.setTimeZone(Constants.TIMEZONE_CODE);
+				.setTimeZone(Constants.TIMEZONE_CODE)
+				.setTrip(TripUtils.getDefaultTripRow());
 		return builderA;
 	}
 
@@ -84,7 +86,8 @@ public class ReceiptRowTest {
 				.setName(Constants.NAME)
 				.setPrice(Constants.PRICE)
 				.setTax(Constants.TAX)
-				.setTimeZone(Constants.TIMEZONE);
+				.setTimeZone(Constants.TIMEZONE)
+				.setTrip(TripUtils.getDefaultTripRow());
 		return builderB;
 	}
 
@@ -210,6 +213,11 @@ public class ReceiptRowTest {
 		assertEquals(mReceiptRowA.getCurrencyFormattedTax(), mReceiptRowB.getCurrencyFormattedTax());
 		assertEquals(mReceiptRowA.getTax(), Constants.TAX);
 		assertEquals(mReceiptRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+	}
+	
+	@Test
+	public void testTripRow() {
+		assertEquals(mReceiptRowA.getTrip(), mReceiptRowB.getTrip());
 	}
 	
 	@Test

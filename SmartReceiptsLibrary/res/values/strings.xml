@@ -323,6 +323,7 @@
 	<string name="column_item_expensable">Expensable</string>
 	<string name="column_item_index">Receipt Index</string>
 	<string name="column_item_id">Receipt ID</string>
+	<string name="column_item_payment_method">Payment Method</string>
 	<string name="column_item_extra_edittext_1"></string>
 	<string name="column_item_extra_edittext_2"></string>
 	<string name="column_item_extra_edittext_3"></string>

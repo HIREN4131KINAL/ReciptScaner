@@ -44,6 +44,7 @@ public class Columns {
 		public static String EXPENSABLE = null;
 		public static String INDEX = null;
 		public static String ID = null;
+		public static String PAYMENT_METHOD = null;
 		public static String EXTRA_EDITTEXT_1 = null;
 		public static String EXTRA_EDITTEXT_2 = null;
 		public static String EXTRA_EDITTEXT_3= null;
@@ -95,6 +96,7 @@ public class Columns {
 		ColumnName.EXPENSABLE = flex.getString(context, R.string.column_item_expensable);
 		ColumnName.INDEX = flex.getString(context, R.string.column_item_index);
 		ColumnName.ID = flex.getString(context, R.string.column_item_id);
+		ColumnName.PAYMENT_METHOD = flex.getString(context, R.string.column_item_payment_method);
 		ColumnName.EXTRA_EDITTEXT_1 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1);
 		ColumnName.EXTRA_EDITTEXT_2 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2);
 		ColumnName.EXTRA_EDITTEXT_3 = flex.getString(context, R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
@@ -235,6 +237,9 @@ public class Columns {
 		else if (column.getColumnType().equals(ColumnName.EXPENSABLE)) {
 			return (receipt.isExpensable()) ? mContext.getString(R.string.yes) : mContext.getString(R.string.no);
 		}
+		else if (column.getColumnType().equalsIgnoreCase(ColumnName.PAYMENT_METHOD)) {
+			return receipt.hasPaymentMethod() ? receipt.getPaymentMethod().getMethod() : "";
+		}
 		else if (column.getColumnType().equalsIgnoreCase(ColumnName.EXTRA_EDITTEXT_1)) {
 			return receipt.getExtraEditText1();
 		}
@@ -265,6 +270,7 @@ public class Columns {
 		options.add(ColumnName.IMAGE_FILE_NAME);
 		options.add(ColumnName.IMAGE_PATH);
 		options.add(ColumnName.NAME);
+		options.add(ColumnName.PAYMENT_METHOD);
 		options.add(ColumnName.PICTURED);
 		options.add(ColumnName.PRICE);
 		options.add(ColumnName.ID); // Appears as Receipt ID

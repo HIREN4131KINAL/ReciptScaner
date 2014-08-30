@@ -1188,11 +1188,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		try {
 			mAreTripsValid = false;
 			db = this.getReadableDatabase();
-
+			
+			String selection = ReceiptsTable.COLUMN_PARENT + "= ?";
+			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
+				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
+			}
 			// Get the Trip's total Price
 			c = db.query(ReceiptsTable.TABLE_NAME,
 						 new String[] {"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"},
-						 ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1",
+						 selection,
 						 new String[] {trip.getName()},
 						 null,
 						 null,
@@ -1245,10 +1249,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			// Set the timers
 			final long startTime = startCalendar.getTimeInMillis();
 			final long endTime = endCalendar.getTimeInMillis();
-
+			String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?";
+			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
+				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
+			}
+			
 			priceCursor = db.query(ReceiptsTable.TABLE_NAME,
 								   new String[] {"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"},
-								   ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1 AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?",
+								   selection,
 								   new String[] {trip.getName(), Long.toString(startTime), Long.toString(endTime)},
 								   null,
 								   null,

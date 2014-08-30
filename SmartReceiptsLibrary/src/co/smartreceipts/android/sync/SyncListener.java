@@ -6,7 +6,7 @@ package co.smartreceipts.android.sync;
  * 
  * @author Will Baumann
  */
-public interface SyncListener<T extends SyncKey> {
+public interface SyncListener<T> {
 
 	/**
 	 * This method will be called whenever our data has successfully synchronized with the back-end

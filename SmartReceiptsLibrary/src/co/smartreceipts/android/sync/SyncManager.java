@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import co.smartreceipts.android.sync.network.NetworkProvider;
+
 /**
  * This class operates as the entry point for all data synchronization activities
  * 
@@ -65,7 +67,7 @@ public final class SyncManager {
 		boolean wasSumbitted = false;
 		for (final SyncProvider provider : mProviders) {
 			if (provider.supportsSynchronization(syncRequest)) {
-
+				provider.submitSyncRequest(syncRequest);
 				wasSumbitted = true;
 			}
 		}

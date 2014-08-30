@@ -5,7 +5,7 @@ package co.smartreceipts.android.sync;
  * 
  * @author Will Baumann
  */
-public interface SyncRequest<T extends SyncKey> {
+public interface SyncRequest<T> {
 
 	/**
 	 * @return the {@link SyncRequestType} for this upload request
@@ -20,5 +20,5 @@ public interface SyncRequest<T extends SyncKey> {
 	/**
 	 * @return the desired payload or {@code} null if nothing is being uploaded
 	 */
-	public T getPayload();
+	public T getRequestData();
 }

@@ -190,7 +190,7 @@ public final class TripRow implements Parcelable {
 	}
 
 	public String getDailySubTotal() {
-		return mDailySubTotal.toPlainString();
+		return getDecimalFormattedDailySubTotal();
 	}
 
 	public float getDailySubTotalAsFloat() {

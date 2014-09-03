@@ -1,6 +1,8 @@
 package co.smartreceipts.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -21,15 +23,14 @@ import co.smartreceipts.tests.utils.TripUtils;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 import co.smartreceipts.tests.utils.TestUtils;
 
-@Config(emulateSdk = 18) 
+@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class ReceiptRowTest {
 
 	/*
-	 * ReceiptRowA and ReceiptRowB should be expected as having all member variables be equal.
-	 * The .equals method for ReceiptRow only tests their IDs and will not be a valid indicator
-	 * of whether or not they are actually equal or not.
-	 * The difference between the two is how their builders are constructed
+	 * ReceiptRowA and ReceiptRowB should be expected as having all member variables be equal. The .equals method for
+	 * ReceiptRow only tests their IDs and will not be a valid indicator of whether or not they are actually equal or
+	 * not. The difference between the two is how their builders are constructed
 	 */
 	private ReceiptRow mReceiptRowA, mReceiptRowB;
 
@@ -37,12 +38,13 @@ public class ReceiptRowTest {
 	 * ReceiptRowC has a difference File (PDF) than ReceiptRow A or B. All other data is the same
 	 */
 	private ReceiptRow mReceiptRowC;
-	
+
 	private SmartReceiptsApplication mApp;
 
 	/**
-	 * Generates a builder for mReceiptRowA. This builder user primitives/Strings
-	 * whenever possible as opposed to higher level objects
+	 * Generates a builder for mReceiptRowA. This builder user primitives/Strings whenever possible as opposed to higher
+	 * level objects
+	 * 
 	 * @return
 	 */
 	private ReceiptRow.Builder getReceiptRowABuilder() {
@@ -66,8 +68,9 @@ public class ReceiptRowTest {
 	}
 
 	/**
-	 * Generates a builder for mReceiptRowB. This builder users higher level objects
-	 * as opposed to primitives/Strings whenever possible
+	 * Generates a builder for mReceiptRowB. This builder users higher level objects as opposed to primitives/Strings
+	 * whenever possible
+	 * 
 	 * @return
 	 */
 	private ReceiptRow.Builder getReceiptRowBBuilder() {
@@ -84,16 +87,17 @@ public class ReceiptRowTest {
 				.setIsExpenseable(Constants.IS_EXPENSABLE)
 				.setIsFullPage(Constants.IS_FULLPAGE)
 				.setName(Constants.NAME)
-				.setPrice(Constants.PRICE)
-				.setTax(Constants.TAX)
+				.setPrice(Constants.PRICE_DOUBLE)
+				.setTax(Constants.TAX_DOUBLE)
 				.setTimeZone(Constants.TIMEZONE)
 				.setTrip(TripUtils.getDefaultTripRow());
 		return builderB;
 	}
 
 	/**
-	 * Generates a builder for mReceiptRowC. This uses receiptRow A's builder
-	 * but swaps out the image file stub with a pdf stub
+	 * Generates a builder for mReceiptRowC. This uses receiptRow A's builder but swaps out the image file stub with a
+	 * pdf stub
+	 * 
 	 * @return
 	 */
 	private ReceiptRow.Builder getReceiptRowCBuilder() {
@@ -102,14 +106,15 @@ public class ReceiptRowTest {
 		builderC.setPDF(getFile(Constants.PDF_FILE_NAME));
 		return builderC;
 	}
-	
+
 	private File getFile(String name) {
-		File tripDir = mApp.getPersistenceManager().getStorageManager().mkdir(co.smartreceipts.tests.utils.TripUtils.Constants.DIRECTORY_NAME);
+		File tripDir = mApp.getPersistenceManager().getStorageManager()
+				.mkdir(co.smartreceipts.tests.utils.TripUtils.Constants.DIRECTORY_NAME);
 		File file = new File(tripDir, name);
 		mApp.getPersistenceManager().getStorageManager().createFile(file);
 		return file;
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
 		mApp = (SmartReceiptsApplication) Robolectric.application;
@@ -125,7 +130,7 @@ public class ReceiptRowTest {
 		mReceiptRowC = null;
 		mApp = null;
 	}
-	
+
 	@Test
 	public void fileCreationSuccess() {
 		assertTrue(getFile(Constants.IMAGE_FILE_NAME).exists());
@@ -156,7 +161,7 @@ public class ReceiptRowTest {
 		assertEquals(mReceiptRowA.getTimeZone(), mReceiptRowB.getTimeZone());
 		assertEquals(mReceiptRowA.getDate(), Constants.DATE);
 		assertEquals(mReceiptRowA.getTimeZone(), Constants.TIMEZONE);
-		//TODO: Add Context to get Formatted Dates
+		// TODO: Add Context to get Formatted Dates
 	}
 
 	@Test
@@ -171,6 +176,7 @@ public class ReceiptRowTest {
 
 	/**
 	 * Extra Edit Texts get set to null if they are empty
+	 * 
 	 * @param extra
 	 * @param constant
 	 */
@@ -214,7 +220,7 @@ public class ReceiptRowTest {
 		assertEquals(mReceiptRowA.getTax(), Constants.TAX);
 		assertEquals(mReceiptRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
 	}
-	
+
 	@Test
 	public void testTripRow() {
 		assertEquals(mReceiptRowA.getTrip(), mReceiptRowB.getTrip());
@@ -229,7 +235,7 @@ public class ReceiptRowTest {
 		assertNotNull(parcelReceiptRowA);
 		assertEquals(mReceiptRowA, parcelReceiptRowA);
 		ReceiptUtils.assertFieldEquality(parcelReceiptRowA, mReceiptRowA);
-		
+
 		Parcel parcelD = Parcel.obtain();
 		ReceiptRow receiptRowD = getReceiptRowABuilder().setFile(null).build();
 		receiptRowD.writeToParcel(parcelD, 0);

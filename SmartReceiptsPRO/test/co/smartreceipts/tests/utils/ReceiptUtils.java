@@ -18,7 +18,7 @@ public class ReceiptUtils {
 		public static final String CATEGORY = "Lunch";
 		public static final String COMMENT = "";
 		public static final String CURRENCY_CODE = "USD";
-		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); //1
+		public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); // 1
 		public static final long DATE_MILLIS = System.currentTimeMillis();
 		public static final Date DATE = new Date(DATE_MILLIS);
 		public static final String EXTRA1 = "extra1";
@@ -32,16 +32,20 @@ public class ReceiptUtils {
 		public static final boolean IS_FULLPAGE = false;
 		public static final String NAME = "Name";
 		public static final String PRICE = "12.55";
+		public static final double PRICE_DOUBLE = 12.55d;
 		public static final String TAX = "0.37";
+		public static final double TAX_DOUBLE = 0.37d;
 		public static final TimeZone TIMEZONE = TimeZone.getDefault();
 		public static final String TIMEZONE_CODE = TIMEZONE.getID();
 	}
-	
+
 	public static void assertFieldEquality(ReceiptRow receipt1, ReceiptRow receipt2) {
 		assertEquals(receipt1.getComment(), receipt2.getComment());
 		assertEquals(receipt1.getCategory(), receipt2.getCategory());
 		assertEquals(receipt1.getCurrencyCode(), receipt2.getCurrencyCode());
-		assertTrue(Math.abs(receipt1.getDate().getTime() - receipt2.getDate().getTime()) < 100); //Allow dates to be w/i 100ms of each other
+		assertTrue(Math.abs(receipt1.getDate().getTime() - receipt2.getDate().getTime()) < 100); // Allow dates to be
+																									// w/i 100ms of each
+																									// other
 		assertEquals(receipt1.getExtraEditText1(), receipt2.getExtraEditText1());
 		assertEquals(receipt1.getExtraEditText2(), receipt2.getExtraEditText2());
 		assertEquals(receipt1.getExtraEditText3(), receipt2.getExtraEditText3());
@@ -53,7 +57,7 @@ public class ReceiptUtils {
 		assertEquals(receipt1.getTrip(), receipt2.getTrip());
 		assertEquals(receipt1.getPaymentMethod(), receipt2.getPaymentMethod());
 	}
-	
+
 	/**
 	 * We do not guarantee that indices are set, but this test still performs the full set
 	 */
@@ -63,5 +67,4 @@ public class ReceiptUtils {
 		assertEquals(receipt1.getIndex(), receipt2.getIndex());
 	}
 
-	
 }

@@ -1237,17 +1237,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @return
 	 */
 	private final void getTripPriceAndDailyPrice(final TripRow trip) {
-		getTripPrice(trip);
-		getTripDailyPrice(trip);
+		queryTripPrice(trip);
+		queryTripDailyPrice(trip);
 	}
 
 	/**
-	 * This class is not synchronized! Sync outside of it
+	 * Queries the trips price and updates this object. This class is not synchronized! Sync outside of it
 	 * 
 	 * @param trip
-	 * @return
+	 *            the trip, which will be updated
 	 */
-	private final String getTripPrice(final TripRow trip) {
+	private final void queryTripPrice(final TripRow trip) {
 		SQLiteDatabase db = null;
 		Cursor c = null;
 		try {
@@ -1262,9 +1262,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			c = db.query(ReceiptsTable.TABLE_NAME, new String[] { "SUM(" + ReceiptsTable.COLUMN_PRICE + ")" },
 					selection, new String[] { trip.getName() }, null, null, null);
 			if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-				final String sum = c.getString(0);
+				final double sum = c.getDouble(0);
 				trip.setPrice(sum);
-				return sum;
 			}
 		}
 		finally {
@@ -1272,16 +1271,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				c.close();
 			}
 		}
-		return new String();
 	}
 
 	/**
-	 * This class is not synchronized! Sync outside of it
+	 * Queries the trips daily total price and updates this object. This class is not synchronized! Sync outside of it
 	 * 
 	 * @param trip
-	 * @return
+	 *            the trip, which will be updated
 	 */
-	private final String getTripDailyPrice(final TripRow trip) {
+	private final void queryTripDailyPrice(final TripRow trip) {
 		SQLiteDatabase db = null;
 		Cursor priceCursor = null;
 		try {
@@ -1323,9 +1321,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							null, null);
 
 			if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
-				String dailyTotal = priceCursor.getString(0);
+				final double dailyTotal = priceCursor.getDouble(0);
 				trip.setDailySubTotal(dailyTotal);
-				return dailyTotal;
 			}
 		}
 		finally { // Close the cursor to avoid memory leaks
@@ -1333,14 +1330,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				priceCursor.close();
 			}
 		}
-		return new String();
 	}
 
 	private final void updateTripPrice(final TripRow trip) {
 		synchronized (mDatabaseLock) {
 			mAreTripsValid = false;
-			getTripPrice(trip);
-			getTripDailyPrice(trip);
+			queryTripPrice(trip);
+			queryTripDailyPrice(trip);
 		}
 	}
 
@@ -1365,7 +1361,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public List<ReceiptRow> getReceiptsSerial(final TripRow trip, final boolean desc) { // Only the email writer should
-																						// use this
 		return getReceiptsHelper(trip, desc);
 	}
 
@@ -1449,8 +1444,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final String path = c.getString(pathIndex);
 						final String name = c.getString(nameIndex);
 						final String category = c.getString(categoryIndex);
-						final String price = c.getString(priceIndex);
-						final String tax = c.getString(taxIndex);
+						final double price = c.getDouble(priceIndex);
+						final double tax = c.getDouble(taxIndex);
 						final long date = c.getLong(dateIndex);
 						final String timezone = (timeZoneIndex > 0) ? c.getString(timeZoneIndex) : null;
 						final String comment = c.getString(commentIndex);
@@ -1458,7 +1453,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final String currency = c.getString(currencyIndex);
 						final boolean fullpage = !(c.getInt(fullpageIndex) > 0);
 						final int paymentMethodId = c.getInt(paymentMethodIdIndex); // Not using a join, since we need
-																					// the list for inserts
 						final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 						final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 						final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -1565,7 +1559,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final String currency = c.getString(currencyIndex);
 					final boolean fullpage = !(c.getInt(fullpageIndex) > 0);
 					final int paymentMethodId = c.getInt(paymentMethodIdIndex); // Not using a join, since we need the
-																				// list for inserts
 					final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 					final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 					final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -3515,7 +3508,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			return defaultValue;
 		}
 	}
-
+	
 	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	// AutoCompleteTextView Methods
 	// //////////////////////////////////////////////////////////////////////////////////////////////////

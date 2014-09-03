@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.TimeZone;
@@ -23,8 +24,8 @@ public class ReceiptRow implements Parcelable {
 	private PaymentMethod mPaymentMethod;
 	private int mIndex; // Tracks the index in the list (if specified)
 	private File mFile;
-	private String mName, mCategory, mComment; 
-	private float mPrice, mTax;
+	private String mName, mCategory, mComment;
+	private BigDecimal mPrice, mTax;
 	private String mExtraEditText1, mExtraEditText2, mExtraEditText3;
 	private Date mDate;
 	private TimeZone mTimeZone;
@@ -46,8 +47,8 @@ public class ReceiptRow implements Parcelable {
 		mName = in.readString();
 		mCategory = in.readString();
 		mComment = in.readString();
-		mPrice = in.readFloat();
-		mTax = in.readFloat();
+		mPrice = new BigDecimal(in.readFloat());
+		mTax = new BigDecimal(in.readFloat());
 		final String fileName = in.readString();
 		mFile = TextUtils.isEmpty(fileName) ? null : new File(fileName);
 		mDate = new Date(in.readLong());
@@ -66,11 +67,11 @@ public class ReceiptRow implements Parcelable {
 	public int getId() {
 		return mId;
 	}
-	
+
 	public TripRow getTrip() {
 		return mTrip;
 	}
-	
+
 	public boolean hasTrip() {
 		return mTrip != null;
 	}
@@ -94,7 +95,9 @@ public class ReceiptRow implements Parcelable {
 	public boolean hasImage() {
 		if (mFile != null && mFile.exists()) {
 			final String extension = StorageManager.getExtension(mFile);
-			if (extension != null && (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg") ||extension.equalsIgnoreCase("png"))) {
+			if (extension != null
+					&& (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg") || extension
+							.equalsIgnoreCase("png"))) {
 				return true;
 			}
 			else {
@@ -179,11 +182,11 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getPrice() {
-		return Float.toString(mPrice);
+		return getDecimalFormattedPrice();
 	}
 
 	public float getPriceAsFloat() {
-		return mPrice;
+		return mPrice.floatValue();
 	}
 
 	public String getDecimalFormattedPrice() {
@@ -204,16 +207,11 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getTax() {
-		return Float.toString(mTax);
+		return getDecimalFormattedTax();
 	}
 
 	public float getTaxAsFloat() {
-		try {
-			return Float.valueOf(getTax());
-		}
-		catch(NumberFormatException e) {
-			return 0f;
-		}
+		return mTax.floatValue();
 	}
 
 	public String getDecimalFormattedTax() {
@@ -288,7 +286,7 @@ public class ReceiptRow implements Parcelable {
 	public int getIndex() {
 		return mIndex;
 	}
-	
+
 	public void setTrip(TripRow trip) {
 		mTrip = trip;
 	}
@@ -323,6 +321,7 @@ public class ReceiptRow implements Parcelable {
 
 	/**
 	 * This is identical to calling setFile
+	 * 
 	 * @param img
 	 */
 	public void setImage(File img) {
@@ -331,6 +330,7 @@ public class ReceiptRow implements Parcelable {
 
 	/**
 	 * This is identical to calling setFile
+	 * 
 	 * @param pdf
 	 */
 	public void setPDF(File pdf) {
@@ -345,18 +345,27 @@ public class ReceiptRow implements Parcelable {
 		mPrice = tryParse(price);
 	}
 
+	void setPrice(double price) {
+		mPrice = new BigDecimal(price);
+	}
+
 	void setTax(String tax) {
 		mTax = tryParse(tax);
 	}
-	
-	private float tryParse(String number) {
+
+	void setTax(double tax) {
+		mTax = new BigDecimal(tax);
+	}
+
+	private BigDecimal tryParse(String number) {
 		if (TextUtils.isEmpty(number)) {
-			return 0f;
+			return new BigDecimal(0);
 		}
 		try {
-			return Float.parseFloat(number);	
-		} catch (NumberFormatException e) {
-			return 0f;
+			return new BigDecimal(number);
+		}
+		catch (NumberFormatException e) {
+			return new BigDecimal(0);
 		}
 	}
 
@@ -383,7 +392,8 @@ public class ReceiptRow implements Parcelable {
 	void setExtraEditText1(String extraEditText1) {
 		if (!TextUtils.isEmpty(extraEditText1)) {
 			mExtraEditText1 = extraEditText1.equalsIgnoreCase(DatabaseHelper.NO_DATA) ? null : extraEditText1;
-		} else {
+		}
+		else {
 			mExtraEditText1 = null;
 		}
 	}
@@ -395,7 +405,8 @@ public class ReceiptRow implements Parcelable {
 	void setExtraEditText2(String extraEditText2) {
 		if (!TextUtils.isEmpty(extraEditText2)) {
 			mExtraEditText2 = extraEditText2.equalsIgnoreCase(DatabaseHelper.NO_DATA) ? null : extraEditText2;
-		} else {
+		}
+		else {
 			mExtraEditText2 = null;
 		}
 	}
@@ -407,7 +418,8 @@ public class ReceiptRow implements Parcelable {
 	void setExtraEditText3(String extraEditText3) {
 		if (!TextUtils.isEmpty(extraEditText3)) {
 			mExtraEditText3 = extraEditText3.equalsIgnoreCase(DatabaseHelper.NO_DATA) ? null : extraEditText3;
-		} else {
+		}
+		else {
 			mExtraEditText3 = null;
 		}
 	}
@@ -429,22 +441,13 @@ public class ReceiptRow implements Parcelable {
 	@Override
 	@SuppressWarnings("deprecation")
 	public String toString() {
-		return this.getClass().getSimpleName() + "::\n" + "["
-											   + "source => " + getSource() + "; \n"
-											   + "id => " + getId() + "; \n"
-											   + "name => " + getName() + "; \n"
-											   + "category =>" + getCategory() + "; \n"
-											   + "comment =>" + getComment() + "; \n"
-											   + "price =>" + getPrice() + "; \n"
-											   + "tax =>" + getTax() + "; \n"
-											   + "filePath =>" + getFilePath() + "; \n"
-											   + "currency =>" + getCurrencyCode() + "; \n"
-											   + "date =>" + getDate().toGMTString() + "; \n"
-											   + "isExpensable =>" + isExpensable() + "; \n"
-											   + "isFullPage =>" + isFullPage() + "; \n"
-											   + "extraEditText1 =>" + getExtraEditText1() + "; \n"
-											   + "extraEditText2 =>" + getExtraEditText2() + "; \n"
-											   + "extraEditText3 =>" + getExtraEditText3() + "]";
+		return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "id => "
+				+ getId() + "; \n" + "name => " + getName() + "; \n" + "category =>" + getCategory() + "; \n"
+				+ "comment =>" + getComment() + "; \n" + "price =>" + getPrice() + "; \n" + "tax =>" + getTax()
+				+ "; \n" + "filePath =>" + getFilePath() + "; \n" + "currency =>" + getCurrencyCode() + "; \n"
+				+ "date =>" + getDate().toGMTString() + "; \n" + "isExpensable =>" + isExpensable() + "; \n"
+				+ "isFullPage =>" + isFullPage() + "; \n" + "extraEditText1 =>" + getExtraEditText1() + "; \n"
+				+ "extraEditText2 =>" + getExtraEditText2() + "; \n" + "extraEditText3 =>" + getExtraEditText3() + "]";
 	}
 
 	@Override
@@ -502,8 +505,9 @@ public class ReceiptRow implements Parcelable {
 		private TripRow _trip;
 		private PaymentMethod _paymentMethod;
 		private File _file;
-		private String _name, _category, _comment, _price, _tax;
+		private String _name, _category, _comment, _priceString, _taxString;
 		private String _extraEditText1, _extraEditText2, _extraEditText3;
+		private double _price, _tax;
 		private Date _date;
 		private TimeZone _timezone;
 		private final int _id;
@@ -518,7 +522,7 @@ public class ReceiptRow implements Parcelable {
 			_source = SourceEnum.Undefined;
 			_timezone = TimeZone.getDefault();
 		}
-		
+
 		public Builder setTrip(TripRow trip) {
 			_trip = trip;
 			return this;
@@ -544,12 +548,36 @@ public class ReceiptRow implements Parcelable {
 			return this;
 		}
 
+		/**
+		 * Sets the price of this builder as a string (useful for user input)
+		 * 
+		 * @param price
+		 *            - the desired price as a string
+		 * @return the {@link Builder} instance for method chaining
+		 */
 		public Builder setPrice(String price) {
+			_priceString = price;
+			return this;
+		}
+
+		public Builder setPrice(double price) {
 			_price = price;
 			return this;
 		}
 
+		/**
+		 * Sets the tax of this builder as a string (useful for user input)
+		 * 
+		 * @param price
+		 *            - the desired tax as a string
+		 * @return the {@link Builder} instance for method chaining
+		 */
 		public Builder setTax(String tax) {
+			_taxString = tax;
+			return this;
+		}
+
+		public Builder setTax(double tax) {
 			_tax = tax;
 			return this;
 		}
@@ -630,13 +658,13 @@ public class ReceiptRow implements Parcelable {
 			_extraEditText3 = extraEditText3;
 			return this;
 		}
-		
+
 		public Builder setIndex(int index) {
 			_index = index;
 			return this;
 		}
 
-		//TODO: Use this method
+		// TODO: Use this method
 		public Builder setSourceAsCache() {
 			_source = SourceEnum.Cache;
 			return this;
@@ -649,8 +677,18 @@ public class ReceiptRow implements Parcelable {
 			receipt.setName(_name);
 			receipt.setCategory(_category);
 			receipt.setComment(_comment);
-			receipt.setPrice(_price);
-			receipt.setTax(_tax);
+			if (!TextUtils.isEmpty(_priceString)) {
+				receipt.setPrice(_priceString);
+			}
+			else {
+				receipt.setPrice(_price);
+			}
+			if (!TextUtils.isEmpty(_taxString)) {
+				receipt.setTax(_taxString);
+			}
+			else {
+				receipt.setTax(_tax);
+			}
 			receipt.setFile(_file);
 			receipt.setExtraEditText1(_extraEditText1);
 			receipt.setExtraEditText2(_extraEditText2);

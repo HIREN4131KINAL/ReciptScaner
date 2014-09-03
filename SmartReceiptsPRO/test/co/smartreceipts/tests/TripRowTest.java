@@ -40,7 +40,6 @@ public class TripRowTest {
 				.setEndDate(Constants.END_DATE_MILLIS)
 				.setEndTimeZone(Constants.END_TIMEZONE_CODE)
 				.setMileage(Constants.MILEAGE)
-				.setPrice(Constants.PRICE)
 				.setStartDate(Constants.START_DATE_MILLIS)
 				.setStartTimeZone(Constants.START_TIMEZONE_CODE)
 				.setComment(Constants.COMMENT);
@@ -60,7 +59,6 @@ public class TripRowTest {
 				.setEndDate(Constants.END_DATE)
 				.setEndTimeZone(Constants.END_TIMEZONE)
 				.setMileage(Constants.MILEAGE)
-				.setPrice(Constants.PRICE)
 				.setStartDate(Constants.START_DATE)
 				.setStartTimeZone(Constants.START_TIMEZONE)
 				.setComment(Constants.COMMENT);
@@ -71,6 +69,10 @@ public class TripRowTest {
 	public void setUp() throws Exception {
 		mTripRowA = getTripRowABuilder().build();
 		mTripRowB = getTripRowBBuilder().build();
+		mTripRowA.setPrice(Constants.PRICE);
+		mTripRowA.setDailySubTotal(Constants.DAILY_SUBTOTAL);
+		mTripRowB.setPrice(Constants.PRICE);
+		mTripRowB.setDailySubTotal(Constants.DAILY_SUBTOTAL);
 	}
 
 	@After
@@ -96,7 +98,8 @@ public class TripRowTest {
 		assertEquals(mTripRowA.getStartTimeZone(), mTripRowB.getStartTimeZone());
 		assertEquals(mTripRowA.getStartDate(), Constants.START_DATE);
 		assertEquals(mTripRowA.getStartTimeZone(), Constants.START_TIMEZONE);
-		//TODO: Add Context to get Formatted Dates
+		// assertEquals(mTripRowA.getFormattedStartDate(Robolectric.application, "/"), Constants.SLASH_FORMATTED_START_DATE);
+		// assertEquals(mTripRowA.getFormattedStartDate(Robolectric.application, "-"), Constants.DASH_FORMATTED_START_DATE);
 	}
 
 	@Test
@@ -105,7 +108,8 @@ public class TripRowTest {
 		assertEquals(mTripRowA.getEndTimeZone(), mTripRowB.getEndTimeZone());
 		assertEquals(mTripRowA.getEndDate(), Constants.END_DATE);
 		assertEquals(mTripRowA.getEndTimeZone(), Constants.END_TIMEZONE);
-		//TODO: Add Context to get Formatted Dates
+		// assertEquals(mTripRowA.getFormattedEndDate(Robolectric.application, "/"), Constants.SLASH_FORMATTED_END_DATE);
+		// assertEquals(mTripRowA.getFormattedEndDate(Robolectric.application, "-"), Constants.DASH_FORMATTED_END_DATE);
 	}
 
 	@Test
@@ -115,8 +119,27 @@ public class TripRowTest {
 		assertEquals(mTripRowA.getDecimalFormattedPrice(), mTripRowB.getDecimalFormattedPrice());
 		assertEquals(mTripRowA.getCurrencyCode(), mTripRowB.getCurrencyCode());
 		assertEquals(mTripRowA.getCurrencyFormattedPrice(), mTripRowB.getCurrencyFormattedPrice());
-		assertEquals(mTripRowA.getPrice(), Constants.PRICE);
+		assertEquals(mTripRowA.getPrice(), Constants.PRICE_STRING);
+		assertEquals(mTripRowA.getPriceAsFloat(), Constants.PRICE, TestUtils.EPSILON);
 		assertEquals(mTripRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+		
+		mTripRowA.setPrice((float) Constants.PRICE);
+		assertEquals(mTripRowA.getPriceAsFloat(), mTripRowB.getPriceAsFloat(), TestUtils.EPSILON);
+		assertEquals(mTripRowA.getPrice(), Constants.PRICE_STRING);
+		assertEquals(mTripRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+	}
+	
+	@Test
+	public void testReceiptDailySubTotalAndCurrency() {
+		assertEquals(mTripRowA.getDailySubTotal(), mTripRowB.getDailySubTotal());
+		assertEquals(mTripRowA.getDailySubTotalAsFloat(), mTripRowB.getDailySubTotalAsFloat(), TestUtils.EPSILON);
+		assertEquals(mTripRowA.getCurrencyFormattedDailySubTotal(), mTripRowB.getCurrencyFormattedDailySubTotal());
+		assertEquals(mTripRowA.getDailySubTotal(), Constants.DAILY_SUBTOTAL_STRING);
+		assertEquals(mTripRowA.getDailySubTotalAsFloat(), Constants.DAILY_SUBTOTAL, TestUtils.EPSILON);
+		
+		mTripRowA.setPrice((float) Constants.PRICE);
+		assertEquals(mTripRowA.getDailySubTotalAsFloat(), mTripRowB.getDailySubTotalAsFloat(), TestUtils.EPSILON);
+		assertEquals(mTripRowA.getDailySubTotal(), Constants.DAILY_SUBTOTAL_STRING);
 	}
 
 	@Test

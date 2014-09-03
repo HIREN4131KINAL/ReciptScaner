@@ -75,11 +75,11 @@ public class ReceiptRow implements Parcelable {
 	public boolean hasTrip() {
 		return mTrip != null;
 	}
-	
+
 	public PaymentMethod getPaymentMethod() {
 		return mPaymentMethod;
 	}
-	
+
 	public boolean hasPaymentMethod() {
 		return mPaymentMethod != null;
 	}
@@ -186,7 +186,12 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public float getPriceAsFloat() {
-		return mPrice.floatValue();
+		if (mPrice != null) {
+			return mPrice.floatValue();
+		}
+		else {
+			return 0f;
+		}
 	}
 
 	public String getDecimalFormattedPrice() {
@@ -270,7 +275,7 @@ public class ReceiptRow implements Parcelable {
 	public boolean isFullPage() {
 		return mIsFullPage;
 	}
-	
+
 	public boolean isSelected() {
 		return mIsSelected;
 	}
@@ -290,7 +295,7 @@ public class ReceiptRow implements Parcelable {
 	public void setTrip(TripRow trip) {
 		mTrip = trip;
 	}
-	
+
 	public void setPaymentMethod(PaymentMethod method) {
 		mPaymentMethod = method;
 	}
@@ -376,11 +381,11 @@ public class ReceiptRow implements Parcelable {
 	void setIsFullPage(boolean isFullPage) {
 		mIsFullPage = isFullPage;
 	}
-	
+
 	public void setIsSelected(boolean isSelected) {
 		mIsSelected = isSelected;
 	}
-	
+
 	void setSource(SourceEnum source) {
 		mSource = source;
 	}
@@ -527,7 +532,7 @@ public class ReceiptRow implements Parcelable {
 			_trip = trip;
 			return this;
 		}
-		
+
 		public Builder setPaymentMethod(PaymentMethod method) {
 			_paymentMethod = method;
 			return this;
@@ -628,7 +633,7 @@ public class ReceiptRow implements Parcelable {
 			_isFullPage = isFullPage;
 			return this;
 		}
-		
+
 		public Builder setIsSelected(boolean isSelected) {
 			_isSelected = isSelected;
 			return this;

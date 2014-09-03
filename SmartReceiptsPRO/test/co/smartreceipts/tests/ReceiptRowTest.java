@@ -19,9 +19,9 @@ import android.text.TextUtils;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.tests.utils.ReceiptUtils;
-import co.smartreceipts.tests.utils.TripUtils;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 import co.smartreceipts.tests.utils.TestUtils;
+import co.smartreceipts.tests.utils.TripUtils;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -49,20 +49,11 @@ public class ReceiptRowTest {
 	 */
 	private ReceiptRow.Builder getReceiptRowABuilder() {
 		ReceiptRow.Builder builderA = new ReceiptRow.Builder(Constants.ID);
-		builderA.setCategory(Constants.CATEGORY)
-				.setComment(Constants.COMMENT)
-				.setCurrency(Constants.CURRENCY_CODE)
-				.setDate(Constants.DATE_MILLIS)
-				.setExtraEditText1(Constants.EXTRA1)
-				.setExtraEditText2(Constants.EXTRA2)
-				.setExtraEditText3(Constants.EXTRA3)
-				.setFile(getFile(Constants.IMAGE_FILE_NAME))
-				.setIsExpenseable(Constants.IS_EXPENSABLE)
-				.setIsFullPage(Constants.IS_FULLPAGE)
-				.setName(Constants.NAME)
-				.setPrice(Constants.PRICE)
-				.setTax(Constants.TAX)
-				.setTimeZone(Constants.TIMEZONE_CODE)
+		builderA.setCategory(Constants.CATEGORY).setComment(Constants.COMMENT).setCurrency(Constants.CURRENCY_CODE)
+				.setDate(Constants.DATE_MILLIS).setExtraEditText1(Constants.EXTRA1).setExtraEditText2(Constants.EXTRA2)
+				.setExtraEditText3(Constants.EXTRA3).setFile(getFile(Constants.IMAGE_FILE_NAME))
+				.setIsExpenseable(Constants.IS_EXPENSABLE).setIsFullPage(Constants.IS_FULLPAGE).setName(Constants.NAME)
+				.setPrice(Constants.PRICE_DOUBLE).setTax(Constants.TAX).setTimeZone(Constants.TIMEZONE_CODE)
 				.setTrip(TripUtils.getDefaultTripRow());
 		return builderA;
 	}
@@ -76,20 +67,11 @@ public class ReceiptRowTest {
 	private ReceiptRow.Builder getReceiptRowBBuilder() {
 		ReceiptRow.Builder builderB = new ReceiptRow.Builder(Constants.ID);
 		mApp.getPersistenceManager().getStorageManager().createFile(Constants.IMAGE_FILE);
-		builderB.setCategory(Constants.CATEGORY)
-				.setComment(Constants.COMMENT)
-				.setCurrency(Constants.CURRENCY)
-				.setDate(Constants.DATE)
-				.setExtraEditText1(Constants.EXTRA1)
-				.setExtraEditText2(Constants.EXTRA2)
-				.setExtraEditText3(Constants.EXTRA3)
-				.setFile(getFile(Constants.IMAGE_FILE_NAME))
-				.setIsExpenseable(Constants.IS_EXPENSABLE)
-				.setIsFullPage(Constants.IS_FULLPAGE)
-				.setName(Constants.NAME)
-				.setPrice(Constants.PRICE_DOUBLE)
-				.setTax(Constants.TAX_DOUBLE)
-				.setTimeZone(Constants.TIMEZONE)
+		builderB.setCategory(Constants.CATEGORY).setComment(Constants.COMMENT).setCurrency(Constants.CURRENCY)
+				.setDate(Constants.DATE).setExtraEditText1(Constants.EXTRA1).setExtraEditText2(Constants.EXTRA2)
+				.setExtraEditText3(Constants.EXTRA3).setFile(getFile(Constants.IMAGE_FILE_NAME))
+				.setIsExpenseable(Constants.IS_EXPENSABLE).setIsFullPage(Constants.IS_FULLPAGE).setName(Constants.NAME)
+				.setPrice(Constants.PRICE_DOUBLE).setTax(Constants.TAX_DOUBLE).setTimeZone(Constants.TIMEZONE)
 				.setTrip(TripUtils.getDefaultTripRow());
 		return builderB;
 	}
@@ -201,6 +183,7 @@ public class ReceiptRowTest {
 
 	@Test
 	public void testReceiptRowPriceAndCurrency() {
+		assertNotNull(mReceiptRowA.getPrice());
 		assertEquals(mReceiptRowA.getPrice(), mReceiptRowB.getPrice());
 		assertEquals(mReceiptRowA.getPriceAsFloat(), mReceiptRowB.getPriceAsFloat(), TestUtils.EPSILON);
 		assertEquals(mReceiptRowA.getDecimalFormattedPrice(), mReceiptRowB.getDecimalFormattedPrice());
@@ -212,6 +195,7 @@ public class ReceiptRowTest {
 
 	@Test
 	public void testReceiptRowTaxAndCurrency() {
+		assertNotNull(mReceiptRowA.getTax());
 		assertEquals(mReceiptRowA.getTax(), mReceiptRowB.getTax());
 		assertEquals(mReceiptRowA.getTaxAsFloat(), mReceiptRowB.getTaxAsFloat(), TestUtils.EPSILON);
 		assertEquals(mReceiptRowA.getDecimalFormattedTax(), mReceiptRowB.getDecimalFormattedTax());
@@ -225,7 +209,7 @@ public class ReceiptRowTest {
 	public void testTripRow() {
 		assertEquals(mReceiptRowA.getTrip(), mReceiptRowB.getTrip());
 	}
-	
+
 	@Test
 	public void parcelTest() {
 		Parcel parcelA = Parcel.obtain();

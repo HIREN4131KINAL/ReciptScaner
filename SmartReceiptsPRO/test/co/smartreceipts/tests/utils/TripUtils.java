@@ -36,7 +36,7 @@ public class TripUtils {
 		public static final String DAILY_SUBTOTAL_STRING = "1.25";
 		public static final float MILEAGE = 40.3121f;
 	}
-	
+
 	public static final TripRow getDefaultTripRow() {
 		TripRow.Builder builder = new TripRow.Builder();
 		builder.setCurrency(Constants.CURRENCY_CODE)
@@ -45,13 +45,15 @@ public class TripUtils {
 			   .setEndDate(Constants.END_DATE_MILLIS)
 			   .setEndTimeZone(Constants.END_TIMEZONE_CODE)
 			   .setMileage(Constants.MILEAGE)
-			   .setPrice(Constants.PRICE)
 			   .setStartDate(Constants.START_DATE_MILLIS)
 			   .setStartTimeZone(Constants.START_TIMEZONE_CODE)
 			   .setComment(Constants.COMMENT);
-		return builder.build();
+		final TripRow tripRow = builder.build();
+		tripRow.setPrice(Constants.PRICE);
+		tripRow.setDailySubTotal(Constants.DAILY_SUBTOTAL);
+		return tripRow;
 	}
-	
+
 	public static void assertFieldEquality(TripRow trip1, TripRow trip2) {
 		assertEquals(trip1.getDirectory(), trip2.getDirectory());
 		assertEquals(trip1.getStartDate(), trip2.getStartDate());

@@ -36,9 +36,9 @@ public class TripFilterTest {
 
 	// Test constants for Price checking
 	private static final String CURRENCY = Constants.CURRENCY_CODE;
-	private static final String PRICE_NORMAL = "100.00";
-	private static final String PRICE_HIGH = "150.00";
-	private static final String PRICE_LOW = "50.00";
+	private static final double PRICE_NORMAL = 100.00d;
+	private static final double PRICE_HIGH = 150.00d;
+	private static final double PRICE_LOW = 50.00d;
 
 	// Test constants for Date checking
 	private static final TimeZone TZ = TimeZone.getDefault();
@@ -50,7 +50,6 @@ public class TripFilterTest {
 	private TripRow.Builder getGenericTripRowBuilder() {
 		TripRow.Builder builderA = new TripRow.Builder()
 				.setComment(Constants.COMMENT)
-				.setPrice(Constants.PRICE)
 				.setCurrency(Constants.CURRENCY)
 				.setCurrency(Constants.CURRENCY_CODE)
 				.setStartDate(Constants.START_DATE)
@@ -63,13 +62,14 @@ public class TripFilterTest {
 
 	@Test
 	public void tripMinimumPriceFilterTest() throws JSONException {
-		final TripRow tripNormal = getGenericTripRowBuilder().setPrice(PRICE_NORMAL).build();
-		final TripRow tripHigh = getGenericTripRowBuilder().setPrice(PRICE_HIGH).build();
-		final TripRow tripLow = getGenericTripRowBuilder().setPrice(PRICE_LOW).build();
+		final TripRow tripNormal = getGenericTripRowBuilder().build();
+		final TripRow tripHigh = getGenericTripRowBuilder().build();
+		final TripRow tripLow = getGenericTripRowBuilder().build();
+		tripNormal.setPrice(PRICE_NORMAL);
+		tripHigh.setPrice(PRICE_HIGH);
+		tripLow.setPrice(PRICE_LOW);
 
-		final TripMinimumPriceFilter filter = new TripMinimumPriceFilter(
-				Float.parseFloat(PRICE_NORMAL),
-				Constants.CURRENCY_CODE);
+		final TripMinimumPriceFilter filter = new TripMinimumPriceFilter((float) PRICE_NORMAL, Constants.CURRENCY_CODE);
 
 		assertTrue(filter.accept(tripNormal));
 		assertTrue(filter.accept(tripHigh));
@@ -81,13 +81,14 @@ public class TripFilterTest {
 
 	@Test
 	public void tripMaximumPriceFilterTest() throws JSONException {
-		final TripRow tripNormal = getGenericTripRowBuilder().setPrice(PRICE_NORMAL).build();
-		final TripRow tripHigh = getGenericTripRowBuilder().setPrice(PRICE_HIGH).build();
-		final TripRow tripLow = getGenericTripRowBuilder().setPrice(PRICE_LOW).build();
+		final TripRow tripNormal = getGenericTripRowBuilder().build();
+		final TripRow tripHigh = getGenericTripRowBuilder().build();
+		final TripRow tripLow = getGenericTripRowBuilder().build();
+		tripNormal.setPrice(PRICE_NORMAL);
+		tripHigh.setPrice(PRICE_HIGH);
+		tripLow.setPrice(PRICE_LOW);
 
-		final TripMaximumPriceFilter filter = new TripMaximumPriceFilter(
-				Float.parseFloat(PRICE_NORMAL),
-				Constants.CURRENCY_CODE);
+		final TripMaximumPriceFilter filter = new TripMaximumPriceFilter((float) PRICE_NORMAL, Constants.CURRENCY_CODE);
 
 		assertTrue(filter.accept(tripNormal));
 		assertFalse(filter.accept(tripHigh));
@@ -162,12 +163,15 @@ public class TripFilterTest {
 		// in this test scenario, trip with normal price will NOT be accepted
 		// accept rule: price >= high OR price <= LOW
 
-		final TripRow tripNormal = getGenericTripRowBuilder().setPrice(PRICE_NORMAL).build();
-		final TripRow tripHigh = getGenericTripRowBuilder().setPrice(PRICE_HIGH).build();
-		final TripRow tripLow = getGenericTripRowBuilder().setPrice(PRICE_LOW).build();
+		final TripRow tripNormal = getGenericTripRowBuilder().build();
+		final TripRow tripHigh = getGenericTripRowBuilder().build();
+		final TripRow tripLow = getGenericTripRowBuilder().build();
+		tripNormal.setPrice(PRICE_NORMAL);
+		tripHigh.setPrice(PRICE_HIGH);
+		tripLow.setPrice(PRICE_LOW);
 
-		final TripMinimumPriceFilter minPrice = new TripMinimumPriceFilter(Float.parseFloat(PRICE_HIGH), CURRENCY);
-		final TripMaximumPriceFilter maxPrice = new TripMaximumPriceFilter(Float.parseFloat(PRICE_LOW), CURRENCY);
+		final TripMinimumPriceFilter minPrice = new TripMinimumPriceFilter((float) PRICE_HIGH, CURRENCY);
+		final TripMaximumPriceFilter maxPrice = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		final TripOrFilter orFilter = new TripOrFilter();
 		orFilter.or(minPrice);
 		orFilter.or(maxPrice);
@@ -186,15 +190,21 @@ public class TripFilterTest {
 		// in this test scenario, we will only accept cheap trip started in the past (i.e. tripPastLow)
 		// accept rule: starts on or before past AND price is low
 
-		final TripRow tripPastNormal = getGenericTripRowBuilder().setStartDate(PAST).setPrice(PRICE_NORMAL).build();
-		final TripRow tripPastHigh = getGenericTripRowBuilder().setStartDate(PAST).setPrice(PRICE_HIGH).build();
-		final TripRow tripPastLow = getGenericTripRowBuilder().setStartDate(PAST).setPrice(PRICE_LOW).build();
-		final TripRow tripFutureNormal = getGenericTripRowBuilder().setStartDate(FUTURE).setPrice(PRICE_NORMAL).build();
-		final TripRow tripFutureHigh = getGenericTripRowBuilder().setStartDate(FUTURE).setPrice(PRICE_HIGH).build();
-		final TripRow tripFutureLow = getGenericTripRowBuilder().setStartDate(FUTURE).setPrice(PRICE_LOW).build();
+		final TripRow tripPastNormal = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final TripRow tripPastHigh = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final TripRow tripPastLow = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final TripRow tripFutureNormal = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final TripRow tripFutureHigh = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final TripRow tripFutureLow = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		tripPastHigh.setPrice(PRICE_HIGH);
+		tripPastNormal.setPrice(PRICE_NORMAL);
+		tripPastLow.setPrice(PRICE_LOW);
+		tripFutureHigh.setPrice(PRICE_HIGH);
+		tripFutureNormal.setPrice(PRICE_NORMAL);
+		tripFutureLow.setPrice(PRICE_LOW);
 
 		final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, Constants.START_TIMEZONE);
-		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(Float.parseFloat(PRICE_LOW), CURRENCY);
+		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		final TripAndFilter andFilter = new TripAndFilter();
 		andFilter.and(dateFilter);
 		andFilter.and(priceFilter);
@@ -217,11 +227,14 @@ public class TripFilterTest {
 		// accept rule: NOT (price <= normal) 
 		// equivalent to: (price > normal)
 		
-		final TripRow tripNormal = getGenericTripRowBuilder().setPrice(PRICE_NORMAL).build();
-		final TripRow tripHigh = getGenericTripRowBuilder().setPrice(PRICE_HIGH).build();
-		final TripRow tripLow = getGenericTripRowBuilder().setPrice(PRICE_LOW).build();
+		final TripRow tripNormal = getGenericTripRowBuilder().build();
+		final TripRow tripHigh = getGenericTripRowBuilder().build();
+		final TripRow tripLow = getGenericTripRowBuilder().build();
+		tripNormal.setPrice(PRICE_NORMAL);
+		tripHigh.setPrice(PRICE_HIGH);
+		tripLow.setPrice(PRICE_LOW);
 
-		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(Float.parseFloat(PRICE_NORMAL), CURRENCY);
+		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_NORMAL, CURRENCY);
 		final TripNotFilter notFilter = new TripNotFilter(priceFilter);
 		
 		assertFalse(notFilter.accept(tripNormal));
@@ -239,7 +252,7 @@ public class TripFilterTest {
 		// filters constructed with same data but different method should be equal
 
 		final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, Constants.START_TIMEZONE);
-		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(Float.parseFloat(PRICE_LOW), CURRENCY);
+		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
 		final ArrayList<Filter<TripRow>> filters = new ArrayList<Filter<TripRow>>();
@@ -263,7 +276,7 @@ public class TripFilterTest {
 		// filters constructed with same data but different method should be equal
 
 		final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, Constants.START_TIMEZONE);
-		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(Float.parseFloat(PRICE_LOW), CURRENCY);
+		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
 		final ArrayList<Filter<TripRow>> filters = new ArrayList<Filter<TripRow>>();

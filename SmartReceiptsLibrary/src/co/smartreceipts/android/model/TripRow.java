@@ -16,8 +16,6 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.util.Log;
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
@@ -38,7 +36,7 @@ public final class TripRow implements Parcelable {
 	private SourceEnum mSource;
 	private DecimalFormat mDecimalFormat;
 	private Filter<ReceiptRow> mFilter;
-	
+
 	private TripRow(File directory, Date startDate, Date endDate, WBCurrency currency, float miles, SourceEnum source) {
 		mReportDirectory = directory;
 		mStartDate = startDate;
@@ -177,7 +175,12 @@ public final class TripRow implements Parcelable {
 	}
 
 	public float getPriceAsFloat() {
-		return mPrice.floatValue();
+		if (mPrice != null) {
+			return mPrice.floatValue();
+		}
+		else {
+			return 0f;
+		}
 	}
 
 	public String getDecimalFormattedPrice() {
@@ -202,7 +205,12 @@ public final class TripRow implements Parcelable {
 	}
 
 	public float getDailySubTotalAsFloat() {
-		return mDailySubTotal.floatValue();
+		if (mDailySubTotal != null) {
+			return mDailySubTotal.floatValue();
+		}
+		else {
+			return 0f;
+		}
 	}
 
 	public String getDecimalFormattedDailySubTotal() {
@@ -211,7 +219,7 @@ public final class TripRow implements Parcelable {
 
 	public String getCurrencyFormattedDailySubTotal() {
 		if (mCurrency != null) {
-			return mCurrency.format(mDailySubTotal);
+			return mCurrency.format(getDailySubTotalAsFloat());
 		}
 		else {
 			return EMPTY_PRICE;
@@ -299,19 +307,19 @@ public final class TripRow implements Parcelable {
 	public void setDefaultCurrency(String currencyCode) {
 		mDefaultCurrency = WBCurrency.getInstance(currencyCode);
 	}
-	
+
 	public Filter<ReceiptRow> getFilter() {
 		return mFilter;
 	}
-	
+
 	public boolean hasFilter() {
 		return mFilter != null;
 	}
-	
+
 	public void setFilter(Filter<ReceiptRow> filter) {
 		mFilter = filter;
 	}
-	
+
 	public void setMileage(float mileage) {
 		mMiles = mileage;
 	}
@@ -509,32 +517,34 @@ public final class TripRow implements Parcelable {
 			_comment = comment;
 			return this;
 		}
-		
+
 		public Builder setFilter(Filter<ReceiptRow> filter) {
 			_filter = filter;
 			return this;
 		}
-		
+
 		public Builder setFilter(JSONObject json) {
 			if (json != null) {
 				try {
 					_filter = FilterFactory.getReceiptFilter(json);
-				} 
-				catch (JSONException e) { }
+				}
+				catch (JSONException e) {
+				}
 			}
 			return this;
 		}
-		
+
 		public Builder setFilter(String json) {
 			if (!TextUtils.isEmpty(json)) {
 				try {
 					_filter = FilterFactory.getReceiptFilter(new JSONObject(json));
-				} 
-				catch (JSONException e) { }
+				}
+				catch (JSONException e) {
+				}
 			}
 			return this;
 		}
-		
+
 		public Builder setSourceAsCache() {
 			_source = SourceEnum.Cache;
 			return this;

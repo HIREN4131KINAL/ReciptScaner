@@ -39,27 +39,27 @@ import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.model.WBCurrency;
 
 public final class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener,
-																	  AutoCompleteAdapter.ItemSelectedListener {
+		AutoCompleteAdapter.ItemSelectedListener {
 
-	//Logging Vars
+	// Logging Vars
 	private static final boolean D = true;
 	private static final String TAG = "DatabaseHelper";
 
-	//Database Info
+	// Database Info
 	public static final String DATABASE_NAME = "receipts.db";
 	private static final int DATABASE_VERSION = 11;
-	public static final String NO_DATA = "null"; //TODO: Just set to null
+	public static final String NO_DATA = "null"; // TODO: Just set to null
 	static final String MULTI_CURRENCY = "XXXXXX";
 
-	//Tags
+	// Tags
 	public static final String TAG_TRIPS = "Trips";
 	public static final String TAG_RECEIPTS_NAME = "Receipts";
 	public static final String TAG_RECEIPTS_COMMENT = "Receipts_Comment";
 
-	//InstanceVar
+	// InstanceVar
 	private static DatabaseHelper INSTANCE = null;
 
-	//Caching Vars
+	// Caching Vars
 	private TripRow[] mTripsCache;
 	private boolean mAreTripsValid;
 	private final HashMap<TripRow, ReceiptRow[]> mReceiptCache;
@@ -76,45 +76,65 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private final PersistenceManager mPersistenceManager;
 	private final TableDefaultsCustomizer mCustomizations;
 
-	//Listeners
+	// Listeners
 	private TripRowListener mTripRowListener;
 	private ReceiptRowListener mReceiptRowListener;
 	private ReceiptRowGraphListener mReceiptRowGraphListener;
 
-	//Locks
+	// Locks
 	private final Object mDatabaseLock = new Object();
 	private final Object mReceiptCacheLock = new Object();
 	private final Object mTripCacheLock = new Object();
-	
+
 	// Misc Vars
 	private boolean mIsDBOpen = false;
 
-	//Hack to prevent Recursive Database Calling
-	private SQLiteDatabase _initDB; //This is only set while either onCreate or onUpdate is running. It is null all other times
+	// Hack to prevent Recursive Database Calling
+	private SQLiteDatabase _initDB; // This is only set while either onCreate or onUpdate is running. It is null all
+									// other times
 
 	public interface TripRowListener {
 		public void onTripRowsQuerySuccess(TripRow[] trips);
+
 		public void onTripRowInsertSuccess(TripRow trip);
-		public void onTripRowInsertFailure(SQLException ex, File directory); //Directory here is out of mDate
+
+		public void onTripRowInsertFailure(SQLException ex, File directory); // Directory here is out of mDate
+
 		public void onTripRowUpdateSuccess(TripRow trip);
-		public void onTripRowUpdateFailure(TripRow newTrip, TripRow oldTrip, File directory); //For rollback info
+
+		public void onTripRowUpdateFailure(TripRow newTrip, TripRow oldTrip, File directory); // For rollback info
+
 		public void onTripDeleteSuccess(TripRow oldTrip);
+
 		public void onTripDeleteFailure();
+
 		public void onSQLCorruptionException();
 	}
 
 	public interface ReceiptRowListener {
 		public void onReceiptRowsQuerySuccess(ReceiptRow[] receipts);
+
 		public void onReceiptRowInsertSuccess(ReceiptRow receipt);
-		public void onReceiptRowInsertFailure(SQLException ex); //Directory here is out of mDate
+
+		public void onReceiptRowInsertFailure(SQLException ex); // Directory here is out of mDate
+
 		public void onReceiptRowUpdateSuccess(ReceiptRow receipt);
-		public void onReceiptRowUpdateFailure(); //For rollback info
+
+		public void onReceiptRowUpdateFailure(); // For rollback info
+
 		public void onReceiptDeleteSuccess(ReceiptRow receipt);
-		public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category); //Any of these can be null!
+
+		public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category); // Any of these can
+																										// be null!
+
 		public void onReceiptCopySuccess(TripRow tripRow);
+
 		public void onReceiptCopyFailure();
+
 		public void onReceiptMoveSuccess(TripRow tripRow);
+
 		public void onReceiptMoveFailure();
+
 		public void onReceiptDeleteFailure();
 	}
 
@@ -124,28 +144,38 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	public interface TableDefaultsCustomizer {
 		public void onFirstRun();
+
 		public void insertCategoryDefaults(DatabaseHelper db);
+
 		public void insertCSVDefaults(DatabaseHelper db);
+
 		public void insertPDFDefaults(DatabaseHelper db);
 	}
 
-	//Tables Declarations
-	//Remember to update the merge() command below when adding columns
+	// Tables Declarations
+	// Remember to update the merge() command below when adding columns
 	private static final class TripsTable {
-		private TripsTable() {}
+		private TripsTable() {
+		}
+
 		public static final String TABLE_NAME = "trips";
 		public static final String COLUMN_NAME = "name";
 		public static final String COLUMN_FROM = "from_date";
 		public static final String COLUMN_TO = "to_date";
 		public static final String COLUMN_FROM_TIMEZONE = "from_timezone";
 		public static final String COLUMN_TO_TIMEZONE = "to_timezone";
-		@SuppressWarnings("unused") @Deprecated public static final String COLUMN_PRICE = "price"; //Deprecated, since this is receipt info
+		@SuppressWarnings("unused")
+		@Deprecated
+		public static final String COLUMN_PRICE = "price"; // Deprecated, since this is receipt info
 		public static final String COLUMN_MILEAGE = "miles_new";
 		public static final String COLUMN_COMMENT = "trips_comment";
 		public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
 	}
+
 	private static final class ReceiptsTable {
-	private ReceiptsTable() {}
+		private ReceiptsTable() {
+		}
+
 		public static final String TABLE_NAME = "receipts";
 		public static final String COLUMN_ID = "id";
 		public static final String COLUMN_PATH = "path";
@@ -165,39 +195,51 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
 		public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
 	}
+
 	private static final class CategoriesTable {
-		private CategoriesTable() {}
+		private CategoriesTable() {
+		}
+
 		public static final String TABLE_NAME = "categories";
 		public static final String COLUMN_NAME = "name";
 		public static final String COLUMN_CODE = "code";
 		public static final String COLUMN_BREAKDOWN = "breakdown";
 	}
+
 	public static final class CSVTable {
-		private CSVTable() {}
+		private CSVTable() {
+		}
+
 		public static final String TABLE_NAME = "csvcolumns";
 		public static final String COLUMN_ID = "id";
 		public static final String COLUMN_TYPE = "type";
 	}
+
 	public static final class PDFTable {
-		private PDFTable() {}
+		private PDFTable() {
+		}
+
 		public static final String TABLE_NAME = "pdfcolumns";
 		public static final String COLUMN_ID = "id";
 		public static final String COLUMN_TYPE = "type";
 	}
 
-	private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
-		super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); //Requests the default cursor factory
+	private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager,
+			String databasePath) {
+		super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
+																							// factory
 		mAreTripsValid = false;
 		mReceiptCache = new HashMap<TripRow, ReceiptRow[]>();
 		mContext = application.getApplicationContext();
 		mFlex = application.getFlex();
 		mPersistenceManager = persistenceManager;
 		mCustomizations = application;
-		this.getReadableDatabase(); //Called here, so onCreate gets called on the UI thread
+		this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
 	}
 
-	public static final DatabaseHelper getInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
-		if (INSTANCE == null || !INSTANCE.isOpen()) { //If we don't have an instance or it's closed
+	public static final DatabaseHelper getInstance(SmartReceiptsApplication application,
+			PersistenceManager persistenceManager) {
+		if (INSTANCE == null || !INSTANCE.isOpen()) { // If we don't have an instance or it's closed
 			String databasePath = StorageManager.GetRootPath();
 			if (BuildConfig.DEBUG) {
 				if (databasePath.equals("")) {
@@ -212,8 +254,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		return INSTANCE;
 	}
-	
-	public static final DatabaseHelper getNewInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
+
+	public static final DatabaseHelper getNewInstance(SmartReceiptsApplication application,
+			PersistenceManager persistenceManager) {
 		String databasePath = StorageManager.GetRootPath();
 		if (BuildConfig.DEBUG) {
 			if (databasePath.equals("")) {
@@ -227,49 +270,36 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return new DatabaseHelper(application, persistenceManager, databasePath);
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Begin Abstract Method Overrides
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// Begin Abstract Method Overrides
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void onCreate(final SQLiteDatabase db) {
 		synchronized (mDatabaseLock) {
 			_initDB = db;
-			//N.B. This only gets called if you actually request the database using the getDatabase method
-			final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " ("
-					+ TripsTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
-					+ TripsTable.COLUMN_FROM + " DATE, "
-					+ TripsTable.COLUMN_TO + " DATE, "
-					+ TripsTable.COLUMN_FROM_TIMEZONE + " TEXT, "
-					+ TripsTable.COLUMN_TO_TIMEZONE + " TEXT, "
-					/*+ TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "*/
-					+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, "
-					+ TripsTable.COLUMN_COMMENT + " TEXT, "
-					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT"
-					+ ");";
-			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " ("
-					+ ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-					+ ReceiptsTable.COLUMN_PATH + " TEXT, "
-					+ ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME + " ON DELETE CASCADE, "
-					+ ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", "
-					+ ReceiptsTable.COLUMN_CATEGORY + " TEXT, "
-					+ ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), "
-					+ ReceiptsTable.COLUMN_TIMEZONE + " TEXT, "
-					+ ReceiptsTable.COLUMN_COMMENT + " TEXT, "
-					+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
-					+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
-					+ ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
-					+ ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT, "
-					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
-					+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
-					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
-					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
-					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
-					+ ");";
-			final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " ("
-					+ CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
-					+ CategoriesTable.COLUMN_CODE + " TEXT, "
-					+ CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
-					+ ");";
+			// N.B. This only gets called if you actually request the database using the getDatabase method
+			final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " (" + TripsTable.COLUMN_NAME
+					+ " TEXT PRIMARY KEY, " + TripsTable.COLUMN_FROM + " DATE, " + TripsTable.COLUMN_TO + " DATE, "
+					+ TripsTable.COLUMN_FROM_TIMEZONE + " TEXT, " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT, "
+					/* + TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, " */
+					+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, " + TripsTable.COLUMN_COMMENT
+					+ " TEXT, " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT" + ");";
+			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " (" + ReceiptsTable.COLUMN_ID
+					+ " INTEGER PRIMARY KEY AUTOINCREMENT, " + ReceiptsTable.COLUMN_PATH + " TEXT, "
+					+ ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME
+					+ " ON DELETE CASCADE, " + ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", "
+					+ ReceiptsTable.COLUMN_CATEGORY + " TEXT, " + ReceiptsTable.COLUMN_DATE
+					+ " DATE DEFAULT (DATE('now', 'localtime')), " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT, "
+					+ ReceiptsTable.COLUMN_COMMENT + " TEXT, " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
+					+ ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, " + ReceiptsTable.COLUMN_TAX
+					+ " DECIMAL(10, 2) DEFAULT 0.00, " + ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT, "
+					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, " + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE
+					+ " BOOLEAN DEFAULT 1, " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
+					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3
+					+ " TEXT" + ");";
+			final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " (" + CategoriesTable.COLUMN_NAME
+					+ " TEXT PRIMARY KEY, " + CategoriesTable.COLUMN_CODE + " TEXT, "
+					+ CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1" + ");";
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, trips);
 			}
@@ -294,16 +324,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final void onUpgrade(final SQLiteDatabase db, int oldVersion, final int newVersion) {
 		synchronized (mDatabaseLock) {
 
-			if(D) {
+			if (D) {
 				Log.d(TAG, "Upgrading the database from version " + oldVersion + " to " + newVersion);
 			}
 
-			//Try to backup the database to the SD Card for support reasons
+			// Try to backup the database to the SD Card for support reasons
 			final StorageManager storageManager = mPersistenceManager.getStorageManager();
 			File sdDB = storageManager.getFile(DATABASE_NAME + "." + oldVersion + ".bak");
 			try {
 				storageManager.copy(new File(db.getPath()), sdDB, true);
-				if(D) {
+				if (D) {
 					Log.d(TAG, "Backed up database file to: " + sdDB.getName());
 				}
 			}
@@ -313,19 +343,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 			_initDB = db;
 			if (oldVersion == 1) { // Add mCurrency column to receipts table
-				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL "
-						+ "DEFAULT " + mPersistenceManager.getPreferences().getDefaultCurreny();
+				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL " + "DEFAULT "
+						+ mPersistenceManager.getPreferences().getDefaultCurreny();
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterReceipts);
 				}
 				db.execSQL(alterReceipts);
 				oldVersion++;
 			}
-			if (oldVersion == 2) { // Add the mileage field to trips, add the breakdown boolean to categories, and create the CSV table
-				final String alterCategories = "ALTER TABLE " + CategoriesTable.TABLE_NAME
-						+ " ADD " + CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
-				if(D) {
+			if (oldVersion == 2) { // Add the mileage field to trips, add the breakdown boolean to categories, and
+									// create the CSV table
+				final String alterCategories = "ALTER TABLE " + CategoriesTable.TABLE_NAME + " ADD "
+						+ CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
+				if (D) {
 					Log.d(TAG, alterCategories);
 				}
 				db.execSQL(alterCategories);
@@ -333,12 +364,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				oldVersion++;
 			}
 			if (oldVersion == 3) { // Add extra_edittext columns
-				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
-				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
-				final String alterReceipts3 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT";
+				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
+				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
+				final String alterReceipts3 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterReceipts1);
 				}
@@ -353,13 +384,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterReceipts3);
 				oldVersion++;
 			}
-			if (oldVersion == 4) { //Change Mileage to Decimal instead of Integer
-				final String alterMiles = "ALTER TABLE " + TripsTable.TABLE_NAME
-						+ " ADD " + TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00";
-				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
-				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME
-						+ " ADD " + ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT";
+			if (oldVersion == 4) { // Change Mileage to Decimal instead of Integer
+				final String alterMiles = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_MILEAGE
+						+ " DECIMAL(10, 2) DEFAULT 0.00";
+				final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
+				final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_PAYMENTMETHOD + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterMiles);
 				}
@@ -375,24 +406,27 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				oldVersion++;
 			}
 			if (oldVersion == 5) {
-				oldVersion++; //Skipped b/c I forgot to include the update stuff
+				oldVersion++; // Skipped b/c I forgot to include the update stuff
 			}
-			if (oldVersion == 6) { //Fix the database to replace absolute paths with relative ones
-				final Cursor tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] {TripsTable.COLUMN_NAME}, null, null, null, null, null);
+			if (oldVersion == 6) { // Fix the database to replace absolute paths with relative ones
+				final Cursor tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] { TripsTable.COLUMN_NAME },
+						null, null, null, null, null);
 				if (tripsCursor != null && tripsCursor.moveToFirst()) {
 					final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME);
 					do {
 						String absPath = tripsCursor.getString(nameIndex);
 						if (absPath.endsWith(File.separator)) {
-							absPath = absPath.substring(0, absPath.length()-1);
+							absPath = absPath.substring(0, absPath.length() - 1);
 						}
-						final String relPath = absPath.substring(absPath.lastIndexOf(File.separatorChar) + 1, absPath.length());
+						final String relPath = absPath.substring(absPath.lastIndexOf(File.separatorChar) + 1,
+								absPath.length());
 						if (BuildConfig.DEBUG) {
 							Log.d(TAG, "Updating Abs. Trip Path: " + absPath + " => " + relPath);
 						}
 						final ContentValues tripValues = new ContentValues(1);
 						tripValues.put(TripsTable.COLUMN_NAME, relPath);
-						if (db.update(TripsTable.TABLE_NAME, tripValues, TripsTable.COLUMN_NAME + " = ?", new String[] {absPath}) == 0) {
+						if (db.update(TripsTable.TABLE_NAME, tripValues, TripsTable.COLUMN_NAME + " = ?",
+								new String[] { absPath }) == 0) {
 							if (BuildConfig.DEBUG) {
 								Log.e(TAG, "Trip Update Error Occured");
 							}
@@ -400,10 +434,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 					while (tripsCursor.moveToNext());
 				}
-				//TODO: Finally clause here
+				// TODO: Finally clause here
 				tripsCursor.close();
 
-				final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] {ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH}, null, null, null, null, null);
+				final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] {
+						ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH }, null, null,
+						null, null, null);
 				if (receiptsCursor != null && receiptsCursor.moveToFirst()) {
 					final int idIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_ID);
 					final int parentIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
@@ -412,23 +448,29 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int id = receiptsCursor.getInt(idIdx);
 						String absParentPath = receiptsCursor.getString(parentIdx);
 						if (absParentPath.endsWith(File.separator)) {
-							absParentPath = absParentPath.substring(0, absParentPath.length()-1);
+							absParentPath = absParentPath.substring(0, absParentPath.length() - 1);
 						}
 						final String absImgPath = receiptsCursor.getString(imgIdx);
-						final ContentValues receiptValues  = new ContentValues(2);
-						final String relParentPath = absParentPath.substring(absParentPath.lastIndexOf(File.separatorChar) + 1, absParentPath.length());
+						final ContentValues receiptValues = new ContentValues(2);
+						final String relParentPath = absParentPath.substring(
+								absParentPath.lastIndexOf(File.separatorChar) + 1, absParentPath.length());
 						receiptValues.put(ReceiptsTable.COLUMN_PARENT, relParentPath);
 						if (BuildConfig.DEBUG) {
-							Log.d(TAG, "Updating Abs. Parent Path for Receipt" + id + ": " + absParentPath + " => " + relParentPath);
-						};
-						if (!absImgPath.equalsIgnoreCase(NO_DATA)) { //This can be either a path or NO_DATA
-							final String relImgPath = absImgPath.substring(absImgPath.lastIndexOf(File.separatorChar) + 1, absImgPath.length());
+							Log.d(TAG, "Updating Abs. Parent Path for Receipt" + id + ": " + absParentPath + " => "
+									+ relParentPath);
+						}
+						;
+						if (!absImgPath.equalsIgnoreCase(NO_DATA)) { // This can be either a path or NO_DATA
+							final String relImgPath = absImgPath.substring(
+									absImgPath.lastIndexOf(File.separatorChar) + 1, absImgPath.length());
 							receiptValues.put(ReceiptsTable.COLUMN_PATH, relImgPath);
 							if (BuildConfig.DEBUG) {
-								Log.d(TAG, "Updating Abs. Img Path for Receipt" + id + ": " + absImgPath + " => " + relImgPath);
+								Log.d(TAG, "Updating Abs. Img Path for Receipt" + id + ": " + absImgPath + " => "
+										+ relImgPath);
 							}
 						}
-						if (db.update(ReceiptsTable.TABLE_NAME, receiptValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(id)}) == 0) {
+						if (db.update(ReceiptsTable.TABLE_NAME, receiptValues, ReceiptsTable.COLUMN_ID + " = ?",
+								new String[] { Integer.toString(id) }) == 0) {
 							if (BuildConfig.DEBUG) {
 								Log.e(TAG, "Receipt Update Error Occured");
 							}
@@ -439,17 +481,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				receiptsCursor.close();
 				oldVersion++;
 			}
-			if (oldVersion == 7) { //Added a timezone column to the receipts table
-				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT";
+			if (oldVersion == 7) { // Added a timezone column to the receipts table
+				final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD "
+						+ ReceiptsTable.COLUMN_TIMEZONE + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterReceipts);
 				}
 				db.execSQL(alterReceipts);
 				oldVersion++;
 			}
-			if (oldVersion == 8) { //Added a timezone column to the trips table
-				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
-				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
+			if (oldVersion == 8) { // Added a timezone column to the trips table
+				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD "
+						+ TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
+				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD "
+						+ TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterTrips1);
 				}
@@ -460,13 +505,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterTrips2);
 				oldVersion++;
 			}
-			if (oldVersion == 9) { //Added a PDF table
+			if (oldVersion == 9) { // Added a PDF table
 				this.createPDFTable(db);
 				oldVersion++;
 			}
 			if (oldVersion == 10) {
-				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
-				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
+				final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT
+						+ " TEXT";
+				final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD "
+						+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, alterTrips1);
 				}
@@ -480,13 +527,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			_initDB = null;
 		}
 	}
-	
+
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		super.onOpen(db);
 		mIsDBOpen = true;
 	}
-	
+
 	@Override
 	public synchronized void close() {
 		super.close();
@@ -514,43 +561,33 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	/*
-	public final void testPrintDBValues() {
-		final SQLiteDatabase db = this.getReadableDatabase();
-		final Cursor tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] {TripsTable.COLUMN_NAME}, null, null, null, null, null);
-		String data = "";
-		if (BuildConfig.DEBUG) Log.d(TAG, "=================== Printing Trips ===================");
-		if (BuildConfig.DEBUG) data += "=================== Printing Trips ===================" + "\n";
-		if (tripsCursor != null && tripsCursor.moveToFirst()) {
-			final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME);
-			do {
-				if (BuildConfig.DEBUG) Log.d(TAG, tripsCursor.getString(nameIndex));
-				if (BuildConfig.DEBUG) data += "\"" + tripsCursor.getString(nameIndex) + "\"";
+	 * public final void testPrintDBValues() { final SQLiteDatabase db = this.getReadableDatabase(); final Cursor
+	 * tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] {TripsTable.COLUMN_NAME}, null, null, null, null,
+	 * null); String data = ""; if (BuildConfig.DEBUG) Log.d(TAG,
+	 * "=================== Printing Trips ==================="); if (BuildConfig.DEBUG) data +=
+	 * "=================== Printing Trips ===================" + "\n"; if (tripsCursor != null &&
+	 * tripsCursor.moveToFirst()) { final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME); do { if
+	 * (BuildConfig.DEBUG) Log.d(TAG, tripsCursor.getString(nameIndex)); if (BuildConfig.DEBUG) data += "\"" +
+	 * tripsCursor.getString(nameIndex) + "\"";
+	 * 
+	 * } while (tripsCursor.moveToNext()); }
+	 * 
+	 * final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] {ReceiptsTable.COLUMN_ID,
+	 * ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH}, null, null, null, null, null); if (BuildConfig.DEBUG)
+	 * Log.d(TAG, "=================== Printing Receipts ==================="); if (BuildConfig.DEBUG) data +=
+	 * "=================== Printing Receipts ===================" + "\n"; if (receiptsCursor != null &&
+	 * receiptsCursor.moveToFirst()) { final int idIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_ID); final
+	 * int parentIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT); final int imgIdx =
+	 * receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PATH); do { if (BuildConfig.DEBUG) Log.d(TAG, "(" +
+	 * receiptsCursor.getInt(idIdx) + ", " + receiptsCursor.getString(parentIdx) + ", " +
+	 * receiptsCursor.getString(imgIdx) + ")"); if (BuildConfig.DEBUG) data += "(" + receiptsCursor.getInt(idIdx) + ", "
+	 * + receiptsCursor.getString(parentIdx) + ", " + receiptsCursor.getString(imgIdx) + ")" + "\n"; } while
+	 * (receiptsCursor.moveToNext()); } mContext.getStorageManager().write("db.txt", data); }
+	 */
 
-			}
-			while (tripsCursor.moveToNext());
-		}
-
-		final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] {ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH}, null, null, null, null, null);
-		if (BuildConfig.DEBUG) Log.d(TAG, "=================== Printing Receipts ===================");
-		if (BuildConfig.DEBUG) data +=  "=================== Printing Receipts ===================" + "\n";
-		if (receiptsCursor != null && receiptsCursor.moveToFirst()) {
-			final int idIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_ID);
-			final int parentIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
-			final int imgIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PATH);
-			do {
-				if (BuildConfig.DEBUG) Log.d(TAG, "(" + receiptsCursor.getInt(idIdx) + ", " + receiptsCursor.getString(parentIdx) + ", " + receiptsCursor.getString(imgIdx) + ")");
-				if (BuildConfig.DEBUG) data += "(" + receiptsCursor.getInt(idIdx) + ", " + receiptsCursor.getString(parentIdx) + ", " + receiptsCursor.getString(imgIdx) + ")" + "\n";
-			}
-			while (receiptsCursor.moveToNext());
-		}
-		mContext.getStorageManager().write("db.txt", data);
-	}*/
-
-	private final void createCSVTable(final SQLiteDatabase db) { //Called in onCreate and onUpgrade
-		final String csv = "CREATE TABLE " + CSVTable.TABLE_NAME + " ("
-							+ CSVTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-							+ CSVTable.COLUMN_TYPE + " TEXT"
-							+ ");";
+	private final void createCSVTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
+		final String csv = "CREATE TABLE " + CSVTable.TABLE_NAME + " (" + CSVTable.COLUMN_ID
+				+ " INTEGER PRIMARY KEY AUTOINCREMENT, " + CSVTable.COLUMN_TYPE + " TEXT" + ");";
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, csv);
 		}
@@ -558,11 +595,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mCustomizations.insertCSVDefaults(this);
 	}
 
-	private final void createPDFTable(final SQLiteDatabase db) { //Called in onCreate and onUpgrade
-		final String pdf = "CREATE TABLE " + PDFTable.TABLE_NAME + " ("
-							+ PDFTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-							+ PDFTable.COLUMN_TYPE + " TEXT"
-							+ ");";
+	private final void createPDFTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
+		final String pdf = "CREATE TABLE " + PDFTable.TABLE_NAME + " (" + PDFTable.COLUMN_ID
+				+ " INTEGER PRIMARY KEY AUTOINCREMENT, " + PDFTable.COLUMN_TYPE + " TEXT" + ");";
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, pdf);
 		}
@@ -570,9 +605,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mCustomizations.insertPDFDefaults(this);
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	TripRow Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// TripRow Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public void registerTripRowListener(TripRowListener listener) {
 		mTripRowListener = listener;
 	}
@@ -614,7 +649,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	private static final String CURR_CNT_QUERY = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM (SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PARENT + "=? GROUP BY " + ReceiptsTable.COLUMN_ISO4217 + ");";
+	private static final String CURR_CNT_QUERY = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217
+			+ " FROM (SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM " + ReceiptsTable.TABLE_NAME
+			+ " WHERE " + ReceiptsTable.COLUMN_PARENT + "=? GROUP BY " + ReceiptsTable.COLUMN_ISO4217 + ");";
+
 	private TripRow[] getTripsHelper() throws SQLiteDatabaseCorruptException {
 		SQLiteDatabase db = null;
 		Cursor c = null, qc = null;
@@ -630,7 +668,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
 					final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
 					final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-					//final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
+					// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
@@ -640,36 +678,39 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final long to = c.getLong(toIndex);
 						final String fromTimeZone = c.getString(fromTimeZoneIndex);
 						final String toTimeZone = c.getString(toTimeZoneIndex);
-						//final String price = c.getString(priceIndex);
+						// final String price = c.getString(priceIndex);
 						final float miles = c.getFloat(milesIndex);
 						final String comment = c.getString(commentIndex);
 						final String defaultCurrency = c.getString(defaultCurrencyIndex);
-						qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
-						int cnt; String curr = MULTI_CURRENCY;
+						qc = db.rawQuery(CURR_CNT_QUERY, new String[] { name });
+						int cnt;
+						String curr = MULTI_CURRENCY;
 						if (qc != null) {
 							if (qc.moveToFirst() && qc.getColumnCount() > 0) {
 								cnt = qc.getInt(0);
 								if (cnt == 1) {
 									curr = qc.getString(1);
-								} else if (cnt == 0) {
+								}
+								else if (cnt == 0) {
 									curr = mPersistenceManager.getPreferences().getDefaultCurreny();
 								}
 							}
 							qc.close();
 						}
 						TripRow.Builder builder = new TripRow.Builder();
-						trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name))
-														.setStartDate(from)
-														.setEndDate(to)
-														.setStartTimeZone(fromTimeZone)
-														.setEndTimeZone(toTimeZone)
-														//.setPrice(price)
-														.setCurrency(curr)
-														.setMileage(miles)
-														.setComment(comment)
-														.setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny())
-														.setSourceAsCache()
-														.build();
+						trips[c.getPosition()] = builder
+								.setDirectory(mPersistenceManager.getStorageManager().getFile(name))
+								.setStartDate(from)
+								.setEndDate(to)
+								.setStartTimeZone(fromTimeZone)
+								.setEndTimeZone(toTimeZone)
+								// .setPrice(price)
+								.setCurrency(curr)
+								.setMileage(miles)
+								.setComment(comment)
+								.setDefaultCurrency(defaultCurrency,
+										mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache()
+								.build();
 						getTripPriceAndDailyPrice(trips[c.getPosition()]);
 					}
 					while (c.moveToNext());
@@ -729,7 +770,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public List<CharSequence> getTripNames() {
 		TripRow[] trips = getTripsSerial();
 		final ArrayList<CharSequence> tripNames = new ArrayList<CharSequence>(trips.length);
-		for (int i=0; i < trips.length; i++) {
+		for (int i = 0; i < trips.length; i++) {
 			tripNames.add(trips[i].getName());
 		}
 		return tripNames;
@@ -738,7 +779,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public List<CharSequence> getTripNames(TripRow tripToExclude) {
 		TripRow[] trips = getTripsSerial();
 		final ArrayList<CharSequence> tripNames = new ArrayList<CharSequence>(trips.length - 1);
-		for (int i=0; i < trips.length; i++) {
+		for (int i = 0; i < trips.length; i++) {
 			TripRow trip = trips[i];
 			if (!trip.equals(tripToExclude)) {
 				tripNames.add(trip.getName());
@@ -753,7 +794,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		synchronized (mTripCacheLock) {
 			if (mAreTripsValid) {
-				for(int i=0; i < mTripsCache.length; i++) {
+				for (int i = 0; i < mTripsCache.length; i++) {
 					if (mTripsCache[i].getName().equals(name)) {
 						return mTripsCache[i];
 					}
@@ -765,13 +806,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			try {
 				db = this.getReadableDatabase();
-				c = db.query(TripsTable.TABLE_NAME, null, TripsTable.COLUMN_NAME + " = ?", new String[] {name}, null, null, null);
+				c = db.query(TripsTable.TABLE_NAME, null, TripsTable.COLUMN_NAME + " = ?", new String[] { name }, null,
+						null, null);
 				if (c != null && c.moveToFirst()) {
 					final int fromIndex = c.getColumnIndex(TripsTable.COLUMN_FROM);
 					final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
 					final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
 					final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-					//final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
+					// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
@@ -780,11 +822,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final String fromTimeZone = c.getString(fromTimeZoneIndex);
 					final String toTimeZone = c.getString(toTimeZoneIndex);
 					final float miles = c.getFloat(milesIndex);
-					//final String price = c.getString(priceIndex);
+					// final String price = c.getString(priceIndex);
 					final String comment = c.getString(commentIndex);
 					final String defaultCurrency = c.getString(defaultCurrencyIndex);
-					qc = db.rawQuery(CURR_CNT_QUERY, new String[]{name});
-					int cnt; String curr = MULTI_CURRENCY;;
+					qc = db.rawQuery(CURR_CNT_QUERY, new String[] { name });
+					int cnt;
+					String curr = MULTI_CURRENCY;
+					;
 					if (qc != null && qc.moveToFirst() && qc.getColumnCount() > 0) {
 						cnt = qc.getInt(0);
 						if (cnt == 1) {
@@ -795,18 +839,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 					}
 					TripRow.Builder builder = new TripRow.Builder();
-					TripRow tripRow =  builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name))
-											  .setStartDate(from)
-											  .setEndDate(to)
-											  .setStartTimeZone(fromTimeZone)
-											  .setEndTimeZone(toTimeZone)
-											  //.setPrice(price)
-											  .setCurrency(curr)
-											  .setMileage(miles)
-											  .setComment(comment)
-											  .setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny())
-											  .setSourceAsCache()
-											  .build();
+					TripRow tripRow = builder
+							.setDirectory(mPersistenceManager.getStorageManager().getFile(name))
+							.setStartDate(from)
+							.setEndDate(to)
+							.setStartTimeZone(fromTimeZone)
+							.setEndTimeZone(toTimeZone)
+							// .setPrice(price)
+							.setCurrency(curr)
+							.setMileage(miles)
+							.setComment(comment)
+							.setDefaultCurrency(defaultCurrency,
+									mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache()
+							.build();
 					getTripPriceAndDailyPrice(tripRow);
 					return tripRow;
 				}
@@ -825,8 +870,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	//Returns the trip on success. Null otherwise
-	public final TripRow insertTripSerial(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
+	// Returns the trip on success. Null otherwise
+	public final TripRow insertTripSerial(File dir, Date from, Date to, String comment, String defaultCurrencyCode)
+			throws SQLException {
 		TripRow trip = insertTripHelper(dir, from, to, comment, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
@@ -845,7 +891,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new InsertTripRowWorker(dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
 	}
 
-	private TripRow insertTripHelper(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
+	private TripRow insertTripHelper(File dir, Date from, Date to, String comment, String defaultCurrencyCode)
+			throws SQLException {
 		ContentValues values = new ContentValues(3);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
@@ -860,17 +907,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			db = this.getWritableDatabase();
 			if (values == null || db.insertOrThrow(TripsTable.TABLE_NAME, null, values) == -1) {
 				return null;
-			} else {
-				toReturn =  (new TripRow.Builder()).setDirectory(dir)
-										   		   .setStartDate(from)
-										   		   .setEndDate(to)
-										   		   .setStartTimeZone(TimeZone.getDefault())
-										   		   .setEndTimeZone(TimeZone.getDefault())
-										   		   .setCurrency(defaultCurrencyCode)
-										   		   .setComment(comment)
-										   		   .setDefaultCurrency(defaultCurrencyCode)
-										   		   .setSourceAsCache()
-										   		   .build();
+			}
+			else {
+				toReturn = (new TripRow.Builder()).setDirectory(dir).setStartDate(from).setEndDate(to)
+						.setStartTimeZone(TimeZone.getDefault()).setEndTimeZone(TimeZone.getDefault())
+						.setCurrency(defaultCurrencyCode).setComment(comment).setDefaultCurrency(defaultCurrencyCode)
+						.setSourceAsCache().build();
 			}
 		}
 		if (this.getReadableDatabase() != null) {
@@ -889,7 +931,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private final String mComment, mDefaultCurrencyCode;
 		private SQLException mException;
 
-		public InsertTripRowWorker(final File dir, final Date from, final Date to, final String comment, final String defaultCurrencyCode) {
+		public InsertTripRowWorker(final File dir, final Date from, final Date to, final String comment,
+				final String defaultCurrencyCode) {
 			mDir = dir;
 			mFrom = from;
 			mTo = to;
@@ -928,7 +971,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final TripRow updateTripSerial(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	public final TripRow updateTripSerial(TripRow oldTrip, File dir, Date from, Date to, String comment,
+			String defaultCurrencyCode) {
 		TripRow trip = updateTripHelper(oldTrip, dir, from, to, comment, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
@@ -938,7 +982,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return trip;
 	}
 
-	public void updateTripParallel(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	public void updateTripParallel(TripRow oldTrip, File dir, Date from, Date to, String comment,
+			String defaultCurrencyCode) {
 		if (mTripRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No TripRowListener was registered.");
@@ -947,7 +992,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new UpdateTripRowWorker(oldTrip, dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
 	}
 
-	private TripRow updateTripHelper(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	private TripRow updateTripHelper(TripRow oldTrip, File dir, Date from, Date to, String comment,
+			String defaultCurrencyCode) {
 		ContentValues values = new ContentValues(3);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
@@ -968,9 +1014,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			SQLiteDatabase db = null;
 			try {
 				db = this.getWritableDatabase();
-				if (values == null || (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?", new String[] {oldTrip.getName()}) == 0)) {
+				if (values == null
+						|| (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?",
+								new String[] { oldTrip.getName() }) == 0)) {
 					return null;
-				} else {
+				}
+				else {
 					if (!oldTrip.getName().equalsIgnoreCase(dir.getName())) {
 						synchronized (mReceiptCacheLock) {
 							if (mReceiptCache.containsKey(oldTrip)) {
@@ -981,19 +1030,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						String newName = dir.getName();
 						ContentValues rcptVals = new ContentValues(1);
 						rcptVals.put(ReceiptsTable.COLUMN_PARENT, newName);
-						//Update parent
-						db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] {oldName}); //Consider rollback here
+						// Update parent
+						db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?",
+								new String[] { oldName }); // Consider rollback here
 					}
-					return (new TripRow.Builder()).setDirectory(dir)
-												  .setStartDate(from)
-												  .setEndDate(to)
-												  .setStartTimeZone(startTimeZone)
-												  .setEndTimeZone(endTimeZone)
-												  .setCurrency(oldTrip.getCurrency())
-												  .setComment(comment)
-												  .setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny())
-												  .setSourceAsCache()
-												  .build();
+					return (new TripRow.Builder())
+							.setDirectory(dir)
+							.setStartDate(from)
+							.setEndDate(to)
+							.setStartTimeZone(startTimeZone)
+							.setEndTimeZone(endTimeZone)
+							.setCurrency(oldTrip.getCurrency())
+							.setComment(comment)
+							.setDefaultCurrency(defaultCurrencyCode,
+									mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache()
+							.build();
 				}
 			}
 			catch (SQLException e) {
@@ -1012,7 +1063,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private final String mComment, mDefaultCurrencyCode;
 		private final TripRow mOldTrip;
 
-		public UpdateTripRowWorker(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+		public UpdateTripRowWorker(TripRow oldTrip, File dir, Date from, Date to, String comment,
+				String defaultCurrencyCode) {
 			mOldTrip = oldTrip;
 			mDir = dir;
 			mFrom = from;
@@ -1068,10 +1120,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		boolean success = false;
 		SQLiteDatabase db = null;
 		db = this.getWritableDatabase();
-		//Delete all child receipts (technically ON DELETE CASCADE should handle this, but i'm not certain)
+		// Delete all child receipts (technically ON DELETE CASCADE should handle this, but i'm not certain)
 		synchronized (mDatabaseLock) {
 			// TODO: Fix errors when the disk is not yet mounted
-			success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] {trip.getName()}) >= 0);
+			success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_PARENT + " = ?",
+					new String[] { trip.getName() }) >= 0);
 		}
 		if (success) {
 			synchronized (mReceiptCacheLock) {
@@ -1082,7 +1135,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			return false;
 		}
 		synchronized (mDatabaseLock) {
-			success = (db.delete(TripsTable.TABLE_NAME, TripsTable.COLUMN_NAME + " = ?", new String[] {trip.getName()}) > 0);
+			success = (db.delete(TripsTable.TABLE_NAME, TripsTable.COLUMN_NAME + " = ?",
+					new String[] { trip.getName() }) > 0);
 		}
 		return success;
 	}
@@ -1110,7 +1164,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mTripRowListener != null) {
 				if (result) {
 					mTripRowListener.onTripDeleteSuccess(mOldTrip);
-				} else {
+				}
+				else {
 					mTripRowListener.onTripDeleteFailure();
 				}
 			}
@@ -1136,53 +1191,51 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			ContentValues values = new ContentValues(1);
 			values.put(TripsTable.COLUMN_MILEAGE, total);
 			trip.setMileage(total);
-			return (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?", new String[] {trip.getName()}) > 0);
+			return (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?",
+					new String[] { trip.getName() }) > 0);
 		}
 		catch (NumberFormatException e) {
 			return false;
-		} catch (ParseException e) {
+		}
+		catch (ParseException e) {
 			return false;
 		}
 	}
 
 	/**
 	 * This class is not synchronized! Sync outside of it
+	 * 
 	 * @param trip
 	 * @return
 	 */
 	private final void getTripPriceAndDailyPrice(final TripRow trip) {
-		getTripPrice(trip);
-		getTripDailyPrice(trip);
+		queryTripPrice(trip);
+		queryTripDailyPrice(trip);
 	}
 
 	/**
-	 * This class is not synchronized! Sync outside of it
+	 * Queries the trips price and updates this object. This class is not synchronized! Sync outside of it
+	 * 
 	 * @param trip
-	 * @return
+	 *            the trip, which will be updated
 	 */
-	private final String getTripPrice(final TripRow trip) {
+	private final void queryTripPrice(final TripRow trip) {
 		SQLiteDatabase db = null;
 		Cursor c = null;
 		try {
 			mAreTripsValid = false;
 			db = this.getReadableDatabase();
-			
+
 			String selection = ReceiptsTable.COLUMN_PARENT + "= ?";
 			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
 				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
 			}
 			// Get the Trip's total Price
-			c = db.query(ReceiptsTable.TABLE_NAME,
-						 new String[] {"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"},
-						 selection,
-						 new String[] {trip.getName()},
-						 null,
-						 null,
-						 null);
+			c = db.query(ReceiptsTable.TABLE_NAME, new String[] { "SUM(" + ReceiptsTable.COLUMN_PRICE + ")" },
+					selection, new String[] { trip.getName() }, null, null, null);
 			if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-				final String sum = c.getString(0);
+				final double sum = c.getDouble(0);
 				trip.setPrice(sum);
-				return sum;
 			}
 		}
 		finally {
@@ -1190,15 +1243,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				c.close();
 			}
 		}
-		return new String();
 	}
 
 	/**
-	 * This class is not synchronized! Sync outside of it
+	 * Queries the trips daily total price and updates this object. This class is not synchronized! Sync outside of it
+	 * 
 	 * @param trip
-	 * @return
+	 *            the trip, which will be updated
 	 */
-	private final String getTripDailyPrice(final TripRow trip) {
+	private final void queryTripDailyPrice(final TripRow trip) {
 		SQLiteDatabase db = null;
 		Cursor priceCursor = null;
 		try {
@@ -1227,23 +1280,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			// Set the timers
 			final long startTime = startCalendar.getTimeInMillis();
 			final long endTime = endCalendar.getTimeInMillis();
-			String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?";
+			String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND "
+					+ ReceiptsTable.COLUMN_DATE + " <= ?";
 			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
 				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
 			}
-			
-			priceCursor = db.query(ReceiptsTable.TABLE_NAME,
-								   new String[] {"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"},
-								   selection,
-								   new String[] {trip.getName(), Long.toString(startTime), Long.toString(endTime)},
-								   null,
-								   null,
-								   null);
+
+			priceCursor = db
+					.query(ReceiptsTable.TABLE_NAME, new String[] { "SUM(" + ReceiptsTable.COLUMN_PRICE + ")" },
+							selection,
+							new String[] { trip.getName(), Long.toString(startTime), Long.toString(endTime) }, null,
+							null, null);
 
 			if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
-				String dailyTotal = priceCursor.getString(0);
+				final double dailyTotal = priceCursor.getDouble(0);
 				trip.setDailySubTotal(dailyTotal);
-				return dailyTotal;
 			}
 		}
 		finally { // Close the cursor to avoid memory leaks
@@ -1251,21 +1302,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				priceCursor.close();
 			}
 		}
-		return new String();
 	}
 
 	private final void updateTripPrice(final TripRow trip) {
 		synchronized (mDatabaseLock) {
 			mAreTripsValid = false;
-			getTripPrice(trip);
-			getTripDailyPrice(trip);
+			queryTripPrice(trip);
+			queryTripDailyPrice(trip);
 		}
 	}
 
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	ReceiptRow Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// ReceiptRow Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public void registerReceiptRowListener(ReceiptRowListener listener) {
 		mReceiptRowListener = listener;
 	}
@@ -1284,7 +1333,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return this.getReceiptsHelper(trip, true);
 	}
 
-	public ReceiptRow[] getReceiptsSerial(final TripRow trip, final boolean desc) { //Only the email writer should use this
+	public ReceiptRow[] getReceiptsSerial(final TripRow trip, final boolean desc) { // Only the email writer should use
+																					// this
 		return getReceiptsHelper(trip, desc);
 	}
 
@@ -1295,7 +1345,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		synchronized (mReceiptCacheLock) {
-			if (mReceiptCache.containsKey(trip)) { //only cache the default way (otherwise we get into issues with asc v desc)
+			if (mReceiptCache.containsKey(trip)) { // only cache the default way (otherwise we get into issues with asc
+													// v desc)
 				if (mReceiptRowListener != null) {
 					mReceiptRowListener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
 				}
@@ -1307,8 +1358,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	/**
 	 * Gets all receipts associated with a particular trip
-	 * @param trip - the trip
-	 * @param silence - silences the result (so no listeners will be alerted)
+	 * 
+	 * @param trip
+	 *            - the trip
+	 * @param silence
+	 *            - silences the result (so no listeners will be alerted)
 	 */
 	public void getReceiptsParallel(final TripRow trip, boolean silence) {
 		if (mReceiptRowListener == null) {
@@ -1317,7 +1371,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		synchronized (mReceiptCacheLock) {
-			if (mReceiptCache.containsKey(trip)) { //only cache the default way (otherwise we get into issues with asc v desc)
+			if (mReceiptCache.containsKey(trip)) { // only cache the default way (otherwise we get into issues with asc
+													// v desc)
 				if (mReceiptRowListener != null) {
 					mReceiptRowListener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
 				}
@@ -1337,13 +1392,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Cursor c = null;
 			try {
 				db = this.getReadableDatabase();
-				c = db.query(ReceiptsTable.TABLE_NAME,
-							 null,
-							 ReceiptsTable.COLUMN_PARENT + "= ?",
-							 new String[] {trip.getName()},
-							 null,
-							 null,
-							 ReceiptsTable.COLUMN_DATE + ((desc)?" DESC":" ASC"));
+				c = db.query(ReceiptsTable.TABLE_NAME, null, ReceiptsTable.COLUMN_PARENT + "= ?",
+						new String[] { trip.getName() }, null, null, ReceiptsTable.COLUMN_DATE
+								+ ((desc) ? " DESC" : " ASC"));
 				if (c != null && c.moveToFirst()) {
 					receipts = new ReceiptRow[c.getCount()];
 					final int idIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ID);
@@ -1366,14 +1417,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final String path = c.getString(pathIndex);
 						final String name = c.getString(nameIndex);
 						final String category = c.getString(categoryIndex);
-						final String price = c.getString(priceIndex);
-						final String tax = c.getString(taxIndex);
+						final double price = c.getDouble(priceIndex);
+						final double tax = c.getDouble(taxIndex);
 						final long date = c.getLong(dateIndex);
 						final String timezone = (timeZoneIndex > 0) ? c.getString(timeZoneIndex) : null;
 						final String comment = c.getString(commentIndex);
-						final boolean expensable = c.getInt(expenseableIndex)>0;
+						final boolean expensable = c.getInt(expenseableIndex) > 0;
 						final String currency = c.getString(currencyIndex);
-						final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+						final boolean fullpage = !(c.getInt(fullpageIndex) > 0);
 						final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 						final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 						final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -1382,23 +1433,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
 						}
 						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-						receipts[c.getPosition()] =  builder.setTrip(trip)
-															.setName(name)
-															.setCategory(category)
-															.setImage(img)
-															.setDate(date)
-															.setTimeZone(timezone)
-															.setComment(comment)
-															.setPrice(price)
-															.setTax(tax)
-															.setIsExpenseable(expensable)
-															.setCurrency(currency)
-															.setIsFullPage(fullpage)
-															.setIndex(c.getPosition()+1)
-															.setExtraEditText1(extra_edittext_1)
-															.setExtraEditText2(extra_edittext_2)
-															.setExtraEditText3(extra_edittext_3)
-															.build();
+						receipts[c.getPosition()] = builder.setTrip(trip).setName(name).setCategory(category)
+								.setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setPrice(price)
+								.setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage)
+								.setIndex(c.getPosition() + 1).setExtraEditText1(extra_edittext_1)
+								.setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
 					}
 					while (c.moveToNext());
 				}
@@ -1424,8 +1463,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		private final boolean mSilence;
 
-		public GetReceiptsWorker() { mSilence = false; }
-		public GetReceiptsWorker(boolean silence) { mSilence = silence; }
+		public GetReceiptsWorker() {
+			mSilence = false;
+		}
+
+		public GetReceiptsWorker(boolean silence) {
+			mSilence = silence;
+		}
 
 		@Override
 		protected ReceiptRow[] doInBackground(TripRow... params) {
@@ -1454,7 +1498,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Cursor c = null;
 			try {
 				db = this.getReadableDatabase();
-				c = db.query(ReceiptsTable.TABLE_NAME, null, ReceiptsTable.COLUMN_ID + "= ?", new String[] {Integer.toString(id)}, null, null, null);
+				c = db.query(ReceiptsTable.TABLE_NAME, null, ReceiptsTable.COLUMN_ID + "= ?",
+						new String[] { Integer.toString(id) }, null, null, null);
 				if (c != null && c.moveToFirst()) {
 					final int pathIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PATH);
 					final int parentIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
@@ -1480,9 +1525,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final long date = c.getLong(dateIndex);
 					final String timezone = c.getString(timeZoneIndex);
 					final String comment = c.getString(commentIndex);
-					final boolean expensable = c.getInt(expenseableIndex)>0;
+					final boolean expensable = c.getInt(expenseableIndex) > 0;
 					final String currency = c.getString(currencyIndex);
-					final boolean fullpage = !(c.getInt(fullpageIndex)>0);
+					final boolean fullpage = !(c.getInt(fullpageIndex) > 0);
 					final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 					final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 					final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
@@ -1492,22 +1537,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						img = storageManager.getFile(storageManager.getFile(parent), path);
 					}
 					ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-					return builder.setTrip(getTripByName(parent))
-								  .setName(name)
-								  .setCategory(category)
-								  .setImage(img)
-								  .setDate(date)
-								  .setTimeZone(timezone)
-								  .setComment(comment)
-								  .setPrice(price)
-								  .setTax(tax)
-								  .setIsExpenseable(expensable)
-								  .setCurrency(currency)
-								  .setIsFullPage(fullpage)
-								  .setExtraEditText1(extra_edittext_1)
-								  .setExtraEditText2(extra_edittext_2)
-								  .setExtraEditText3(extra_edittext_3)
-								  .build();
+					return builder.setTrip(getTripByName(parent)).setName(name).setCategory(category).setImage(img)
+							.setDate(date).setTimeZone(timezone).setComment(comment).setPrice(price).setTax(tax)
+							.setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage)
+							.setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2)
+							.setExtraEditText3(extra_edittext_3).build();
 				}
 				else {
 					return null;
@@ -1524,13 +1558,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt) throws SQLException {
 		return insertReceiptSerial(parent, receipt, receipt.getFile());
 	}
-	
+
 	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt, File newFile) throws SQLException {
-		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(),
-								   receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(),
-								   receipt.getTax(), receipt.isExpensable(), receipt.getCurrencyCode(),
-								   receipt.isFullPage(), receipt.getExtraEditText1(), receipt.getExtraEditText2(),
-								   receipt.getExtraEditText3());
+		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(), receipt.getDate(),
+				receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(), receipt.getTax(),
+				receipt.isExpensable(), receipt.getCurrencyCode(), receipt.isFullPage(), receipt.getExtraEditText1(),
+				receipt.getExtraEditText2(), receipt.getExtraEditText3());
 	}
 
 	public ReceiptRow insertReceiptSerial(TripRow trip, File img, String name, String category, Date date,
@@ -1541,24 +1574,25 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
-	public void insertReceiptParallel(TripRow trip, File img, String name, String category, Date date,
-			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+	public void insertReceiptParallel(TripRow trip, File img, String name, String category, Date date, String comment,
+			String price, String tax, boolean expensable, String currency, boolean fullpage, String extra_edittext_1,
+			String extra_edittext_2, String extra_edittext_3) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
 			}
 		}
-		(new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency,
-				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
+		(new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency, fullpage,
+				extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
 	private ReceiptRow insertReceiptHelper(TripRow trip, File img, String name, String category, Date date,
 			TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency,
-			boolean fullpage, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
+			boolean fullpage, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3)
+			throws SQLException {
 
-		final int rcptNum = this.getReceiptsSerial(trip).length + 1; //Use this to order things more properly
-		StringBuilder stringBuilder = new StringBuilder(rcptNum+"_");
+		final int rcptNum = this.getReceiptsSerial(trip).length + 1; // Use this to order things more properly
+		StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
 		ContentValues values = new ContentValues(10);
 
 		values.put(ReceiptsTable.COLUMN_PARENT, trip.getName());
@@ -1575,7 +1609,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_DATE, mNow.toMillis(false));
 		}
 		else {
-			values.put(ReceiptsTable.COLUMN_DATE, date.getTime()+rcptNum); //In theory, this hack may cause issue if there are > 1000 receipts. I imagine other bugs will arise before this point
+			values.put(ReceiptsTable.COLUMN_DATE, date.getTime() + rcptNum); // In theory, this hack may cause issue if
+																				// there are > 1000 receipts. I imagine
+																				// other bugs will arise before this
+																				// point
 		}
 		if (timeZone == null) {
 			timeZone = TimeZone.getDefault();
@@ -1593,7 +1630,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		if (tax.length() > 0) {
 			values.put(ReceiptsTable.COLUMN_TAX, tax);
-		//Extras
+			// Extras
 		}
 
 		if (img == null) {
@@ -1603,38 +1640,38 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			stringBuilder.append('.').append(StorageManager.getExtension(img));
 			String newName = stringBuilder.toString();
 			File file = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), newName);
-			if (!file.exists()) { //If this file doesn't exist, let's rename our current one
+			if (!file.exists()) { // If this file doesn't exist, let's rename our current one
 				if (BuildConfig.DEBUG) {
 					Log.e(TAG, "Changing image name from: " + img.getName() + " to: " + newName);
 				}
-				img = mPersistenceManager.getStorageManager().rename(img, newName); //Returns oldFile on failure
+				img = mPersistenceManager.getStorageManager().rename(img, newName); // Returns oldFile on failure
 			}
 			values.put(ReceiptsTable.COLUMN_PATH, img.getName());
 		}
 
 		if (extra_edittext_1 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
-		} else {
-			if (extra_edittext_1.equalsIgnoreCase("null"))
-			 {
+		}
+		else {
+			if (extra_edittext_1.equalsIgnoreCase("null")) {
 				extra_edittext_1 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
 			}
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
 		}
 		if (extra_edittext_2 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NO_DATA);
-		} else {
-			if (extra_edittext_2.equalsIgnoreCase("null"))
-			 {
+		}
+		else {
+			if (extra_edittext_2.equalsIgnoreCase("null")) {
 				extra_edittext_2 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
 			}
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
 		}
 		if (extra_edittext_3 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NO_DATA);
-		} else {
-			if (extra_edittext_3.equalsIgnoreCase("null"))
-			 {
+		}
+		else {
+			if (extra_edittext_3.equalsIgnoreCase("null")) {
 				extra_edittext_3 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
 			}
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
@@ -1648,7 +1685,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getWritableDatabase();
 				if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1) {
 					insertReceipt = null;
-				} else {
+				}
+				else {
 					this.updateTripPrice(trip);
 					if (mReceiptCache.containsKey(trip)) {
 						mReceiptCache.remove(trip);
@@ -1656,25 +1694,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int id = c.getInt(0);
-						date.setTime(date.getTime()+rcptNum);
+						date.setTime(date.getTime() + rcptNum);
 						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-						insertReceipt = builder.setTrip(trip)
-								 			   .setName(name)
-											   .setCategory(category)
-											   .setImage(img)
-											   .setDate(date)
-											   .setTimeZone(timeZone)
-											   .setComment(comment)
-											   .setPrice(price)
-											   .setTax(tax)
-											   .setIndex(rcptNum)
-											   .setIsExpenseable(expensable)
-											   .setCurrency(currency)
-											   .setIsFullPage(fullpage)
-											   .setExtraEditText1(extra_edittext_1)
-											   .setExtraEditText2(extra_edittext_2)
-											   .setExtraEditText3(extra_edittext_3)
-											   .build();
+						insertReceipt = builder.setTrip(trip).setName(name).setCategory(category).setImage(img)
+								.setDate(date).setTimeZone(timeZone).setComment(comment).setPrice(price).setTax(tax)
+								.setIndex(rcptNum).setIsExpenseable(expensable).setCurrency(currency)
+								.setIsFullPage(fullpage).setExtraEditText1(extra_edittext_1)
+								.setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
 					}
 					else {
 						insertReceipt = null;
@@ -1702,13 +1728,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		private final TripRow mTrip;
 		private final File mImg;
-		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
+		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2,
+				mExtra_edittext_3;
 		private final Date mDate;
 		private final boolean mExpensable, mFullpage;
 		private SQLException mException;
 
-		public InsertReceiptWorker(TripRow trip, File img, String name, String category, Date date,
-				String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
+		public InsertReceiptWorker(TripRow trip, File img, String name, String category, Date date, String comment,
+				String price, String tax, boolean expensable, String currency, boolean fullpage,
 				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mTrip = trip;
 			mImg = img;
@@ -1729,7 +1756,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		@Override
 		protected ReceiptRow doInBackground(Void... params) {
 			try {
-				return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+				return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax,
+						mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 			}
 			catch (SQLException ex) {
 				mException = ex;
@@ -1742,7 +1770,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mReceiptRowListener != null) {
 				if (result != null) {
 					mReceiptRowListener.onReceiptRowInsertSuccess(result);
-				} else {
+				}
+				else {
 					mReceiptRowListener.onReceiptRowInsertFailure(mException);
 				}
 			}
@@ -1752,7 +1781,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public ReceiptRow updateReceiptSerial(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
 			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
-		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency,
+				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
 	public void updateReceiptParallel(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
@@ -1768,21 +1798,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				fullpage, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
-	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date,
-			String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
+	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, TripRow trip, String name, String category,
+			Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		ContentValues values = new ContentValues(10);
 		values.put(ReceiptsTable.COLUMN_NAME, name.trim());
 		values.put(ReceiptsTable.COLUMN_CATEGORY, category);
 		TimeZone timeZone = oldReceipt.getTimeZone();
-		if (!date.equals(oldReceipt.getDate())) { //Update the timezone if the date changes
+		if (!date.equals(oldReceipt.getDate())) { // Update the timezone if the date changes
 			timeZone = TimeZone.getDefault();
 			values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone.getID());
 		}
 		if ((date.getTime() % 3600000) == 0) {
 			values.put(ReceiptsTable.COLUMN_DATE, date.getTime() + oldReceipt.getId());
-		} else {
+		}
+		else {
 			values.put(ReceiptsTable.COLUMN_DATE, date.getTime());
 		}
 		values.put(ReceiptsTable.COLUMN_COMMENT, comment);
@@ -1795,10 +1826,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
 		values.put(ReceiptsTable.COLUMN_ISO4217, currency);
 		values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
-		////Extras
+		// //Extras
 		if (extra_edittext_1 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
-		} else {
+		}
+		else {
 			if (extra_edittext_1.equalsIgnoreCase("null")) {
 				extra_edittext_1 = "";
 			}
@@ -1806,7 +1838,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		if (extra_edittext_2 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NO_DATA);
-		} else {
+		}
+		else {
 			if (extra_edittext_2.equalsIgnoreCase("null")) {
 				extra_edittext_2 = "";
 			}
@@ -1814,7 +1847,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 		if (extra_edittext_3 == null) {
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NO_DATA);
-		} else {
+		}
+		else {
 			if (extra_edittext_3.equalsIgnoreCase("null")) {
 				extra_edittext_3 = "";
 			}
@@ -1826,28 +1860,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			SQLiteDatabase db = null;
 			try {
 				db = this.getWritableDatabase();
-				if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldReceipt.getId())}) == 0)) {
+				if (values == null
+						|| (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?",
+								new String[] { Integer.toString(oldReceipt.getId()) }) == 0)) {
 					updatedReceipt = null;
-				} else {
+				}
+				else {
 					this.updateTripPrice(trip);
 					ReceiptRow.Builder builder = new ReceiptRow.Builder(oldReceipt.getId());
-					updatedReceipt = builder.setTrip(trip)
-											.setName(name)
-										   	.setCategory(category)
-										   	.setFile(oldReceipt.getFile())
-										   	.setDate(date)
-										   	.setTimeZone(timeZone)
-										   	.setComment(comment)
-										   	.setPrice(price)
-										   	.setTax(tax)
-										   	.setIsExpenseable(expensable)
-										   	.setCurrency(currency)
-										   	.setIsFullPage(fullpage)
-										   	.setIndex(oldReceipt.getIndex())
-										   	.setExtraEditText1(extra_edittext_1)
-										   	.setExtraEditText2(extra_edittext_2)
-										   	.setExtraEditText3(extra_edittext_3)
-										   	.build();
+					updatedReceipt = builder.setTrip(trip).setName(name).setCategory(category)
+							.setFile(oldReceipt.getFile()).setDate(date).setTimeZone(timeZone).setComment(comment)
+							.setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency)
+							.setIsFullPage(fullpage).setIndex(oldReceipt.getIndex())
+							.setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2)
+							.setExtraEditText3(extra_edittext_3).build();
 
 				}
 			}
@@ -1868,7 +1894,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		private final ReceiptRow mOldReceipt;
 		private final TripRow mTrip;
-		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
+		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2,
+				mExtra_edittext_3;
 		private final Date mDate;
 		private final boolean mExpensable, mFullpage;
 
@@ -1893,7 +1920,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		@Override
 		protected ReceiptRow doInBackground(Void... params) {
-			return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+			return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax,
+					mExpensable, mCurrency, mFullpage, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 		}
 
 		@Override
@@ -1901,13 +1929,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mReceiptRowListener != null) {
 				if (result != null) {
 					mReceiptRowListener.onReceiptRowUpdateSuccess(result);
-				} else {
+				}
+				else {
 					mReceiptRowListener.onReceiptRowUpdateFailure();
 				}
 			}
 		}
 	}
-
 
 	public final ReceiptRow updateReceiptFile(final ReceiptRow oldReceipt, final File file) {
 		synchronized (mDatabaseLock) {
@@ -1917,12 +1945,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				ContentValues values = new ContentValues(1);
 				if (file == null) {
 					values.put(ReceiptsTable.COLUMN_PATH, NO_DATA);
-				} else {
+				}
+				else {
 					values.put(ReceiptsTable.COLUMN_PATH, file.getName());
 				}
-				if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(oldReceipt.getId())}) == 0)) {
+				if (values == null
+						|| (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?",
+								new String[] { Integer.toString(oldReceipt.getId()) }) == 0)) {
 					return null;
-				} else {
+				}
+				else {
 					synchronized (mReceiptCacheLock) {
 						mNextReceiptAutoIncrementId = -1;
 						mReceiptCache.remove(oldReceipt.getTrip());
@@ -1957,15 +1989,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			try {
 				newFile = storageManager.getFile(newTrip.getDirectory(), receipt.getFileName());
 				if (!storageManager.copy(receipt.getFile(), newFile, true)) {
-					newFile = null; //Unset on failed copy
+					newFile = null; // Unset on failed copy
 					return false;
 				}
 				else {
 					if (BuildConfig.DEBUG) {
-						Log.d(TAG, "Successfully created a copy of " + receipt.getFileName() + " for " + receipt.getName() + " at " + newFile.getAbsolutePath());
+						Log.d(TAG,
+								"Successfully created a copy of " + receipt.getFileName() + " for " + receipt.getName()
+										+ " at " + newFile.getAbsolutePath());
 					}
 				}
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				if (BuildConfig.DEBUG) {
 					Log.e(TAG, e.toString());
 				}
@@ -2003,7 +2038,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mReceiptRowListener != null) {
 				if (result) {
 					mReceiptRowListener.onReceiptCopySuccess(mTrip);
-				} else {
+				}
+				else {
 					mReceiptRowListener.onReceiptCopyFailure();
 				}
 			}
@@ -2060,7 +2096,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mReceiptRowListener != null) {
 				if (result) {
 					mReceiptRowListener.onReceiptMoveSuccess(mNewTrip);
-				} else {
+				}
+				else {
 					mReceiptRowListener.onReceiptMoveFailure();
 				}
 			}
@@ -2086,7 +2123,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			db = this.getWritableDatabase();
-			success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(receipt.getId())}) > 0);
+			success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_ID + " = ?",
+					new String[] { Integer.toString(receipt.getId()) }) > 0);
 		}
 		if (success) {
 			if (receipt.hasFile()) {
@@ -2121,7 +2159,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (mReceiptRowListener != null) {
 				if (result) {
 					mReceiptRowListener.onReceiptDeleteSuccess(mReceipt);
-				} else {
+				}
+				else {
 					mReceiptRowListener.onReceiptDeleteFailure();
 				}
 			}
@@ -2132,9 +2171,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	public final boolean moveReceiptUp(final TripRow trip, final ReceiptRow receipt) {
 		ReceiptRow[] receipts = getReceiptsSerial(trip);
 		int index = 0;
-		for (int i =0; i < receipts.length; i++) {
+		for (int i = 0; i < receipts.length; i++) {
 			if (receipt.getId() == receipts[i].getId()) {
-				index = i-1;
+				index = i - 1;
 				break;
 			}
 		}
@@ -2151,13 +2190,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				upValues.put(ReceiptsTable.COLUMN_DATE, receipt.getDate().getTime());
 				if (receipt.getDate().getTime() != up.getDate().getTime()) {
 					downValues.put(ReceiptsTable.COLUMN_DATE, up.getDate().getTime());
-				} else {
-					downValues.put(ReceiptsTable.COLUMN_DATE, up.getDate().getTime()+1L);
 				}
-				if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(up.getId())}) == 0)) {
+				else {
+					downValues.put(ReceiptsTable.COLUMN_DATE, up.getDate().getTime() + 1L);
+				}
+				if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(up.getId()) }) == 0)) {
 					return false;
 				}
-				if ((db.update(ReceiptsTable.TABLE_NAME, downValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(receipt.getId())}) == 0)) {
+				if ((db.update(ReceiptsTable.TABLE_NAME, downValues, ReceiptsTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(receipt.getId()) }) == 0)) {
 					return false;
 				}
 				mReceiptCache.remove(trip);
@@ -2171,14 +2213,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	public final boolean moveReceiptDown(final TripRow trip, final ReceiptRow receipt) {
 		ReceiptRow[] receipts = getReceiptsSerial(trip);
-		int index = receipts.length-1;
-		for (int i =0; i < receipts.length; i++) {
+		int index = receipts.length - 1;
+		for (int i = 0; i < receipts.length; i++) {
 			if (receipt.getId() == receipts[i].getId()) {
-				index = i+1;
+				index = i + 1;
 				break;
 			}
 		}
-		if (index > (receipts.length-1)) {
+		if (index > (receipts.length - 1)) {
 			return false;
 		}
 		ReceiptRow down = receipts[index];
@@ -2190,14 +2232,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				ContentValues downValues = new ContentValues(1);
 				if (receipt.getDate().getTime() != down.getDate().getTime()) {
 					upValues.put(ReceiptsTable.COLUMN_DATE, down.getDate().getTime());
-				} else {
-					upValues.put(ReceiptsTable.COLUMN_DATE, down.getDate().getTime()-1L);
+				}
+				else {
+					upValues.put(ReceiptsTable.COLUMN_DATE, down.getDate().getTime() - 1L);
 				}
 				downValues.put(ReceiptsTable.COLUMN_DATE, receipt.getDate().getTime());
-				if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(receipt.getId())}) == 0)) {
+				if ((db.update(ReceiptsTable.TABLE_NAME, upValues, ReceiptsTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(receipt.getId()) }) == 0)) {
 					return false;
 				}
-				if ((db.update(ReceiptsTable.TABLE_NAME, downValues, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(down.getId())}) == 0)) {
+				if ((db.update(ReceiptsTable.TABLE_NAME, downValues, ReceiptsTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(down.getId()) }) == 0)) {
 					return false;
 				}
 				mReceiptCache.remove(trip);
@@ -2222,7 +2267,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		try {
 			synchronized (mDatabaseLock) {
 
-				c = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[] { ReceiptsTable.TABLE_NAME });
+				c = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?",
+						new String[] { ReceiptsTable.TABLE_NAME });
 				if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 					mNextReceiptAutoIncrementId = c.getInt(0) + 1;
 				}
@@ -2239,9 +2285,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	ReceiptRow Graph Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// ReceiptRow Graph Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public void registerReceiptRowGraphListener(ReceiptRowGraphListener listener) {
 		mReceiptRowGraphListener = listener;
 	}
@@ -2251,13 +2297,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	/**
-	 * This basic internal delegate is used to prevent code reptition
-	 * since all the queries will be the same. We only have to swap
-	 * out column names and how the receipts are built
+	 * This basic internal delegate is used to prevent code reptition since all the queries will be the same. We only
+	 * have to swap out column names and how the receipts are built
 	 */
 	private interface GraphProcessorDelegate {
-		public String getXAxisColumn(); //refers to the field without aggregation
-		public String getSumColumn(); //refers to the SUM() field in SQL
+		public String getXAxisColumn(); // refers to the field without aggregation
+
+		public String getSumColumn(); // refers to the SUM() field in SQL
+
 		public ReceiptRow getReceipt(String xaxis, String sum);
 	}
 
@@ -2307,8 +2354,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Cursor c = null;
 			try {
 				db = this.getReadableDatabase();
-				final String[] columns = new String[] {delegate.getXAxisColumn(), "SUM(" + delegate.getSumColumn() + ") AS " + delegate.getSumColumn()};
-				c = db.query(ReceiptsTable.TABLE_NAME, columns, ReceiptsTable.COLUMN_PARENT + "= ?", new String[] {trip.getName()}, delegate.getXAxisColumn(), null, null);
+				final String[] columns = new String[] { delegate.getXAxisColumn(),
+						"SUM(" + delegate.getSumColumn() + ") AS " + delegate.getSumColumn() };
+				c = db.query(ReceiptsTable.TABLE_NAME, columns, ReceiptsTable.COLUMN_PARENT + "= ?",
+						new String[] { trip.getName() }, delegate.getXAxisColumn(), null, null);
 				if (c != null && c.moveToFirst()) {
 					receipts = new ReceiptRow[c.getCount()];
 					final int xIndex = c.getColumnIndex(delegate.getXAxisColumn());
@@ -2335,11 +2384,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private static class CostPerCategoryDelegate implements GraphProcessorDelegate {
 		@Override
-		public String getXAxisColumn() { return ReceiptsTable.COLUMN_CATEGORY; }
+		public String getXAxisColumn() {
+			return ReceiptsTable.COLUMN_CATEGORY;
+		}
+
 		@Override
-		public String getSumColumn() { return ReceiptsTable.COLUMN_PRICE; }
+		public String getSumColumn() {
+			return ReceiptsTable.COLUMN_PRICE;
+		}
+
 		@Override
-		public ReceiptRow getReceipt(String xaxis, String sum) { return (new ReceiptRow.Builder(-1)).setCategory(xaxis).setPrice(sum).build(); }
+		public ReceiptRow getReceipt(String xaxis, String sum) {
+			return (new ReceiptRow.Builder(-1)).setCategory(xaxis).setPrice(sum).build();
+		}
 	}
 
 	public ReceiptRow[] getCostPerCategorySerial(final TripRow trip) {
@@ -2350,10 +2407,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		getGraphColumnsParallel(trip, new CostPerCategoryDelegate());
 	}
 
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Categories Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// Categories Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public final ArrayList<CharSequence> getCategoriesList() {
 		if (mCategoryList != null) {
 			return mCategoryList;
@@ -2367,6 +2423,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	private final CharSequenceComparator _charSequenceComparator = new CharSequenceComparator();
+
 	private final class CharSequenceComparator implements Comparator<CharSequence> {
 		@Override
 		public int compare(CharSequence str1, CharSequence str2) {
@@ -2428,7 +2485,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(CategoriesTable.COLUMN_CODE, code);
 			if (db.insertOrThrow(CategoriesTable.TABLE_NAME, null, values) == -1) {
 				return false;
-			} else {
+			}
+			else {
 				mCategories.put(name, code);
 				mCategoryList.add(name);
 				Collections.sort(mCategoryList, _charSequenceComparator);
@@ -2445,7 +2503,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(CategoriesTable.COLUMN_CODE, code);
 		if (db.insertOrThrow(CategoriesTable.TABLE_NAME, null, values) == -1) {
 			return false;
-		} else {
+		}
+		else {
 			return true;
 		}
 	}
@@ -2457,9 +2516,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			ContentValues values = new ContentValues(2);
 			values.put(CategoriesTable.COLUMN_NAME, newName);
 			values.put(CategoriesTable.COLUMN_CODE, newCode);
-			if (db.update(CategoriesTable.TABLE_NAME, values, CategoriesTable.COLUMN_NAME + " = ?", new String[] {oldName}) == 0) {
+			if (db.update(CategoriesTable.TABLE_NAME, values, CategoriesTable.COLUMN_NAME + " = ?",
+					new String[] { oldName }) == 0) {
 				return false;
-			} else {
+			}
+			else {
 				mCategories.remove(oldName);
 				mCategoryList.remove(oldName);
 				mCategories.put(newName, newCode);
@@ -2475,7 +2536,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			db = this.getWritableDatabase();
-			final boolean success = (db.delete(CategoriesTable.TABLE_NAME, CategoriesTable.COLUMN_NAME + " = ?", new String[] {name}) > 0);
+			final boolean success = (db.delete(CategoriesTable.TABLE_NAME, CategoriesTable.COLUMN_NAME + " = ?",
+					new String[] { name }) > 0);
 			if (success) {
 				mCategories.remove(name);
 				mCategoryList.remove(name);
@@ -2484,9 +2546,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	CSV Columns Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// CSV Columns Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public final CSVColumns getCSVColumns() {
 		if (mCSVColumns != null) {
 			return mCSVColumns;
@@ -2528,7 +2590,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getWritableDatabase();
 				if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
 					return false;
-				} else {
+				}
+				else {
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int idx = c.getInt(0);
@@ -2554,10 +2617,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		ContentValues values = new ContentValues(1);
 		values.put(CSVTable.COLUMN_TYPE, column);
 		if (_initDB != null) {
-			//TODO: Determine if database lock should be used here
+			// TODO: Determine if database lock should be used here
 			if (_initDB.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
 				return false;
-			} else {
+			}
+			else {
 				return true;
 			}
 		}
@@ -2567,7 +2631,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getWritableDatabase();
 				if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
 					return false;
-				} else {
+				}
+				else {
 					return true;
 				}
 			}
@@ -2582,11 +2647,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (idx < 0) {
 				return false;
 			}
-			return db.delete(CSVTable.TABLE_NAME, CSVTable.COLUMN_ID + " = ?", new String[] {Integer.toString(idx)}) > 0;
+			return db.delete(CSVTable.TABLE_NAME, CSVTable.COLUMN_ID + " = ?", new String[] { Integer.toString(idx) }) > 0;
 		}
 	}
 
-	public final boolean updateCSVColumn(int arrayListIndex, int optionIndex) { //Note index here refers to the actual index and not the ID
+	public final boolean updateCSVColumn(int arrayListIndex, int optionIndex) { // Note index here refers to the actual
+																				// index and not the ID
 		Column currentColumn = mCSVColumns.get(arrayListIndex);
 		if (currentColumn.getColumnType().equals(mCSVColumns.getSpinnerOptionAt(optionIndex))) {
 			// Don't bother updating, since we've already set this column type
@@ -2599,9 +2665,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			SQLiteDatabase db = null;
 			try {
 				db = this.getReadableDatabase();
-				if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[] {Integer.toString(column.getIndex())}) == 0) {
+				if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(column.getIndex()) }) == 0) {
 					return false;
-				} else {
+				}
+				else {
 					return true;
 				}
 			}
@@ -2611,9 +2679,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	PDF Columns Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// PDF Columns Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public final PDFColumns getPDFColumns() {
 		if (mPDFColumns != null) {
 			return mPDFColumns;
@@ -2655,7 +2723,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getWritableDatabase();
 				if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
 					return false;
-				} else {
+				}
+				else {
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int idx = c.getInt(0);
@@ -2681,10 +2750,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		ContentValues values = new ContentValues(1);
 		values.put(PDFTable.COLUMN_TYPE, column);
 		if (_initDB != null) {
-			//TODO: Determine if database lock should be used here
+			// TODO: Determine if database lock should be used here
 			if (_initDB.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
 				return false;
-			} else {
+			}
+			else {
 				return true;
 			}
 		}
@@ -2694,7 +2764,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getWritableDatabase();
 				if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
 					return false;
-				} else {
+				}
+				else {
 					return true;
 				}
 			}
@@ -2709,11 +2780,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			if (idx < 0) {
 				return false;
 			}
-			return db.delete(PDFTable.TABLE_NAME, PDFTable.COLUMN_ID + " = ?", new String[] {Integer.toString(idx)}) > 0;
+			return db.delete(PDFTable.TABLE_NAME, PDFTable.COLUMN_ID + " = ?", new String[] { Integer.toString(idx) }) > 0;
 		}
 	}
 
-	public final boolean updatePDFColumn(int arrayListIndex, int optionIndex) { //Note index here refers to the actual index and not the ID
+	public final boolean updatePDFColumn(int arrayListIndex, int optionIndex) { // Note index here refers to the actual
+																				// index and not the ID
 		Column currentColumn = mPDFColumns.get(arrayListIndex);
 		if (currentColumn.getColumnType().equals(mPDFColumns.getSpinnerOptionAt(optionIndex))) {
 			// Don't bother updating, since we've already set this column type
@@ -2726,9 +2798,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			SQLiteDatabase db = null;
 			try {
 				db = this.getReadableDatabase();
-				if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[] {Integer.toString(column.getIndex())}) == 0) {
+				if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?",
+						new String[] { Integer.toString(column.getIndex()) }) == 0) {
 					return false;
-				} else {
+				}
+				else {
 					return true;
 				}
 			}
@@ -2750,37 +2824,42 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				}
 				currDB = this.getWritableDatabase();
 				importDB = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE);
-				//Merge Trips
+				// Merge Trips
 				try {
-					if(BuildConfig.DEBUG) {
+					if (BuildConfig.DEBUG) {
 						Log.d(TAG, "Merging Trips");
 					}
-					c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
+					c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO
+							+ " DESC");
 					if (c != null && c.moveToFirst()) {
 						final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
 						final int fromIndex = c.getColumnIndex(TripsTable.COLUMN_FROM);
 						final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
 						final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
 						final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-						//final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
+						// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 						final int mileageIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 						do {
 							String name = c.getString(nameIndex);
-							if (name.contains("wb.receipts")) { //Backwards compatibility stuff
-								if (packageName.equalsIgnoreCase("wb.receipts")) { name = name.replace("wb.receiptspro/", "wb.receipts/"); }
-								else if (packageName.equalsIgnoreCase("wb.receiptspro")) { name = name.replace("wb.receipts/", "wb.receiptspro/"); }
+							if (name.contains("wb.receipts")) { // Backwards compatibility stuff
+								if (packageName.equalsIgnoreCase("wb.receipts")) {
+									name = name.replace("wb.receiptspro/", "wb.receipts/");
+								}
+								else if (packageName.equalsIgnoreCase("wb.receiptspro")) {
+									name = name.replace("wb.receipts/", "wb.receiptspro/");
+								}
 								File f = new File(name);
 								name = f.getName();
 							}
 							final long from = c.getLong(fromIndex);
 							final long to = c.getLong(toIndex);
-							//final String price = c.getString(priceIndex);
+							// final String price = c.getString(priceIndex);
 							final int mileage = c.getInt(mileageIndex);
 							ContentValues values = new ContentValues(7);
 							values.put(TripsTable.COLUMN_NAME, name);
 							values.put(TripsTable.COLUMN_FROM, from);
 							values.put(TripsTable.COLUMN_TO, to);
-							//values.put(TripsTable.COLUMN_PRICE, price);
+							// values.put(TripsTable.COLUMN_PRICE, price);
 							values.put(TripsTable.COLUMN_MILEAGE, mileage);
 							if (fromTimeZoneIndex > 0) {
 								final String fromTimeZome = c.getString(fromTimeZoneIndex);
@@ -2791,9 +2870,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 								values.put(TripsTable.COLUMN_TO_TIMEZONE, toTimeZome);
 							}
 							if (overwrite) {
-								currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-							} else {
-								currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+								currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values,
+										SQLiteDatabase.CONFLICT_REPLACE);
+							}
+							else {
+								currDB.insertWithOnConflict(TripsTable.TABLE_NAME, null, values,
+										SQLiteDatabase.CONFLICT_IGNORE);
 							}
 						}
 						while (c.moveToNext());
@@ -2803,8 +2885,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 				catch (SQLiteException e) {
-					if (BuildConfig.DEBUG)
-					 {
+					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
 				}
@@ -2815,12 +2896,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 
-				//Merge Receipts
-				if(BuildConfig.DEBUG) {
+				// Merge Receipts
+				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging Receipts");
 				}
 				try {
-					final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND " + ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
+					final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM "
+							+ ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND "
+							+ ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
 					c = importDB.query(ReceiptsTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
 						final int idIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ID);
@@ -2843,18 +2926,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						do {
 							final String oldPath = c.getString(pathIndex);
 							String newPath = new String(oldPath);
-							if (newPath.contains("wb.receipts")) { //Backwards compatibility stuff
-								if (packageName.equalsIgnoreCase("wb.receipts")) { newPath = oldPath.replace("wb.receiptspro/", "wb.receipts/"); }
-								else if (packageName.equalsIgnoreCase("wb.receiptspro")) { newPath = oldPath.replace("wb.receipts/", "wb.receiptspro/"); }
+							if (newPath.contains("wb.receipts")) { // Backwards compatibility stuff
+								if (packageName.equalsIgnoreCase("wb.receipts")) {
+									newPath = oldPath.replace("wb.receiptspro/", "wb.receipts/");
+								}
+								else if (packageName.equalsIgnoreCase("wb.receiptspro")) {
+									newPath = oldPath.replace("wb.receipts/", "wb.receiptspro/");
+								}
 								File f = new File(newPath);
 								newPath = f.getName();
 							}
 							final String name = c.getString(nameIndex);
 							final String oldParent = c.getString(parentIndex);
 							String newParent = new String(oldParent);
-							if (newParent.contains("wb.receipts")) { //Backwards compatibility stuff
-								if (packageName.equalsIgnoreCase("wb.receipts")) { newParent = oldParent.replace("wb.receiptspro/", "wb.receipts/"); }
-								else if (packageName.equalsIgnoreCase("wb.receiptspro")) { newParent = oldParent.replace("wb.receipts/", "wb.receiptspro/"); }
+							if (newParent.contains("wb.receipts")) { // Backwards compatibility stuff
+								if (packageName.equalsIgnoreCase("wb.receipts")) {
+									newParent = oldParent.replace("wb.receiptspro/", "wb.receipts/");
+								}
+								else if (packageName.equalsIgnoreCase("wb.receiptspro")) {
+									newParent = oldParent.replace("wb.receipts/", "wb.receiptspro/");
+								}
 								File f = new File(newParent);
 								newParent = f.getName();
 							}
@@ -2862,15 +2953,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final String price = c.getString(priceIndex);
 							final long date = c.getLong(dateIndex);
 							final String comment = c.getString(commentIndex);
-							final boolean expensable = c.getInt(expenseableIndex)>0;
+							final boolean expensable = c.getInt(expenseableIndex) > 0;
 							final String currency = c.getString(currencyIndex);
-							final boolean fullpage = (c.getInt(fullpageIndex)>0);
+							final boolean fullpage = (c.getInt(fullpageIndex) > 0);
 							final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
 							final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
 							final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
 							final String tax = c.getString(taxIndex);
 							final String paymentMethod = c.getString(paymentMethodIndex);
-							countCursor = currDB.rawQuery(queryCount, new String[] {newPath, name, Long.toString(date)});
+							countCursor = currDB.rawQuery(queryCount,
+									new String[] { newPath, name, Long.toString(date) });
 							if (countCursor != null && countCursor.moveToFirst()) {
 								int count = countCursor.getInt(0);
 								int updateID = countCursor.getInt(1);
@@ -2894,14 +2986,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
 								}
 								values.put(ReceiptsTable.COLUMN_PAYMENTMETHOD, paymentMethod);
-								if (count > 0 && overwrite) { //Update
-									currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] {Integer.toString(updateID)});
+								if (count > 0 && overwrite) { // Update
+									currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?",
+											new String[] { Integer.toString(updateID) });
 								}
-								else { //insert
+								else { // insert
 									if (overwrite) {
-										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-									} else {
-										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values,
+												SQLiteDatabase.CONFLICT_REPLACE);
+									}
+									else {
+										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values,
+												SQLiteDatabase.CONFLICT_IGNORE);
 									}
 								}
 							}
@@ -2913,8 +3009,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 				catch (SQLiteException e) {
-					if (BuildConfig.DEBUG)
-					 {
+					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
 				}
@@ -2925,22 +3020,23 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 
-				//Merge Categories
-				//No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't enough outlying data) => Always overwirte
-				if(BuildConfig.DEBUG) {
+				// Merge Categories
+				// No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
+				// enough outlying data) => Always overwirte
+				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging Categories");
 				}
 				try {
-				c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
+					c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
-						currDB.delete(CategoriesTable.TABLE_NAME, null, null); //DELETE FROM Categories
+						currDB.delete(CategoriesTable.TABLE_NAME, null, null); // DELETE FROM Categories
 						final int nameIndex = c.getColumnIndex(CategoriesTable.COLUMN_NAME);
 						final int codeIndex = c.getColumnIndex(CategoriesTable.COLUMN_CODE);
 						final int breakdownIndex = c.getColumnIndex(CategoriesTable.COLUMN_BREAKDOWN);
 						do {
 							final String name = c.getString(nameIndex);
 							final String code = c.getString(codeIndex);
-							final boolean breakdown = c.getInt(breakdownIndex)>0;
+							final boolean breakdown = c.getInt(breakdownIndex) > 0;
 							ContentValues values = new ContentValues(3);
 							values.put(CategoriesTable.COLUMN_NAME, name);
 							values.put(CategoriesTable.COLUMN_CODE, code);
@@ -2954,8 +3050,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 				catch (SQLiteException e) {
-					if (BuildConfig.DEBUG)
-					 {
+					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
 				}
@@ -2966,15 +3061,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 
-				//Merge CSV
-				//No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't enough outlying data) => Always overwirte
-				if(BuildConfig.DEBUG) {
+				// Merge CSV
+				// No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
+				// enough outlying data) => Always overwirte
+				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging CSV");
 				}
 				try {
 					c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
-						currDB.delete(CSVTable.TABLE_NAME, null, null); //DELETE FROM CSVTable
+						currDB.delete(CSVTable.TABLE_NAME, null, null); // DELETE FROM CSVTable
 						final int idxIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
 						final int typeIndex = c.getColumnIndex(CSVTable.COLUMN_TYPE);
 						do {
@@ -2992,8 +3088,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 				catch (SQLiteException e) {
-					if (BuildConfig.DEBUG)
-					 {
+					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
 				}
@@ -3004,15 +3099,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 
-				//Merge PDF
-				//No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't enough outlying data) => Always overwirte
-				if(BuildConfig.DEBUG) {
+				// Merge PDF
+				// No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
+				// enough outlying data) => Always overwirte
+				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging PDF");
 				}
 				try {
 					c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
-						currDB.delete(PDFTable.TABLE_NAME, null, null); //DELETE FROM PDFTable
+						currDB.delete(PDFTable.TABLE_NAME, null, null); // DELETE FROM PDFTable
 						final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
 						final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
 						do {
@@ -3030,8 +3126,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					}
 				}
 				catch (SQLiteException e) {
-					if (BuildConfig.DEBUG)
-					 {
+					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
 				}
@@ -3044,7 +3139,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				return true;
 			}
 			catch (Exception e) {
-				if(BuildConfig.DEBUG) {
+				if (BuildConfig.DEBUG) {
 					Log.e(TAG, e.toString());
 				}
 				return false;
@@ -3063,31 +3158,28 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	AutoCompleteTextView Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// AutoCompleteTextView Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public Cursor getAutoCompleteCursor(CharSequence text, CharSequence tag) {
-		//TODO: Fix SQL vulnerabilities
+		// TODO: Fix SQL vulnerabilities
 		final SQLiteDatabase db = this.getReadableDatabase();
 		String sqlQuery = "";
 		if (tag == TAG_RECEIPTS_NAME) {
-			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_NAME + ") AS _id " +
-				       " FROM " + ReceiptsTable.TABLE_NAME +
-				       " WHERE " + ReceiptsTable.COLUMN_NAME + " LIKE '%" + text + "%' " +
-				       " ORDER BY " + ReceiptsTable.COLUMN_NAME;
+			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_NAME + ") AS _id " + " FROM "
+					+ ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_NAME + " LIKE '%" + text + "%' "
+					+ " ORDER BY " + ReceiptsTable.COLUMN_NAME;
 		}
 		else if (tag == TAG_RECEIPTS_COMMENT) {
-			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_COMMENT + ") AS _id " +
-				       " FROM " + ReceiptsTable.TABLE_NAME +
-				       " WHERE " + ReceiptsTable.COLUMN_COMMENT + " LIKE '%" + text + "%' " +
-				       " ORDER BY " + ReceiptsTable.COLUMN_COMMENT;
+			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_COMMENT + ") AS _id " + " FROM "
+					+ ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_COMMENT + " LIKE '%" + text + "%' "
+					+ " ORDER BY " + ReceiptsTable.COLUMN_COMMENT;
 		}
 		else if (tag == TAG_TRIPS) {
-			sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_NAME + ") AS _id " +
-				       " FROM " + TripsTable.TABLE_NAME +
-				       " WHERE " + TripsTable.COLUMN_NAME + " LIKE '%" + text + "%' " +
-				       " ORDER BY " + TripsTable.COLUMN_NAME;
+			sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_NAME + ") AS _id " + " FROM "
+					+ TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_NAME + " LIKE '%" + text + "%' "
+					+ " ORDER BY " + TripsTable.COLUMN_NAME;
 		}
 		synchronized (mDatabaseLock) {
 			return db.rawQuery(sqlQuery, null);
@@ -3096,8 +3188,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	@Override
 	public void onItemSelected(CharSequence text, CharSequence tag) {
-		//TODO: Make Async
-		
+		// TODO: Make Async
+
 		Cursor c = null;
 		SQLiteDatabase db = null;
 		final String name = text.toString();
@@ -3112,14 +3204,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				synchronized (mDatabaseLock) {
 					try {
 						db = this.getReadableDatabase();
-						c = db.query(ReceiptsTable.TABLE_NAME,
-									 new String[] {ReceiptsTable.COLUMN_CATEGORY, ReceiptsTable.COLUMN_PRICE},
-									 ReceiptsTable.COLUMN_NAME + "= ?",
-									 new String[] {name},
-									 null,
-									 null,
-									 ReceiptsTable.COLUMN_DATE + " DESC",
-									 "2");
+						c = db.query(ReceiptsTable.TABLE_NAME, new String[] { ReceiptsTable.COLUMN_CATEGORY,
+								ReceiptsTable.COLUMN_PRICE }, ReceiptsTable.COLUMN_NAME + "= ?", new String[] { name },
+								null, null, ReceiptsTable.COLUMN_DATE + " DESC", "2");
 						if (c != null && c.getCount() == 2) {
 							if (c.moveToFirst()) {
 								category = c.getString(0);
@@ -3150,20 +3237,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	//	Support Methods
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	// Support Methods
+	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public void backUpDatabase(final String databasePath) {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				final StorageManager storageManager = mPersistenceManager.getStorageManager();
-				File sdDB = storageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DATABASE_NAME + ".bak");
+				File sdDB = storageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DATABASE_NAME
+						+ ".bak");
 				try {
 					synchronized (mDatabaseLock) {
 						storageManager.copy(new File(databasePath), sdDB, true);
 					}
-					if(D) {
+					if (D) {
 						Log.d(TAG, "Backed up database file to: " + sdDB.getName());
 					}
 				}

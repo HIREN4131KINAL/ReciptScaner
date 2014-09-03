@@ -71,22 +71,21 @@ import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
 
-public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowListener,
-																	  LoaderCallbacks<SharedPreferences> {
+public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowListener, LoaderCallbacks<SharedPreferences> {
 
 	public static final String TAG = "ReceiptsListFragment";
 
-	//Activity Request ints
-    private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
-    private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
-    private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
-    private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
+	// Activity Request ints
+	private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
+	private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
+	private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
+	private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
 
-    //Preferences
-  	private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
-  	private static final String PREFERENCE_IMAGE_URI = "imageUri";
+	// Preferences
+	private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
+	private static final String PREFERENCE_IMAGE_URI = "imageUri";
 
-  	private ReceiptCardAdapter mAdapter;
+	private ReceiptCardAdapter mAdapter;
 	private ReceiptRow mHighlightedReceipt;
 	private Uri mImageUri;
 	private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
@@ -97,7 +96,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private TextView mNoDataAlert;
 	private Attachable mAttachable;
 	private View mAdView;
-	
+
 	private boolean mShowDialogOnResume = false;
 	private File mImageFile;
 
@@ -138,15 +137,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			public void onClick(View v) {
 				final int id = v.getId();
 				if (id == R.id.receipt_action_camera) {
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Picture_Receipt");
 					addPictureReceipt();
 				}
 				else if (id == R.id.receipt_action_text) {
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Text_Receipt");
 					addTextReceipt();
 				}
 				else if (id == R.id.receipt_action_distance) {
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Mileage");
 					showMileage();
 				}
 				else if (id == R.id.receipt_action_send) {
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Generate_Report");
 					emailTrip();
 				}
 			}
@@ -161,7 +164,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		setListAdapter(mAdapter); //Set this here to ensure this has been laid out already
+		setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
 	}
 
 	public int getLayoutId() {
@@ -184,18 +187,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		mCachedCategory = null;
 		if (mCurrentTrip != null) {
 			// Save persistent data state
-	    	SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
-	    	SharedPreferences.Editor editor = preferences.edit();
-	    	final int id = (mHighlightedReceipt == null) ? -1 : mHighlightedReceipt.getId();
-	    	editor.putInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, id);
-	    	final String uriPath = (mImageUri == null) ? null : mImageUri.toString();
-	    	editor.putString(PREFERENCE_IMAGE_URI, uriPath);
-	    	if (Utils.ApiHelper.hasGingerbread()) {
+			SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
+			SharedPreferences.Editor editor = preferences.edit();
+			final int id = (mHighlightedReceipt == null) ? -1 : mHighlightedReceipt.getId();
+			editor.putInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, id);
+			final String uriPath = (mImageUri == null) ? null : mImageUri.toString();
+			editor.putString(PREFERENCE_IMAGE_URI, uriPath);
+			if (Utils.ApiHelper.hasGingerbread()) {
 				editor.apply();
-			} else {
+			}
+			else {
 				editor.commit();
 			}
-    	}
+		}
 		getWorkerManager().getAdManager().onAdPaused(mAdView);
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 		super.onPause();
@@ -226,16 +230,16 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private void restoreDataHelper(SharedPreferences preferences) {
 		if (mHighlightedReceipt == null) { // Attempt to Restore
 			final DatabaseHelper db = getPersistenceManager().getDatabase();
-	    	final int receiptId = preferences.getInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, -1);
-	    	if (receiptId > 0) {
-	    		mHighlightedReceipt = db.getReceiptByID(receiptId);
-	    	}
+			final int receiptId = preferences.getInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, -1);
+			if (receiptId > 0) {
+				mHighlightedReceipt = db.getReceiptByID(receiptId);
+			}
 		}
 		if (mImageUri == null) { // Attempt to Restore
-	    	final String uriPath = preferences.getString(PREFERENCE_IMAGE_URI, "");
-	    	if (uriPath != null) {
-	    		mImageUri = Uri.parse(uriPath);
-	    	}
+			final String uriPath = preferences.getString(PREFERENCE_IMAGE_URI, "");
+			if (uriPath != null) {
+				mImageUri = Uri.parse(uriPath);
+			}
 		}
 	}
 
@@ -266,31 +270,32 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-    	if (BuildConfig.DEBUG) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Result Code: " + resultCode);
 		}
-    	if (BuildConfig.DEBUG) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Request Code: " + requestCode);
 		}
-    	
-    	// Need to make this call here, since users with "Don't keep activities" will hit this call
-    	// before any of onCreate/onStart/onResume is called. This should restore our current trip (what
-    	// onResume() would normally do to prevent a variety of crashes that we might encounter
-    	ensureValidCurrentTrip();
-    	
-    	if (resultCode == Activity.RESULT_OK) { //-1
-    		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); //Added here since onActivityResult is called before onResume
-    		File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
-    		if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
-    			final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
-    			worker.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
-    			imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
-    		}
+
+		// Need to make this call here, since users with "Don't keep activities" will hit this call
+		// before any of onCreate/onStart/onResume is called. This should restore our current trip (what
+		// onResume() would normally do to prevent a variety of crashes that we might encounter
+		ensureValidCurrentTrip();
+
+		if (resultCode == Activity.RESULT_OK) { // -1
+			restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); // Added here since onActivityResult
+																					// is called before onResume
+			File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
+			if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
+				final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
+				worker.deleteDuplicateGalleryImage(); // Some devices duplicate the gallery images
+				imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
+			}
 			if (imgFile == null) {
 				Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
 				return;
 			}
-    		switch (requestCode) {
+			switch (requestCode) {
 				case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
 				case NEW_RECEIPT_CAMERA_REQUEST:
 					if (this.isResumed()) {
@@ -300,7 +305,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 						mShowDialogOnResume = true;
 						mImageFile = imgFile;
 					}
-				break;
+					break;
 				case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
 				case ADD_PHOTO_CAMERA_REQUEST:
 					final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, imgFile);
@@ -310,21 +315,22 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					}
 					else {
 						Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-						getPersistenceManager().getStorageManager().delete(imgFile); //Rollback
+						getPersistenceManager().getStorageManager().delete(imgFile); // Rollback
 						return;
 					}
-				break;
+					break;
 				default:
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, "Unrecognized Request Code: " + requestCode);
 					}
 					super.onActivityResult(requestCode, resultCode, data);
-				break;
+					break;
 			}
-    	}
-    	else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) {  //51
-    		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); //Added here since onActivityResult is called before onResume
-	    	switch (requestCode) {
+		}
+		else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) { // 51
+			restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); // Added here since onActivityResult
+																					// is called before onResume
+			switch (requestCode) {
 				case NEW_RECEIPT_CAMERA_REQUEST:
 					File imgFile = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
 					if (this.isResumed()) {
@@ -334,7 +340,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 						mShowDialogOnResume = true;
 						mImageFile = imgFile;
 					}
-				break;
+					break;
 				case ADD_PHOTO_CAMERA_REQUEST:
 					File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
 					final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, img);
@@ -346,39 +352,40 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 						Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 						return;
 					}
-				break;
+					break;
 				default:
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, "Unrecognized Request Code: " + requestCode);
 					}
 					super.onActivityResult(requestCode, resultCode, data);
-				break;
+					break;
 			}
-    	}
-    	else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-    		Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+		}
+		else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
+			Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
 			return;
-    	}
-    	else {
+		}
+		else {
 			if (BuildConfig.DEBUG) {
 				Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
 			}
-			List<String> errors = ((GalleryApp)getActivity().getApplication()).getErrorList();
-	    	final int size = errors.size();
-	    	for (int i=0; i < size; i++) {
-	    		getWorkerManager().getLogger().logError(errors.get(i));
-	    	}
-	    	errors.clear();
+			List<String> errors = ((GalleryApp) getActivity().getApplication()).getErrorList();
+			final int size = errors.size();
+			for (int i = 0; i < size; i++) {
+				getWorkerManager().getLogger().logError(errors.get(i));
+			}
+			errors.clear();
 			super.onActivityResult(requestCode, resultCode, data);
-    	}
-    }
+		}
+	}
 
 	public final void addPictureReceipt() {
 		String dirPath;
 		File dir = mCurrentTrip.getDirectory();
 		if (dir.exists()) {
 			dirPath = dir.getAbsolutePath();
-		} else {
+		}
+		else {
 			dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 		}
 		if (getPersistenceManager().getPreferences().useNativeCamera()) {
@@ -396,7 +403,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 			else {
 				final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-				String[] strings  = new String[] {dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
+				String[] strings = new String[] { dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg" };
 				intent.putExtra(MyCameraActivity.STRING_DATA, strings);
 				startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
 			}
@@ -404,7 +411,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	public final void addTextReceipt() {
-		receiptMenu(mCurrentTrip ,null, null);
+		receiptMenu(mCurrentTrip, null, null);
 	}
 
 	public final void receiptMenu(final TripRow trip, final ReceiptRow receipt, final File img) {
@@ -416,12 +423,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
 		final DateEditText dateBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_DATE);
 		final AutoCompleteTextView commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_COMMENT);
-		final Spinner categoriesSpinner =  (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
+		final Spinner categoriesSpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
 		final CheckBox expensable = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
 		final CheckBox fullpage = (CheckBox) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
 		final Spinner paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_receiptmenu_payment_methods_spinner);
 
-		//Extras
+		// Extras
 		final LinearLayout extras = (LinearLayout) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
 		final EditText extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
 		final EditText extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
@@ -432,7 +439,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			taxBox.setVisibility(View.VISIBLE);
 		}
 
-		//Show default dictionary with auto-complete
+		// Show default dictionary with auto-complete
 		TextKeyListener input = TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES);
 		nameBox.setKeyListener(input);
 
@@ -440,7 +447,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		currencySpinner.setAdapter(currenices);
 
-		dateBox.setFocusableInTouchMode(false); dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
+		dateBox.setFocusableInTouchMode(false);
+		dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
 		final ArrayAdapter<CharSequence> categories = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
 		categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		categoriesSpinner.setAdapter(categories);
@@ -487,26 +495,28 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			Preferences preferences = getPersistenceManager().getPreferences();
 			if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, categories));
-			} else if (preferences.matchCommentToCategory()) {
+			}
+			else if (preferences.matchCommentToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));
-			} else if (preferences.matchNameToCategory()) {
+			}
+			else if (preferences.matchNameToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
 			}
-			if (preferences.predictCategories()) { //Predict Breakfast, Lunch, Dinner by the hour
+			if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
 				if (mCachedCategory == null) {
-					if (mNow.hour >= 4 && mNow.hour < 11) { //Breakfast hours
+					if (mNow.hour >= 4 && mNow.hour < 11) { // Breakfast hours
 						int idx = categories.getPosition(getString(R.string.category_breakfast));
 						if (idx > 0) {
 							categoriesSpinner.setSelection(idx);
 						}
 					}
-					else if (mNow.hour >= 11 && mNow.hour < 16) { //Lunch hours
+					else if (mNow.hour >= 11 && mNow.hour < 16) { // Lunch hours
 						int idx = categories.getPosition(getString(R.string.category_lunch));
 						if (idx > 0) {
 							categoriesSpinner.setSelection(idx);
 						}
 					}
-					else if (mNow.hour >= 16 && mNow.hour < 23) { //Dinner hours
+					else if (mNow.hour >= 16 && mNow.hour < 23) { // Dinner hours
 						int idx = categories.getPosition(getString(R.string.category_dinner));
 						if (idx > 0) {
 							categoriesSpinner.setSelection(idx);
@@ -533,12 +543,25 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 		}
 		else {
-			if (!TextUtils.isEmpty(receipt.getName())) { nameBox.setText(receipt.getName()); }
-			if (!TextUtils.isEmpty(receipt.getPrice())) { priceBox.setText(receipt.getPrice()); }
-			if (receipt.getDate() != null) { dateBox.setText(receipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator())); dateBox.date = receipt.getDate(); }
-			if (!TextUtils.isEmpty(receipt.getCategory())) { categoriesSpinner.setSelection(categories.getPosition(receipt.getCategory())); }
-			if (!TextUtils.isEmpty(receipt.getComment())) { commentBox.setText(receipt.getComment()); }
-			if (!TextUtils.isEmpty(receipt.getTax())) { taxBox.setText(receipt.getTax()); }
+			if (!TextUtils.isEmpty(receipt.getName())) {
+				nameBox.setText(receipt.getName());
+			}
+			if (!TextUtils.isEmpty(receipt.getPrice())) {
+				priceBox.setText(receipt.getPrice());
+			}
+			if (receipt.getDate() != null) {
+				dateBox.setText(receipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+				dateBox.date = receipt.getDate();
+			}
+			if (!TextUtils.isEmpty(receipt.getCategory())) {
+				categoriesSpinner.setSelection(categories.getPosition(receipt.getCategory()));
+			}
+			if (!TextUtils.isEmpty(receipt.getComment())) {
+				commentBox.setText(receipt.getComment());
+			}
+			if (!TextUtils.isEmpty(receipt.getTax())) {
+				taxBox.setText(receipt.getTax());
+			}
 			int idx = currenices.getPosition(receipt.getCurrencyCode());
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
@@ -568,9 +591,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				extra_edittext_box_3.setText(receipt.getExtraEditText3());
 			}
 		}
-		nameBox.setSelection(nameBox.getText().length()); //Put the cursor at the end
+		nameBox.setSelection(nameBox.getText().length()); // Put the cursor at the end
 
-		//Show DialogController
+		// Show DialogController
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
 		final String title;
 		if (newReceipt) {
@@ -589,68 +612,65 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
 			}
 		}
-		builder.setTitle(title)
-			 .setCancelable(true)
-			 .setView(scrollView)
-			 .setLongLivedPositiveButton((newReceipt)?getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE):getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
-				 @Override
-				 public void onClick(DialogInterface dialog, int whichButton) {
-					 mNameBox = null; // Un-set
-					 mCategoriesSpinner = null; // Un-set
-					 mPriceBox = null; //Un-set
-					 final String name = nameBox.getText().toString();
-					 String price = priceBox.getText().toString();
-					 String tax = taxBox.getText().toString();
-					 final String category = categoriesSpinner.getSelectedItem().toString();
-					 final String currency = currencySpinner.getSelectedItem().toString();
-					 final String comment = commentBox.getText().toString();
-					 final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
-					 final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
-					 final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
-					 final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
-					 if (name.length() == 0) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 if (dateBox.date == null) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 else if (!dateBox.date.equals(mNow)){
-						 mCachedDate = (Date) dateBox.date.clone();
-					 }
-					 mCachedCategory = category;
+		builder.setTitle(title).setCancelable(true).setView(scrollView).setLongLivedPositiveButton((newReceipt) ? getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE) : getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int whichButton) {
+				mNameBox = null; // Un-set
+				mCategoriesSpinner = null; // Un-set
+				mPriceBox = null; // Un-set
+				final String name = nameBox.getText().toString();
+				String price = priceBox.getText().toString();
+				String tax = taxBox.getText().toString();
+				final String category = categoriesSpinner.getSelectedItem().toString();
+				final String currency = currencySpinner.getSelectedItem().toString();
+				final String comment = commentBox.getText().toString();
+				final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
+				final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
+				final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
+				final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
+				if (name.length() == 0) {
+					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (dateBox.date == null) {
+					Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
+					return;
+				}
+				else if (!dateBox.date.equals(mNow)) {
+					mCachedDate = (Date) dateBox.date.clone();
+				}
+				mCachedCategory = category;
 
-					 if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
-					 }
+				if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
+					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
+				}
 
-					 if (newReceipt) {//Insert
-						 getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
-						 getDateManager().setDateEditTextListenerDialogHolder(null);
-						 dialog.cancel();
-					 }
-					 else { //Update
-						 if (TextUtils.isEmpty(price)) {
-							price = "0";
-						}
-						 getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
-						 getDateManager().setDateEditTextListenerDialogHolder(null);
-						 dialog.cancel();
-					 }
-				 }
-			 })
-			 .setNegativeButton(getFlexString(R.string.DIALOG_RECEIPTMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-				 @Override
-				public void onClick(DialogInterface dialog, int which) {
-					 if (img != null && newReceipt)
-					 {
-						getPersistenceManager().getStorageManager().delete(img); //Clean Up On Cancel
+				if (newReceipt) {// Insert
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Insert_Receipt");
+					getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+					getDateManager().setDateEditTextListenerDialogHolder(null);
+					dialog.cancel();
+				}
+				else { // Update
+					if (TextUtils.isEmpty(price)) {
+						price = "0";
 					}
-					 getDateManager().setDateEditTextListenerDialogHolder(null);
-					 dialog.cancel();
-				 }
-			 });
+					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Update_Receipt");
+					getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+					getDateManager().setDateEditTextListenerDialogHolder(null);
+					dialog.cancel();
+				}
+			}
+		}).setNegativeButton(getFlexString(R.string.DIALOG_RECEIPTMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if (img != null && newReceipt) {
+					getPersistenceManager().getStorageManager().delete(img); // Clean Up On Cancel
+				}
+				getDateManager().setDateEditTextListenerDialogHolder(null);
+				dialog.cancel();
+			}
+		});
 		final AlertDialog dialog = builder.show();
 		getDateManager().setDateEditTextListenerDialogHolder(dialog);
 		if (newReceipt) {
@@ -670,7 +690,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					if (getActivity() != null) {
-						InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+						InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 						imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
 					}
 				}
@@ -682,7 +702,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					if (getActivity() != null) {
-						InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+						InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 						imm.hideSoftInputFromWindow(nameBox.getWindowToken(), 0);
 					}
 				}
@@ -692,44 +712,37 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	public final void showMileage() {
-    	final String milesString = mCurrentTrip.getMilesAsString();
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-    	final View linearLayout = getFlex().getView(getActivity(), R.layout.dialog_mileage);
+		final String milesString = mCurrentTrip.getMilesAsString();
+		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
+		final View linearLayout = getFlex().getView(getActivity(), R.layout.dialog_mileage);
 		final EditText milesBox = (EditText) getFlex().getSubView(getActivity(), linearLayout, R.id.DIALOG_MILES_DELTA);
-		builder.setTitle(getString(R.string.total_item, milesString))
-			   .setCancelable(true)
-			   .setView(linearLayout)
-			   .setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		        	   if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesBox.getText().toString())) {
-		        		   Toast.makeText(getActivity(), R.string.toast_error_invalid_input, Toast.LENGTH_SHORT).show();
-		        	   }
-		        	   else {
-		        		   mAdapter.notifyDataSetChanged();
-		        	   }
-		           }
-			   })
-			   .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
+		builder.setTitle(getString(R.string.total_item, milesString)).setCancelable(true).setView(linearLayout).setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesBox.getText().toString())) {
+					Toast.makeText(getActivity(), R.string.toast_error_invalid_input, Toast.LENGTH_SHORT).show();
+				}
+				else {
+					mAdapter.notifyDataSetChanged();
+				}
+			}
+		}).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
 
-		           }
-			   })
-			   .show();
-    }
+			}
+		}).show();
+	}
 
-    public final boolean editReceipt(final ReceiptRow receipt) {
-    	mHighlightedReceipt = receipt;
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-		builder.setTitle(receipt.getName())
-			   .setCancelable(true)
-			   .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       });
+	public final boolean editReceipt(final ReceiptRow receipt) {
+		mHighlightedReceipt = receipt;
+		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
+		builder.setTitle(receipt.getName()).setCancelable(true).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		});
 		final Attachment attachment = mAttachable.getAttachment();
 		if (attachment != null && attachment.isDirectlyAttachable()) {
 			final String[] receiptActions;
@@ -747,7 +760,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				@Override
 				public void onClick(DialogInterface dialog, int item) {
 					final String selection = receiptActions[item].toString();
-					if (selection == viewFile) { //Show File
+					if (selection == viewFile) { // Show File
 						if (attachment.isPDF()) {
 							ReceiptsListFragment.this.showPDF(receipt);
 						}
@@ -755,7 +768,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 							ReceiptsListFragment.this.showImage(receipt);
 						}
 					}
-					else if (selection == attachFile) { //Attach File to Receipt
+					else if (selection == attachFile) { // Attach File to Receipt
 						if (attachment.isPDF()) {
 							ReceiptsListFragment.this.attachPDFToReceipt(attachment, receipt, false);
 						}
@@ -763,7 +776,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 							ReceiptsListFragment.this.attachImageToReceipt(attachment, receipt, false);
 						}
 					}
-					else if (selection == replaceFile) { //Replace File for Receipt
+					else if (selection == replaceFile) { // Replace File for Receipt
 						if (attachment.isPDF()) {
 							ReceiptsListFragment.this.attachPDFToReceipt(attachment, receipt, true);
 						}
@@ -776,80 +789,88 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}
 		else {
 			final String receiptActionEdit = getString(R.string.receipt_dialog_action_edit);
-		    final String receiptActionView = getString(R.string.receipt_dialog_action_view, getString(receipt.hasPDF() ? R.string.pdf : R.string.image));
-		    final String receiptActionCamera = getString(R.string.receipt_dialog_action_camera);
-		    final String receiptActionDelete = getString(R.string.receipt_dialog_action_delete);
-		    final String receiptActionMoveCopy = getString(R.string.receipt_dialog_action_move_copy);
-		    final String receiptActionSwapUp = getString(R.string.receipt_dialog_action_swap_up);
-		    final String receiptActionSwapDown = getString(R.string.receipt_dialog_action_swap_down);
-		    final String[] receiptActions;
-		    if (!receipt.hasFile()) {
-		    	receiptActions = new String[] { receiptActionEdit, receiptActionCamera, receiptActionDelete, receiptActionMoveCopy, receiptActionSwapUp, receiptActionSwapDown };
-		    }
-		    else {
-		    	receiptActions = new String[] { receiptActionEdit, receiptActionView, receiptActionDelete, receiptActionMoveCopy, receiptActionSwapUp, receiptActionSwapDown };
-		    }
+			final String receiptActionView = getString(R.string.receipt_dialog_action_view, getString(receipt.hasPDF() ? R.string.pdf : R.string.image));
+			final String receiptActionCamera = getString(R.string.receipt_dialog_action_camera);
+			final String receiptActionDelete = getString(R.string.receipt_dialog_action_delete);
+			final String receiptActionMoveCopy = getString(R.string.receipt_dialog_action_move_copy);
+			final String receiptActionSwapUp = getString(R.string.receipt_dialog_action_swap_up);
+			final String receiptActionSwapDown = getString(R.string.receipt_dialog_action_swap_down);
+			final String[] receiptActions;
+			if (!receipt.hasFile()) {
+				receiptActions = new String[] { receiptActionEdit, receiptActionCamera, receiptActionDelete, receiptActionMoveCopy, receiptActionSwapUp, receiptActionSwapDown };
+			}
+			else {
+				receiptActions = new String[] { receiptActionEdit, receiptActionView, receiptActionDelete, receiptActionMoveCopy, receiptActionSwapUp, receiptActionSwapDown };
+			}
 			builder.setItems(receiptActions, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int item) {
-			    	final String selection = receiptActions[item].toString();
-			    	if (selection == receiptActionEdit) { //Edit Receipt
-			    		ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
-			    	}
-			    	else if (selection == receiptActionCamera) { //Take Photo
+					final String selection = receiptActions[item].toString();
+					if (selection == receiptActionEdit) { // Edit Receipt
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Receipt");
+						ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
+					}
+					else if (selection == receiptActionCamera) { // Take Photo
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Take_Photo_For_Existing_Receipt");
 						File dir = mCurrentTrip.getDirectory();
 						String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-			    		if (getPersistenceManager().getPreferences().useNativeCamera()) {
-			            	final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-			                mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
-			                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-			                startActivityForResult(intent, NATIVE_ADD_PHOTO_CAMERA_REQUEST);
-			        	}
-			        	else {
-			        		if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-			    				final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-			    				mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
-			    				intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-			    				startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
-			    			}
-			    			else {
+						if (getPersistenceManager().getPreferences().useNativeCamera()) {
+							final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+							mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
+							intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+							startActivityForResult(intent, NATIVE_ADD_PHOTO_CAMERA_REQUEST);
+						}
+						else {
+							if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
+								final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
+								mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
+								intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+								startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
+							}
+							else {
 								final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-								String[] strings  = new String[] {dirPath, receipt.getId() + "x.jpg"};
+								String[] strings = new String[] { dirPath, receipt.getId() + "x.jpg" };
 								intent.putExtra(MyCameraActivity.STRING_DATA, strings);
 								startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
-			    			}
-			        	}
-			    	}
-			    	else if (selection == receiptActionView) { //View Photo/PDF
-			    		if (receipt.hasPDF()) {
-			    			ReceiptsListFragment.this.showPDF(receipt);
-			    		}
-			    		else {
-			    			ReceiptsListFragment.this.showImage(receipt);
-			    		}
-			    	}
-			    	else if (selection == receiptActionDelete) { //Delete Receipt
-			    		ReceiptsListFragment.this.deleteReceipt(receipt);
-			    	}
-			    	else if (selection == receiptActionMoveCopy) {//Move-Copy
-			    		ReceiptsListFragment.this.moveOrCopy(receipt);
-			    	}
-			    	else if (selection == receiptActionSwapUp) { //Swap Up
-			    		ReceiptsListFragment.this.moveReceiptUp(receipt);
-			    	}
-			    	else if (selection == receiptActionSwapDown) { //Swap Down
-			    		ReceiptsListFragment.this.moveReceiptDown(receipt);
-			    	}
-			    	dialog.cancel();
-			    }
+							}
+						}
+					}
+					else if (selection == receiptActionView) { // View Photo/PDF
+						if (receipt.hasPDF()) {
+							getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_PDF");
+							ReceiptsListFragment.this.showPDF(receipt);
+						}
+						else {
+							getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_Image");
+							ReceiptsListFragment.this.showImage(receipt);
+						}
+					}
+					else if (selection == receiptActionDelete) { // Delete Receipt
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Delete_Receipt");
+						ReceiptsListFragment.this.deleteReceipt(receipt);
+					}
+					else if (selection == receiptActionMoveCopy) {// Move-Copy
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Move_Copy_Receipt");
+						ReceiptsListFragment.this.moveOrCopy(receipt);
+					}
+					else if (selection == receiptActionSwapUp) { // Swap Up
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Up");
+						ReceiptsListFragment.this.moveReceiptUp(receipt);
+					}
+					else if (selection == receiptActionSwapDown) { // Swap Down
+						getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Down");
+						ReceiptsListFragment.this.moveReceiptDown(receipt);
+					}
+					dialog.cancel();
+				}
 			});
 		}
 		builder.show();
-    	return true;
-    }
+		return true;
+	}
 
-    private void attachImageToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
-    	File dir = mCurrentTrip.getDirectory();
+	private void attachImageToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
+		File dir = mCurrentTrip.getDirectory();
 		String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 		File file = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(attachment.getUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 		if (file != null) {
@@ -864,17 +885,17 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			else {
 				Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 				getActivity().finish(); // Finish activity since we're done with the send action
-				//TODO: Add overwrite rollback here
+				// TODO: Add overwrite rollback here
 			}
 		}
 		else {
 			Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
 			getActivity().finish(); // Finish activity since we're done with the send action
 		}
-    }
+	}
 
-    private void attachPDFToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
-    	File dir = mCurrentTrip.getDirectory();
+	private void attachPDFToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
+		File dir = mCurrentTrip.getDirectory();
 		String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 		File file = new File(dirPath, receipt.getId() + "x.pdf");
 		InputStream is = null;
@@ -893,7 +914,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				else {
 					Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 					getActivity().finish(); // Finish activity since we're done with the send action
-					//TODO: Add overwrite rollback here
+					// TODO: Add overwrite rollback here
 				}
 			}
 		}
@@ -922,48 +943,44 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				Log.w(TAG, e.toString());
 			}
 		}
-    }
+	}
 
-    public void emailTrip() {
-    	EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), mCurrentTrip);
-    }
+	public void emailTrip() {
+		EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), mCurrentTrip);
+	}
 
-    private final void showImage(ReceiptRow receipt) {
+	private final void showImage(ReceiptRow receipt) {
 		final Intent intent = new Intent(getActivity(), ReceiptImageActivity.class);
-    	intent.putExtra(ReceiptRow.PARCEL_KEY, receipt);
-    	intent.putExtra(TripRow.PARCEL_KEY, mCurrentTrip);
-    	startActivity(intent);
-    }
+		intent.putExtra(ReceiptRow.PARCEL_KEY, receipt);
+		intent.putExtra(TripRow.PARCEL_KEY, mCurrentTrip);
+		startActivity(intent);
+	}
 
-    private final void showPDF(ReceiptRow receipt) {
-    	final Intent intent = new Intent(getActivity(), ReceiptPDFActivity.class);
-    	intent.setData(Uri.fromFile(receipt.getPDF()));
-    	startActivity(intent);
-    }
+	private final void showPDF(ReceiptRow receipt) {
+		final Intent intent = new Intent(getActivity(), ReceiptPDFActivity.class);
+		intent.setData(Uri.fromFile(receipt.getPDF()));
+		startActivity(intent);
+	}
 
-    public final void deleteReceipt(final ReceiptRow receipt) {
-    	AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(getString(R.string.delete_item, receipt.getName()))
-			   .setCancelable(true)
-			   .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                getPersistenceManager().getDatabase().deleteReceiptParallel(receipt, mCurrentTrip);
-		           }
-		       })
-		       .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       })
-		       .show();
-    }
+	public final void deleteReceipt(final ReceiptRow receipt) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(getString(R.string.delete_item, receipt.getName())).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				getPersistenceManager().getDatabase().deleteReceiptParallel(receipt, mCurrentTrip);
+			}
+		}).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		}).show();
+	}
 
-    public void moveOrCopy(final ReceiptRow receipt) {
-    	final DatabaseHelper db = getPersistenceManager().getDatabase();
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-    	final LinearLayout outerLayout = new LinearLayout(getActivity());
+	public void moveOrCopy(final ReceiptRow receipt) {
+		final DatabaseHelper db = getPersistenceManager().getDatabase();
+		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
+		final LinearLayout outerLayout = new LinearLayout(getActivity());
 		outerLayout.setOrientation(LinearLayout.VERTICAL);
 		outerLayout.setGravity(Gravity.BOTTOM);
 		outerLayout.setPadding(10, 0, 10, 10);
@@ -974,50 +991,45 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		tripsSpinner.setAdapter(tripNames);
 		tripsSpinner.setPrompt(getString(R.string.report));
 		outerLayout.addView(tripsSpinner, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		builder.setTitle(getString(R.string.move_copy_item, receipt.getName()))
-			   .setView(outerLayout)
-			   .setCancelable(true)
-			   .setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		        	   if (tripsSpinner.getSelectedItem() != null) {
-			        	   db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-			        	   dialog.cancel();
-		        	   }
-		        	   else {
-		        		   ReceiptsListFragment.this.onReceiptMoveFailure();
-		        	   }
-		           }
-		       })
-		       .setNegativeButton(R.string.copy, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		        	   if (tripsSpinner.getSelectedItem() != null) {
-			        	   db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-			        	   dialog.cancel();
-			           }
-		        	   else {
-		        		   ReceiptsListFragment.this.onReceiptCopyFailure();
-		        	   }
-		           }
-		       })
-		       .show();
-    }
+		builder.setTitle(getString(R.string.move_copy_item, receipt.getName())).setView(outerLayout).setCancelable(true).setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				if (tripsSpinner.getSelectedItem() != null) {
+					db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+					dialog.cancel();
+				}
+				else {
+					ReceiptsListFragment.this.onReceiptMoveFailure();
+				}
+			}
+		}).setNegativeButton(R.string.copy, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				if (tripsSpinner.getSelectedItem() != null) {
+					db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
+					dialog.cancel();
+				}
+				else {
+					ReceiptsListFragment.this.onReceiptCopyFailure();
+				}
+			}
+		}).show();
+	}
 
-    final void moveReceiptUp(final ReceiptRow receipt) {
-    	getPersistenceManager().getDatabase().moveReceiptUp(mCurrentTrip, receipt);
+	final void moveReceiptUp(final ReceiptRow receipt) {
+		getPersistenceManager().getDatabase().moveReceiptUp(mCurrentTrip, receipt);
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-    }
+	}
 
-    final void moveReceiptDown(final ReceiptRow receipt) {
-    	getPersistenceManager().getDatabase().moveReceiptDown(mCurrentTrip, receipt);
+	final void moveReceiptDown(final ReceiptRow receipt) {
+		getPersistenceManager().getDatabase().moveReceiptDown(mCurrentTrip, receipt);
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-    }
+	}
 
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-    	editReceipt(mAdapter.getItem(position));
-    }
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		editReceipt(mAdapter.getItem(position));
+	}
 
 	@Override
 	public void onReceiptRowsQuerySuccess(List<ReceiptRow> receipts) {
@@ -1072,14 +1084,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	@Override
 	public void onReceiptDeleteSuccess(ReceiptRow receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-    	if (receipt.hasFile()) {
-    		if (!getPersistenceManager().getStorageManager().delete(receipt.getFile())) {
+		if (receipt.hasFile()) {
+			if (!getPersistenceManager().getStorageManager().delete(receipt.getFile())) {
 				Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
 			}
-    	}
-    	if (!receipt.isPriceEmpty()) {
-    		ReceiptsListFragment.this.updateActionBarTitle();
-    	}
+		}
+		if (!receipt.isPriceEmpty()) {
+			ReceiptsListFragment.this.updateActionBarTitle();
+		}
 	}
 
 	@Override
@@ -1087,9 +1099,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 	}
 
-    public OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
-    	return new SpinnerSelectionListener(nameBox, commentBox, categories);
-    }
+	public OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
+		return new SpinnerSelectionListener(nameBox, commentBox, categories);
+	}
 
 	private final class SpinnerSelectionListener implements OnItemSelectedListener {
 
@@ -1113,7 +1125,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}
 
 		@Override
-		public void onNothingSelected(AdapterView<?> arg0) {}
+		public void onNothingSelected(AdapterView<?> arg0) {
+		}
 	}
 
 	@Override

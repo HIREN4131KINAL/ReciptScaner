@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.support.v4.app.Fragment;
 
 /**
- * Currently, just a stub class - This may be used at a later date to track
- * usage information
+ * Currently, just a stub class - This may be used at a later date to track usage information
+ * 
  * @author WRB
- *
+ * 
  */
 public class Logger extends WorkerChild {
 
@@ -24,6 +24,14 @@ public class Logger extends WorkerChild {
 	}
 
 	public void logError(String log) {
+
+	}
+
+	public void logEvent(Activity activity, String action) {
+
+	}
+
+	public void logEvent(Fragment fragment, String action) {
 
 	}
 

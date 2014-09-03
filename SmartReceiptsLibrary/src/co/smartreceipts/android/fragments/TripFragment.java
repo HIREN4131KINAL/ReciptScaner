@@ -252,6 +252,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 						 }
 					 }
 					 if (newTrip) { //Insert
+						 getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
 						 File dir = persistenceManager.getStorageManager().mkdir(name);
 						 if (dir != null) {
 							 persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, defaultCurrencyCode);
@@ -262,6 +263,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 						 dialog.cancel();
 					 }
 					 else { //Update
+						 getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
 						 final File dir = persistenceManager.getStorageManager().rename(trip.getDirectory(), name);
 						 if (dir == trip.getDirectory()) {
 							 Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();

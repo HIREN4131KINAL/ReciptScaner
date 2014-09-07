@@ -1033,17 +1033,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
 	@Override
 	public void onReceiptRowsQuerySuccess(List<ReceiptRow> receipts) {
-		mProgressDialog.setVisibility(View.GONE);
-		getListView().setVisibility(View.VISIBLE);
-		if (receipts == null || receipts.size() == 0) {
-			mNoDataAlert.setVisibility(View.VISIBLE);
+		if (isAdded()) {
+			mProgressDialog.setVisibility(View.GONE);
+			getListView().setVisibility(View.VISIBLE);
+			if (receipts == null || receipts.size() == 0) {
+				mNoDataAlert.setVisibility(View.VISIBLE);
+			}
+			else {
+				mNoDataAlert.setVisibility(View.INVISIBLE);
+			}
+			getPersistenceManager().getDatabase().getTripsParallel();
+			mAdapter.notifyDataSetChanged(receipts);
+			updateActionBarTitle();
 		}
-		else {
-			mNoDataAlert.setVisibility(View.INVISIBLE);
-		}
-		getPersistenceManager().getDatabase().getTripsParallel();
-		mAdapter.notifyDataSetChanged(receipts);
-		updateActionBarTitle();
 	}
 
 	@Override
@@ -1053,50 +1055,62 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
 	@Override
 	public void onReceiptRowInsertFailure(SQLException ex) {
-		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
 	public void onReceiptRowUpdateSuccess(ReceiptRow receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-		ReceiptsListFragment.this.updateActionBarTitle();
+		if (isAdded()) {
+			ReceiptsListFragment.this.updateActionBarTitle();
+		}
 	}
 
 	@Override
 	public void onReceiptRowUpdateFailure() {
-		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
 	public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category) {
-		if (mNameBox != null && name != null) {
-			mNameBox.setText(name);
-			mNameBox.setSelection(name.length());
-		}
-		if (mPriceBox != null && price != null && mPriceBox.getText().length() == 0) {
-			mPriceBox.setText(price);
-		}
-		if (mCategoriesSpinner != null && category != null) {
-			mCategoriesSpinner.setSelection(getPersistenceManager().getDatabase().getCategoriesList().indexOf(category));
+		if (isAdded()) {
+			if (mNameBox != null && name != null) {
+				mNameBox.setText(name);
+				mNameBox.setSelection(name.length());
+			}
+			if (mPriceBox != null && price != null && mPriceBox.getText().length() == 0) {
+				mPriceBox.setText(price);
+			}
+			if (mCategoriesSpinner != null && category != null) {
+				mCategoriesSpinner.setSelection(getPersistenceManager().getDatabase().getCategoriesList().indexOf(category));
+			}
 		}
 	}
 
 	@Override
 	public void onReceiptDeleteSuccess(ReceiptRow receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-		if (receipt.hasFile()) {
-			if (!getPersistenceManager().getStorageManager().delete(receipt.getFile())) {
-				Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+		if (isAdded()) {
+			if (receipt.hasFile()) {
+				if (!getPersistenceManager().getStorageManager().delete(receipt.getFile())) {
+					Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+				}
 			}
-		}
-		if (!receipt.isPriceEmpty()) {
-			ReceiptsListFragment.this.updateActionBarTitle();
+			if (!receipt.isPriceEmpty()) {
+				ReceiptsListFragment.this.updateActionBarTitle();
+			}
 		}
 	}
 
 	@Override
 	public void onReceiptDeleteFailure() {
-		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	public OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
@@ -1133,24 +1147,32 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	public void onReceiptCopySuccess(TripRow tripRow) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
-		Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_copy), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_copy), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
 	public void onReceiptCopyFailure() {
-		Toast.makeText(getActivity(), getFlexString(R.string.COPY_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.COPY_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
 	public void onReceiptMoveSuccess(TripRow tripRow) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
-		Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_move), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_move), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
 	public void onReceiptMoveFailure() {
-		Toast.makeText(getActivity(), getFlexString(R.string.MOVE_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.MOVE_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 }

@@ -46,17 +46,15 @@ import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
 
 // TODO: Extend ListFragment
-public class TripFragment extends WBListFragment implements BooleanTaskCompleteDelegate,
-														    DatabaseHelper.TripRowListener,
-														    AdapterView.OnItemLongClickListener {
+public class TripFragment extends WBListFragment implements BooleanTaskCompleteDelegate, DatabaseHelper.TripRowListener, AdapterView.OnItemLongClickListener {
 
 	public static final String TAG = "TripFragment";
 
-	private static final CharSequence[] RESERVED_CHARS = {"|","\\","?","*","<","\"",":",">","+","[","]","/","'","\n","\r","\t","\0","\f"};
+	private static final CharSequence[] RESERVED_CHARS = { "|", "\\", "?", "*", "<", "\"", ":", ">", "+", "[", "]", "/", "'", "\n", "\r", "\t", "\0", "\f" };
 
 	private TripCardAdapter mAdapter;
 	private AutoCompleteAdapter mAutoCompleteAdapter;
-	private boolean mIsFirstPass;  //Tracks that this is the first time we're using this
+	private boolean mIsFirstPass; // Tracks that this is the first time we're using this
 	private Navigable mNavigator;
 	private Attachable mAttachable;
 	private ProgressBar mProgressDialog;
@@ -106,7 +104,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		setListAdapter(mAdapter); //Set this here to ensure this has been laid out already
+		setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
 		getListView().setOnItemLongClickListener(this);
 	}
 
@@ -165,11 +163,11 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	public final void tripMenu(final TripRow trip) {
 		final PersistenceManager persistenceManager = getPersistenceManager();
 		if (!persistenceManager.getStorageManager().isExternal()) {
-    		Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-    		return;
-    	}
+			Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+			return;
+		}
 
-    	final boolean newTrip = (trip == null);
+		final boolean newTrip = (trip == null);
 
 		final View scrollView = getFlex().getView(getActivity(), R.layout.dialog_tripmenu);
 		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_name);
@@ -182,11 +180,11 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		currencySpinner.setAdapter(currenices);
 
-		//Show default dictionary with auto-complete
+		// Show default dictionary with auto-complete
 		TextKeyListener input = TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES);
 		nameBox.setKeyListener(input);
 
-		//Fill Out Fields
+		// Fill Out Fields
 		if (newTrip) {
 			if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
 				final DatabaseHelper db = getPersistenceManager().getDatabase();
@@ -195,7 +193,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 				}
 				nameBox.setAdapter(mAutoCompleteAdapter);
 			}
-			startBox.setFocusableInTouchMode(false); startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));
+			startBox.setFocusableInTouchMode(false);
+			startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));
 			int idx = currenices.getPosition(getPersistenceManager().getPreferences().getDefaultCurreny());
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
@@ -205,195 +204,204 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 			if (trip.getDirectory() != null) {
 				nameBox.setText(trip.getName());
 			}
-			if (trip.getStartDate() != null) { startBox.setText(trip.getFormattedStartDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator())); startBox.date = trip.getStartDate(); }
-			if (trip.getEndDate() != null) { endBox.setText(trip.getFormattedEndDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator())); endBox.date = trip.getEndDate(); }
-			if (!TextUtils.isEmpty(trip.getComment())) { commentBox.setText(trip.getComment()); }
+			if (trip.getStartDate() != null) {
+				startBox.setText(trip.getFormattedStartDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+				startBox.date = trip.getStartDate();
+			}
+			if (trip.getEndDate() != null) {
+				endBox.setText(trip.getFormattedEndDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+				endBox.date = trip.getEndDate();
+			}
+			if (!TextUtils.isEmpty(trip.getComment())) {
+				commentBox.setText(trip.getComment());
+			}
 			int idx = currenices.getPosition(trip.getDefaultCurrencyCode());
-			if (idx > 0) { currencySpinner.setSelection(idx); }
-			startBox.setFocusableInTouchMode(false); startBox.setOnClickListener(getDateManager().getDateEditTextListener());
+			if (idx > 0) {
+				currencySpinner.setSelection(idx);
+			}
+			startBox.setFocusableInTouchMode(false);
+			startBox.setOnClickListener(getDateManager().getDateEditTextListener());
 		}
-		endBox.setFocusableInTouchMode(false); endBox.setOnClickListener(getDateManager().getDateEditTextListener());
-		nameBox.setSelection(nameBox.getText().length()); //Put the cursor at the end
+		endBox.setFocusableInTouchMode(false);
+		endBox.setOnClickListener(getDateManager().getDateEditTextListener());
+		nameBox.setSelection(nameBox.getText().length()); // Put the cursor at the end
 
-		//Show the DialogController
+		// Show the DialogController
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-		builder.setTitle((newTrip)?getFlexString(R.string.DIALOG_TRIPMENU_TITLE_NEW):getFlexString(R.string.DIALOG_TRIPMENU_TITLE_EDIT))
-			 .setCancelable(true)
-			 .setView(scrollView)
-			 .setLongLivedPositiveButton((newTrip)?getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE):getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					 String name = nameBox.getText().toString().trim();
-					 final String startDate = startBox.getText().toString();
-					 final String endDate = endBox.getText().toString();
-					 final String defaultCurrencyCode = currencySpinner.getSelectedItem().toString();
-					 final String comment = commentBox.getText().toString();
-					 //Error Checking
-					 if (name.length() == 0 || startDate.length() == 0 || endDate.length() == 0) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 if (startBox.date == null || endBox.date == null) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 if (startBox.date.getTime() > endBox.date.getTime()) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.DURATION_ERROR), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 if (name.startsWith(" ")) {
-						 Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_SHORT).show();
-						 return;
-					 }
-					 for (int i=0; i < RESERVED_CHARS.length; i++) {
-						 if (name.contains(RESERVED_CHARS[i])) {
-							 Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_SHORT).show();
-							 return;
-						 }
-					 }
-					 if (newTrip) { //Insert
-						 getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
-						 File dir = persistenceManager.getStorageManager().mkdir(name);
-						 if (dir != null) {
-							 persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, defaultCurrencyCode);
-						 }
-						 else {
-							 Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-						 }
-						 dialog.cancel();
-					 }
-					 else { //Update
-						 getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
-						 final File dir = persistenceManager.getStorageManager().rename(trip.getDirectory(), name);
-						 if (dir == trip.getDirectory()) {
-							 Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-							 return;
-						 }
-						 persistenceManager.getDatabase().updateTripParallel(trip, dir, (startBox.date != null) ? startBox.date : trip.getStartDate(), (endBox.date != null) ? endBox.date : trip.getStartDate(), comment, defaultCurrencyCode);
-						 dialog.cancel();
-					 }
+		builder.setTitle((newTrip) ? getFlexString(R.string.DIALOG_TRIPMENU_TITLE_NEW) : getFlexString(R.string.DIALOG_TRIPMENU_TITLE_EDIT)).setCancelable(true).setView(scrollView).setLongLivedPositiveButton((newTrip) ? getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE) : getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int whichButton) {
+				String name = nameBox.getText().toString().trim();
+				final String startDate = startBox.getText().toString();
+				final String endDate = endBox.getText().toString();
+				final String defaultCurrencyCode = currencySpinner.getSelectedItem().toString();
+				final String comment = commentBox.getText().toString();
+				// Error Checking
+				if (name.length() == 0 || startDate.length() == 0 || endDate.length() == 0) {
+					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_SHORT).show();
+					return;
 				}
-			 })
-			 .setNegativeButton(getFlexString(R.string.DIALOG_TRIPMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-				 @Override
-				public void onClick(DialogInterface dialog, int which) {
-					 String name = nameBox.getText().toString().trim();
-					 if (name != null && name.equalsIgnoreCase("_import_")) {
-						File smr = persistenceManager.getStorageManager().getFile("SmartReceipts.smr");
-						if (smr != null && smr.exists()) {
-							final Uri uri = Uri.fromFile(smr);
-				        	performImport(uri);
-						}
-					 }
-					 dialog.cancel();
-				 }
-			 })
-			 .show();
+				if (startBox.date == null || endBox.date == null) {
+					Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (startBox.date.getTime() > endBox.date.getTime()) {
+					Toast.makeText(getActivity(), getFlexString(R.string.DURATION_ERROR), Toast.LENGTH_SHORT).show();
+					return;
+				}
+				if (name.startsWith(" ")) {
+					Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_SHORT).show();
+					return;
+				}
+				for (int i = 0; i < RESERVED_CHARS.length; i++) {
+					if (name.contains(RESERVED_CHARS[i])) {
+						Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_SHORT).show();
+						return;
+					}
+				}
+				if (newTrip) { // Insert
+					getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
+					File dir = persistenceManager.getStorageManager().mkdir(name);
+					if (dir != null) {
+						persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, defaultCurrencyCode);
+					}
+					else {
+						Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+					}
+					dialog.cancel();
+				}
+				else { // Update
+					getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
+					final File dir = persistenceManager.getStorageManager().rename(trip.getDirectory(), name);
+					if (dir == trip.getDirectory()) {
+						Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+						return;
+					}
+					persistenceManager.getDatabase().updateTripParallel(trip, dir, (startBox.date != null) ? startBox.date : trip.getStartDate(), (endBox.date != null) ? endBox.date : trip.getStartDate(), comment, defaultCurrencyCode);
+					dialog.cancel();
+				}
+			}
+		}).setNegativeButton(getFlexString(R.string.DIALOG_TRIPMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				String name = nameBox.getText().toString().trim();
+				if (name != null && name.equalsIgnoreCase("_import_")) {
+					File smr = persistenceManager.getStorageManager().getFile("SmartReceipts.smr");
+					if (smr != null && smr.exists()) {
+						final Uri uri = Uri.fromFile(smr);
+						performImport(uri);
+					}
+				}
+				dialog.cancel();
+			}
+		}).show();
 	}
 
 	public final boolean editTrip(final TripRow trip) {
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
 		final String[] editTripItems = getFlex().getStringArray(getActivity(), R.array.EDIT_TRIP_ITEMS);
-		builder.setTitle(trip.getName())
-			   .setCancelable(true)
-			   .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       })
-		       .setItems(editTripItems, new DialogInterface.OnClickListener() {
-				    @Override
-					public void onClick(DialogInterface dialog, int item) {
-				    	final String selection = editTripItems[item].toString();
-				    	if (selection == editTripItems[0]) { //Email Trip
-				    		TripFragment.this.emailTrip(trip);
-				    	}
-				    	else if (selection == editTripItems[1]) {
-							TripFragment.this.tripMenu(trip);
-						} else if (selection == editTripItems[2]) {
-							TripFragment.this.deleteTrip(trip);
-						}
-				    	dialog.cancel();
-				    }
-				})
-				.show();
-    	return true;
-    }
+		builder.setTitle(trip.getName()).setCancelable(true).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		}).setItems(editTripItems, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int item) {
+				final String selection = editTripItems[item].toString();
+				if (selection == editTripItems[0]) { // Email Trip
+					TripFragment.this.emailTrip(trip);
+				}
+				else if (selection == editTripItems[1]) {
+					TripFragment.this.tripMenu(trip);
+				}
+				else if (selection == editTripItems[2]) {
+					TripFragment.this.deleteTrip(trip);
+				}
+				dialog.cancel();
+			}
+		}).show();
+		return true;
+	}
 
 	public void emailTrip(TripRow trip) {
-    	EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), trip);
-    }
+		EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), trip);
+	}
 
 	public final void deleteTrip(final TripRow trip) {
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-		builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END))
-			   .setCancelable(true)
-			   .setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		               getPersistenceManager().getDatabase().deleteTripParallel(trip);
-		           }
-		       })
-		       .setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
-		           @Override
-				public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       })
-		       .show();
-    }
+		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
+		builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				getPersistenceManager().getDatabase().deleteTripParallel(trip);
+			}
+		}).setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				dialog.cancel();
+			}
+		}).show();
+	}
 
 	@Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-    	viewReceipts(mAdapter.getItem(position));
-    	//v.setSelected(true);
-    }
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		viewReceipts(mAdapter.getItem(position));
+		// v.setSelected(true);
+	}
 
-    @Override
+	@Override
 	public boolean onItemLongClick(AdapterView<?> a, View v, int position, long id) {
-    	editTrip(mAdapter.getItem(position));
+		editTrip(mAdapter.getItem(position));
 		return true;
 	}
 
 	@Override
 	public void onTripRowsQuerySuccess(TripRow[] trips) {
-		mProgressDialog.setVisibility(View.GONE);
-		getListView().setVisibility(View.VISIBLE);
-		if (trips == null || trips.length == 0) {
-			mNoDataAlert.setVisibility(View.VISIBLE);
-		}
-		else {
-			mNoDataAlert.setVisibility(View.INVISIBLE);
-		}
-		mAdapter.notifyDataSetChanged(Arrays.asList(trips));
-		if (mIsFirstPass) { //Pre-Cache the receipts for the top two trips
-			mIsFirstPass = false;
-			if (trips.length > 0) {
-				getPersistenceManager().getDatabase().getReceiptsParallel(trips[0], true);
+		if (isAdded()) {
+			mProgressDialog.setVisibility(View.GONE);
+			getListView().setVisibility(View.VISIBLE);
+			if (trips == null || trips.length == 0) {
+				mNoDataAlert.setVisibility(View.VISIBLE);
 			}
-			if (trips.length > 1) {
-				getPersistenceManager().getDatabase().getReceiptsParallel(trips[1], true);
+			else {
+				mNoDataAlert.setVisibility(View.INVISIBLE);
 			}
-			if (trips.length > 0) {
-				// If we have trips, open up whatever one was last
-				viewReceipts(null);
+			mAdapter.notifyDataSetChanged(Arrays.asList(trips));
+			if (mIsFirstPass) { // Pre-Cache the receipts for the top two trips
+				mIsFirstPass = false;
+				if (trips.length > 0) {
+					getPersistenceManager().getDatabase().getReceiptsParallel(trips[0], true);
+				}
+				if (trips.length > 1) {
+					getPersistenceManager().getDatabase().getReceiptsParallel(trips[1], true);
+				}
+				if (trips.length > 0) {
+					// If we have trips, open up whatever one was last
+					viewReceipts(null);
+				}
 			}
 		}
 	}
 
 	@Override
 	public void onTripRowInsertSuccess(TripRow trip) {
-		viewReceipts(trip);
+		if (isAdded()) {
+			viewReceipts(trip);
+		}
 		getPersistenceManager().getDatabase().getTripsParallel();
 	}
 
 	@Override
 	public void onTripRowInsertFailure(SQLException ex, File directory) {
 		if (ex != null) {
-			Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_SHORT).show();
-		} else {
-			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+			if (isAdded()) {
+				Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_SHORT).show();
+			}
+		}
+		else {
+			if (isAdded()) {
+				Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+			}
 			getPersistenceManager().getStorageManager().delete(directory);
 		}
 
@@ -402,7 +410,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	@Override
 	public void onTripRowUpdateSuccess(TripRow trip) {
 		getPersistenceManager().getDatabase().getTripsParallel();
-		viewReceipts(trip);
+		if (isAdded()) {
+			viewReceipts(trip);
+		}
 	}
 
 	public void viewReceipts(TripRow trip) {
@@ -411,16 +421,18 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
 	@Override
 	public void onTripRowUpdateFailure(TripRow newTrip, TripRow oldTrip, File directory) {
-		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 		getPersistenceManager().getStorageManager().rename(directory, oldTrip.getName());
-		viewReceipts(newTrip);
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+			viewReceipts(newTrip);
+		}
 	}
 
 	@Override
 	public void onTripDeleteSuccess(TripRow oldTrip) {
 		if (oldTrip != null) {
 			if (!getPersistenceManager().getStorageManager().deleteRecursively(oldTrip.getDirectory())) {
-	    		Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+				Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
 			}
 		}
 		final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
@@ -433,59 +445,56 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
 	@Override
 	public void onTripDeleteFailure() {
-		Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		if (isAdded()) {
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private void performImport(final Uri uri) {
-    	final CheckBox overwrite = new CheckBox(getActivity()); overwrite.setText(" Overwrite Existing Data?");
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-    	builder.setTitle(R.string.import_string)
-    	   .setView(overwrite)
-		   .setCancelable(true)
-		   .setPositiveButton(R.string.import_string, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					(new ImportTask(getActivity(), TripFragment.this, getString(R.string.progress_import), IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
-				}
-		    })
-		   .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					return;
-				}
-		    })
-		   .show();
+		final CheckBox overwrite = new CheckBox(getActivity());
+		overwrite.setText(" Overwrite Existing Data?");
+		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
+		builder.setTitle(R.string.import_string).setView(overwrite).setCancelable(true).setPositiveButton(R.string.import_string, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				(new ImportTask(getActivity(), TripFragment.this, getString(R.string.progress_import), IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
+			}
+		}).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				return;
+			}
+		}).show();
 	}
 
 	private final int IMPORT_TASK_ID = 1;
-    @Override
-    public synchronized void onBooleanTaskComplete(int taskID, Boolean success) {
-    	if (taskID == IMPORT_TASK_ID) {
-    		if (success) {
-    			Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-    			getActivity().finish(); //TODO: Fix this hack - finishing the activity to get rid of the old Intent so we don't reshow import dialog
-    		}
-    		else {
-    			Toast.makeText(getActivity(), getFlexString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
-    		}
-    		getPersistenceManager().getDatabase().getTripsParallel();
-    	}
-    }
+
+	@Override
+	public synchronized void onBooleanTaskComplete(int taskID, Boolean success) {
+		if (taskID == IMPORT_TASK_ID) {
+			if (success) {
+				Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
+				getActivity().finish(); // TODO: Fix this hack - finishing the activity to get rid of the old Intent so
+										// we don't reshow import dialog
+			}
+			else {
+				Toast.makeText(getActivity(), getFlexString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+			}
+			getPersistenceManager().getDatabase().getTripsParallel();
+		}
+	}
 
 	@Override
 	public void onSQLCorruptionException() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(R.string.dialog_sql_corrupt_title)
-			   .setMessage(R.string.dialog_sql_corrupt_message)
-			   .setPositiveButton(R.string.dialog_sql_corrupt_positive, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int position) {
-						Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.dialog_sql_corrupt_intent_subject), getString(R.string.dialog_sql_corrupt_intent_text));
-						getActivity().startActivity(Intent.createChooser(intent, getResources().getString(R.string.dialog_sql_corrupt_chooser)));
-						dialog.dismiss();
-					}
-			   })
-			   .show();
+		builder.setTitle(R.string.dialog_sql_corrupt_title).setMessage(R.string.dialog_sql_corrupt_message).setPositiveButton(R.string.dialog_sql_corrupt_positive, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int position) {
+				Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.dialog_sql_corrupt_intent_subject), getString(R.string.dialog_sql_corrupt_intent_text));
+				getActivity().startActivity(Intent.createChooser(intent, getResources().getString(R.string.dialog_sql_corrupt_chooser)));
+				dialog.dismiss();
+			}
+		}).show();
 	}
 
 }

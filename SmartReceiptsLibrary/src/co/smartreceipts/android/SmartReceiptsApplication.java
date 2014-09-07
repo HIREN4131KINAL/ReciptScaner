@@ -24,44 +24,45 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
+import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 
 /**
- * This extends GalleryAppImpl for the camera, since we can only define a single
- * application in the manifest
+ * This extends GalleryAppImpl for the camera, since we can only define a single application in the manifest
+ * 
  * @author WRB
- *
+ * 
  */
-public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable,
-																	    Preferences.VersionUpgradeListener,
-																	    DatabaseHelper.TableDefaultsCustomizer {
+public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener, DatabaseHelper.TableDefaultsCustomizer {
 
 	public static final String TAG = "SmartReceiptsApplication";
 
 	private WorkerManager mWorkerManager;
-    private PersistenceManager mPersistenceManager;
-    private Flex mFlex;
-    private Activity mCurrentActivity;
-    private Settings mSettings;
-    private boolean mDeferFirstRunDialog;
-    
-    /**
-     * The {@link Application} class is a singleton, so we can cache it here for emergency restoration
-     */
-    private static SmartReceiptsApplication sApplication;
+	private PersistenceManager mPersistenceManager;
+	private Flex mFlex;
+	private Activity mCurrentActivity;
+	private Settings mSettings;
+	private boolean mDeferFirstRunDialog;
+
+	/**
+	 * The {@link Application} class is a singleton, so we can cache it here for emergency restoration
+	 */
+	private static SmartReceiptsApplication sApplication;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		preloadSharedPreferences();
+		WBUncaughtExceptionHandler.initialize();
 		sApplication = this;
 		mDeferFirstRunDialog = false;
 		mFlex = instantiateFlex();
 		mWorkerManager = instantiateWorkerManager();
 		mPersistenceManager = instantiatePersistenceManager();
-		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null in onVersionUpgrade
+		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
+																				// in onVersionUpgrade
 	}
-	
+
 	public static final SmartReceiptsApplication getInstance() {
 		return sApplication;
 	}
@@ -78,8 +79,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	}
 
 	/**
-	 * All SharedPreferences are singletons, so let's go ahead and load all of them as soon as our
-	 * app starts
+	 * All SharedPreferences are singletons, so let's go ahead and load all of them as soon as our app starts
 	 */
 	private void preloadSharedPreferences() {
 		if (BuildConfig.DEBUG) {
@@ -131,41 +131,41 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	}
 
 	public WorkerManager getWorkerManager() {
-    	return mWorkerManager;
-    }
+		return mWorkerManager;
+	}
 
-    public PersistenceManager getPersistenceManager() {
-    	return mPersistenceManager;
-    }
+	public PersistenceManager getPersistenceManager() {
+		return mPersistenceManager;
+	}
 
-    public Flex getFlex() {
-    	return mFlex;
-    }
+	public Flex getFlex() {
+		return mFlex;
+	}
 
-    public Settings getSettings() {
-    	if (mSettings == null) {
-    		mSettings = instantiateSettings();
-    	}
-    	return mSettings;
-    }
+	public Settings getSettings() {
+		if (mSettings == null) {
+			mSettings = instantiateSettings();
+		}
+		return mSettings;
+	}
 
 	@Override
 	public int getFleXML() {
 		return Flexable.UNDEFINED;
 	}
 
-	//This is called after _sdCard is available but before _db is
-    //This was added after version 78 (version 79 is the first "new" one)
-    //Make this a listener
+	// This is called after _sdCard is available but before _db is
+	// This was added after version 78 (version 79 is the first "new" one)
+	// Make this a listener
 	@Override
-    public void onVersionUpgrade(int oldVersion, int newVersion) {
-    	if (BuildConfig.DEBUG) {
+	public void onVersionUpgrade(int oldVersion, int newVersion) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "Upgrading the app from version " + oldVersion + " to " + newVersion);
 		}
-    	if (oldVersion <= 78) {
+		if (oldVersion <= 78) {
 			try {
 				StorageManager external = mPersistenceManager.getExternalStorageManager();
-				File db = this.getDatabasePath(DatabaseHelper.DATABASE_NAME); //Internal db file
+				File db = this.getDatabasePath(DatabaseHelper.DATABASE_NAME); // Internal db file
 				if (db != null && db.exists()) {
 					File sdDB = external.getFile("receipts.db");
 					if (sdDB.exists()) {
@@ -184,45 +184,42 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 					}
 				}
 			}
-			catch (SDCardStateException e) { }
+			catch (SDCardStateException e) {
+			}
 			oldVersion++;
 		}
-    }
+	}
 
 	@Override
 	public final void onFirstRun() {
-    	if (mCurrentActivity != null) {
-    		if (BuildConfig.DEBUG) {
+		if (mCurrentActivity != null) {
+			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "Launching first run dialog");
 			}
-    		mDeferFirstRunDialog = false;
-    		showFirstRunDialog();
-    	}
-    	else {
-    		if (BuildConfig.DEBUG) {
+			mDeferFirstRunDialog = false;
+			showFirstRunDialog();
+		}
+		else {
+			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "Deferring first run dialog");
 			}
-    		mDeferFirstRunDialog = true;
-    	}
-    }
+			mDeferFirstRunDialog = true;
+		}
+	}
 
 	protected void showFirstRunDialog() {
 		/*
-    	final BetterDialogBuilder builder = new BetterDialogBuilder(mCurrentActivity);
-    	builder.setTitle(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_TITLE))
-    		   .setMessage(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_MESSAGE))
-    		   .setPositiveButton(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-    		   });
-		mCurrentActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				builder.show();
-			}
-		});*/
+		 * final BetterDialogBuilder builder = new BetterDialogBuilder(mCurrentActivity);
+		 * builder.setTitle(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_TITLE))
+		 * .setMessage(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_MESSAGE))
+		 * .setPositiveButton(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_POSITIVE_BUTTON), new
+		 * DialogInterface.OnClickListener() {
+		 * 
+		 * @Override public void onClick(DialogInterface dialog, int which) { dialog.cancel(); } });
+		 * mCurrentActivity.runOnUiThread(new Runnable() {
+		 * 
+		 * @Override public void run() { builder.show(); } });
+		 */
 	}
 
 	@Override
@@ -252,10 +249,10 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		db.insertCategoryNoCache(resources.getString(R.string.category_meals_justified), resources.getString(R.string.category_meals_justified_code));
 		db.insertCategoryNoCache(resources.getString(R.string.category_stationery_stations), resources.getString(R.string.category_stationery_stations_code));
 		db.insertCategoryNoCache(resources.getString(R.string.category_training_fees), resources.getString(R.string.category_training_fees_code));
-    }
+	}
 
 	@Override
-	public void insertCSVDefaults(final DatabaseHelper db) { //Called in onCreate and onUpgrade
+	public void insertCSVDefaults(final DatabaseHelper db) { // Called in onCreate and onUpgrade
 		@SuppressWarnings("unused")
 		CSVColumns csv = new CSVColumns(getApplicationContext(), this);
 		// TODO: Make this not so hacky and use really OOP
@@ -281,6 +278,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	/**
 	 * Protected method to enable subclasses to create custom instances
+	 * 
 	 * @return a WorkerManager Instance
 	 */
 	protected WorkerManager instantiateWorkerManager() {
@@ -289,27 +287,30 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	/**
 	 * Protected method to enable subclasses to create custom instances
+	 * 
 	 * @return a PersistenceManager Instance
 	 */
-    protected PersistenceManager instantiatePersistenceManager() {
-    	return new PersistenceManager(this);
-    }
+	protected PersistenceManager instantiatePersistenceManager() {
+		return new PersistenceManager(this);
+	}
 
-    /**
+	/**
 	 * Protected method to enable subclasses to create custom instances
+	 * 
 	 * @return a Flex Instance
 	 */
-    protected Flex instantiateFlex() {
-    	return Flex.getInstance(this, this);
-    }
+	protected Flex instantiateFlex() {
+		return Flex.getInstance(this, this);
+	}
 
-    /**
+	/**
 	 * Protected method to enable subclasses to create custom instances
+	 * 
 	 * @return a Settings Instance
 	 */
-    protected Settings instantiateSettings() {
-    	return new Settings(this);
-    }
+	protected Settings instantiateSettings() {
+		return new Settings(this);
+	}
 
 	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
 		return SmartReceiptsActivity.class;
@@ -322,7 +323,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_personal_card));
 		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_cash));
 		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_check));
-		
+
 	}
 
 }

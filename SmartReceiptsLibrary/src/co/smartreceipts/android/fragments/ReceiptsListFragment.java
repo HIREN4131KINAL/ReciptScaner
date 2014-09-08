@@ -172,6 +172,21 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
+	public void onResume() {
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, "onResume");
+		}
+		super.onResume();
+		getWorkerManager().getAdManager().onAdResumed(mAdView);
+		getPersistenceManager().getDatabase().registerReceiptRowListener(this);
+		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+		if (mShowDialogOnResume) {
+			receiptMenu(mCurrentTrip, null, mImageFile);
+			mShowDialogOnResume = false;
+		}
+	}
+
+	@Override
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public void onPause() {
 		if (BuildConfig.DEBUG) {
@@ -183,8 +198,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		if (mReceiptsCommentAutoCompleteAdapter != null) {
 			mReceiptsCommentAutoCompleteAdapter.onPause();
 		}
-		mCachedDate = null;
-		mCachedCategory = null;
 		if (mCurrentTrip != null) {
 			// Save persistent data state
 			SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
@@ -203,21 +216,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		getWorkerManager().getAdManager().onAdPaused(mAdView);
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 		super.onPause();
-	}
-
-	@Override
-	public void onResume() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onResume");
-		}
-		super.onResume();
-		getWorkerManager().getAdManager().onAdResumed(mAdView);
-		getPersistenceManager().getDatabase().registerReceiptRowListener(this);
-		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-		if (mShowDialogOnResume) {
-			receiptMenu(mCurrentTrip, null, mImageFile);
-			mShowDialogOnResume = false;
-		}
 	}
 
 	// Restore persistent data (Called serially)
@@ -248,6 +246,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onDestroy");
 		}
+		mCachedDate = null;
+		mCachedCategory = null;
 		getWorkerManager().getAdManager().onAdDestroyed(mAdView);
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 		super.onDestroy();

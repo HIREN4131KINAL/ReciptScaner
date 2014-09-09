@@ -746,9 +746,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		final Attachment attachment = mAttachable.getAttachment();
 		if (attachment != null && attachment.isDirectlyAttachable()) {
 			final String[] receiptActions;
-			final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
-			final String viewFile = getString(R.string.action_send_view, getString(stringId));
-			final String attachFile = getString(R.string.action_send_attach, getString(stringId));
+			final int attachmentStringId = attachment.isPDF() ? R.string.pdf : R.string.image;
+			final int receiptStringId = receipt.hasPDF() ? R.string.pdf : R.string.image;
+			final String attachFile = getString(R.string.action_send_attach, getString(attachmentStringId));
+			final String viewFile = getString(R.string.action_send_view, getString(receiptStringId));
 			final String replaceFile = getString(R.string.action_send_replace, getString(receipt.hasPDF() ? R.string.pdf : R.string.image));
 			if (receipt.hasFile()) {
 				receiptActions = new String[] { viewFile, replaceFile };

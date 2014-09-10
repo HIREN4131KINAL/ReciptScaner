@@ -90,7 +90,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private Uri mImageUri;
 	private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
 	private Date mCachedDate;
-	private String mCachedCategory;
+	private String mCachedCategory, mCachedCurrency;
 	private Time mNow;
 	private ProgressBar mProgressDialog;
 	private TextView mNoDataAlert;
@@ -248,6 +248,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}
 		mCachedDate = null;
 		mCachedCategory = null;
+		mCachedCurrency = null;
 		getWorkerManager().getAdManager().onAdDestroyed(mAdView);
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 		super.onDestroy();
@@ -531,6 +532,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				}
 			}
 			int idx = currenices.getPosition((mCurrentTrip != null) ? mCurrentTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
+			int cachedIdx = (mCachedCurrency != null) ? currenices.getPosition(mCachedCurrency) : -1;
+			idx = (cachedIdx > 0) ? cachedIdx : idx;
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
 			}
@@ -640,6 +643,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					mCachedDate = (Date) dateBox.date.clone();
 				}
 				mCachedCategory = category;
+				mCachedCurrency = currency;
 
 				if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
 					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();

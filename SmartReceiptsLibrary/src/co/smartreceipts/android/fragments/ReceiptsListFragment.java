@@ -454,6 +454,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		categoriesSpinner.setAdapter(categories);
 
+		// Focused View
+		View focusedView = nameBox;
+
 		if (newReceipt) {
 			if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
 				final DatabaseHelper db = getPersistenceManager().getDatabase();
@@ -502,6 +505,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 			else if (preferences.matchNameToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
+				focusedView = priceBox;
 			}
 			if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
 				if (mCachedCategory == null) {
@@ -678,7 +682,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		final AlertDialog dialog = builder.show();
 		getDateManager().setDateEditTextListenerDialogHolder(dialog);
 		if (newReceipt) {
-			nameBox.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			focusedView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 				@Override
 				public void onFocusChange(View v, boolean hasFocus) {
 					if (hasFocus && getActivity() != null) {
@@ -689,6 +693,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 				}
 			});
 		}
+		focusedView.requestFocus(); // Make sure we're focused on the right view
+
 		categoriesSpinner.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {

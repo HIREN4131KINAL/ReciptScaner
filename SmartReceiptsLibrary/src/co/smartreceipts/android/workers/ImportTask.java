@@ -7,7 +7,6 @@ import java.io.InputStream;
 import wb.android.async.BooleanProgressTask;
 import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.storage.SDCardFileManager;
-import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -48,10 +47,8 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 						File dest = external.getFile("smart.zip");
 						external.delete(dest);
 						if (!external.copy(is, dest, true)) {
-							is.close();
 							return false;
 						}
-						is.close();
 						final boolean importResult = importAll(external, dest, mOverwrite);
 						external.delete(dest);
 						return importResult;
@@ -81,7 +78,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 					if (src == null || !src.exists()) {
 						return false;
 					}
-					if (!external.move(src, dest)) {
+					if (!external.copy(src, dest, true)) {
 						return false;
 					}
 					final boolean importResult = importAll(external, dest, mOverwrite);
@@ -89,7 +86,8 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 					return importResult;
 				}
 			}
-			catch (SDCardStateException e) {
+			catch (Exception e) {
+				Log.e(TAG, e.toString());
 				return false;
 			}
 		}

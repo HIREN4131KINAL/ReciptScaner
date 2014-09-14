@@ -176,7 +176,8 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 			return true;
 		}
 		else if (item.getItemId() == R.id.menu_main_export) {
-			getSmartReceiptsApplication().getSettings().showExport();
+			final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.TAG);
+			getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
 			return true;
 		}/*
 		 * else if (item.getItemId() == R.id.menu_main_settings) { final Intent intent = new Intent(this,

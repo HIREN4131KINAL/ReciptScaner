@@ -18,6 +18,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 public class ImportTask extends BooleanProgressTask<Uri> {
 
 	private static final String TAG = "ImportTask";
+	public static final int TASK_ID = 1123;
 
 	private PersistenceManager mPersistenceManager;
 	private Context mContext;

@@ -160,6 +160,30 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, "Result Code: " + resultCode);
+		}
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, "Request Code: " + requestCode);
+		}
+
+		if (resultCode == Activity.RESULT_OK) { // -1
+			if (requestCode == ImportTask.TASK_ID) {
+				if (data != null) {
+					performImport(data.getData());
+				}
+			}
+		}
+		else {
+			if (BuildConfig.DEBUG) {
+				Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
+			}
+			super.onActivityResult(requestCode, resultCode, data);
+		}
+	}
+
 	public final void tripMenu(final TripRow trip) {
 		final PersistenceManager persistenceManager = getPersistenceManager();
 		if (!persistenceManager.getStorageManager().isExternal()) {

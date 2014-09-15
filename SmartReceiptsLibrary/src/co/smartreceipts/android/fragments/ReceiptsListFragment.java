@@ -499,6 +499,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			Preferences preferences = getPersistenceManager().getPreferences();
 			if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, categories));
+				focusedView = priceBox;
 			}
 			else if (preferences.matchCommentToCategory()) {
 				categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));

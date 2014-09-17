@@ -40,7 +40,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 
 	// AppRating (Use a combination of launches and a timer for the app rating
 	// to ensure that we aren't prompting new users too soon
-	private static final int LAUNCHES_UNTIL_PROMPT = 25;
+	private static final int LAUNCHES_UNTIL_PROMPT = 30;
 	private static final int DAYS_UNTIL_PROMPT = 7;
 
 	// Instace Vars

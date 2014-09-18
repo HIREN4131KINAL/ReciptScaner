@@ -2,15 +2,18 @@ package wb.android.storage;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.security.MessageDigest;
@@ -278,6 +281,33 @@ public class StorageManager {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Appends a string to the end of an existing file
+	 * 
+	 * @param file
+	 *            - the {@link String} representing the file name (in the root directory)
+	 * @param string
+	 *            - the {@link String} to add to the end
+	 * @return {@code true} if the append succeeded. {@code false} otherwise
+	 */
+	public boolean appendTo(final String filename, final String string) {
+		PrintWriter appendWriter = null;
+		try {
+			appendWriter = new PrintWriter(new BufferedWriter(new FileWriter(getFile(filename), true)));
+			appendWriter.println(string);
+			return true;
+		}
+		catch (IOException e) {
+			Log.e(TAG, "Caught IOException in appendTo", e);
+			return false;
+		}
+		finally {
+			if (appendWriter != null) {
+				appendWriter.close();
+			}
+		}
 	}
 
 	public boolean createFile(final File file) {

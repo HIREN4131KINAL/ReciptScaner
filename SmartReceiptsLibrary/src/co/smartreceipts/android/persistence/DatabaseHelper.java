@@ -38,6 +38,8 @@ import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
 import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.workers.ImportTask;
 
 public final class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {
 
@@ -2926,6 +2928,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			Cursor c = null, countCursor = null;
 			try {
 				if (dbPath == null) {
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Null database file");
 					return false;
 				}
 				currDB = this.getWritableDatabase();
@@ -2935,6 +2938,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					if (BuildConfig.DEBUG) {
 						Log.d(TAG, "Merging Trips");
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Trips");
 					c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
 					if (c != null && c.moveToFirst()) {
 						final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
@@ -2981,14 +2985,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						while (c.moveToNext());
 					}
-					else {
-						return false;
-					}
 				}
 				catch (SQLiteException e) {
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a1]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3001,6 +3003,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging Receipts");
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Receipts");
 				try {
 					final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND " + ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
 					c = importDB.query(ReceiptsTable.TABLE_NAME, null, null, null, null, null, null);
@@ -3099,14 +3102,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						while (c.moveToNext());
 					}
-					else {
-						return false;
-					}
 				}
 				catch (SQLiteException e) {
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a2]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3121,6 +3122,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging Categories");
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Categories");
 				try {
 					c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
@@ -3140,14 +3142,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						while (c.moveToNext());
 					}
-					else {
-						return false;
-					}
 				}
 				catch (SQLiteException e) {
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a3]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3162,6 +3162,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging CSV");
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging CSV");
 				try {
 					c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
@@ -3178,14 +3179,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						while (c.moveToNext());
 					}
-					else {
-						return false;
-					}
 				}
 				catch (SQLiteException e) {
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a4]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3200,6 +3199,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging PDF");
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging PDF");
 				try {
 					c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
@@ -3216,14 +3216,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 						while (c.moveToNext());
 					}
-					else {
-						return false;
-					}
 				}
 				catch (SQLiteException e) {
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a5]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3238,6 +3236,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Merging Payment Methods");
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Payment Methods");
 				try {
 					c = importDB.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
 					if (c != null && c.moveToFirst()) {
@@ -3262,6 +3261,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					if (BuildConfig.DEBUG) {
 						Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
 					}
+					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
 				}
 				finally {
 					if (c != null) {
@@ -3269,12 +3269,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						c = null;
 					}
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Success");
 				return true;
 			}
 			catch (Exception e) {
 				if (BuildConfig.DEBUG) {
 					Log.e(TAG, e.toString());
 				}
+				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + Utils.getStackTrace(e));
 				return false;
 			}
 			finally {

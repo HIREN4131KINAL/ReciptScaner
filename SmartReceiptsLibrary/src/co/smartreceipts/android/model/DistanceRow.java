@@ -10,17 +10,23 @@ import android.os.Parcelable;
 public class DistanceRow implements Parcelable {
 
 	public static final String PARCEL_KEY = "co.smartreceipts.android.Distance";
-	
-	private long mId;
-	private String mLocation;
-	private BigDecimal mDistance;
-	private Date mDate;
-	private String mTimezone;
-	private BigDecimal mRate;
-	private String mComment;
 
-	public DistanceRow(long id) {
+	private final long mId;
+	private final String mLocation;
+	private final BigDecimal mDistance;
+	private final Date mDate;
+	private final TimeZone mTimezone;
+	private final BigDecimal mRate;
+	private final String mComment;
+
+	public DistanceRow(long id, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
 		mId = id;
+		mLocation = location;
+		mDistance = distance;
+		mRate = rate;
+		mDate = date;
+		mTimezone = timeZone;
+		mComment = comment;
 	}
 
 	protected DistanceRow(Parcel in) {
@@ -29,7 +35,7 @@ public class DistanceRow implements Parcelable {
 		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		long tmpDate = in.readLong();
 		mDate = tmpDate != -1 ? new Date(tmpDate) : null;
-		mTimezone = in.readString();
+		mTimezone = TimeZone.getTimeZone(in.readString());
 		mRate = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		mComment = in.readString();
 	}
@@ -45,65 +51,41 @@ public class DistanceRow implements Parcelable {
 		dest.writeString(mLocation);
 		dest.writeValue(mDistance);
 		dest.writeLong(mDate != null ? mDate.getTime() : -1L);
-		dest.writeString(mTimezone);
+		dest.writeString(mTimezone.getID());
 		dest.writeValue(mRate);
 		dest.writeString(mComment);
 	}
-	
+
 	public long getId() {
 		return mId;
-	}
-	
-	public void setId(long id) {
-		mId = id;
 	}
 
 	public String getLocation() {
 		return mLocation;
 	}
 
-	public void setLocation(String location) {
-		mLocation = location;
-	}
-
 	public BigDecimal getDistance() {
 		return mDistance;
-	}
-
-	public void setDistance(BigDecimal distance) {
-		mDistance = distance;
 	}
 
 	public Date getDate() {
 		return mDate;
 	}
 
-	public void setDate(Date date) {
-		mDate = date;
-	}
-
-	public String getTimezone() {
+	public TimeZone getTimezone() {
 		return mTimezone;
 	}
 
-	public void setTimezone(String timezone) {
-		mTimezone = timezone;
+	public String getTimezoneCode() {
+		return mTimezone.getID();
 	}
 
 	public BigDecimal getRate() {
 		return mRate;
 	}
 
-	public void setRate(BigDecimal rate) {
-		mRate = rate;
-	}
-
 	public String getComment() {
 		return mComment;
-	}
-
-	public void setComment(String comment) {
-		mComment = comment;
 	}
 
 	public static final class Builder {
@@ -111,14 +93,14 @@ public class DistanceRow implements Parcelable {
 		private String _location;
 		private BigDecimal _distance;
 		private Date _date;
-		private String _timezone;
+		private TimeZone _timezone;
 		private BigDecimal _rate;
 		private String _comment;
 
-		public Builder(long id){
+		public Builder(long id) {
 			_id = id;
 		}
-		
+
 		public Builder setLocation(String location) {
 			_location = location;
 			return this;
@@ -129,28 +111,38 @@ public class DistanceRow implements Parcelable {
 			return this;
 		}
 
+		public Builder setDistance(double distance) {
+			_distance = new BigDecimal(distance);
+			return this;
+		}
+
 		public Builder setDate(Date date) {
 			_date = date;
 			return this;
 		}
-		
+
 		public Builder setDate(long date) {
 			_date = new Date(date);
 			return this;
 		}
 
 		public Builder setTimezone(String timezone) {
-			_timezone = timezone;
+			_timezone = TimeZone.getTimeZone(timezone);
 			return this;
 		}
 
 		public Builder setTimezone(TimeZone timezone) {
-			_timezone = timezone.getID();
+			_timezone = timezone;
 			return this;
 		}
 
 		public Builder setRate(BigDecimal rate) {
 			_rate = rate;
+			return this;
+		}
+
+		public Builder setRate(double rate) {
+			_rate = new BigDecimal(rate);
 			return this;
 		}
 
@@ -160,13 +152,7 @@ public class DistanceRow implements Parcelable {
 		}
 
 		public DistanceRow build() {
-			DistanceRow distance = new DistanceRow(_id);
-			distance.setLocation(_location);
-			distance.setDistance(_distance);
-			distance.setDate(_date);
-			distance.setTimezone(_timezone);
-			distance.setRate(_rate);
-			distance.setComment(_comment);
+			DistanceRow distance = new DistanceRow(_id, _location, _distance, _rate, _date, _timezone, _comment);
 			return distance;
 		}
 
@@ -186,14 +172,7 @@ public class DistanceRow implements Parcelable {
 
 	@Override
 	public String toString() {
-		return "Distance ["
-				+ "mLocation=" + mLocation
-				+ ", mDistance=" + mDistance
-				+ ", mDate=" + mDate
-				+ ", mTimezone=" + mTimezone
-				+ ", mRate=" + mRate
-				+ ", mComment=" + mComment
-				+ "]";
+		return "Distance [" + "mLocation=" + mLocation + ", mDistance=" + mDistance + ", mDate=" + mDate + ", mTimezone=" + mTimezone + ", mRate=" + mRate + ", mComment=" + mComment + "]";
 	}
 
 	@Override
@@ -223,41 +202,47 @@ public class DistanceRow implements Parcelable {
 
 		if (mId != other.mId)
 			return false;
-		
+
 		if (mComment == null) {
 			if (other.mComment != null)
 				return false;
-		} else if (!mComment.equals(other.mComment))
+		}
+		else if (!mComment.equals(other.mComment))
 			return false;
 
 		if (mDate == null) {
 			if (other.mDate != null)
 				return false;
-		} else if (!mDate.equals(other.mDate))
+		}
+		else if (!mDate.equals(other.mDate))
 			return false;
 
 		if (mDistance == null) {
 			if (other.mDistance != null)
 				return false;
-		} else if (!mDistance.equals(other.mDistance))
+		}
+		else if (!mDistance.equals(other.mDistance))
 			return false;
 
 		if (mLocation == null) {
 			if (other.mLocation != null)
 				return false;
-		} else if (!mLocation.equals(other.mLocation))
+		}
+		else if (!mLocation.equals(other.mLocation))
 			return false;
 
 		if (mRate == null) {
 			if (other.mRate != null)
 				return false;
-		} else if (!mRate.equals(other.mRate))
+		}
+		else if (!mRate.equals(other.mRate))
 			return false;
 
 		if (mTimezone == null) {
 			if (other.mTimezone != null)
 				return false;
-		} else if (!mTimezone.equals(other.mTimezone))
+		}
+		else if (!mTimezone.equals(other.mTimezone))
 			return false;
 
 		return true;

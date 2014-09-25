@@ -37,7 +37,7 @@ public class TripUtils {
 		public static final float MILEAGE = 40.3121f;
 	}
 
-	public static final TripRow getDefaultTripRow() {
+	public static final TripRow newDefaultTripRowInstance() {
 		TripRow.Builder builder = new TripRow.Builder();
 		builder.setCurrency(Constants.CURRENCY_CODE)
 			   .setDefaultCurrency(Constants.CURRENCY_CODE)

@@ -13,6 +13,7 @@ import org.robolectric.annotation.Config;
 import android.os.Parcel;
 import co.smartreceipts.android.model.DistanceRow;
 import co.smartreceipts.tests.utils.DistanceUtils;
+import co.smartreceipts.tests.utils.TripUtils;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
@@ -28,6 +29,7 @@ public class DistanceRowTest {
 
 	private DistanceRow.Builder getDistanceRowBuilderA() {
 		final DistanceRow.Builder builder = new DistanceRow.Builder(DistanceUtils.Constants.ID);
+		builder.setTrip(TripUtils.newDefaultTripRowInstance());
 		builder.setComment(DistanceUtils.Constants.COMMENT);
 		builder.setDate(DistanceUtils.Constants.DATE);
 		builder.setDistance(DistanceUtils.Constants.DISTANCE);
@@ -39,6 +41,7 @@ public class DistanceRowTest {
 
 	private DistanceRow.Builder getDistanceRowBuilderB() {
 		final DistanceRow.Builder builder = new DistanceRow.Builder(DistanceUtils.Constants.ID);
+		builder.setTrip(TripUtils.newDefaultTripRowInstance());
 		builder.setComment(DistanceUtils.Constants.COMMENT);
 		builder.setDate(DistanceUtils.Constants.DATE_MILLIS);
 		builder.setDistance(DistanceUtils.Constants.DISTANCE_DOUBLE);
@@ -113,6 +116,13 @@ public class DistanceRowTest {
 		assertEquals(mDistanceRowA.getTimezone(), mDistanceRowB.getTimezone());
 		assertEquals(DistanceUtils.Constants.TIMEZONE, mDistanceRowA.getTimezone());
 		assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, mDistanceRowA.getTimezoneCode());
+	}
+
+	@Test
+	public void testGetTrip() {
+		assertNotNull(mDistanceRowA.getTrip());
+		assertEquals(mDistanceRowA.getTrip(), mDistanceRowB.getTrip());
+		assertEquals(TripUtils.newDefaultTripRowInstance(), mDistanceRowA.getTrip());
 	}
 
 	@Test

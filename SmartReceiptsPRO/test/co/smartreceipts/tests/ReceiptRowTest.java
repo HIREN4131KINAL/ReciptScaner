@@ -54,7 +54,7 @@ public class ReceiptRowTest {
 				.setExtraEditText3(Constants.EXTRA3).setFile(getFile(Constants.IMAGE_FILE_NAME))
 				.setIsExpenseable(Constants.IS_EXPENSABLE).setIsFullPage(Constants.IS_FULLPAGE).setName(Constants.NAME)
 				.setPrice(Constants.PRICE_DOUBLE).setTax(Constants.TAX).setTimeZone(Constants.TIMEZONE_CODE)
-				.setTrip(TripUtils.getDefaultTripRow());
+				.setTrip(TripUtils.newDefaultTripRowInstance());
 		return builderA;
 	}
 
@@ -72,7 +72,7 @@ public class ReceiptRowTest {
 				.setExtraEditText3(Constants.EXTRA3).setFile(getFile(Constants.IMAGE_FILE_NAME))
 				.setIsExpenseable(Constants.IS_EXPENSABLE).setIsFullPage(Constants.IS_FULLPAGE).setName(Constants.NAME)
 				.setPrice(Constants.PRICE_DOUBLE).setTax(Constants.TAX_DOUBLE).setTimeZone(Constants.TIMEZONE)
-				.setTrip(TripUtils.getDefaultTripRow());
+				.setTrip(TripUtils.newDefaultTripRowInstance());
 		return builderB;
 	}
 

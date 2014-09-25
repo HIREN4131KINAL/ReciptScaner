@@ -9,9 +9,10 @@ import android.os.Parcelable;
 
 public class DistanceRow implements Parcelable {
 
-	public static final String PARCEL_KEY = "co.smartreceipts.android.Distance";
+	public static final String PARCEL_KEY = "co.smartreceipts.android.model.DistanceRow";
 
 	private final long mId;
+	private final TripRow mTrip;
 	private final String mLocation;
 	private final BigDecimal mDistance;
 	private final Date mDate;
@@ -19,8 +20,9 @@ public class DistanceRow implements Parcelable {
 	private final BigDecimal mRate;
 	private final String mComment;
 
-	public DistanceRow(long id, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
+	public DistanceRow(long id, TripRow trip, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
 		mId = id;
+		mTrip = trip;
 		mLocation = location;
 		mDistance = distance;
 		mRate = rate;
@@ -31,6 +33,7 @@ public class DistanceRow implements Parcelable {
 
 	protected DistanceRow(Parcel in) {
 		mId = in.readLong();
+		mTrip = in.readParcelable(TripRow.class.getClassLoader());
 		mLocation = in.readString();
 		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		long tmpDate = in.readLong();
@@ -48,6 +51,7 @@ public class DistanceRow implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeLong(mId);
+		dest.writeParcelable(mTrip, flags);
 		dest.writeString(mLocation);
 		dest.writeValue(mDistance);
 		dest.writeLong(mDate != null ? mDate.getTime() : -1L);
@@ -58,6 +62,10 @@ public class DistanceRow implements Parcelable {
 
 	public long getId() {
 		return mId;
+	}
+
+	public TripRow getTrip() {
+		return mTrip;
 	}
 
 	public String getLocation() {
@@ -90,6 +98,7 @@ public class DistanceRow implements Parcelable {
 
 	public static final class Builder {
 		private long _id;
+		private TripRow _trip;
 		private String _location;
 		private BigDecimal _distance;
 		private Date _date;
@@ -99,6 +108,11 @@ public class DistanceRow implements Parcelable {
 
 		public Builder(long id) {
 			_id = id;
+		}
+
+		public Builder setTrip(final TripRow trip) {
+			_trip = trip;
+			return this;
 		}
 
 		public Builder setLocation(String location) {
@@ -152,7 +166,7 @@ public class DistanceRow implements Parcelable {
 		}
 
 		public DistanceRow build() {
-			DistanceRow distance = new DistanceRow(_id, _location, _distance, _rate, _date, _timezone, _comment);
+			DistanceRow distance = new DistanceRow(_id, _trip, _location, _distance, _rate, _date, _timezone, _comment);
 			return distance;
 		}
 

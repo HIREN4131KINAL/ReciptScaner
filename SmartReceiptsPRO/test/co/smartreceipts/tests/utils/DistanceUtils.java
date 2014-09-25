@@ -32,6 +32,7 @@ public class DistanceUtils {
 		assertEquals(distance1.getLocation(), distance2.getLocation());
 		assertEquals(distance1.getRate(), distance2.getRate());
 		assertEquals(distance1.getTimezone(), distance2.getTimezone());
+		assertEquals(distance1.getTrip(), distance2.getTrip());
 	}
 
 }

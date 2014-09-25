@@ -100,16 +100,10 @@
         
         </activity>
         
-        <activity
-			android:name="co.smartreceipts.android.activities.ReceiptsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsFreeActivity" />
-        </activity>
-        
          <activity
 			android:name="co.smartreceipts.android.activities.ReceiptImageActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="co.smartreceipts.android.activities.ReceiptsActivity" />
+            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsFreeActivity" />
         </activity>
         
         <!-- 
@@ -129,7 +123,7 @@
         <activity
 			android:name="co.smartreceipts.android.activities.ReceiptPDFActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="co.smartreceipts.android.activities.ReceiptsActivity" />
+            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsFreeActivity" />
         </activity>
         
         <activity android:name="co.smartreceipts.android.legacycamera.MyCameraActivity"

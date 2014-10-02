@@ -2993,7 +2993,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a1]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3062,41 +3062,49 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final String extra_edittext_3 = getString(c, extra_edittext_3_Index, null);
 							final String tax = getString(c, taxIndex, "0");
 							final int paymentMethod = getInt(c, paymentMethodIndex, 0);
-							countCursor = currDB.rawQuery(queryCount, new String[] { newPath, name, Long.toString(date) });
-							if (countCursor != null && countCursor.moveToFirst()) {
-								int count = countCursor.getInt(0);
-								int updateID = countCursor.getInt(1);
-								final ContentValues values = new ContentValues(14);
-								values.put(ReceiptsTable.COLUMN_PATH, newPath);
-								values.put(ReceiptsTable.COLUMN_NAME, name);
-								values.put(ReceiptsTable.COLUMN_PARENT, newParent);
-								values.put(ReceiptsTable.COLUMN_CATEGORY, category);
-								values.put(ReceiptsTable.COLUMN_PRICE, price);
-								values.put(ReceiptsTable.COLUMN_DATE, date);
-								values.put(ReceiptsTable.COLUMN_COMMENT, comment);
-								values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
-								values.put(ReceiptsTable.COLUMN_ISO4217, currency);
-								values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, fullpage);
-								values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
-								values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
-								values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
-								values.put(ReceiptsTable.COLUMN_TAX, tax);
-								if (timeZoneIndex > 0) {
-									final String timeZone = c.getString(timeZoneIndex);
-									values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
-								}
-								values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, paymentMethod);
-								if (count > 0 && overwrite) { // Update
-									currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] { Integer.toString(updateID) });
-								}
-								else { // insert
-									if (overwrite) {
-										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+							try {
+								countCursor = currDB.rawQuery(queryCount, new String[] { newPath, name, Long.toString(date) });
+								if (countCursor != null && countCursor.moveToFirst()) {
+									int count = countCursor.getInt(0);
+									int updateID = countCursor.getInt(1);
+									final ContentValues values = new ContentValues(14);
+									values.put(ReceiptsTable.COLUMN_PATH, newPath);
+									values.put(ReceiptsTable.COLUMN_NAME, name);
+									values.put(ReceiptsTable.COLUMN_PARENT, newParent);
+									values.put(ReceiptsTable.COLUMN_CATEGORY, category);
+									values.put(ReceiptsTable.COLUMN_PRICE, price);
+									values.put(ReceiptsTable.COLUMN_DATE, date);
+									values.put(ReceiptsTable.COLUMN_COMMENT, comment);
+									values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
+									values.put(ReceiptsTable.COLUMN_ISO4217, currency);
+									values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, fullpage);
+									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
+									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
+									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
+									values.put(ReceiptsTable.COLUMN_TAX, tax);
+									if (timeZoneIndex > 0) {
+										final String timeZone = c.getString(timeZoneIndex);
+										values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
 									}
-									else if (count == 0) {
-										// If we're not overwriting anything, let's check that there are no entries here
-										currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+									values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, paymentMethod);
+									if (count > 0 && overwrite) { // Update
+										currDB.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[] { Integer.toString(updateID) });
 									}
+									else { // insert
+										if (overwrite) {
+											currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+										}
+										else if (count == 0) {
+											// If we're not overwriting anything, let's check that there are no entries here
+											currDB.insertWithOnConflict(ReceiptsTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+										}
+									}
+								}
+							}
+							finally {
+								if (countCursor != null && !countCursor.isClosed()) {
+									countCursor.close();
+									countCursor = null;
 								}
 							}
 						}
@@ -3110,7 +3118,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a2]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3150,7 +3158,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a3]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3187,7 +3195,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a4]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3224,7 +3232,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a5]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3264,7 +3272,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
 				}
 				finally {
-					if (c != null) {
+					if (c != null && !c.isClosed()) {
 						c.close();
 						c = null;
 					}
@@ -3280,10 +3288,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				return false;
 			}
 			finally {
-				if (c != null) {
+				if (c != null && !c.isClosed()) {
 					c.close();
 				}
-				if (countCursor != null) {
+				if (countCursor != null && !countCursor.isClosed()) {
 					countCursor.close();
 				}
 				if (importDB != null) {

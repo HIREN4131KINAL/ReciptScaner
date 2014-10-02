@@ -189,7 +189,7 @@ public final class TripRow implements Parcelable {
 
 	public String getCurrencyFormattedPrice() {
 		if (mCurrency != null) {
-			return mCurrency.format(getPriceAsFloat());
+			return mCurrency.format(mPrice);
 		}
 		else {
 			return "Mixed";

@@ -200,7 +200,7 @@ public class ReceiptRow implements Parcelable {
 
 	public String getCurrencyFormattedPrice() {
 		if (getCurrency() != null) {
-			return getCurrency().format(getPrice());
+			return getCurrency().format(mPrice);
 		}
 		else {
 			return getDecimalFormattedPrice();
@@ -225,7 +225,7 @@ public class ReceiptRow implements Parcelable {
 
 	public String getCurrencyFormattedTax() {
 		if (getCurrency() != null) {
-			return getCurrency().format(getTax());
+			return getCurrency().format(mTax);
 		}
 		else {
 			return getDecimalFormattedTax();

@@ -195,7 +195,7 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getDecimalFormattedPrice() {
-		return getDecimalFormat().format(getPriceAsFloat());
+		return getDecimalFormat().format(mPrice);
 	}
 
 	public String getCurrencyFormattedPrice() {
@@ -220,7 +220,7 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	public String getDecimalFormattedTax() {
-		return getDecimalFormat().format(getTaxAsFloat());
+		return getDecimalFormat().format(mTax);
 	}
 
 	public String getCurrencyFormattedTax() {
@@ -367,7 +367,7 @@ public class ReceiptRow implements Parcelable {
 			return new BigDecimal(0);
 		}
 		try {
-			return new BigDecimal(number);
+			return new BigDecimal(number.replace(",", "."));
 		}
 		catch (NumberFormatException e) {
 			return new BigDecimal(0);

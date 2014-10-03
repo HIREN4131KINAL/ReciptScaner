@@ -1337,8 +1337,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final String path = c.getString(pathIndex);
 						final String name = c.getString(nameIndex);
 						final String category = c.getString(categoryIndex);
-						final double price = c.getDouble(priceIndex);
-						final double tax = c.getDouble(taxIndex);
+						final double priceDouble = c.getDouble(priceIndex);
+						final double taxDouble = c.getDouble(taxIndex);
+						final String priceString = c.getString(priceIndex);
+						final String taxString = c.getString(taxIndex);
 						final long date = c.getLong(dateIndex);
 						final String timezone = (timeZoneIndex > 0) ? c.getString(timeZoneIndex) : null;
 						final String comment = c.getString(commentIndex);
@@ -1354,7 +1356,29 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
 						}
 						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
-						receipts.add(builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build());
+						builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+						/**
+						 * Please note that a very frustrating bug exists here. Android cursors only return the first 6
+						 * characters of a price string if that string contains a '.' character. It returns all of them
+						 * if not. This means we'll break for prices over 5 digits unless we are using a comma separator, 
+						 * which we'd do in the EU. Stupid check below to un-break this. Stupid Android.
+						 * 
+						 * TODO: Longer term, everything should be saved with a decimal point
+						 * https://code.google.com/p/android/issues/detail?id=22219
+						 */
+						if (!TextUtils.isEmpty(priceString) && priceString.contains(",")) {
+							builder.setPrice(priceString);
+						}
+						else {
+							builder.setPrice(priceDouble);
+						}
+						if (!TextUtils.isEmpty(taxString) && taxString.contains(",")) {
+							builder.setTax(taxString);
+						}
+						else {
+							builder.setTax(taxDouble);
+						}
+						receipts.add(builder.build());
 					}
 					while (c.moveToNext());
 				}

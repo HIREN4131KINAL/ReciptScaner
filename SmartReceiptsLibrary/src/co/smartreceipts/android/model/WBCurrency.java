@@ -58,9 +58,14 @@ public class WBCurrency {
 	public final String format(final BigDecimal price) {
     	try {
     		if (currency != null) {
-				NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+				final NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 				numFormat.setCurrency(currency);
-				return numFormat.format(price.doubleValue());
+				if (price != null) {
+					return numFormat.format(price.doubleValue());
+				}
+				else {
+					return numFormat.format(new BigDecimal(0));
+				}
     		}
     		else {
     			return code + formatStringAsStrictDecimal(price);

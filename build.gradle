@@ -2,8 +2,21 @@
 buildscript {
     repositories {
         mavenCentral()
+        mavenLocal()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.+'
+        // TODO: Add RoboE class path
     }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.2' // Gradle wrapper script
 }

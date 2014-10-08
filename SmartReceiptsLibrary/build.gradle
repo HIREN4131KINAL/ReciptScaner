@@ -1,31 +1,28 @@
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':appcompat')
     compile project(':wbMiniLibrary')
     compile project(':androidCamera')
     compile project(':mupdf')
-    compile project(':Common')
+    // TODO Add Robo-electric
+    // TODO Add Support Library
 }
 
 android {
     compileSdkVersion 19
     buildToolsVersion "20.0.0"
 
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 19
+    }
 
-        // Move the tests to tests/java, tests/res, etc...
-        instrumentTest.setRoot('tests')
+    sourceSets {
+        // Move the tests to src/test/java, src/test/res, etc...
+        androidTest {
+            setRoot('src/test')
+        }
 
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
@@ -33,7 +30,11 @@ android {
         // conflict with src/ being used by the main source set.
         // Adding new build types or product flavors should be accompanied
         // by a similar customization.
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
+        debug {
+            setRoot('build-types/debug')
+        }
+        release {
+            setRoot('build-types/release')
+        }
     }
 }

@@ -9,6 +9,7 @@ analytics.xml
 #################
 *.iml
 .idea/
+.gradle/
 
 #################
 ## Eclipse

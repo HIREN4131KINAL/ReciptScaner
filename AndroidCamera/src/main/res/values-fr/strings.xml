@@ -22,11 +22,8 @@
     <string name="camera_label" msgid="6346560772074764302">"Appareil photo"</string>
     <string name="video_camera_label" msgid="2899292505526427293">"Caméra"</string>
     <string name="wait" msgid="8600187532323801552">"Veuillez patienter..."</string>
-    <string name="no_storage" product="nosdcard" msgid="7335975356349008814">"Veuillez installer une mémoire de stockage USB avant d\'utiliser l\'appareil photo."</string>
     <string name="no_storage" product="default" msgid="5137703033746873624">"Veuillez insérer une carte SD avant d\'utiliser l\'appareil photo."</string>
-    <string name="preparing_sd" product="nosdcard" msgid="6104019983528341353">"Préparation mémoire de stockage USB..."</string>
     <string name="preparing_sd" product="default" msgid="2914969119574812666">"Préparation de la carte SD..."</string>
-    <string name="access_sd_fail" product="nosdcard" msgid="8147993984037859354">"Impossible d\'accéder à la mémoire de stockage USB."</string>
     <string name="access_sd_fail" product="default" msgid="1584968646870054352">"Impossible d\'accéder à la carte SD."</string>
     <string name="review_cancel" msgid="8188009385853399254">"ANNULER"</string>
     <string name="review_ok" msgid="1156261588693116433">"OK"</string>
@@ -78,7 +75,6 @@
     <!-- no translation found for pref_camera_hdr_default (1336869406134365882) -->
     <skip />
     <string name="dialog_ok" msgid="6263301364153382152">"OK"</string>
-    <string name="spaceIsLow_content" product="nosdcard" msgid="4401325203349203177">"La mémoire de stockage USB est pleine. Définissez la qualité sur une valeur plus basse ou supprimez des images ou d\'autres types de fichiers."</string>
     <string name="spaceIsLow_content" product="default" msgid="1732882643101247179">"Votre carte SD est pleine. Modifiez le paramètre de qualité ou supprimez des images ou des fichiers."</string>
     <string name="video_reach_size_limit" msgid="6179877322015552390">"Taille maximale atteinte."</string>
     <string name="pano_too_fast_prompt" msgid="2823839093291374709">"Trop rapide"</string>

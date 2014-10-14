@@ -6,7 +6,7 @@ dependencies {
     compile project(':androidCamera')
     compile project(':mupdf')
     // TODO Add Robo-electric
-    // TODO Add Support Library
+    compile 'com.android.support:support-v4:20.0.0'
 }
 
 android {

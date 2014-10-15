@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
       package="wb.receipts"
       android:versionCode="112"
       android:versionName="3.3.2">
@@ -11,15 +12,10 @@
 	<uses-feature android:name="android.hardware.camera" />
 	<uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
 	
-    <application 
-        android:icon="@drawable/icon" 
-        android:label="@string/sr_app_name" 
-        android:theme="@style/Theme.SmartReceipts"  
+    <application
+        tools:replace="android:name"
         android:allowBackup="true"
-        android:name=".SmartReceiptsFreeApplication"
-        android:hardwareAccelerated="true"
-        android:largeHeap="true"
-        android:logo="@drawable/logo" >
+        android:name=".SmartReceiptsFreeApplication" >
         <activity android:name=".SmartReceiptsFreeActivity"
 			android:label="@string/sr_app_name"
 			android:configChanges="orientation|keyboardHidden|screenSize" >

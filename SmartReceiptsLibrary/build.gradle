@@ -5,8 +5,10 @@ dependencies {
     compile project(':wbMiniLibrary')
     compile project(':androidCamera')
     compile project(':mupdf')
-    // TODO Add Robo-electric
     compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.android.support:appcompat-v7:20.0.0'
+    // TODO Add Robo-electric
+
 }
 
 android {

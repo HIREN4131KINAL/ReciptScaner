@@ -13,6 +13,10 @@ android {
         targetSdkVersion 19
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     sourceSets {
         // Move the tests to src/test/java, src/test/res, etc...
         androidTest {

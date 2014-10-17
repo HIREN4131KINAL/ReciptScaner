@@ -10,6 +10,7 @@ analytics.xml
 *.iml
 .idea/
 .gradle/
+gradle/wrapper/
 
 #################
 ## Eclipse

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      package="co.smartreceipts.android"
+      android:versionCode="1"
+      android:versionName="1.0">
+      
+      <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="18" />
+
+    <application
+        tools:replace="android:icon,android:label,android:theme"
+        android:icon="@drawable/icon" 
+        android:label="@string/sr_app_name"
+        android:theme="@style/Theme.SmartReceipts"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        android:logo="@drawable/logo" >
+
+
+    </application>
+</manifest>

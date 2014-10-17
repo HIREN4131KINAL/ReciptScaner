@@ -1,0 +1,22 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.13.+'
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.13.+'
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1' // Gradle wrapper script
+}

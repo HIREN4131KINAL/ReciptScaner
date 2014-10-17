@@ -5,6 +5,14 @@ ads.xml
 analytics.xml
 
 #################
+## Android Studio
+#################
+*.iml
+.idea/
+.gradle/
+gradle/wrapper/
+
+#################
 ## Eclipse
 #################
 

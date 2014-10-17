@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.+'
-        // TODO: Add RoboE class path
+        classpath 'org.robolectric:robolectric-gradle-plugin:0.13.+'
     }
 }
 
@@ -18,5 +18,5 @@ allprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.2' // Gradle wrapper script
+    gradleVersion = '2.1' // Gradle wrapper script
 }

@@ -1,4 +1,4 @@
-package co.smartreceipts.shadows;
+package co.smartreceipts.android.utils.shadows;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

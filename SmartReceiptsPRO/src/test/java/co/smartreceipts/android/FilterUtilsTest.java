@@ -1,4 +1,4 @@
-package co.smartreceipts.tests;
+package co.smartreceipts.android;
 
 import static org.junit.Assert.assertTrue;
 

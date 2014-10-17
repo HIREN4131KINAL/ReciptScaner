@@ -1,7 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'robolectric'
 
 dependencies {
     compile project(':smartReceiptsLibrary')
+    androidTestCompile 'org.robolectric:robolectric:2.3'
 }
 
 android {

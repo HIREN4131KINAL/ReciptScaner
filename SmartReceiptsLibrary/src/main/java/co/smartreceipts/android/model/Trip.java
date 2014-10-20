@@ -204,7 +204,7 @@ public interface Trip extends Parcelable {
     String getDefaultCurrencyCode();
 
     /**
-     * Gets the total mileage for this trip. This has been deprecated in favor of {@link co.smartreceipts.android.model.DistanceRow}s.
+     * Gets the total mileage for this trip. This has been deprecated in favor of {@link Distance}s.
      *
      * @return the total mileage as a float
      */
@@ -212,14 +212,14 @@ public interface Trip extends Parcelable {
     float getMileage();
 
     /**
-     * Gets the total mileage for this trip. This has been deprecated in favor of {@link co.smartreceipts.android.model.DistanceRow}s.
+     * Gets the total mileage for this trip. This has been deprecated in favor of {@link Distance}s.
      *
      * @return the total mileage as a {@link java.lang.String}
      */
     String getMilesAsString();
 
     /**
-     * Sets the mileage for this trip. This has been deprecated in favor of {@link co.smartreceipts.android.model.DistanceRow}s.
+     * Sets the mileage for this trip. This has been deprecated in favor of {@link Distance}s.
      *
      * @param mileage the current mileage
      */

@@ -18,7 +18,7 @@ import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Receipt} objects
  */
-public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
+public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
 
     private Trip _trip;
     private PaymentMethod _paymentMethod;

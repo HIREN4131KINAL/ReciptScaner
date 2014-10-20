@@ -24,7 +24,7 @@ import wb.android.storage.StorageManager;
  * A mostly immutable implementation of the {@link co.smartreceipts.android.model.Receipt} interface that
  * serves as the default implementation.
  */
-public class DefaultReceiptImpl implements Receipt {
+public final class DefaultReceiptImpl implements Receipt {
 
     private final int mId;
     private final Trip mTrip;

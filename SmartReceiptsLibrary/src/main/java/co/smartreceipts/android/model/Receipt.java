@@ -222,7 +222,7 @@ public interface Receipt extends Parcelable {
      * Gets the currency code representation for this receipt or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY}
      * if it cannot be found
      *
-     * @return the currency code {@link java.lang.String} for this trip
+     * @return the currency code {@link java.lang.String} for this receipt
      */
     String getCurrencyCode();
 

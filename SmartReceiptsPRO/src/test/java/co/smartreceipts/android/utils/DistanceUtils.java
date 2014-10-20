@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.model.DistanceRow;
+import co.smartreceipts.android.model.Distance;
 
 public class DistanceUtils {
 
@@ -24,7 +24,7 @@ public class DistanceUtils {
 		public static final String TIMEZONE_CODE = TIMEZONE.getID();
 	}
 
-	public static void assertFieldEquality(DistanceRow distance1, DistanceRow distance2) {
+	public static void assertFieldEquality(Distance distance1, Distance distance2) {
 		assertEquals(distance1.getComment(), distance2.getComment());
 		assertEquals(distance1.getDate(), distance2.getDate());
 		assertEquals(distance1.getDistance(), distance2.getDistance());

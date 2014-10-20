@@ -14,7 +14,7 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.DistanceAdapter;
-import co.smartreceipts.android.model.DistanceRow;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
@@ -65,21 +65,21 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        final DistanceRow distance = mAdapter.getItem(position);
+        final Distance distance = mAdapter.getItem(position);
         final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(distance);
         dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
         getFragmentManager().executePendingTransactions();
     }
 
     @Override
-    public void onDistanceRowsQuerySuccess(List<DistanceRow> distance) {
+    public void onDistanceRowsQuerySuccess(List<Distance> distance) {
         if (isAdded()) {
             mAdapter.notifyDataSetChanged(distance);
         }
     }
 
     @Override
-    public void onDistanceRowInsertSuccess(DistanceRow distance) {
+    public void onDistanceRowInsertSuccess(Distance distance) {
         if (isAdded()) {
             getPersistenceManager().getDatabase().getDistanceParallel();
         }
@@ -91,7 +91,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     }
 
     @Override
-    public void onDistanceRowUpdateSuccess(DistanceRow distance) {
+    public void onDistanceRowUpdateSuccess(Distance distance) {
         if (isAdded()) {
             getPersistenceManager().getDatabase().getDistanceParallel();
         }
@@ -103,7 +103,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     }
 
     @Override
-    public void onDistanceDeleteSuccess(DistanceRow distance) {
+    public void onDistanceDeleteSuccess(Distance distance) {
         if (isAdded()) {
             getPersistenceManager().getDatabase().getDistanceParallel();
         }

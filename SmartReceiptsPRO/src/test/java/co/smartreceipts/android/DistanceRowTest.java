@@ -11,7 +11,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import android.os.Parcel;
-import co.smartreceipts.android.model.DistanceRow;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.tests.utils.DistanceUtils;
 import co.smartreceipts.tests.utils.TripUtils;
 
@@ -19,16 +19,16 @@ import co.smartreceipts.tests.utils.TripUtils;
 @RunWith(RobolectricTestRunner.class)
 public class DistanceRowTest {
 
-	private DistanceRow mDistanceRowA, mDistanceRowB;
+	private Distance mDistanceA, mDistanceB;
 
 	@Before
 	public void setUp() throws Exception {
-		mDistanceRowA = getDistanceRowBuilderA().build();
-		mDistanceRowB = getDistanceRowBuilderB().build();
+		mDistanceA = getDistanceRowBuilderA().build();
+		mDistanceB = getDistanceRowBuilderB().build();
 	}
 
-	private DistanceRow.Builder getDistanceRowBuilderA() {
-		final DistanceRow.Builder builder = new DistanceRow.Builder(DistanceUtils.Constants.ID);
+	private Distance.Builder getDistanceRowBuilderA() {
+		final Distance.Builder builder = new Distance.Builder(DistanceUtils.Constants.ID);
 		builder.setTrip(TripUtils.newDefaultTripRowInstance());
 		builder.setComment(DistanceUtils.Constants.COMMENT);
 		builder.setDate(DistanceUtils.Constants.DATE);
@@ -39,8 +39,8 @@ public class DistanceRowTest {
 		return builder;
 	}
 
-	private DistanceRow.Builder getDistanceRowBuilderB() {
-		final DistanceRow.Builder builder = new DistanceRow.Builder(DistanceUtils.Constants.ID);
+	private Distance.Builder getDistanceRowBuilderB() {
+		final Distance.Builder builder = new Distance.Builder(DistanceUtils.Constants.ID);
 		builder.setTrip(TripUtils.newDefaultTripRowInstance());
 		builder.setComment(DistanceUtils.Constants.COMMENT);
 		builder.setDate(DistanceUtils.Constants.DATE_MILLIS);
@@ -53,88 +53,88 @@ public class DistanceRowTest {
 
 	@Test
 	public void equalityTest() {
-		DistanceUtils.assertFieldEquality(mDistanceRowA, mDistanceRowB);
-		assertEquals(mDistanceRowA, mDistanceRowB);
-		assertEquals(mDistanceRowA, mDistanceRowA);
-		assertNotSame(mDistanceRowA, null);
-		assertNotSame(mDistanceRowA, getDistanceRowBuilderA().setComment("bad").build());
-		assertNotSame(mDistanceRowA, getDistanceRowBuilderA().setLocation("bad").build());
-		assertNotSame(mDistanceRowA, getDistanceRowBuilderA().setDistance(-1).build());
-		assertNotSame(mDistanceRowA, getDistanceRowBuilderA().setRate(-1).build());
-		assertNotSame(mDistanceRowA, getDistanceRowBuilderA().setDate(0).build());
+		DistanceUtils.assertFieldEquality(mDistanceA, mDistanceB);
+		assertEquals(mDistanceA, mDistanceB);
+		assertEquals(mDistanceA, mDistanceA);
+		assertNotSame(mDistanceA, null);
+		assertNotSame(mDistanceA, getDistanceRowBuilderA().setComment("bad").build());
+		assertNotSame(mDistanceA, getDistanceRowBuilderA().setLocation("bad").build());
+		assertNotSame(mDistanceA, getDistanceRowBuilderA().setDistance(-1).build());
+		assertNotSame(mDistanceA, getDistanceRowBuilderA().setRate(-1).build());
+		assertNotSame(mDistanceA, getDistanceRowBuilderA().setDate(0).build());
 	}
 
 	@Test
 	public void hashCodeTest() {
-		assertEquals(mDistanceRowA.hashCode(), mDistanceRowB.hashCode());
-		assertEquals(mDistanceRowA.hashCode(), mDistanceRowA.hashCode());
-		assertNotSame(mDistanceRowA.hashCode(), getDistanceRowBuilderA().setComment("bad").build().hashCode());
-		assertNotSame(mDistanceRowA.hashCode(), getDistanceRowBuilderA().setLocation("bad").build().hashCode());
-		assertNotSame(mDistanceRowA.hashCode(), getDistanceRowBuilderA().setDistance(-1).build().hashCode());
-		assertNotSame(mDistanceRowA.hashCode(), getDistanceRowBuilderA().setRate(-1).build().hashCode());
-		assertNotSame(mDistanceRowA.hashCode(), getDistanceRowBuilderA().setDate(0).build().hashCode());
+		assertEquals(mDistanceA.hashCode(), mDistanceB.hashCode());
+		assertEquals(mDistanceA.hashCode(), mDistanceA.hashCode());
+		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setComment("bad").build().hashCode());
+		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setLocation("bad").build().hashCode());
+		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setDistance(-1).build().hashCode());
+		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setRate(-1).build().hashCode());
+		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setDate(0).build().hashCode());
 	}
 
 	@Test
 	public void testGetComment() {
-		assertNotNull(mDistanceRowA.getComment());
-		assertEquals(mDistanceRowA.getComment(), mDistanceRowB.getComment());
-		assertEquals(DistanceUtils.Constants.COMMENT, mDistanceRowA.getComment());
+		assertNotNull(mDistanceA.getComment());
+		assertEquals(mDistanceA.getComment(), mDistanceB.getComment());
+		assertEquals(DistanceUtils.Constants.COMMENT, mDistanceA.getComment());
 	}
 
 	@Test
 	public void testGetDate() {
-		assertNotNull(mDistanceRowA.getDate());
-		assertEquals(mDistanceRowA.getDate(), mDistanceRowB.getDate());
-		assertEquals(DistanceUtils.Constants.DATE, mDistanceRowA.getDate());
+		assertNotNull(mDistanceA.getDate());
+		assertEquals(mDistanceA.getDate(), mDistanceB.getDate());
+		assertEquals(DistanceUtils.Constants.DATE, mDistanceA.getDate());
 	}
 
 	@Test
 	public void testGetDistance() {
-		assertNotNull(mDistanceRowA.getDistance());
-		assertEquals(mDistanceRowA.getDistance(), mDistanceRowB.getDistance());
-		assertEquals(DistanceUtils.Constants.DISTANCE, mDistanceRowA.getDistance());
+		assertNotNull(mDistanceA.getDistance());
+		assertEquals(mDistanceA.getDistance(), mDistanceB.getDistance());
+		assertEquals(DistanceUtils.Constants.DISTANCE, mDistanceA.getDistance());
 	}
 
 	@Test
 	public void testGetLocation() {
-		assertNotNull(mDistanceRowA.getLocation());
-		assertEquals(mDistanceRowA.getLocation(), mDistanceRowB.getLocation());
-		assertEquals(DistanceUtils.Constants.LOCATION, mDistanceRowA.getLocation());
+		assertNotNull(mDistanceA.getLocation());
+		assertEquals(mDistanceA.getLocation(), mDistanceB.getLocation());
+		assertEquals(DistanceUtils.Constants.LOCATION, mDistanceA.getLocation());
 	}
 
 	@Test
 	public void testGetRate() {
-		assertNotNull(mDistanceRowA.getRate());
-		assertEquals(mDistanceRowA.getRate(), mDistanceRowB.getRate());
-		assertEquals(DistanceUtils.Constants.RATE, mDistanceRowA.getRate());
+		assertNotNull(mDistanceA.getRate());
+		assertEquals(mDistanceA.getRate(), mDistanceB.getRate());
+		assertEquals(DistanceUtils.Constants.RATE, mDistanceA.getRate());
 	}
 
 	@Test
 	public void testGetTimezone() {
-		assertNotNull(mDistanceRowA.getTimezone());
-		assertEquals(mDistanceRowA.getTimezone(), mDistanceRowB.getTimezone());
-		assertEquals(DistanceUtils.Constants.TIMEZONE, mDistanceRowA.getTimezone());
-		assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, mDistanceRowA.getTimezoneCode());
+		assertNotNull(mDistanceA.getTimezone());
+		assertEquals(mDistanceA.getTimezone(), mDistanceB.getTimezone());
+		assertEquals(DistanceUtils.Constants.TIMEZONE, mDistanceA.getTimezone());
+		assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, mDistanceA.getTimezoneCode());
 	}
 
 	@Test
 	public void testGetTrip() {
-		assertNotNull(mDistanceRowA.getTrip());
-		assertEquals(mDistanceRowA.getTrip(), mDistanceRowB.getTrip());
-		assertEquals(TripUtils.newDefaultTripRowInstance(), mDistanceRowA.getTrip());
+		assertNotNull(mDistanceA.getTrip());
+		assertEquals(mDistanceA.getTrip(), mDistanceB.getTrip());
+		assertEquals(TripUtils.newDefaultTripRowInstance(), mDistanceA.getTrip());
 	}
 
 	@Test
 	public void parcelTest() {
 		final Parcel parcelA = Parcel.obtain();
-		mDistanceRowA.writeToParcel(parcelA, 0);
+		mDistanceA.writeToParcel(parcelA, 0);
 		parcelA.setDataPosition(0);
 
-		final DistanceRow parcelDistanceRowA = DistanceRow.CREATOR.createFromParcel(parcelA);
-		assertNotNull(parcelDistanceRowA);
-		assertEquals(mDistanceRowA, parcelDistanceRowA);
-		DistanceUtils.assertFieldEquality(parcelDistanceRowA, mDistanceRowA);
+		final Distance parcelDistanceA = Distance.CREATOR.createFromParcel(parcelA);
+		assertNotNull(parcelDistanceA);
+		assertEquals(mDistanceA, parcelDistanceA);
+		DistanceUtils.assertFieldEquality(parcelDistanceA, mDistanceA);
 	}
 
 }

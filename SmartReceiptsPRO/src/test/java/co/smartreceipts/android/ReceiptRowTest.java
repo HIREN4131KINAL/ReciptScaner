@@ -16,8 +16,8 @@ import org.robolectric.annotation.Config;
 
 import android.os.Parcel;
 import android.text.TextUtils;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.model.ReceiptRow;
+
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.tests.utils.ReceiptUtils;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 import co.smartreceipts.tests.utils.TestUtils;
@@ -32,12 +32,12 @@ public class ReceiptRowTest {
 	 * ReceiptRow only tests their IDs and will not be a valid indicator of whether or not they are actually equal or
 	 * not. The difference between the two is how their builders are constructed
 	 */
-	private ReceiptRow mReceiptRowA, mReceiptRowB;
+	private Receipt mReceiptA, mReceiptB;
 
 	/*
 	 * ReceiptRowC has a difference File (PDF) than ReceiptRow A or B. All other data is the same
 	 */
-	private ReceiptRow mReceiptRowC;
+	private Receipt mReceiptC;
 
 	private SmartReceiptsApplication mApp;
 
@@ -47,8 +47,8 @@ public class ReceiptRowTest {
 	 * 
 	 * @return
 	 */
-	private ReceiptRow.Builder getReceiptRowABuilder() {
-		ReceiptRow.Builder builderA = new ReceiptRow.Builder(Constants.ID);
+	private Receipt.Builder getReceiptRowABuilder() {
+		Receipt.Builder builderA = new Receipt.Builder(Constants.ID);
 		builderA.setCategory(Constants.CATEGORY).setComment(Constants.COMMENT).setCurrency(Constants.CURRENCY_CODE)
 				.setDate(Constants.DATE_MILLIS).setExtraEditText1(Constants.EXTRA1).setExtraEditText2(Constants.EXTRA2)
 				.setExtraEditText3(Constants.EXTRA3).setFile(getFile(Constants.IMAGE_FILE_NAME))
@@ -64,8 +64,8 @@ public class ReceiptRowTest {
 	 * 
 	 * @return
 	 */
-	private ReceiptRow.Builder getReceiptRowBBuilder() {
-		ReceiptRow.Builder builderB = new ReceiptRow.Builder(Constants.ID);
+	private Receipt.Builder getReceiptRowBBuilder() {
+		Receipt.Builder builderB = new Receipt.Builder(Constants.ID);
 		mApp.getPersistenceManager().getStorageManager().createFile(Constants.IMAGE_FILE);
 		builderB.setCategory(Constants.CATEGORY).setComment(Constants.COMMENT).setCurrency(Constants.CURRENCY)
 				.setDate(Constants.DATE).setExtraEditText1(Constants.EXTRA1).setExtraEditText2(Constants.EXTRA2)
@@ -82,8 +82,8 @@ public class ReceiptRowTest {
 	 * 
 	 * @return
 	 */
-	private ReceiptRow.Builder getReceiptRowCBuilder() {
-		ReceiptRow.Builder builderC = getReceiptRowABuilder();
+	private Receipt.Builder getReceiptRowCBuilder() {
+		Receipt.Builder builderC = getReceiptRowABuilder();
 		mApp.getPersistenceManager().getStorageManager().createFile(Constants.PDF_FILE);
 		builderC.setPDF(getFile(Constants.PDF_FILE_NAME));
 		return builderC;
@@ -100,16 +100,16 @@ public class ReceiptRowTest {
 	@Before
 	public void setUp() throws Exception {
 		mApp = (SmartReceiptsApplication) Robolectric.application;
-		mReceiptRowA = getReceiptRowABuilder().build();
-		mReceiptRowB = getReceiptRowBBuilder().build();
-		mReceiptRowC = getReceiptRowCBuilder().build();
+		mReceiptA = getReceiptRowABuilder().build();
+		mReceiptB = getReceiptRowBBuilder().build();
+		mReceiptC = getReceiptRowCBuilder().build();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		mReceiptRowA = null;
-		mReceiptRowB = null;
-		mReceiptRowC = null;
+		mReceiptA = null;
+		mReceiptB = null;
+		mReceiptC = null;
 		mApp = null;
 	}
 
@@ -121,39 +121,39 @@ public class ReceiptRowTest {
 
 	@Test
 	public void testReceiptRowEquality() {
-		assertEquals(mReceiptRowA, mReceiptRowB);
-		assertEquals(mReceiptRowA, mReceiptRowC);
+		assertEquals(mReceiptA, mReceiptB);
+		assertEquals(mReceiptA, mReceiptC);
 	}
 
 	@Test
 	public void testReceiptRowCategories() {
-		assertEquals(mReceiptRowA.getCategory(), mReceiptRowB.getCategory());
-		assertEquals(mReceiptRowA.getCategory(), Constants.CATEGORY);
+		assertEquals(mReceiptA.getCategory(), mReceiptB.getCategory());
+		assertEquals(mReceiptA.getCategory(), Constants.CATEGORY);
 	}
 
 	@Test
 	public void testReceiptRowComments() {
-		assertEquals(mReceiptRowA.getComment(), mReceiptRowB.getComment());
-		assertEquals(mReceiptRowA.getComment(), Constants.COMMENT);
+		assertEquals(mReceiptA.getComment(), mReceiptB.getComment());
+		assertEquals(mReceiptA.getComment(), Constants.COMMENT);
 	}
 
 	@Test
 	public void testReceiptRowDates() {
-		assertEquals(mReceiptRowA.getDate(), mReceiptRowB.getDate());
-		assertEquals(mReceiptRowA.getTimeZone(), mReceiptRowB.getTimeZone());
-		assertEquals(mReceiptRowA.getDate(), Constants.DATE);
-		assertEquals(mReceiptRowA.getTimeZone(), Constants.TIMEZONE);
+		assertEquals(mReceiptA.getDate(), mReceiptB.getDate());
+		assertEquals(mReceiptA.getTimeZone(), mReceiptB.getTimeZone());
+		assertEquals(mReceiptA.getDate(), Constants.DATE);
+		assertEquals(mReceiptA.getTimeZone(), Constants.TIMEZONE);
 		// TODO: Add Context to get Formatted Dates
 	}
 
 	@Test
 	public void testReceiptRowExtras() {
-		assertEquals(mReceiptRowA.getExtraEditText1(), mReceiptRowB.getExtraEditText1());
-		assertEquals(mReceiptRowA.getExtraEditText2(), mReceiptRowB.getExtraEditText2());
-		assertEquals(mReceiptRowA.getExtraEditText3(), mReceiptRowB.getExtraEditText3());
-		testExtra(mReceiptRowA.getExtraEditText1(), Constants.EXTRA1);
-		testExtra(mReceiptRowA.getExtraEditText2(), Constants.EXTRA2);
-		testExtra(mReceiptRowA.getExtraEditText3(), Constants.EXTRA3);
+		assertEquals(mReceiptA.getExtraEditText1(), mReceiptB.getExtraEditText1());
+		assertEquals(mReceiptA.getExtraEditText2(), mReceiptB.getExtraEditText2());
+		assertEquals(mReceiptA.getExtraEditText3(), mReceiptB.getExtraEditText3());
+		testExtra(mReceiptA.getExtraEditText1(), Constants.EXTRA1);
+		testExtra(mReceiptA.getExtraEditText2(), Constants.EXTRA2);
+		testExtra(mReceiptA.getExtraEditText3(), Constants.EXTRA3);
 	}
 
 	/**
@@ -173,61 +173,61 @@ public class ReceiptRowTest {
 
 	@Test
 	public void testReceiptRowFiles() {
-		assertEquals(mReceiptRowA.getFile(), mReceiptRowB.getFile());
-		assertEquals(mReceiptRowA.getFileName(), mReceiptRowB.getFileName());
-		assertEquals(mReceiptRowA.getFilePath(), mReceiptRowB.getFilePath());
-		assertEquals(mReceiptRowA.hasImage(), mReceiptRowB.hasImage());
-		assertEquals(mReceiptRowA.getFile(), getFile(Constants.IMAGE_FILE_NAME));
-		assertEquals(mReceiptRowC.getFile(), getFile(Constants.PDF_FILE_NAME));
+		assertEquals(mReceiptA.getFile(), mReceiptB.getFile());
+		assertEquals(mReceiptA.getFileName(), mReceiptB.getFileName());
+		assertEquals(mReceiptA.getFilePath(), mReceiptB.getFilePath());
+		assertEquals(mReceiptA.hasImage(), mReceiptB.hasImage());
+		assertEquals(mReceiptA.getFile(), getFile(Constants.IMAGE_FILE_NAME));
+		assertEquals(mReceiptC.getFile(), getFile(Constants.PDF_FILE_NAME));
 	}
 
 	@Test
 	public void testReceiptRowPriceAndCurrency() {
-		assertNotNull(mReceiptRowA.getPrice());
-		assertEquals(mReceiptRowA.getPrice(), mReceiptRowB.getPrice());
-		assertEquals(mReceiptRowA.getPriceAsFloat(), mReceiptRowB.getPriceAsFloat(), TestUtils.EPSILON);
-		assertEquals(mReceiptRowA.getDecimalFormattedPrice(), mReceiptRowB.getDecimalFormattedPrice());
-		assertEquals(mReceiptRowA.getCurrencyCode(), mReceiptRowB.getCurrencyCode());
-		assertEquals(mReceiptRowA.getCurrencyFormattedPrice(), mReceiptRowB.getCurrencyFormattedPrice());
-		assertEquals(mReceiptRowA.getPrice(), Constants.PRICE);
-		assertEquals(mReceiptRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+		assertNotNull(mReceiptA.getPrice());
+		assertEquals(mReceiptA.getPrice(), mReceiptB.getPrice());
+		assertEquals(mReceiptA.getPriceAsFloat(), mReceiptB.getPriceAsFloat(), TestUtils.EPSILON);
+		assertEquals(mReceiptA.getDecimalFormattedPrice(), mReceiptB.getDecimalFormattedPrice());
+		assertEquals(mReceiptA.getCurrencyCode(), mReceiptB.getCurrencyCode());
+		assertEquals(mReceiptA.getCurrencyFormattedPrice(), mReceiptB.getCurrencyFormattedPrice());
+		assertEquals(mReceiptA.getPrice(), Constants.PRICE);
+		assertEquals(mReceiptA.getCurrencyCode(), Constants.CURRENCY_CODE);
 	}
 
 	@Test
 	public void testReceiptRowTaxAndCurrency() {
-		assertNotNull(mReceiptRowA.getTax());
-		assertEquals(mReceiptRowA.getTax(), mReceiptRowB.getTax());
-		assertEquals(mReceiptRowA.getTaxAsFloat(), mReceiptRowB.getTaxAsFloat(), TestUtils.EPSILON);
-		assertEquals(mReceiptRowA.getDecimalFormattedTax(), mReceiptRowB.getDecimalFormattedTax());
-		assertEquals(mReceiptRowA.getCurrencyCode(), mReceiptRowB.getCurrencyCode());
-		assertEquals(mReceiptRowA.getCurrencyFormattedTax(), mReceiptRowB.getCurrencyFormattedTax());
-		assertEquals(mReceiptRowA.getTax(), Constants.TAX);
-		assertEquals(mReceiptRowA.getCurrencyCode(), Constants.CURRENCY_CODE);
+		assertNotNull(mReceiptA.getTax());
+		assertEquals(mReceiptA.getTax(), mReceiptB.getTax());
+		assertEquals(mReceiptA.getTaxAsFloat(), mReceiptB.getTaxAsFloat(), TestUtils.EPSILON);
+		assertEquals(mReceiptA.getDecimalFormattedTax(), mReceiptB.getDecimalFormattedTax());
+		assertEquals(mReceiptA.getCurrencyCode(), mReceiptB.getCurrencyCode());
+		assertEquals(mReceiptA.getCurrencyFormattedTax(), mReceiptB.getCurrencyFormattedTax());
+		assertEquals(mReceiptA.getTax(), Constants.TAX);
+		assertEquals(mReceiptA.getCurrencyCode(), Constants.CURRENCY_CODE);
 	}
 
 	@Test
 	public void testTripRow() {
-		assertEquals(mReceiptRowA.getTrip(), mReceiptRowB.getTrip());
+		assertEquals(mReceiptA.getTrip(), mReceiptB.getTrip());
 	}
 
 	@Test
 	public void parcelTest() {
 		Parcel parcelA = Parcel.obtain();
-		mReceiptRowA.writeToParcel(parcelA, 0);
+		mReceiptA.writeToParcel(parcelA, 0);
 		parcelA.setDataPosition(0);
-		ReceiptRow parcelReceiptRowA = ReceiptRow.CREATOR.createFromParcel(parcelA);
-		assertNotNull(parcelReceiptRowA);
-		assertEquals(mReceiptRowA, parcelReceiptRowA);
-		ReceiptUtils.assertFieldEquality(parcelReceiptRowA, mReceiptRowA);
+		Receipt parcelReceiptA = Receipt.CREATOR.createFromParcel(parcelA);
+		assertNotNull(parcelReceiptA);
+		assertEquals(mReceiptA, parcelReceiptA);
+		ReceiptUtils.assertFieldEquality(parcelReceiptA, mReceiptA);
 
 		Parcel parcelD = Parcel.obtain();
-		ReceiptRow receiptRowD = getReceiptRowABuilder().setFile(null).build();
-		receiptRowD.writeToParcel(parcelD, 0);
+		Receipt receiptD = getReceiptRowABuilder().setFile(null).build();
+		receiptD.writeToParcel(parcelD, 0);
 		parcelD.setDataPosition(0);
-		ReceiptRow parcelReceiptRowD = ReceiptRow.CREATOR.createFromParcel(parcelD);
-		assertNotNull(parcelReceiptRowD);
-		assertEquals(receiptRowD, parcelReceiptRowD);
-		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parcelReceiptRowD, receiptRowD);
+		Receipt parcelReceiptD = Receipt.CREATOR.createFromParcel(parcelD);
+		assertNotNull(parcelReceiptD);
+		assertEquals(receiptD, parcelReceiptD);
+		ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parcelReceiptD, receiptD);
 	}
 
 }

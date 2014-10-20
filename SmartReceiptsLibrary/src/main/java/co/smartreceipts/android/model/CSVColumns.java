@@ -34,7 +34,7 @@ public class CSVColumns extends Columns {
 		return print;
 	}
 
-	public String print(ReceiptRow receipt, Trip currentTrip) {
+	public String print(Receipt receipt, Trip currentTrip) {
 		final int size = mColumns.size();
 		String print = "", column;
 		for (int i=0; i < size; i++) {
@@ -58,7 +58,7 @@ public class CSVColumns extends Columns {
 	}
 
 	@Override
-	protected String generateColumn(Column column, ReceiptRow receipt, Trip currentTrip) {
+	protected String generateColumn(Column column, Receipt receipt, Trip currentTrip) {
 		String csv = super.generateColumn(column, receipt, currentTrip);
 		if (csv == null) {
 			return "";

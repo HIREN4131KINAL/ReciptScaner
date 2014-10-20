@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import android.view.LayoutInflater;
 import android.view.View;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 
 /**
@@ -21,7 +21,7 @@ public class FilterFactory {
 
 	private FilterFactory() { }
 	
-	public static final View getReceiptFiltersView(Filter<ReceiptRow> filter, LayoutInflater inflater) {
+	public static final View getReceiptFiltersView(Filter<Receipt> filter, LayoutInflater inflater) {
 		if (filter instanceof ReceiptAndFilter) {
 			final ReceiptAndFilter receiptAndFilter = (ReceiptAndFilter) filter;
 		}
@@ -35,20 +35,20 @@ public class FilterFactory {
 	}
 	
 	
-	private static final View getReceiptFiltersView(Filter<ReceiptRow> filter, LayoutInflater inflater, String prefix,
+	private static final View getReceiptFiltersView(Filter<Receipt> filter, LayoutInflater inflater, String prefix,
 			String suffix) {
 
 		return null;
 	}
 
 	/**
-	 * Builds a {@link Filter} for a {@link ReceiptRow} based on a {@link JSONObject}
+	 * Builds a {@link Filter} for a {@link co.smartreceipts.android.model.Receipt} based on a {@link JSONObject}
 	 * 
 	 * @param json - the {@link JSONObject} that represents this filter
-	 * @return a {@link Filter} of {@link ReceiptRow}
+	 * @return a {@link Filter} of {@link co.smartreceipts.android.model.Receipt}
 	 * @throws JSONException - throw if our provide {@link JSONObject} is invalid
 	 */
-	public static final Filter<ReceiptRow> getReceiptFilter(JSONObject json) throws JSONException {
+	public static final Filter<Receipt> getReceiptFilter(JSONObject json) throws JSONException {
 		final String className = json.getString(CLASS_NAME);
 
 		if (ReceiptOrFilter.class.getName().equals(className)) {

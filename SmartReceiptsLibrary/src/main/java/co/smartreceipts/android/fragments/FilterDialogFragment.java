@@ -1,11 +1,9 @@
 package co.smartreceipts.android.fragments;
 
-import java.util.List;
-
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.ReceiptAndFilter;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -29,7 +27,7 @@ public class FilterDialogFragment extends DialogFragment implements OnClickListe
 	}
 	
 	
-	private View buildViewsFromFilters(Filter<ReceiptRow> filter) {
+	private View buildViewsFromFilters(Filter<Receipt> filter) {
 		if (filter instanceof ReceiptAndFilter) {
 			
 		}

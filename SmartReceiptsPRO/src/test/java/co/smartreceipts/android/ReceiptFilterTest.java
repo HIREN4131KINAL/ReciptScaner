@@ -18,8 +18,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
 import co.smartreceipts.android.filters.FilterType;
@@ -33,7 +31,7 @@ import co.smartreceipts.android.filters.ReceiptOnOrAfterDayFilter;
 import co.smartreceipts.android.filters.ReceiptOnOrBeforeDayFilter;
 import co.smartreceipts.android.filters.ReceiptOrFilter;
 import co.smartreceipts.android.filters.ReceiptSelectedFilter;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
 
 @Config(emulateSdk = 18, manifest = "../SmartReceiptsPRO/AndroidManifest.xml") 
@@ -60,8 +58,8 @@ public class ReceiptFilterTest {
 	 * whenever possible as opposed to higher level objects
 	 * @return
 	 */
-	private ReceiptRow.Builder getGenericReceiptRowBuilder() {
-		ReceiptRow.Builder builderA = new ReceiptRow.Builder(Constants.ID);
+	private Receipt.Builder getGenericReceiptRowBuilder() {
+		Receipt.Builder builderA = new Receipt.Builder(Constants.ID);
 		builderA.setCategory(Constants.CATEGORY)
 				.setComment(Constants.COMMENT)
 				.setCurrency(Constants.CURRENCY_CODE)
@@ -98,8 +96,8 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptCategoryFilterTest() throws JSONException {
-		final ReceiptRow receipt1 = getGenericReceiptRowBuilder().build();
-		final ReceiptRow receipt2 = getGenericReceiptRowBuilder().setCategory("BAD Category").build();
+		final Receipt receipt1 = getGenericReceiptRowBuilder().build();
+		final Receipt receipt2 = getGenericReceiptRowBuilder().setCategory("BAD Category").build();
 		final ReceiptCategoryFilter filter = new ReceiptCategoryFilter(Constants.CATEGORY);
 		assertTrue(filter.accept(receipt1));
 		assertFalse(filter.accept(receipt2));
@@ -110,8 +108,8 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptIsExpensableFilterTest() throws JSONException {
-		final ReceiptRow receipt1 = getGenericReceiptRowBuilder().setIsExpenseable(true).build();
-		final ReceiptRow receipt2 = getGenericReceiptRowBuilder().setIsExpenseable(false).build();
+		final Receipt receipt1 = getGenericReceiptRowBuilder().setIsExpenseable(true).build();
+		final Receipt receipt2 = getGenericReceiptRowBuilder().setIsExpenseable(false).build();
 		final ReceiptIsExpensableFilter filter = new ReceiptIsExpensableFilter();
 		
 		assertTrue(filter.accept(receipt1));
@@ -123,8 +121,8 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptIsSelectedFilterTest() throws JSONException {
-		final ReceiptRow receipt1 = getGenericReceiptRowBuilder().setIsSelected(true).build();
-		final ReceiptRow receipt2 = getGenericReceiptRowBuilder().setIsSelected(false).build();
+		final Receipt receipt1 = getGenericReceiptRowBuilder().setIsSelected(true).build();
+		final Receipt receipt2 = getGenericReceiptRowBuilder().setIsSelected(false).build();
 		final ReceiptSelectedFilter filter = new ReceiptSelectedFilter();
 		
 		assertTrue(filter.accept(receipt1));
@@ -136,9 +134,9 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptMinimumPriceFilterTest() throws JSONException {
-		final ReceiptRow receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
-		final ReceiptRow receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
-		final ReceiptRow receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
+		final Receipt receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
+		final Receipt receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
+		final Receipt receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
 		
 		final ReceiptMinimumPriceFilter filter = new ReceiptMinimumPriceFilter(
 				Float.parseFloat(PRICE_NORMAL), CURRENCY);
@@ -153,9 +151,9 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptMaximumPriceFilterTest() throws JSONException {
-		final ReceiptRow receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
-		final ReceiptRow receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
-		final ReceiptRow receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
+		final Receipt receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
+		final Receipt receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
+		final Receipt receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
 		
 		final ReceiptMaximumPriceFilter filter = new ReceiptMaximumPriceFilter(
 				Float.parseFloat(PRICE_NORMAL), CURRENCY);
@@ -170,9 +168,9 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptOnOrAfterDayFilterTest() throws JSONException {
-		final ReceiptRow receiptNow = getGenericReceiptRowBuilder().setDate(NOW).build();
-		final ReceiptRow receiptFuture = getGenericReceiptRowBuilder().setDate(FUTURE).build();
-		final ReceiptRow receiptPast = getGenericReceiptRowBuilder().setDate(PAST).build();
+		final Receipt receiptNow = getGenericReceiptRowBuilder().setDate(NOW).build();
+		final Receipt receiptFuture = getGenericReceiptRowBuilder().setDate(FUTURE).build();
+		final Receipt receiptPast = getGenericReceiptRowBuilder().setDate(PAST).build();
 		final ReceiptOnOrAfterDayFilter filter = new ReceiptOnOrAfterDayFilter(NOW, TZ);
 		
 		assertTrue(filter.accept(receiptNow));
@@ -185,9 +183,9 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptOnOrBeforeDayFilterTest() throws JSONException {
-		final ReceiptRow receiptNow = getGenericReceiptRowBuilder().setDate(NOW).build();
-		final ReceiptRow receiptFuture = getGenericReceiptRowBuilder().setDate(FUTURE).build();
-		final ReceiptRow receiptPast = getGenericReceiptRowBuilder().setDate(PAST).build();
+		final Receipt receiptNow = getGenericReceiptRowBuilder().setDate(NOW).build();
+		final Receipt receiptFuture = getGenericReceiptRowBuilder().setDate(FUTURE).build();
+		final Receipt receiptPast = getGenericReceiptRowBuilder().setDate(PAST).build();
 		final ReceiptOnOrBeforeDayFilter filter = new ReceiptOnOrBeforeDayFilter(NOW, TZ);
 		
 		assertTrue(filter.accept(receiptNow));
@@ -201,9 +199,9 @@ public class ReceiptFilterTest {
 	@Test
 	public void receiptOrFilterTest() throws JSONException {
 		final String category2 = "cat2";
-		final ReceiptRow receipt1 = getGenericReceiptRowBuilder().build();
-		final ReceiptRow receipt2 = getGenericReceiptRowBuilder().setCategory(category2).build();
-		final ReceiptRow receipt3 = getGenericReceiptRowBuilder().setCategory("BAD Category").build();
+		final Receipt receipt1 = getGenericReceiptRowBuilder().build();
+		final Receipt receipt2 = getGenericReceiptRowBuilder().setCategory(category2).build();
+		final Receipt receipt3 = getGenericReceiptRowBuilder().setCategory("BAD Category").build();
 		final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(Constants.CATEGORY);
 		final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter(category2);
 		final ReceiptOrFilter orFilter = new ReceiptOrFilter();
@@ -219,7 +217,7 @@ public class ReceiptFilterTest {
 	
 	@Test
 	public void receiptAndFilterTest() throws JSONException {
-		final ReceiptRow receipt = getGenericReceiptRowBuilder().build();
+		final Receipt receipt = getGenericReceiptRowBuilder().build();
 		
 		final ReceiptIsExpensableFilter trueFilter1 = new ReceiptIsExpensableFilter();
 		final ReceiptCategoryFilter trueFilter2 = new ReceiptCategoryFilter(Constants.CATEGORY);
@@ -244,9 +242,9 @@ public class ReceiptFilterTest {
 		// accept rule: NOT (price <= normal) 
 		// equivalent to: (price > normal)
 		
-		final ReceiptRow receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
-		final ReceiptRow receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
-		final ReceiptRow receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
+		final Receipt receiptNormal = getGenericReceiptRowBuilder().setPrice(PRICE_NORMAL).build();
+		final Receipt receiptHigh = getGenericReceiptRowBuilder().setPrice(PRICE_HIGH).build();
+		final Receipt receiptLow = getGenericReceiptRowBuilder().setPrice(PRICE_LOW).build();
 
 		final ReceiptMaximumPriceFilter priceFilter = new ReceiptMaximumPriceFilter(Float.parseFloat(PRICE_NORMAL), CURRENCY);
 		final ReceiptNotFilter notFilter = new ReceiptNotFilter(priceFilter);
@@ -269,7 +267,7 @@ public class ReceiptFilterTest {
 		final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
-		final ArrayList<Filter<ReceiptRow>> filters = new ArrayList<Filter<ReceiptRow>>();
+		final ArrayList<Filter<Receipt>> filters = new ArrayList<Filter<Receipt>>();
 		filters.add(filter1);
 		filters.add(filter2);
 		final ReceiptOrFilter orFilter1 = new ReceiptOrFilter(filters);
@@ -293,7 +291,7 @@ public class ReceiptFilterTest {
 		final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
-		final ArrayList<Filter<ReceiptRow>> filters = new ArrayList<Filter<ReceiptRow>>();
+		final ArrayList<Filter<Receipt>> filters = new ArrayList<Filter<Receipt>>();
 		filters.add(filter1);
 		filters.add(filter2);
 		final ReceiptAndFilter andFilter1 = new ReceiptAndFilter(filters);

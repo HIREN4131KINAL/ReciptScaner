@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
@@ -39,7 +40,7 @@ import co.smartreceipts.android.model.Columns.Column;
 import co.smartreceipts.android.model.DistanceRow;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImportTask;
@@ -67,7 +68,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	// Caching Vars
 	private Trip[] mTripsCache;
 	private boolean mAreTripsValid;
-	private final HashMap<Trip, List<ReceiptRow>> mReceiptCache;
+	private final HashMap<Trip, List<Receipt>> mReceiptCache;
 	private int mNextReceiptAutoIncrementId = -1;
 	private HashMap<String, String> mCategories;
 	private ArrayList<CharSequence> mCategoryList, mCurrencyList;
@@ -119,17 +120,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public interface ReceiptRowListener {
-		public void onReceiptRowsQuerySuccess(List<ReceiptRow> receipts);
+		public void onReceiptRowsQuerySuccess(List<Receipt> receipts);
 
-		public void onReceiptRowInsertSuccess(ReceiptRow receipt);
+		public void onReceiptRowInsertSuccess(Receipt receipt);
 
 		public void onReceiptRowInsertFailure(SQLException ex); // Directory here is out of mDate
 
-		public void onReceiptRowUpdateSuccess(ReceiptRow receipt);
+		public void onReceiptRowUpdateSuccess(Receipt receipt);
 
 		public void onReceiptRowUpdateFailure(); // For rollback info
 
-		public void onReceiptDeleteSuccess(ReceiptRow receipt);
+		public void onReceiptDeleteSuccess(Receipt receipt);
 
 		public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category); // Any of these can
 																										// be null!
@@ -156,7 +157,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public interface ReceiptRowGraphListener {
-		public void onGraphQuerySuccess(List<ReceiptRow> receipts);
+		public void onGraphQuerySuccess(List<Receipt> receipts);
 	}
 
 	public interface TableDefaultsCustomizer {
@@ -271,7 +272,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
 																							// factory
 		mAreTripsValid = false;
-		mReceiptCache = new HashMap<Trip, List<ReceiptRow>>();
+		mReceiptCache = new HashMap<Trip, List<Receipt>>();
 		mContext = application.getApplicationContext();
 		mFlex = application.getFlex();
 		mPersistenceManager = persistenceManager;
@@ -1732,7 +1733,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mReceiptRowListener = null;
 	}
 
-	public List<ReceiptRow> getReceiptsSerial(final Trip trip) {
+	public List<Receipt> getReceiptsSerial(final Trip trip) {
 		synchronized (mReceiptCacheLock) {
 			if (mReceiptCache.containsKey(trip)) {
 				return mReceiptCache.get(trip);
@@ -1741,7 +1742,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return this.getReceiptsHelper(trip, true);
 	}
 
-	public List<ReceiptRow> getReceiptsSerial(final Trip trip, final boolean desc) { // Only the email writer should
+	public List<Receipt> getReceiptsSerial(final Trip trip, final boolean desc) { // Only the email writer should
 		return getReceiptsHelper(trip, desc);
 	}
 
@@ -1789,10 +1790,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetReceiptsWorker(true)).execute(trip);
 	}
 
-	private final List<ReceiptRow> getReceiptsHelper(final Trip trip, final boolean desc) {
-		List<ReceiptRow> receipts;
+	private final List<Receipt> getReceiptsHelper(final Trip trip, final boolean desc) {
+		List<Receipt> receipts;
 		if (trip == null) {
-			return new ArrayList<ReceiptRow>();
+			return new ArrayList<Receipt>();
 		}
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -1801,7 +1802,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getReadableDatabase();
 				c = db.query(ReceiptsTable.TABLE_NAME, null, ReceiptsTable.COLUMN_PARENT + "= ?", new String[] { trip.getName() }, null, null, ReceiptsTable.COLUMN_DATE + ((desc) ? " DESC" : " ASC"));
 				if (c != null && c.moveToFirst()) {
-					receipts = new ArrayList<ReceiptRow>(c.getCount());
+					receipts = new ArrayList<Receipt>(c.getCount());
 					final int idIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ID);
 					final int pathIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PATH);
 					final int nameIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NAME);
@@ -1841,7 +1842,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						if (!path.equalsIgnoreCase(DatabaseHelper.NO_DATA)) {
 							img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
 						}
-						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
+						final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
 						builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
 						/**
 						 * Please note that a very frustrating bug exists here. Android cursors only return the first 6
@@ -1869,7 +1870,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					while (c.moveToNext());
 				}
 				else {
-					receipts = new ArrayList<ReceiptRow>();
+					receipts = new ArrayList<Receipt>();
 				}
 			}
 			finally { // Close the cursor and db to avoid memory leaks
@@ -1886,7 +1887,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return receipts;
 	}
 
-	private class GetReceiptsWorker extends AsyncTask<Trip, Void, List<ReceiptRow>> {
+	private class GetReceiptsWorker extends AsyncTask<Trip, Void, List<Receipt>> {
 
 		private final boolean mSilence;
 
@@ -1899,16 +1900,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected List<ReceiptRow> doInBackground(Trip... params) {
+		protected List<Receipt> doInBackground(Trip... params) {
 			if (params == null || params.length == 0) {
-				return new ArrayList<ReceiptRow>();
+				return new ArrayList<Receipt>();
 			}
 			Trip trip = params[0];
 			return getReceiptsHelper(trip, true);
 		}
 
 		@Override
-		protected void onPostExecute(List<ReceiptRow> result) {
+		protected void onPostExecute(List<Receipt> result) {
 			if (mReceiptRowListener != null && !mSilence) {
 				mReceiptRowListener.onReceiptRowsQuerySuccess(result);
 			}
@@ -1916,7 +1917,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final ReceiptRow getReceiptByID(final int id) {
+	public final Receipt getReceiptByID(final int id) {
 		if (id <= 0) {
 			return null;
 		}
@@ -1964,7 +1965,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final StorageManager storageManager = mPersistenceManager.getStorageManager();
 						img = storageManager.getFile(storageManager.getFile(parent), path);
 					}
-					ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
+					final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
 					return builder.setTrip(getTripByName(parent)).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
 				}
 				else {
@@ -1979,15 +1980,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public ReceiptRow insertReceiptSerial(Trip parent, ReceiptRow receipt) throws SQLException {
+	public Receipt insertReceiptSerial(Trip parent, Receipt receipt) throws SQLException {
 		return insertReceiptSerial(parent, receipt, receipt.getFile());
 	}
 
-	public ReceiptRow insertReceiptSerial(Trip parent, ReceiptRow receipt, File newFile) throws SQLException {
+	public Receipt insertReceiptSerial(Trip parent, Receipt receipt, File newFile) throws SQLException {
 		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(), receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(), receipt.getTax(), receipt.isExpensable(), receipt.getCurrencyCode(), receipt.isFullPage(), receipt.getPaymentMethod(), receipt.getExtraEditText1(), receipt.getExtraEditText2(), receipt.getExtraEditText3());
 	}
 
-	public ReceiptRow insertReceiptSerial(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public Receipt insertReceiptSerial(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		return insertReceiptHelper(trip, img, name, category, date, null, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
@@ -2003,7 +2004,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
-	private ReceiptRow insertReceiptHelper(Trip trip, File img, String name, String category, Date date, TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
+	private Receipt insertReceiptHelper(Trip trip, File img, String name, String category, Date date, TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
 			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		final int rcptNum = this.getReceiptsSerial(trip).size() + 1; // Use this to order things more properly
@@ -2100,7 +2101,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
 		}
 
-		ReceiptRow insertReceipt;
+		Receipt insertReceipt;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			Cursor c = null;
@@ -2118,7 +2119,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
 						final int id = c.getInt(0);
 						date.setTime(date.getTime() + rcptNum);
-						ReceiptRow.Builder builder = new ReceiptRow.Builder(id);
+						final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
 						insertReceipt = builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timeZone).setComment(comment).setPrice(price).setTax(tax).setIndex(rcptNum).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(method).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
 					}
 					else {
@@ -2143,7 +2144,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return insertReceipt;
 	}
 
-	private class InsertReceiptWorker extends AsyncTask<Void, Void, ReceiptRow> {
+	private class InsertReceiptWorker extends AsyncTask<Void, Void, Receipt> {
 
 		private final Trip mTrip;
 		private final File mImg;
@@ -2173,7 +2174,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected ReceiptRow doInBackground(Void... params) {
+		protected Receipt doInBackground(Void... params) {
 			try {
 				return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 			}
@@ -2184,7 +2185,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected void onPostExecute(ReceiptRow result) {
+		protected void onPostExecute(Receipt result) {
 			if (mReceiptRowListener != null) {
 				if (result != null) {
 					mReceiptRowListener.onReceiptRowInsertSuccess(result);
@@ -2196,12 +2197,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public ReceiptRow updateReceiptSerial(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public Receipt updateReceiptSerial(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
-	public void updateReceiptParallel(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public void updateReceiptParallel(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		if (mReceiptRowListener == null) {
@@ -2212,7 +2213,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new UpdateReceiptWorker(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
-	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	private Receipt updateReceiptHelper(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		ContentValues values = new ContentValues(10);
@@ -2277,7 +2278,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
 		}
 
-		ReceiptRow updatedReceipt;
+		Receipt updatedReceipt;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
@@ -2287,7 +2288,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				}
 				else {
 					this.updateTripPrice(trip);
-					ReceiptRow.Builder builder = new ReceiptRow.Builder(oldReceipt.getId());
+					final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(oldReceipt.getId());
 					updatedReceipt = builder.setTrip(trip).setName(name).setCategory(category).setFile(oldReceipt.getFile()).setDate(date).setTimeZone(timeZone).setComment(comment).setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(oldReceipt.getIndex()).setPaymentMethod(method).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
 
 				}
@@ -2305,16 +2306,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return updatedReceipt;
 	}
 
-	private class UpdateReceiptWorker extends AsyncTask<Void, Void, ReceiptRow> {
+	private class UpdateReceiptWorker extends AsyncTask<Void, Void, Receipt> {
 
-		private final ReceiptRow mOldReceipt;
+		private final Receipt mOldReceipt;
 		private final Trip mTrip;
 		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
 		private final Date mDate;
 		private final PaymentMethod mPaymentMethod;
 		private final boolean mExpensable, mFullpage;
 
-		public UpdateReceiptWorker(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+		public UpdateReceiptWorker(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mOldReceipt = oldReceipt;
 			mTrip = trip;
@@ -2334,12 +2335,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected ReceiptRow doInBackground(Void... params) {
+		protected Receipt doInBackground(Void... params) {
 			return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
 		}
 
 		@Override
-		protected void onPostExecute(ReceiptRow result) {
+		protected void onPostExecute(Receipt result) {
 			if (mReceiptRowListener != null) {
 				if (result != null) {
 					mReceiptRowListener.onReceiptRowUpdateSuccess(result);
@@ -2351,7 +2352,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public final ReceiptRow updateReceiptFile(final ReceiptRow oldReceipt, final File file) {
+	public final Receipt updateReceiptFile(final Receipt oldReceipt, final File file) {
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
@@ -2381,11 +2382,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public boolean copyReceiptSerial(ReceiptRow receipt, Trip newTrip) {
+	public boolean copyReceiptSerial(Receipt receipt, Trip newTrip) {
 		return copyReceiptHelper(receipt, newTrip);
 	}
 
-	public void copyReceiptParallel(ReceiptRow receipt, Trip newTrip) {
+	public void copyReceiptParallel(Receipt receipt, Trip newTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2394,7 +2395,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new CopyReceiptWorker(receipt, newTrip)).execute(new Void[0]);
 	}
 
-	private boolean copyReceiptHelper(ReceiptRow receipt, Trip newTrip) {
+	private boolean copyReceiptHelper(Receipt receipt, Trip newTrip) {
 		File newFile = null;
 		final StorageManager storageManager = mPersistenceManager.getStorageManager();
 		if (receipt.hasFile()) {
@@ -2430,10 +2431,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private class CopyReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
-		private final ReceiptRow mReceipt;
+		private final Receipt mReceipt;
 		private final Trip mTrip;
 
-		public CopyReceiptWorker(ReceiptRow receipt, Trip currentTrip) {
+		public CopyReceiptWorker(Receipt receipt, Trip currentTrip) {
 			mReceipt = receipt;
 			mTrip = currentTrip;
 		}
@@ -2457,11 +2458,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public boolean moveReceiptSerial(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
+	public boolean moveReceiptSerial(Receipt receipt, Trip currentTrip, Trip newTrip) {
 		return moveReceiptHelper(receipt, currentTrip, newTrip);
 	}
 
-	public void moveReceiptParallel(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
+	public void moveReceiptParallel(Receipt receipt, Trip currentTrip, Trip newTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2470,7 +2471,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new MoveReceiptWorker(receipt, currentTrip, newTrip)).execute(new Void[0]);
 	}
 
-	private boolean moveReceiptHelper(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
+	private boolean moveReceiptHelper(Receipt receipt, Trip currentTrip, Trip newTrip) {
 		if (copyReceiptSerial(receipt, newTrip)) {
 			if (deleteReceiptSerial(receipt, currentTrip)) {
 				return true;
@@ -2487,10 +2488,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private class MoveReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
-		private final ReceiptRow mReceipt;
+		private final Receipt mReceipt;
 		private final Trip mCurrentTrip, mNewTrip;
 
-		public MoveReceiptWorker(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
+		public MoveReceiptWorker(Receipt receipt, Trip currentTrip, Trip newTrip) {
 			mReceipt = receipt;
 			mCurrentTrip = currentTrip;
 			mNewTrip = newTrip;
@@ -2515,11 +2516,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public boolean deleteReceiptSerial(ReceiptRow receipt, Trip currentTrip) {
+	public boolean deleteReceiptSerial(Receipt receipt, Trip currentTrip) {
 		return deleteReceiptHelper(receipt, currentTrip);
 	}
 
-	public void deleteReceiptParallel(ReceiptRow receipt, Trip currentTrip) {
+	public void deleteReceiptParallel(Receipt receipt, Trip currentTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2528,7 +2529,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new DeleteReceiptWorker(receipt, currentTrip)).execute(new Void[0]);
 	}
 
-	private boolean deleteReceiptHelper(ReceiptRow receipt, Trip currentTrip) {
+	private boolean deleteReceiptHelper(Receipt receipt, Trip currentTrip) {
 		boolean success = false;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -2550,10 +2551,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private class DeleteReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
-		private final ReceiptRow mReceipt;
+		private final Receipt mReceipt;
 		private final Trip mTrip;
 
-		public DeleteReceiptWorker(ReceiptRow receipt, Trip currentTrip) {
+		public DeleteReceiptWorker(Receipt receipt, Trip currentTrip) {
 			mReceipt = receipt;
 			mTrip = currentTrip;
 		}
@@ -2577,8 +2578,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final boolean moveReceiptUp(final Trip trip, final ReceiptRow receipt) {
-		List<ReceiptRow> receipts = getReceiptsSerial(trip);
+	public final boolean moveReceiptUp(final Trip trip, final Receipt receipt) {
+		List<Receipt> receipts = getReceiptsSerial(trip);
 		int index = 0;
 		final int size = receipts.size();
 		for (int i = 0; i < size; i++) {
@@ -2590,7 +2591,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		if (index < 0) {
 			return false;
 		}
-		ReceiptRow up = receipts.get(index);
+		Receipt up = receipts.get(index);
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
@@ -2619,8 +2620,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public final boolean moveReceiptDown(final Trip trip, final ReceiptRow receipt) {
-		List<ReceiptRow> receipts = getReceiptsSerial(trip);
+	public final boolean moveReceiptDown(final Trip trip, final Receipt receipt) {
+		List<Receipt> receipts = getReceiptsSerial(trip);
 		final int size = receipts.size();
 		int index = size - 1;
 		for (int i = 0; i < receipts.size(); i++) {
@@ -2632,7 +2633,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		if (index > (size - 1)) {
 			return false;
 		}
-		ReceiptRow down = receipts.get(index);
+		Receipt down = receipts.get(index);
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			try {
@@ -2711,10 +2712,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		public String getSumColumn(); // refers to the SUM() field in SQL
 
-		public ReceiptRow getReceipt(String xaxis, String sum);
+		public Receipt getReceipt(String xaxis, String sum);
 	}
 
-	private List<ReceiptRow> getGraphColumnsSerial(Trip trip, GraphProcessorDelegate delegate) {
+	private List<Receipt> getGraphColumnsSerial(Trip trip, GraphProcessorDelegate delegate) {
 		return getGraphColumnsHelper(trip, delegate);
 	}
 
@@ -2727,7 +2728,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetGraphColumnsWorker(delegate)).execute(trip);
 	}
 
-	private class GetGraphColumnsWorker extends AsyncTask<Trip, Void, List<ReceiptRow>> {
+	private class GetGraphColumnsWorker extends AsyncTask<Trip, Void, List<Receipt>> {
 
 		private final GraphProcessorDelegate mDelegate;
 
@@ -2736,16 +2737,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected List<ReceiptRow> doInBackground(Trip... params) {
+		protected List<Receipt> doInBackground(Trip... params) {
 			if (params == null || params.length == 0) {
-				return new ArrayList<ReceiptRow>();
+				return new ArrayList<Receipt>();
 			}
 			Trip trip = params[0];
 			return getGraphColumnsHelper(trip, mDelegate);
 		}
 
 		@Override
-		protected void onPostExecute(List<ReceiptRow> result) {
+		protected void onPostExecute(List<Receipt> result) {
 			if (mReceiptRowGraphListener != null) {
 				mReceiptRowGraphListener.onGraphQuerySuccess(result);
 			}
@@ -2753,8 +2754,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	private final List<ReceiptRow> getGraphColumnsHelper(Trip trip, GraphProcessorDelegate delegate) {
-		List<ReceiptRow> receipts;
+	private final List<Receipt> getGraphColumnsHelper(Trip trip, GraphProcessorDelegate delegate) {
+		List<Receipt> receipts;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			Cursor c = null;
@@ -2763,7 +2764,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				final String[] columns = new String[] { delegate.getXAxisColumn(), "SUM(" + delegate.getSumColumn() + ") AS " + delegate.getSumColumn() };
 				c = db.query(ReceiptsTable.TABLE_NAME, columns, ReceiptsTable.COLUMN_PARENT + "= ?", new String[] { trip.getName() }, delegate.getXAxisColumn(), null, null);
 				if (c != null && c.moveToFirst()) {
-					receipts = new ArrayList<ReceiptRow>(c.getCount());
+					receipts = new ArrayList<Receipt>(c.getCount());
 					final int xIndex = c.getColumnIndex(delegate.getXAxisColumn());
 					final int sumIndex = c.getColumnIndex(delegate.getSumColumn());
 					do {
@@ -2774,7 +2775,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					while (c.moveToNext());
 				}
 				else {
-					receipts = new ArrayList<ReceiptRow>();
+					receipts = new ArrayList<Receipt>();
 				}
 			}
 			finally { // Close the cursor and db to avoid memory leaks
@@ -2798,12 +2799,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		public ReceiptRow getReceipt(String xaxis, String sum) {
-			return (new ReceiptRow.Builder(-1)).setCategory(xaxis).setPrice(sum).build();
+		public Receipt getReceipt(String xaxis, String sum) {
+			return (new ReceiptBuilderFactory(-1)).setCategory(xaxis).setPrice(sum).build();
 		}
 	}
 
-	public List<ReceiptRow> getCostPerCategorySerial(final Trip trip) {
+	public List<Receipt> getCostPerCategorySerial(final Trip trip) {
 		return getGraphColumnsSerial(trip, new CostPerCategoryDelegate());
 	}
 

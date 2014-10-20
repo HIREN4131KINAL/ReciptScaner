@@ -6,17 +6,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 
 /**
- * A filter implementation that tests if the category of a {@link ReceiptRow} as determined
- * by {@link ReceiptRow#getCategory()} is equal to a predefined value
+ * A filter implementation that tests if the category of a {@link co.smartreceipts.android.model.Receipt} as determined
+ * by {@link co.smartreceipts.android.model.Receipt#getCategory()} is equal to a predefined value
  * 
  * @author Will Baumann
  * @since July 08, 2014
  * 
  */
-public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
+public class ReceiptCategoryFilter implements Filter<Receipt> {
 
 	private static final String CATEGORY = "category";
 	
@@ -24,7 +24,7 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 	
 	/**
 	 * Default constructor for this {@link Filter} that takes in a specific category {@link String}
-	 * that our {@link ReceiptRow#getCategory()} must equal for the {@link #accept(ReceiptRow)} to
+	 * that our {@link co.smartreceipts.android.model.Receipt#getCategory()} must equal for the {@link #accept(co.smartreceipts.android.model.Receipt)} to
 	 * return true
 	 * 
 	 * @param category - the category to check
@@ -48,7 +48,7 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 	}
 	
 	@Override
-	public boolean accept(ReceiptRow t) {
+	public boolean accept(Receipt t) {
 		return mCategory.equals(t.getCategory());
 	}
 
@@ -61,7 +61,7 @@ public class ReceiptCategoryFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public List<Filter<ReceiptRow>> getChildren() {
+	public List<Filter<Receipt>> getChildren() {
 		return null;
 	}
 

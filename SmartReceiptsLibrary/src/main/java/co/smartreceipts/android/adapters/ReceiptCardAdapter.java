@@ -3,32 +3,32 @@ package co.smartreceipts.android.adapters;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
 
-public class ReceiptCardAdapter extends CardAdapter<ReceiptRow> {
+public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 
 	public ReceiptCardAdapter(Context context, Preferences preferences) {
 		super(context, preferences);
 	}
 	
 	@Override
-	protected String getPrice(ReceiptRow data) {
+	protected String getPrice(Receipt data) {
 		return data.getCurrencyFormattedPrice();
 	}
 	
 	@Override
-	protected void setPriceTextView(TextView textView, ReceiptRow data) {
+	protected void setPriceTextView(TextView textView, Receipt data) {
 		textView.setText(getPrice(data));
 	}
 	
 	@Override
-	protected void setNameTextView(TextView textView, ReceiptRow data) {
+	protected void setNameTextView(TextView textView, Receipt data) {
 		textView.setText(data.getName());
 	}
 	
 	@Override
-	protected void setDateTextView(TextView textView, ReceiptRow data) {
+	protected void setDateTextView(TextView textView, Receipt data) {
 		if (getPreferences().isShowDate()) {
 			textView.setVisibility(View.VISIBLE);
 			textView.setText(data.getFormattedDate(getContext(), getPreferences().getDateSeparator()));
@@ -39,7 +39,7 @@ public class ReceiptCardAdapter extends CardAdapter<ReceiptRow> {
 	}
 	
 	@Override
-	protected void setCategory(TextView textView, ReceiptRow data) {
+	protected void setCategory(TextView textView, Receipt data) {
 		if (getPreferences().isShowCategory()) {
 			textView.setVisibility(View.VISIBLE);
 			textView.setText(data.getCategory());
@@ -50,7 +50,7 @@ public class ReceiptCardAdapter extends CardAdapter<ReceiptRow> {
 	}
 	
 	@Override
-	protected void setMarker(TextView textView, ReceiptRow data) {
+	protected void setMarker(TextView textView, Receipt data) {
 		if (getPreferences().isShowPhotoPDFMarker()) {
 			textView.setVisibility(View.VISIBLE);
 			textView.setText(data.getMarkerAsString(getContext()));

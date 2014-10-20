@@ -38,7 +38,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.PDFColumns;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -343,7 +343,7 @@ public class EmailAssistant {
 
 			// Set up our initial variables
 			final Trip trip = trips[0];
-			final List<ReceiptRow> receipts = mDB.getReceiptsSerial(trip, false);
+			final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
 			final int len = receipts.size();
 			final WriterResults results = new WriterResults();
 			for (int i=0; i < len; i++) {
@@ -379,7 +379,7 @@ public class EmailAssistant {
 								+ "Distance Traveled: " + trip.getMilesAsString() + "\n\n\n"));
 					PDFColumns columns = mDB.getPDFColumns();
 					PdfPTable table = columns.getTableWithHeaders();
-					ReceiptRow receipt;
+					Receipt receipt;
 					for (int i=0; i < len; i++) {
 						receipt = receipts.get(i);
 						if (!filterOutReceipt(mPreferences, receipt)) {
@@ -523,7 +523,7 @@ public class EmailAssistant {
 		 * @param receipt - The particular receipt
 		 * @return true if if should be filtered out, false otherwise
 		 */
-		private boolean filterOutReceipt(Preferences preferences, ReceiptRow receipt) {
+		private boolean filterOutReceipt(Preferences preferences, Receipt receipt) {
 			if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
 				return true;
 			}
@@ -537,7 +537,7 @@ public class EmailAssistant {
 
 		private static final float IMG_SCALE_FACTOR = 2.1f;
 		private static final float HW_RATIO = 0.75f;
-	    private Bitmap stampImage(final Trip trip, final ReceiptRow receipt, Bitmap.Config config) {
+	    private Bitmap stampImage(final Trip trip, final Receipt receipt, Bitmap.Config config) {
 	    	if (!receipt.hasImage()) {
 	    		return null;
 	    	}
@@ -620,16 +620,16 @@ public class EmailAssistant {
 	    }
 
 	    private static final float BIG_COLUMN_DIVIDER = 2.1f;
-		private Document addImageRows(Document document, List<ReceiptRow> receipts, PdfWriter writer) {
+		private Document addImageRows(Document document, List<Receipt> receipts, PdfWriter writer) {
 			// Set up
 			PdfPTable table = getPanedPdfPTable();
 			final int size = receipts.size();
-			ReceiptRow receipt;
+			Receipt receipt;
 			Image img1 = null, img2 = null;
-			ReceiptRow receipt1 = null; // Tracks the receipt in the left column (if any)
+			Receipt receipt1 = null; // Tracks the receipt in the left column (if any)
 			int flag = 0;
 			boolean hitFirstNonFullPage = false;
-			final ArrayList<ReceiptRow> fullpageReceipts = new ArrayList<ReceiptRow>(); //Includes Full Page Images && PDFs
+			final ArrayList<Receipt> fullpageReceipts = new ArrayList<Receipt>(); //Includes Full Page Images && PDFs
 
 			for (int i=0; i < size; i++) {
 				receipt = receipts.get(i);
@@ -715,12 +715,12 @@ public class EmailAssistant {
 			return document;
 		}
 		
-		private void addHeaderCell(PdfPTable table, ReceiptRow receipt) {
+		private void addHeaderCell(PdfPTable table, Receipt receipt) {
 			int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
 			table.addCell(num + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
 		}
 
-		private void addFullPageImage(Document document, ReceiptRow receipt, PdfWriter writer) {
+		private void addFullPageImage(Document document, Receipt receipt, PdfWriter writer) {
 			if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
 				return;
 			}

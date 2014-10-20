@@ -6,9 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 
-public class ReceiptSelectedFilter implements Filter<ReceiptRow> {
+public class ReceiptSelectedFilter implements Filter<Receipt> {
 
 	public ReceiptSelectedFilter() {
 		// empty
@@ -19,7 +19,7 @@ public class ReceiptSelectedFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public boolean accept(ReceiptRow t) {
+	public boolean accept(Receipt t) {
 		return t.isSelected();
 	}
 
@@ -31,7 +31,7 @@ public class ReceiptSelectedFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public List<Filter<ReceiptRow>> getChildren() {
+	public List<Filter<Receipt>> getChildren() {
 		return null;
 	}
 

@@ -6,9 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 
-public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
+public class ReceiptMinimumPriceFilter implements Filter<Receipt> {
 
 	private final static String MIN_PRICE = "minprice";
 	private final static String CURRENCY_CODE = "currencycode";
@@ -31,7 +31,7 @@ public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public boolean accept(ReceiptRow t) {
+	public boolean accept(Receipt t) {
 		return t.getPriceAsFloat() >= mMinPrice
 				&& t.getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
 	}
@@ -46,7 +46,7 @@ public class ReceiptMinimumPriceFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public List<Filter<ReceiptRow>> getChildren() {
+	public List<Filter<Receipt>> getChildren() {
 		return null;
 	}
 

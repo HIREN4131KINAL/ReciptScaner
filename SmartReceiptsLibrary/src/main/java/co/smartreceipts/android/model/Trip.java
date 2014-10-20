@@ -249,10 +249,10 @@ public interface Trip extends Parcelable {
 
     /**
      * Gets the {@link co.smartreceipts.android.filters.Filter} that is associated with this trip and can be applied
-     * to multiple {@link co.smartreceipts.android.model.ReceiptRow} objects that are children of this trip
+     * to multiple {@link Receipt} objects that are children of this trip
      *
      * @return the {@link co.smartreceipts.android.filters.Filter} or {@code null} if one does not exist
      */
-    Filter<ReceiptRow> getFilter();
+    Filter<Receipt> getFilter();
 
 }

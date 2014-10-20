@@ -64,7 +64,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.Utils;
@@ -86,7 +86,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private static final String PREFERENCE_IMAGE_URI = "imageUri";
 
 	private ReceiptCardAdapter mAdapter;
-	private ReceiptRow mHighlightedReceipt;
+	private Receipt mHighlightedReceipt;
 	private Uri mImageUri;
 	private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
 	private Date mCachedDate;
@@ -309,7 +309,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					break;
 				case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
 				case ADD_PHOTO_CAMERA_REQUEST:
-					final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, imgFile);
+					final Receipt updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, imgFile);
 					if (updatedReceipt != null) {
 						getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 						Toast.makeText(getActivity(), "Receipt Image Successfully Added to " + mHighlightedReceipt.getName(), Toast.LENGTH_SHORT).show();
@@ -344,7 +344,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					break;
 				case ADD_PHOTO_CAMERA_REQUEST:
 					File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-					final ReceiptRow updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, img);
+					final Receipt updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, img);
 					if (updatedReceipt != null) {
 						getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 						Toast.makeText(getActivity(), "Receipt Image Successfully Added to " + mHighlightedReceipt.getName(), Toast.LENGTH_SHORT).show();
@@ -415,7 +415,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		receiptMenu(mCurrentTrip, null, null);
 	}
 
-	public final void receiptMenu(final Trip trip, final ReceiptRow receipt, final File img) {
+	public final void receiptMenu(final Trip trip, final Receipt receipt, final File img) {
 		final boolean newReceipt = (receipt == null);
 		final View scrollView = getFlex().getView(getActivity(), R.layout.dialog_receiptmenu);
 		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_NAME);
@@ -745,7 +745,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}).show();
 	}
 
-	public final boolean editReceipt(final ReceiptRow receipt) {
+	public final boolean editReceipt(final Receipt receipt) {
 		mHighlightedReceipt = receipt;
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
 		builder.setTitle(receipt.getName()).setCancelable(true).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -881,13 +881,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		return true;
 	}
 
-	private void attachImageToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
+	private void attachImageToReceipt(Attachment attachment, Receipt receipt, boolean replace) {
 		File dir = mCurrentTrip.getDirectory();
 		String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 		File file = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(attachment.getUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
 		if (file != null) {
 			// TODO: Off UI Thread
-			final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
+			final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
 			if (retakeReceipt != null) {
 				getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 				int stringId = replace ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
@@ -906,7 +906,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}
 	}
 
-	private void attachPDFToReceipt(Attachment attachment, ReceiptRow receipt, boolean replace) {
+	private void attachPDFToReceipt(Attachment attachment, Receipt receipt, boolean replace) {
 		File dir = mCurrentTrip.getDirectory();
 		String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
 		File file = new File(dirPath, receipt.getId() + "x.pdf");
@@ -916,7 +916,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			is = attachment.openUri(getActivity().getContentResolver());
 			getPersistenceManager().getStorageManager().copy(is, file, true);
 			if (file != null) {
-				final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
+				final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
 				if (retakeReceipt != null) {
 					getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 					int stringId = replace ? R.string.toast_receipt_pdf_replaced : R.string.toast_receipt_pdf_added;
@@ -961,20 +961,20 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), mCurrentTrip);
 	}
 
-	private final void showImage(ReceiptRow receipt) {
+	private final void showImage(Receipt receipt) {
 		final Intent intent = new Intent(getActivity(), ReceiptImageActivity.class);
-		intent.putExtra(ReceiptRow.PARCEL_KEY, receipt);
+		intent.putExtra(Receipt.PARCEL_KEY, receipt);
 		intent.putExtra(Trip.PARCEL_KEY, mCurrentTrip);
 		startActivity(intent);
 	}
 
-	private final void showPDF(ReceiptRow receipt) {
+	private final void showPDF(Receipt receipt) {
 		final Intent intent = new Intent(getActivity(), ReceiptPDFActivity.class);
 		intent.setData(Uri.fromFile(receipt.getPDF()));
 		startActivity(intent);
 	}
 
-	public final void deleteReceipt(final ReceiptRow receipt) {
+	public final void deleteReceipt(final Receipt receipt) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(getString(R.string.delete_item, receipt.getName())).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
 			@Override
@@ -989,7 +989,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}).show();
 	}
 
-	public void moveOrCopy(final ReceiptRow receipt) {
+	public void moveOrCopy(final Receipt receipt) {
 		final DatabaseHelper db = getPersistenceManager().getDatabase();
 		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
 		final LinearLayout outerLayout = new LinearLayout(getActivity());
@@ -1028,12 +1028,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		}).show();
 	}
 
-	final void moveReceiptUp(final ReceiptRow receipt) {
+	final void moveReceiptUp(final Receipt receipt) {
 		getPersistenceManager().getDatabase().moveReceiptUp(mCurrentTrip, receipt);
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 	}
 
-	final void moveReceiptDown(final ReceiptRow receipt) {
+	final void moveReceiptDown(final Receipt receipt) {
 		getPersistenceManager().getDatabase().moveReceiptDown(mCurrentTrip, receipt);
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 	}
@@ -1044,7 +1044,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptRowsQuerySuccess(List<ReceiptRow> receipts) {
+	public void onReceiptRowsQuerySuccess(List<Receipt> receipts) {
 		if (isAdded()) {
 			mProgressDialog.setVisibility(View.GONE);
 			getListView().setVisibility(View.VISIBLE);
@@ -1061,7 +1061,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptRowInsertSuccess(ReceiptRow receipt) {
+	public void onReceiptRowInsertSuccess(Receipt receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 	}
 
@@ -1073,7 +1073,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptRowUpdateSuccess(ReceiptRow receipt) {
+	public void onReceiptRowUpdateSuccess(Receipt receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		if (isAdded()) {
 			ReceiptsListFragment.this.updateActionBarTitle();
@@ -1104,7 +1104,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptDeleteSuccess(ReceiptRow receipt) {
+	public void onReceiptDeleteSuccess(Receipt receipt) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		if (isAdded()) {
 			if (receipt.hasFile()) {

@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 
 public class ReceiptImageActivity extends WBActivity {
@@ -30,9 +30,9 @@ public class ReceiptImageActivity extends WBActivity {
 		if (savedInstanceState == null) {
 			// Create the detail fragment and add it to the activity using a fragment transaction.
 			final Intent intent = getIntent();
-			if (intent.hasExtra(Trip.PARCEL_KEY) && intent.hasExtra(ReceiptRow.PARCEL_KEY)) {
+			if (intent.hasExtra(Trip.PARCEL_KEY) && intent.hasExtra(Receipt.PARCEL_KEY)) {
 				Trip trip = (Trip) intent.getParcelableExtra(Trip.PARCEL_KEY);
-				ReceiptRow receipt = (ReceiptRow) intent.getParcelableExtra(ReceiptRow.PARCEL_KEY);
+				Receipt receipt = (Receipt) intent.getParcelableExtra(Receipt.PARCEL_KEY);
 				final ReceiptImageFragment fragment = ReceiptImageFragment.newInstance(receipt, trip);
 				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, fragment, ReceiptImageFragment.TAG).commit();
 			}

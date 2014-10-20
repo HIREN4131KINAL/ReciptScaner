@@ -168,7 +168,7 @@ public class Columns {
 		}
 	}
 
-	protected String generateColumn(Column column, ReceiptRow receipt, Trip currentTrip) {
+	protected String generateColumn(Column column, Receipt receipt, Trip currentTrip) {
 		if (column.getColumnType().equals(ColumnName.BLANK)) {
 			return "";
 		}

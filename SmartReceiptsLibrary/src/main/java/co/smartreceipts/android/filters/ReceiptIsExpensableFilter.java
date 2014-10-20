@@ -6,9 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 
-public class ReceiptIsExpensableFilter implements Filter<ReceiptRow> {
+public class ReceiptIsExpensableFilter implements Filter<Receipt> {
 
 	public ReceiptIsExpensableFilter() {
 		// empty
@@ -19,7 +19,7 @@ public class ReceiptIsExpensableFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public boolean accept(ReceiptRow t) {
+	public boolean accept(Receipt t) {
 		return t.isExpensable();
 	}
 
@@ -31,7 +31,7 @@ public class ReceiptIsExpensableFilter implements Filter<ReceiptRow> {
 	}
 
 	@Override
-	public List<Filter<ReceiptRow>> getChildren() {
+	public List<Filter<Receipt>> getChildren() {
 		return null;
 	}
 

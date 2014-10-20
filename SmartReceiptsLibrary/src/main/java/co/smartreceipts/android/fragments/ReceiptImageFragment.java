@@ -33,7 +33,7 @@ import android.widget.Toast;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.legacycamera.MyCameraActivity;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.utils.Utils;
@@ -56,7 +56,7 @@ public class ReceiptImageFragment extends WBFragment {
 	private static final String PREFERENCE_RECEIPT_PATH = "receiptPath";
 	private static final String PREFERENCE_RECEIPT_IMAGE_URI = "receiptImageUri";
 
-	private ReceiptRow mCurrentReceipt;
+	private Receipt mCurrentReceipt;
 	private String mReceiptPath;
 	private PinchToZoomImageView mImageView;
 	private LinearLayout mFooter;
@@ -68,11 +68,11 @@ public class ReceiptImageFragment extends WBFragment {
 		return new ReceiptImageFragment();
 	}
 
-	public static ReceiptImageFragment newInstance(ReceiptRow currentReceipt, Trip trip) {
+	public static ReceiptImageFragment newInstance(Receipt currentReceipt, Trip trip) {
 		ReceiptImageFragment fragment = new ReceiptImageFragment();
 		Bundle args = new Bundle();
 		args.putString(Trip.PARCEL_KEY, trip.getDirectoryPath());
-		args.putParcelable(ReceiptRow.PARCEL_KEY, currentReceipt);
+		args.putParcelable(Receipt.PARCEL_KEY, currentReceipt);
 		fragment.setArguments(args);
 		return fragment;
 	}
@@ -167,12 +167,12 @@ public class ReceiptImageFragment extends WBFragment {
 		if (mCurrentReceipt == null) {
 			if (getArguments() != null) {
 				mReceiptPath = getArguments().getString(Trip.PARCEL_KEY);
-				Parcelable parcel = getArguments().getParcelable(ReceiptRow.PARCEL_KEY);
-				if (parcel == null || !(parcel instanceof ReceiptRow)) {
+				Parcelable parcel = getArguments().getParcelable(Receipt.PARCEL_KEY);
+				if (parcel == null || !(parcel instanceof Receipt)) {
 					restoreData();
 				}
 				else {
-					setCurrentReceipt((ReceiptRow) parcel);
+					setCurrentReceipt((Receipt) parcel);
 				}
 			}
 			else {
@@ -181,7 +181,7 @@ public class ReceiptImageFragment extends WBFragment {
 		}
 	}
 
-	private void setCurrentReceipt(ReceiptRow receipt) {
+	private void setCurrentReceipt(Receipt receipt) {
 		mCurrentReceipt = receipt;
 		if (receipt == null || !mCurrentReceipt.hasImage()) {
 			mProgress.setVisibility(View.GONE);
@@ -230,7 +230,7 @@ public class ReceiptImageFragment extends WBFragment {
 			switch (requestCode) {
 				case NATIVE_RETAKE_PHOTO_CAMERA_REQUEST:
 				case RETAKE_PHOTO_CAMERA_REQUEST:
-					final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, imgFile);
+					final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, imgFile);
 					if (retakeReceipt != null) {
 						mImageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentReceipt.getImage().getAbsolutePath()));
 					}
@@ -254,7 +254,7 @@ public class ReceiptImageFragment extends WBFragment {
 			switch (requestCode) {
 				case RETAKE_PHOTO_CAMERA_REQUEST:
 					File retakeImg = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-					final ReceiptRow retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, retakeImg);
+					final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, retakeImg);
 					if (retakeReceipt != null) {
 						mImageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentReceipt.getImage().getAbsolutePath()));
 					}

@@ -7,8 +7,7 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
 
 public class ReceiptUtils {
@@ -39,7 +38,7 @@ public class ReceiptUtils {
 		public static final String TIMEZONE_CODE = TIMEZONE.getID();
 	}
 
-	public static void assertFieldEquality(ReceiptRow receipt1, ReceiptRow receipt2) {
+	public static void assertFieldEquality(Receipt receipt1, Receipt receipt2) {
 		assertEquals(receipt1.getComment(), receipt2.getComment());
 		assertEquals(receipt1.getCategory(), receipt2.getCategory());
 		assertEquals(receipt1.getCurrencyCode(), receipt2.getCurrencyCode());
@@ -61,7 +60,7 @@ public class ReceiptUtils {
 	/**
 	 * We do not guarantee that indices are set, but this test still performs the full set
 	 */
-	public static void assertFieldEqualityPlusIdAndIndex(ReceiptRow receipt1, ReceiptRow receipt2) {
+	public static void assertFieldEqualityPlusIdAndIndex(Receipt receipt1, Receipt receipt2) {
 		assertFieldEquality(receipt1, receipt2);
 		assertEquals(receipt1.getId(), receipt2.getId());
 		assertEquals(receipt1.getIndex(), receipt2.getIndex());

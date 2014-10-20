@@ -32,7 +32,7 @@ public class PDFColumns extends Columns {
 		}
 	}
 	
-	public void print(PdfPTable table, ReceiptRow receipt, Trip currentTrip) {
+	public void print(PdfPTable table, Receipt receipt, Trip currentTrip) {
 		final int size = mColumns.size();
 		for (int i=0; i < size; i++) {
 			String column = generateColumn(mColumns.get(i), receipt, currentTrip);

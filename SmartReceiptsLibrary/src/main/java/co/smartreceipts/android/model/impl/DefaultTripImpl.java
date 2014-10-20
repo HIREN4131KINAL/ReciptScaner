@@ -14,7 +14,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.filters.Filter;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
@@ -31,9 +31,9 @@ public final class DefaultTripImpl implements Trip {
     private WBCurrency mCurrency, mDefaultCurrency;
     private Source mSource;
     private DecimalFormat mDecimalFormat;
-    private Filter<ReceiptRow> mFilter;
+    private Filter<Receipt> mFilter;
 
-    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, Filter<ReceiptRow> filter, Source source) {
+    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, Filter<Receipt> filter, Source source) {
         mReportDirectory = directory;
         mStartDate = startDate;
         mStartTimeZone = startTimeZone;
@@ -281,7 +281,7 @@ public final class DefaultTripImpl implements Trip {
     }
 
     @Override
-    public Filter<ReceiptRow> getFilter() {
+    public Filter<Receipt> getFilter() {
         return mFilter;
     }
 

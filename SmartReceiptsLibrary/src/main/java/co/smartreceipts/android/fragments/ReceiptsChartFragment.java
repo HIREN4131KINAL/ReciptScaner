@@ -25,7 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class ReceiptsChartFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowGraphListener {
@@ -281,7 +281,7 @@ public class ReceiptsChartFragment extends ReceiptsFragment implements DatabaseH
 
 
 	@Override
-	public void onGraphQuerySuccess(List<ReceiptRow> receipts) {
+	public void onGraphQuerySuccess(List<Receipt> receipts) {
 		// TODO Auto-generated method stub
 
 	}

@@ -19,7 +19,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.tests.utils.ReceiptUtils;
@@ -56,19 +56,19 @@ public class ReceiptsDBTest {
 		mApp = null;
 	}
 	
-	private ReceiptRow insertDefaultReceipt() {
+	private Receipt insertDefaultReceipt() {
 		File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
 		mApp.getPersistenceManager().getStorageManager().createFile(img);
 		return insertDefaultReceipt(img);
 	}
 	
-	private ReceiptRow insertDefaultReceipt(PaymentMethod method) {
+	private Receipt insertDefaultReceipt(PaymentMethod method) {
 		File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
 		mApp.getPersistenceManager().getStorageManager().createFile(img);
 		return insertDefaultReceipt(img, method);
 	}
 	
-	private ReceiptRow insertDefaultReceipt(File file) {
+	private Receipt insertDefaultReceipt(File file) {
 		return mDB.insertReceiptSerial(mTrip,
 									  file, 
 									  Constants.NAME, 
@@ -86,7 +86,7 @@ public class ReceiptsDBTest {
 									  Constants.EXTRA3);
 	}
 	
-	private ReceiptRow insertDefaultReceipt(File file, PaymentMethod method) {
+	private Receipt insertDefaultReceipt(File file, PaymentMethod method) {
 		return mDB.insertReceiptSerial(mTrip,
 									  file, 
 									  Constants.NAME, 
@@ -107,8 +107,8 @@ public class ReceiptsDBTest {
 	@Test
 	public void insertAndGetAll() {
 		File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
-		ReceiptRow insertReceipt = insertDefaultReceipt();
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		Receipt insertReceipt = insertDefaultReceipt();
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(insertReceipt);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 1);
@@ -120,9 +120,9 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void insertMultipleAndGetAll() {
-		ReceiptRow insertReceipt1 = insertDefaultReceipt();
-		ReceiptRow insertReceipt2 = mDB.insertReceiptSerial(mTrip, insertReceipt1);
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		Receipt insertReceipt1 = insertDefaultReceipt();
+		Receipt insertReceipt2 = mDB.insertReceiptSerial(mTrip, insertReceipt1);
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(insertReceipt1);
 		assertNotNull(insertReceipt2);
 		assertNotNull(receipts);
@@ -135,8 +135,8 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void insertAndGetById() {
-		ReceiptRow insertReceipt = insertDefaultReceipt();
-		ReceiptRow findReceipt = mDB.getReceiptByID(insertReceipt.getId());
+		Receipt insertReceipt = insertDefaultReceipt();
+		Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
 		assertNotNull(insertReceipt);
 		assertNotNull(findReceipt);
 		assertEquals(insertReceipt, findReceipt);
@@ -146,8 +146,8 @@ public class ReceiptsDBTest {
 	@Test
 	public void insertNonNullPaymentMethod() {
 		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
-		final ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
-		ReceiptRow findReceipt = mDB.getReceiptByID(insertReceipt.getId());
+		final Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
+		Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
 		assertNotNull(insertReceipt);
 		assertNotNull(findReceipt);
 		assertEquals(insertReceipt, findReceipt);
@@ -157,8 +157,8 @@ public class ReceiptsDBTest {
 	@Test
 	public void insertNullPaymentMethod() {
 		final PaymentMethod paymentMethod = null;
-		final ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
-		ReceiptRow findReceipt = mDB.getReceiptByID(insertReceipt.getId());
+		final Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
+		Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
 		assertNotNull(insertReceipt);
 		assertNotNull(findReceipt);
 		assertEquals(insertReceipt, findReceipt);
@@ -168,8 +168,8 @@ public class ReceiptsDBTest {
 	@Test
 	public void updateWithNullPaymentMethod() {
 		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
-		ReceiptRow insertReceipt = insertDefaultReceipt(paymentMethod);
-		ReceiptRow updateReceipt = mDB.updateReceiptSerial(insertReceipt,
+		Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
+		Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
                 mTrip,
 														   Constants.NAME + "x", 
 														   Constants.CATEGORY + "x", 
@@ -184,7 +184,7 @@ public class ReceiptsDBTest {
 														   null, 
 														   "2", 
 														   null);
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 1);
@@ -197,8 +197,8 @@ public class ReceiptsDBTest {
 	public void updateWithNonNullPaymentMethod() {
 		final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
 		final PaymentMethod nullPaymentMethod = null;
-		ReceiptRow insertReceipt = insertDefaultReceipt(nullPaymentMethod);
-		ReceiptRow updateReceipt = mDB.updateReceiptSerial(insertReceipt,
+		Receipt insertReceipt = insertDefaultReceipt(nullPaymentMethod);
+		Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
                 mTrip,
 														   Constants.NAME + "x", 
 														   Constants.CATEGORY + "x", 
@@ -213,7 +213,7 @@ public class ReceiptsDBTest {
 														   null, 
 														   "2", 
 														   null);
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 1);
@@ -235,9 +235,9 @@ public class ReceiptsDBTest {
 		assertFalse(bad.exists());
 		
 		// PDF Update test
-		ReceiptRow insertReceipt = insertDefaultReceipt();
-		ReceiptRow updateReceipt = mDB.updateReceiptFile(insertReceipt, pdf);
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		Receipt insertReceipt = insertDefaultReceipt();
+		Receipt updateReceipt = mDB.updateReceiptFile(insertReceipt, pdf);
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(updateReceipt);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 1);
@@ -270,10 +270,10 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void copyImg() {
-		ReceiptRow imgReceipt = insertDefaultReceipt();
+		Receipt imgReceipt = insertDefaultReceipt();
 		assertTrue(mDB.copyReceiptSerial(imgReceipt, mTrip2));
-		List<ReceiptRow> receipts1 = mDB.getReceiptsSerial(mTrip);
-		List<ReceiptRow> receipts2 = mDB.getReceiptsSerial(mTrip2);
+		List<Receipt> receipts1 = mDB.getReceiptsSerial(mTrip);
+		List<Receipt> receipts2 = mDB.getReceiptsSerial(mTrip2);
 		assertNotNull(imgReceipt);
 		assertNotNull(receipts1);
 		assertNotNull(receipts2);
@@ -295,10 +295,10 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void moveImg() {
-		ReceiptRow imgReceipt = insertDefaultReceipt();
+		Receipt imgReceipt = insertDefaultReceipt();
 		assertTrue(mDB.moveReceiptSerial(imgReceipt, mTrip, mTrip2));
-		List<ReceiptRow> receipts1 = mDB.getReceiptsSerial(mTrip);
-		List<ReceiptRow> receipts2 = mDB.getReceiptsSerial(mTrip2);
+		List<Receipt> receipts1 = mDB.getReceiptsSerial(mTrip);
+		List<Receipt> receipts2 = mDB.getReceiptsSerial(mTrip2);
 		assertNotNull(imgReceipt);
 		assertNotNull(receipts1);
 		assertNotNull(receipts2);
@@ -317,10 +317,10 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void delete() {
-		ReceiptRow imgReceipt = insertDefaultReceipt();
+		Receipt imgReceipt = insertDefaultReceipt();
 		assertTrue(mDB.deleteReceiptSerial(imgReceipt, mTrip));
 		assertFalse(mDB.deleteReceiptSerial(imgReceipt, mTrip)); //Double delete should return false
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 0);
 	}
@@ -334,7 +334,7 @@ public class ReceiptsDBTest {
 				mTrip.getEndDate(),
 				mTrip.getComment(),
 				mTrip.getCurrencyCode());
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(newTrip);
+		List<Receipt> receipts = mDB.getReceiptsSerial(newTrip);
 		assertNotNull(newTrip);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 1);
@@ -344,9 +344,9 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void moveUp() {
-		ReceiptRow receipt1 = insertDefaultReceipt();
-		ReceiptRow receipt2 = insertDefaultReceipt();
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		Receipt receipt1 = insertDefaultReceipt();
+		Receipt receipt2 = insertDefaultReceipt();
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 2);
 		ReceiptUtils.assertFieldEquality(receipt1, receipts.get(1));
@@ -367,9 +367,9 @@ public class ReceiptsDBTest {
 	
 	@Test
 	public void moveDown() {
-		ReceiptRow receipt1 = insertDefaultReceipt();
-		ReceiptRow receipt2 = insertDefaultReceipt();
-		List<ReceiptRow> receipts = mDB.getReceiptsSerial(mTrip);
+		Receipt receipt1 = insertDefaultReceipt();
+		Receipt receipt2 = insertDefaultReceipt();
+		List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
 		assertNotNull(receipts);
 		assertEquals(receipts.size(), 2);
 		ReceiptUtils.assertFieldEquality(receipt1, receipts.get(1));

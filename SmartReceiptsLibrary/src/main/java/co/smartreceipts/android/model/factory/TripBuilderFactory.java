@@ -12,7 +12,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
-import co.smartreceipts.android.model.ReceiptRow;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
@@ -29,7 +29,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     private Date _startDate, _endDate;
     private TimeZone _startTimeZone, _endTimeZone;
     private WBCurrency _currency, _defaultCurrency;
-    private Filter<ReceiptRow> _filter;
+    private Filter<Receipt> _filter;
     private Source _source;
 
     public TripBuilderFactory() {
@@ -127,7 +127,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setFilter(Filter<ReceiptRow> filter) {
+    public TripBuilderFactory setFilter(Filter<Receipt> filter) {
         _filter = filter;
         return this;
     }

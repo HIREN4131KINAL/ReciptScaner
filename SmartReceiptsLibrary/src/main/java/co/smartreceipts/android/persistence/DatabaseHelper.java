@@ -555,6 +555,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 			if (oldVersion <= 12) { //Added better distance tracking
 				this.createDistanceTable(db);
+
+                // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
+                final String distanceMigrate = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
+                        + "SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY + ";";
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, distanceMigrate);
+                }
+                db.execSQL(distanceMigrate);
 			}
 			_initDB = null;
 		}

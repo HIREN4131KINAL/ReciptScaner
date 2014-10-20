@@ -1,11 +1,14 @@
 package co.smartreceipts.android.model.factory;
 
+import android.support.annotation.NonNull;
+
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
 
 /**
  * A {@link co.smartreceipts.android.model.Distance} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -82,7 +85,8 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     }
 
     @Override
+    @NonNull
     public Distance build() {
-        return new Distance(_id, _trip, _location, _distance, _rate, _date, _timezone, _comment);
+        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _date, _timezone, _comment);
     }
 }

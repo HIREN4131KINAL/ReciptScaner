@@ -13,6 +13,7 @@ import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * An immutable {@link co.smartreceipts.android.model.Distance} implementation to track distance.
@@ -102,11 +103,7 @@ public class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getFormattedDate(Context context, String separator) {
-        java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
-        format.setTimeZone(mTimezone);
-        String formattedDate = format.format(mDate);
-        formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
-        return formattedDate;
+        return ModelUtils.getFormattedDate(mDate, mTimezone, context, separator);
     }
 
     @Override

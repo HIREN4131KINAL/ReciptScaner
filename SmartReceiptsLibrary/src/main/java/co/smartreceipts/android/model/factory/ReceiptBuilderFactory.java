@@ -1,5 +1,6 @@
 package co.smartreceipts.android.model.factory;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -185,6 +186,8 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
+    @Override
+    @NonNull
     public Receipt build() {
         return new DefaultReceiptImpl(_id, _index, _trip, _paymentMethod, _name, _category, _comment, _price, _tax, _currency, _date, _timezone, _isExpenseable, _isFullPage, _source, _extraEditText1, _extraEditText2, _extraEditText3);
     }

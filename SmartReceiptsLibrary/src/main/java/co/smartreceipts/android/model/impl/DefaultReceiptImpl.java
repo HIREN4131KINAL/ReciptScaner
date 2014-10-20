@@ -18,6 +18,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import wb.android.storage.StorageManager;
 
 /**
@@ -292,12 +293,7 @@ public final class DefaultReceiptImpl implements Receipt {
 
     @Override
     public String getFormattedDate(Context context, String separator) {
-        final TimeZone timeZone = (mTimeZone != null) ? mTimeZone : TimeZone.getDefault();
-        java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
-        format.setTimeZone(timeZone);
-        String formattedDate = format.format(mDate);
-        formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
-        return formattedDate;
+        return ModelUtils.getFormattedDate(mDate, (mTimeZone != null) ? mTimeZone : TimeZone.getDefault(), context, separator);
     }
 
     @Override

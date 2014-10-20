@@ -158,6 +158,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     }
 
     @Override
+    @NonNull
     public Trip build() {
         return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _currency, _defaultCurrency, _comment, _filter, _source);
     }

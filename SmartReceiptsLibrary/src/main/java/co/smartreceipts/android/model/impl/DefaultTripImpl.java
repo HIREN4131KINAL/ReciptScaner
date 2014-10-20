@@ -18,6 +18,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 public final class DefaultTripImpl implements Trip {
 
@@ -82,12 +83,7 @@ public final class DefaultTripImpl implements Trip {
 
     @Override
     public String getFormattedStartDate(Context context, String separator) {
-        final TimeZone timeZone = getStartTimeZone();
-        java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
-        format.setTimeZone(timeZone);
-        String formattedDate = format.format(mStartDate);
-        formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
-        return formattedDate;
+        return ModelUtils.getFormattedDate(mStartDate, getStartTimeZone(), context, separator);
     }
 
     @Override
@@ -102,12 +98,7 @@ public final class DefaultTripImpl implements Trip {
 
     @Override
     public String getFormattedEndDate(Context context, String separator) {
-        final TimeZone timeZone = getEndTimeZone();
-        java.text.DateFormat format = android.text.format.DateFormat.getDateFormat(context);
-        format.setTimeZone(timeZone);
-        String formattedDate = format.format(mEndDate);
-        formattedDate = formattedDate.replace(DateUtils.getDateSeparator(context), separator);
-        return formattedDate;
+        return ModelUtils.getFormattedDate(mEndDate, getEndTimeZone(), context, separator);
     }
 
     @Override

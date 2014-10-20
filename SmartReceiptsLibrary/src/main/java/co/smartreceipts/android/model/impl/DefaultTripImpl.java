@@ -31,7 +31,6 @@ public final class DefaultTripImpl implements Trip {
     private TimeZone mStartTimeZone, mEndTimeZone;
     private WBCurrency mCurrency, mDefaultCurrency;
     private Source mSource;
-    private DecimalFormat mDecimalFormat;
     private Filter<Receipt> mFilter;
 
     public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, Filter<Receipt> filter, Source source) {
@@ -168,7 +167,7 @@ public final class DefaultTripImpl implements Trip {
 
     @Override
     public String getDecimalFormattedPrice() {
-        return getDecimalFormat().format(getPriceAsFloat());
+        return ModelUtils.getDecimalFormattedValue(mPrice);
     }
 
     @Override
@@ -196,16 +195,12 @@ public final class DefaultTripImpl implements Trip {
 
     @Override
     public String getDecimalFormattedDailySubTotal() {
-        return getDecimalFormat().format(getDailySubTotalAsFloat());
+        return ModelUtils.getDecimalFormattedValue(mDailySubTotal);
     }
 
     @Override
     public String getCurrencyFormattedDailySubTotal() {
-        if (mCurrency != null) {
-            return mCurrency.format(getDailySubTotalAsFloat());
-        } else {
-            return EMPTY_PRICE;
-        }
+        return ModelUtils.getCurrencyFormattedValue(mDailySubTotal, mDefaultCurrency);
     }
 
     @Override
@@ -298,16 +293,6 @@ public final class DefaultTripImpl implements Trip {
         dest.writeFloat(getDailySubTotalAsFloat());
         dest.writeString(getComment());
         dest.writeString(getDefaultCurrencyCode());
-    }
-
-    private DecimalFormat getDecimalFormat() {
-        if (mDecimalFormat == null) {
-            mDecimalFormat = new DecimalFormat();
-            mDecimalFormat.setMaximumFractionDigits(2);
-            mDecimalFormat.setMinimumFractionDigits(2);
-            mDecimalFormat.setGroupingUsed(false);
-        }
-        return mDecimalFormat;
     }
 
     @Override

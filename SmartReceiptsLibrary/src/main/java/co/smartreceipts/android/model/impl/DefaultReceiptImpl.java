@@ -8,11 +8,9 @@ import android.text.TextUtils;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.text.DecimalFormat;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
@@ -39,13 +37,12 @@ public final class DefaultReceiptImpl implements Receipt {
     private final boolean mIsExpensable, mIsFullPage;
     private final Source mSource;
     private final String mExtraEditText1, mExtraEditText2, mExtraEditText3;
-    private DecimalFormat mDecimalFormat;
     private boolean mIsSelected;
     private File mFile;
 
     public DefaultReceiptImpl(int id, int index, Trip trip, PaymentMethod paymentMethod, String name, String category, String comment,
-                               BigDecimal price, BigDecimal tax, WBCurrency currency, Date date, TimeZone timeZone, boolean isExpensable,
-                               boolean isFullPage, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
+                              BigDecimal price, BigDecimal tax, WBCurrency currency, Date date, TimeZone timeZone, boolean isExpensable,
+                              boolean isFullPage, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
         mId = id;
         mIndex = index;
         mTrip = trip;
@@ -235,16 +232,12 @@ public final class DefaultReceiptImpl implements Receipt {
 
     @Override
     public String getDecimalFormattedPrice() {
-        return getDecimalFormat().format(mPrice);
+        return ModelUtils.getDecimalFormattedValue(mPrice);
     }
 
     @Override
     public String getCurrencyFormattedPrice() {
-        if (getCurrency() != null) {
-            return getCurrency().format(mPrice);
-        } else {
-            return getDecimalFormattedPrice();
-        }
+        return ModelUtils.getCurrencyFormattedValue(mPrice, mCurrency);
     }
 
     @Override
@@ -264,7 +257,12 @@ public final class DefaultReceiptImpl implements Receipt {
 
     @Override
     public String getDecimalFormattedTax() {
-        return getDecimalFormat().format(mTax);
+        return ModelUtils.getDecimalFormattedValue(mTax);
+    }
+
+    @Override
+    public String getCurrencyFormattedTax() {
+        return ModelUtils.getCurrencyFormattedValue(mTax, mCurrency);
     }
 
     @Override
@@ -275,15 +273,6 @@ public final class DefaultReceiptImpl implements Receipt {
     @Override
     public String getCurrencyCode() {
         return getCurrency().getCurrencyCode();
-    }
-
-    @Override
-    public String getCurrencyFormattedTax() {
-        if (getCurrency() != null) {
-            return getCurrency().format(mTax);
-        } else {
-            return getDecimalFormattedTax();
-        }
     }
 
     @Override
@@ -349,16 +338,6 @@ public final class DefaultReceiptImpl implements Receipt {
     @Override
     public boolean hasExtraEditText3() {
         return (mExtraEditText3 != null);
-    }
-
-    private DecimalFormat getDecimalFormat() {
-        if (mDecimalFormat == null) {
-            mDecimalFormat = new DecimalFormat();
-            mDecimalFormat.setMaximumFractionDigits(2);
-            mDecimalFormat.setMinimumFractionDigits(2);
-            mDecimalFormat.setGroupingUsed(false);
-        }
-        return mDecimalFormat;
     }
 
     @Override

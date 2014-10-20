@@ -9,7 +9,6 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;

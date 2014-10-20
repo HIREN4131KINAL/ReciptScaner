@@ -239,7 +239,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_DATE = "date"; 
 		public static final String COLUMN_TIMEZONE = "timezone"; 
 		public static final String COLUMN_COMMENT = "comment"; 
-		public static final String COLUMN_RATE = "rate"; 
+		public static final String COLUMN_RATE = "rate";
+        public static final String COLUMN_RATE_CURRENCY = "rate_currency";
 	}
 	
 	public static final class CSVTable {
@@ -643,6 +644,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				+ DistanceTable.COLUMN_DATE + " DATE,"
 				+ DistanceTable.COLUMN_TIMEZONE + " TEXT,"
 				+ DistanceTable.COLUMN_COMMENT + " TEXT,"
+                + DistanceTable.COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
 				+ DistanceTable.COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00 );";
 		
 		if(BuildConfig.DEBUG) {
@@ -700,7 +702,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					return;
 				}
 			}
-			(new GetTripsWorker()).execute(new Void[0]);
+			(new GetTripsWorker()).execute();
 		}
 	}
 
@@ -1216,7 +1218,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param trip
 	 * @return
 	 */
-	private final void getTripPriceAndDailyPrice(final Trip trip) {
+	private void getTripPriceAndDailyPrice(final Trip trip) {
 		queryTripPrice(trip);
 		queryTripDailyPrice(trip);
 	}
@@ -1361,6 +1363,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int dateIndex = c.getColumnIndex(DistanceTable.COLUMN_DATE);
 					final int timezoneIndex = c.getColumnIndex(DistanceTable.COLUMN_TIMEZONE);
 					final int rateIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE);
+                    final int rateCurrencyIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE_CURRENCY);
 					final int commentIndex = c.getColumnIndex(DistanceTable.COLUMN_COMMENT);
 					do {
 						final long id = c.getLong(idIndex);
@@ -1369,6 +1372,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final long date = c.getLong(dateIndex);
 						final String timezone = c.getString(timezoneIndex);
 						final BigDecimal rate = BigDecimal.valueOf(c.getDouble(rateIndex));
+                        final String rateCurrency = c.getString(rateCurrencyIndex);
 						final String comment = c.getString(commentIndex);
 						
 						distances.add(new DistanceBuilderFactory(id)
@@ -1377,6 +1381,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 								.setDate(date)
 								.setTimezone(timezone)
 								.setRate(rate)
+                                .setCurrency(rateCurrency)
 								.setComment(comment)
 								.build());
 					}
@@ -1417,10 +1422,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
-			final String comment){
+			final BigDecimal rate,
+            final String rateCurrency,
+			final String comment) {
 		
-		return insertDistanceHelper(location, distance, date, timezone, rate, comment);
+		return insertDistanceHelper(location, distance, date, timezone, rate, rateCurrency, comment);
 	}
 	
 	public void insertDistanceParallel(
@@ -1428,8 +1434,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
-			final String comment){
+			final BigDecimal rate,
+            final String rateCurrency,
+			final String comment) {
 		
 		if (mDistanceRowListener == null) {
 			if (BuildConfig.DEBUG) {
@@ -1437,7 +1444,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		
-		new InsertDistanceWorker(location, distance, date, timezone, rate, comment).execute();
+		new InsertDistanceWorker(location, distance, date, timezone, rate, rateCurrency, comment).execute();
 	}
 
 	private Distance insertDistanceHelper(
@@ -1445,15 +1452,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
-			final String comment){
+			final BigDecimal rate,
+            final String rateCurrency,
+			final String comment) {
 		
-		ContentValues values = new ContentValues(6);
+		ContentValues values = new ContentValues(7);
 		values.put(DistanceTable.COLUMN_LOCATION, location); 
 		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
 		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
 		values.put(DistanceTable.COLUMN_TIMEZONE, timezone); 
-		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue()); 
+		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
+        values.put(DistanceTable.COLUMN_RATE_CURRENCY, rateCurrency);
 		values.put(DistanceTable.COLUMN_COMMENT, comment); 
 		
 		Distance toReturn = null;
@@ -1473,6 +1482,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 								.setDate(date)
 								.setTimezone(timezone)
 								.setRate(rate)
+                                .setCurrency(rateCurrency)
 								.setComment(comment)
 								.build();
 					}
@@ -1497,12 +1507,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	private class InsertDistanceWorker extends AsyncTask<Void, Void, Distance>{
-		final private String mLocation;
-		final private BigDecimal mDistance;
-		final private Date mDate;
-		final private String mTimezone;
-		final private BigDecimal mRate;
-		final private String mComment;
+		private final String mLocation;
+		private final BigDecimal mDistance;
+		private final Date mDate;
+		private final String mTimezone;
+		private final BigDecimal mRate;
+        private final String mRateCurrency;
+		private final String mComment;
 		
 		private SQLException mException;
 		
@@ -1511,21 +1522,23 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				final BigDecimal distance, 
 				final Date date, 
 				final String timezone, 
-				final BigDecimal rate, 
-				final String comment){
+				final BigDecimal rate,
+                final String rateCurrency,
+				final String comment) {
 			
 			mLocation = location;
 			mDistance = distance;
 			mDate = date;
 			mTimezone = timezone;
 			mRate = rate;
+            mRateCurrency = rateCurrency;
 			mComment = comment;
 		}
 
 		@Override
 		protected Distance doInBackground(Void... params) {
 			try {
-				return insertDistanceHelper(mLocation, mDistance, mDate, mTimezone, mRate, mComment);
+				return insertDistanceHelper(mLocation, mDistance, mDate, mTimezone, mRate, mRateCurrency, mComment);
 			} catch (SQLException exception) {
 				mException = exception;
 				return null;
@@ -1552,10 +1565,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
+			final BigDecimal rate,
+            final String rateCurrency,
 			final String comment) {
 		
-		updateDistanceHelper(oldDistance, location, distance, date, timezone, rate, comment);
+		updateDistanceHelper(oldDistance, location, distance, date, timezone, rate, rateCurrency, comment);
 	}
 	
 	public void updateDistanceParallel(
@@ -1564,7 +1578,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
+			final BigDecimal rate,
+            final String rateCurrency,
 			final String comment) {
 		
 		if (mDistanceRowListener == null) {
@@ -1573,7 +1588,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		
-		new UpdateDistanceWorker(oldDistance, location, distance, date, timezone, rate, comment).execute();
+		new UpdateDistanceWorker(oldDistance, location, distance, date, timezone, rate, rateCurrency, comment).execute();
 	}
 	
 	private Distance updateDistanceHelper(
@@ -1582,16 +1597,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final BigDecimal distance, 
 			final Date date, 
 			final String timezone, 
-			final BigDecimal rate, 
-			final String comment){
+			final BigDecimal rate,
+            final String rateCurrency,
+			final String comment) {
 		
-		ContentValues values = new ContentValues(6);
+		ContentValues values = new ContentValues(7);
 		values.put(DistanceTable.COLUMN_LOCATION, location); 
 		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
 		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
 		values.put(DistanceTable.COLUMN_TIMEZONE, timezone); 
-		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue()); 
-		values.put(DistanceTable.COLUMN_COMMENT, comment); 
+		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
+        values.put(DistanceTable.COLUMN_RATE_CURRENCY, rateCurrency);
+        values.put(DistanceTable.COLUMN_COMMENT, comment);
 		
 		Distance toReturn = null;
 		long id = oldDistance.getId();
@@ -1607,6 +1624,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					.setDate(date)
 					.setTimezone(timezone)
 					.setRate(rate)
+                    .setCurrency(rateCurrency)
 					.setComment(comment)
 					.build();
 
@@ -1620,13 +1638,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	private class UpdateDistanceWorker extends AsyncTask<Void, Void, Distance> {
 
-	final Distance mOldDistance;
-	final String mLocation; 
-	final BigDecimal mDistance; 
-	final Date mDate; 
-	final String mTimezone; 
-	final BigDecimal mRate; 
-	final String mComment;
+        private final Distance mOldDistance;
+        private final String mLocation;
+        private final BigDecimal mDistance;
+        private final Date mDate;
+        private final String mTimezone;
+        private final BigDecimal mRate;
+        private final String mRateCurrency;
+        private final String mComment;
 
 		public UpdateDistanceWorker (
 				final Distance oldDistance,
@@ -1634,8 +1653,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				final BigDecimal distance, 
 				final Date date, 
 				final String timezone, 
-				final BigDecimal rate, 
-				final String comment){
+				final BigDecimal rate,
+                final String rateCurrency,
+				final String comment) {
 			
 
 			mOldDistance = oldDistance;
@@ -1643,14 +1663,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			mDistance = distance; 
 			mDate = date; 
 			mTimezone = timezone; 
-			mRate = rate; 
+			mRate = rate;
+            mRateCurrency = rateCurrency;
 			mComment = comment;
 
 		}
 		
 		@Override
 		protected Distance doInBackground(Void... params) {
-			return updateDistanceHelper(mOldDistance, mLocation, mDistance, mDate, mTimezone, mRate, mComment);
+			return updateDistanceHelper(mOldDistance, mLocation, mDistance, mDate, mTimezone, mRate, mRateCurrency, mComment);
 		}
 		
 		@Override

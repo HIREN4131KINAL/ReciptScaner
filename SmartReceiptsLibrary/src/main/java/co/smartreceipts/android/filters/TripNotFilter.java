@@ -3,18 +3,18 @@ package co.smartreceipts.android.filters;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 
 /**
- * A filter implementation of {@link NotFilter} for {@link TripRow}
+ * A filter implementation of {@link NotFilter} for {@link co.smartreceipts.android.model.Trip}
  * 
  * @author Will Baumann
  * @since July 08, 2014
  * 
  */
-public class TripNotFilter extends NotFilter<TripRow> {
+public class TripNotFilter extends NotFilter<Trip> {
 
-	public TripNotFilter(Filter<TripRow> filter) {
+	public TripNotFilter(Filter<Trip> filter) {
 		super(filter);
 	}
 
@@ -23,7 +23,7 @@ public class TripNotFilter extends NotFilter<TripRow> {
 	}
 
 	@Override
-	Filter<TripRow> getFilter(JSONObject json) throws JSONException {
+	Filter<Trip> getFilter(JSONObject json) throws JSONException {
 		return FilterFactory.getTripFilter(json);
 	}
 

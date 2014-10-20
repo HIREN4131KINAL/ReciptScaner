@@ -1,12 +1,12 @@
 package wb.receipts.fragments;
 
+import co.smartreceipts.android.model.Trip;
 import wb.receipts.ads.Ads;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
-import co.smartreceipts.android.model.TripRow;
 
 import com.google.android.gms.ads.AdView;
 
@@ -19,14 +19,14 @@ public class AdsReceiptsListFragment extends ReceiptsListFragment {
 		return fragment;
 	}
 
-	public static AdsReceiptsListFragment newListInstance(TripRow currentTrip) {
+	public static AdsReceiptsListFragment newListInstance(Trip currentTrip) {
 		if (currentTrip == null) {
 			return newListInstance();
 		}
 		else {
 			AdsReceiptsListFragment fragment = new AdsReceiptsListFragment();
 			Bundle args = new Bundle();
-			args.putParcelable(TripRow.PARCEL_KEY, currentTrip);
+			args.putParcelable(Trip.PARCEL_KEY, currentTrip);
 			fragment.setArguments(args);
 			return fragment;
 		}

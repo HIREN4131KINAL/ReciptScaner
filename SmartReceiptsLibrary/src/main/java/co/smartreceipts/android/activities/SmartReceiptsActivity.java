@@ -1,5 +1,6 @@
 package co.smartreceipts.android.activities;
 
+import co.smartreceipts.android.model.Trip;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.ui.UpNavigationSlidingPaneLayout;
 import wb.android.util.AppRating;
@@ -19,7 +20,6 @@ import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.Preferences;
 
 public class SmartReceiptsActivity extends WBActivity implements Navigable, Attachable {
@@ -89,8 +89,8 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 			Log.d(TAG, "displayTripsLayout");
 		}
 		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).commit();
-		if (getIntent().hasExtra(TripRow.PARCEL_KEY)) { // We already have a feed we're looking to use
-			final TripRow trip = (TripRow) getIntent().getParcelableExtra(TripRow.PARCEL_KEY);
+		if (getIntent().hasExtra(Trip.PARCEL_KEY)) { // We already have a feed we're looking to use
+			final Trip trip = (Trip) getIntent().getParcelableExtra(Trip.PARCEL_KEY);
 			viewReceiptsAsList(trip);
 		}
 	}
@@ -250,7 +250,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	}
 
 	@Override
-	public void viewReceiptsAsList(TripRow trip) {
+	public void viewReceiptsAsList(Trip trip) {
 		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsListFragment(trip), ReceiptsListFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
 			if (mSlidingPaneLayout.isOpen()) {
@@ -261,7 +261,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	}
 
 	@Override
-	public void viewReceiptsAsChart(TripRow trip) {
+	public void viewReceiptsAsChart(Trip trip) {
 		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsChartFragment(trip), ReceiptsChartFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
 			if (mSlidingPaneLayout.isOpen()) {
@@ -325,14 +325,14 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	/**
 	 * @return - an instance of our {@link ReceiptsListFragment} class. Allows for subclass flexibility
 	 */
-	protected ReceiptsListFragment getReceiptsListFragment(TripRow trip) {
+	protected ReceiptsListFragment getReceiptsListFragment(Trip trip) {
 		return ReceiptsFragment.newListInstance(trip);
 	}
 
 	/**
 	 * @return - an instance of our {@link ReceiptsChartFragment} class. Allows for subclass flexibility
 	 */
-	protected ReceiptsChartFragment getReceiptsChartFragment(TripRow trip) {
+	protected ReceiptsChartFragment getReceiptsChartFragment(Trip trip) {
 		return ReceiptsFragment.newChartInstance(trip);
 	}
 

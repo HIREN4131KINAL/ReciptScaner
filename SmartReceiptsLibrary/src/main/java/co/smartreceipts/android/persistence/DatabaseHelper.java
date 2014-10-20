@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -38,7 +40,6 @@ import co.smartreceipts.android.model.DistanceRow;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImportTask;
@@ -64,9 +65,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private static DatabaseHelper INSTANCE = null;
 
 	// Caching Vars
-	private TripRow[] mTripsCache;
+	private Trip[] mTripsCache;
 	private boolean mAreTripsValid;
-	private final HashMap<TripRow, List<ReceiptRow>> mReceiptCache;
+	private final HashMap<Trip, List<ReceiptRow>> mReceiptCache;
 	private int mNextReceiptAutoIncrementId = -1;
 	private HashMap<String, String> mCategories;
 	private ArrayList<CharSequence> mCategoryList, mCurrencyList;
@@ -100,17 +101,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									// other times
 
 	public interface TripRowListener {
-		public void onTripRowsQuerySuccess(TripRow[] trips);
+		public void onTripRowsQuerySuccess(Trip[] trips);
 
-		public void onTripRowInsertSuccess(TripRow trip);
+		public void onTripRowInsertSuccess(Trip trip);
 
 		public void onTripRowInsertFailure(SQLException ex, File directory); // Directory here is out of mDate
 
-		public void onTripRowUpdateSuccess(TripRow trip);
+		public void onTripRowUpdateSuccess(Trip trip);
 
-		public void onTripRowUpdateFailure(TripRow newTrip, TripRow oldTrip, File directory); // For rollback info
+		public void onTripRowUpdateFailure(Trip newTrip, Trip oldTrip, File directory); // For rollback info
 
-		public void onTripDeleteSuccess(TripRow oldTrip);
+		public void onTripDeleteSuccess(Trip oldTrip);
 
 		public void onTripDeleteFailure();
 
@@ -133,11 +134,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category); // Any of these can
 																										// be null!
 
-		public void onReceiptCopySuccess(TripRow tripRow);
+		public void onReceiptCopySuccess(Trip trip);
 
 		public void onReceiptCopyFailure();
 
-		public void onReceiptMoveSuccess(TripRow tripRow);
+		public void onReceiptMoveSuccess(Trip trip);
 
 		public void onReceiptMoveFailure();
 
@@ -270,7 +271,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
 																							// factory
 		mAreTripsValid = false;
-		mReceiptCache = new HashMap<TripRow, List<ReceiptRow>>();
+		mReceiptCache = new HashMap<Trip, List<ReceiptRow>>();
 		mContext = application.getApplicationContext();
 		mFlex = application.getFlex();
 		mPersistenceManager = persistenceManager;
@@ -658,7 +659,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////
-	// TripRow Methods
+	// Trip Methods
 	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	public void registerTripRowListener(TripRowListener listener) {
 		mTripRowListener = listener;
@@ -668,13 +669,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mTripRowListener = null;
 	}
 
-	public TripRow[] getTripsSerial() throws SQLiteDatabaseCorruptException {
+	public Trip[] getTripsSerial() throws SQLiteDatabaseCorruptException {
 		synchronized (mTripCacheLock) {
 			if (mAreTripsValid) {
 				return mTripsCache;
 			}
 		}
-		TripRow[] trips = getTripsHelper();
+		Trip[] trips = getTripsHelper();
 		synchronized (mTripCacheLock) {
 			if (!mAreTripsValid) {
 				mAreTripsValid = true;
@@ -703,16 +704,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private static final String CURR_CNT_QUERY = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM (SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PARENT + "=? GROUP BY " + ReceiptsTable.COLUMN_ISO4217 + ");";
 
-	private TripRow[] getTripsHelper() throws SQLiteDatabaseCorruptException {
+	private Trip[] getTripsHelper() throws SQLiteDatabaseCorruptException {
 		SQLiteDatabase db = null;
 		Cursor c = null, qc = null;
 		synchronized (mDatabaseLock) {
-			TripRow[] trips;
+			Trip[] trips;
 			try {
 				db = this.getReadableDatabase();
 				c = db.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
 				if (c != null && c.moveToFirst()) {
-					trips = new TripRow[c.getCount()];
+					trips = new Trip[c.getCount()];
 					final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
 					final int fromIndex = c.getColumnIndex(TripsTable.COLUMN_FROM);
 					final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
@@ -749,17 +750,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							}
 							qc.close();
 						}
-						TripRow.Builder builder = new TripRow.Builder();
-						trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone)
-						// .setPrice(price)
-						.setCurrency(curr).setMileage(miles).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+						final TripBuilderFactory builder = new TripBuilderFactory();
+						trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
 						getTripPriceAndDailyPrice(trips[c.getPosition()]);
 					}
 					while (c.moveToNext());
 					return trips;
 				}
 				else {
-					trips = new TripRow[0];
+					trips = new Trip[0];
 				}
 			}
 			finally { // Close the cursor and db to avoid memory leaks
@@ -774,23 +773,23 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	private class GetTripsWorker extends AsyncTask<Void, Void, TripRow[]> {
+	private class GetTripsWorker extends AsyncTask<Void, Void, Trip[]> {
 
 		private boolean mIsDatabaseCorrupt = false;
 
 		@Override
-		protected TripRow[] doInBackground(Void... params) {
+		protected Trip[] doInBackground(Void... params) {
 			try {
 				return getTripsHelper();
 			}
 			catch (SQLiteDatabaseCorruptException e) {
 				mIsDatabaseCorrupt = true;
-				return new TripRow[0];
+				return new Trip[0];
 			}
 		}
 
 		@Override
-		protected void onPostExecute(TripRow[] result) {
+		protected void onPostExecute(Trip[] result) {
 			if (mIsDatabaseCorrupt) {
 				if (mTripRowListener != null) {
 					mTripRowListener.onSQLCorruptionException();
@@ -810,7 +809,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	public List<CharSequence> getTripNames() {
-		TripRow[] trips = getTripsSerial();
+		Trip[] trips = getTripsSerial();
 		final ArrayList<CharSequence> tripNames = new ArrayList<CharSequence>(trips.length);
 		for (int i = 0; i < trips.length; i++) {
 			tripNames.add(trips[i].getName());
@@ -818,11 +817,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return tripNames;
 	}
 
-	public List<CharSequence> getTripNames(TripRow tripToExclude) {
-		TripRow[] trips = getTripsSerial();
+	public List<CharSequence> getTripNames(Trip tripToExclude) {
+		Trip[] trips = getTripsSerial();
 		final ArrayList<CharSequence> tripNames = new ArrayList<CharSequence>(trips.length - 1);
 		for (int i = 0; i < trips.length; i++) {
-			TripRow trip = trips[i];
+			Trip trip = trips[i];
 			if (!trip.equals(tripToExclude)) {
 				tripNames.add(trip.getName());
 			}
@@ -830,7 +829,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return tripNames;
 	}
 
-	public final TripRow getTripByName(final String name) {
+	public final Trip getTripByName(final String name) {
 		if (name == null || name.length() == 0) {
 			return null;
 		}
@@ -881,12 +880,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							curr = mPersistenceManager.getPreferences().getDefaultCurreny();
 						}
 					}
-					TripRow.Builder builder = new TripRow.Builder();
-					TripRow tripRow = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone)
-					// .setPrice(price)
-					.setCurrency(curr).setMileage(miles).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
-					getTripPriceAndDailyPrice(tripRow);
-					return tripRow;
+					final TripBuilderFactory builder = new TripBuilderFactory();
+					final Trip trip = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+					getTripPriceAndDailyPrice(trip);
+					return trip;
 				}
 				else {
 					return null;
@@ -904,8 +901,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	// Returns the trip on success. Null otherwise
-	public final TripRow insertTripSerial(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
-		TripRow trip = insertTripHelper(dir, from, to, comment, defaultCurrencyCode);
+	public final Trip insertTripSerial(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
+		Trip trip = insertTripHelper(dir, from, to, comment, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
 				mAreTripsValid = false;
@@ -923,7 +920,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new InsertTripRowWorker(dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
 	}
 
-	private TripRow insertTripHelper(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
+	private Trip insertTripHelper(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
 		ContentValues values = new ContentValues(3);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
@@ -932,7 +929,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(TripsTable.COLUMN_TO_TIMEZONE, TimeZone.getDefault().getID());
 		values.put(TripsTable.COLUMN_COMMENT, comment);
 		values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrencyCode);
-		TripRow toReturn = null;
+		Trip toReturn = null;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
 			db = this.getWritableDatabase();
@@ -940,7 +937,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				return null;
 			}
 			else {
-				toReturn = (new TripRow.Builder()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(TimeZone.getDefault()).setEndTimeZone(TimeZone.getDefault()).setCurrency(defaultCurrencyCode).setComment(comment).setDefaultCurrency(defaultCurrencyCode).setSourceAsCache().build();
+				toReturn = (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(TimeZone.getDefault()).setEndTimeZone(TimeZone.getDefault()).setCurrency(defaultCurrencyCode).setComment(comment).setDefaultCurrency(defaultCurrencyCode).setSourceAsCache().build();
 			}
 		}
 		if (this.getReadableDatabase() != null) {
@@ -952,7 +949,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return toReturn;
 	}
 
-	private class InsertTripRowWorker extends AsyncTask<Void, Void, TripRow> {
+	private class InsertTripRowWorker extends AsyncTask<Void, Void, Trip> {
 
 		private final File mDir;
 		private final Date mFrom, mTo;
@@ -969,7 +966,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected TripRow doInBackground(Void... params) {
+		protected Trip doInBackground(Void... params) {
 			try {
 				return insertTripHelper(mDir, mFrom, mTo, mComment, mDefaultCurrencyCode);
 			}
@@ -980,7 +977,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected void onPostExecute(TripRow result) {
+		protected void onPostExecute(Trip result) {
 			if (result != null) {
 				synchronized (mTripCacheLock) {
 					mAreTripsValid = false;
@@ -998,8 +995,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final TripRow updateTripSerial(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
-		TripRow trip = updateTripHelper(oldTrip, dir, from, to, comment, defaultCurrencyCode);
+	public final Trip updateTripSerial(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+		Trip trip = updateTripHelper(oldTrip, dir, from, to, comment, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
 				mAreTripsValid = false;
@@ -1008,7 +1005,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return trip;
 	}
 
-	public void updateTripParallel(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	public void updateTripParallel(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
 		if (mTripRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No TripRowListener was registered.");
@@ -1017,7 +1014,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new UpdateTripRowWorker(oldTrip, dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
 	}
 
-	private TripRow updateTripHelper(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	private Trip updateTripHelper(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
 		ContentValues values = new ContentValues(3);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
@@ -1057,7 +1054,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 																																		// rollback
 																																		// here
 					}
-					return (new TripRow.Builder()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setCurrency(oldTrip.getCurrency()).setComment(comment).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+					return (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setCurrency(oldTrip.getCurrency()).setComment(comment).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
 				}
 			}
 			catch (SQLException e) {
@@ -1069,14 +1066,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	private class UpdateTripRowWorker extends AsyncTask<Void, Void, TripRow> {
+	private class UpdateTripRowWorker extends AsyncTask<Void, Void, Trip> {
 
 		private final File mDir;
 		private final Date mFrom, mTo;
 		private final String mComment, mDefaultCurrencyCode;
-		private final TripRow mOldTrip;
+		private final Trip mOldTrip;
 
-		public UpdateTripRowWorker(TripRow oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+		public UpdateTripRowWorker(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
 			mOldTrip = oldTrip;
 			mDir = dir;
 			mFrom = from;
@@ -1086,12 +1083,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected TripRow doInBackground(Void... params) {
+		protected Trip doInBackground(Void... params) {
 			return updateTripHelper(mOldTrip, mDir, mFrom, mTo, mComment, mDefaultCurrencyCode);
 		}
 
 		@Override
-		protected void onPostExecute(TripRow result) {
+		protected void onPostExecute(Trip result) {
 			if (result != null) {
 				synchronized (mTripCacheLock) {
 					mAreTripsValid = false;
@@ -1109,7 +1106,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public boolean deleteTripSerial(TripRow trip) {
+	public boolean deleteTripSerial(Trip trip) {
 		if (mTripRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No TripRowListener was registered.");
@@ -1124,11 +1121,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return success;
 	}
 
-	public void deleteTripParallel(TripRow trip) {
+	public void deleteTripParallel(Trip trip) {
 		(new DeleteTripRowWorker()).execute(trip);
 	}
 
-	private boolean deleteTripHelper(TripRow trip) {
+	private boolean deleteTripHelper(Trip trip) {
 		boolean success = false;
 		SQLiteDatabase db = null;
 		db = this.getWritableDatabase();
@@ -1151,12 +1148,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return success;
 	}
 
-	private class DeleteTripRowWorker extends AsyncTask<TripRow, Void, Boolean> {
+	private class DeleteTripRowWorker extends AsyncTask<Trip, Void, Boolean> {
 
-		private TripRow mOldTrip;
+		private Trip mOldTrip;
 
 		@Override
-		protected Boolean doInBackground(TripRow... params) {
+		protected Boolean doInBackground(Trip... params) {
 			if (params == null || params.length == 0) {
 				return false;
 			}
@@ -1183,7 +1180,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final boolean addMiles(final TripRow trip, final String delta) {
+	public final boolean addMiles(final Trip trip, final String delta) {
 		try {
 			final SQLiteDatabase db = this.getReadableDatabase();
 
@@ -1217,7 +1214,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param trip
 	 * @return
 	 */
-	private final void getTripPriceAndDailyPrice(final TripRow trip) {
+	private final void getTripPriceAndDailyPrice(final Trip trip) {
 		queryTripPrice(trip);
 		queryTripDailyPrice(trip);
 	}
@@ -1228,7 +1225,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param trip
 	 *            the trip, which will be updated
 	 */
-	private final void queryTripPrice(final TripRow trip) {
+	private final void queryTripPrice(final Trip trip) {
 		SQLiteDatabase db = null;
 		Cursor c = null;
 		try {
@@ -1259,7 +1256,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param trip
 	 *            the trip, which will be updated
 	 */
-	private final void queryTripDailyPrice(final TripRow trip) {
+	private final void queryTripDailyPrice(final Trip trip) {
 		SQLiteDatabase db = null;
 		Cursor priceCursor = null;
 		try {
@@ -1307,7 +1304,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	private final void updateTripPrice(final TripRow trip) {
+	private final void updateTripPrice(final Trip trip) {
 		synchronized (mDatabaseLock) {
 			mAreTripsValid = false;
 			queryTripPrice(trip);
@@ -1735,7 +1732,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mReceiptRowListener = null;
 	}
 
-	public List<ReceiptRow> getReceiptsSerial(final TripRow trip) {
+	public List<ReceiptRow> getReceiptsSerial(final Trip trip) {
 		synchronized (mReceiptCacheLock) {
 			if (mReceiptCache.containsKey(trip)) {
 				return mReceiptCache.get(trip);
@@ -1744,11 +1741,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return this.getReceiptsHelper(trip, true);
 	}
 
-	public List<ReceiptRow> getReceiptsSerial(final TripRow trip, final boolean desc) { // Only the email writer should
+	public List<ReceiptRow> getReceiptsSerial(final Trip trip, final boolean desc) { // Only the email writer should
 		return getReceiptsHelper(trip, desc);
 	}
 
-	public void getReceiptsParallel(final TripRow trip) {
+	public void getReceiptsParallel(final Trip trip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -1774,7 +1771,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param silence
 	 *            - silences the result (so no listeners will be alerted)
 	 */
-	public void getReceiptsParallel(final TripRow trip, boolean silence) {
+	public void getReceiptsParallel(final Trip trip, boolean silence) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -1792,7 +1789,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetReceiptsWorker(true)).execute(trip);
 	}
 
-	private final List<ReceiptRow> getReceiptsHelper(final TripRow trip, final boolean desc) {
+	private final List<ReceiptRow> getReceiptsHelper(final Trip trip, final boolean desc) {
 		List<ReceiptRow> receipts;
 		if (trip == null) {
 			return new ArrayList<ReceiptRow>();
@@ -1889,7 +1886,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return receipts;
 	}
 
-	private class GetReceiptsWorker extends AsyncTask<TripRow, Void, List<ReceiptRow>> {
+	private class GetReceiptsWorker extends AsyncTask<Trip, Void, List<ReceiptRow>> {
 
 		private final boolean mSilence;
 
@@ -1902,11 +1899,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected List<ReceiptRow> doInBackground(TripRow... params) {
+		protected List<ReceiptRow> doInBackground(Trip... params) {
 			if (params == null || params.length == 0) {
 				return new ArrayList<ReceiptRow>();
 			}
-			TripRow trip = params[0];
+			Trip trip = params[0];
 			return getReceiptsHelper(trip, true);
 		}
 
@@ -1982,21 +1979,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt) throws SQLException {
+	public ReceiptRow insertReceiptSerial(Trip parent, ReceiptRow receipt) throws SQLException {
 		return insertReceiptSerial(parent, receipt, receipt.getFile());
 	}
 
-	public ReceiptRow insertReceiptSerial(TripRow parent, ReceiptRow receipt, File newFile) throws SQLException {
+	public ReceiptRow insertReceiptSerial(Trip parent, ReceiptRow receipt, File newFile) throws SQLException {
 		return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(), receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice(), receipt.getTax(), receipt.isExpensable(), receipt.getCurrencyCode(), receipt.isFullPage(), receipt.getPaymentMethod(), receipt.getExtraEditText1(), receipt.getExtraEditText2(), receipt.getExtraEditText3());
 	}
 
-	public ReceiptRow insertReceiptSerial(TripRow trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public ReceiptRow insertReceiptSerial(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		return insertReceiptHelper(trip, img, name, category, date, null, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
-	public void insertReceiptParallel(TripRow trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public void insertReceiptParallel(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
@@ -2006,7 +2003,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
-	private ReceiptRow insertReceiptHelper(TripRow trip, File img, String name, String category, Date date, TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
+	private ReceiptRow insertReceiptHelper(Trip trip, File img, String name, String category, Date date, TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
 			PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
 
 		final int rcptNum = this.getReceiptsSerial(trip).size() + 1; // Use this to order things more properly
@@ -2148,7 +2145,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	private class InsertReceiptWorker extends AsyncTask<Void, Void, ReceiptRow> {
 
-		private final TripRow mTrip;
+		private final Trip mTrip;
 		private final File mImg;
 		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
 		private final Date mDate;
@@ -2156,7 +2153,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private final boolean mExpensable, mFullpage;
 		private SQLException mException;
 
-		public InsertReceiptWorker(TripRow trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+		public InsertReceiptWorker(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mTrip = trip;
 			mImg = img;
@@ -2199,12 +2196,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public ReceiptRow updateReceiptSerial(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public ReceiptRow updateReceiptSerial(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 		return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
 	}
 
-	public void updateReceiptParallel(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	public void updateReceiptParallel(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		if (mReceiptRowListener == null) {
@@ -2215,7 +2212,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new UpdateReceiptWorker(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
 	}
 
-	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+	private ReceiptRow updateReceiptHelper(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 			String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 
 		ContentValues values = new ContentValues(10);
@@ -2311,13 +2308,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private class UpdateReceiptWorker extends AsyncTask<Void, Void, ReceiptRow> {
 
 		private final ReceiptRow mOldReceipt;
-		private final TripRow mTrip;
+		private final Trip mTrip;
 		private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
 		private final Date mDate;
 		private final PaymentMethod mPaymentMethod;
 		private final boolean mExpensable, mFullpage;
 
-		public UpdateReceiptWorker(ReceiptRow oldReceipt, TripRow trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
+		public UpdateReceiptWorker(ReceiptRow oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
 				String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
 			mOldReceipt = oldReceipt;
 			mTrip = trip;
@@ -2384,11 +2381,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public boolean copyReceiptSerial(ReceiptRow receipt, TripRow newTrip) {
+	public boolean copyReceiptSerial(ReceiptRow receipt, Trip newTrip) {
 		return copyReceiptHelper(receipt, newTrip);
 	}
 
-	public void copyReceiptParallel(ReceiptRow receipt, TripRow newTrip) {
+	public void copyReceiptParallel(ReceiptRow receipt, Trip newTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2397,7 +2394,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new CopyReceiptWorker(receipt, newTrip)).execute(new Void[0]);
 	}
 
-	private boolean copyReceiptHelper(ReceiptRow receipt, TripRow newTrip) {
+	private boolean copyReceiptHelper(ReceiptRow receipt, Trip newTrip) {
 		File newFile = null;
 		final StorageManager storageManager = mPersistenceManager.getStorageManager();
 		if (receipt.hasFile()) {
@@ -2434,9 +2431,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private class CopyReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
 		private final ReceiptRow mReceipt;
-		private final TripRow mTrip;
+		private final Trip mTrip;
 
-		public CopyReceiptWorker(ReceiptRow receipt, TripRow currentTrip) {
+		public CopyReceiptWorker(ReceiptRow receipt, Trip currentTrip) {
 			mReceipt = receipt;
 			mTrip = currentTrip;
 		}
@@ -2460,11 +2457,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public boolean moveReceiptSerial(ReceiptRow receipt, TripRow currentTrip, TripRow newTrip) {
+	public boolean moveReceiptSerial(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
 		return moveReceiptHelper(receipt, currentTrip, newTrip);
 	}
 
-	public void moveReceiptParallel(ReceiptRow receipt, TripRow currentTrip, TripRow newTrip) {
+	public void moveReceiptParallel(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2473,7 +2470,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new MoveReceiptWorker(receipt, currentTrip, newTrip)).execute(new Void[0]);
 	}
 
-	private boolean moveReceiptHelper(ReceiptRow receipt, TripRow currentTrip, TripRow newTrip) {
+	private boolean moveReceiptHelper(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
 		if (copyReceiptSerial(receipt, newTrip)) {
 			if (deleteReceiptSerial(receipt, currentTrip)) {
 				return true;
@@ -2491,9 +2488,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private class MoveReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
 		private final ReceiptRow mReceipt;
-		private final TripRow mCurrentTrip, mNewTrip;
+		private final Trip mCurrentTrip, mNewTrip;
 
-		public MoveReceiptWorker(ReceiptRow receipt, TripRow currentTrip, TripRow newTrip) {
+		public MoveReceiptWorker(ReceiptRow receipt, Trip currentTrip, Trip newTrip) {
 			mReceipt = receipt;
 			mCurrentTrip = currentTrip;
 			mNewTrip = newTrip;
@@ -2518,11 +2515,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public boolean deleteReceiptSerial(ReceiptRow receipt, TripRow currentTrip) {
+	public boolean deleteReceiptSerial(ReceiptRow receipt, Trip currentTrip) {
 		return deleteReceiptHelper(receipt, currentTrip);
 	}
 
-	public void deleteReceiptParallel(ReceiptRow receipt, TripRow currentTrip) {
+	public void deleteReceiptParallel(ReceiptRow receipt, Trip currentTrip) {
 		if (mReceiptRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowListener was registered.");
@@ -2531,7 +2528,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new DeleteReceiptWorker(receipt, currentTrip)).execute(new Void[0]);
 	}
 
-	private boolean deleteReceiptHelper(ReceiptRow receipt, TripRow currentTrip) {
+	private boolean deleteReceiptHelper(ReceiptRow receipt, Trip currentTrip) {
 		boolean success = false;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -2554,9 +2551,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private class DeleteReceiptWorker extends AsyncTask<Void, Void, Boolean> {
 
 		private final ReceiptRow mReceipt;
-		private final TripRow mTrip;
+		private final Trip mTrip;
 
-		public DeleteReceiptWorker(ReceiptRow receipt, TripRow currentTrip) {
+		public DeleteReceiptWorker(ReceiptRow receipt, Trip currentTrip) {
 			mReceipt = receipt;
 			mTrip = currentTrip;
 		}
@@ -2580,7 +2577,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final boolean moveReceiptUp(final TripRow trip, final ReceiptRow receipt) {
+	public final boolean moveReceiptUp(final Trip trip, final ReceiptRow receipt) {
 		List<ReceiptRow> receipts = getReceiptsSerial(trip);
 		int index = 0;
 		final int size = receipts.size();
@@ -2622,7 +2619,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public final boolean moveReceiptDown(final TripRow trip, final ReceiptRow receipt) {
+	public final boolean moveReceiptDown(final Trip trip, final ReceiptRow receipt) {
 		List<ReceiptRow> receipts = getReceiptsSerial(trip);
 		final int size = receipts.size();
 		int index = size - 1;
@@ -2717,11 +2714,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public ReceiptRow getReceipt(String xaxis, String sum);
 	}
 
-	private List<ReceiptRow> getGraphColumnsSerial(TripRow trip, GraphProcessorDelegate delegate) {
+	private List<ReceiptRow> getGraphColumnsSerial(Trip trip, GraphProcessorDelegate delegate) {
 		return getGraphColumnsHelper(trip, delegate);
 	}
 
-	private void getGraphColumnsParallel(TripRow trip, GraphProcessorDelegate delegate) {
+	private void getGraphColumnsParallel(Trip trip, GraphProcessorDelegate delegate) {
 		if (mReceiptRowGraphListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No ReceiptRowGraphListener was registered.");
@@ -2730,7 +2727,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		(new GetGraphColumnsWorker(delegate)).execute(trip);
 	}
 
-	private class GetGraphColumnsWorker extends AsyncTask<TripRow, Void, List<ReceiptRow>> {
+	private class GetGraphColumnsWorker extends AsyncTask<Trip, Void, List<ReceiptRow>> {
 
 		private final GraphProcessorDelegate mDelegate;
 
@@ -2739,11 +2736,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 
 		@Override
-		protected List<ReceiptRow> doInBackground(TripRow... params) {
+		protected List<ReceiptRow> doInBackground(Trip... params) {
 			if (params == null || params.length == 0) {
 				return new ArrayList<ReceiptRow>();
 			}
-			TripRow trip = params[0];
+			Trip trip = params[0];
 			return getGraphColumnsHelper(trip, mDelegate);
 		}
 
@@ -2756,7 +2753,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	private final List<ReceiptRow> getGraphColumnsHelper(TripRow trip, GraphProcessorDelegate delegate) {
+	private final List<ReceiptRow> getGraphColumnsHelper(Trip trip, GraphProcessorDelegate delegate) {
 		List<ReceiptRow> receipts;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -2806,11 +2803,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
-	public List<ReceiptRow> getCostPerCategorySerial(final TripRow trip) {
+	public List<ReceiptRow> getCostPerCategorySerial(final Trip trip) {
 		return getGraphColumnsSerial(trip, new CostPerCategoryDelegate());
 	}
 
-	public void getCostPerCategoryParallel(final TripRow trip) {
+	public void getCostPerCategoryParallel(final Trip trip) {
 		getGraphColumnsParallel(trip, new CostPerCategoryDelegate());
 	}
 

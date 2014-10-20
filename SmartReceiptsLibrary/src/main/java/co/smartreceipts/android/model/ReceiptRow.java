@@ -20,7 +20,7 @@ public class ReceiptRow implements Parcelable {
 	public static final String PARCEL_KEY = "co.smartreceipts.android.ReceiptRow";
 
 	private final int mId;
-	private TripRow mTrip;
+	private Trip mTrip;
 	private PaymentMethod mPaymentMethod;
 	private int mIndex; // Tracks the index in the list (if specified)
 	private File mFile;
@@ -32,7 +32,7 @@ public class ReceiptRow implements Parcelable {
 	private boolean mIsExpensable, mIsFullPage, mIsSelected;
 	private WBCurrency mCurrency;
 	private DecimalFormat mDecimalFormat;
-	private SourceEnum mSource;
+	private Source mSource;
 
 	private ReceiptRow(int id) {
 		mId = id;
@@ -41,7 +41,7 @@ public class ReceiptRow implements Parcelable {
 	}
 
 	private ReceiptRow(Parcel in) {
-		mTrip = in.readParcelable(TripRow.class.getClassLoader());
+		mTrip = in.readParcelable(Trip.class.getClassLoader());
 		mPaymentMethod = in.readParcelable(PaymentMethod.class.getClassLoader());
 		mId = in.readInt();
 		mName = in.readString();
@@ -60,7 +60,7 @@ public class ReceiptRow implements Parcelable {
 		mExtraEditText3 = in.readString();
 		mIndex = in.readInt();
 		mTimeZone = TimeZone.getTimeZone(in.readString());
-		mSource = SourceEnum.Parcel;
+		mSource = Source.Parcel;
 		mIsSelected = false;
 	}
 
@@ -68,7 +68,7 @@ public class ReceiptRow implements Parcelable {
 		return mId;
 	}
 
-	public TripRow getTrip() {
+	public Trip getTrip() {
 		return mTrip;
 	}
 
@@ -292,7 +292,7 @@ public class ReceiptRow implements Parcelable {
 		return mIndex;
 	}
 
-	public void setTrip(TripRow trip) {
+	public void setTrip(Trip trip) {
 		mTrip = trip;
 	}
 
@@ -386,7 +386,7 @@ public class ReceiptRow implements Parcelable {
 		mIsSelected = isSelected;
 	}
 
-	void setSource(SourceEnum source) {
+	void setSource(Source source) {
 		mSource = source;
 	}
 
@@ -507,7 +507,7 @@ public class ReceiptRow implements Parcelable {
 
 	public static final class Builder {
 
-		private TripRow _trip;
+		private Trip _trip;
 		private PaymentMethod _paymentMethod;
 		private File _file;
 		private String _name, _category, _comment, _priceString, _taxString;
@@ -519,16 +519,16 @@ public class ReceiptRow implements Parcelable {
 		private int _index;
 		private boolean _isExpenseable, _isFullPage, _isSelected;
 		private WBCurrency _currency;
-		private SourceEnum _source;
+		private Source _source;
 
 		public Builder(int id) {
 			_id = id;
 			_index = -1;
-			_source = SourceEnum.Undefined;
+			_source = Source.Undefined;
 			_timezone = TimeZone.getDefault();
 		}
 
-		public Builder setTrip(TripRow trip) {
+		public Builder setTrip(Trip trip) {
 			_trip = trip;
 			return this;
 		}
@@ -671,7 +671,7 @@ public class ReceiptRow implements Parcelable {
 
 		// TODO: Use this method
 		public Builder setSourceAsCache() {
-			_source = SourceEnum.Cache;
+			_source = Source.Cache;
 			return this;
 		}
 

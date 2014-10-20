@@ -34,7 +34,7 @@ import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
@@ -68,10 +68,10 @@ public class ReceiptImageFragment extends WBFragment {
 		return new ReceiptImageFragment();
 	}
 
-	public static ReceiptImageFragment newInstance(ReceiptRow currentReceipt, TripRow tripRow) {
+	public static ReceiptImageFragment newInstance(ReceiptRow currentReceipt, Trip trip) {
 		ReceiptImageFragment fragment = new ReceiptImageFragment();
 		Bundle args = new Bundle();
-		args.putString(TripRow.PARCEL_KEY, tripRow.getDirectoryPath());
+		args.putString(Trip.PARCEL_KEY, trip.getDirectoryPath());
 		args.putParcelable(ReceiptRow.PARCEL_KEY, currentReceipt);
 		fragment.setArguments(args);
 		return fragment;
@@ -166,7 +166,7 @@ public class ReceiptImageFragment extends WBFragment {
 		super.onResume();
 		if (mCurrentReceipt == null) {
 			if (getArguments() != null) {
-				mReceiptPath = getArguments().getString(TripRow.PARCEL_KEY);
+				mReceiptPath = getArguments().getString(Trip.PARCEL_KEY);
 				Parcelable parcel = getArguments().getParcelable(ReceiptRow.PARCEL_KEY);
 				if (parcel == null || !(parcel instanceof ReceiptRow)) {
 					restoreData();

@@ -16,7 +16,7 @@ public class DistanceRow implements Parcelable {
 	public static final String PARCEL_KEY = "co.smartreceipts.android.model.DistanceRow";
 
 	private final long mId;
-	private final TripRow mTrip;
+	private final Trip mTrip;
 	private final String mLocation;
 	private final BigDecimal mDistance;
 	private final Date mDate;
@@ -25,7 +25,7 @@ public class DistanceRow implements Parcelable {
 	private final String mComment;
     private DecimalFormat mDecimalFormat;
 
-	public DistanceRow(long id, TripRow trip, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
+	public DistanceRow(long id, Trip trip, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
 		mId = id;
 		mTrip = trip;
 		mLocation = location;
@@ -38,7 +38,7 @@ public class DistanceRow implements Parcelable {
 
 	protected DistanceRow(Parcel in) {
 		mId = in.readLong();
-		mTrip = in.readParcelable(TripRow.class.getClassLoader());
+		mTrip = in.readParcelable(Trip.class.getClassLoader());
 		mLocation = in.readString();
 		mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
 		long tmpDate = in.readLong();
@@ -69,7 +69,7 @@ public class DistanceRow implements Parcelable {
 		return mId;
 	}
 
-	public TripRow getTrip() {
+	public Trip getTrip() {
 		return mTrip;
 	}
 
@@ -125,7 +125,7 @@ public class DistanceRow implements Parcelable {
 
 	public static final class Builder {
 		private long _id;
-		private TripRow _trip;
+		private Trip _trip;
 		private String _location;
 		private BigDecimal _distance;
 		private Date _date;
@@ -137,7 +137,7 @@ public class DistanceRow implements Parcelable {
 			_id = id;
 		}
 
-		public Builder setTrip(final TripRow trip) {
+		public Builder setTrip(final Trip trip) {
 			_trip = trip;
 			return this;
 		}

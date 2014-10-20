@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import co.smartreceipts.android.model.Trip;
 import wb.android.loaders.SharedPreferencesLoader;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -15,7 +16,6 @@ import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.Navigable;
-import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.utils.Utils;
@@ -31,7 +31,7 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 	protected static final String PREFERENCES = SharedPreferenceDefinitions.ReceiptFragment_Preferences.toString();
   	private static final String PREFERENCE_TRIP_NAME = "tripName";
 
-	protected TripRow mCurrentTrip;
+	protected Trip mCurrentTrip;
 	protected Navigable mNavigator;
 
 	public static ReceiptsListFragment newListInstance() {
@@ -39,14 +39,14 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		return fragment;
 	}
 
-	public static ReceiptsListFragment newListInstance(TripRow currentTrip) {
+	public static ReceiptsListFragment newListInstance(Trip currentTrip) {
 		if (currentTrip == null) {
 			return newListInstance();
 		}
 		else {
 			ReceiptsListFragment fragment = new ReceiptsListFragment();
 			Bundle args = new Bundle();
-			args.putParcelable(TripRow.PARCEL_KEY, currentTrip);
+			args.putParcelable(Trip.PARCEL_KEY, currentTrip);
 			fragment.setArguments(args);
 			return fragment;
 		}
@@ -57,14 +57,14 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		return fragment;
 	}
 
-	public static ReceiptsChartFragment newChartInstance(TripRow currentTrip) {
+	public static ReceiptsChartFragment newChartInstance(Trip currentTrip) {
 		if (currentTrip == null) {
 			return newChartInstance();
 		}
 		else {
 			ReceiptsChartFragment fragment = new ReceiptsChartFragment();
 			Bundle args = new Bundle();
-			args.putParcelable(TripRow.PARCEL_KEY, currentTrip);
+			args.putParcelable(Trip.PARCEL_KEY, currentTrip);
 			fragment.setArguments(args);
 			return fragment;
 		}
@@ -123,12 +123,12 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 	protected void ensureValidCurrentTrip() {
 		if (mCurrentTrip == null) {
 			if (getArguments() != null) {
-				Parcelable parcel = getArguments().getParcelable(TripRow.PARCEL_KEY);
-				if (parcel == null || !(parcel instanceof TripRow)) {
+				Parcelable parcel = getArguments().getParcelable(Trip.PARCEL_KEY);
+				if (parcel == null || !(parcel instanceof Trip)) {
 					restoreData();
 				}
 				else {
-					setTrip((TripRow)parcel);
+					setTrip((Trip)parcel);
 				}
 			}
 			else {
@@ -165,7 +165,7 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		// Unused
 	}
 
-	public void setTrip(TripRow trip) {
+	public void setTrip(Trip trip) {
 		if (trip == null) {
 			mNavigator.viewTrips();
 		}

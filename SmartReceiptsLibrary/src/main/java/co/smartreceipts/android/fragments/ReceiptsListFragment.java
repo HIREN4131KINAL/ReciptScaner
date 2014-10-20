@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.sql.Date;
 import java.util.List;
 
+import co.smartreceipts.android.model.Trip;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
@@ -64,7 +65,6 @@ import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.TripRow;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.Utils;
@@ -415,7 +415,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		receiptMenu(mCurrentTrip, null, null);
 	}
 
-	public final void receiptMenu(final TripRow trip, final ReceiptRow receipt, final File img) {
+	public final void receiptMenu(final Trip trip, final ReceiptRow receipt, final File img) {
 		final boolean newReceipt = (receipt == null);
 		final View scrollView = getFlex().getView(getActivity(), R.layout.dialog_receiptmenu);
 		final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.DIALOG_RECEIPTMENU_NAME);
@@ -964,7 +964,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private final void showImage(ReceiptRow receipt) {
 		final Intent intent = new Intent(getActivity(), ReceiptImageActivity.class);
 		intent.putExtra(ReceiptRow.PARCEL_KEY, receipt);
-		intent.putExtra(TripRow.PARCEL_KEY, mCurrentTrip);
+		intent.putExtra(Trip.PARCEL_KEY, mCurrentTrip);
 		startActivity(intent);
 	}
 
@@ -1156,7 +1156,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptCopySuccess(TripRow tripRow) {
+	public void onReceiptCopySuccess(Trip trip) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
 		if (isAdded()) {
@@ -1172,7 +1172,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	public void onReceiptMoveSuccess(TripRow tripRow) {
+	public void onReceiptMoveSuccess(Trip trip) {
 		getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
 		getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
 		if (isAdded()) {

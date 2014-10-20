@@ -13,8 +13,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.tests.utils.TestUtils;
 import co.smartreceipts.tests.utils.TripUtils.Constants;
@@ -41,8 +40,8 @@ public class TripsDBTest {
 	
 	@Test
 	public void insert() {
-		TripRow insertTrip = insertDefaultTrip();
-		TripRow[] trips = mDB.getTripsSerial();
+		Trip insertTrip = insertDefaultTrip();
+		Trip[] trips = mDB.getTripsSerial();
 		assertNotNull(insertTrip);
 		assertNotNull(trips);
 		assertEquals(trips.length, 1);
@@ -54,7 +53,7 @@ public class TripsDBTest {
 		return mApp.getPersistenceManager().getStorageManager().mkdir(Constants.DIRECTORY_NAME);
 	}
 	
-	private TripRow insertDefaultTrip() {
+	private Trip insertDefaultTrip() {
 		return mDB.insertTripSerial(getDefaultDirectory(), 
 								    Constants.START_DATE, 
 								    Constants.END_DATE, 
@@ -69,9 +68,9 @@ public class TripsDBTest {
 		Date newEndDate = new Date(Constants.START_DATE_MILLIS + 2000);
 		String newComment = Constants.COMMENT + "_new";
 		String newCurrency = "EUR";
-		TripRow oldTrip = insertDefaultTrip();
-		TripRow newTrip = mDB.updateTripSerial(oldTrip, newDir, newStartDate, newEndDate, newComment, newCurrency);
-		TripRow[] trips = mDB.getTripsSerial();
+		Trip oldTrip = insertDefaultTrip();
+		Trip newTrip = mDB.updateTripSerial(oldTrip, newDir, newStartDate, newEndDate, newComment, newCurrency);
+		Trip[] trips = mDB.getTripsSerial();
 		assertNotNull(oldTrip);
 		assertNotNull(newTrip);
 		assertNotNull(trips);
@@ -83,20 +82,20 @@ public class TripsDBTest {
 	
 	@Test
 	public void delete() {
-		TripRow insertTrip = insertDefaultTrip();
+		Trip insertTrip = insertDefaultTrip();
 		assertTrue(mDB.deleteTripSerial(insertTrip));
-		TripRow[] trips = mDB.getTripsSerial();
+		Trip[] trips = mDB.getTripsSerial();
 		assertNotNull(trips);
 		assertEquals(trips.length, 0);
 	}
 	
 	@Test
 	public void addMiles() {
-		TripRow insertTrip = insertDefaultTrip();
+		Trip insertTrip = insertDefaultTrip();
 		mDB.addMiles(insertTrip, Float.toString(Constants.MILEAGE));
 		mDB.addMiles(insertTrip, Float.toString(Constants.MILEAGE));
 		mDB.addMiles(insertTrip, Float.toString(-Constants.MILEAGE));
-		TripRow[] trips = mDB.getTripsSerial();
+		Trip[] trips = mDB.getTripsSerial();
 		assertNotNull(insertTrip);
 		assertNotNull(trips);
 		assertEquals(trips.length, 1);

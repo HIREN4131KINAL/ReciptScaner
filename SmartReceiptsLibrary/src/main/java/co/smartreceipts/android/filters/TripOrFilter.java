@@ -5,22 +5,22 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 
 /**
- * A filter implementation of {@link OrFilter} for {@link TripRow}
+ * A filter implementation of {@link OrFilter} for {@link co.smartreceipts.android.model.Trip}
  * 
  * @author Will Baumann
  * @since July 08, 2014
  * 
  */
-public class TripOrFilter extends OrFilter<TripRow>{
+public class TripOrFilter extends OrFilter<Trip>{
 
 	public TripOrFilter() {
 		super();
 	}
 	
-	public TripOrFilter(List<Filter<TripRow>> filters) {
+	public TripOrFilter(List<Filter<Trip>> filters) {
 		super(filters);
 	}
 	
@@ -30,7 +30,7 @@ public class TripOrFilter extends OrFilter<TripRow>{
 	
 	
 	@Override
-	Filter<TripRow> getFilter(JSONObject json) throws JSONException {
+	Filter<Trip> getFilter(JSONObject json) throws JSONException {
 		return FilterFactory.getTripFilter(json);
 	}
 

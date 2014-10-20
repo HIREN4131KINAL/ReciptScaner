@@ -8,9 +8,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 
-public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
+public class TripEndsOnOrAfterDayFilter implements Filter<Trip> {
 
 	private final static String DATE = "date";
 	private final static String TIMEZONE = "timezone";
@@ -33,7 +33,7 @@ public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
 	}
 
 	@Override
-	public boolean accept(TripRow t) {
+	public boolean accept(Trip t) {
 		return FilterUtils.isOnOrAfter(t.getEndDate(), t.getEndTimeZone(), mDate, mTimeZone);
 	}
 
@@ -47,7 +47,7 @@ public class TripEndsOnOrAfterDayFilter implements Filter<TripRow> {
 	}
 
 	@Override
-	public List<Filter<TripRow>> getChildren() {
+	public List<Filter<Trip>> getChildren() {
 		return null;
 	}
 

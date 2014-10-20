@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import android.view.LayoutInflater;
 import android.view.View;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 
 /**
  * Factory that allows us to rebuild our previous filter list from a {@link JSONObject}
@@ -87,13 +87,13 @@ public class FilterFactory {
 	}
 	
 	/**
-	 * Builds a {@link Filter} for a {@link TripRow} based on a {@link JSONObject}
+	 * Builds a {@link Filter} for a {@link co.smartreceipts.android.model.Trip} based on a {@link JSONObject}
 	 * 
 	 * @param json - the {@link JSONObject} that represents this filter
-	 * @return a {@link Filter} of {@link TripRow}
+	 * @return a {@link Filter} of {@link co.smartreceipts.android.model.Trip}
 	 * @throws JSONException - throw if our provide {@link JSONObject} is invalid
 	 */
-	public static final Filter<TripRow> getTripFilter(JSONObject json) throws JSONException {
+	public static final Filter<Trip> getTripFilter(JSONObject json) throws JSONException {
 		final String className = json.getString(CLASS_NAME);
 		
 		if(TripAndFilter.class.getName().equals(className)){

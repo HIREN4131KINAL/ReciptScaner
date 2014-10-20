@@ -1,6 +1,6 @@
 package co.smartreceipts.android.model;
 
-enum SourceEnum {
+public enum Source {
 	
 	Undefined,
 	Cache,

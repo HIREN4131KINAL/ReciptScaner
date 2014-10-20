@@ -7,7 +7,8 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import android.os.Environment;
-import co.smartreceipts.android.model.TripRow;
+
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 
 public class TripUtils {
@@ -37,8 +38,8 @@ public class TripUtils {
 		public static final float MILEAGE = 40.3121f;
 	}
 
-	public static final TripRow newDefaultTripRowInstance() {
-		TripRow.Builder builder = new TripRow.Builder();
+	public static final Trip newDefaultTripRowInstance() {
+		Trip.Builder builder = new Trip.Builder();
 		builder.setCurrency(Constants.CURRENCY_CODE)
 			   .setDefaultCurrency(Constants.CURRENCY_CODE)
 			   .setDirectory(Constants.DIRECTORY)
@@ -48,13 +49,13 @@ public class TripUtils {
 			   .setStartDate(Constants.START_DATE_MILLIS)
 			   .setStartTimeZone(Constants.START_TIMEZONE_CODE)
 			   .setComment(Constants.COMMENT);
-		final TripRow tripRow = builder.build();
-		tripRow.setPrice(Constants.PRICE);
-		tripRow.setDailySubTotal(Constants.DAILY_SUBTOTAL);
-		return tripRow;
+		final Trip trip = builder.build();
+		trip.setPrice(Constants.PRICE);
+		trip.setDailySubTotal(Constants.DAILY_SUBTOTAL);
+		return trip;
 	}
 
-	public static void assertFieldEquality(TripRow trip1, TripRow trip2) {
+	public static void assertFieldEquality(Trip trip1, Trip trip2) {
 		assertEquals(trip1.getDirectory(), trip2.getDirectory());
 		assertEquals(trip1.getStartDate(), trip2.getStartDate());
 		assertEquals(trip1.getStartTimeZone(), trip2.getStartTimeZone());

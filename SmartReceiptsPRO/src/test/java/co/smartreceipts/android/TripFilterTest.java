@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
 import co.smartreceipts.android.filters.FilterType;
@@ -27,7 +26,7 @@ import co.smartreceipts.android.filters.TripNotFilter;
 import co.smartreceipts.android.filters.TripOrFilter;
 import co.smartreceipts.android.filters.TripStartsOnOrAfterDayFilter;
 import co.smartreceipts.android.filters.TripStartsOnOrBeforeDayFilter;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.tests.utils.TripUtils.Constants;
 
 @Config(emulateSdk = 18, manifest = "../SmartReceiptsPRO/AndroidManifest.xml")
@@ -47,8 +46,8 @@ public class TripFilterTest {
 	private static final Date FUTURE = new Date(MILLIS + 1000);
 	private static final Date PAST = new Date(MILLIS - 1000);
 
-	private TripRow.Builder getGenericTripRowBuilder() {
-		TripRow.Builder builderA = new TripRow.Builder()
+	private Trip.Builder getGenericTripRowBuilder() {
+		Trip.Builder builderA = new Trip.Builder()
 				.setComment(Constants.COMMENT)
 				.setCurrency(Constants.CURRENCY)
 				.setCurrency(Constants.CURRENCY_CODE)
@@ -62,9 +61,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripMinimumPriceFilterTest() throws JSONException {
-		final TripRow tripNormal = getGenericTripRowBuilder().build();
-		final TripRow tripHigh = getGenericTripRowBuilder().build();
-		final TripRow tripLow = getGenericTripRowBuilder().build();
+		final Trip tripNormal = getGenericTripRowBuilder().build();
+		final Trip tripHigh = getGenericTripRowBuilder().build();
+		final Trip tripLow = getGenericTripRowBuilder().build();
 		tripNormal.setPrice(PRICE_NORMAL);
 		tripHigh.setPrice(PRICE_HIGH);
 		tripLow.setPrice(PRICE_LOW);
@@ -81,9 +80,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripMaximumPriceFilterTest() throws JSONException {
-		final TripRow tripNormal = getGenericTripRowBuilder().build();
-		final TripRow tripHigh = getGenericTripRowBuilder().build();
-		final TripRow tripLow = getGenericTripRowBuilder().build();
+		final Trip tripNormal = getGenericTripRowBuilder().build();
+		final Trip tripHigh = getGenericTripRowBuilder().build();
+		final Trip tripLow = getGenericTripRowBuilder().build();
 		tripNormal.setPrice(PRICE_NORMAL);
 		tripHigh.setPrice(PRICE_HIGH);
 		tripLow.setPrice(PRICE_LOW);
@@ -100,9 +99,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripStartsOnOrAfterDayFilterTest() throws JSONException {
-		final TripRow tripNow = getGenericTripRowBuilder().setStartDate(NOW).build();
-		final TripRow tripFuture = getGenericTripRowBuilder().setStartDate(FUTURE).build();
-		final TripRow tripPast = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final Trip tripNow = getGenericTripRowBuilder().setStartDate(NOW).build();
+		final Trip tripFuture = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final Trip tripPast = getGenericTripRowBuilder().setStartDate(PAST).build();
 		final TripStartsOnOrAfterDayFilter filter = new TripStartsOnOrAfterDayFilter(NOW, TZ);
 
 		assertTrue(filter.accept(tripNow));
@@ -115,9 +114,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripStartsOnOrBeforeDayFilterTest() throws JSONException {
-		final TripRow tripNow = getGenericTripRowBuilder().setStartDate(NOW).build();
-		final TripRow tripFuture = getGenericTripRowBuilder().setStartDate(FUTURE).build();
-		final TripRow tripPast = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final Trip tripNow = getGenericTripRowBuilder().setStartDate(NOW).build();
+		final Trip tripFuture = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final Trip tripPast = getGenericTripRowBuilder().setStartDate(PAST).build();
 		final TripStartsOnOrBeforeDayFilter filter = new TripStartsOnOrBeforeDayFilter(NOW, TZ);
 
 		assertTrue(filter.accept(tripNow));
@@ -130,9 +129,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripEndsOnOrAfterDayFilterTest() throws JSONException {
-		final TripRow tripNow = getGenericTripRowBuilder().setEndDate(NOW).build();
-		final TripRow tripFuture = getGenericTripRowBuilder().setEndDate(FUTURE).build();
-		final TripRow tripPast = getGenericTripRowBuilder().setEndDate(PAST).build();
+		final Trip tripNow = getGenericTripRowBuilder().setEndDate(NOW).build();
+		final Trip tripFuture = getGenericTripRowBuilder().setEndDate(FUTURE).build();
+		final Trip tripPast = getGenericTripRowBuilder().setEndDate(PAST).build();
 		final TripEndsOnOrAfterDayFilter filter = new TripEndsOnOrAfterDayFilter(NOW, TZ);
 
 		assertTrue(filter.accept(tripNow));
@@ -145,9 +144,9 @@ public class TripFilterTest {
 
 	@Test
 	public void tripEndsOnOrBeforeDayFilterTest() throws JSONException {
-		final TripRow tripNow = getGenericTripRowBuilder().setEndDate(NOW).build();
-		final TripRow tripFuture = getGenericTripRowBuilder().setEndDate(FUTURE).build();
-		final TripRow tripPast = getGenericTripRowBuilder().setEndDate(PAST).build();
+		final Trip tripNow = getGenericTripRowBuilder().setEndDate(NOW).build();
+		final Trip tripFuture = getGenericTripRowBuilder().setEndDate(FUTURE).build();
+		final Trip tripPast = getGenericTripRowBuilder().setEndDate(PAST).build();
 		final TripEndsOnOrBeforeDayFilter filter = new TripEndsOnOrBeforeDayFilter(NOW, TZ);
 
 		assertTrue(filter.accept(tripNow));
@@ -163,9 +162,9 @@ public class TripFilterTest {
 		// in this test scenario, trip with normal price will NOT be accepted
 		// accept rule: price >= high OR price <= LOW
 
-		final TripRow tripNormal = getGenericTripRowBuilder().build();
-		final TripRow tripHigh = getGenericTripRowBuilder().build();
-		final TripRow tripLow = getGenericTripRowBuilder().build();
+		final Trip tripNormal = getGenericTripRowBuilder().build();
+		final Trip tripHigh = getGenericTripRowBuilder().build();
+		final Trip tripLow = getGenericTripRowBuilder().build();
 		tripNormal.setPrice(PRICE_NORMAL);
 		tripHigh.setPrice(PRICE_HIGH);
 		tripLow.setPrice(PRICE_LOW);
@@ -190,12 +189,12 @@ public class TripFilterTest {
 		// in this test scenario, we will only accept cheap trip started in the past (i.e. tripPastLow)
 		// accept rule: starts on or before past AND price is low
 
-		final TripRow tripPastNormal = getGenericTripRowBuilder().setStartDate(PAST).build();
-		final TripRow tripPastHigh = getGenericTripRowBuilder().setStartDate(PAST).build();
-		final TripRow tripPastLow = getGenericTripRowBuilder().setStartDate(PAST).build();
-		final TripRow tripFutureNormal = getGenericTripRowBuilder().setStartDate(FUTURE).build();
-		final TripRow tripFutureHigh = getGenericTripRowBuilder().setStartDate(FUTURE).build();
-		final TripRow tripFutureLow = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final Trip tripPastNormal = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final Trip tripPastHigh = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final Trip tripPastLow = getGenericTripRowBuilder().setStartDate(PAST).build();
+		final Trip tripFutureNormal = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final Trip tripFutureHigh = getGenericTripRowBuilder().setStartDate(FUTURE).build();
+		final Trip tripFutureLow = getGenericTripRowBuilder().setStartDate(FUTURE).build();
 		tripPastHigh.setPrice(PRICE_HIGH);
 		tripPastNormal.setPrice(PRICE_NORMAL);
 		tripPastLow.setPrice(PRICE_LOW);
@@ -227,9 +226,9 @@ public class TripFilterTest {
 		// accept rule: NOT (price <= normal) 
 		// equivalent to: (price > normal)
 		
-		final TripRow tripNormal = getGenericTripRowBuilder().build();
-		final TripRow tripHigh = getGenericTripRowBuilder().build();
-		final TripRow tripLow = getGenericTripRowBuilder().build();
+		final Trip tripNormal = getGenericTripRowBuilder().build();
+		final Trip tripHigh = getGenericTripRowBuilder().build();
+		final Trip tripLow = getGenericTripRowBuilder().build();
 		tripNormal.setPrice(PRICE_NORMAL);
 		tripHigh.setPrice(PRICE_HIGH);
 		tripLow.setPrice(PRICE_LOW);
@@ -255,7 +254,7 @@ public class TripFilterTest {
 		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
-		final ArrayList<Filter<TripRow>> filters = new ArrayList<Filter<TripRow>>();
+		final ArrayList<Filter<Trip>> filters = new ArrayList<Filter<Trip>>();
 		filters.add(dateFilter);
 		filters.add(priceFilter);
 		final TripAndFilter filter1 = new TripAndFilter(filters);
@@ -279,7 +278,7 @@ public class TripFilterTest {
 		final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW, CURRENCY);
 		
 		// filter 1 -- composited filters added in object instantiation (i.e. constructor)
-		final ArrayList<Filter<TripRow>> filters = new ArrayList<Filter<TripRow>>();
+		final ArrayList<Filter<Trip>> filters = new ArrayList<Filter<Trip>>();
 		filters.add(dateFilter);
 		filters.add(priceFilter);
 		final TripOrFilter filter1 = new TripOrFilter(filters);

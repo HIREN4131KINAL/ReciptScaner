@@ -39,7 +39,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.ReceiptRow;
-import co.smartreceipts.android.model.TripRow;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -84,9 +84,9 @@ public class EmailAssistant {
 	private final Context mContext;
 	private final Flex mFlex;
 	private final PersistenceManager mPersistenceManager;
-	private final TripRow mTrip;
+	private final Trip mTrip;
 
-	public static final void email(SmartReceiptsApplication app, Context context, TripRow trip) {
+	public static final void email(SmartReceiptsApplication app, Context context, Trip trip) {
 		EmailAssistant assistant = new EmailAssistant(context, app.getFlex(), app.getPersistenceManager(), trip);
 		assistant.emailTrip();
 	}
@@ -110,7 +110,7 @@ public class EmailAssistant {
 		return intent;
 	}
 
-	public EmailAssistant(Context context, Flex flex, PersistenceManager persistenceManager, TripRow trip) {
+	public EmailAssistant(Context context, Flex flex, PersistenceManager persistenceManager, Trip trip) {
 		mContext = context;
 		mFlex = flex;
 		mPersistenceManager = persistenceManager;
@@ -309,7 +309,7 @@ public class EmailAssistant {
 		}
 	}
 
-	private class EmailAttachmentWriter extends AsyncTask<TripRow, Integer, WriterResults> {
+	private class EmailAttachmentWriter extends AsyncTask<Trip, Integer, WriterResults> {
 
 		private final StorageManager mStorageManager;
 		private final DatabaseHelper mDB;
@@ -336,13 +336,13 @@ public class EmailAssistant {
 
 		@Override
 		// TODO: Add all close(s) in finally statements
-		protected WriterResults doInBackground(TripRow... trips) {
+		protected WriterResults doInBackground(Trip... trips) {
 			if (trips.length == 0) {
 				return WriterResults.getFullFailureInstance(); //Should never be reached
 			}
 
 			// Set up our initial variables
-			final TripRow trip = trips[0];
+			final Trip trip = trips[0];
 			final List<ReceiptRow> receipts = mDB.getReceiptsSerial(trip, false);
 			final int len = receipts.size();
 			final WriterResults results = new WriterResults();
@@ -537,7 +537,7 @@ public class EmailAssistant {
 
 		private static final float IMG_SCALE_FACTOR = 2.1f;
 		private static final float HW_RATIO = 0.75f;
-	    private Bitmap stampImage(final TripRow trip, final ReceiptRow receipt, Bitmap.Config config) {
+	    private Bitmap stampImage(final Trip trip, final ReceiptRow receipt, Bitmap.Config config) {
 	    	if (!receipt.hasImage()) {
 	    		return null;
 	    	}

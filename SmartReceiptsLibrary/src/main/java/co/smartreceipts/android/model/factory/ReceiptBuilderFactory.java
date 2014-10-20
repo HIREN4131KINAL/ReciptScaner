@@ -39,6 +39,12 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _id = id;
         _index = -1;
         _source = Source.Undefined;
+        _name = "";
+        _category = "";
+        _comment = "";
+        _price = new BigDecimal(0);
+        _tax = new BigDecimal(0);
+        _date = new Date(System.currentTimeMillis());
         _timezone = TimeZone.getDefault();
     }
 

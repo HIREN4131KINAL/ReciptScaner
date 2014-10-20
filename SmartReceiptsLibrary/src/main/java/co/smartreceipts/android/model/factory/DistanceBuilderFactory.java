@@ -27,6 +27,12 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
 
     public DistanceBuilderFactory(long id) {
         _id = id;
+        _location = "";
+        _distance = new BigDecimal(0);
+        _date = new Date(System.currentTimeMillis());
+        _timezone = TimeZone.getDefault();
+        _rate = new BigDecimal(0);
+        _comment = "";
     }
 
     public DistanceBuilderFactory setTrip(final Trip trip) {

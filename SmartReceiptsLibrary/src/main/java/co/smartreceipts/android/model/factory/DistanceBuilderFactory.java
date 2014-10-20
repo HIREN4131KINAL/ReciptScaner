@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -8,6 +9,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
 
 /**
@@ -23,6 +25,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private Date _date;
     private TimeZone _timezone;
     private BigDecimal _rate;
+    private WBCurrency _currency;
     private String _comment;
 
     public DistanceBuilderFactory(long id) {
@@ -85,6 +88,19 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         return this;
     }
 
+    public DistanceBuilderFactory setCurrency(WBCurrency currency) {
+        _currency = currency;
+        return this;
+    }
+
+    public DistanceBuilderFactory setCurrency(@NonNull String currencyCode) {
+        if (TextUtils.isEmpty(currencyCode)) {
+            throw new IllegalArgumentException("The currency code cannot be null or empty");
+        }
+        _currency = WBCurrency.getInstance(currencyCode);
+        return this;
+    }
+
     public DistanceBuilderFactory setComment(String comment) {
         _comment = comment;
         return this;
@@ -93,6 +109,6 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     @Override
     @NonNull
     public Distance build() {
-        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _date, _timezone, _comment);
+        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _currency, _date, _timezone, _comment);
     }
 }

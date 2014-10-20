@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.text.DecimalFormat;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
@@ -26,15 +25,16 @@ public class ImmutableDistanceImpl implements Distance {
     private final Date mDate;
     private final TimeZone mTimezone;
     private final BigDecimal mRate;
+    private final WBCurrency mCurrency;
     private final String mComment;
-    private DecimalFormat mDecimalFormat;
 
-    public ImmutableDistanceImpl(long id, Trip trip, String location, BigDecimal distance, BigDecimal rate, Date date, TimeZone timeZone, String comment) {
+    public ImmutableDistanceImpl(long id, Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
         mId = id;
         mTrip = trip;
         mLocation = location;
         mDistance = distance;
         mRate = rate;
+        mCurrency = currency;
         mDate = date;
         mTimezone = timeZone;
         mComment = comment;
@@ -49,24 +49,8 @@ public class ImmutableDistanceImpl implements Distance {
         mDate = tmpDate != -1 ? new Date(tmpDate) : null;
         mTimezone = TimeZone.getTimeZone(in.readString());
         mRate = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
+        mCurrency = WBCurrency.getInstance(in.readString());
         mComment = in.readString();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(mId);
-        dest.writeParcelable(mTrip, flags);
-        dest.writeString(mLocation);
-        dest.writeValue(mDistance);
-        dest.writeLong(mDate != null ? mDate.getTime() : -1L);
-        dest.writeString(mTimezone.getID());
-        dest.writeValue(mRate);
-        dest.writeString(mComment);
     }
 
     @Override
@@ -92,7 +76,7 @@ public class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getDecimalFormattedDistance() {
-        return getDecimalFormat().format(getDistance());
+        return ModelUtils.getDecimalFormattedValue(mDistance);
     }
 
     @Override
@@ -117,22 +101,22 @@ public class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getDecimalFormattedRate() {
-        throw new UnsupportedOperationException("getDecimalFormattedRate has not been implemented yet");
+        return ModelUtils.getDecimalFormattedValue(mRate);
     }
 
     @Override
     public String getCurrencyFormattedRate() {
-        throw new UnsupportedOperationException("getCurrencyFormattedRate has not been implemented yet");
+        return ModelUtils.getCurrencyFormattedValue(mRate, mCurrency);
     }
 
     @Override
     public WBCurrency getCurrency() {
-        throw new UnsupportedOperationException("getCurrency has not been implemented yet");
+        return mCurrency;
     }
 
     @Override
     public String getCurrencyCode() {
-        throw new UnsupportedOperationException("getCurrencyCode has not been implemented yet");
+        return mCurrency.getCurrencyCode();
     }
 
     @Override
@@ -140,14 +124,22 @@ public class ImmutableDistanceImpl implements Distance {
         return mComment;
     }
 
-    private DecimalFormat getDecimalFormat() {
-        if (mDecimalFormat == null) {
-            mDecimalFormat = new DecimalFormat();
-            mDecimalFormat.setMaximumFractionDigits(2);
-            mDecimalFormat.setMinimumFractionDigits(2);
-            mDecimalFormat.setGroupingUsed(false);
-        }
-        return mDecimalFormat;
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(mId);
+        dest.writeParcelable(mTrip, flags);
+        dest.writeString(mLocation);
+        dest.writeValue(mDistance);
+        dest.writeLong(mDate != null ? mDate.getTime() : -1L);
+        dest.writeString(mTimezone.getID());
+        dest.writeValue(mRate);
+        dest.writeString(mCurrency.getCurrencyCode());
+        dest.writeString(mComment);
     }
 
     public static final Creator<ImmutableDistanceImpl> CREATOR = new Creator<ImmutableDistanceImpl>() {
@@ -164,7 +156,7 @@ public class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String toString() {
-        return "Distance [" + "mLocation=" + mLocation + ", mDistance=" + mDistance + ", mDate=" + mDate + ", mTimezone=" + mTimezone + ", mRate=" + mRate + ", mComment=" + mComment + "]";
+        return "Distance [" + "mLocation=" + mLocation + ", mDistance=" + mDistance + ", mDate=" + mDate + ", mTimezone=" + mTimezone + ", mRate=" + mRate + ", mCurrency= " + mCurrency + ", mComment=" + mComment + "]";
     }
 
     @Override
@@ -177,6 +169,7 @@ public class ImmutableDistanceImpl implements Distance {
         result = prime * result + ((mDistance == null) ? 0 : mDistance.hashCode());
         result = prime * result + ((mLocation == null) ? 0 : mLocation.hashCode());
         result = prime * result + ((mRate == null) ? 0 : mRate.hashCode());
+        result = prime * result + ((mCurrency == null) ? 0 : mCurrency.hashCode());
         result = prime * result + ((mTimezone == null) ? 0 : mTimezone.hashCode());
         return result;
     }
@@ -223,6 +216,12 @@ public class ImmutableDistanceImpl implements Distance {
             if (other.mRate != null)
                 return false;
         } else if (!mRate.equals(other.mRate))
+            return false;
+
+        if (mCurrency == null) {
+            if (other.mCurrency != null)
+                return false;
+        } else if (!mCurrency.equals(other.mCurrency))
             return false;
 
         if (mTimezone == null) {

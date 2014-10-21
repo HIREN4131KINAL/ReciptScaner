@@ -88,7 +88,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onDistanceRowInsertSuccess(Distance distance) {
         if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel();
+            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
         }
     }
 
@@ -100,7 +100,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onDistanceRowUpdateSuccess(Distance distance) {
         if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel();
+            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
         }
     }
 
@@ -112,7 +112,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onDistanceDeleteSuccess(Distance distance) {
         if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel();
+            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
         }
     }
 

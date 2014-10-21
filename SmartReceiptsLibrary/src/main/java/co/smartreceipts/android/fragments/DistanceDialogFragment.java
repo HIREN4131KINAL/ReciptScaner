@@ -136,7 +136,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 // We're inserting a new one
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), new BigDecimal(0));
                 final BigDecimal rate = getBigDecimalFromString(mRate.getText().toString(), new BigDecimal(0));
-                mDB.insertDistanceParallel(location, distance, date, rate, currency, comment);
+                mDB.insertDistanceParallel(mTrip, location, distance, date, rate, currency, comment);
             } else {
                 // We're updating
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), mUpdateableDistance.getDistance());

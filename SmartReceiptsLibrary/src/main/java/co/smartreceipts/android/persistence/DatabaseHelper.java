@@ -1335,21 +1335,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		mDistanceRowListener = null;
 	}
 	
-	public List<Distance> getDistanceSerial(final boolean desc) {
-		return this.getDistanceHelper();
+	public List<Distance> getDistanceSerial(final Trip trip) {
+		return this.getDistanceHelper(trip);
 	}
 	
-	public void getDistanceParallel(){
+	public void getDistanceParallel(final Trip trip) {
 		if (mDistanceRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No DistanceRowListener was registered.");
 			}
 		}
 		
-		(new GetDistanceWorker()).execute();
+		(new GetDistanceWorker(trip)).execute();
 	}
 	
-	private List<Distance> getDistanceHelper() {
+	private List<Distance> getDistanceHelper(final Trip trip) {
 		List<Distance> distances;
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = null;
@@ -1358,8 +1358,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db = this.getReadableDatabase();
 				c = db.query(DistanceTable.TABLE_NAME,
 							 null,
-							 null, // condition
-							 null, // binding
+                             DistanceTable.COLUMN_PARENT + "= ?",
+                             new String[] { trip.getName() },
 							 null,
 							 null,
                              null);
@@ -1411,10 +1411,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	
 	private class GetDistanceWorker extends AsyncTask<Void, Void, List<Distance>> {
 
+        private final Trip mTrip;
+
+        public GetDistanceWorker(final Trip trip) {
+            mTrip = trip;
+        }
 
 		@Override
 		protected List<Distance> doInBackground(Void... params) {
-			return getDistanceHelper();
+			return getDistanceHelper(mTrip);
 		}
 
 		@Override
@@ -1426,6 +1431,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 	
 	public Distance insertDistanceSerial(
+            final Trip trip,
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1433,10 +1439,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             final String rateCurrency,
 			final String comment) {
 		
-		return insertDistanceHelper(location, distance, date, rate, rateCurrency, comment);
+		return insertDistanceHelper(trip, location, distance, date, rate, rateCurrency, comment);
 	}
 	
 	public void insertDistanceParallel(
+            final Trip trip,
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1450,10 +1457,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			}
 		}
 		
-		new InsertDistanceWorker(location, distance, date, rate, rateCurrency, comment).execute();
+		new InsertDistanceWorker(trip, location, distance, date, rate, rateCurrency, comment).execute();
 	}
 
 	private Distance insertDistanceHelper(
+            final Trip trip,
 			final String location, 
 			final BigDecimal distance, 
 			final Date date, 
@@ -1462,7 +1470,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			final String comment) {
 
         final TimeZone timeZone = TimeZone.getDefault();
-		ContentValues values = new ContentValues(7);
+		ContentValues values = new ContentValues(8);
+        values.put(DistanceTable.COLUMN_PARENT, trip.getName());
 		values.put(DistanceTable.COLUMN_LOCATION, location); 
 		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
 		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
@@ -1512,7 +1521,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return toReturn;
 	}
 	
-	private class InsertDistanceWorker extends AsyncTask<Void, Void, Distance>{
+	private class InsertDistanceWorker extends AsyncTask<Void, Void, Distance> {
+
+        private final Trip mTrip;
 		private final String mLocation;
 		private final BigDecimal mDistance;
 		private final Date mDate;
@@ -1523,13 +1534,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		private SQLException mException;
 		
 		public InsertDistanceWorker(
+                final Trip trip,
 				final String location, 
 				final BigDecimal distance, 
 				final Date date, 
 				final BigDecimal rate,
                 final String rateCurrency,
 				final String comment) {
-			
+
+            mTrip = trip;
 			mLocation = location;
 			mDistance = distance;
 			mDate = date;
@@ -1541,7 +1554,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		@Override
 		protected Distance doInBackground(Void... params) {
 			try {
-				return insertDistanceHelper(mLocation, mDistance, mDate, mRate, mRateCurrency, mComment);
+				return insertDistanceHelper(mTrip, mLocation, mDistance, mDate, mRate, mRateCurrency, mComment);
 			} catch (SQLException exception) {
 				mException = exception;
 				return null;

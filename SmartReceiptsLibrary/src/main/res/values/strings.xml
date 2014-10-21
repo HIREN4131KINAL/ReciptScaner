@@ -271,6 +271,7 @@
     <string name="dialog_mileage_location">Location</string>
     <string name="dialog_mileage_date">Date</string>
     <string name="dialog_mileage_rate">Rate</string>
+    <string name="dialog_mileage_currency">Currency</string>
     <string name="dialog_mileage_comment">Comment</string>
     
     <!-- ==================== dialog filter ======================= -->

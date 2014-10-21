@@ -15,18 +15,24 @@
 			<EditText android:id="@+id/dialog_mileage_distance"
 			    android:focusableInTouchMode="true"
 				android:inputType="number|numberSigned|numberDecimal"
-				android:layout_width="fill_parent" 
+				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:hint="@string/dialog_mileage_distance"
-				android:layout_weight="3" >
+				android:layout_weight="7" >
 				<requestFocus />
 		    </EditText>
 		    <EditText android:id="@+id/dialog_mileage_rate"
 				android:inputType="number|numberDecimal"
-				android:layout_width="fill_parent" 
+				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:hint="@string/dialog_mileage_rate"
-				android:layout_weight="7" />
+				android:layout_weight="3.5" />
+            <Spinner android:id="@+id/dialog_mileage_currency"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawSelectorOnTop="true"
+                android:prompt="@string/dialog_mileage_currency"
+                android:layout_weight="3.5" />
 	    </LinearLayout>
 		<EditText android:id="@+id/dialog_mileage_location"
 			android:layout_width="fill_parent" 

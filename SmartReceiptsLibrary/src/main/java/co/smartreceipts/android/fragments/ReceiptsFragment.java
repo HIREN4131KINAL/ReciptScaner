@@ -188,9 +188,7 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
     		getSupportActionBar().setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
     	}
     	else {
-	    	if (!mCurrentTrip.isDailySubTotalEmpty()) {
-	    		getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getCurrencyFormattedDailySubTotal()));
-	    	}
+            getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getCurrencyFormattedDailySubTotal()));
     	}
 	}
 

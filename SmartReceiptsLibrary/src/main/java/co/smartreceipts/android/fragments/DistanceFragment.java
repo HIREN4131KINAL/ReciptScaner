@@ -15,16 +15,22 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.DistanceAdapter;
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
 
     public static final String TAG = DistanceFragment.class.getName();
 
+    private Trip mTrip;
     private DistanceAdapter mAdapter;
 
-    public static DistanceFragment newInstance() {
-        return new DistanceFragment();
+    public static DistanceFragment newInstance(final Trip trip) {
+        final DistanceFragment fragment = new DistanceFragment();
+        final Bundle args = new Bundle();
+        args.putParcelable(Trip.PARCEL_KEY, trip);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -33,6 +39,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
         setHasOptionsMenu(true);
         getPersistenceManager().getDatabase().registerDistanceRowListener(this);
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
+        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
     }
 
 
@@ -51,7 +58,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.distance_action_new) {
-            final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance();
+            final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip);
             dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             return true;
         }
@@ -66,7 +73,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         final Distance distance = mAdapter.getItem(position);
-        final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(distance);
+        final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip, distance);
         dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
         getFragmentManager().executePendingTransactions();
     }

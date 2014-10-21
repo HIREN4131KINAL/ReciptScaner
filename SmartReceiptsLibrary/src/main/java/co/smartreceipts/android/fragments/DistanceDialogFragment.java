@@ -21,6 +21,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 
@@ -33,6 +34,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private EditText mDistance, mRate, mLocation, mComment;
     private DateEditText mDate;
     private Spinner mCurrency;
+    private Trip mTrip;
     private Distance mUpdateableDistance;
     private DatabaseHelper mDB;
     private Preferences mPrefs;
@@ -41,37 +43,41 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
      * can be used to enter a new distance item
      *
+     * @param trip - the parent {@link co.smartreceipts.android.model.Trip}
      * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
      */
-    public static DistanceDialogFragment newInstance() {
-        return newInstance(null);
+    public static DistanceDialogFragment newInstance(final Trip trip) {
+        return newInstance(trip, null);
     }
+
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
      * can be used to update an existing distance item
      *
+     * @param trip - the parent {@link co.smartreceipts.android.model.Trip}
      * @param distance - the {@link co.smartreceipts.android.model.Distance} object to update
      * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
      */
-    public static DistanceDialogFragment newInstance(Distance distance) {
+    public static DistanceDialogFragment newInstance(final Trip trip, final Distance distance) {
         final DistanceDialogFragment dialog = new DistanceDialogFragment();
+        final Bundle args = new Bundle();
+        args.putParcelable(Trip.PARCEL_KEY, trip);
         if (distance != null) {
-            final Bundle args = new Bundle();
-            args.putParcelable(KEY_DISTANCE_OBJECT, distance);
+            args.putParcelable(Distance.PARCEL_KEY, distance);
         }
+        dialog.setArguments(args);
         return dialog;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_DISTANCE_OBJECT)) {
-            mUpdateableDistance = savedInstanceState.getParcelable(KEY_DISTANCE_OBJECT);
-        }
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
         mDB = app.getPersistenceManager().getDatabase();
         mPrefs = app.getPersistenceManager().getPreferences();
+        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        mUpdateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
     }
 
     @Override

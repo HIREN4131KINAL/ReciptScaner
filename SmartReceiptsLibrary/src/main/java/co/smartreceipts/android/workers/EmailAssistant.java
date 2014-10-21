@@ -346,9 +346,6 @@ public class EmailAssistant {
 			final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
 			final int len = receipts.size();
 			final WriterResults results = new WriterResults();
-			for (int i=0; i < len; i++) {
-				receipts.get(i).setIndex(i+1); //Set all indicies
-			}
 
 			// Make our trip output directory exists in a good state
 			File dir = trip.getDirectory();

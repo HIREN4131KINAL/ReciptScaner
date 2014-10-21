@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.sql.Date;
 import java.util.List;
 
+import co.smartreceipts.android.activities.DistanceActivity;
 import co.smartreceipts.android.model.Trip;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
@@ -723,26 +724,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	public final void showMileage() {
-		final String milesString = mCurrentTrip.getMilesAsString();
-		final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-		final View linearLayout = getFlex().getView(getActivity(), R.layout.dialog_mileage);
-		final EditText milesBox = (EditText) getFlex().getSubView(getActivity(), linearLayout, R.id.DIALOG_MILES_DELTA);
-		builder.setTitle(getString(R.string.total_item, milesString)).setCancelable(true).setView(linearLayout).setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int id) {
-				if (!getPersistenceManager().getDatabase().addMiles(mCurrentTrip, milesBox.getText().toString())) {
-					Toast.makeText(getActivity(), R.string.toast_error_invalid_input, Toast.LENGTH_SHORT).show();
-				}
-				else {
-					mAdapter.notifyDataSetChanged();
-				}
-			}
-		}).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int id) {
+        final Intent intent = new Intent(getActivity(), DistanceActivity.class);
+        intent.putExtra(Trip.PARCEL_KEY, mCurrentTrip);
+        startActivity(intent);
 
-			}
-		}).show();
 	}
 
 	public final boolean editReceipt(final Receipt receipt) {

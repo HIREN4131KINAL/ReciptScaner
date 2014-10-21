@@ -16,7 +16,7 @@
         android:largeHeap="true"
         android:logo="@drawable/logo" >
 
-        <activity android:name=".activities.DistanceActiity" />
+        <activity android:name=".activities.DistanceActivity" />
 
     </application>
 </manifest>

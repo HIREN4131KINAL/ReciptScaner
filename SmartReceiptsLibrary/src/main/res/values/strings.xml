@@ -164,7 +164,7 @@
     <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the \"Picture\" or \"Text-Only\" option below to get started&#8230;</string>
 
     <!-- ================= Distance Adapter ================== -->
-    <string name="distance_no_data">You don\'t seem to have any distance tracked yett. Try clicking the "+" (plus) button up top to get started.</string>
+    <string name="distance_no_data">You don\'t seem to have any distance tracked yet. Try clicking the "+" (plus) button up top to get started.</string>
 
     <!-- ================= Trip Actions =================== -->
     <string name="trip_action_new">New Report</string>

@@ -11,12 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.DistanceAdapter;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
@@ -70,11 +72,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.home) {
-            getActivity().finish();
-            return true;
-        }
-        else if (item.getItemId() == R.id.distance_action_new) {
+        if (item.getItemId() == R.id.distance_action_new) {
             final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip);
             dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             return true;
@@ -107,6 +105,11 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
+            BigDecimal total = new BigDecimal(0);
+            for (int i = 0; i < distance.size(); i++) {
+                total = total.add(distance.get(i).getDistance());
+            }
+            getSupportActionBar().setSubtitle(getString(R.string.total_item, ModelUtils.getDecimalFormattedValue(total)));
         }
     }
 

@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
+import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -20,6 +22,7 @@ import java.sql.Date;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -29,8 +32,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
 
     public static final String TAG = DistanceDialogFragment.class.getSimpleName();
 
-    private static final String KEY_DISTANCE_OBJECT = "distanceObject";
-
     private EditText mDistance, mRate, mLocation, mComment;
     private DateEditText mDate;
     private Spinner mCurrency;
@@ -38,6 +39,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private Distance mUpdateableDistance;
     private DatabaseHelper mDB;
     private Preferences mPrefs;
+    private DateManager mDateManager;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -55,7 +57,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
      * can be used to update an existing distance item
      *
-     * @param trip - the parent {@link co.smartreceipts.android.model.Trip}
+     * @param trip     - the parent {@link co.smartreceipts.android.model.Trip}
      * @param distance - the {@link co.smartreceipts.android.model.Distance} object to update
      * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
      */
@@ -96,6 +98,9 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, mDB.getCurrenciesList());
         currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mCurrency.setAdapter(currenices);
+        mDate.setOnClickListener(getDateManager().getDateEditTextListener());
+        mDate.setFocusable(false);
+        mDate.setFocusableInTouchMode(false);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(rootView);
@@ -103,6 +108,14 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             // New Distance
             builder.setTitle(getString(R.string.dialog_mileage_title_create));
             builder.setPositiveButton(getString(R.string.dialog_mileage_positive_create), this);
+            final Time now = new Time();
+            now.setToNow();
+            mDate.date = new Date(now.toMillis(false));
+            mDate.setText(DateFormat.getDateFormat(getActivity()).format(mDate.date));
+            int idx = currenices.getPosition(mTrip.getCurrencyCode());
+            if (idx > 0) {
+                mCurrency.setSelection(idx);
+            }
         } else {
             // Update distance
             builder.setTitle(getString(R.string.dialog_mileage_title_update));
@@ -121,12 +134,15 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         }
         builder.setNegativeButton(android.R.string.cancel, this);
 
-        return builder.create();
+        final Dialog dialog = builder.create();
+        getDateManager().setDateEditTextListenerDialogHolder(dialog);
+        return dialog;
     }
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
+            // Create/Edit
             final String currency = mCurrency.getSelectedItem().toString();
             final String location = mLocation.getText().toString();
             final String comment = mComment.getText().toString();
@@ -144,7 +160,24 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 mDB.updateDistanceParallel(mUpdateableDistance, location, distance, date, rate, currency, comment);
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {
-            // TODO: Show delete warning dialog
+            // Delete
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(getString(R.string.delete_item, mUpdateableDistance.getLocation()));
+            builder.setCancelable(true);
+            builder.setPositiveButton(R.string.delete, new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mDB.deleteDistanceParallel(mUpdateableDistance);
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton(android.R.string.cancel, new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
         }
         dialog.dismiss();
 
@@ -164,6 +197,14 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         } catch (NumberFormatException e) {
             return fallback;
         }
+    }
+
+
+    private DateManager getDateManager() {
+        if (mDateManager == null) {
+            mDateManager = new DateManager(getActivity(), ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferences());
+        }
+        return mDateManager;
     }
 
 }

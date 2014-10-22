@@ -10,9 +10,14 @@ import co.smartreceipts.android.persistence.Preferences;
 
 public class DistanceAdapter extends CardAdapter<Distance> {
 
-   public DistanceAdapter(Context context, Preferences preferences) {
-       super(context, preferences);
-   }
+    public DistanceAdapter(Context context, Preferences preferences) {
+        super(context, preferences);
+    }
+
+    @Override
+    protected String getPrice(Distance data) {
+        return data.getDecimalFormattedDistance();
+    }
 
     @Override
     protected void setPriceTextView(TextView textView, Distance data) {
@@ -24,12 +29,10 @@ public class DistanceAdapter extends CardAdapter<Distance> {
         if (!TextUtils.isEmpty(data.getLocation())) {
             textView.setText(data.getLocation());
             textView.setVisibility(View.VISIBLE);
-        }
-        else if (!TextUtils.isEmpty(data.getComment())) {
+        } else if (!TextUtils.isEmpty(data.getComment())) {
             textView.setText(data.getComment());
             textView.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             textView.setVisibility(View.GONE);
         }
     }

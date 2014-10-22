@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -24,6 +25,8 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     private Trip mTrip;
     private DistanceAdapter mAdapter;
+    private View mProgressDialog;
+    private TextView mNoDataAlert;
 
     public static DistanceFragment newInstance(final Trip trip) {
         final DistanceFragment fragment = new DistanceFragment();
@@ -45,7 +48,11 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.simple_list, container, false);
+        final View view = inflater.inflate(R.layout.simple_card_list, container, false);
+        mProgressDialog = view.findViewById(R.id.progress);
+        mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
+        mNoDataAlert.setText(R.string.distance_no_data);
+        return view;
     }
 
     @Override
@@ -56,8 +63,18 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
 
     @Override
+    public void onResume() {
+        super.onResume();
+        getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.distance_action_new) {
+        if (item.getItemId() == R.id.home) {
+            getActivity().finish();
+            return true;
+        }
+        else if (item.getItemId() == R.id.distance_action_new) {
             final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip);
             dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             return true;
@@ -82,6 +99,14 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     public void onDistanceRowsQuerySuccess(List<Distance> distance) {
         if (isAdded()) {
             mAdapter.notifyDataSetChanged(distance);
+            mProgressDialog.setVisibility(View.GONE);
+            if (distance == null || distance.size() == 0) {
+                getListView().setVisibility(View.GONE);
+                mNoDataAlert.setVisibility(View.VISIBLE);
+            } else {
+                mNoDataAlert.setVisibility(View.GONE);
+                getListView().setVisibility(View.VISIBLE);
+            }
         }
     }
 

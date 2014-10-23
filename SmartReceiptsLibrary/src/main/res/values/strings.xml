@@ -379,6 +379,7 @@
     <string name="pref_email_header">Email</string>
     <string name="pref_camera_header">Camera</string>
     <string name="pref_layout_header">Layout Customizations</string>
+    <string name="pref_distance_header">Distance</string>
     <string name="pref_help_header">Support</string>
     <string name="pref_about_header">About</string>
     
@@ -479,12 +480,6 @@
     <string name="pref_camera_bw_title">Convert to Grayscale</string>
     <string name="pref_camera_bw_summary">Saves image in black and white</string>
     
-    <!-- ============= Preference Distance ================= -->
-    <string name="pref_distance_rate_key" translatable="false">MileageRate</string>
-    <string name="pref_distance_rate_title">Gas Rate</string>
-    <string name="pref_distance_rate_unset">The rate per km/mi travelled</string>
-    <string name="pref_distance_rate_set">%2f per km/mi</string>
-    
     <!-- ============= Preference Layout ================= -->
     <string name="pref_layout_display_date_key" translatable="false">LayoutIncludeReceiptDate</string>
     <string name="pref_layout_display_date_title">Include Receipt Date</string>
@@ -495,6 +490,20 @@
     <string name="pref_layout_display_photo_key" translatable="false">LayoutIncludeReceiptPicture</string>
     <string name="pref_layout_display_photo_title">Include Picture/PDF Marker</string>
     <string name="pref_layout_display_photo_summary">Indicate if entries have a photo/PDF</string>
+
+    <!-- ============= Preference Distance ================= -->
+    <string name="pref_distance_rate_key" translatable="false">MileageRate</string>
+    <string name="pref_distance_rate_title">Gas Rate</string>
+    <string name="pref_distance_rate_summaryOff">The rate per mi or km travelled</string>
+    <string name="pref_distance_rate_summaryOn">%s per mi or km</string>
+    <string name="pref_distance_print_table_key" translatable="false">MileagePrintTable</string>
+    <string name="pref_distance_print_table_title">Include Distance Table</string>
+    <string name="pref_distance_print_table_summaryOn">PDF report includes distance table</string>
+    <string name="pref_distance_print_table_summaryOff">PDF report doesn't includes distance table</string>
+    <string name="pref_distance_print_daily_key" translatable="false">MileageAddToPDF</string>
+    <string name="pref_distance_print_daily_title">Report on Daily Distance</string>
+    <string name="pref_distance_print_daily_summaryOn">Price daily distance as receipt in PDF</string>
+    <string name="pref_distance_print_daily_summaryOff">Don't price daily distance as receipt in PDF</string>
     
 	<!-- ============== Preference Support ================= -->
 	<string name="pref_help_send_love_key" translatable="false">SendLove</string>

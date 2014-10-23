@@ -24,13 +24,13 @@ public class DefaultTaxPercentagePreference extends FloatSummaryEditTextPreferen
 	@Override
 	public CharSequence getSummary() {
 		if (TextUtils.isEmpty(getText())) { //Add a zero check
-			return new String();
+			return "";
 		}
 		else {
 			try {
 				float value = Float.parseFloat(getText());
 				if (value <= 0) {
-					return new String();
+					return "";
 				}
 				DecimalFormat decimalFormat = new DecimalFormat();
 				decimalFormat.setMaximumFractionDigits(2);
@@ -38,7 +38,7 @@ public class DefaultTaxPercentagePreference extends FloatSummaryEditTextPreferen
 				decimalFormat.setGroupingUsed(false);
 				return decimalFormat.format(value) + "%";
 			} catch (NumberFormatException e) {
-				return new String();
+				return "";
 			}
 		}
 	}

@@ -25,6 +25,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 
@@ -95,9 +96,9 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         mComment = (EditText) rootView.findViewById(R.id.dialog_mileage_comment);
         mDate = (DateEditText) rootView.findViewById(R.id.dialog_mileage_date);
 
-        final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, mDB.getCurrenciesList());
-        currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mCurrency.setAdapter(currenices);
+        final ArrayAdapter<CharSequence> currencies = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, mDB.getCurrenciesList());
+        currencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mCurrency.setAdapter(currencies);
         mDate.setOnClickListener(getDateManager().getDateEditTextListener());
         mDate.setFocusable(false);
         mDate.setFocusableInTouchMode(false);
@@ -112,9 +113,12 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             now.setToNow();
             mDate.date = new Date(now.toMillis(false));
             mDate.setText(DateFormat.getDateFormat(getActivity()).format(mDate.date));
-            int idx = currenices.getPosition(mTrip.getCurrencyCode());
+            int idx = currencies.getPosition(mTrip.getCurrencyCode());
             if (idx > 0) {
                 mCurrency.setSelection(idx);
+            }
+            if (mPrefs.hasDefaultDistanceRate()) {
+                mRate.setText(ModelUtils.getDecimalFormattedValue(mPrefs.getDefaultDistanceRate()));
             }
         } else {
             // Update distance
@@ -127,7 +131,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             mComment.setText(mUpdateableDistance.getComment());
             mDate.setText(mUpdateableDistance.getFormattedDate(getActivity(), mPrefs.getDateSeparator()));
             mDate.date = mUpdateableDistance.getDate();
-            int idx = currenices.getPosition(mUpdateableDistance.getCurrencyCode());
+            int idx = currencies.getPosition(mUpdateableDistance.getCurrencyCode());
             if (idx > 0) {
                 mCurrency.setSelection(idx);
             }

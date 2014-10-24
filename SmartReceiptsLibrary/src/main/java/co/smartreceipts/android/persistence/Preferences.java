@@ -562,6 +562,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mUseFileExplorerForOutput;
     }
 
+    public boolean hasDefaultDistanceRate() {
+        return this.mDefaultDistanceRate > 0;
+    }
+
     public float getDefaultDistanceRate() {
         return this.mDefaultDistanceRate;
     }

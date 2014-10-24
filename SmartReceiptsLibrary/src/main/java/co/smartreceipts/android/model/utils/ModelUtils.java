@@ -19,7 +19,7 @@ import co.smartreceipts.android.model.WBCurrency;
 public class ModelUtils {
 
     private ModelUtils() {
-        throw new RuntimeException("This class uses static calls only. It cannot be instantianted");
+        throw new RuntimeException("This class uses static calls only. It cannot be instantiated");
     }
 
 
@@ -38,6 +38,17 @@ public class ModelUtils {
         format.setTimeZone(timeZone); // Hack to shift the timezone appropriately
         final String formattedDate = format.format(date);
         return formattedDate.replace(DateUtils.getDateSeparator(context), separator);
+    }
+
+    /**
+     * Generates "decimal-formatted" value, which would appear to the end user as "25.20" or "25,20" instead of
+     * showing naively as "25.2" or "25.2001910"
+     *
+     * @param number - the {@link java.math.BigDecimal} to format
+     * @return the decimal formatted price {@link java.lang.String}
+     */
+    public static String getDecimalFormattedValue(float number) {
+        return getDecimalFormattedValue(new BigDecimal(number));
     }
 
     /**

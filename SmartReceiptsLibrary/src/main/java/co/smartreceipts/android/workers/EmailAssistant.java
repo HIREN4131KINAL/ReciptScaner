@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.workers.reports.DistanceTableGenerator;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -385,7 +387,10 @@ public class EmailAssistant {
 					document.add(table);
 
                     if (mPreferences.getPrintDistanceTable()) {
-                        // TODO: Print distance table
+                        final DistanceTableGenerator distanceTableGenerator = new DistanceTableGenerator(mContext, mPreferences);
+                        final List<Distance> distances = mDB.getDistanceSerial(trip);
+                        document.add(new Paragraph("\n\n"));
+                        document.add(distanceTableGenerator.generate(distances));
                     }
 					document.newPage();
 

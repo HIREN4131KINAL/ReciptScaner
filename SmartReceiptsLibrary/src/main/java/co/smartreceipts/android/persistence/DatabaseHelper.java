@@ -54,7 +54,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	// Database Info
 	public static final String DATABASE_NAME = "receipts.db";
-	private static final int DATABASE_VERSION = 12;
+	private static final int DATABASE_VERSION = 13;
 	public static final String NO_DATA = "null"; // TODO: Just set to null
 	static final String MULTI_CURRENCY = "XXXXXX";
 
@@ -558,7 +558,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
                 // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
                 final String distanceMigrate = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
-                        + "SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY + ";";
+                        + " SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY
+                        + " FROM " + TripsTable.TABLE_NAME  + ";";
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, distanceMigrate);
                 }

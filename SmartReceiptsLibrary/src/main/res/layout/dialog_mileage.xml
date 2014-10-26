@@ -17,7 +17,7 @@
 				android:inputType="number|numberSigned|numberDecimal"
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
-				android:hint="@string/dialog_mileage_distance"
+				android:hint="@string/distance_distance_field"
 				android:layout_weight="7" >
 				<requestFocus />
 		    </EditText>
@@ -25,26 +25,26 @@
 				android:inputType="number|numberDecimal"
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
-				android:hint="@string/dialog_mileage_rate"
+				android:hint="@string/distance_rate_field"
 				android:layout_weight="3.5" />
             <Spinner android:id="@+id/dialog_mileage_currency"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:drawSelectorOnTop="true"
-                android:prompt="@string/dialog_mileage_currency"
+                android:prompt="@string/dialog_currency_field"
                 android:layout_weight="3.5" />
 	    </LinearLayout>
 		<EditText android:id="@+id/dialog_mileage_location"
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
-			android:hint="@string/dialog_mileage_location" />
+			android:hint="@string/distance_location_field" />
 		<co.smartreceipts.android.date.DateEditText android:id="@+id/dialog_mileage_date"
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"
-    		android:hint="@string/dialog_mileage_date" />
+    		android:hint="@string/distance_date_field" />
 		<EditText android:id="@+id/dialog_mileage_comment"
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
-			android:hint="@string/dialog_mileage_comment" />
+			android:hint="@string/distance_comment_field" />
 	</LinearLayout>
 </ScrollView>

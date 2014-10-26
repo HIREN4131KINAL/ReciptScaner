@@ -371,9 +371,8 @@ public class EmailAssistant {
 
 					// Add the table (TODO: Use formatting at some point so it doesn't look like crap)
 					document.add(new Paragraph(trip.getCurrencyFormattedPrice() + "  \u2022  " + dir.getName() + "\n"
-								+ "From: " + trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())
-								+ " To: " + trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator()) + "\n"
-								+ "Distance Traveled: " + trip.getMilesAsString() + "\n\n\n"));
+								+ mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
+								+ mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n\n\n"));
 					PDFColumns columns = mDB.getPDFColumns();
 					PdfPTable table = columns.getTableWithHeaders();
 					Receipt receipt;
@@ -384,6 +383,10 @@ public class EmailAssistant {
 						}
 					}
 					document.add(table);
+
+                    if (mPreferences.getPrintDistanceTable()) {
+                        // TODO: Print distance table
+                    }
 					document.newPage();
 
 					// Add image Rows

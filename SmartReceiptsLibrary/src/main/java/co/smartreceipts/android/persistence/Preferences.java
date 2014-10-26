@@ -55,7 +55,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Distance Preferences
     private float mDefaultDistanceRate;
-    private boolean mPrintUniqueTable, mPrintDistanceAsDailyReceipt;
+    private boolean mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
 
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
@@ -208,7 +208,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initPrintDistanceTable(SharedPreferences prefs) {
-        this.mPrintUniqueTable = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_table_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_table_defaultValue));
+        this.mPrintDistanceTable = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_table_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_table_defaultValue));
     }
 
     private void initPrintDistanceAsDailyReceipt(SharedPreferences prefs) {
@@ -570,8 +570,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mDefaultDistanceRate;
     }
 
-    public boolean getPrintUniqueTable() {
-        return mPrintUniqueTable;
+    public boolean getPrintDistanceTable() {
+        return mPrintDistanceTable;
     }
 
     public boolean getPrintDistanceAsDailyReceipt() {

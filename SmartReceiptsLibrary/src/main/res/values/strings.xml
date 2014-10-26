@@ -54,6 +54,11 @@
 	<string name="update">Update</string>
     <string name="yes">Yes</string>
 	<string name="yes_as_pdf">Yes - As PDF</string>
+
+    <!-- ============= Report Generation ============== -->
+    <string name="report_header_from">From: %s</string>
+    <string name="report_header_to">To: %s</string>
+    <string name="report_header_distance_travelled">Distance Traveled:</string>
 	
 	<!-- ================ Categories ================== -->
 	<string name="category_name">Name: </string>
@@ -269,13 +274,13 @@
     <string name="DIALOG_ABOUT_TITLE">About</string>
     <string name="DIALOG_ABOUT_MESSAGE">Smart Receipts v.VERSION_NAME \nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License</string>
     
-    <!-- ==================== DIALOG_MILEAGE ====================== -->
-    <string name="dialog_mileage_distance">Distance</string>
-    <string name="dialog_mileage_location">Location</string>
-    <string name="dialog_mileage_date">Date</string>
-    <string name="dialog_mileage_rate">Rate</string>
-    <string name="dialog_mileage_currency">Currency</string>
-    <string name="dialog_mileage_comment">Comment</string>
+    <!-- ====================== Distance ======================== -->
+    <string name="distance_distance_field">Distance</string>
+    <string name="distance_location_field">Location</string>
+    <string name="distance_date_field">Date</string>
+    <string name="distance_rate_field">Rate</string>
+    <string name="dialog_currency_field">Currency</string>
+    <string name="distance_comment_field">Comment</string>
     
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>

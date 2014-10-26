@@ -37,7 +37,7 @@ public class PDFColumns extends Columns {
 		for (int i=0; i < size; i++) {
 			String column = generateColumn(mColumns.get(i), receipt, currentTrip);
 			if (TextUtils.isEmpty(column)) { // Escape all necessary items
-				column = new String();
+				column = "";
 			}
 			table.addCell(column);
 		}

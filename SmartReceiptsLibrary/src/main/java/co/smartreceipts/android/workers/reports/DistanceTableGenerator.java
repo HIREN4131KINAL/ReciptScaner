@@ -23,7 +23,7 @@ public class DistanceTableGenerator {
         mPreferences = preferences;
     }
 
-    
+
     public PdfPTable generate(@NonNull List<Distance> distances) {
         if (!distances.isEmpty()) {
             final PdfPTable table = new PdfPTable(DISTANCE_COLUMN_COUNT);

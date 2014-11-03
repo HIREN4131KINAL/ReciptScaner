@@ -122,16 +122,6 @@
             <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsProActivity" />
         </activity>
         
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-        </activity>
-        
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsViewerActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-        </activity>
-        
         <activity android:name="co.smartreceipts.android.legacycamera.MyCameraActivity"
                   android:label="@string/sr_app_name"
                   android:configChanges="orientation|keyboardHidden"

@@ -128,16 +128,6 @@
                   android:screenOrientation="portrait">
         </activity>
         
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-        </activity>
-        
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsViewerActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-        </activity>
-        
         <activity android:name="wb.android.google.camera.CameraActivity"
             android:taskAffinity="wb.android.google.camera.CameraActivity" 
             android:theme="@style/Theme.Camera"

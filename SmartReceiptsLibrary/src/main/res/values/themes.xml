@@ -16,5 +16,10 @@
     <style name="Theme.SmartReceipts" parent="Theme.SmartReceiptsBase">
         
     </style>
+
+    <style name="Theme.SmartReceipts.Settings" parent="style/Theme.SmartReceipts">
+        <item name="android:windowNoTitle">false</item>
+        <item name="windowActionBar">true</item>
+    </style>
     
 </resources>

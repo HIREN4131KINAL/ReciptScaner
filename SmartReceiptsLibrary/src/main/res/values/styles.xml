@@ -5,7 +5,7 @@
     </style>
     
     <style name="Widget.SmartReceipts.ActionBar" parent="Widget.AppCompat.ActionBar" >
-        <item name="background">@color/smart_receipts_purple</item>
+        <item name="background">?attr/colorPrimary</item>
         <item name="android:background">?attr/colorPrimary</item>
     </style>
     

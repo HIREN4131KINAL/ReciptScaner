@@ -7,5 +7,10 @@
 		<item name="android:popupMenuStyle">@style/Widget.SmartReceipts.PopupMenu</item> 
 		<item name="android:windowBackground">@color/dark_purple</item>
     </style>
+
+    <style name="Theme.SmartReceipts.Settings" parent="style/Theme.SmartReceipts">
+        <item name="android:windowNoTitle">false</item>
+        <item name="android:windowActionBar">true</item>
+    </style>
     
 </resources>

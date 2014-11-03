@@ -18,5 +18,16 @@
 
         <activity android:name=".activities.DistanceActivity" />
 
+        <activity
+            android:name="co.smartreceipts.android.activities.SettingsActivity"
+            android:theme="@style/Theme.SmartReceipts.Settings"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
+        <activity
+            android:name="co.smartreceipts.android.activities.SettingsViewerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
     </application>
 </manifest>

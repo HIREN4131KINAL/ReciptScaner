@@ -221,7 +221,7 @@
     </style>
 	<style name="Theme.GalleryBase" parent="android:Theme.Holo">
         <item name="listPreferredItemHeightSmallGal">48dp</item>
-        <item name="switchStyle">@android:style/Widget.CompoundButton</item>
+        <item name="switchStyleForCamera">@android:style/Widget.CompoundButton</item>
     </style>
     <style name="Theme.Gallery.Dialog" parent="android:Theme.Holo.Dialog"/>
     <style name="Theme.Gallery" parent="Theme.GalleryBase">

@@ -67,7 +67,7 @@
             android:layout_gravity="center"
             android:src="@drawable/btn_shutter_default"/>
 
-    <wb.android.google.camera.ui.RotateImageView android:id="@id/pano_review_cancel_button"
+    <wb.android.google.camera.ui.RotateImageView android:id="@+id/pano_review_cancel_button"
             style="@style/ReviewControlIcon"
             android:contentDescription="@string/accessibility_review_cancel"
             android:layout_alignParentBottom="true"

@@ -36,7 +36,7 @@
     </declare-styleable>
 	<declare-styleable name="Theme.GalleryBase">
         <attr name="listPreferredItemHeightSmallGal" format="dimension" />
-        <attr name="switchStyle" format="reference" />
+        <attr name="switchStyleForCamera" format="reference" />
     </declare-styleable>
     <declare-styleable name="CenteredLinearLayout">
         <attr name="max_width" format="dimension" />

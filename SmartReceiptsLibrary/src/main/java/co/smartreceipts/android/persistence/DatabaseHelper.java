@@ -1363,7 +1363,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                              new String[] { trip.getName() },
 							 null,
 							 null,
-                             null);
+                             DistanceTable.COLUMN_DATE + " DESC");
 				if (c != null && c.moveToFirst()) {
 					distances = new ArrayList<Distance>(c.getCount());
 					final int idIndex = c.getColumnIndex(DistanceTable.COLUMN_ID);

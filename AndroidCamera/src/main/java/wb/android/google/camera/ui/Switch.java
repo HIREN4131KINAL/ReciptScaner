@@ -20,11 +20,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -32,8 +30,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
@@ -44,8 +40,6 @@ import android.widget.CompoundButton;
 
 import wb.android.google.camera.R;
 import wb.android.google.camera.common.ApiHelper;
-
-import java.util.Arrays;
 
 /**
  * A Switch is a two-state toggle switch widget that can select between two
@@ -103,7 +97,7 @@ public class Switch extends CompoundButton {
      * @param attrs Specification of attributes that should deviate from default styling.
      */
     public Switch(Context context, AttributeSet attrs) {
-        this(context, attrs, R.attr.switchStyle);
+        this(context, attrs, R.attr.switchStyleForCamera);
     }
 
     /**

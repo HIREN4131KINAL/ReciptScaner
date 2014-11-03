@@ -4,9 +4,9 @@
     <style name="Widget">
     </style>
     
-    <style name="Widget.SmartReceipts.ActionBar" parent="Widget.AppCompat.Base.ActionBar" >
+    <style name="Widget.SmartReceipts.ActionBar" parent="Widget.AppCompat.ActionBar" >
         <item name="background">@color/smart_receipts_purple</item>
-        <item name="android:background">@drawable/action_bar_background</item>
+        <item name="android:background">?attr/colorPrimary</item>
     </style>
     
     <style name="Widget.SmartReceipts.PopupMenu" parent="Widget.AppCompat.PopupMenu">

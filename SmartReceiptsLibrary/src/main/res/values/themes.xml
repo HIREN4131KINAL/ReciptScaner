@@ -7,9 +7,10 @@
         <item name="popupMenuStyle">@style/Widget.SmartReceipts.PopupMenu</item>
         <item name="android:windowBackground">@color/dark_purple</item>
 
-        <!-- Define the app theme colors for Lollipop (and above) -->
+        <!-- Define the app theme colors for Lollipop (and above)
         <item name="colorPrimary">@color/smart_receipts_colorPrimary</item>
         <item name="colorPrimaryDark">@color/smart_receipts_colorPrimaryDark</item>
+        -->
     </style>
 
     <!-- All customizations that are NOT specific to a particular API-level can go here. -->

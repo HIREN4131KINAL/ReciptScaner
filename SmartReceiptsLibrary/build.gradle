@@ -6,7 +6,7 @@ dependencies {
     compile project(':androidCamera')
     compile project(':mupdf')
     compile 'com.android.support:support-v4:20.0.0'
-    compile "com.android.support:appcompat-v7:21.0.0"
+    compile "com.android.support:appcompat-v7:19.1.0"
 }
 
 android {

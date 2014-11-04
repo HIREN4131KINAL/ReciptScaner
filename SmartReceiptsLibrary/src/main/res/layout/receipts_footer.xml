@@ -6,7 +6,7 @@
 	android:layout_alignParentBottom="true"
 	android:orientation="horizontal"
 	android:baselineAligned="false"
-	android:background="?attr/colorPrimary">
+	android:background="@color/smart_receipts_colorPrimary">
 	<LinearLayout
 		android:id="@+id/receipt_action_camera"
 		android:layout_height="wrap_content"

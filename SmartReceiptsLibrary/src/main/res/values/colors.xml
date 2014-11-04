@@ -11,8 +11,8 @@
     <color name="light_purple">#7715D8</color>
     <color name="dark_purple">#0B0114</color>
     
-    <color name="smart_receipts_colorPrimary">#7b1fa2</color>
-    <color name="smart_receipts_colorPrimaryDark">#4a148c</color>
+    <color name="smart_receipts_colorPrimary">#4a148c</color>
+    <color name="smart_receipts_colorPrimaryDark">#311b92</color>
     
     <!-- Action Bar -->
     <color name="action_bar_background">@color/smart_receipts_purple</color>

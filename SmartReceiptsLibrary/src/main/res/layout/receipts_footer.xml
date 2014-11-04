@@ -6,7 +6,7 @@
 	android:layout_alignParentBottom="true"
 	android:orientation="horizontal"
 	android:baselineAligned="false"
-	android:background="@drawable/bottom_action_bar_background">
+	android:background="?attr/colorPrimary">
 	<LinearLayout
 		android:id="@+id/receipt_action_camera"
 		android:layout_height="wrap_content"

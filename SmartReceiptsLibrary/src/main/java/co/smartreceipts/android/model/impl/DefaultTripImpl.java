@@ -25,7 +25,7 @@ public final class DefaultTripImpl implements Trip {
     private static final String EMPTY_PRICE = "0.00";
 
     private final File mReportDirectory;
-    private String mComment;
+    private String mComment, mCostCenter;
     private BigDecimal mPrice, mDailySubTotal;
     private Date mStartDate, mEndDate;
     private TimeZone mStartTimeZone, mEndTimeZone;
@@ -33,7 +33,7 @@ public final class DefaultTripImpl implements Trip {
     private Source mSource;
     private Filter<Receipt> mFilter;
 
-    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, Filter<Receipt> filter, Source source) {
+    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
         mReportDirectory = directory;
         mStartDate = startDate;
         mStartTimeZone = startTimeZone;
@@ -42,6 +42,7 @@ public final class DefaultTripImpl implements Trip {
         mCurrency = currency;
         mDefaultCurrency = defaultCurrency;
         mComment = comment;
+        mCostCenter = costCenter;
         mFilter = filter;
         mSource = source;
     }
@@ -56,6 +57,7 @@ public final class DefaultTripImpl implements Trip {
         mEndTimeZone = TimeZone.getTimeZone(in.readString());
         mDailySubTotal = new BigDecimal(in.readFloat());
         mComment = in.readString();
+        mCostCenter = in.readString();
         mDefaultCurrency = WBCurrency.getInstance(in.readString());
         mSource = Source.Parcel;
     }
@@ -252,6 +254,11 @@ public final class DefaultTripImpl implements Trip {
     }
 
     @Override
+    public String getCostCenter() {
+        return mCostCenter;
+    }
+
+    @Override
     public Source getSource() {
         return mSource;
     }
@@ -292,6 +299,7 @@ public final class DefaultTripImpl implements Trip {
         dest.writeString(getEndTimeZone().getID());
         dest.writeFloat(getDailySubTotalAsFloat());
         dest.writeString(getComment());
+        dest.writeString(getCostCenter());
         dest.writeString(getDefaultCurrencyCode());
     }
 

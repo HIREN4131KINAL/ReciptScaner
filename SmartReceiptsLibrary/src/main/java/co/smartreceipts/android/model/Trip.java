@@ -39,7 +39,7 @@ public interface Trip extends Parcelable {
      *
      * @return the start {@link java.sql.Date}
      */
-    public Date getStartDate();
+    Date getStartDate();
 
     /**
      * Gets a formatted version of the start date based on the timezone and locale for a given separator. In the US,
@@ -232,6 +232,13 @@ public interface Trip extends Parcelable {
      * @return - the current comment as a {@link java.lang.String}
      */
     String getComment();
+
+    /**
+     * Gets the cost center for this particular trip
+     *
+     * @return the {@link java.lang.String} containing the cost center
+     */
+    String getCostCenter();
 
     /**
      * Gets the source from which this trip was built for debugging purposes

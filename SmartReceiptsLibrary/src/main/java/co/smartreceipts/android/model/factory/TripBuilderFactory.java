@@ -25,7 +25,7 @@ import co.smartreceipts.android.model.impl.DefaultTripImpl;
 public final class TripBuilderFactory implements BuilderFactory<Trip> {
 
     private File _dir;
-    private String _comment;
+    private String _comment, _costCenter;
     private Date _startDate, _endDate;
     private TimeZone _startTimeZone, _endTimeZone;
     private WBCurrency _currency, _defaultCurrency;
@@ -34,6 +34,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
 
     public TripBuilderFactory() {
         _comment = "";
+        _costCenter = "";
         _startDate = new Date(System.currentTimeMillis());
         _endDate = _startDate;
         _source = Source.Undefined;
@@ -127,6 +128,11 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
+    public TripBuilderFactory setCostCenter(String costCenter) {
+        _costCenter = costCenter;
+        return this;
+    }
+
     public TripBuilderFactory setFilter(Filter<Receipt> filter) {
         _filter = filter;
         return this;
@@ -160,6 +166,6 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     @Override
     @NonNull
     public Trip build() {
-        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _currency, _defaultCurrency, _comment, _filter, _source);
+        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _currency, _defaultCurrency, _comment, _costCenter, _filter, _source);
     }
 }

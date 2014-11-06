@@ -190,6 +190,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_PRICE = "price"; // Deprecated, since this is receipt info
 		public static final String COLUMN_MILEAGE = "miles_new";
 		public static final String COLUMN_COMMENT = "trips_comment";
+        public static final String COLUMN_COST_CENTER = "trips_cost_centert";
 		public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
 		public static final String COLUMN_FILTERS = "trips_filters";
 	}
@@ -330,6 +331,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					/*+ TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "*/
 					+ TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, "
 					+ TripsTable.COLUMN_COMMENT + " TEXT, "
+                    + TripsTable.COLUMN_COST_CENTER + " TEXT, "
 					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, "
 					+ TripsTable.COLUMN_FILTERS + " TEXT"
 					+ ");";
@@ -553,17 +555,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterTrips);
 				db.execSQL(alterReceipts);
 			}
-			if (oldVersion <= 12) { //Added better distance tracking
+			if (oldVersion <= 12) { //Added better distance tracking - Add a cost center to the trips
 				this.createDistanceTable(db);
 
                 // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
                 final String distanceMigrate = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
                         + " SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY
                         + " FROM " + TripsTable.TABLE_NAME  + ";";
+                final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, distanceMigrate);
+                    Log.d(TAG, alterTrips);
                 }
                 db.execSQL(distanceMigrate);
+                db.execSQL(alterTrips);
 			}
 			_initDB = null;
 		}
@@ -735,6 +740,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
+                    final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
 					final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
 					do {
@@ -746,6 +752,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						// final String price = c.getString(priceIndex);
 						final float miles = c.getFloat(milesIndex);
 						final String comment = c.getString(commentIndex);
+                        final String costCenter = c.getString(costCenterIndex);
 						final String defaultCurrency = c.getString(defaultCurrencyIndex);
 						final String filterJson = c.getString(filterIndex);
 						qc = db.rawQuery(CURR_CNT_QUERY, new String[] { name });
@@ -764,7 +771,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							qc.close();
 						}
 						final TripBuilderFactory builder = new TripBuilderFactory();
-						trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+						trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setCostCenter(costCenter).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
 						getTripPriceAndDailyPrice(trips[c.getPosition()]);
 					}
 					while (c.moveToNext());
@@ -869,6 +876,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
+                    final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
 					final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
 					final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
 					final long from = c.getLong(fromIndex);
@@ -878,6 +886,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final float miles = c.getFloat(milesIndex);
 					// final String price = c.getString(priceIndex);
 					final String comment = c.getString(commentIndex);
+                    final String costCenter = c.getString(costCenterIndex);
 					final String defaultCurrency = c.getString(defaultCurrencyIndex);
 					final String filterJson = c.getString(filterIndex);
 					qc = db.rawQuery(CURR_CNT_QUERY, new String[] { name });
@@ -894,7 +903,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						}
 					}
 					final TripBuilderFactory builder = new TripBuilderFactory();
-					final Trip trip = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+					final Trip trip = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setCurrency(curr).setComment(comment).setCostCenter(costCenter).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
 					getTripPriceAndDailyPrice(trip);
 					return trip;
 				}
@@ -914,8 +923,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	}
 
 	// Returns the trip on success. Null otherwise
-	public final Trip insertTripSerial(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
-		Trip trip = insertTripHelper(dir, from, to, comment, defaultCurrencyCode);
+	public final Trip insertTripSerial(File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) throws SQLException {
+		Trip trip = insertTripHelper(dir, from, to, comment, costCenter, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
 				mAreTripsValid = false;
@@ -924,33 +933,34 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return trip;
 	}
 
-	public void insertTripParallel(File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	public void insertTripParallel(File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) {
 		if (mTripRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No TripRowListener was registered.");
 			}
 		}
-		(new InsertTripRowWorker(dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
+		(new InsertTripRowWorker(dir, from, to, comment, costCenter, defaultCurrencyCode)).execute();
 	}
 
-	private Trip insertTripHelper(File dir, Date from, Date to, String comment, String defaultCurrencyCode) throws SQLException {
-		ContentValues values = new ContentValues(3);
+	private Trip insertTripHelper(File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) throws SQLException {
+		ContentValues values = new ContentValues(10);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
 		values.put(TripsTable.COLUMN_TO, to.getTime());
 		values.put(TripsTable.COLUMN_FROM_TIMEZONE, TimeZone.getDefault().getID());
 		values.put(TripsTable.COLUMN_TO_TIMEZONE, TimeZone.getDefault().getID());
 		values.put(TripsTable.COLUMN_COMMENT, comment);
+        values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
 		values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrencyCode);
-		Trip toReturn = null;
+		Trip toReturn;
 		synchronized (mDatabaseLock) {
-			SQLiteDatabase db = null;
+			SQLiteDatabase db;
 			db = this.getWritableDatabase();
-			if (values == null || db.insertOrThrow(TripsTable.TABLE_NAME, null, values) == -1) {
+			if (db.insertOrThrow(TripsTable.TABLE_NAME, null, values) == -1) {
 				return null;
 			}
 			else {
-				toReturn = (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(TimeZone.getDefault()).setEndTimeZone(TimeZone.getDefault()).setCurrency(defaultCurrencyCode).setComment(comment).setDefaultCurrency(defaultCurrencyCode).setSourceAsCache().build();
+				toReturn = (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(TimeZone.getDefault()).setEndTimeZone(TimeZone.getDefault()).setCurrency(defaultCurrencyCode).setComment(comment).setCostCenter(costCenter).setDefaultCurrency(defaultCurrencyCode).setSourceAsCache().build();
 			}
 		}
 		if (this.getReadableDatabase() != null) {
@@ -966,22 +976,23 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		private final File mDir;
 		private final Date mFrom, mTo;
-		private final String mComment, mDefaultCurrencyCode;
+		private final String mComment, mCostCenter, mDefaultCurrencyCode;
 		private SQLException mException;
 
-		public InsertTripRowWorker(final File dir, final Date from, final Date to, final String comment, final String defaultCurrencyCode) {
+		public InsertTripRowWorker(final File dir, final Date from, final Date to, final String comment, final String costCenter, final String defaultCurrencyCode) {
 			mDir = dir;
 			mFrom = from;
 			mTo = to;
 			mComment = comment;
 			mDefaultCurrencyCode = defaultCurrencyCode;
+            mCostCenter = costCenter;
 			mException = null;
 		}
 
 		@Override
 		protected Trip doInBackground(Void... params) {
 			try {
-				return insertTripHelper(mDir, mFrom, mTo, mComment, mDefaultCurrencyCode);
+				return insertTripHelper(mDir, mFrom, mTo, mComment, mCostCenter, mDefaultCurrencyCode);
 			}
 			catch (SQLException ex) {
 				mException = ex;
@@ -1008,8 +1019,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 	}
 
-	public final Trip updateTripSerial(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
-		Trip trip = updateTripHelper(oldTrip, dir, from, to, comment, defaultCurrencyCode);
+	public final Trip updateTripSerial(Trip oldTrip, File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) {
+		Trip trip = updateTripHelper(oldTrip, dir, from, to, comment, costCenter, defaultCurrencyCode);
 		if (trip != null) {
 			synchronized (mTripCacheLock) {
 				mAreTripsValid = false;
@@ -1018,17 +1029,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		return trip;
 	}
 
-	public void updateTripParallel(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+	public void updateTripParallel(Trip oldTrip, File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) {
 		if (mTripRowListener == null) {
 			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "No TripRowListener was registered.");
 			}
 		}
-		(new UpdateTripRowWorker(oldTrip, dir, from, to, comment, defaultCurrencyCode)).execute(new Void[0]);
+		(new UpdateTripRowWorker(oldTrip, dir, from, to, comment, costCenter, defaultCurrencyCode)).execute();
 	}
 
-	private Trip updateTripHelper(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
-		ContentValues values = new ContentValues(3);
+	private Trip updateTripHelper(Trip oldTrip, File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) {
+		ContentValues values = new ContentValues(10);
 		values.put(TripsTable.COLUMN_NAME, dir.getName());
 		values.put(TripsTable.COLUMN_FROM, from.getTime());
 		values.put(TripsTable.COLUMN_TO, to.getTime());
@@ -1043,12 +1054,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			values.put(TripsTable.COLUMN_TO_TIMEZONE, endTimeZone.getID());
 		}
 		values.put(TripsTable.COLUMN_COMMENT, comment);
+        values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
 		values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrencyCode);
 		synchronized (mDatabaseLock) {
-			SQLiteDatabase db = null;
+			SQLiteDatabase db;
 			try {
 				db = this.getWritableDatabase();
-				if (values == null || (db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?", new String[] { oldTrip.getName() }) == 0)) {
+				if ((db.update(TripsTable.TABLE_NAME, values, TripsTable.COLUMN_NAME + " = ?", new String[] { oldTrip.getName() }) == 0)) {
 					return null;
 				}
 				else {
@@ -1067,7 +1079,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 																																		// rollback
 																																		// here
 					}
-					return (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setCurrency(oldTrip.getCurrency()).setComment(comment).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
+					return (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setCurrency(oldTrip.getCurrency()).setComment(comment).setCostCenter(costCenter).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
 				}
 			}
 			catch (SQLException e) {
@@ -1083,21 +1095,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
 		private final File mDir;
 		private final Date mFrom, mTo;
-		private final String mComment, mDefaultCurrencyCode;
+		private final String mComment, mCostCenter, mDefaultCurrencyCode;
 		private final Trip mOldTrip;
 
-		public UpdateTripRowWorker(Trip oldTrip, File dir, Date from, Date to, String comment, String defaultCurrencyCode) {
+		public UpdateTripRowWorker(Trip oldTrip, File dir, Date from, Date to, String comment, String costCenter, String defaultCurrencyCode) {
 			mOldTrip = oldTrip;
 			mDir = dir;
 			mFrom = from;
 			mTo = to;
 			mComment = comment;
+            mCostCenter = costCenter;
 			mDefaultCurrencyCode = defaultCurrencyCode;
 		}
 
 		@Override
 		protected Trip doInBackground(Void... params) {
-			return updateTripHelper(mOldTrip, mDir, mFrom, mTo, mComment, mDefaultCurrencyCode);
+			return updateTripHelper(mOldTrip, mDir, mFrom, mTo, mComment, mCostCenter, mDefaultCurrencyCode);
 		}
 
 		@Override

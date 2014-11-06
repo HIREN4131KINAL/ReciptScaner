@@ -198,6 +198,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		final DateEditText endBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_end);
 		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_currency);
 		final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_comment);
+        final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_cost_center);
 
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -259,6 +260,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 				final String endDate = endBox.getText().toString();
 				final String defaultCurrencyCode = currencySpinner.getSelectedItem().toString();
 				final String comment = commentBox.getText().toString();
+                final String costCenter = costCenterBox.getText().toString();
 				// Error Checking
 				if (name.length() == 0 || startDate.length() == 0 || endDate.length() == 0) {
 					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_SHORT).show();
@@ -286,7 +288,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 					getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
 					File dir = persistenceManager.getStorageManager().mkdir(name);
 					if (dir != null) {
-						persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, defaultCurrencyCode);
+						persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, costCenter, comment, defaultCurrencyCode);
 					}
 					else {
 						Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
@@ -300,7 +302,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 						Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
 						return;
 					}
-					persistenceManager.getDatabase().updateTripParallel(trip, dir, (startBox.date != null) ? startBox.date : trip.getStartDate(), (endBox.date != null) ? endBox.date : trip.getStartDate(), comment, defaultCurrencyCode);
+					persistenceManager.getDatabase().updateTripParallel(trip, dir, (startBox.date != null) ? startBox.date : trip.getStartDate(), (endBox.date != null) ? endBox.date : trip.getStartDate(), comment, costCenter, defaultCurrencyCode);
 					dialog.cancel();
 				}
 			}

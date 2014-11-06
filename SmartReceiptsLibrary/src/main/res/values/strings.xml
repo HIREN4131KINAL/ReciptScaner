@@ -252,6 +252,7 @@
     <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Category</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Comment</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_COST_CENTER">Cost Center</string>
     <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE"> Expensable?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW">New Receipt</string>

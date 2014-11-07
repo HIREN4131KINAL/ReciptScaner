@@ -52,7 +52,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	private static final CharSequence[] RESERVED_CHARS = { "|", "\\", "?", "*", "<", "\"", ":", ">", "+", "[", "]", "/", "'", "\n", "\r", "\t", "\0", "\f" };
 
 	private TripCardAdapter mAdapter;
-	private AutoCompleteAdapter mAutoCompleteAdapter;
+	private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
 	private boolean mIsFirstPass; // Tracks that this is the first time we're using this
 	private Navigable mNavigator;
 	private Attachable mAttachable;
@@ -116,8 +116,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onPause");
 		}
-		if (mAutoCompleteAdapter != null) {
-			mAutoCompleteAdapter.onPause();
+		if (mNameAutoCompleteAdapter != null) {
+			mNameAutoCompleteAdapter.onPause();
 		}
 		getWorkerManager().getAdManager().onAdPaused(mAdView);
 		super.onPause();
@@ -212,10 +212,14 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		if (newTrip) {
 			if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
 				final DatabaseHelper db = getPersistenceManager().getDatabase();
-				if (mAutoCompleteAdapter == null) {
-					mAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS, db, null);
+				if (mNameAutoCompleteAdapter == null) {
+					mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db, null);
 				}
-				nameBox.setAdapter(mAutoCompleteAdapter);
+                if (mCostCenterAutoCompleteAdapter == null) {
+                    mCostCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db, null);
+                }
+				nameBox.setAdapter(mNameAutoCompleteAdapter);
+                costCenterBox.setAdapter(mCostCenterAutoCompleteAdapter);
 			}
 			startBox.setFocusableInTouchMode(false);
 			startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));

@@ -59,7 +59,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	static final String MULTI_CURRENCY = "XXXXXX";
 
 	// Tags
-	public static final String TAG_TRIPS = "Trips";
+	public static final String TAG_TRIPS_NAME = "Trips";
+    public static final String TAG_TRIPS_COST_CENTER = "Trips_CostCenter";
 	public static final String TAG_RECEIPTS_NAME = "Receipts";
 	public static final String TAG_RECEIPTS_COMMENT = "Receipts_Comment";
 
@@ -3909,9 +3910,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		else if (tag == TAG_RECEIPTS_COMMENT) {
 			sqlQuery = " SELECT DISTINCT TRIM(" + ReceiptsTable.COLUMN_COMMENT + ") AS _id " + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_COMMENT + " LIKE '%" + text + "%' " + " ORDER BY " + ReceiptsTable.COLUMN_COMMENT;
 		}
-		else if (tag == TAG_TRIPS) {
+		else if (tag == TAG_TRIPS_NAME) {
 			sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_NAME + ") AS _id " + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_NAME + " LIKE '%" + text + "%' " + " ORDER BY " + TripsTable.COLUMN_NAME;
 		}
+        else if (tag == TAG_TRIPS_COST_CENTER) {
+            sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_COST_CENTER + ") AS _id " + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_COST_CENTER + " LIKE '%" + text + "%' " + " ORDER BY " + TripsTable.COLUMN_COST_CENTER;
+        }
 		synchronized (mDatabaseLock) {
 			return db.rawQuery(sqlQuery, null);
 		}

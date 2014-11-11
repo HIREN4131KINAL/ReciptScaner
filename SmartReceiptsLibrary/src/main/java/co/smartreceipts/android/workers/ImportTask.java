@@ -14,7 +14,7 @@ import android.net.Uri;
 import android.util.Log;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 
 public class ImportTask extends BooleanProgressTask<Uri> {
 

@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.persistence;
 
 import static org.junit.Assert.*;
 
@@ -13,6 +13,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.tests.utils.TestUtils;

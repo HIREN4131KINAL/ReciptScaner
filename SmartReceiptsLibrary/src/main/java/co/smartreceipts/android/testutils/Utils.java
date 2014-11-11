@@ -1,4 +1,4 @@
-package co.smartreceipts.android.utils;
+package co.smartreceipts.android.testutils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

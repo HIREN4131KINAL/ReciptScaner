@@ -20,8 +20,7 @@ public class SanityCheck {
 	private SmartReceiptsActivity mActivity;
 
 	@Before
-	public void setup()
-	{
+	public void setup() {
 		mActivity = Robolectric.buildActivity(SmartReceiptsActivity.class).create().get();
 	}
 

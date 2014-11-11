@@ -36,7 +36,7 @@ import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
 
 public class ReceiptImageFragment extends WBFragment {

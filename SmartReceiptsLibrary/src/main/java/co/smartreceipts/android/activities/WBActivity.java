@@ -6,7 +6,7 @@ import android.support.v7.app.ActionBarActivity;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 
 public class WBActivity extends ActionBarActivity {
 

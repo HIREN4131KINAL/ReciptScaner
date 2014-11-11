@@ -68,7 +68,7 @@ import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
 

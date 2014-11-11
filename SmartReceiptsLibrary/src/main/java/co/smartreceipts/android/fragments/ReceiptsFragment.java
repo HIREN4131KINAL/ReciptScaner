@@ -18,7 +18,7 @@ import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.Navigable;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 
 
 

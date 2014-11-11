@@ -1,4 +1,4 @@
-package co.smartreceipts.android.utils;
+package co.smartreceipts.android.testutils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

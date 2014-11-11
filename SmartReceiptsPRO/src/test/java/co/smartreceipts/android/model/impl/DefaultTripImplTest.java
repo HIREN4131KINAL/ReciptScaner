@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.model.impl;
 
 import static org.junit.Assert.*;
 
@@ -18,7 +18,7 @@ import co.smartreceipts.tests.utils.TripUtils.Constants;
 
 @Config(emulateSdk = 18) 
 @RunWith(RobolectricTestRunner.class)
-public class TripRowTest {
+public class DefaultTripImplTest {
 
 	/**
 	 * TripRowA and TripRowB should be expected as having all member variables be equal.

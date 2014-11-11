@@ -17,7 +17,7 @@ import java.util.Locale;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.testutils.Utils;
 import wb.android.flex.Flex;
 
 public class Preferences implements OnSharedPreferenceChangeListener {

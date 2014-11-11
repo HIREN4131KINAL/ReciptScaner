@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.filters;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -18,6 +18,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.filters.FilterFactory;
 import co.smartreceipts.android.filters.FilterType;
@@ -102,7 +103,7 @@ public class ReceiptFilterTest {
 		assertTrue(filter.accept(receipt1));
 		assertFalse(filter.accept(receipt2));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation())); // Confirm we can properly recreate
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_category);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_category);
 		assertEquals(filter.getType(), FilterType.String);
 	}
 	
@@ -115,7 +116,7 @@ public class ReceiptFilterTest {
 		assertTrue(filter.accept(receipt1));
 		assertFalse(filter.accept(receipt2));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_expensable);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_expensable);
 		assertEquals(filter.getType(), FilterType.Boolean);
 	}
 	
@@ -128,7 +129,7 @@ public class ReceiptFilterTest {
 		assertTrue(filter.accept(receipt1));
 		assertFalse(filter.accept(receipt2));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_selected);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_selected);
 		assertEquals(filter.getType(), FilterType.Boolean);
 	}
 	
@@ -145,7 +146,7 @@ public class ReceiptFilterTest {
 		assertTrue(filter.accept(receiptHigh));
 		assertFalse(filter.accept(receiptLow));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_min_price);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_min_price);
 		assertEquals(filter.getType(), FilterType.Float);
 	}
 	
@@ -162,7 +163,7 @@ public class ReceiptFilterTest {
 		assertFalse(filter.accept(receiptHigh));
 		assertTrue(filter.accept(receiptLow));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_max_price);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_max_price);
 		assertEquals(filter.getType(), FilterType.Float);
 	}
 	
@@ -177,7 +178,7 @@ public class ReceiptFilterTest {
 		assertTrue(filter.accept(receiptFuture));
 		assertFalse(filter.accept(receiptPast));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_on_or_after);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_on_or_after);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 	
@@ -192,7 +193,7 @@ public class ReceiptFilterTest {
 		assertFalse(filter.accept(receiptFuture));
 		assertTrue(filter.accept(receiptPast));
 		assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_receipt_on_or_before);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_on_or_before);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 	
@@ -211,7 +212,7 @@ public class ReceiptFilterTest {
 		assertTrue(orFilter.accept(receipt2));
 		assertFalse(orFilter.accept(receipt3));
 		assertEquals(orFilter, FilterFactory.getReceiptFilter(orFilter.getJsonRepresentation())); // Confirm we can properly recreate
-		assertEquals(orFilter.getNameResource(), R.string.filter_name_or);
+		assertEquals(orFilter.getNameResource(), co.smartreceipts.android.R.string.filter_name_or);
 		assertEquals(orFilter.getType(), FilterType.Composite);
 	}
 	
@@ -232,7 +233,7 @@ public class ReceiptFilterTest {
 		assertFalse(andFilterBad.accept(receipt));
 		assertEquals(andFilterGood, FilterFactory.getReceiptFilter(andFilterGood.getJsonRepresentation()));
 		assertEquals(andFilterBad, FilterFactory.getReceiptFilter(andFilterBad.getJsonRepresentation()));
-		assertEquals(andFilterGood.getNameResource(), R.string.filter_name_and);
+		assertEquals(andFilterGood.getNameResource(), co.smartreceipts.android.R.string.filter_name_and);
 		assertEquals(andFilterGood.getType(), FilterType.Composite);
 	}
 	
@@ -254,7 +255,7 @@ public class ReceiptFilterTest {
 		assertFalse(notFilter.accept(receiptLow));
 		
 		assertEquals(notFilter, FilterFactory.getReceiptFilter(notFilter.getJsonRepresentation()));
-		assertEquals(notFilter.getNameResource(), R.string.filter_name_not);
+		assertEquals(notFilter.getNameResource(), co.smartreceipts.android.R.string.filter_name_not);
 		assertEquals(notFilter.getType(), FilterType.Composite);
 	}
 

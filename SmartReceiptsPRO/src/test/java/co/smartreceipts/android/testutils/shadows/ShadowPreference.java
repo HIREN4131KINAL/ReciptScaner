@@ -1,4 +1,4 @@
-package co.smartreceipts.android.utils.shadows;
+package co.smartreceipts.android.testutils.shadows;
 
 import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.RealObject;

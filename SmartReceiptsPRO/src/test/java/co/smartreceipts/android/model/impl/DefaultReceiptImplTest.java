@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.model.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,6 +17,7 @@ import org.robolectric.annotation.Config;
 import android.os.Parcel;
 import android.text.TextUtils;
 
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.tests.utils.ReceiptUtils;
 import co.smartreceipts.tests.utils.ReceiptUtils.Constants;
@@ -25,7 +26,7 @@ import co.smartreceipts.tests.utils.TripUtils;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
-public class ReceiptRowTest {
+public class DefaultReceiptImplTest {
 
 	/*
 	 * ReceiptRowA and ReceiptRowB should be expected as having all member variables be equal. The .equals method for

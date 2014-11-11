@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.model;
 
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.filters;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -74,7 +74,7 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripHigh));
 		assertFalse(filter.accept(tripLow));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_min_price);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_min_price);
 		assertEquals(filter.getType(), FilterType.Float);
 	}
 
@@ -93,7 +93,7 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripHigh));
 		assertTrue(filter.accept(tripLow));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_max_price);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_max_price);
 		assertEquals(filter.getType(), FilterType.Float);
 	}
 
@@ -108,7 +108,7 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripFuture));
 		assertFalse(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_starts_on_or_after);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_starts_on_or_after);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 
@@ -123,7 +123,7 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripFuture));
 		assertTrue(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_starts_on_or_before);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_starts_on_or_before);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 
@@ -138,7 +138,7 @@ public class TripFilterTest {
 		assertTrue(filter.accept(tripFuture));
 		assertFalse(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_ends_on_or_after);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_ends_on_or_after);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 
@@ -153,7 +153,7 @@ public class TripFilterTest {
 		assertFalse(filter.accept(tripFuture));
 		assertTrue(filter.accept(tripPast));
 		assertEquals(filter, FilterFactory.getTripFilter(filter.getJsonRepresentation()));
-		assertEquals(filter.getNameResource(), R.string.filter_name_trip_ends_on_or_before);
+		assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_trip_ends_on_or_before);
 		assertEquals(filter.getType(), FilterType.Date);
 	}
 
@@ -180,7 +180,7 @@ public class TripFilterTest {
 		assertFalse(orFilter.accept(tripNormal)); // rejected
 		
 		assertEquals(orFilter, FilterFactory.getTripFilter(orFilter.getJsonRepresentation()));
-		assertEquals(orFilter.getNameResource(), R.string.filter_name_or);
+		assertEquals(orFilter.getNameResource(), co.smartreceipts.android.R.string.filter_name_or);
 		assertEquals(orFilter.getType(), FilterType.Composite);
 	}
 
@@ -216,7 +216,7 @@ public class TripFilterTest {
 		assertFalse(andFilter.accept(tripFutureLow));
 		
 		assertEquals(andFilter, FilterFactory.getTripFilter(andFilter.getJsonRepresentation()));
-		assertEquals(andFilter.getNameResource(), R.string.filter_name_and);
+		assertEquals(andFilter.getNameResource(), co.smartreceipts.android.R.string.filter_name_and);
 		assertEquals(andFilter.getType(), FilterType.Composite);
 	}
 	
@@ -241,7 +241,7 @@ public class TripFilterTest {
 		assertFalse(notFilter.accept(tripLow));
 		
 		assertEquals(notFilter, FilterFactory.getTripFilter(notFilter.getJsonRepresentation()));
-		assertEquals(notFilter.getNameResource(), R.string.filter_name_not);
+		assertEquals(notFilter.getNameResource(), co.smartreceipts.android.R.string.filter_name_not);
 		assertEquals(notFilter.getType(), FilterType.Composite);
 	}
 	

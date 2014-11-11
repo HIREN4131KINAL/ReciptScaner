@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.persistence;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

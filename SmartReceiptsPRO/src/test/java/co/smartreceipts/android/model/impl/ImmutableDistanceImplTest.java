@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.model.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,7 +17,7 @@ import co.smartreceipts.tests.utils.TripUtils;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
-public class DistanceRowTest {
+public class ImmutableDistanceImplTest {
 
 	private Distance mDistanceA, mDistanceB;
 

@@ -119,6 +119,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		if (mNameAutoCompleteAdapter != null) {
 			mNameAutoCompleteAdapter.onPause();
 		}
+        if (mCostCenterAutoCompleteAdapter != null) {
+            mCostCenterAutoCompleteAdapter.onPause();
+        }
 		getWorkerManager().getAdManager().onAdPaused(mAdView);
 		super.onPause();
 	}
@@ -198,7 +201,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		final DateEditText endBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_end);
 		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_currency);
 		final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_comment);
-        final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_cost_center);
+        final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) scrollView.findViewById(R.id.dialog_tripmenu_cost_center);
 
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -213,10 +216,16 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 			if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
 				final DatabaseHelper db = getPersistenceManager().getDatabase();
 				if (mNameAutoCompleteAdapter == null) {
-					mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db, null);
+					mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);
 				}
+                else {
+                    mNameAutoCompleteAdapter.reset();
+                }
                 if (mCostCenterAutoCompleteAdapter == null) {
-                    mCostCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db, null);
+                    mCostCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db);
+                }
+                else {
+                    mCostCenterAutoCompleteAdapter.reset();
                 }
 				nameBox.setAdapter(mNameAutoCompleteAdapter);
                 costCenterBox.setAdapter(mCostCenterAutoCompleteAdapter);
@@ -249,6 +258,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 			}
 			startBox.setFocusableInTouchMode(false);
 			startBox.setOnClickListener(getDateManager().getDateEditTextListener());
+            if (!TextUtils.isEmpty(trip.getCostCenter())) {
+                costCenterBox.setText(trip.getCostCenter());
+            }
 		}
 		endBox.setFocusableInTouchMode(false);
 		endBox.setOnClickListener(getDateManager().getDateEditTextListener());
@@ -292,7 +304,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 					getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
 					File dir = persistenceManager.getStorageManager().mkdir(name);
 					if (dir != null) {
-						persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, costCenter, comment, defaultCurrencyCode);
+						persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, costCenter, defaultCurrencyCode);
 					}
 					else {
 						Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();

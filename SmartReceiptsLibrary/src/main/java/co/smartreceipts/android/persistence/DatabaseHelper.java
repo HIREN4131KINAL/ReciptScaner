@@ -191,7 +191,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_PRICE = "price"; // Deprecated, since this is receipt info
 		public static final String COLUMN_MILEAGE = "miles_new";
 		public static final String COLUMN_COMMENT = "trips_comment";
-        public static final String COLUMN_COST_CENTER = "trips_cost_centert";
+        public static final String COLUMN_COST_CENTER = "trips_cost_center";
 		public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
 		public static final String COLUMN_FILTERS = "trips_filters";
 	}
@@ -724,7 +724,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	private static final String CURR_CNT_QUERY = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM (SELECT COUNT(*), " + ReceiptsTable.COLUMN_ISO4217 + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PARENT + "=? GROUP BY " + ReceiptsTable.COLUMN_ISO4217 + ");";
 
 	private Trip[] getTripsHelper() throws SQLiteDatabaseCorruptException {
-		SQLiteDatabase db = null;
+		SQLiteDatabase db;
 		Cursor c = null, qc = null;
 		synchronized (mDatabaseLock) {
 			Trip[] trips;
@@ -738,7 +738,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
 					final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
 					final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-					// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 					final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
 					final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
                     final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
@@ -750,7 +749,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final long to = c.getLong(toIndex);
 						final String fromTimeZone = c.getString(fromTimeZoneIndex);
 						final String toTimeZone = c.getString(toTimeZoneIndex);
-						// final String price = c.getString(priceIndex);
 						final float miles = c.getFloat(milesIndex);
 						final String comment = c.getString(commentIndex);
                         final String costCenter = c.getString(costCenterIndex);

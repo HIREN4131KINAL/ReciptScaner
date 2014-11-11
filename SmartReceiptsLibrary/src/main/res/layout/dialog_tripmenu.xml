@@ -35,6 +35,7 @@
         <AutoCompleteTextView android:id="@+id/dialog_tripmenu_cost_center"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:completionThreshold="1"
             android:hint="@string/DIALOG_RECEIPTMENU_HINT_COST_CENTER" />
     </LinearLayout>
 </ScrollView>

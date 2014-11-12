@@ -4,6 +4,8 @@ apply plugin: 'robolectric'
 dependencies {
     compile project(':smartReceiptsLibrary')
     androidTestCompile 'org.robolectric:robolectric:2.3'
+    androidTestCompile 'junit:junit:4.10'
+    androidTestCompile 'org.mockito:mockito-all:1.9.5'
 }
 
 android {

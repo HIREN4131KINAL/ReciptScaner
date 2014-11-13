@@ -22,8 +22,6 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 
 public final class DefaultTripImpl implements Trip {
 
-    private static final String EMPTY_PRICE = "0.00";
-
     private final File mReportDirectory;
     private String mComment, mCostCenter;
     private BigDecimal mPrice, mDailySubTotal;

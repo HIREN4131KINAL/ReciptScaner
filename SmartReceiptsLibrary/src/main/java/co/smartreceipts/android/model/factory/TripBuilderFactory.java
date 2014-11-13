@@ -33,8 +33,10 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     private Source _source;
 
     public TripBuilderFactory() {
+        _dir = new File("");
         _comment = "";
         _costCenter = "";
+        _currency = WBCurrency.getDefault();
         _startDate = new Date(System.currentTimeMillis());
         _endDate = _startDate;
         _source = Source.Undefined;
@@ -110,6 +112,9 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     }
 
     public TripBuilderFactory setDefaultCurrency(String currencyCode) {
+        if (TextUtils.isEmpty(currencyCode)) {
+            throw new IllegalArgumentException("The currency code cannot be null or empty");
+        }
         _defaultCurrency = WBCurrency.getInstance(currencyCode);
         return this;
     }

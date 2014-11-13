@@ -32,6 +32,10 @@ public class WBCurrency {
         }
     }
 
+    public static WBCurrency getDefault() {
+        return new WBCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+    }
+
     public final String getCurrencyCode() {
         if (currency != null) {
             return currency.getCurrencyCode();

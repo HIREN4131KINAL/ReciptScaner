@@ -20,7 +20,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
-public final class DefaultTripImpl implements Trip {
+public class DefaultTripImpl implements Trip {
 
     private final File mReportDirectory;
     private String mComment, mCostCenter;

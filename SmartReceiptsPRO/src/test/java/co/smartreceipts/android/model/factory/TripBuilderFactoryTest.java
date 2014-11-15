@@ -25,6 +25,11 @@ public class TripBuilderFactoryTest {
     }
 
     @Test
+    public void testBuild() {
+        assertNotNull(tripBuilderFactory.build());
+    }
+
+    @Test
     public void testDirectory() {
         tripBuilderFactory.setDirectory(TripUtils.Constants.DIRECTORY);
         assertEquals(TripUtils.Constants.DIRECTORY, tripBuilderFactory.build().getDirectory());
@@ -136,6 +141,7 @@ public class TripBuilderFactoryTest {
         assertNotNull(trip.getDirectory());
         assertNotNull(trip.getComment());
         assertNotNull(trip.getCostCenter());
+        assertNotNull(trip.getDefaultCurrency());
         assertNotNull(trip.getCurrency());
         assertNotNull(trip.getStartDate());
         assertNotNull(trip.getStartTimeZone());

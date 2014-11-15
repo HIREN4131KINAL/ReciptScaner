@@ -216,6 +216,7 @@ public interface Trip extends Parcelable {
      *
      * @return the total mileage as a {@link java.lang.String}
      */
+    @Deprecated
     String getMilesAsString();
 
     /**

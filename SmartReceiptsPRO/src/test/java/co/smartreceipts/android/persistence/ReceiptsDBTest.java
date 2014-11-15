@@ -292,7 +292,6 @@ public class ReceiptsDBTest {
         assertEquals(receipts2.get(0).getTrip(), mTrip2);
         // Since we've verified the trip/image stuff, change them so we can use field equals
         receipts2.get(0).setFile(imgReceipt.getFile());
-        receipts2.get(0).setTrip(imgReceipt.getTrip());
         ReceiptUtils.assertFieldEquality(imgReceipt, receipts2.get(0));
     }
 
@@ -314,7 +313,6 @@ public class ReceiptsDBTest {
         assertEquals(receipts2.get(0).getTrip(), mTrip2);
         // Since we've verified the trip/image stuff, change them so we can use field equals
         receipts2.get(0).setFile(imgReceipt.getFile());
-        receipts2.get(0).setTrip(imgReceipt.getTrip());
         ReceiptUtils.assertFieldEquality(imgReceipt, receipts2.get(0));
     }
 

@@ -37,6 +37,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _comment = "";
         _costCenter = "";
         _currency = WBCurrency.getDefault();
+        _defaultCurrency = WBCurrency.getDefault();
         _startDate = new Date(System.currentTimeMillis());
         _endDate = _startDate;
         _source = Source.Undefined;

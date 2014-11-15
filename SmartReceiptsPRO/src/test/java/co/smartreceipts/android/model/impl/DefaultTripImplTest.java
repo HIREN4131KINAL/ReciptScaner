@@ -1,171 +1,116 @@
 package co.smartreceipts.android.model.impl;
 
-import static org.junit.Assert.*;
+import android.os.Parcel;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import android.os.Parcel;
-
+import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.tests.utils.TestUtils;
-import co.smartreceipts.tests.utils.TripUtils;
-import co.smartreceipts.tests.utils.TripUtils.Constants;
+import co.smartreceipts.android.testutils.TestUtils;
+import co.smartreceipts.android.testutils.TripUtils;
 
-@Config(emulateSdk = 18) 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+
+@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class DefaultTripImplTest {
 
-	/**
-	 * TripRowA and TripRowB should be expected as having all member variables be equal.
-	 * The .equals method for Trip only tests their Directories and will not be a valid indicator
-	 * of whether or not they are actually equal or not.
-	 * The difference between the two is how their builders are constructed
-	 **/
-	private Trip mTripA, mTripB;
+    DefaultTripImpl trip;
 
-	/**
-	 * Generates a builder for mTripA. This builder user primitives/Strings
-	 * whenever possible as opposed to higher level objects
-	 * @return
-	 */
-	private Trip.Builder getTripRowABuilder() {
-		Trip.Builder builderA = new Trip.Builder();
-		builderA.setCurrency(Constants.CURRENCY_CODE)
-				.setDefaultCurrency(Constants.CURRENCY_CODE)
-				.setDirectory(Constants.DIRECTORY)
-				.setEndDate(Constants.END_DATE_MILLIS)
-				.setEndTimeZone(Constants.END_TIMEZONE_CODE)
-				.setMileage(Constants.MILEAGE)
-				.setStartDate(Constants.START_DATE_MILLIS)
-				.setStartTimeZone(Constants.START_TIMEZONE_CODE)
-				.setComment(Constants.COMMENT);
-		return builderA;
-	}
 
-	/**
-	 * Generates a builder for mReceiptRowB. This builder users higher level objects
-	 * as opposed to primitives/Strings whenever possible
-	 * @return
-	 */
-	private Trip.Builder getTripRowBBuilder() {
-		Trip.Builder builderB = new Trip.Builder();
-		builderB.setCurrency(Constants.CURRENCY)
-				.setDefaultCurrency(Constants.CURRENCY_CODE)
-				.setDirectory(Constants.DIRECTORY)
-				.setEndDate(Constants.END_DATE)
-				.setEndTimeZone(Constants.END_TIMEZONE)
-				.setMileage(Constants.MILEAGE)
-				.setStartDate(Constants.START_DATE)
-				.setStartTimeZone(Constants.START_TIMEZONE)
-				.setComment(Constants.COMMENT);
-		return builderB;
-	}
+    @Before
+    public void setUp() throws Exception {
+        trip = new DefaultTripImpl(TripUtils.Constants.DIRECTORY,
+                TripUtils.Constants.START_DATE,
+                TripUtils.Constants.START_TIMEZONE,
+                TripUtils.Constants.END_DATE,
+                TripUtils.Constants.END_TIMEZONE,
+                TripUtils.Constants.CURRENCY,
+                TripUtils.Constants.DEFAULT_CURRENCY,
+                TripUtils.Constants.COMMENT,
+                TripUtils.Constants.COST_CENTER,
+                null, // filter
+                Source.Undefined);
+        trip.setPrice(TripUtils.Constants.PRICE);
+        trip.setDailySubTotal(TripUtils.Constants.DAILY_SUBTOTAL);
+    }
 
-	@Before
-	public void setUp() throws Exception {
-		mTripA = getTripRowABuilder().build();
-		mTripB = getTripRowBBuilder().build();
-		mTripA.setPrice(Constants.PRICE);
-		mTripA.setDailySubTotal(Constants.DAILY_SUBTOTAL);
-		mTripB.setPrice(Constants.PRICE);
-		mTripB.setDailySubTotal(Constants.DAILY_SUBTOTAL);
-	}
 
-	@After
-	public void tearDown() throws Exception {
-		mTripA = null;
-		mTripB = null;
-	}
+    @Test
+    public void testName() {
+        assertEquals(TripUtils.Constants.DIRECTORY, trip.getDirectory());
+        assertEquals(TripUtils.Constants.DIRECTORY.getAbsolutePath(), trip.getDirectoryPath());
+        assertEquals(TripUtils.Constants.DIRECTORY_NAME, trip.getName());
+    }
 
-	@Test
-	public void testTripRowEquality() {
-		assertEquals(mTripA, mTripB);
-	}
+    @Test
+    public void testStartDatesAndTimeZones() {
+        assertEquals(TripUtils.Constants.START_DATE, trip.getStartDate());
+        assertEquals(TripUtils.Constants.START_DATE_MILLIS, trip.getStartDate().getTime());
+        assertEquals(TripUtils.Constants.START_TIMEZONE, trip.getStartTimeZone());
+        assertEquals(TripUtils.Constants.START_TIMEZONE_CODE, trip.getStartTimeZone().getID());
+        assertEquals(TripUtils.Constants.SLASH_FORMATTED_START_DATE, trip.getFormattedStartDate(Robolectric.application, "/"));
+        assertEquals(TripUtils.Constants.DASH_FORMATTED_START_DATE, trip.getFormattedStartDate(Robolectric.application, "-"));
+    }
 
-	@Test
-	public void testTripRowName() {
-		assertEquals(mTripA.getDirectory(), mTripB.getDirectory());
-		assertEquals(mTripA.getDirectory(), Constants.DIRECTORY);
-	}
+    @Test
+    public void testEndDatesAndTimeZones() {
+        assertEquals(TripUtils.Constants.END_DATE, trip.getEndDate());
+        assertEquals(TripUtils.Constants.END_DATE_MILLIS, trip.getEndDate().getTime());
+        assertEquals(TripUtils.Constants.END_TIMEZONE, trip.getEndTimeZone());
+        assertEquals(TripUtils.Constants.END_TIMEZONE_CODE, trip.getEndTimeZone().getID());
+        assertEquals(TripUtils.Constants.SLASH_FORMATTED_END_DATE, trip.getFormattedEndDate(Robolectric.application, "/"));
+        assertEquals(TripUtils.Constants.DASH_FORMATTED_END_DATE, trip.getFormattedEndDate(Robolectric.application, "-"));
+    }
 
-	@Test
-	public void testTripRowStartDates() {
-		assertEquals(mTripA.getStartDate(), mTripB.getStartDate());
-		assertEquals(mTripA.getStartTimeZone(), mTripB.getStartTimeZone());
-		assertEquals(mTripA.getStartDate(), Constants.START_DATE);
-		assertEquals(mTripA.getStartTimeZone(), Constants.START_TIMEZONE);
-		// assertEquals(mTripA.getFormattedStartDate(Robolectric.application, "/"), Constants.SLASH_FORMATTED_START_DATE);
-		// assertEquals(mTripA.getFormattedStartDate(Robolectric.application, "-"), Constants.DASH_FORMATTED_START_DATE);
-	}
+    @Test
+    public void testPriceAndCurrency() {
+        assertEquals((float) TripUtils.Constants.PRICE, trip.getPriceAsFloat(), TestUtils.EPSILON);
+        assertEquals(TripUtils.Constants.DECIMAL_FORMATTED_PRICE, trip.getDecimalFormattedPrice());
+        assertEquals(TripUtils.Constants.CURRENCY_FORMATTED_PRICE, trip.getCurrencyFormattedPrice());
+    }
 
-	@Test
-	public void testTripRowEndDates() {
-		assertEquals(mTripA.getEndDate(), mTripB.getEndDate());
-		assertEquals(mTripA.getEndTimeZone(), mTripB.getEndTimeZone());
-		assertEquals(mTripA.getEndDate(), Constants.END_DATE);
-		assertEquals(mTripA.getEndTimeZone(), Constants.END_TIMEZONE);
-		// assertEquals(mTripA.getFormattedEndDate(Robolectric.application, "/"), Constants.SLASH_FORMATTED_END_DATE);
-		// assertEquals(mTripA.getFormattedEndDate(Robolectric.application, "-"), Constants.DASH_FORMATTED_END_DATE);
-	}
+    @Test
+    public void testDailySubtotalAndCurrency() {
+        assertEquals((float) TripUtils.Constants.DAILY_SUBTOTAL, trip.getDailySubTotalAsFloat(), TestUtils.EPSILON);
+        assertEquals(TripUtils.Constants.DECIMAL_FORMATTED_SUBTOTAL, trip.getDecimalFormattedDailySubTotal());
+        assertEquals(TripUtils.Constants.CURRENCY_FORMATTED_SUBTOTAL, trip.getCurrencyFormattedDailySubTotal());
+    }
 
-	@Test
-	public void testReceiptRowPriceAndCurrency() {
-		assertEquals(mTripA.getPrice(), mTripB.getPrice());
-		assertEquals(mTripA.getPriceAsFloat(), mTripB.getPriceAsFloat(), TestUtils.EPSILON);
-		assertEquals(mTripA.getDecimalFormattedPrice(), mTripB.getDecimalFormattedPrice());
-		assertEquals(mTripA.getCurrencyCode(), mTripB.getCurrencyCode());
-		assertEquals(mTripA.getCurrencyFormattedPrice(), mTripB.getCurrencyFormattedPrice());
-		assertEquals(mTripA.getPrice(), Constants.PRICE_STRING);
-		assertEquals(mTripA.getPriceAsFloat(), Constants.PRICE, TestUtils.EPSILON);
-		assertEquals(mTripA.getCurrencyCode(), Constants.CURRENCY_CODE);
-		
-		mTripA.setPrice((float) Constants.PRICE);
-		assertEquals(mTripA.getPriceAsFloat(), mTripB.getPriceAsFloat(), TestUtils.EPSILON);
-		assertEquals(mTripA.getPrice(), Constants.PRICE_STRING);
-		assertEquals(mTripA.getCurrencyCode(), Constants.CURRENCY_CODE);
-	}
-	
-	@Test
-	public void testReceiptDailySubTotalAndCurrency() {
-		assertEquals(mTripA.getDailySubTotal(), mTripB.getDailySubTotal());
-		assertEquals(mTripA.getDailySubTotalAsFloat(), mTripB.getDailySubTotalAsFloat(), TestUtils.EPSILON);
-		assertEquals(mTripA.getCurrencyFormattedDailySubTotal(), mTripB.getCurrencyFormattedDailySubTotal());
-		assertEquals(mTripA.getDailySubTotal(), Constants.DAILY_SUBTOTAL_STRING);
-		assertEquals(mTripA.getDailySubTotalAsFloat(), Constants.DAILY_SUBTOTAL, TestUtils.EPSILON);
-		
-		mTripA.setPrice((float) Constants.PRICE);
-		assertEquals(mTripA.getDailySubTotalAsFloat(), mTripB.getDailySubTotalAsFloat(), TestUtils.EPSILON);
-		assertEquals(mTripA.getDailySubTotal(), Constants.DAILY_SUBTOTAL_STRING);
-	}
+    @Test
+    public void testComment() {
+        assertEquals(TripUtils.Constants.COMMENT, trip.getComment());
+    }
 
-	@Test
-	public void testTripRowMileage() {
-		assertEquals(mTripA.getMileage(), mTripB.getMileage(), TestUtils.EPSILON);
-		assertEquals(mTripA.getMilesAsString(), mTripB.getMilesAsString());
-		assertEquals(mTripA.getMileage(), Constants.MILEAGE, TestUtils.EPSILON);
-	}
-	
-	@Test
-	public void testTripRowComment() {
-		assertEquals(mTripA.getComment(), mTripB.getComment());
-		assertEquals(mTripA.getComment(), Constants.COMMENT);
-	}
-	
-	@Test
-	public void parcelTest() {
-		Parcel parcelA = Parcel.obtain();
-		mTripA.writeToParcel(parcelA, 0);
-		parcelA.setDataPosition(0);
-		Trip parcelTripA = Trip.CREATOR.createFromParcel(parcelA);
-		assertNotNull(parcelTripA);
-		assertEquals(mTripA, parcelTripA);
-		TripUtils.assertFieldEquality(mTripA, parcelTripA);
-	}
+    @Test
+    public void testCostCenter() {
+        assertEquals(TripUtils.Constants.COST_CENTER, trip.getCostCenter());
+    }
+
+    @Test
+    public void testFilter() {
+        assertNull(trip.getFilter());
+    }
+
+    @Test
+    public void parcelTest() {
+        final Parcel parcel = Parcel.obtain();
+        trip.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        final Trip parceledTrip = DefaultTripImpl.CREATOR.createFromParcel(parcel);
+        assertNotNull(parceledTrip);
+        assertEquals(trip, parceledTrip);
+        TripUtils.assertFieldEquality(trip, parceledTrip);
+    }
 
 
 }

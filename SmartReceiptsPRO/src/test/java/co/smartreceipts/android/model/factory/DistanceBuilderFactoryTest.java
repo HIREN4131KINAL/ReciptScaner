@@ -26,7 +26,7 @@ public class DistanceBuilderFactoryTest {
 
     @Test
     public void testComment() {
-        distanceBuilderFactory.setCurrency(DistanceUtils.Constants.COMMENT);
+        distanceBuilderFactory.setComment(DistanceUtils.Constants.COMMENT);
         assertEquals(DistanceUtils.Constants.COMMENT, distanceBuilderFactory.build().getComment());
     }
 

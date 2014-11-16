@@ -22,12 +22,12 @@ public class TripUtils {
         public static final WBCurrency DEFAULT_CURRENCY = WBCurrency.getInstance(DEFAULT_CURRENCY_CODE); // 1
         public static final long START_DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date START_DATE = new Date(START_DATE_MILLIS);
-        public static final String SLASH_FORMATTED_START_DATE = "09/02/2014";
-        public static final String DASH_FORMATTED_START_DATE = "09-02-2014";
+        public static final String SLASH_FORMATTED_START_DATE = "Sep/02/2014";
+        public static final String DASH_FORMATTED_START_DATE = "Sep-02-2014";
         public static final long END_DATE_MILLIS = 1409703794000L; // 09/02/2014 @ 8:23EDT
         public static final Date END_DATE = new Date(END_DATE_MILLIS);
-        public static final String SLASH_FORMATTED_END_DATE = "09/02/2014";
-        public static final String DASH_FORMATTED_END_DATE = "09-02-2014";
+        public static final String SLASH_FORMATTED_END_DATE = "Sep/02/2014";
+        public static final String DASH_FORMATTED_END_DATE = "Sep-02-2014";
         public static final File DIRECTORY = new File(Environment.getExternalStorageDirectory(), "Report");
         public static final String DIRECTORY_NAME = "Report";
         public static final TimeZone START_TIMEZONE = TimeZone.getTimeZone("America/New_York");
@@ -41,7 +41,7 @@ public class TripUtils {
         public static final String CURRENCY_FORMATTED_PRICE = "$12.55";
         public static final double DAILY_SUBTOTAL = 1.25d;
         public static final String DECIMAL_FORMATTED_SUBTOTAL = "1.25";
-        public static final String CURRENCY_FORMATTED_SUBTOTAL = "1.25";
+        public static final String CURRENCY_FORMATTED_SUBTOTAL = "$1.25";
         public static final float MILEAGE = 40.3121f;
     }
 

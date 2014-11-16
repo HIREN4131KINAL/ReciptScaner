@@ -1387,7 +1387,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     final int rateCurrencyIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE_CURRENCY);
 					final int commentIndex = c.getColumnIndex(DistanceTable.COLUMN_COMMENT);
 					do {
-						final long id = c.getLong(idIndex);
+						final int id = c.getInt(idIndex);
 						final String location = c.getString(locationIndex);
 						final BigDecimal distance = BigDecimal.valueOf(c.getDouble(distanceIndex));
 						final long date = c.getLong(dateIndex);
@@ -1503,7 +1503,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				try{
 					cur = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (cur != null && cur.moveToFirst() && cur.getColumnCount() > 0) {
-						final long id = cur.getInt(0);
+						final int id = cur.getInt(0);
 						toReturn =  new DistanceBuilderFactory(id)
 								.setLocation(location)
 								.setDistance(distance)
@@ -1638,7 +1638,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         values.put(DistanceTable.COLUMN_COMMENT, comment);
 		
 		Distance toReturn = null;
-		long id = oldDistance.getId();
+        final int id = oldDistance.getId();
 		synchronized (mDatabaseLock) {
 			SQLiteDatabase db = this.getWritableDatabase();
 			if (db.update(DistanceTable.TABLE_NAME, values, 

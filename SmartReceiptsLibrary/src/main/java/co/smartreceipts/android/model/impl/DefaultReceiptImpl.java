@@ -40,12 +40,13 @@ public final class DefaultReceiptImpl implements Receipt {
     private boolean mIsSelected;
     private File mFile;
 
-    public DefaultReceiptImpl(int id, int index, Trip trip, PaymentMethod paymentMethod, String name, String category, String comment,
+    public DefaultReceiptImpl(int id, int index, Trip trip, File file, PaymentMethod paymentMethod, String name, String category, String comment,
                               BigDecimal price, BigDecimal tax, WBCurrency currency, Date date, TimeZone timeZone, boolean isExpensable,
-                              boolean isFullPage, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
+                              boolean isFullPage, boolean isSelected, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
         mId = id;
         mIndex = index;
         mTrip = trip;
+        mFile = file;
         mPaymentMethod = paymentMethod;
         mName = name;
         mCategory = category;
@@ -61,7 +62,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mExtraEditText1 = extraEditText1;
         mExtraEditText2 = extraEditText2;
         mExtraEditText3 = extraEditText3;
-        mIsSelected = false;
+        mIsSelected = isSelected;
     }
 
     private DefaultReceiptImpl(Parcel in) {

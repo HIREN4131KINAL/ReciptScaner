@@ -36,9 +36,11 @@ public class DefaultReceiptImplTest {
     @Before
     public void setUp() throws Exception {
         parent = TripUtils.newSpyOfDefaultTrip();
+        final File img = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
         receipt1 = new DefaultReceiptImpl(ReceiptUtils.Constants.ID,
                 ReceiptUtils.Constants.INDEX,
                 parent,
+                img,
                 null, // TODO: Add Payment method
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
@@ -50,6 +52,7 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
                 ReceiptUtils.Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.IS_SELECTED,
                 Source.Undefined,
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
@@ -57,6 +60,7 @@ public class DefaultReceiptImplTest {
         receipt2 = new DefaultReceiptImpl(ReceiptUtils.Constants.ID,
                 ReceiptUtils.Constants.INDEX,
                 parent,
+                img,
                 null, // TODO: Add Payment method
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
@@ -68,6 +72,7 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
                 ReceiptUtils.Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.IS_SELECTED,
                 Source.Undefined,
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
@@ -75,6 +80,7 @@ public class DefaultReceiptImplTest {
         receipt3 = new DefaultReceiptImpl(-1, // Note: mismatched ID
                 ReceiptUtils.Constants.INDEX,
                 parent,
+                null,
                 null, // TODO: Add Payment method
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
@@ -86,6 +92,7 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
                 ReceiptUtils.Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.IS_SELECTED,
                 Source.Undefined,
                 null, // Note: No Extras
                 null, // Note: No Extras
@@ -144,7 +151,7 @@ public class DefaultReceiptImplTest {
 
     @Test
     public void testTaxAndCurrency() {
-        assertEquals((float) ReceiptUtils.Constants.TAX, receipt1.getPriceAsFloat(), TestUtils.EPSILON);
+        assertEquals((float) ReceiptUtils.Constants.TAX, receipt1.getTaxAsFloat(), TestUtils.EPSILON);
         assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receipt1.getDecimalFormattedPrice());
         assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_TAX, receipt1.getCurrencyFormattedPrice());
     }
@@ -166,11 +173,29 @@ public class DefaultReceiptImplTest {
 
     @Test
     public void testIsExpensable() {
-        assertEquals(ReceiptUtils.Constants.IS_FULLPAGE, receipt1.isExpensable());
+        assertEquals(ReceiptUtils.Constants.IS_EXPENSABLE, receipt1.isExpensable());
     }
 
     @Test
-    public void testEmptyFile() {
+    public void testIsSelected() {
+        assertEquals(ReceiptUtils.Constants.IS_SELECTED, receipt1.isExpensable());
+    }
+
+    @Test
+    public void testConstructorFile() {
+        assertNotNull(receipt1.getFile());
+        assertTrue(receipt1.hasFile());
+        assertTrue(receipt1.hasImage());
+        assertFalse(receipt1.hasPDF());
+        assertNull(receipt3.getFile());
+        assertFalse(receipt3.hasFile());
+        assertFalse(receipt3.hasImage());
+        assertFalse(receipt3.hasPDF());
+    }
+
+    @Test
+    public void testSetEmptyFile() {
+        receipt1.setFile(null);
         assertNull(receipt1.getFile());
         assertFalse(receipt1.hasFile());
         assertFalse(receipt1.hasImage());
@@ -178,7 +203,7 @@ public class DefaultReceiptImplTest {
     }
 
     @Test
-    public void testImageFile() {
+    public void testSetImageFile() {
         final File img = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
         receipt1.setFile(img);
         assertNotNull(receipt1.getFile());
@@ -189,7 +214,7 @@ public class DefaultReceiptImplTest {
     }
 
     @Test
-    public void testPDFFile() {
+    public void testSetPDFFile() {
         final File pdf = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.PDF_FILE_NAME);
         receipt1.setFile(pdf);
         assertNotNull(receipt1.getFile());

@@ -17,8 +17,8 @@ public class DistanceUtils {
         public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE);
         public static final long DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date DATE = new Date(DATE_MILLIS);
-        public static final String SLASH_FORMATTED_DATE = "09/02/2014";
-        public static final String DASH_FORMATTED_DATE = "09-02-2014";
+        public static final String SLASH_FORMATTED_DATE = "Sep/02/2014";
+        public static final String DASH_FORMATTED_DATE = "Sep-02-2014";
         public static final double DISTANCE_DOUBLE = 12.55d;
         public static final BigDecimal DISTANCE = new BigDecimal(DISTANCE_DOUBLE);
         public static final String DECIMAL_FORMATTED_DISTANCE = "12.55";

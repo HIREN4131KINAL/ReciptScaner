@@ -25,8 +25,8 @@ public class ReceiptUtils {
         public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE);
         public static final long DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date DATE = new Date(DATE_MILLIS);
-        public static final String SLASH_FORMATTED_DATE = "09/02/2014";
-        public static final String DASH_FORMATTED_DATE = "09-02-2014";
+        public static final String SLASH_FORMATTED_DATE = "Sep/02/2014";
+        public static final String DASH_FORMATTED_DATE = "Sep-02-2014";
         public static final String EXTRA1 = "extra1";
         public static final String EXTRA2 = "extra2";
         public static final String EXTRA3 = "extra3";
@@ -36,6 +36,7 @@ public class ReceiptUtils {
         public static final String PDF_FILE_NAME = "pdf.pdf";
         public static final boolean IS_EXPENSABLE = true;
         public static final boolean IS_FULLPAGE = false;
+        public static final boolean IS_SELECTED = true;
         public static final String NAME = "Name";
         public static final double PRICE = 12.55d;
         public static final String DECIMAL_FORMATTED_PRICE = "12.55";
@@ -77,11 +78,22 @@ public class ReceiptUtils {
     public static File newMockedFile(String filename) {
         final File file = mock(File.class);
         when(file.getAbsolutePath()).thenReturn(filename);
+        when(file.getName()).thenReturn(filename);
         when(file.exists()).thenReturn(true);
         return file;
     }
 
     public static void assertFieldEquality(Receipt receipt1, Receipt receipt2) {
+        assertFieldEqualityHelper(receipt1, receipt2);
+        assertEquals(receipt1.getDate(), receipt2.getDate());
+    }
+
+    public static void assertFieldEqualityWithDateFuzzing(Receipt receipt1, Receipt receipt2) {
+        assertFieldEqualityHelper(receipt1, receipt2);
+        assertTrue(Math.abs(receipt1.getDate().getTime() - receipt2.getDate().getTime()) < 100L);
+    }
+
+    private static void assertFieldEqualityHelper(Receipt receipt1, Receipt receipt2) {
         assertEquals(receipt1.getComment(), receipt2.getComment());
         assertEquals(receipt1.getCategory(), receipt2.getCategory());
         assertEquals(receipt1.getCurrencyCode(), receipt2.getCurrencyCode());
@@ -106,6 +118,12 @@ public class ReceiptUtils {
      */
     public static void assertFieldEqualityPlusIdAndIndex(Receipt receipt1, Receipt receipt2) {
         assertFieldEquality(receipt1, receipt2);
+        assertEquals(receipt1.getId(), receipt2.getId());
+        assertEquals(receipt1.getIndex(), receipt2.getIndex());
+    }
+
+    public static void assertFieldEqualityWithDateFuzzingPlusIdAndIndex(Receipt receipt1, Receipt receipt2) {
+        assertFieldEqualityWithDateFuzzing(receipt1, receipt2);
         assertEquals(receipt1.getId(), receipt2.getId());
         assertEquals(receipt1.getIndex(), receipt2.getIndex());
     }

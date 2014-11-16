@@ -195,7 +195,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     @Override
     @NonNull
     public Receipt build() {
-        return new DefaultReceiptImpl(_id, _index, _trip, _paymentMethod, _name, _category, _comment, _price, _tax, _currency, _date, _timezone, _isExpenseable, _isFullPage, _source, _extraEditText1, _extraEditText2, _extraEditText3);
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _price, _tax, _currency, _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
     }
 
     private BigDecimal tryParse(String number) {

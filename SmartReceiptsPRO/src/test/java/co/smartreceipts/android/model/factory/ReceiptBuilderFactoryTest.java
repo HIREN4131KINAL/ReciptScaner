@@ -61,7 +61,7 @@ public class ReceiptBuilderFactoryTest {
     @Test
     public void testPriceAsString() {
         receiptBuilderFactory.setPrice(ReceiptUtils.Constants.PRICE);
-        assertEquals(ReceiptUtils.Constants.PRICE, receiptBuilderFactory.build().getPrice());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receiptBuilderFactory.build().getPrice());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ReceiptBuilderFactoryTest {
     @Test
     public void testTaxAsString() {
         receiptBuilderFactory.setTax(ReceiptUtils.Constants.TAX);
-        assertEquals(ReceiptUtils.Constants.TAX, receiptBuilderFactory.build().getTax());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receiptBuilderFactory.build().getTax());
     }
 
     @Test

@@ -58,11 +58,11 @@ public class TripUtils {
         return factory;
     }
 
-    public static Trip newSpyOfDefaultTrip() {
+    public static Trip newDefaultTrip() {
         final Trip trip = newDefaultTripBuilderFactory().build();
         trip.setPrice(TripUtils.Constants.PRICE);
         trip.setDailySubTotal(TripUtils.Constants.DAILY_SUBTOTAL);
-        return spy(trip);
+        return trip;
     }
 
     public static void assertFieldEquality(Trip trip1, Trip trip2) {

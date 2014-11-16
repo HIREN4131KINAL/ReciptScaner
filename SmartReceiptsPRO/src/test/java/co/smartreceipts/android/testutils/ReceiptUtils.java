@@ -1,6 +1,9 @@
 package co.smartreceipts.android.testutils;
 
+import org.robolectric.Robolectric;
+
 import java.io.File;
+import java.io.IOException;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -12,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class ReceiptUtils {
 
@@ -49,9 +51,9 @@ public class ReceiptUtils {
     }
 
     public static ReceiptBuilderFactory newDefaultReceiptBuilderFactory() {
-        final File img = newMockedFile(Constants.IMAGE_FILE_NAME);
+        final File img = createRoboElectricStubFile(Constants.IMAGE_FILE_NAME);
         final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(Constants.ID);
-        factory.setTrip(TripUtils.newSpyOfDefaultTrip());
+        factory.setTrip(TripUtils.newDefaultTrip());
         factory.setName(Constants.NAME);
         factory.setPrice(Constants.PRICE);
         factory.setTax(Constants.TAX);
@@ -71,16 +73,22 @@ public class ReceiptUtils {
         return factory;
     }
 
-    public static Receipt newSpyOfDefaultReceipt() {
-        return spy(newDefaultReceiptBuilderFactory().build());
+    public static Receipt newDefaultReceipt() {
+        return newDefaultReceiptBuilderFactory().build();
     }
 
-    public static File newMockedFile(String filename) {
-        final File file = mock(File.class);
-        when(file.getAbsolutePath()).thenReturn(filename);
-        when(file.getName()).thenReturn(filename);
-        when(file.exists()).thenReturn(true);
-        return file;
+    public static File createRoboElectricStubFile(String filename) {
+        final File root = Robolectric.application.getExternalFilesDir(null);
+        final File newFile = new File(root, filename);
+        try {
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            return newFile;
+        }
+        catch (IOException e) {
+            return root; // Stub fallback case
+        }
     }
 
     public static void assertFieldEquality(Receipt receipt1, Receipt receipt2) {

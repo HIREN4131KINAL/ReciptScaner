@@ -80,13 +80,13 @@ public final class DefaultReceiptImpl implements Receipt {
         mCurrency = WBCurrency.getInstance(in.readString());
         mIsExpensable = (in.readByte() != 0);
         mIsFullPage = (in.readByte() != 0);
+        mIsSelected = (in.readByte() != 0);
         mExtraEditText1 = in.readString();
         mExtraEditText2 = in.readString();
         mExtraEditText3 = in.readString();
         mIndex = in.readInt();
         mTimeZone = TimeZone.getTimeZone(in.readString());
         mSource = Source.Parcel;
-        mIsSelected = false;
     }
 
     @Override
@@ -396,6 +396,7 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeString(getCurrencyCode());
         dest.writeByte((byte) (isExpensable() ? 1 : 0));
         dest.writeByte((byte) (isFullPage() ? 1 : 0));
+        dest.writeByte((byte) (isSelected() ? 1 : 0));
         dest.writeString(getExtraEditText1());
         dest.writeString(getExtraEditText2());
         dest.writeString(getExtraEditText3());

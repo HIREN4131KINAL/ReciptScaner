@@ -40,6 +40,7 @@ public class WBCurrency {
         if (currency != null) {
             return currency.getCurrencyCode();
         }
+
         else {
             return code;
         }
@@ -303,6 +304,25 @@ public class WBCurrency {
         nonIso4217Currencies.add("ZMK");
         nonIso4217Currencies.add("ZWD");
         return nonIso4217Currencies;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WBCurrency that = (WBCurrency) o;
+
+        final String currencyCode = getCurrencyCode();
+
+        if (currencyCode != null ? !currencyCode.equals(that.getCurrencyCode()) : that.getCurrencyCode() != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return getCurrencyCode() != null ? getCurrencyCode().hashCode() : 0;
     }
 
 }

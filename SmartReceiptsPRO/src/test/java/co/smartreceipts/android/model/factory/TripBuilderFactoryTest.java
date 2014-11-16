@@ -131,13 +131,13 @@ public class TripBuilderFactoryTest {
 
     @Test
     public void testComment() {
-        tripBuilderFactory.setDefaultCurrency(TripUtils.Constants.COMMENT);
+        tripBuilderFactory.setComment(TripUtils.Constants.COMMENT);
         assertEquals(TripUtils.Constants.COMMENT, tripBuilderFactory.build().getComment());
     }
 
     @Test
     public void testCostCenter() {
-        tripBuilderFactory.setDefaultCurrency(TripUtils.Constants.COST_CENTER);
+        tripBuilderFactory.setCostCenter(TripUtils.Constants.COST_CENTER);
         assertEquals(TripUtils.Constants.COST_CENTER, tripBuilderFactory.build().getCostCenter());
     }
 

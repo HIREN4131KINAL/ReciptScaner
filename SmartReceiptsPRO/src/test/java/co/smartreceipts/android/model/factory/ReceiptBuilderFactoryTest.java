@@ -41,7 +41,7 @@ public class ReceiptBuilderFactoryTest {
 
     @Test
     public void testTrip() {
-        final Trip trip = TripUtils.newSpyOfDefaultTrip();
+        final Trip trip = TripUtils.newDefaultTrip();
         receiptBuilderFactory.setTrip(trip);
         assertEquals(trip, receiptBuilderFactory.build().getTrip());
     }

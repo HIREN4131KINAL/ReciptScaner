@@ -35,8 +35,8 @@ public class DefaultReceiptImplTest {
 
     @Before
     public void setUp() throws Exception {
-        parent = TripUtils.newSpyOfDefaultTrip();
-        final File img = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
+        parent = TripUtils.newDefaultTrip();
+        final File img = ReceiptUtils.createRoboElectricStubFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
         receipt1 = new DefaultReceiptImpl(ReceiptUtils.Constants.ID,
                 ReceiptUtils.Constants.INDEX,
                 parent,
@@ -152,8 +152,8 @@ public class DefaultReceiptImplTest {
     @Test
     public void testTaxAndCurrency() {
         assertEquals((float) ReceiptUtils.Constants.TAX, receipt1.getTaxAsFloat(), TestUtils.EPSILON);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receipt1.getDecimalFormattedPrice());
-        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_TAX, receipt1.getCurrencyFormattedPrice());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receipt1.getDecimalFormattedTax());
+        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_TAX, receipt1.getCurrencyFormattedTax());
     }
 
     @Test
@@ -204,7 +204,7 @@ public class DefaultReceiptImplTest {
 
     @Test
     public void testSetImageFile() {
-        final File img = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
+        final File img = ReceiptUtils.createRoboElectricStubFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
         receipt1.setFile(img);
         assertNotNull(receipt1.getFile());
         assertEquals(img, receipt1.getFile());
@@ -215,7 +215,7 @@ public class DefaultReceiptImplTest {
 
     @Test
     public void testSetPDFFile() {
-        final File pdf = ReceiptUtils.newMockedFile(ReceiptUtils.Constants.PDF_FILE_NAME);
+        final File pdf = ReceiptUtils.createRoboElectricStubFile(ReceiptUtils.Constants.PDF_FILE_NAME);
         receipt1.setFile(pdf);
         assertNotNull(receipt1.getFile());
         assertEquals(pdf, receipt1.getFile());

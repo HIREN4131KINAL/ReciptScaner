@@ -27,7 +27,7 @@ public class ImmutableDistanceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        trip = TripUtils.newSpyOfDefaultTrip();
+        trip = TripUtils.newDefaultTrip();
         distance1 = new ImmutableDistanceImpl(DistanceUtils.Constants.ID,
                 trip,
                 DistanceUtils.Constants.LOCATION,

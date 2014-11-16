@@ -6,13 +6,11 @@ import android.os.Parcel;
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;

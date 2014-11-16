@@ -17,7 +17,7 @@ public interface Distance extends Parcelable {
      *
      * @return the distance's autoincrement id
      */
-    public long getId();
+    int getId();
 
     /**
      * Gets the parent trip for this distance. This should never be {@code null}.
@@ -25,21 +25,21 @@ public interface Distance extends Parcelable {
      * @return - the parent {@link co.smartreceipts.android.model.Trip}
      */
     @NonNull
-    public Trip getTrip();
+    Trip getTrip();
 
     /**
      * Gets the location to which this distance occurred (e.g. drove to Atlanta)
      *
      * @return the location as a {@link java.lang.String}
      */
-    public String getLocation();
+    String getLocation();
 
     /**
      * Gets the decimal representation of the distance travelled
      *
      * @return - a {@link java.math.BigDecimal} containing the distance travelled
      */
-    public BigDecimal getDistance();
+    BigDecimal getDistance();
 
     /**
      * A "decimal-formatted" distance, which would appear to the end user as "25.20" or "25,20" instead of
@@ -47,7 +47,7 @@ public interface Distance extends Parcelable {
      *
      * @return the decimal formatted distance {@link java.lang.String}
      */
-    public String getDecimalFormattedDistance();
+    String getDecimalFormattedDistance();
 
     /**
      * Returns the date on which this distance occurred
@@ -71,14 +71,14 @@ public interface Distance extends Parcelable {
      *
      * @return - the {@link java.util.TimeZone} for the date
      */
-    public TimeZone getTimezone();
+    TimeZone getTimeZone();
 
     /**
      * The rate for which this distance may be reimbursed
      *
      * @return a {@link java.math.BigDecimal} representation of the reimbursement rate
      */
-    public BigDecimal getRate();
+    BigDecimal getRate();
 
     /**
      * A "decimal-formatted" rate, which would appear to the end user as "25.20" or "25,20" instead of

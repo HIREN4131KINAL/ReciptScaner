@@ -45,8 +45,8 @@ public class TripUtils {
         public static final float MILEAGE = 40.3121f;
     }
 
-    public static Trip newSpyOfDefaultTrip() {
-        final Trip trip = new TripBuilderFactory().setDirectory(Constants.DIRECTORY)
+    public static TripBuilderFactory newDefaultTripBuilderFactory() {
+        final TripBuilderFactory factory = new TripBuilderFactory().setDirectory(Constants.DIRECTORY)
                 .setComment(Constants.COMMENT)
                 .setCostCenter(Constants.COST_CENTER)
                 .setCurrency(Constants.CURRENCY)
@@ -54,8 +54,12 @@ public class TripUtils {
                 .setStartDate(Constants.START_DATE)
                 .setStartTimeZone(Constants.START_TIMEZONE)
                 .setEndDate(Constants.END_DATE)
-                .setEndTimeZone(Constants.END_TIMEZONE)
-                .build();
+                .setEndTimeZone(Constants.END_TIMEZONE);
+        return factory;
+    }
+
+    public static Trip newSpyOfDefaultTrip() {
+        final Trip trip = newDefaultTripBuilderFactory().build();
         trip.setPrice(TripUtils.Constants.PRICE);
         trip.setDailySubTotal(TripUtils.Constants.DAILY_SUBTOTAL);
         return spy(trip);

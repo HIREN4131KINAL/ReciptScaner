@@ -17,7 +17,6 @@ import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.testutils.ReceiptUtils;
-import co.smartreceipts.android.testutils.ReceiptUtils.Constants;
 import co.smartreceipts.android.testutils.TripUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -60,13 +59,13 @@ public class ReceiptsDBTest {
     }
 
     private Receipt insertDefaultReceipt() {
-        File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
+        File img = new File(mTrip.getDirectory(), ReceiptUtils.Constants.IMAGE_FILE_NAME);
         mApp.getPersistenceManager().getStorageManager().createFile(img);
         return insertDefaultReceipt(img);
     }
 
     private Receipt insertDefaultReceipt(PaymentMethod method) {
-        File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
+        File img = new File(mTrip.getDirectory(), ReceiptUtils.Constants.IMAGE_FILE_NAME);
         mApp.getPersistenceManager().getStorageManager().createFile(img);
         return insertDefaultReceipt(img, method);
     }
@@ -74,42 +73,42 @@ public class ReceiptsDBTest {
     private Receipt insertDefaultReceipt(File file) {
         return mDB.insertReceiptSerial(mTrip,
                 file,
-                Constants.NAME,
-                Constants.CATEGORY,
-                Constants.DATE,
-                Constants.COMMENT,
-                Constants.PRICE,
-                Constants.TAX,
-                Constants.IS_EXPENSABLE,
-                Constants.CURRENCY_CODE,
-                Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.NAME,
+                ReceiptUtils.Constants.CATEGORY,
+                ReceiptUtils.Constants.DATE,
+                ReceiptUtils.Constants.COMMENT,
+                ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE,
+                ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX,
+                ReceiptUtils.Constants.IS_EXPENSABLE,
+                ReceiptUtils.Constants.CURRENCY_CODE,
+                ReceiptUtils.Constants.IS_FULLPAGE,
                 null,
-                Constants.EXTRA1,
-                Constants.EXTRA2,
-                Constants.EXTRA3);
+                ReceiptUtils.Constants.EXTRA1,
+                ReceiptUtils.Constants.EXTRA2,
+                ReceiptUtils.Constants.EXTRA3);
     }
 
     private Receipt insertDefaultReceipt(File file, PaymentMethod method) {
         return mDB.insertReceiptSerial(mTrip,
                 file,
-                Constants.NAME,
-                Constants.CATEGORY,
-                Constants.DATE,
-                Constants.COMMENT,
-                Constants.PRICE,
-                Constants.TAX,
-                Constants.IS_EXPENSABLE,
-                Constants.CURRENCY_CODE,
-                Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.NAME,
+                ReceiptUtils.Constants.CATEGORY,
+                ReceiptUtils.Constants.DATE,
+                ReceiptUtils.Constants.COMMENT,
+                ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE,
+                ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX,
+                ReceiptUtils.Constants.IS_EXPENSABLE,
+                ReceiptUtils.Constants.CURRENCY_CODE,
+                ReceiptUtils.Constants.IS_FULLPAGE,
                 method,
-                Constants.EXTRA1,
-                Constants.EXTRA2,
-                Constants.EXTRA3);
+                ReceiptUtils.Constants.EXTRA1,
+                ReceiptUtils.Constants.EXTRA2,
+                ReceiptUtils.Constants.EXTRA3);
     }
 
     @Test
     public void insertAndGetAll() {
-        File img = new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME);
+        File img = new File(mTrip.getDirectory(), ReceiptUtils.Constants.IMAGE_FILE_NAME);
         Receipt insertReceipt = insertDefaultReceipt();
         List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(insertReceipt);
@@ -174,15 +173,15 @@ public class ReceiptsDBTest {
         Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
                 mTrip,
-                Constants.NAME + "x",
-                Constants.CATEGORY + "x",
-                new Date(Constants.DATE_MILLIS + 2000),
-                Constants.COMMENT + "x",
+                ReceiptUtils.Constants.NAME + "x",
+                ReceiptUtils.Constants.CATEGORY + "x",
+                new Date(ReceiptUtils.Constants.DATE_MILLIS + 2000),
+                ReceiptUtils.Constants.COMMENT + "x",
                 "10.0",
                 "2.00",
-                !Constants.IS_EXPENSABLE,
+                !ReceiptUtils.Constants.IS_EXPENSABLE,
                 "EUR",
-                !Constants.IS_FULLPAGE,
+                !ReceiptUtils.Constants.IS_FULLPAGE,
                 null,
                 null,
                 "2",
@@ -203,15 +202,15 @@ public class ReceiptsDBTest {
         Receipt insertReceipt = insertDefaultReceipt(nullPaymentMethod);
         Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
                 mTrip,
-                Constants.NAME + "x",
-                Constants.CATEGORY + "x",
-                new Date(Constants.DATE_MILLIS + 2000),
-                Constants.COMMENT + "x",
+                ReceiptUtils.Constants.NAME + "x",
+                ReceiptUtils.Constants.CATEGORY + "x",
+                new Date(ReceiptUtils.Constants.DATE_MILLIS + 2000),
+                ReceiptUtils.Constants.COMMENT + "x",
                 "10.0",
                 "2.00",
-                !Constants.IS_EXPENSABLE,
+                !ReceiptUtils.Constants.IS_EXPENSABLE,
                 "EUR",
-                !Constants.IS_FULLPAGE,
+                !ReceiptUtils.Constants.IS_FULLPAGE,
                 paymentMethod,
                 null,
                 "2",
@@ -228,8 +227,8 @@ public class ReceiptsDBTest {
     @Test
     public void updateFile() {
         // Files
-        File pdf = new File(mTrip.getDirectory(), Constants.PDF_FILE_NAME);
-        File img = new File(mTrip.getDirectory(), "2_" + Constants.IMAGE_FILE_NAME);
+        File pdf = new File(mTrip.getDirectory(), ReceiptUtils.Constants.PDF_FILE_NAME);
+        File img = new File(mTrip.getDirectory(), "2_" + ReceiptUtils.Constants.IMAGE_FILE_NAME);
         File bad = new File(mTrip.getDirectory(), "bad.ext");
         mApp.getPersistenceManager().getStorageManager().createFile(pdf);
         mApp.getPersistenceManager().getStorageManager().createFile(img);
@@ -306,7 +305,7 @@ public class ReceiptsDBTest {
         assertNotNull(receipts2);
         assertEquals(receipts1.size(), 0);
         assertEquals(receipts2.size(), 1);
-        assertFalse((new File(mTrip.getDirectory(), Constants.IMAGE_FILE_NAME).exists()));
+        assertFalse((new File(mTrip.getDirectory(), ReceiptUtils.Constants.IMAGE_FILE_NAME).exists()));
         assertFalse(imgReceipt.hasImage());
         assertTrue(receipts2.get(0).hasImage());
         assertNotSame(imgReceipt.getTrip(), receipts2.get(0).getTrip());

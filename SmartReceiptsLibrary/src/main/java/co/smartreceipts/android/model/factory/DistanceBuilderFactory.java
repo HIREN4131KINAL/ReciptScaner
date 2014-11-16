@@ -18,7 +18,7 @@ import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
  */
 public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
 
-    private long _id;
+    private int _id;
     private Trip _trip;
     private String _location;
     private BigDecimal _distance;
@@ -28,7 +28,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private WBCurrency _currency;
     private String _comment;
 
-    public DistanceBuilderFactory(long id) {
+    public DistanceBuilderFactory(int id) {
         _id = id;
         _location = "";
         _distance = new BigDecimal(0);

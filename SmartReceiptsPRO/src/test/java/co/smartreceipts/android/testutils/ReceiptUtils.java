@@ -22,7 +22,7 @@ public class ReceiptUtils {
         public static final String CATEGORY = "Lunch";
         public static final String COMMENT = "";
         public static final String CURRENCY_CODE = "USD";
-        public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); // 1
+        public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE);
         public static final long DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date DATE = new Date(DATE_MILLIS);
         public static final String SLASH_FORMATTED_DATE = "09/02/2014";
@@ -47,8 +47,8 @@ public class ReceiptUtils {
         public static final String TIMEZONE_CODE = TIMEZONE.getID();
     }
 
-    public static Receipt newSpyOfDefaultTrip() {
-        final File img = getMockedFile(Constants.IMAGE_FILE_NAME);
+    public static ReceiptBuilderFactory newDefaultReceiptBuilderFactory() {
+        final File img = newMockedFile(Constants.IMAGE_FILE_NAME);
         final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(Constants.ID);
         factory.setTrip(TripUtils.newSpyOfDefaultTrip());
         factory.setName(Constants.NAME);
@@ -67,7 +67,11 @@ public class ReceiptUtils {
         factory.setExtraEditText2(Constants.EXTRA2);
         factory.setExtraEditText3(Constants.EXTRA3);
         // TODO: Add Payment Method DefaultBuilderHere
-        return spy(factory.build());
+        return factory;
+    }
+
+    public static Receipt newSpyOfDefaultReceipt() {
+        return spy(newDefaultReceiptBuilderFactory().build());
     }
 
     public static File newMockedFile(String filename) {

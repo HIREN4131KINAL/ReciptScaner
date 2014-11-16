@@ -130,6 +130,12 @@ public class DefaultReceiptImplTest {
     }
 
     @Test
+    public void testCurrency() {
+        assertEquals(ReceiptUtils.Constants.CURRENCY, receipt1.getCurrency());
+        assertEquals(ReceiptUtils.Constants.CURRENCY_CODE, receipt1.getCurrencyCode());
+    }
+
+    @Test
     public void testPriceAndCurrency() {
         assertEquals((float) ReceiptUtils.Constants.PRICE, receipt1.getPriceAsFloat(), TestUtils.EPSILON);
         assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receipt1.getDecimalFormattedPrice());
@@ -139,12 +145,12 @@ public class DefaultReceiptImplTest {
     @Test
     public void testTaxAndCurrency() {
         assertEquals((float) ReceiptUtils.Constants.TAX, receipt1.getPriceAsFloat(), TestUtils.EPSILON);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receipt1.getDecimalFormattedPrice());
-        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_PRICE, receipt1.getCurrencyFormattedPrice());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receipt1.getDecimalFormattedPrice());
+        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_TAX, receipt1.getCurrencyFormattedPrice());
     }
 
     @Test
-    public void testEndDatesAndTimeZones() {
+    public void testDateAndTimeZone() {
         assertEquals(ReceiptUtils.Constants.DATE, receipt1.getDate());
         assertEquals(ReceiptUtils.Constants.DATE_MILLIS, receipt1.getDate().getTime());
         assertEquals(ReceiptUtils.Constants.TIMEZONE, receipt1.getTimeZone());

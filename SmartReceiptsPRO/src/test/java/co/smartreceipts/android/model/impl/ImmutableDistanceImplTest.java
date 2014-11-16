@@ -1,140 +1,132 @@
 package co.smartreceipts.android.model.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import android.os.Parcel;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import android.os.Parcel;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.tests.utils.DistanceUtils;
-import co.smartreceipts.tests.utils.TripUtils;
+import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.testutils.DistanceUtils;
+import co.smartreceipts.android.testutils.TripUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class ImmutableDistanceImplTest {
 
-	private Distance mDistanceA, mDistanceB;
+    Trip trip;
+    ImmutableDistanceImpl distance1, distance2, distance3;
 
-	@Before
-	public void setUp() throws Exception {
-		mDistanceA = getDistanceRowBuilderA().build();
-		mDistanceB = getDistanceRowBuilderB().build();
-	}
+    @Before
+    public void setUp() throws Exception {
+        trip = TripUtils.newSpyOfDefaultTrip();
+        distance1 = new ImmutableDistanceImpl(DistanceUtils.Constants.ID,
+                trip,
+                DistanceUtils.Constants.LOCATION,
+                DistanceUtils.Constants.DISTANCE,
+                DistanceUtils.Constants.RATE,
+                DistanceUtils.Constants.CURRENCY,
+                DistanceUtils.Constants.DATE,
+                DistanceUtils.Constants.TIMEZONE,
+                DistanceUtils.Constants.COMMENT);
+        distance2 = new ImmutableDistanceImpl(DistanceUtils.Constants.ID,
+                trip,
+                DistanceUtils.Constants.LOCATION,
+                DistanceUtils.Constants.DISTANCE,
+                DistanceUtils.Constants.RATE,
+                DistanceUtils.Constants.CURRENCY,
+                DistanceUtils.Constants.DATE,
+                DistanceUtils.Constants.TIMEZONE,
+                DistanceUtils.Constants.COMMENT);
+        distance3 = new ImmutableDistanceImpl(-1,
+                trip,
+                DistanceUtils.Constants.LOCATION + "_new",
+                DistanceUtils.Constants.DISTANCE,
+                DistanceUtils.Constants.RATE,
+                DistanceUtils.Constants.CURRENCY,
+                DistanceUtils.Constants.DATE,
+                DistanceUtils.Constants.TIMEZONE,
+                DistanceUtils.Constants.COMMENT + "_new");
+    }
 
-	private Distance.Builder getDistanceRowBuilderA() {
-		final Distance.Builder builder = new Distance.Builder(DistanceUtils.Constants.ID);
-		builder.setTrip(TripUtils.newDefaultTripRowInstance());
-		builder.setComment(DistanceUtils.Constants.COMMENT);
-		builder.setDate(DistanceUtils.Constants.DATE);
-		builder.setDistance(DistanceUtils.Constants.DISTANCE);
-		builder.setLocation(DistanceUtils.Constants.LOCATION);
-		builder.setRate(DistanceUtils.Constants.RATE);
-		builder.setTimezone(DistanceUtils.Constants.TIMEZONE);
-		return builder;
-	}
+    @Test
+    public void testComment() {
+        assertEquals(DistanceUtils.Constants.COMMENT, distance1.getComment());
+    }
 
-	private Distance.Builder getDistanceRowBuilderB() {
-		final Distance.Builder builder = new Distance.Builder(DistanceUtils.Constants.ID);
-		builder.setTrip(TripUtils.newDefaultTripRowInstance());
-		builder.setComment(DistanceUtils.Constants.COMMENT);
-		builder.setDate(DistanceUtils.Constants.DATE_MILLIS);
-		builder.setDistance(DistanceUtils.Constants.DISTANCE_DOUBLE);
-		builder.setLocation(DistanceUtils.Constants.LOCATION);
-		builder.setRate(DistanceUtils.Constants.RATE_DOUBLE);
-		builder.setTimezone(DistanceUtils.Constants.TIMEZONE_CODE);
-		return builder;
-	}
+    @Test
+    public void testCurrency() {
+        assertEquals(DistanceUtils.Constants.CURRENCY, distance1.getCurrency());
+        assertEquals(DistanceUtils.Constants.CURRENCY_CODE, distance1.getCurrencyCode());
+    }
 
-	@Test
-	public void equalityTest() {
-		DistanceUtils.assertFieldEquality(mDistanceA, mDistanceB);
-		assertEquals(mDistanceA, mDistanceB);
-		assertEquals(mDistanceA, mDistanceA);
-		assertNotSame(mDistanceA, null);
-		assertNotSame(mDistanceA, getDistanceRowBuilderA().setComment("bad").build());
-		assertNotSame(mDistanceA, getDistanceRowBuilderA().setLocation("bad").build());
-		assertNotSame(mDistanceA, getDistanceRowBuilderA().setDistance(-1).build());
-		assertNotSame(mDistanceA, getDistanceRowBuilderA().setRate(-1).build());
-		assertNotSame(mDistanceA, getDistanceRowBuilderA().setDate(0).build());
-	}
+    @Test
+    public void testDateAndTimeZone() {
+        assertEquals(DistanceUtils.Constants.DATE, distance1.getDate());
+        assertEquals(DistanceUtils.Constants.DATE_MILLIS, distance1.getDate().getTime());
+        assertEquals(DistanceUtils.Constants.TIMEZONE, distance1.getTimeZone());
+        assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, distance1.getTimeZone().getID());
+        assertEquals(DistanceUtils.Constants.SLASH_FORMATTED_DATE, distance1.getFormattedDate(Robolectric.application, "/"));
+        assertEquals(DistanceUtils.Constants.DASH_FORMATTED_DATE, distance1.getFormattedDate(Robolectric.application, "-"));
+    }
 
-	@Test
-	public void hashCodeTest() {
-		assertEquals(mDistanceA.hashCode(), mDistanceB.hashCode());
-		assertEquals(mDistanceA.hashCode(), mDistanceA.hashCode());
-		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setComment("bad").build().hashCode());
-		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setLocation("bad").build().hashCode());
-		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setDistance(-1).build().hashCode());
-		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setRate(-1).build().hashCode());
-		assertNotSame(mDistanceA.hashCode(), getDistanceRowBuilderA().setDate(0).build().hashCode());
-	}
+    @Test
+    public void testDistance() {
+        assertEquals(DistanceUtils.Constants.DISTANCE, distance1.getDistance());
+        assertEquals(DistanceUtils.Constants.DECIMAL_FORMATTED_DISTANCE, distance1.getDecimalFormattedDistance());
+    }
 
-	@Test
-	public void testGetComment() {
-		assertNotNull(mDistanceA.getComment());
-		assertEquals(mDistanceA.getComment(), mDistanceB.getComment());
-		assertEquals(DistanceUtils.Constants.COMMENT, mDistanceA.getComment());
-	}
+    @Test
+    public void testId() {
+        assertEquals(DistanceUtils.Constants.ID, distance1.getId());
+    }
 
-	@Test
-	public void testGetDate() {
-		assertNotNull(mDistanceA.getDate());
-		assertEquals(mDistanceA.getDate(), mDistanceB.getDate());
-		assertEquals(DistanceUtils.Constants.DATE, mDistanceA.getDate());
-	}
+    @Test
+    public void testLocation() {
+        assertEquals(DistanceUtils.Constants.LOCATION, distance1.getLocation());
+    }
 
-	@Test
-	public void testGetDistance() {
-		assertNotNull(mDistanceA.getDistance());
-		assertEquals(mDistanceA.getDistance(), mDistanceB.getDistance());
-		assertEquals(DistanceUtils.Constants.DISTANCE, mDistanceA.getDistance());
-	}
+    @Test
+    public void testRate() {
+        assertEquals(DistanceUtils.Constants.RATE, distance1.getRate());
+        assertEquals(DistanceUtils.Constants.DECIMAL_FORMATTED_RATE, distance1.getDecimalFormattedRate());
+        assertEquals(DistanceUtils.Constants.CURRENCY_FORMATTED_RATE, distance1.getCurrencyFormattedRate());
+    }
 
-	@Test
-	public void testGetLocation() {
-		assertNotNull(mDistanceA.getLocation());
-		assertEquals(mDistanceA.getLocation(), mDistanceB.getLocation());
-		assertEquals(DistanceUtils.Constants.LOCATION, mDistanceA.getLocation());
-	}
+    @Test
+    public void parcelTest() {
+        final Parcel parcel = Parcel.obtain();
+        distance1.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
 
-	@Test
-	public void testGetRate() {
-		assertNotNull(mDistanceA.getRate());
-		assertEquals(mDistanceA.getRate(), mDistanceB.getRate());
-		assertEquals(DistanceUtils.Constants.RATE, mDistanceA.getRate());
-	}
+        final Distance parcelledDistance = ImmutableDistanceImpl.CREATOR.createFromParcel(parcel);
+        assertNotNull(parcelledDistance);
+        assertEquals(distance1, parcelledDistance);
+        DistanceUtils.assertFieldEquality(parcelledDistance, distance1);
+    }
 
-	@Test
-	public void testGetTimezone() {
-		assertNotNull(mDistanceA.getTimezone());
-		assertEquals(mDistanceA.getTimezone(), mDistanceB.getTimezone());
-		assertEquals(DistanceUtils.Constants.TIMEZONE, mDistanceA.getTimezone());
-		assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, mDistanceA.getTimezoneCode());
-	}
+    @Test
+    public void equalityTest() {
+        DistanceUtils.assertFieldEquality(distance1, distance2);
+        assertEquals(distance1, distance2);
+        assertEquals(distance2, distance1);
+        assertNotSame(distance1, null);
+        assertNotSame(distance1, new Object());
+        assertNotSame(distance1, distance3);
+    }
 
-	@Test
-	public void testGetTrip() {
-		assertNotNull(mDistanceA.getTrip());
-		assertEquals(mDistanceA.getTrip(), mDistanceB.getTrip());
-		assertEquals(TripUtils.newDefaultTripRowInstance(), mDistanceA.getTrip());
-	}
-
-	@Test
-	public void parcelTest() {
-		final Parcel parcelA = Parcel.obtain();
-		mDistanceA.writeToParcel(parcelA, 0);
-		parcelA.setDataPosition(0);
-
-		final Distance parcelDistanceA = Distance.CREATOR.createFromParcel(parcelA);
-		assertNotNull(parcelDistanceA);
-		assertEquals(mDistanceA, parcelDistanceA);
-		DistanceUtils.assertFieldEquality(parcelDistanceA, mDistanceA);
-	}
+    @Test
+    public void hashCodeTest() {
+        assertEquals(distance1.hashCode(), distance2.hashCode());
+        assertNotSame(distance1.hashCode(), distance3.hashCode());
+    }
 
 }

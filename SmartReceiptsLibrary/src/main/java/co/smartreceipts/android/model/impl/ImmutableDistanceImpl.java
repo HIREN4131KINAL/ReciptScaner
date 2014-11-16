@@ -18,7 +18,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public class ImmutableDistanceImpl implements Distance {
 
-    private final long mId;
+    private final int mId;
     private final Trip mTrip;
     private final String mLocation;
     private final BigDecimal mDistance;
@@ -28,7 +28,7 @@ public class ImmutableDistanceImpl implements Distance {
     private final WBCurrency mCurrency;
     private final String mComment;
 
-    public ImmutableDistanceImpl(long id, Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
+    public ImmutableDistanceImpl(int id, Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
         mId = id;
         mTrip = trip;
         mLocation = location;
@@ -41,7 +41,7 @@ public class ImmutableDistanceImpl implements Distance {
     }
 
     protected ImmutableDistanceImpl(Parcel in) {
-        mId = in.readLong();
+        mId = in.readInt();
         mTrip = in.readParcelable(Trip.class.getClassLoader());
         mLocation = in.readString();
         mDistance = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
@@ -54,7 +54,7 @@ public class ImmutableDistanceImpl implements Distance {
     }
 
     @Override
-    public long getId() {
+    public int getId() {
         return mId;
     }
 
@@ -90,7 +90,7 @@ public class ImmutableDistanceImpl implements Distance {
     }
 
     @Override
-    public TimeZone getTimezone() {
+    public TimeZone getTimeZone() {
         return mTimezone;
     }
 
@@ -131,7 +131,7 @@ public class ImmutableDistanceImpl implements Distance {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(mId);
+        dest.writeInt(mId);
         dest.writeParcelable(mTrip, flags);
         dest.writeString(mLocation);
         dest.writeValue(mDistance);
@@ -163,7 +163,7 @@ public class ImmutableDistanceImpl implements Distance {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + Long.valueOf(mId).hashCode();
+        result = prime * result + Integer.valueOf(mId).hashCode();
         result = prime * result + ((mComment == null) ? 0 : mComment.hashCode());
         result = prime * result + ((mDate == null) ? 0 : mDate.hashCode());
         result = prime * result + ((mDistance == null) ? 0 : mDistance.hashCode());

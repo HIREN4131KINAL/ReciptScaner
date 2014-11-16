@@ -17,7 +17,6 @@ import co.smartreceipts.android.testutils.TripUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 
 @Config(emulateSdk = 18)
@@ -70,6 +69,18 @@ public class DefaultTripImplTest {
         assertEquals(TripUtils.Constants.END_TIMEZONE_CODE, trip.getEndTimeZone().getID());
         assertEquals(TripUtils.Constants.SLASH_FORMATTED_END_DATE, trip.getFormattedEndDate(Robolectric.application, "/"));
         assertEquals(TripUtils.Constants.DASH_FORMATTED_END_DATE, trip.getFormattedEndDate(Robolectric.application, "-"));
+    }
+
+    @Test
+    public void testCurrency() {
+        assertEquals(TripUtils.Constants.CURRENCY, trip.getCurrency());
+        assertEquals(TripUtils.Constants.CURRENCY_CODE, trip.getCurrencyCode());
+    }
+
+    @Test
+    public void testDefaultCurrency() {
+        assertEquals(TripUtils.Constants.DEFAULT_CURRENCY, trip.getDefaultCurrency());
+        assertEquals(TripUtils.Constants.DEFAULT_CURRENCY_CODE, trip.getDefaultCurrencyCode());
     }
 
     @Test

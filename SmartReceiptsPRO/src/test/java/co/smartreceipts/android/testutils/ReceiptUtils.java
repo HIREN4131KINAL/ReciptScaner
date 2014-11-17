@@ -93,11 +93,18 @@ public class ReceiptUtils {
 
     public static void assertFieldEquality(Receipt receipt1, Receipt receipt2) {
         assertFieldEqualityHelper(receipt1, receipt2);
+        assertEquals(receipt1.getTrip(), receipt2.getTrip());
+        assertEquals(receipt1.getDate(), receipt2.getDate());
+    }
+
+    public static void assertFieldEqualityIgnoringParent(Receipt receipt1, Receipt receipt2) {
+        assertFieldEqualityHelper(receipt1, receipt2);
         assertEquals(receipt1.getDate(), receipt2.getDate());
     }
 
     public static void assertFieldEqualityWithDateFuzzing(Receipt receipt1, Receipt receipt2) {
         assertFieldEqualityHelper(receipt1, receipt2);
+        assertEquals(receipt1.getTrip(), receipt2.getTrip());
         assertTrue(Math.abs(receipt1.getDate().getTime() - receipt2.getDate().getTime()) < 100L);
     }
 
@@ -105,7 +112,6 @@ public class ReceiptUtils {
         assertEquals(receipt1.getComment(), receipt2.getComment());
         assertEquals(receipt1.getCategory(), receipt2.getCategory());
         assertEquals(receipt1.getCurrencyCode(), receipt2.getCurrencyCode());
-        assertEquals(receipt1.getDate(), receipt2.getDate());
         assertEquals(receipt1.getExtraEditText1(), receipt2.getExtraEditText1());
         assertEquals(receipt1.getExtraEditText2(), receipt2.getExtraEditText2());
         assertEquals(receipt1.getExtraEditText3(), receipt2.getExtraEditText3());
@@ -117,7 +123,6 @@ public class ReceiptUtils {
         assertEquals(receipt1.getPriceAsFloat(), receipt2.getPriceAsFloat(), TestUtils.EPSILON);
         assertEquals(receipt1.getTaxAsFloat(), receipt2.getTaxAsFloat(), TestUtils.EPSILON);
         assertEquals(receipt1.getTimeZone(), receipt2.getTimeZone());
-        assertEquals(receipt1.getTrip(), receipt2.getTrip());
         assertEquals(receipt1.getPaymentMethod(), receipt2.getPaymentMethod());
     }
 

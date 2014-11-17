@@ -94,18 +94,4 @@ public class TripsDBTest {
         assertEquals(trips.length, 0);
     }
 
-    @Test
-    public void addMiles() {
-        Trip insertTrip = insertDefaultTrip();
-        mDB.addMiles(insertTrip, Float.toString(TripUtils.Constants.MILEAGE));
-        mDB.addMiles(insertTrip, Float.toString(TripUtils.Constants.MILEAGE));
-        mDB.addMiles(insertTrip, Float.toString(-TripUtils.Constants.MILEAGE));
-        Trip[] trips = mDB.getTripsSerial();
-        assertNotNull(insertTrip);
-        assertNotNull(trips);
-        assertEquals(trips.length, 1);
-        assertEquals(insertTrip.getMileage(), TripUtils.Constants.MILEAGE, TestUtils.EPSILON);
-        assertEquals(trips[0].getMileage(), TripUtils.Constants.MILEAGE, TestUtils.EPSILON);
-    }
-
 }

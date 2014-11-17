@@ -131,8 +131,8 @@ public class ReceiptsDBTest {
         assertEquals(receipts.size(), 2);
         assertEquals(insertReceipt1, receipts.get(1));
         assertEquals(insertReceipt2, receipts.get(0));
-        ReceiptUtils.assertFieldEquality(insertReceipt1, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(insertReceipt2, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(insertReceipt1, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(insertReceipt2, receipts.get(0));
     }
 
     @Test
@@ -286,12 +286,12 @@ public class ReceiptsDBTest {
         assertTrue(receipts2.get(0).hasImage());
         assertNotSame(imgReceipt.getTrip(), receipts2.get(0).getTrip());
         assertEquals(imgReceipt, receipts1.get(0)); // receipts2.get(0) will have a different id
-        ReceiptUtils.assertFieldEqualityPlusIdAndIndex(imgReceipt, receipts1.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzingPlusIdAndIndex(imgReceipt, receipts1.get(0));
         assertNotSame(imgReceipt.getTrip(), receipts2.get(0).getTrip());
         assertEquals(receipts2.get(0).getTrip(), mTrip2);
         // Since we've verified the trip/image stuff, change them so we can use field equals
         receipts2.get(0).setFile(imgReceipt.getFile());
-        ReceiptUtils.assertFieldEquality(imgReceipt, receipts2.get(0));
+        ReceiptUtils.assertFieldEqualityIgnoringParent(imgReceipt, receipts2.get(0)); // Parents different b/c copy
     }
 
     @Test
@@ -312,7 +312,7 @@ public class ReceiptsDBTest {
         assertEquals(receipts2.get(0).getTrip(), mTrip2);
         // Since we've verified the trip/image stuff, change them so we can use field equals
         receipts2.get(0).setFile(imgReceipt.getFile());
-        ReceiptUtils.assertFieldEquality(imgReceipt, receipts2.get(0));
+        ReceiptUtils.assertFieldEqualityIgnoringParent(imgReceipt, receipts2.get(0)); // Parents different b/c copy
     }
 
     @Test
@@ -350,20 +350,20 @@ public class ReceiptsDBTest {
         List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(0));
         assertTrue(mDB.moveReceiptUp(mTrip, receipt1));
         receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(0));
         assertFalse(mDB.moveReceiptUp(mTrip, receipt1));
         receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(0));
     }
 
     @Test
@@ -373,20 +373,20 @@ public class ReceiptsDBTest {
         List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(0));
         assertTrue(mDB.moveReceiptUp(mTrip, receipt1));
         receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(0));
         assertFalse(mDB.moveReceiptUp(mTrip, receipt1));
         receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(receipts);
         assertEquals(receipts.size(), 2);
-        ReceiptUtils.assertFieldEquality(receipt2, receipts.get(1));
-        ReceiptUtils.assertFieldEquality(receipt1, receipts.get(0));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt2, receipts.get(1));
+        ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(0));
     }
 
 }

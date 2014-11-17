@@ -17,6 +17,7 @@ import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import wb.android.storage.StorageManager;
 
 /**
@@ -313,32 +314,47 @@ public final class DefaultReceiptImpl implements Receipt {
 
     @Override
     public String getExtraEditText1() {
-        return mExtraEditText1;
+        if (DatabaseHelper.NO_DATA.equals(mExtraEditText1)) {
+            return null;
+        }
+        else {
+            return mExtraEditText1;
+        }
     }
 
     @Override
     public String getExtraEditText2() {
-        return mExtraEditText2;
+        if (DatabaseHelper.NO_DATA.equals(mExtraEditText2)) {
+            return null;
+        }
+        else {
+            return mExtraEditText2;
+        }
     }
 
     @Override
     public String getExtraEditText3() {
-        return mExtraEditText3;
+        if (DatabaseHelper.NO_DATA.equals(mExtraEditText3)) {
+            return null;
+        }
+        else {
+            return mExtraEditText3;
+        }
     }
 
     @Override
     public boolean hasExtraEditText1() {
-        return (mExtraEditText1 != null);
+        return (mExtraEditText1 != null) && !mExtraEditText1.equals(DatabaseHelper.NO_DATA);
     }
 
     @Override
     public boolean hasExtraEditText2() {
-        return (mExtraEditText2 != null);
+        return (mExtraEditText2 != null) && !mExtraEditText2.equals(DatabaseHelper.NO_DATA);
     }
 
     @Override
     public boolean hasExtraEditText3() {
-        return (mExtraEditText3 != null);
+        return (mExtraEditText3 != null)&& !mExtraEditText3.equals(DatabaseHelper.NO_DATA);
     }
 
     @Override

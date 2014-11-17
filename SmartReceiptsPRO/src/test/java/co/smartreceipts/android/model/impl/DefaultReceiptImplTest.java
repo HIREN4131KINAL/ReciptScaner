@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.testutils.ReceiptUtils;
 import co.smartreceipts.android.testutils.TestUtils;
 import co.smartreceipts.android.testutils.TripUtils;
@@ -31,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 public class DefaultReceiptImplTest {
 
     Trip parent;
-    DefaultReceiptImpl receipt1, receipt2, receipt3;
+    DefaultReceiptImpl receipt1, receipt2, receipt3, receipt4;
 
     @Before
     public void setUp() throws Exception {
@@ -97,6 +98,26 @@ public class DefaultReceiptImplTest {
                 null, // Note: No Extras
                 null, // Note: No Extras
                 null); // Note: No Extras
+        receipt4 = new DefaultReceiptImpl(-1, // Note: mismatched ID
+                ReceiptUtils.Constants.INDEX,
+                parent,
+                null,
+                null, // TODO: Add Payment method
+                ReceiptUtils.Constants.NAME,
+                ReceiptUtils.Constants.CATEGORY,
+                ReceiptUtils.Constants.COMMENT,
+                new BigDecimal(ReceiptUtils.Constants.PRICE),
+                new BigDecimal(ReceiptUtils.Constants.TAX),
+                ReceiptUtils.Constants.CURRENCY,
+                ReceiptUtils.Constants.DATE,
+                ReceiptUtils.Constants.TIMEZONE,
+                ReceiptUtils.Constants.IS_EXPENSABLE,
+                ReceiptUtils.Constants.IS_FULLPAGE,
+                ReceiptUtils.Constants.IS_SELECTED,
+                Source.Undefined,
+                DatabaseHelper.NO_DATA, // Note: No Extras
+                DatabaseHelper.NO_DATA, // Note: No Extras
+                DatabaseHelper.NO_DATA); // Note: No Extras
     }
 
     @Test
@@ -230,6 +251,8 @@ public class DefaultReceiptImplTest {
         assertTrue(receipt1.hasExtraEditText1());
         assertNull(receipt3.getExtraEditText1());
         assertFalse(receipt3.hasExtraEditText1());
+        assertNull(receipt4.getExtraEditText1());
+        assertFalse(receipt4.hasExtraEditText1());
     }
 
     @Test
@@ -238,6 +261,8 @@ public class DefaultReceiptImplTest {
         assertTrue(receipt1.hasExtraEditText2());
         assertNull(receipt3.getExtraEditText2());
         assertFalse(receipt3.hasExtraEditText2());
+        assertNull(receipt4.getExtraEditText2());
+        assertFalse(receipt4.hasExtraEditText2());
     }
 
     @Test
@@ -246,10 +271,12 @@ public class DefaultReceiptImplTest {
         assertTrue(receipt1.hasExtraEditText3());
         assertNull(receipt3.getExtraEditText3());
         assertFalse(receipt3.hasExtraEditText3());
+        assertNull(receipt4.getExtraEditText3());
+        assertFalse(receipt4.hasExtraEditText3());
     }
 
     @Test
-    public void testParcel() {
+    public void testParcelForReceipt1() {
         final Parcel parcel = Parcel.obtain();
         receipt1.writeToParcel(parcel, 0);
         parcel.setDataPosition(0);
@@ -257,6 +284,28 @@ public class DefaultReceiptImplTest {
         assertNotNull(parceledReceipt);
         assertEquals(receipt1, parceledReceipt);
         ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parceledReceipt, receipt1);
+    }
+
+    @Test
+    public void testParcelForReceipt3() {
+        final Parcel parcel = Parcel.obtain();
+        receipt3.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        Receipt parceledReceipt = DefaultReceiptImpl.CREATOR.createFromParcel(parcel);
+        assertNotNull(parceledReceipt);
+        assertEquals(receipt3, parceledReceipt);
+        ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parceledReceipt, receipt3);
+    }
+
+    @Test
+    public void testParcelForReceipt4() {
+        final Parcel parcel = Parcel.obtain();
+        receipt4.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        Receipt parceledReceipt = DefaultReceiptImpl.CREATOR.createFromParcel(parcel);
+        assertNotNull(parceledReceipt);
+        assertEquals(receipt4, parceledReceipt);
+        ReceiptUtils.assertFieldEqualityPlusIdAndIndex(parceledReceipt, receipt4);
     }
 
     @Test

@@ -250,7 +250,7 @@ public class EmailAssistant {
             emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
             emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
             emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()));
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()).replace("%REPORT_START%", mTrip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())).replace("%REPORT_END%", mTrip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())));
             emailIntent.putExtra(Intent.EXTRA_TEXT, body);
             emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
             try {

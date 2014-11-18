@@ -194,6 +194,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_COST_CENTER = "trips_cost_center";
 		public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
 		public static final String COLUMN_FILTERS = "trips_filters";
+        public static final String COLUMN_PROCESSING_STATUS = "trip_processing_status";
 	}
 
 	private static final class ReceiptsTable {
@@ -216,6 +217,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		public static final String COLUMN_ISO4217 = "isocode";
 		public static final String COLUMN_PAYMENT_METHOD_ID = "paymentMethodKey";
 		public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
+        public static final String COLUMN_PROCESSING_STATUS = "receipt_processing_status";
 		public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
 		public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
 		public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
@@ -334,6 +336,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					+ TripsTable.COLUMN_COMMENT + " TEXT, "
                     + TripsTable.COLUMN_COST_CENTER + " TEXT, "
 					+ TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, "
+                    + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
 					+ TripsTable.COLUMN_FILTERS + " TEXT"
 					+ ");";
 			final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " ("
@@ -351,6 +354,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					+ ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
 					+ ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
 					+ ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
+                    + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
 					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
 					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
 					+ ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
@@ -563,13 +567,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 final String distanceMigrate = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
                         + " SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY
                         + " FROM " + TripsTable.TABLE_NAME  + ";";
-                final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
+                final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
+                final String alterTripsWithProcessingStatus = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT";
+                final String alterReceiptsWithProcessingStatus = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT";
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, distanceMigrate);
-                    Log.d(TAG, alterTrips);
+                    Log.d(TAG, alterTripsWithCostCenter);
+                    Log.d(TAG, alterTripsWithProcessingStatus);
+                    Log.d(TAG, alterReceiptsWithProcessingStatus);
                 }
                 db.execSQL(distanceMigrate);
-                db.execSQL(alterTrips);
+                db.execSQL(alterTripsWithCostCenter);
+                db.execSQL(alterTripsWithProcessingStatus);
+                db.execSQL(alterReceiptsWithProcessingStatus);
 			}
 			_initDB = null;
 		}

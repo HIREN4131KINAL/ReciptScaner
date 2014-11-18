@@ -1,0 +1,56 @@
+package co.smartreceipts.android.model.impl;
+
+import co.smartreceipts.android.model.ProcessingStatus;
+
+/**
+ * Tracks the different processing states that a given {@link co.smartreceipts.android.model.Receipt} can reside in.
+ */
+public enum ReceiptProcessingStatus implements ProcessingStatus {
+
+    /**
+     * Indicates that this Receipt should still be treated as in new (i.e. not submitted)
+     */
+    Created("Created"),
+
+    /**
+     * Indicates that a Receipt has been submitted
+     */
+    Submitted("Submitted"),
+
+    /**
+     * Indicates that this Receipt has been reimbursed by whomever is paying for it
+     */
+    Reimbursed("Reimbursed"),
+
+    /**
+     * Indicates that we're in an unknown state - shouldn't be normally be used
+     */
+    None("None");
+
+    private final String mStatus;
+
+    private ReceiptProcessingStatus(final String status) {
+        mStatus = status;
+    }
+
+    @Override
+    public String getProcessingStatus() {
+        return mStatus;
+    }
+
+    /**
+     * Attempts to generate an enum representation of a given status string
+     *
+     * @param status - the provided status {@link java.lang.String}
+     * @return the corresponding {@link co.smartreceipts.android.model.impl.TripProcessingStatus} or {@link co.smartreceipts.android.model.impl.TripProcessingStatus#None} if none match
+     */
+    public static ReceiptProcessingStatus findProcessingStatusForString(final String status) {
+        final ReceiptProcessingStatus[] receiptProcessingStatuses = ReceiptProcessingStatus.values();
+        for (int i = 0; i < receiptProcessingStatuses.length; i++) {
+            if (receiptProcessingStatuses[i].getProcessingStatus().equals(status)) {
+                return receiptProcessingStatuses[i];
+            }
+        }
+        return None;
+    }
+}

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync;
+package co.smartreceipts.android.sync.response;
 
 /**
  * This is used to encapsulate error data that may occur during a sync operation

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.sync.network.NetworkProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.sync.request.SyncRequest;
 
 /**
  * This class operates as the entry point for all data synchronization activities
@@ -60,12 +62,12 @@ public final class SyncManager {
 	 * Submits a synchronization request to be uploaded to our back-end
 	 * 
 	 * @param syncRequest
-	 *            - the {@link SyncRequest} to upload
+	 *            - the {@link co.smartreceipts.android.sync.request.SyncRequest} to upload
 	 * @return {@code true} if at {@link SyncProvider} is registered that supports this request type
 	 */
 	public boolean submitSyncRequest(SyncRequest<?> syncRequest) {
 		boolean wasSumbitted = false;
-		for (final SyncProvider provider : mProviders) {
+		for (SyncProvider provider : mProviders) {
 			if (provider.supportsSynchronization(syncRequest)) {
 				provider.submitSyncRequest(syncRequest);
 				wasSumbitted = true;

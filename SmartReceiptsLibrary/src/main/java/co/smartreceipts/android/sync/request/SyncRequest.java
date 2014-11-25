@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync;
+package co.smartreceipts.android.sync.request;
 
 /**
  * Implementations of this class can handle how synchronization requests are transmitted
@@ -21,4 +21,9 @@ public interface SyncRequest<T> {
 	 * @return the desired payload or {@code} null if nothing is being uploaded
 	 */
 	public T getRequestData();
+
+    /**
+     * @return the {@link java.lang.Class} type of {@link #getRequestData()}
+     */
+    public Class<T> getRequestDataClass();
 }

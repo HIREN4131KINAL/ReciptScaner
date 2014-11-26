@@ -14,17 +14,17 @@ public interface SyncRequest<T extends Parcelable> extends Parcelable {
 	 * @return the {@link SyncRequestType} for this upload request
 	 */
     @NonNull
-    public SyncRequestType getSyncRequestType();
+    SyncRequestType getSyncRequestType();
 
 	/**
 	 * @return the desired payload or {@code} null if nothing is being uploaded
 	 */
     @NonNull
-    public T getRequestData();
+    T getRequestData();
 
     /**
      * @return the {@link java.lang.Class} type of {@link #getRequestData()}
      */
     @NonNull
-    public Class<T> getRequestDataClass();
+    Class<T> getRequestDataClass();
 }

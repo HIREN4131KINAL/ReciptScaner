@@ -1,7 +1,7 @@
 package co.smartreceipts.android.sync;
 
 import co.smartreceipts.android.sync.request.SyncRequestType;
-import co.smartreceipts.android.sync.response.SyncException;
+import co.smartreceipts.android.sync.response.SyncError;
 import co.smartreceipts.android.sync.response.SyncResponse;
 
 /**
@@ -28,7 +28,7 @@ public interface SyncListener<T> {
 	 * @param type
 	 *            - the {@link SyncRequestType} of the request
 	 * @param exception
-	 *            - the {@link co.smartreceipts.android.sync.response.SyncException}, which details why the sync failed
+	 *            - the {@link co.smartreceipts.android.sync.response.SyncError}, which details why the sync failed
 	 */
-	public void onSyncError(SyncRequestType type, SyncException exception);
+	public void onSyncError(SyncRequestType type, SyncError exception);
 }

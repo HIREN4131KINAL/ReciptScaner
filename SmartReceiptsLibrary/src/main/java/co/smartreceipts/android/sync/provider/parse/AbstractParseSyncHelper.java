@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import co.smartreceipts.android.sync.response.SyncException;
+import co.smartreceipts.android.sync.response.SyncError;
 import co.smartreceipts.android.sync.request.SyncRequest;
 import co.smartreceipts.android.sync.response.SyncResponse;
 import co.smartreceipts.android.sync.network.NetworkProvider;
@@ -28,7 +28,7 @@ abstract class AbstractParseSyncHelper<T extends Parcelable> {
         mNetworkProvider = networkProvider;
     }
 
-    final void submitSyncRequest(SyncRequest<T> request) throws SyncException {
+    final void submitSyncRequest(SyncRequest<T> request) {
         if (mNetworkProvider.isNetworkAvailable()) {
             onSubmitSyncRequestWithNetwork(request);
         } else {
@@ -40,7 +40,7 @@ abstract class AbstractParseSyncHelper<T extends Parcelable> {
 
     }
 
-    final void onNetworkConnectivityGained() throws SyncException {
+    final void onNetworkConnectivityGained() {
         if (!mOutstandingRequests.isEmpty()) {
             final List<SyncRequest<T>> listSnapshot = new ArrayList<SyncRequest<T>>(mOutstandingRequests);
             mOutstandingRequests.clear();
@@ -56,6 +56,6 @@ abstract class AbstractParseSyncHelper<T extends Parcelable> {
      *
      * @param request - the {@link java.util.List} of {@link co.smartreceipts.android.sync.request.SyncRequest}s to send.
      */
-    protected abstract SyncResponse<T> onSubmitSyncRequestWithNetwork(SyncRequest<T> request) throws SyncException;
+    protected abstract SyncResponse<T> onSubmitSyncRequestWithNetwork(SyncRequest<T> request);
 
 }

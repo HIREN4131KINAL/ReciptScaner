@@ -70,4 +70,26 @@ abstract class AbstractSyncRequest<T extends Parcelable> implements SyncRequest<
         dest.writeParcelable(mRequestData, flags);
         dest.writeParcelable(mSyncRequestType, flags);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractSyncRequest that = (AbstractSyncRequest) o;
+
+        if (!mClass.equals(that.mClass)) return false;
+        if (!mRequestData.equals(that.mRequestData)) return false;
+        if (!mSyncRequestType.equals(that.mSyncRequestType)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mSyncRequestType.hashCode();
+        result = 31 * result + mRequestData.hashCode();
+        result = 31 * result + mClass.hashCode();
+        return result;
+    }
 }

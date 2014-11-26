@@ -7,7 +7,7 @@ import co.smartreceipts.android.sync.request.SyncRequestType;
 
 /**
  * An implementation of the {@link co.smartreceipts.android.sync.request.SyncRequest} interface for
- * {@link co.smartreceipts.android.model.Trip} objects.
+ * {@link co.smartreceipts.android.model.Receipt} objects.
  *
  * @author williambaumann
  */

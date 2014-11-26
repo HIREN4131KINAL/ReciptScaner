@@ -1,5 +1,7 @@
 package co.smartreceipts.android.sync;
 
+import android.os.Parcelable;
+
 import co.smartreceipts.android.sync.request.SyncRequestType;
 import co.smartreceipts.android.sync.response.SyncError;
 import co.smartreceipts.android.sync.response.SyncResponse;
@@ -10,7 +12,7 @@ import co.smartreceipts.android.sync.response.SyncResponse;
  * 
  * @author Will Baumann
  */
-public interface SyncListener<T> {
+public interface SyncListener<T extends Parcelable> {
 
 	/**
 	 * This method will be called whenever our data has successfully synchronized with the back-end

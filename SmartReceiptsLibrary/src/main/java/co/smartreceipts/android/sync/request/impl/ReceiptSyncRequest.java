@@ -1,8 +1,9 @@
 package co.smartreceipts.android.sync.request.impl;
 
+import android.os.Parcel;
+
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.sync.request.SyncRequestType;
-import co.smartreceipts.android.sync.request.SyncUploadCategory;
 
 /**
  * An implementation of the {@link co.smartreceipts.android.sync.request.SyncRequest} interface for
@@ -13,22 +14,20 @@ import co.smartreceipts.android.sync.request.SyncUploadCategory;
 public class ReceiptSyncRequest extends AbstractSyncRequest<Receipt> {
 
     public ReceiptSyncRequest(Receipt requestData, SyncRequestType requestType) {
-        super(requestData, requestType);
+        super(requestData, requestType, Receipt.class);
     }
 
-    @Override
-    public SyncUploadCategory getSyncUploadCategory() {
-        // TODO: Possible bug if we delete the file here?
-        if (getRequestData().hasFile()) {
-            return SyncUploadCategory.DataAndFile;
-        }
-        else {
-            return SyncUploadCategory.DataOnly;
-        }
+    private ReceiptSyncRequest(Parcel in) {
+        super(in);
     }
 
-    @Override
-    public Class<Receipt> getRequestDataClass() {
-        return Receipt.class;
-    }
+    public static final Creator<ReceiptSyncRequest> CREATOR = new Creator<ReceiptSyncRequest>() {
+        public ReceiptSyncRequest createFromParcel(Parcel source) {
+            return new ReceiptSyncRequest(source);
+        }
+
+        public ReceiptSyncRequest[] newArray(int size) {
+            return new ReceiptSyncRequest[size];
+        }
+    };
 }

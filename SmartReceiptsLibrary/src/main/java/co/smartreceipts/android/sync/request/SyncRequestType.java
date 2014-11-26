@@ -1,10 +1,13 @@
 package co.smartreceipts.android.sync.request;
 
+import android.os.Parcelable;
+
 /**
- * Tracks the basic CRUD operation types that a sync operation can support
- * 
+ * Tracks different available request types
+ *
  * @author Will Baumann
  */
-public enum SyncRequestType {
-	Get, Insert, Update, Delete
+public interface SyncRequestType extends Parcelable {
+
+    String getType();
 }

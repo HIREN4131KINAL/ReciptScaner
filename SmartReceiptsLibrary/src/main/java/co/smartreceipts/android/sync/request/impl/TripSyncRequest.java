@@ -1,8 +1,9 @@
 package co.smartreceipts.android.sync.request.impl;
 
+import android.os.Parcel;
+
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.sync.request.SyncRequestType;
-import co.smartreceipts.android.sync.request.SyncUploadCategory;
 
 /**
  * An implementation of the {@link co.smartreceipts.android.sync.request.SyncRequest} interface for
@@ -13,16 +14,20 @@ import co.smartreceipts.android.sync.request.SyncUploadCategory;
 public class TripSyncRequest extends AbstractSyncRequest<Trip> {
 
     public TripSyncRequest(Trip requestData, SyncRequestType requestType) {
-        super(requestData, requestType);
+        super(requestData, requestType, Trip.class);
     }
 
-    @Override
-    public SyncUploadCategory getSyncUploadCategory() {
-        return SyncUploadCategory.DataOnly;
+    private TripSyncRequest(Parcel in) {
+        super(in);
     }
 
-    @Override
-    public Class<Trip> getRequestDataClass() {
-        return Trip.class;
-    }
+    public static final Creator<TripSyncRequest> CREATOR = new Creator<TripSyncRequest>() {
+        public TripSyncRequest createFromParcel(Parcel source) {
+            return new TripSyncRequest(source);
+        }
+
+        public TripSyncRequest[] newArray(int size) {
+            return new TripSyncRequest[size];
+        }
+    };
 }

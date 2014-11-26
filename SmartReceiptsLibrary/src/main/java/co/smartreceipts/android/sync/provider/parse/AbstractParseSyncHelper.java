@@ -1,5 +1,7 @@
 package co.smartreceipts.android.sync.provider.parse;
 
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,7 +18,7 @@ import co.smartreceipts.android.sync.network.NetworkProvider;
  *
  * @author Will Baumann
  */
-abstract class AbstractParseSyncHelper<T> {
+abstract class AbstractParseSyncHelper<T extends Parcelable> {
 
     private final List<SyncRequest> mOutstandingRequests;
     private final NetworkProvider mNetworkProvider;

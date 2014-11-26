@@ -1,5 +1,10 @@
 package co.smartreceipts.android.sync.request.impl;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.NonNull;
+
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.sync.request.SyncRequest;
 import co.smartreceipts.android.sync.request.SyncRequestType;
 
@@ -9,24 +14,60 @@ import co.smartreceipts.android.sync.request.SyncRequestType;
  *
  * @author williambaumann
  */
-abstract class AbstractSyncRequest<T> implements SyncRequest<T> {
+abstract class AbstractSyncRequest<T extends Parcelable> implements SyncRequest<T> {
 
     private final SyncRequestType mSyncRequestType;
     private final T mRequestData;
+    private final Class<T> mClass;
 
-    protected AbstractSyncRequest(T requestData, SyncRequestType requestType) {
+    protected AbstractSyncRequest(@NonNull T requestData, @NonNull SyncRequestType requestType, @NonNull Class<T> klass) {
         mRequestData = requestData;
         mSyncRequestType = requestType;
+        mClass = klass;
+    }
+
+    protected AbstractSyncRequest(@NonNull Parcel in) {
+        this(in, (Class<T>) in.readSerializable());
+    }
+
+    /**
+     * Stepping stone constructor to ensure we're using an efficient class loader (i.e. framework vs APK) for re-loading the parcel
+     *
+     * @param in - the {@link android.os.Parcel} to load
+     * @param klass - the {@link java.lang.Class} from which we'll generate a {@link java.lang.ClassLoader}
+     */
+    private AbstractSyncRequest(@NonNull Parcel in, @NonNull Class<T> klass) {
+        this((T) in.readParcelable(klass.getClassLoader()), (SyncRequestType) in.readParcelable(SyncRequestType.class.getClassLoader()), klass);
     }
 
     @Override
-    public SyncRequestType getSyncRequestType() {
+    @NonNull
+    public final SyncRequestType getSyncRequestType() {
         return mSyncRequestType;
     }
 
     @Override
-    public T getRequestData() {
+    @NonNull
+    public final T getRequestData() {
         return mRequestData;
     }
 
+    @Override
+    @NonNull
+    public final Class<T> getRequestDataClass() {
+        return mClass;
+    }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeSerializable(mClass);
+        dest.writeParcelable(mRequestData, flags);
+        dest.writeParcelable(mSyncRequestType, flags);
+    }
 }

@@ -1,5 +1,7 @@
 package co.smartreceipts.android.model.impl;
 
+import android.os.Parcel;
+
 import co.smartreceipts.android.model.ProcessingStatus;
 
 /**
@@ -58,4 +60,24 @@ public enum TripProcessingStatus implements ProcessingStatus {
         }
         return None;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mStatus);
+    }
+
+    public static final Creator<TripProcessingStatus> CREATOR = new Creator<TripProcessingStatus>() {
+        public TripProcessingStatus createFromParcel(Parcel source) {
+            return findProcessingStatusForString(source.readString());
+        }
+
+        public TripProcessingStatus[] newArray(int size) {
+            return new TripProcessingStatus[size];
+        }
+    };
 }

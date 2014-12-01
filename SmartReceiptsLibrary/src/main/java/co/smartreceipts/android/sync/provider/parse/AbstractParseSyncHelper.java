@@ -42,11 +42,13 @@ abstract class AbstractParseSyncHelper<T extends Parcelable> {
 
     final void onNetworkConnectivityGained() {
         if (!mOutstandingRequests.isEmpty()) {
+            /*
             final List<SyncRequest<T>> listSnapshot = new ArrayList<SyncRequest<T>>(mOutstandingRequests);
             mOutstandingRequests.clear();
             for (SyncRequest<T> request : listSnapshot) {
                 onSubmitSyncRequestWithNetwork(request);
             }
+            */
         }
     }
 

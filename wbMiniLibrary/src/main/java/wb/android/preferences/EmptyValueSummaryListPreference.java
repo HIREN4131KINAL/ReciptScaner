@@ -11,12 +11,12 @@ public class EmptyValueSummaryListPreference extends SummaryListPreference {
 	
 	public EmptyValueSummaryListPreference(Context context) {
 		super(context);
-		mEmptyValue = new String();
+		mEmptyValue = "";
 	}
 	
 	public EmptyValueSummaryListPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		mEmptyValue = new String();
+		mEmptyValue = "";
 		if (attrs != null) {
 			TypedArray a = context.obtainStyledAttributes(attrs, wb.android.R.styleable.SummaryPreference);
 			if (a.hasValue(wb.android.R.styleable.SummaryPreference_emptyValue)) {

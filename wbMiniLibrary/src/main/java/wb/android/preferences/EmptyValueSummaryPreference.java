@@ -5,16 +5,16 @@ import android.content.res.TypedArray;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 
-public class EmptyValueSummaryEditTextPreference extends SummaryEditTextPreference {
+public class EmptyValueSummaryPreference extends SummaryPreference {
 
 	private String mEmptyValue;
-	
-	public EmptyValueSummaryEditTextPreference(Context context) {
+
+	public EmptyValueSummaryPreference(Context context) {
 		super(context);
 		mEmptyValue = "";
 	}
-	
-	public EmptyValueSummaryEditTextPreference(Context context, AttributeSet attrs) {
+
+	public EmptyValueSummaryPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		mEmptyValue = "";
 		if (attrs != null) {
@@ -25,8 +25,8 @@ public class EmptyValueSummaryEditTextPreference extends SummaryEditTextPreferen
 			a.recycle();
 		}
 	}
-	
-	public EmptyValueSummaryEditTextPreference(Context context, AttributeSet attrs, int defStyle) {
+
+	public EmptyValueSummaryPreference(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		mEmptyValue = "";
 		if (attrs != null) {
@@ -40,11 +40,11 @@ public class EmptyValueSummaryEditTextPreference extends SummaryEditTextPreferen
 	
 	@Override
 	public CharSequence getSummary() {
-		if (TextUtils.isEmpty(getText())) {
+		if (TextUtils.isEmpty(super.getSummary())) {
 			return mEmptyValue;
 		}
 		else {
-			return getText();
+			return super.getSummary();
 		}
 	}
 	

@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 
+import java.io.File;
 import java.util.Currency;
 import java.util.Locale;
 
@@ -42,7 +43,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Output Preferences
     private String mUserID;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mOptimizePDFSpace;
+    private File mSignaturePhoto;
+    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mOptimizePDFSpace, mShowSignature;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -165,6 +167,23 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mOptimizePDFSpace = prefs.getBoolean(mContext.getString(R.string.pref_output_optimize_space_key), true);
     }
 
+    private void initShowBlankSignature(SharedPreferences prefs) {
+        this.mShowSignature = prefs.getBoolean(mContext.getString(R.string.pref_output_blank_signature_key), mContext.getResources().getBoolean(R.bool.pref_output_blank_signature_defaultValue));
+    }
+
+    private void initSignaturePhoto(SharedPreferences prefs) {
+        final String filePath = prefs.getString(mContext.getString(R.string.pref_output_signature_picture_key), mContext.getString(R.string.pref_output_signature_picture_defaultValue));
+        if (TextUtils.isEmpty(filePath)) {
+            mSignaturePhoto = null;
+        } else {
+            mSignaturePhoto = new File(filePath);
+            if (!mSignaturePhoto.exists()) {
+                mSignaturePhoto = null;
+                prefs.edit().putString(mContext.getString(R.string.pref_output_signature_picture_key), null).apply();
+            }
+        }
+    }
+
     private void initEmailTo(SharedPreferences prefs) {
         this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), "");
     }
@@ -272,6 +291,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initIncludeReceiptIdNotIndex(prefs);
         this.initUseFileExplorerForOutput(prefs);
         this.initOptimizeSpaceForPDFOutput(prefs);
+        this.initShowBlankSignature(prefs);
+        this.initSignaturePhoto(prefs);
 
         // Email Preferences
         this.initEmailTo(prefs);
@@ -476,6 +497,17 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mIncludeIDNotIndex;
     }
 
+    public boolean isBlankSignatureShownForPdfs() {
+        return this.mShowSignature;
+    }
+
+    /**
+     * @return - the {@link java.io.File} containing the signature file only if a photo has been set of exists. {@code null} will be returned otherwise.s
+     */
+    public File getSignaturePhoto() {
+        return this.mSignaturePhoto;
+    }
+
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
     }
@@ -542,7 +574,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public void setIncludeCSVHeaders(boolean includeCSVHeaders) {
         /*
-		this.mIncludeCSVHeaders = includeCSVHeaders;
+        this.mIncludeCSVHeaders = includeCSVHeaders;
 		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(BOOL_INCL_CSV_HEADERS, this.mIncludeCSVHeaders);

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- ============= Preference Output ================= -->
+    <bool name="pref_output_blank_signature_defaultValue">false</bool>
+    <string name="pref_output_signature_picture_defaultValue">@null</string>
+
     <!-- ============= Preference Distance ================= -->
     <item name="pref_distance_rate_defaultValue" format="float" type="dimen">0.0</item>
     <bool name="pref_distance_print_table_defaultValue">true</bool>

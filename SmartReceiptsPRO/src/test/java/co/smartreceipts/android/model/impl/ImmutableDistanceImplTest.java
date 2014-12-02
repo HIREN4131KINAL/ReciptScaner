@@ -11,8 +11,8 @@ import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.testutils.DistanceUtils;
-import co.smartreceipts.android.testutils.TripUtils;
+import co.smartreceipts.android.utils.DistanceUtils;
+import co.smartreceipts.android.utils.TripUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

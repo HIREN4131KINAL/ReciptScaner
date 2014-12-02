@@ -1,4 +1,4 @@
-package co.smartreceipts.android.testutils;
+package co.smartreceipts.android.utils;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 

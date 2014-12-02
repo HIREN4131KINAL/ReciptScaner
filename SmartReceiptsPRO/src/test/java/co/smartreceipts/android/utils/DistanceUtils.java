@@ -1,4 +1,4 @@
-package co.smartreceipts.android.testutils;
+package co.smartreceipts.android.utils;
 
 import java.math.BigDecimal;
 import java.sql.Date;

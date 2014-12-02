@@ -1,11 +1,8 @@
 package co.smartreceipts.android.filters;
 
 import org.json.JSONException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -13,9 +10,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.testutils.ReceiptUtils;
+import co.smartreceipts.android.utils.ReceiptUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

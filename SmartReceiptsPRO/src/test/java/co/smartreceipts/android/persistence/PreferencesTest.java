@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.SettingsActivity;
-import co.smartreceipts.android.testutils.shadows.ShadowPreferenceActivity;
+import co.smartreceipts.android.utils.shadows.ShadowPreferenceActivity;
 import wb.receiptspro.R;
 
 import static org.junit.Assert.assertNotNull;

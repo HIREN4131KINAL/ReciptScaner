@@ -1,4 +1,4 @@
-package co.smartreceipts.android.testutils;
+package co.smartreceipts.android.utils;
 
 import android.os.Environment;
 
@@ -11,7 +11,6 @@ import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.spy;
 
 public class TripUtils {
 

@@ -31,6 +31,7 @@ import wb.android.util.Utils;
 public class SettingsActivity extends PreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
 
     public static final String TAG = "SettingsActivity";
+    private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
     private boolean mIsUsingHeaders;
 
@@ -131,6 +132,21 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             return true;
         } else {
             return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == GET_SIGNATURE_PHOTO_REQUEST_CODE) {
+                // TODO: 1. Translate image Uri. 2. Copy to Smart Receipts. 3. Save to preference
+            }
+            else {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -244,7 +260,6 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     public boolean onPreferenceClick(Preference preference) {
         String key = preference.getKey();
         if (key.equals(getString(R.string.pref_receipt_customize_categories_key)) || key.equals(getString(R.string.pref_output_custom_csv_key)) || key.equals(getString(R.string.pref_output_custom_pdf_key)) || key.equals(getString(R.string.pref_receipt_payment_methods_key))) {
-
             final Intent intent = new Intent(this, SettingsViewerActivity.class);
             intent.putExtra(SettingsViewerActivity.KEY_FLAG, key);
             startActivity(intent);
@@ -260,6 +275,12 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         } else if (key.equals(getString(R.string.pref_help_support_email_key))) {
             final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen());
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
+            return true;
+        } else if (key.equals(getString(R.string.pref_output_signature_picture_key))) {
+            final Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
             return true;
         } else {
             return false;

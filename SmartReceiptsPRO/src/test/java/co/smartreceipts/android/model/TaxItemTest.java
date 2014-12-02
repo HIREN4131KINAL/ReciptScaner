@@ -7,7 +7,7 @@ import org.robolectric.annotation.Config;
 
 import java.math.BigDecimal;
 
-import co.smartreceipts.android.testutils.TestUtils;
+import co.smartreceipts.android.utils.TestUtils;
 
 import static org.junit.Assert.assertEquals;
 

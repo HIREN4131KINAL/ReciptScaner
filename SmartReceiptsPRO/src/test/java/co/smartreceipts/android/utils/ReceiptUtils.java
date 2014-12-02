@@ -1,4 +1,4 @@
-package co.smartreceipts.android.testutils;
+package co.smartreceipts.android.utils;
 
 import org.robolectric.Robolectric;
 
@@ -14,7 +14,6 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 public class ReceiptUtils {
 

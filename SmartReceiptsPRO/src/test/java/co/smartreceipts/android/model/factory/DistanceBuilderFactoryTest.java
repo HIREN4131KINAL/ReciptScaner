@@ -7,8 +7,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.testutils.DistanceUtils;
-import co.smartreceipts.android.testutils.TestUtils;
+import co.smartreceipts.android.utils.DistanceUtils;
+import co.smartreceipts.android.utils.TestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;

@@ -43,7 +43,7 @@ import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.testutils.Utils;
+import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImportTask;
 
 public final class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {

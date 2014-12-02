@@ -24,7 +24,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
-import co.smartreceipts.android.testutils.WBUncaughtExceptionHandler;
+import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 
 /**

@@ -564,19 +564,22 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				this.createDistanceTable(db);
 
                 // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
-                final String distanceMigrate = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
-                        + " SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as location, " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as comment, " + TripsTable.COLUMN_DEFAULT_CURRENCY
-                        + " FROM " + TripsTable.TABLE_NAME  + ";";
+                final String distanceMigrateBase = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
+                        + " SELECT " + TripsTable.COLUMN_NAME + ", "  + TripsTable.COLUMN_MILEAGE + " , \"\" as " + DistanceTable.COLUMN_LOCATION + ", " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as " + DistanceTable.COLUMN_COMMENT + ", ";
+                final String distanceMigrateNotNullCurrency = distanceMigrateBase + TripsTable.COLUMN_DEFAULT_CURRENCY + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NOT NULL;";
+                final String distanceMigrateNullCurrency = distanceMigrateBase + "\"" + mPersistenceManager.getPreferences().getDefaultCurreny() + "\" as " + DistanceTable.COLUMN_RATE_CURRENCY + " FROM " + TripsTable.TABLE_NAME  + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NULL;";
                 final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
                 final String alterTripsWithProcessingStatus = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT";
                 final String alterReceiptsWithProcessingStatus = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT";
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, distanceMigrate);
+                    Log.d(TAG, distanceMigrateNotNullCurrency);
+                    Log.d(TAG, distanceMigrateNullCurrency);
                     Log.d(TAG, alterTripsWithCostCenter);
                     Log.d(TAG, alterTripsWithProcessingStatus);
                     Log.d(TAG, alterReceiptsWithProcessingStatus);
                 }
-                db.execSQL(distanceMigrate);
+                db.execSQL(distanceMigrateNotNullCurrency);
+                db.execSQL(distanceMigrateNullCurrency);
                 db.execSQL(alterTripsWithCostCenter);
                 db.execSQL(alterTripsWithProcessingStatus);
                 db.execSQL(alterReceiptsWithProcessingStatus);

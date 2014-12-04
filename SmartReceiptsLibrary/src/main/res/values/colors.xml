@@ -16,7 +16,7 @@
     
     <!-- Action Bar -->
     <color name="action_bar_background">@color/smart_receipts_purple</color>
-    <color name="action_bar_stroke">@color/smart_receipts_purple_dark</color>
+    <color name="action_bar_stroke">@color/smart_receipts_purple</color>
      
     <!-- Card colors -->
     <color name="second_grey">#ff999999</color>

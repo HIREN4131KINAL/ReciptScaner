@@ -18,7 +18,7 @@ public class PersistenceManager {
 	public PersistenceManager(SmartReceiptsApplication application) {
 		mApplication =  application;
 		mStorageManager = StorageManager.getInstance(application);
-		mPreferences = new Preferences(application, application.getFlex());
+		mPreferences = new Preferences(application, application.getFlex(), mStorageManager);
 		mDatabase = DatabaseHelper.getInstance(application, this);
 	}
 

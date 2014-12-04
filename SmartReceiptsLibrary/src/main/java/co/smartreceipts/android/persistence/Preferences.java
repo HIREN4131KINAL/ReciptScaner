@@ -20,6 +20,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.utils.Utils;
 import wb.android.flex.Flex;
+import wb.android.storage.StorageManager;
 
 public class Preferences implements OnSharedPreferenceChangeListener {
 
@@ -29,6 +30,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     public static final String SMART_PREFS = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
     private static final String INT_VERSION_CODE = "VersionCode";
     private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
+
+    //Preference Folder
+    private static final String PREFERENCES_FOLDER_NAME = ".prefs_file";
 
     // General Preferences
     private int mDefaultTripDuration;
@@ -66,6 +70,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     //Other Instance Variables
     private final Context mContext;
     private final Flex mFlex;
+    private final StorageManager mStorageManager;
+    private final File mPreferenceFolder;
 
     public interface VersionUpgradeListener {
         public void onVersionUpgrade(int oldVersion, int newVersion);
@@ -172,15 +178,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initSignaturePhoto(SharedPreferences prefs) {
-        final String filePath = prefs.getString(mContext.getString(R.string.pref_output_signature_picture_key), mContext.getString(R.string.pref_output_signature_picture_defaultValue));
-        if (TextUtils.isEmpty(filePath)) {
+        final String filename = prefs.getString(mContext.getString(R.string.pref_output_signature_picture_key), mContext.getString(R.string.pref_output_signature_picture_defaultValue));
+        final File signatureFile = mStorageManager.getFile(getPreferencesFolder(), filename);
+        if (!signatureFile.exists()) {
             mSignaturePhoto = null;
         } else {
-            mSignaturePhoto = new File(filePath);
-            if (!mSignaturePhoto.exists()) {
-                mSignaturePhoto = null;
-                prefs.edit().putString(mContext.getString(R.string.pref_output_signature_picture_key), null).apply();
-            }
+            mSignaturePhoto = signatureFile;
         }
     }
 
@@ -234,32 +237,15 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
     }
 
-    Preferences(Context context, Flex flex) {
+    Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
+        this.mStorageManager = storageManager;
+        mPreferenceFolder = this.mStorageManager.mkdir(PREFERENCES_FOLDER_NAME);
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         prefs.registerOnSharedPreferenceChangeListener(this);
         initAllPreferences(prefs);
     }
-
-    private Preferences(Context context, Flex flex, SharedPreferences preferences) {
-        this.mContext = context;
-        this.mFlex = flex;
-        preferences.registerOnSharedPreferenceChangeListener(this);
-        initAllPreferences(preferences);
-    }
-
-    /**
-     * Only call this from RoboElectric for testing purposes. Do not use in general
-     * production
-     *
-     * @param context
-     * @return
-     */
-    public static final Preferences getRoboElectricInstance(Context context, Flex flex) {
-        return new Preferences(context, flex, PreferenceManager.getDefaultSharedPreferences(context));
-    }
-
 
     private void initAllPreferences(SharedPreferences prefs) {
         if (BuildConfig.DEBUG) {
@@ -608,6 +594,13 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean getPrintDistanceAsDailyReceipt() {
         return mPrintDistanceAsDailyReceipt;
+    }
+
+    /**
+     * @return - a folder in which preference files (e.g. images) can be stored
+     */
+    public File getPreferencesFolder() {
+        return mPreferenceFolder;
     }
 
 

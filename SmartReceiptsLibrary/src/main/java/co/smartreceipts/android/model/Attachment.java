@@ -41,7 +41,7 @@ public class Attachment {
 			}
 			else if (Intent.ACTION_SEND.equals(mAction) && intent.getExtras() != null) {
 				mUri = resolveUri((Uri) intent.getExtras().get(Intent.EXTRA_STREAM), resolver, MediaStore.Images.ImageColumns.DATA);
-				mExtension = (mUri != null) ? mUri.toString().substring(mUri.toString().lastIndexOf(".") + 1) : new String();
+				mExtension = (mUri != null) ? mUri.toString().substring(mUri.toString().lastIndexOf(".") + 1) : "";
 				mIsValid = true;
 			}
 			else {

@@ -1,8 +1,11 @@
 package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -11,8 +14,15 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 
+import com.artifex.mupdfdemo.AsyncTask;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +35,7 @@ import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.workers.EmailAssistant;
+import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
 import wb.android.util.Utils;
 
@@ -33,6 +44,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
+    private SmartReceiptsApplication mApp;
     private boolean mIsUsingHeaders;
 
     /**
@@ -45,6 +57,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mApp = ((SmartReceiptsApplication) getApplication());
         mIsUsingHeaders = getResources().getBoolean(R.bool.isTablet);
 
         if (!mIsUsingHeaders) {
@@ -65,7 +78,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 
     @Override
     protected void onStart() {
-        ((SmartReceiptsApplication) getApplication()).getWorkerManager().getLogger().logScreen(this);
+        mApp.getWorkerManager().getLogger().logScreen(this);
         super.onStart();
     }
 
@@ -119,7 +132,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             return super.onOptionsItemSelected(item);
         }
         if (item.getItemId() == android.R.id.home) {
-            final Intent upIntent = new Intent(this, ((SmartReceiptsApplication) getApplication()).getTopLevelActivity());
+            final Intent upIntent = new Intent(this, mApp.getTopLevelActivity());
             if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
                 // This activity is NOT part of this app's task, so create a new task
                 // when navigating up, with a synthesized back stack.
@@ -139,9 +152,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == GET_SIGNATURE_PHOTO_REQUEST_CODE) {
-                // TODO: 1. Translate image Uri. 2. Copy to Smart Receipts. 3. Save to preference
-            }
-            else {
+                final StorageManager storageManager = mApp.getPersistenceManager().getStorageManager();
+                final Preferences preferences = mApp.getPersistenceManager().getPreferences();
+                new CopySignatureImageClass(getContentResolver(), data, preferences, storageManager, getSharedPreferences(Preferences.SMART_PREFS, 0), getString(R.string.pref_output_signature_picture_key)).execute();
+            } else{
                 super.onActivityResult(requestCode, resultCode, data);
             }
         }
@@ -220,6 +234,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         // Set on Preference Click Listeners for all that require it
         universal.findPreference(R.string.pref_output_custom_csv_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_output_custom_pdf_key).setOnPreferenceClickListener(this);
+        universal.findPreference(R.string.pref_output_signature_picture_key).setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesEmail(UniversalPreferences universal) {
@@ -290,6 +305,63 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     private String getDebugScreen() {
         String debug = "Debug-information: \n" + "Smart Receipts Version: " + getAppVersion() + "\n" + "Brand: " + android.os.Build.BRAND + "\n" + "CPU: " + android.os.Build.CPU_ABI + "\n" + "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" + "Device: " + android.os.Build.DEVICE + "\n" + "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" + "Two-Paned: " + mIsUsingHeaders;
         return debug;
+    }
+
+    private static class CopySignatureImageClass extends AsyncTask<Void, Void, Boolean> {
+
+        private final ContentResolver mContentResolver;
+        private final Intent mIntent;
+        private final Preferences mPreferences;
+        private final StorageManager mStorageManager;
+        private final SharedPreferences mSharedPreferences;
+        private final String mKey;
+
+        public CopySignatureImageClass(ContentResolver contentResolver, Intent intent, Preferences preferences, StorageManager storageManager, SharedPreferences sharedPreferences, String key) {
+            mContentResolver = contentResolver;
+            mIntent = intent;
+            mPreferences = preferences;
+            mStorageManager = storageManager;
+            mSharedPreferences = sharedPreferences;
+            mKey = key;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            if (mIntent == null || mIntent.getData() == null) {
+                return false;
+            }
+            final Uri uri = mIntent.getData();
+            InputStream inputStream = null;
+            try {
+                final MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+                final String extension = mimeTypeMap.getExtensionFromMimeType(mContentResolver.getType(uri));
+                final String filename = "signature." + extension;
+                final File destination = mStorageManager.getFile(mPreferences.getPreferencesFolder(), filename);
+                inputStream = mContentResolver.openInputStream(uri);
+                mStorageManager.copy(inputStream, destination, true);
+                mSharedPreferences.edit().putString(mKey, filename).apply();
+                return true;
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to save signature image in onActivityResult", e);
+                return false;
+            } finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) { /* Intentional Stub */ }
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean success) {
+            if (success) {
+                // TODO: Toast Yay
+            }
+            else {
+                // TODO: Toast Booo
+            }
+        }
     }
 
 }

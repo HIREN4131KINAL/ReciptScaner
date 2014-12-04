@@ -45,6 +45,7 @@
     <string name="reports_attached">%s report attached</string>
     <string name="receipt">Receipt</string>
     <string name="save">Save</string>
+    <string name="signature">Signature</string>
     <string name="send_file">Get File&#8230;</string>
     <string name="send_email">Send Email&#8230;</string>
     <string name="support">%s - Support</string>

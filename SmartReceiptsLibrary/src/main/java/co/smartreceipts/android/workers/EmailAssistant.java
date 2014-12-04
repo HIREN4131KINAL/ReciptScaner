@@ -401,7 +401,12 @@ public class EmailAssistant {
 
                     // Add image Rows
                     this.addImageRows(document, receipts, writer);
-
+                    final File signature = mPreferences.getSignaturePhoto();
+                    if (signature != null) {
+                        document.newPage();
+                        document.add(new Paragraph(mContext.getString(R.string.signature) + "\n\n"));
+                        document.add(Image.getInstance(signature.getAbsolutePath()));
+                    }
                     mFiles[EmailOptions.PDF_FULL.getIndex()] = mStorageManager.getFile(dir, dir.getName() + ".pdf");
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {

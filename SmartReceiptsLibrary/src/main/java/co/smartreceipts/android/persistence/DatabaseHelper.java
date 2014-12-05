@@ -16,6 +16,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import wb.android.autocomplete.AutoCompleteAdapter;
@@ -3299,7 +3300,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					do {
 						final int id = c.getInt(idIndex);
 						final String method = c.getString(methodIndex);
-						final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+						final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
 						mPaymentMethods.add(builder.setId(id).setMethod(method).build());
 					}
 					while (c.moveToNext());
@@ -3353,7 +3354,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 					return null;
 				}
 				else {
-					final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+					final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
 					final PaymentMethod paymentMethod;
 					c = db.rawQuery("SELECT last_insert_rowid()", null);
 					if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
@@ -3439,7 +3440,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			try {
 				db = this.getWritableDatabase();
 				if (db.update(PaymentMethodsTable.TABLE_NAME, values, PaymentMethodsTable.COLUMN_ID + " = ?", new String[] { Integer.toString(oldPaymentMethod.getId()) }) > 0) {
-					final PaymentMethod.Builder builder = new PaymentMethod.Builder();
+					final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
 					final PaymentMethod upddatePaymentMethod = builder.setId(oldPaymentMethod.getId()).setMethod(newMethod).build();
 					if (mPaymentMethods != null) {
 						final int oldListIndex = mPaymentMethods.indexOf(oldPaymentMethod);

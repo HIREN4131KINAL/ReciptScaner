@@ -31,6 +31,7 @@ import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -1264,84 +1265,120 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 	 * @param trip
 	 *            the trip, which will be updated
 	 */
-	private final void queryTripPrice(final Trip trip) {
-		SQLiteDatabase db = null;
-		Cursor c = null;
-		try {
-			mAreTripsValid = false;
-			db = this.getReadableDatabase();
+    private void queryTripPrice(final Trip trip) {
+        SQLiteDatabase db = null;
+        Cursor c = null;
+        try {
+            mAreTripsValid = false;
+            db = this.getReadableDatabase();
 
-			String selection = ReceiptsTable.COLUMN_PARENT + "= ?";
-			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
-				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
-			}
-			// Get the Trip's total Price
-			c = db.query(ReceiptsTable.TABLE_NAME, new String[] { "SUM(" + ReceiptsTable.COLUMN_PRICE + ")" }, selection, new String[] { trip.getName() }, null, null, null);
-			if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-				final double sum = c.getDouble(0);
-				trip.setPrice(sum);
-			}
-		}
-		finally {
-			if (c != null) {
-				c.close();
-			}
-		}
-	}
+            String selection = ReceiptsTable.COLUMN_PARENT + "= ?";
+            if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
+                selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
+            }
 
-	/**
-	 * Queries the trips daily total price and updates this object. This class is not synchronized! Sync outside of it
-	 * 
-	 * @param trip
-	 *            the trip, which will be updated
-	 */
-	private final void queryTripDailyPrice(final Trip trip) {
-		SQLiteDatabase db = null;
-		Cursor priceCursor = null;
-		try {
-			db = this.getReadableDatabase();
+            // Get the Trip's total Price
+            BigDecimal price = new BigDecimal(0);
+            c = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE}, selection, new String[]{trip.getName()}, null, null, null);
+            if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
+                do {
+                    price = price.add(getDecimal(c, 0));
+                }
+                while (c.moveToNext());
+            }
+            trip.setPrice(price.doubleValue());
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
 
-			// Build a calendar for the start of today
-			final Time now = new Time();
-			now.setToNow();
-			final Calendar startCalendar = Calendar.getInstance();
-			startCalendar.setTimeInMillis(now.toMillis(false));
-			startCalendar.setTimeZone(TimeZone.getDefault());
-			startCalendar.set(Calendar.HOUR_OF_DAY, 0);
-			startCalendar.set(Calendar.MINUTE, 0);
-			startCalendar.set(Calendar.SECOND, 0);
-			startCalendar.set(Calendar.MILLISECOND, 0);
+    /**
+     * Please note that a very frustrating bug exists here. Android cursors only return the first 6
+     * characters of a price string if that string contains a '.' character. It returns all of them
+     * if not. This means we'll break for prices over 5 digits unless we are using a comma separator,
+     * which we'd do in the EU. In the EU (comma separated), Android returns the wrong value when we
+     * get a double (instead of a string). This method has been built to handle this edge case to the
+     * best of our abilities.
+     * <p/>
+     * TODO: Longer term, everything should be saved with a decimal point
+     *
+     * @param cursor             - the current {@link android.database.Cursor}
+     * @param decimalColumnIndex - the index of the column
+     * @return a {@link java.math.BigDecimal} value of the decimal
+     * @see https://code.google.com/p/android/issues/detail?id=22219.
+     */
+    private BigDecimal getDecimal(@NonNull Cursor cursor, int decimalColumnIndex) {
+        final String decimalString = cursor.getString(decimalColumnIndex);
+        final double decimalDouble = cursor.getDouble(decimalColumnIndex);
+        if (!TextUtils.isEmpty(decimalString) && decimalString.contains(",")) {
+            try {
+                return new BigDecimal(decimalString.replace(",", "."));
+            } catch (NumberFormatException e) {
+                return new BigDecimal(decimalDouble);
+            }
+        } else {
+            return new BigDecimal(decimalDouble);
+        }
+    }
 
-			// Build a calendar for the end date
-			final Calendar endCalendar = Calendar.getInstance();
-			endCalendar.setTimeInMillis(now.toMillis(false));
-			endCalendar.setTimeZone(TimeZone.getDefault());
-			endCalendar.set(Calendar.HOUR_OF_DAY, 23);
-			endCalendar.set(Calendar.MINUTE, 59);
-			endCalendar.set(Calendar.SECOND, 59);
-			endCalendar.set(Calendar.MILLISECOND, 999);
+    /**
+     * Queries the trips daily total price and updates this object. This class is not synchronized! Sync outside of it
+     *
+     * @param trip the trip, which will be updated
+     */
+    private void queryTripDailyPrice(final Trip trip) {
+        SQLiteDatabase db = null;
+        Cursor priceCursor = null;
+        try {
+            db = this.getReadableDatabase();
 
-			// Set the timers
-			final long startTime = startCalendar.getTimeInMillis();
-			final long endTime = endCalendar.getTimeInMillis();
-			String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?";
-			if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
-				selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
-			}
+            // Build a calendar for the start of today
+            final Time now = new Time();
+            now.setToNow();
+            final Calendar startCalendar = Calendar.getInstance();
+            startCalendar.setTimeInMillis(now.toMillis(false));
+            startCalendar.setTimeZone(TimeZone.getDefault());
+            startCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            startCalendar.set(Calendar.MINUTE, 0);
+            startCalendar.set(Calendar.SECOND, 0);
+            startCalendar.set(Calendar.MILLISECOND, 0);
 
-			priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] { "SUM(" + ReceiptsTable.COLUMN_PRICE + ")" }, selection, new String[] { trip.getName(), Long.toString(startTime), Long.toString(endTime) }, null, null, null);
+            // Build a calendar for the end date
+            final Calendar endCalendar = Calendar.getInstance();
+            endCalendar.setTimeInMillis(now.toMillis(false));
+            endCalendar.setTimeZone(TimeZone.getDefault());
+            endCalendar.set(Calendar.HOUR_OF_DAY, 23);
+            endCalendar.set(Calendar.MINUTE, 59);
+            endCalendar.set(Calendar.SECOND, 59);
+            endCalendar.set(Calendar.MILLISECOND, 999);
 
-			if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
-				final double dailyTotal = priceCursor.getDouble(0);
-				trip.setDailySubTotal(dailyTotal);
-			}
-		}
-		finally { // Close the cursor to avoid memory leaks
-			if (priceCursor != null) {
-				priceCursor.close();
-			}
-		}
-	}
+            // Set the timers
+            final long startTime = startCalendar.getTimeInMillis();
+            final long endTime = endCalendar.getTimeInMillis();
+            String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?";
+            if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
+                selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
+            }
+
+            priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
+
+            BigDecimal subTotal = new BigDecimal(0);
+            priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
+            if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
+                do {
+                    subTotal = subTotal.add(getDecimal(priceCursor, 0));
+                }
+                while (priceCursor.moveToNext());
+            }
+            trip.setDailySubTotal(subTotal.doubleValue());
+        } finally { // Close the cursor to avoid memory leaks
+            if (priceCursor != null) {
+                priceCursor.close();
+            }
+        }
+    }
 
 	private final void updateTripPrice(final Trip trip) {
 		synchronized (mDatabaseLock) {

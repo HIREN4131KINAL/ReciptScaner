@@ -188,7 +188,7 @@ public class EmailAssistant {
     public void onAttachmentsCreated(File[] attachments) {
         ArrayList<Uri> uris = new ArrayList<Uri>();
         StringBuilder bodyBuilder = new StringBuilder();
-        String path = new String();
+        String path = "";
         if (attachments[EmailOptions.PDF_FULL.getIndex()] != null) {
             path = attachments[EmailOptions.PDF_FULL.getIndex()].getParentFile().getAbsolutePath();
             uris.add(Uri.fromFile(attachments[EmailOptions.PDF_FULL.getIndex()]));

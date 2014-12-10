@@ -211,7 +211,7 @@ public class DefaultTripImpl implements Trip {
         if (mCurrency != null) {
             return mCurrency.getCurrencyCode();
         } else {
-            return WBCurrency.MISSING_CURRENCY;
+            return WBCurrency.MISSING_CURRENCY_CODE;
         }
     }
 

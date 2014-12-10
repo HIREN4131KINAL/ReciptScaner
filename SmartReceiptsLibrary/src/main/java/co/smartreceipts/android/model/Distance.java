@@ -103,7 +103,7 @@ public interface Distance extends Parcelable {
     WBCurrency getCurrency();
 
     /**
-     * Gets the currency code representation for this distance's rate or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY}
+     * Gets the currency code representation for this distance's rate or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the currency code {@link java.lang.String} for this distance

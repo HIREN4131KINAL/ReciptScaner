@@ -180,7 +180,7 @@ public interface Trip extends Parcelable {
     WBCurrency getCurrency();
 
     /**
-     * Gets the currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY}
+     * Gets the currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the currency code {@link java.lang.String} for this trip
@@ -196,7 +196,7 @@ public interface Trip extends Parcelable {
     WBCurrency getDefaultCurrency();
 
     /**
-     * Gets the default currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY}
+     * Gets the default currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the default currency code {@link java.lang.String} for this trip

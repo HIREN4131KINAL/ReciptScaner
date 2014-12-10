@@ -13,7 +13,8 @@ public class WBCurrency {
     private Currency currency;
     private String code;
 
-    public static final String MISSING_CURRENCY = "NUL";
+    public static final String MISSING_CURRENCY_CODE = "NUL";
+    public static final WBCurrency MISSING_CURRENCY = new WBCurrency(MISSING_CURRENCY_CODE);
 
     private WBCurrency(Currency currency) {
         this.currency = currency;

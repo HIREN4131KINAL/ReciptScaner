@@ -96,7 +96,6 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
-    @NonNull
     public Trip getTrip() {
         return mTrip;
     }

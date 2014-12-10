@@ -20,11 +20,11 @@ public interface Receipt extends Parcelable {
     int getId();
 
     /**
-     * Gets the parent trip for this receipt. This should never be {@code null}.
+     * Gets the parent trip for this receipt. This can only be null if it's detached from a {@link co.smartreceipts.android.model.Trip}
+     * (e.g. if it's a converted distance).
      *
      * @return - the parent {@link co.smartreceipts.android.model.Trip}
      */
-    @NonNull
     Trip getTrip();
 
     /**
@@ -219,7 +219,7 @@ public interface Receipt extends Parcelable {
     WBCurrency getCurrency();
 
     /**
-     * Gets the currency code representation for this receipt or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY}
+     * Gets the currency code representation for this receipt or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the currency code {@link java.lang.String} for this receipt

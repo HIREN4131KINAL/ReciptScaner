@@ -89,6 +89,11 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
+    public ReceiptBuilderFactory setPrice(BigDecimal price) {
+        _price = price;
+        return this;
+    }
+
     /**
      * Sets the tax of this ReceiptBuilderFactory as a string (useful for user input)
      *

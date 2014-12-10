@@ -42,7 +42,7 @@
     <string name="pdf">PDF</string>
     <string name="report">Report</string>
     <string name="report_attached">1 report attached</string>
-    <string name="reports_attached">%s report attached</string>
+    <string name="reports_attached">%s reports attached</string>
     <string name="receipt">Receipt</string>
     <string name="save">Save</string>
     <string name="signature">Signature</string>

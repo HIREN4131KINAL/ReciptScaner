@@ -180,7 +180,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private void initSignaturePhoto(SharedPreferences prefs) {
         final String filename = prefs.getString(mContext.getString(R.string.pref_output_signature_picture_key), mContext.getString(R.string.pref_output_signature_picture_defaultValue));
         final File signatureFile = mStorageManager.getFile(getPreferencesFolder(), filename);
-        if (!signatureFile.exists()) {
+        if (!signatureFile.exists() || !signatureFile.isFile()) {
             mSignaturePhoto = null;
         } else {
             mSignaturePhoto = signatureFile;

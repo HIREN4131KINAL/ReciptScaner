@@ -47,6 +47,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -252,6 +253,7 @@ public class EmailAssistant {
             emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()).replace("%REPORT_START%", mTrip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())).replace("%REPORT_END%", mTrip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())));
             emailIntent.putExtra(Intent.EXTRA_TEXT, body);
+            // emailIntent.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, new ArrayList<CharSequence>(Arrays.asList(body)));
             emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
             try {
                 mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));

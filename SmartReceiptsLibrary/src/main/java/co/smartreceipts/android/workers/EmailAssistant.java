@@ -60,6 +60,8 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
+import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -352,6 +354,10 @@ public class EmailAssistant {
             // Set up our initial variables
             final Trip trip = trips[0];
             final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
+            if (mPreferences.getPrintDistanceAsDailyReceipt()) {
+                receipts.addAll(new DistanceToReceiptsConverter(mContext, mPreferences).convert(mDB.getDistanceSerial(trip)));
+                Collections.sort(receipts, new ReceiptDateComparator());
+            }
             final int len = receipts.size();
             final WriterResults results = new WriterResults();
 

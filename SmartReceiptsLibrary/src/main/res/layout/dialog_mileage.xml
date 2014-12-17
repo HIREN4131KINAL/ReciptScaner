@@ -34,9 +34,11 @@
                 android:prompt="@string/dialog_currency_field"
                 android:layout_weight="3.5" />
 	    </LinearLayout>
-		<EditText android:id="@+id/dialog_mileage_location"
+		<AutoCompleteTextView android:id="@+id/dialog_mileage_location"
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
+            android:completionThreshold="1"
+            android:inputType="textCapSentences"
 			android:hint="@string/distance_location_field" />
 		<co.smartreceipts.android.date.DateEditText android:id="@+id/dialog_mileage_date"
             android:layout_width="fill_parent"

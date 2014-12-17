@@ -13,6 +13,7 @@ import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -28,12 +29,14 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
+import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {
 
     public static final String TAG = DistanceDialogFragment.class.getSimpleName();
 
-    private EditText mDistance, mRate, mLocation, mComment;
+    private EditText mDistance, mRate, mComment;
+    private AutoCompleteTextView mLocation;
     private DateEditText mDate;
     private Spinner mCurrency;
     private Trip mTrip;
@@ -41,6 +44,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private DatabaseHelper mDB;
     private Preferences mPrefs;
     private DateManager mDateManager;
+    private AutoCompleteAdapter mLocationAutoCompleteAdapter;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -92,7 +96,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         mDistance = (EditText) rootView.findViewById(R.id.dialog_mileage_distance);
         mRate = (EditText) rootView.findViewById(R.id.dialog_mileage_rate);
         mCurrency = (Spinner) rootView.findViewById(R.id.dialog_mileage_currency);
-        mLocation = (EditText) rootView.findViewById(R.id.dialog_mileage_location);
+        mLocation = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_mileage_location);
         mComment = (EditText) rootView.findViewById(R.id.dialog_mileage_comment);
         mDate = (DateEditText) rootView.findViewById(R.id.dialog_mileage_date);
 
@@ -120,6 +124,13 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             if (mPrefs.hasDefaultDistanceRate()) {
                 mRate.setText(ModelUtils.getDecimalFormattedValue(mPrefs.getDefaultDistanceRate()));
             }
+            if (mLocationAutoCompleteAdapter == null) {
+                mLocationAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_DISTANCE_LOCATION, mDB);
+            }
+            else {
+                mLocationAutoCompleteAdapter.reset();
+            }
+            mLocation.setAdapter(mLocationAutoCompleteAdapter);
         } else {
             // Update distance
             builder.setTitle(getString(R.string.dialog_mileage_title_update));
@@ -141,6 +152,14 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         final Dialog dialog = builder.create();
         getDateManager().setDateEditTextListenerDialogHolder(dialog);
         return dialog;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mLocationAutoCompleteAdapter != null) {
+            mLocationAutoCompleteAdapter.onPause();
+        }
     }
 
     @Override

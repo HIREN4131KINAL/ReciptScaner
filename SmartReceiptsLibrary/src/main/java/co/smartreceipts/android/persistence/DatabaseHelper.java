@@ -65,6 +65,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     public static final String TAG_TRIPS_COST_CENTER = "Trips_CostCenter";
 	public static final String TAG_RECEIPTS_NAME = "Receipts";
 	public static final String TAG_RECEIPTS_COMMENT = "Receipts_Comment";
+    public static final String TAG_DISTANCE_LOCATION = "Distance_Location";
 
 	// InstanceVar
 	private static DatabaseHelper INSTANCE = null;
@@ -3964,6 +3965,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
         else if (tag == TAG_TRIPS_COST_CENTER) {
             sqlQuery = " SELECT DISTINCT TRIM(" + TripsTable.COLUMN_COST_CENTER + ") AS _id " + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_COST_CENTER + " LIKE '%" + text + "%' " + " ORDER BY " + TripsTable.COLUMN_COST_CENTER;
+        }
+        else if (tag == TAG_DISTANCE_LOCATION) {
+            sqlQuery = " SELECT DISTINCT TRIM(" + DistanceTable.COLUMN_LOCATION + ") AS _id " + " FROM " + DistanceTable.TABLE_NAME + " WHERE " + DistanceTable.COLUMN_LOCATION + " LIKE '%" + text + "%' " + " ORDER BY " + DistanceTable.COLUMN_LOCATION;
         }
 		synchronized (mDatabaseLock) {
 			return db.rawQuery(sqlQuery, null);

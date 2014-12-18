@@ -34,6 +34,7 @@ import wb.android.autocomplete.AutoCompleteAdapter;
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {
 
     public static final String TAG = DistanceDialogFragment.class.getSimpleName();
+    private static final String ARG_SUGGESTED_DATE = "arg_suggested_date";
 
     private EditText mDistance, mRate, mComment;
     private AutoCompleteTextView mLocation;
@@ -45,6 +46,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private Preferences mPrefs;
     private DateManager mDateManager;
     private AutoCompleteAdapter mLocationAutoCompleteAdapter;
+    private Date mSuggestedDate;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -54,7 +56,20 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
      * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
      */
     public static DistanceDialogFragment newInstance(final Trip trip) {
-        return newInstance(trip, null);
+        return newInstance(trip, null, null);
+    }
+
+
+    /**
+     * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
+     * can be used to enter a new distance item
+     *
+     * @param trip          - the parent {@link co.smartreceipts.android.model.Trip}
+     * @param suggestedDate - the suggested {@link java.sql.Date} to display to the user when creating a new distance item
+     * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
+     */
+    public static DistanceDialogFragment newInstance(final Trip trip, final Date suggestedDate) {
+        return newInstance(trip, null, suggestedDate);
     }
 
 
@@ -67,11 +82,19 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
      * @return - a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}
      */
     public static DistanceDialogFragment newInstance(final Trip trip, final Distance distance) {
+        return newInstance(trip, distance, null);
+    }
+
+
+    private static DistanceDialogFragment newInstance(final Trip trip, final Distance distance, final Date suggestedDate) {
         final DistanceDialogFragment dialog = new DistanceDialogFragment();
         final Bundle args = new Bundle();
         args.putParcelable(Trip.PARCEL_KEY, trip);
         if (distance != null) {
             args.putParcelable(Distance.PARCEL_KEY, distance);
+        }
+        if (suggestedDate != null) {
+            args.putLong(ARG_SUGGESTED_DATE, suggestedDate.getTime());
         }
         dialog.setArguments(args);
         return dialog;
@@ -85,6 +108,10 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         mPrefs = app.getPersistenceManager().getPreferences();
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mUpdateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
+        final Time now = new Time();
+        now.setToNow();
+        // Default to "now" if not suggested date was set
+        mSuggestedDate = new Date(getArguments().getLong(ARG_SUGGESTED_DATE, now.toMillis(false)));
     }
 
     @Override
@@ -113,9 +140,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             // New Distance
             builder.setTitle(getString(R.string.dialog_mileage_title_create));
             builder.setPositiveButton(getString(R.string.dialog_mileage_positive_create), this);
-            final Time now = new Time();
-            now.setToNow();
-            mDate.date = new Date(now.toMillis(false));
+            mDate.date = mSuggestedDate;
             mDate.setText(DateFormat.getDateFormat(getActivity()).format(mDate.date));
             int idx = currencies.getPosition(mTrip.getCurrencyCode());
             if (idx > 0) {
@@ -126,8 +151,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             }
             if (mLocationAutoCompleteAdapter == null) {
                 mLocationAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_DISTANCE_LOCATION, mDB);
-            }
-            else {
+            } else {
                 mLocationAutoCompleteAdapter.reset();
             }
             mLocation.setAdapter(mLocationAutoCompleteAdapter);

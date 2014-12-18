@@ -29,6 +29,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     private DistanceAdapter mAdapter;
     private View mProgressDialog;
     private TextView mNoDataAlert;
+    private Distance mLastInsertedDistance;
 
     public static DistanceFragment newInstance(final Trip trip) {
         final DistanceFragment fragment = new DistanceFragment();
@@ -73,7 +74,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.distance_action_new) {
-            final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip);
+            final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
             dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             return true;
         }
@@ -118,6 +119,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
         if (isAdded()) {
             getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
         }
+        mLastInsertedDistance = distance;
     }
 
     @Override

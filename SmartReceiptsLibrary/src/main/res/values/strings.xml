@@ -171,6 +171,9 @@
 
     <!-- ================= Distance Adapter ================== -->
     <string name="distance_no_data">You don\'t seem to have any distance tracked yet. Try clicking the "+" (plus) button up top to get started.</string>
+    <string name="distance_insert_failed">Error: Failed to create this distance item. Please make sure your phone is not mounted to your computer.</string>
+    <string name="distance_update_failed">Error: Failed to update this distance item. Please make sure your phone is not mounted to your computer.</string>
+    <string name="distance_delete_failed">Error: Failed to delete this distance item. Please make sure your phone is not mounted to your computer.</string>
 
     <!-- ================= Trip Actions =================== -->
     <string name="trip_action_new">New Report</string>
@@ -276,7 +279,7 @@
     <string name="DIALOG_ABOUT_TITLE">About</string>
     <string name="DIALOG_ABOUT_MESSAGE">Smart Receipts v.VERSION_NAME \nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License</string>
 
-    <!-- ====================== Distance ======================== -->
+    <!-- ====================== Distance Report ======================== -->
     <string name="distance_distance_field">Distance</string>
     <string name="distance_location_field">Location</string>
     <string name="distance_date_field">Date</string>

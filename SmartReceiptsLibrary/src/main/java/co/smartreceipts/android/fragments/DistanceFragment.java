@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -124,7 +125,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public void onDistanceRowInsertFailure(SQLException error) {
-        // TODO: Add a toast message
+        showToastMessage(R.string.distance_insert_failed);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public void onDistanceRowUpdateFailure() {
-        // TODO: Add a toast message
+        showToastMessage(R.string.distance_update_failed);
     }
 
     @Override
@@ -148,6 +149,12 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public void onDistanceDeleteFailure() {
-        // TODO: Add a toast message
+        showToastMessage(R.string.distance_delete_failed);
+    }
+
+    private void showToastMessage(int stringResId) {
+        if (isAdded()) {
+            Toast.makeText(getActivity(), stringResId, Toast.LENGTH_LONG).show();
+        }
     }
 }

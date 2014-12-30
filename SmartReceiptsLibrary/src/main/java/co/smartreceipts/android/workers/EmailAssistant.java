@@ -156,10 +156,19 @@ public class EmailAssistant {
                             dialog.cancel();
                             return;
                         }
-                        if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).size() == 0) {
-                            Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
-                            dialog.cancel();
-                            return;
+                        if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).isEmpty()) {
+                            if (mPersistenceManager.getDatabase().getDistanceSerial(mTrip).isEmpty() || !pdfFull.isChecked()) {
+                                // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
+                                Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
+                                dialog.cancel();
+                                return;
+                            }
+                            else {
+                                // Uncheck "Illegal" Items
+                                pdfImages.setChecked(false);
+                                csv.setChecked(false);
+                                zipStampedImages.setChecked(false);
+                            }
                         }
                         ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
                         EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Parcelable;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -109,6 +110,13 @@ public interface Trip extends Parcelable {
      * @return the float primitive, which represents the total price of this trip
      */
     float getPriceAsFloat();
+
+    /**
+     * Gets the {@link java.math.BigDecimal} representation of this price
+     *
+     * @return the {@link java.math.BigDecimal} representation of this price
+     */
+    BigDecimal getPriceAsBigDecimal();
 
     /**
      * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of

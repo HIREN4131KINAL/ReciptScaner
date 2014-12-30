@@ -232,6 +232,15 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
+    public BigDecimal getPriceAsBigDecimal() {
+        if (mPrice != null) {
+            return mPrice;
+        } else {
+            return new BigDecimal(0);
+        }
+    }
+
+    @Override
     public String getDecimalFormattedPrice() {
         return ModelUtils.getDecimalFormattedValue(mPrice);
     }
@@ -254,6 +263,11 @@ public final class DefaultReceiptImpl implements Receipt {
     @Override
     public float getTaxAsFloat() {
         return mTax.floatValue();
+    }
+
+    @Override
+    public BigDecimal getTaxAsBigDecimal() {
+        return mTax;
     }
 
     @Override

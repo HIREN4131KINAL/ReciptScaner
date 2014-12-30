@@ -61,7 +61,9 @@
     <!-- ============= Report Generation ============== -->
     <string name="report_header_from">From: %s</string>
     <string name="report_header_to">To: %s</string>
-    <string name="report_header_distance_travelled">Distance Traveled:</string>
+    <string name="report_header_price">Total: %s</string>
+    <string name="report_header_price_no_tax">Total (Sans Tax): %s</string>
+    <string name="report_header_price_expensable">Total (Expensable): %s</string>
 
     <!-- ================ Categories ================== -->
     <string name="category_name">Name: </string>

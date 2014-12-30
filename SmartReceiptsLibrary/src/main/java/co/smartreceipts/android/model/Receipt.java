@@ -5,6 +5,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -160,6 +161,13 @@ public interface Receipt extends Parcelable {
     float getPriceAsFloat();
 
     /**
+     * Gets the {@link java.math.BigDecimal} representation of this price
+     *
+     * @return the {@link java.math.BigDecimal} representation of this price
+     */
+    BigDecimal getPriceAsBigDecimal();
+
+    /**
      * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
      * showing naively as "25.2"
      *
@@ -195,6 +203,13 @@ public interface Receipt extends Parcelable {
      * @return the float primitive, which represents the total tax of this receipt
      */
     float getTaxAsFloat();
+
+    /**
+     * Gets the {@link java.math.BigDecimal} representation of this tax
+     *
+     * @return the {@link java.math.BigDecimal} representation of this tax
+     */
+    BigDecimal getTaxAsBigDecimal();
 
     /**
      * A "decimal-formatted" tax, which would appear to the end user as "25.20" or "25,20" instead of

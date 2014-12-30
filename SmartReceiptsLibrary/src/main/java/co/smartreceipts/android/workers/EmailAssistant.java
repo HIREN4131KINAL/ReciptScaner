@@ -46,6 +46,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,6 +63,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -93,6 +95,7 @@ public class EmailAssistant {
     private static final String TAG = "EmailAssistant";
 
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
+    private static final float EPSILON = 0.0001f;
 
     private final Context mContext;
     private final Flex mFlex;
@@ -162,8 +165,7 @@ public class EmailAssistant {
                                 Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
                                 dialog.cancel();
                                 return;
-                            }
-                            else {
+                            } else {
                                 // Uncheck "Illegal" Items
                                 pdfImages.setChecked(false);
                                 csv.setChecked(false);
@@ -392,9 +394,28 @@ public class EmailAssistant {
                     writer.setPageEvent(new Footer());
                     document.open();
 
+                    BigDecimal expensablePrice = new BigDecimal(0);
+                    BigDecimal taxPrice = new BigDecimal(0);
+                    for (int i = 0; i < len; i++) {
+                        final Receipt receipt = receipts.get(i);
+                        taxPrice = taxPrice.add(receipt.getTaxAsBigDecimal());
+                        if (receipt.isExpensable()) {
+                            expensablePrice = expensablePrice.add(receipt.getPriceAsBigDecimal());
+                        }
+                    }
+
                     // Add the table (TODO: Use formatting at some point so it doesn't look like crap)
-                    document.add(new Paragraph(trip.getCurrencyFormattedPrice() + "  \u2022  " + dir.getName() + "\n"
-                            + mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
+                    document.add(new Paragraph(dir.getName() + "\n"));
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_price, trip.getCurrencyFormattedPrice()) + "\n"));
+                    if (mPreferences.includeTaxField() && taxPrice.abs().floatValue() > EPSILON) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, ModelUtils.getCurrencyFormattedValue(trip.getPriceAsBigDecimal().subtract(taxPrice), trip.getCurrency())) + "\n"));
+                    }
+                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && expensablePrice.subtract(trip.getPriceAsBigDecimal()).abs().floatValue() > EPSILON) {
+                        // Assume epsilon equality
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_expensable, ModelUtils.getCurrencyFormattedValue(expensablePrice, trip.getCurrency())) + "\n"));
+                    }
+
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
                             + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n\n\n"));
                     PDFColumns columns = mDB.getPDFColumns();
                     PdfPTable table = columns.getTableWithHeaders();

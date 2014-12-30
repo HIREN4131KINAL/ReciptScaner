@@ -164,6 +164,15 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
+    public BigDecimal getPriceAsBigDecimal() {
+        if (mPrice != null) {
+            return mPrice;
+        } else {
+            return new BigDecimal(0);
+        }
+    }
+
+    @Override
     public String getDecimalFormattedPrice() {
         return ModelUtils.getDecimalFormattedValue(mPrice);
     }

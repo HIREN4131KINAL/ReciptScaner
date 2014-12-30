@@ -110,6 +110,11 @@ public class ImmutableDistanceImpl implements Distance {
     }
 
     @Override
+    public String getCurrencyFormattedPrice() {
+        return ModelUtils.getCurrencyFormattedValue(mRate.multiply(mDistance), mCurrency);
+    }
+
+    @Override
     public WBCurrency getCurrency() {
         return mCurrency;
     }

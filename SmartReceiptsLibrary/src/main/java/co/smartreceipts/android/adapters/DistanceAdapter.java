@@ -38,6 +38,11 @@ public class DistanceAdapter extends CardAdapter<Distance> {
     }
 
     @Override
+    protected void setCategory(TextView textView, Distance data) {
+        textView.setText(data.getCurrencyFormattedPrice());
+    }
+
+    @Override
     protected void setDateTextView(TextView textView, Distance data) {
         textView.setText(data.getFormattedDate(getContext(), getPreferences().getDateSeparator()));
     }

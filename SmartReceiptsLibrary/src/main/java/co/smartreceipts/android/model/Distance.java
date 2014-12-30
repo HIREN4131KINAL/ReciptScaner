@@ -96,6 +96,13 @@ public interface Distance extends Parcelable {
     String getCurrencyFormattedRate();
 
     /**
+     * The "currency-formatted" price (i.e. rate * distance), which would appear as "$25.20" or "$25,20" as determined by the user's locale
+     *
+     * @return - the currency formatted price {@link java.lang.String}
+     */
+    String getCurrencyFormattedPrice();
+
+    /**
      * Gets the currency which this distance's rate is tracked in
      *
      * @return - the {@link co.smartreceipts.android.model.WBCurrency} currency representation

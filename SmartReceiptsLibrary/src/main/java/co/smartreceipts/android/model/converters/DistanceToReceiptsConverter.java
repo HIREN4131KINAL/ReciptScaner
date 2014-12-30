@@ -64,7 +64,9 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
                 distancesPerDay.get(formattedDate).add(distance);
             }
             else {
-                distancesPerDay.put(formattedDate, Arrays.asList(distance));
+                final List<Distance> distanceList = new ArrayList<Distance>();
+                distanceList.add(distance);
+                distancesPerDay.put(formattedDate, distanceList);
             }
         }
 
@@ -89,6 +91,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         factory.setName(mContext.getString(R.string.distance_item, formattedDay));
         factory.setDate(distance0.getDate());
         factory.setImage(null);
+        factory.setIsExpenseable(true);
         factory.setTimeZone(distance0.getTimeZone());
         factory.setCategory(mContext.getString(R.string.distance));
 
@@ -97,7 +100,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         WBCurrency currency = distance0.getCurrency();
         final int size = distancesThisDay.size();
         for (int i = 0; i < size; i++) {
-            final Distance distance = distancesThisDay.get(0);
+            final Distance distance = distancesThisDay.get(i);
             price = price.add(distance.getDistance().multiply(distance.getRate()));
             if (!currency.equals(distance.getCurrency())) {
                 currency = WBCurrency.MISSING_CURRENCY;

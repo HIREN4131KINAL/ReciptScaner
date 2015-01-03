@@ -47,6 +47,7 @@
 		<EditText android:id="@+id/dialog_mileage_comment"
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
 			android:hint="@string/distance_comment_field" />
 	</LinearLayout>
 </ScrollView>

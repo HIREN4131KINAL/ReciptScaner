@@ -13,6 +13,7 @@
     		android:layout_height="wrap_content"
     		android:hint="@string/DIALOG_RECEIPTMENU_HINT_NAME" 
     		android:completionThreshold="1"
+            android:inputType="textCapSentences"
     		android:maxLength="50" />
     	<LinearLayout
 	        android:orientation="horizontal"
@@ -53,6 +54,7 @@
 			    android:layout_height="0dip"
 			    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT"
 				android:completionThreshold="1"
+                android:inputType="textCapSentences"
 			    android:layout_weight="1" />
     	<Spinner android:id="@+id/dialog_receiptmenu_payment_methods_spinner"
 	            android:layout_width="fill_parent"

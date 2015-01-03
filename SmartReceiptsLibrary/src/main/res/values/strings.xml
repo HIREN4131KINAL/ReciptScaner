@@ -340,6 +340,7 @@
     <string name="column_item_report_start_date">Report Start Date</string>
     <string name="column_item_report_end_date">Report End Date</string>
     <string name="column_item_report_comment">Report Comment</string>
+    <string name="column_item_report_cost_center">Report Cost Center</string>
     <string name="column_item_image_file_name">Image Name</string>
     <string name="column_item_image_path">Image Path</string>
     <!-- **Please note that for flex purposes, some of these use the legacy names above** -->

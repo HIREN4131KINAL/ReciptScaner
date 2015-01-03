@@ -32,6 +32,7 @@ public class Columns {
 		public static String REPORT_START_DATE = null;
 		public static String REPORT_END_DATE = null;
 		public static String REPORT_COMMENT = null;
+        public static String REPORT_COST_CENTER = null;
 		public static String IMAGE_FILE_NAME = null;
 		public static String IMAGE_PATH = null;
 		public static String COMMENT = null;
@@ -84,6 +85,7 @@ public class Columns {
 		ColumnName.REPORT_START_DATE = flex.getString(context, R.string.column_item_report_start_date);
 		ColumnName.REPORT_END_DATE = flex.getString(context, R.string.column_item_report_end_date);
 		ColumnName.REPORT_COMMENT = flex.getString(context, R.string.column_item_report_comment);
+        ColumnName.REPORT_COST_CENTER = flex.getString(context, R.string.column_item_report_cost_center);
 		ColumnName.IMAGE_FILE_NAME = flex.getString(context, R.string.column_item_image_file_name);
 		ColumnName.IMAGE_PATH = flex.getString(context, R.string.column_item_image_path);
 		ColumnName.COMMENT = flex.getString(context, R.string.RECEIPTMENU_FIELD_COMMENT);
@@ -208,6 +210,9 @@ public class Columns {
 		else if (column.getColumnType().equals(ColumnName.REPORT_COMMENT)) {
 			return currentTrip.getComment();
 		}
+        else if (column.getColumnType().equals(ColumnName.REPORT_COST_CENTER)) {
+            return currentTrip.getCostCenter();
+        }
 		else if (column.getColumnType().equals(ColumnName.USER_ID)) {
 			return mPersistenceManager.getPreferences().getUserID();
 		}
@@ -259,7 +264,8 @@ public class Columns {
 	}
 
 	public ArrayList<CharSequence> generateOptionsList(Context context, Flex flex) {
-		ArrayList<CharSequence> options = new ArrayList<CharSequence>(18);
+        init(context, flex);
+		final ArrayList<CharSequence> options = new ArrayList<CharSequence>(18);
 		options.add(ColumnName.BLANK);
 		options.add(ColumnName.CATEGORY_CODE);
 		options.add(ColumnName.CATEGORY_NAME);
@@ -276,6 +282,7 @@ public class Columns {
 		options.add(ColumnName.ID); // Appears as Receipt ID
 		options.add(ColumnName.INDEX); //Appears as Receipt Index
 		options.add(ColumnName.REPORT_COMMENT);
+        options.add(ColumnName.REPORT_COST_CENTER);
 		options.add(ColumnName.REPORT_NAME);
 		options.add(ColumnName.REPORT_START_DATE);
 		options.add(ColumnName.REPORT_END_DATE);

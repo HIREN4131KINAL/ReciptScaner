@@ -87,8 +87,8 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
 
         // Set up default values for everything
         final Distance distance0 = distancesThisDay.get(0);
-        final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(-(int)System.currentTimeMillis()); // Randomize the id
-        factory.setName(mContext.getString(R.string.distance_item, formattedDay));
+        final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(-1); // Randomize the id
+        factory.setName(mContext.getString(R.string.distance));
         factory.setDate(distance0.getDate());
         factory.setImage(null);
         factory.setIsExpenseable(true);

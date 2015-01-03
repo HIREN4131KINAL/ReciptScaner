@@ -96,22 +96,25 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     }
 
     @Override
-    public void onDistanceRowsQuerySuccess(List<Distance> distance) {
+    public void onDistanceRowsQuerySuccess(List<Distance> distances) {
         if (isAdded()) {
-            mAdapter.notifyDataSetChanged(distance);
+            mAdapter.notifyDataSetChanged(distances);
             mProgressDialog.setVisibility(View.GONE);
-            if (distance == null || distance.size() == 0) {
+            if (distances == null || distances.size() == 0) {
                 getListView().setVisibility(View.GONE);
                 mNoDataAlert.setVisibility(View.VISIBLE);
+                return;
             } else {
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
+            final int size = distances.size();
             BigDecimal total = new BigDecimal(0);
-            for (int i = 0; i < distance.size(); i++) {
-                total = total.add(distance.get(i).getDistance());
+            for (int i = 0; i < size; i++) {
+                final Distance distance = distances.get(i);
+                total = total.add(distance.getDistance().multiply(distance.getRate()));
             }
-            getSupportActionBar().setSubtitle(getString(R.string.total_item, ModelUtils.getDecimalFormattedValue(total)));
+            getSupportActionBar().setSubtitle(getString(R.string.total_item, ModelUtils.getCurrencyFormattedValue(total, mTrip.getDefaultCurrency())));
         }
     }
 

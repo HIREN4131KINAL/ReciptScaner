@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:completionThreshold="1"
             android:inputType="textCapSentences"
-            android:hint="@string/DIALOG_RECEIPTMENU_HINT_COST_CENTER" />
+            android:hint="@string/DIALOG_RECEIPTMENU_HINT_COST_CENTER"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

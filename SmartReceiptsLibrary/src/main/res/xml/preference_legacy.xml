@@ -26,6 +26,12 @@
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_date_separator_key"
             android:title="@string/pref_general_default_date_separator_title" />
+        <CheckBoxPreference
+            android:key="@string/pref_general_track_cost_center_key"
+            android:title="@string/pref_general_track_cost_center_title"
+            android:summaryOn="@string/pref_general_track_cost_center_summaryOn"
+            android:summaryOff="@string/pref_general_track_cost_center_summaryOff"
+            android:defaultValue="@bool/pref_general_track_cost_center_defaultValue"/>
 	</PreferenceCategory>
 	
     <PreferenceCategory 

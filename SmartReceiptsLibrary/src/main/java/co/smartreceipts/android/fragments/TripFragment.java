@@ -202,6 +202,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_currency);
 		final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_comment);
         final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) scrollView.findViewById(R.id.dialog_tripmenu_cost_center);
+        costCenterBox.setVisibility(getPersistenceManager().getPreferences().getIncludeCostCenter() ? View.VISIBLE : View.GONE);
 
 		final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
 		currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

@@ -37,6 +37,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // General Preferences
     private int mDefaultTripDuration;
     private String mDefaultCurrency, mDateSeparator;
+    private boolean mIncludeCostCenter;
 
     // Receipt Preferences
     private float mMinReceiptPrice;
@@ -99,6 +100,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         } catch (IllegalArgumentException ex) {
             this.mDefaultCurrency = "USD";
         }
+    }
+
+    private void initIncludeCostCenter(SharedPreferences prefs) {
+        this.mIncludeCostCenter = prefs.getBoolean(mContext.getString(R.string.pref_general_track_cost_center_key), mContext.getResources().getBoolean(R.bool.pref_general_track_cost_center_defaultValue));
     }
 
     private void initMinReceiptPrice(SharedPreferences prefs) {
@@ -255,6 +260,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultTripDuration(prefs);
         this.initDefaultDateSeparator(prefs);
         this.initDefaultCurrency(prefs);
+        this.initIncludeCostCenter(prefs);
 
         // Receipt Preferences
         this.initMinReceiptPrice(prefs);
@@ -594,6 +600,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean getPrintDistanceAsDailyReceipt() {
         return mPrintDistanceAsDailyReceipt;
+    }
+
+    public boolean getIncludeCostCenter() {
+        return mIncludeCostCenter;
     }
 
     /**

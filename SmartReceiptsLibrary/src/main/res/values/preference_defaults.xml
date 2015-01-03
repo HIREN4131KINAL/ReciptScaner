@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- ============= Preference General ================= -->
+    <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============= Preference Output ================= -->
     <bool name="pref_output_blank_signature_defaultValue">false</bool>

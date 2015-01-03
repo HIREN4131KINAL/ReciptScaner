@@ -404,6 +404,10 @@
     <string name="pref_general_default_currency_title">Default Currency</string>
     <string name="pref_general_default_date_separator_key" translatable="false">dateseparator</string>
     <string name="pref_general_default_date_separator_title">Default Date Separator</string>
+    <string name="pref_general_track_cost_center_key" translatable="false">trackcostcenter</string>
+    <string name="pref_general_track_cost_center_title">Track Cost Center</string>
+    <string name="pref_general_track_cost_center_summaryOn">Include Cost Center For Reports</string>
+    <string name="pref_general_track_cost_center_summaryOff">Don\'t Include Cost Center For Reports</string>
 
     <!-- ============== Preference Receipt ================= -->
     <string name="pref_receipt_customize_categories_key" translatable="false">CustomCategories</string>

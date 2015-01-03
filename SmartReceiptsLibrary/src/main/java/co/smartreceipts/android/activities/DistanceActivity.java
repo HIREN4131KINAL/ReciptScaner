@@ -47,6 +47,10 @@ public class DistanceActivity extends WBActivity {
             finish();
             return true;
         }
+        else if (item.getItemId() == R.id.menu_main_settings) {
+            SRNavUtils.showSettings(this);
+            return true;
+        }
         else {
             return super.onOptionsItemSelected(item);
         }

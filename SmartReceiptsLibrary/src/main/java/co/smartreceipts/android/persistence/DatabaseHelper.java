@@ -563,7 +563,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 				db.execSQL(alterTrips);
 				db.execSQL(alterReceipts);
 			}
-			if (oldVersion <= 12) { //Added better distance tracking - Add a cost center to the trips
+			if (oldVersion <= 12) { //Added better distance tracking, cost center to the trips, and status to trips/receipts
 				this.createDistanceTable(db);
 
                 // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
@@ -1292,35 +1292,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             if (c != null) {
                 c.close();
             }
-        }
-    }
-
-    /**
-     * Please note that a very frustrating bug exists here. Android cursors only return the first 6
-     * characters of a price string if that string contains a '.' character. It returns all of them
-     * if not. This means we'll break for prices over 5 digits unless we are using a comma separator,
-     * which we'd do in the EU. In the EU (comma separated), Android returns the wrong value when we
-     * get a double (instead of a string). This method has been built to handle this edge case to the
-     * best of our abilities.
-     * <p/>
-     * TODO: Longer term, everything should be saved with a decimal point
-     *
-     * @param cursor             - the current {@link android.database.Cursor}
-     * @param decimalColumnIndex - the index of the column
-     * @return a {@link java.math.BigDecimal} value of the decimal
-     * @see https://code.google.com/p/android/issues/detail?id=22219.
-     */
-    private BigDecimal getDecimal(@NonNull Cursor cursor, int decimalColumnIndex) {
-        final String decimalString = cursor.getString(decimalColumnIndex);
-        final double decimalDouble = cursor.getDouble(decimalColumnIndex);
-        if (!TextUtils.isEmpty(decimalString) && decimalString.contains(",")) {
-            try {
-                return new BigDecimal(decimalString.replace(",", "."));
-            } catch (NumberFormatException e) {
-                return new BigDecimal(decimalDouble);
-            }
-        } else {
-            return new BigDecimal(decimalDouble);
         }
     }
 
@@ -3557,6 +3528,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
 						// final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
 						final int mileageIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
+                        final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
+                        final int filtersIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
+                        final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
+                        final int processingStatusIndex = c.getColumnIndex(TripsTable.COLUMN_PROCESSING_STATUS);
 						do {
 							String name = getString(c, nameIndex, "");
 							if (name.contains("wb.receipts")) { // Backwards compatibility stuff
@@ -3572,11 +3547,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final long from = getLong(c, fromIndex, 0L);
 							final long to = getLong(c, toIndex, 0L);
 							final int mileage = getInt(c, mileageIndex, 0);
-							ContentValues values = new ContentValues(7);
+                            final String comment = getString(c, commentIndex, "");
+                            final String filters = getString(c, filtersIndex, "");
+                            final String costCenter = getString(c, costCenterIndex, "");
+                            final String processingStatus = getString(c, processingStatusIndex, "");
+							ContentValues values = new ContentValues(10);
 							values.put(TripsTable.COLUMN_NAME, name);
 							values.put(TripsTable.COLUMN_FROM, from);
 							values.put(TripsTable.COLUMN_TO, to);
 							values.put(TripsTable.COLUMN_MILEAGE, mileage);
+                            values.put(TripsTable.COLUMN_COMMENT, comment);
+                            values.put(TripsTable.COLUMN_FILTERS, filters);
+                            values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
+                            values.put(TripsTable.COLUMN_PROCESSING_STATUS, processingStatus);
 							if (fromTimeZoneIndex > 0) {
 								final String fromTimeZome = c.getString(fromTimeZoneIndex);
 								values.put(TripsTable.COLUMN_FROM_TIMEZONE, fromTimeZome);
@@ -3633,6 +3616,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						final int taxIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TAX);
 						final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
 						final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID);
+                        final int processingStatusIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PROCESSING_STATUS);
 						do {
 							final String oldPath = getString(c, pathIndex, "");
 							String newPath = new String(oldPath);
@@ -3671,7 +3655,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final String extra_edittext_3 = getString(c, extra_edittext_3_Index, null);
 							final String tax = getString(c, taxIndex, "0");
 							final int paymentMethod = getInt(c, paymentMethodIndex, 0);
-							try {
+                            final String processingStatus = getString(c, processingStatusIndex, "");
+                            try {
 								countCursor = currDB.rawQuery(queryCount, new String[] { newPath, name, Long.toString(date) });
 								if (countCursor != null && countCursor.moveToFirst()) {
 									int count = countCursor.getInt(0);
@@ -3691,6 +3676,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
 									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
 									values.put(ReceiptsTable.COLUMN_TAX, tax);
+                                    values.put(ReceiptsTable.COLUMN_PROCESSING_STATUS, processingStatus);
 									if (timeZoneIndex > 0) {
 										final String timeZone = c.getString(timeZoneIndex);
 										values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
@@ -3886,6 +3872,84 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 						c = null;
 					}
 				}
+
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Merging Distance");
+                }
+                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Distance");
+                try {
+                    c = importDB.query(DistanceTable.TABLE_NAME, null, null, null, null, null, null);
+                    if (c != null && c.moveToFirst()) {
+                        final String distanceCountQuery = "SELECT COUNT(*), " + DistanceTable.COLUMN_ID + " FROM " + DistanceTable.TABLE_NAME + " WHERE " + DistanceTable.COLUMN_PARENT + "=? AND " + DistanceTable.COLUMN_LOCATION + "=? AND " + DistanceTable.COLUMN_DATE + "=?";
+                        final int parentTripIndex = c.getColumnIndex(DistanceTable.COLUMN_PARENT);
+                        final int locationIndex = c.getColumnIndex(DistanceTable.COLUMN_LOCATION);
+                        final int distanceIndex = c.getColumnIndex(DistanceTable.COLUMN_DISTANCE);
+                        final int rateIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE);
+                        final int currencyIndex = c.getColumnIndex(DistanceTable.COLUMN_RATE_CURRENCY);
+                        final int dateIndex = c.getColumnIndex(DistanceTable.COLUMN_DATE);
+                        final int timezoneIndex = c.getColumnIndex(DistanceTable.COLUMN_TIMEZONE);
+                        final int commentIndex = c.getColumnIndex(DistanceTable.COLUMN_COMMENT);
+                        do {
+                            final ContentValues values = new ContentValues(8);
+                            final String parentTripPath = getString(c, parentTripIndex, "");
+                            final String location = getString(c, locationIndex, "");
+                            final BigDecimal distance = getDecimal(c, distanceIndex);
+                            final BigDecimal rate = getDecimal(c, rateIndex);
+                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
+                            final long date = getLong(c, dateIndex, 0L);
+                            final String timezone = getString(c, timezoneIndex, TimeZone.getDefault().getID());
+                            final String comment = getString(c, commentIndex, "");
+                            values.put(DistanceTable.COLUMN_PARENT, parentTripPath);
+                            values.put(DistanceTable.COLUMN_LOCATION, location);
+                            values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue());
+                            values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
+                            values.put(DistanceTable.COLUMN_RATE_CURRENCY, currency);
+                            values.put(DistanceTable.COLUMN_DATE, date);
+                            values.put(DistanceTable.COLUMN_TIMEZONE, timezone);
+                            values.put(DistanceTable.COLUMN_COMMENT, comment);
+                            try {
+                                countCursor = currDB.rawQuery(distanceCountQuery, new String[]{parentTripPath, location, Long.toString(date)});
+                                if (countCursor != null && countCursor.moveToFirst()) {
+                                    int count = countCursor.getInt(0);
+                                    int updateID = countCursor.getInt(1);
+                                    if (count > 0 && overwrite) { // Update
+                                        currDB.update(DistanceTable.TABLE_NAME, values, DistanceTable.COLUMN_ID + " = ?", new String[]{Integer.toString(updateID)});
+                                    } else { // insert
+                                        if (overwrite) {
+                                            currDB.insertWithOnConflict(DistanceTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+                                        } else if (count == 0) {
+                                            // If we're not overwriting anything, let's check that there are no entries here
+                                            currDB.insertWithOnConflict(DistanceTable.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                                        }
+                                    }
+                                }
+                            }
+                            finally {
+                                if (countCursor != null && !countCursor.isClosed()) {
+                                    countCursor.close();
+                                    countCursor = null;
+                                }
+                            }
+                        }
+                        while (c.moveToNext());
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                catch (SQLiteException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
+                    }
+                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
+                }
+                finally {
+                    if (c != null && !c.isClosed()) {
+                        c.close();
+                        c = null;
+                    }
+                }
+
 				mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Success");
 				return true;
 			}
@@ -3937,6 +4001,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		}
 	}
 
+    private double getDouble(Cursor cursor, int index, double defaultValue) {
+        if (index >= 0) {
+            return cursor.getDouble(index);
+        }
+        else {
+            return defaultValue;
+        }
+    }
+
 	private String getString(Cursor cursor, int index, String defaultValue) {
 		if (index >= 0) {
 			return cursor.getString(index);
@@ -3945,6 +4018,40 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 			return defaultValue;
 		}
 	}
+
+    /**
+     * Please note that a very frustrating bug exists here. Android cursors only return the first 6
+     * characters of a price string if that string contains a '.' character. It returns all of them
+     * if not. This means we'll break for prices over 5 digits unless we are using a comma separator,
+     * which we'd do in the EU. In the EU (comma separated), Android returns the wrong value when we
+     * get a double (instead of a string). This method has been built to handle this edge case to the
+     * best of our abilities.
+     * <p/>
+     * TODO: Longer term, everything should be saved with a decimal point
+     *
+     * @param cursor             - the current {@link android.database.Cursor}
+     * @param decimalColumnIndex - the index of the column
+     * @return a {@link java.math.BigDecimal} value of the decimal
+     * @see https://code.google.com/p/android/issues/detail?id=22219.
+     */
+    private BigDecimal getDecimal(@NonNull Cursor cursor, int index) {
+        if (index >= 0) {
+            final String decimalString = cursor.getString(index);
+            final double decimalDouble = cursor.getDouble(index);
+            if (!TextUtils.isEmpty(decimalString) && decimalString.contains(",")) {
+                try {
+                    return new BigDecimal(decimalString.replace(",", "."));
+                } catch (NumberFormatException e) {
+                    return new BigDecimal(decimalDouble);
+                }
+            } else {
+                return new BigDecimal(decimalDouble);
+            }
+        }
+        else {
+            return new BigDecimal(0);
+        }
+    }
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////////
 	// AutoCompleteTextView Methods

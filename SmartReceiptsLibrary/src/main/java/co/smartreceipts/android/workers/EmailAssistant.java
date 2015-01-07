@@ -621,6 +621,9 @@ public class EmailAssistant {
 
                 // Set up the number of items to draw
                 int num = 5;
+                if (mPreferences.includeTaxField()) {
+                    num++;
+                }
                 if (receipt.hasExtraEditText1()) {
                     num++;
                 }
@@ -639,8 +642,12 @@ public class EmailAssistant {
                 y = background.getHeight() - yPad / 2 + spacing * 2;
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_NAME) + ": " + receipt.getName(), xPad / 2, y, brush);
                 y += spacing;
-                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getPrice() + " " + receipt.getCurrencyCode(), xPad / 2, y, brush);
+                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getDecimalFormattedPrice() + " " + receipt.getCurrencyCode(), xPad / 2, y, brush);
                 y += spacing;
+                if (mPreferences.includeTaxField()) {
+                    canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_TAX) + ": " + receipt.getDecimalFormattedTax() + " " + receipt.getCurrencyCode(), xPad / 2, y, brush);
+                    y += spacing;
+                }
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_DATE) + ": " + receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad / 2, y, brush);
                 y += spacing;
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.getCategory(), xPad / 2, y, brush);

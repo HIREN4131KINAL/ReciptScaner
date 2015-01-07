@@ -3647,7 +3647,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 								newParent = f.getName();
 							}
 							final String category = getString(c, categoryIndex, "");
-							final String price = getString(c, priceIndex, "");
+							final BigDecimal price = getDecimal(c, priceIndex);
 							final long date = getLong(c, dateIndex, 0L);
 							final String comment = getString(c, commentIndex, "");
 							final boolean expensable = getBoolean(c, expenseableIndex, true);
@@ -3656,7 +3656,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 							final String extra_edittext_1 = getString(c, extra_edittext_1_Index, null);
 							final String extra_edittext_2 = getString(c, extra_edittext_2_Index, null);
 							final String extra_edittext_3 = getString(c, extra_edittext_3_Index, null);
-							final String tax = getString(c, taxIndex, "0");
+							final BigDecimal tax = getDecimal(c, taxIndex);
 							final int paymentMethod = getInt(c, paymentMethodIndex, 0);
                             final String processingStatus = getString(c, processingStatusIndex, "");
                             try {
@@ -3669,7 +3669,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									values.put(ReceiptsTable.COLUMN_NAME, name);
 									values.put(ReceiptsTable.COLUMN_PARENT, newParent);
 									values.put(ReceiptsTable.COLUMN_CATEGORY, category);
-									values.put(ReceiptsTable.COLUMN_PRICE, price);
+									values.put(ReceiptsTable.COLUMN_PRICE, price.doubleValue());
 									values.put(ReceiptsTable.COLUMN_DATE, date);
 									values.put(ReceiptsTable.COLUMN_COMMENT, comment);
 									values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
@@ -3678,7 +3678,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
 									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
 									values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
-									values.put(ReceiptsTable.COLUMN_TAX, tax);
+									values.put(ReceiptsTable.COLUMN_TAX, tax.doubleValue());
                                     values.put(ReceiptsTable.COLUMN_PROCESSING_STATUS, processingStatus);
 									if (timeZoneIndex > 0) {
 										final String timeZone = c.getString(timeZoneIndex);

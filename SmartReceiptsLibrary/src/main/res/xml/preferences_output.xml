@@ -42,10 +42,10 @@
             android:summaryOn="@string/pref_output_blank_signature_summaryOn"
             android:summaryOff="@string/pref_output_blank_signature_summaryOff"
             android:defaultValue="@bool/pref_output_blank_signature_defaultValue"/>
-            -->
         <wb.android.preferences.EmptyValueSummaryPreference
             android:key="@string/pref_output_signature_picture_key"
             android:title="@string/pref_output_signature_picture_title"
             wb:emptyValue="@string/pref_output_signature_picture_emptyValue" />
+            -->
 	</PreferenceCategory>
 </PreferenceScreen>

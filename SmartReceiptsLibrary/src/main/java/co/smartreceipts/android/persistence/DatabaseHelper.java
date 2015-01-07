@@ -1174,6 +1174,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		synchronized (mDatabaseLock) {
 			// TODO: Fix errors when the disk is not yet mounted
 			success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_PARENT + " = ?", new String[] { trip.getName() }) >= 0);
+            success &= (db.delete(DistanceTable.TABLE_NAME, DistanceTable.COLUMN_PARENT + " = ?", new String[] { trip.getName() }) >= 0);
 		}
 		if (success) {
 			synchronized (mReceiptCacheLock) {
@@ -1505,12 +1506,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             final String rateCurrency,
 			final String comment) {
 
+        final int distanceCount = getDistanceSerial(trip).size() + 1;
         final TimeZone timeZone = TimeZone.getDefault();
-		ContentValues values = new ContentValues(8);
+		final ContentValues values = new ContentValues(8);
         values.put(DistanceTable.COLUMN_PARENT, trip.getName());
 		values.put(DistanceTable.COLUMN_LOCATION, location); 
-		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue()); 
-		values.put(DistanceTable.COLUMN_DATE, date.getTime()); 
+		values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue());
+        // Fudge the data millis by the distance count (for this trip) to help with uniqueness
+		values.put(DistanceTable.COLUMN_DATE, date.getTime() + distanceCount);
 		values.put(DistanceTable.COLUMN_TIMEZONE, timeZone.getID());
 		values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
         values.put(DistanceTable.COLUMN_RATE_CURRENCY, rateCurrency);

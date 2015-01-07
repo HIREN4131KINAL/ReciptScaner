@@ -2114,10 +2114,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 		values.put(ReceiptsTable.COLUMN_ISO4217, currency);
 		values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
 		if (price.length() > 0) {
-			values.put(ReceiptsTable.COLUMN_PRICE, price);
+			values.put(ReceiptsTable.COLUMN_PRICE, price.replace(",", "."));
 		}
 		if (tax.length() > 0) {
-			values.put(ReceiptsTable.COLUMN_TAX, tax);
+			values.put(ReceiptsTable.COLUMN_TAX, tax.replace(",", "."));
 			// Extras
 		}
 

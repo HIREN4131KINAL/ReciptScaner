@@ -240,7 +240,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             return fallback;
         }
         try {
-            return new BigDecimal(number);
+            return new BigDecimal(number.replace(",", "."));
         } catch (NumberFormatException e) {
             return fallback;
         }

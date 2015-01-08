@@ -71,6 +71,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             configurePreferencesEmail(this);
             configurePreferencesCamera(this);
             configurePreferencesLayoutCustomizations(this);
+            configurePreferencesDistance(this);
             configurePreferencesHelp(this);
             configurePreferencesAbout(this);
         }
@@ -247,6 +248,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     }
 
     public void configurePreferencesLayoutCustomizations(UniversalPreferences universal) {
+
+    }
+
+    public void configurePreferencesDistance(UniversalPreferences universal) {
 
     }
 

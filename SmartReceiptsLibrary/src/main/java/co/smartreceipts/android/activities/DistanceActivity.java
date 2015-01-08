@@ -2,11 +2,13 @@ package co.smartreceipts.android.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.MenuItem;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.DistanceFragment;
+import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -49,6 +51,11 @@ public class DistanceActivity extends WBActivity {
         }
         else if (item.getItemId() == R.id.menu_main_settings) {
             SRNavUtils.showSettings(this);
+            return true;
+        }
+        else if (item.getItemId() == R.id.menu_main_export) {
+            final Fragment distanceFragment = getSupportFragmentManager().findFragmentByTag(DistanceFragment.TAG);
+            getSmartReceiptsApplication().getSettings().showExport(distanceFragment);
             return true;
         }
         else {

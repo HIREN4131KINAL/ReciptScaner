@@ -235,7 +235,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         // Set on Preference Click Listeners for all that require it
         universal.findPreference(R.string.pref_output_custom_csv_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_output_custom_pdf_key).setOnPreferenceClickListener(this);
-        universal.findPreference(R.string.pref_output_signature_picture_key).setOnPreferenceClickListener(this);
+        final Preference signaturePreference = universal.findPreference(R.string.pref_output_signature_picture_key);
+        if (signaturePreference != null) {
+            signaturePreference.setOnPreferenceClickListener(this);
+        }
     }
 
     public void configurePreferencesEmail(UniversalPreferences universal) {

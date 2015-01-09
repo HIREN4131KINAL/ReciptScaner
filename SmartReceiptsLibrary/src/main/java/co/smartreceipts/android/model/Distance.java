@@ -96,6 +96,20 @@ public interface Distance extends Parcelable {
     String getCurrencyFormattedRate();
 
     /**
+     * The price (i.e. rate * distance) as a {@link java.math.BigDecimal}
+     *
+     * @return the {@link java.math.BigDecimal} representation of the price
+     */
+    BigDecimal getPrice();
+
+    /**
+     * The "decimal-formatted" price (i.e. rate * distance), which would appear as "25.20" or "25,20" as determined by the user's locale
+     *
+     * @return - the currency formatted price {@link java.lang.String}
+     */
+    String getDecimalFormattedPrice();
+
+    /**
      * The "currency-formatted" price (i.e. rate * distance), which would appear as "$25.20" or "$25,20" as determined by the user's locale
      *
      * @return - the currency formatted price {@link java.lang.String}

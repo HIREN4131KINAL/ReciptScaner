@@ -13,7 +13,7 @@ import co.smartreceipts.android.persistence.Preferences;
 
 public class DistanceTableGenerator {
 
-    private static final int DISTANCE_COLUMN_COUNT = 6;
+    private static final int DISTANCE_COLUMN_COUNT = 7;
 
     private final Context mContext;
     private final Preferences mPreferences;
@@ -30,21 +30,23 @@ public class DistanceTableGenerator {
             table.setWidthPercentage(100);
 
             // First, add the headers to the table:
-            table.addCell(mContext.getString(R.string.distance_distance_field));
-            table.addCell(mContext.getString(R.string.distance_date_field));
             table.addCell(mContext.getString(R.string.distance_location_field));
+            table.addCell(mContext.getString(R.string.distance_price_field));
+            table.addCell(mContext.getString(R.string.distance_distance_field));
             table.addCell(mContext.getString(R.string.distance_rate_field));
             table.addCell(mContext.getString(R.string.dialog_currency_field));
+            table.addCell(mContext.getString(R.string.distance_date_field));
             table.addCell(mContext.getString(R.string.distance_comment_field));
 
             // Next, let's add the actual data
             for (int i = 0; i < distances.size(); i++) {
                 final Distance distance = distances.get(i);
-                table.addCell(distance.getDecimalFormattedDistance());
-                table.addCell(distance.getFormattedDate(mContext, mPreferences.getDateSeparator()));
                 table.addCell(distance.getLocation());
+                table.addCell(distance.getCurrencyFormattedPrice());
+                table.addCell(distance.getDecimalFormattedDistance());
                 table.addCell(distance.getDecimalFormattedRate());
                 table.addCell(distance.getCurrencyCode());
+                table.addCell(distance.getFormattedDate(mContext, mPreferences.getDateSeparator()));
                 table.addCell(distance.getComment());
             }
             return table;

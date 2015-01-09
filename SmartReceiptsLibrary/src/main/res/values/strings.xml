@@ -51,6 +51,7 @@
     <string name="send_file">Get File&#8230;</string>
     <string name="send_email">Send Email&#8230;</string>
     <string name="support">%s - Support</string>
+    <string name="total">Total</string>
     <string name="total_item">Total: %s</string>
     <string name="text">Text</string>
     <string name="type">Type</string>
@@ -284,11 +285,12 @@
     <string name="DIALOG_ABOUT_MESSAGE">Smart Receipts v.VERSION_NAME \nCreated and maintained by Will Baumann\nLicensed under GNU Affero General Public License</string>
 
     <!-- ====================== Distance Report ======================== -->
-    <string name="distance_distance_field">Distance</string>
     <string name="distance_location_field">Location</string>
-    <string name="distance_date_field">Date</string>
+    <string name="distance_price_field">Price</string>
+    <string name="distance_distance_field">Distance</string>
     <string name="distance_rate_field">Rate</string>
     <string name="dialog_currency_field">Currency</string>
+    <string name="distance_date_field">Date</string>
     <string name="distance_comment_field">Comment</string>
 
     <!-- ==================== dialog filter ======================= -->

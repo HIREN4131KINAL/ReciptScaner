@@ -110,8 +110,18 @@ public class ImmutableDistanceImpl implements Distance {
     }
 
     @Override
+    public BigDecimal getPrice() {
+        return mRate.multiply(mDistance);
+    }
+
+    @Override
+    public String getDecimalFormattedPrice() {
+        return ModelUtils.getDecimalFormattedValue(getPrice());
+    }
+
+    @Override
     public String getCurrencyFormattedPrice() {
-        return ModelUtils.getCurrencyFormattedValue(mRate.multiply(mDistance), mCurrency);
+        return ModelUtils.getCurrencyFormattedValue(getPrice(), mCurrency);
     }
 
     @Override

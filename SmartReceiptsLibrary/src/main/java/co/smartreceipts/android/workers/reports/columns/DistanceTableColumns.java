@@ -109,6 +109,6 @@ public class DistanceTableColumns implements TableColumns {
 
     @Override
     public boolean nextRow() {
-        return mDistances.size() < ++row;
+        return mDistances.size() >= ++row;
     }
 }

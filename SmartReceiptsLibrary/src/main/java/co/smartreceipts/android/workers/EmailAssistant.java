@@ -68,6 +68,10 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.workers.reports.DistanceTableGenerator;
+import co.smartreceipts.android.workers.reports.columns.DistanceTableColumns;
+import co.smartreceipts.android.workers.reports.columns.TableColumns;
+import co.smartreceipts.android.workers.reports.writers.CsvTableGenerator;
+import co.smartreceipts.android.workers.reports.writers.PdfTableGenerator;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -429,11 +433,11 @@ public class EmailAssistant {
                     document.add(table);
 
                     if (mPreferences.getPrintDistanceTable()) {
-                        final DistanceTableGenerator distanceTableGenerator = new DistanceTableGenerator(mContext, mPreferences);
-                        final List<Distance> distances = mDB.getDistanceSerial(trip);
+                        final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
+                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
                         document.add(new Paragraph("\n\n"));
-                        document.add(distanceTableGenerator.generate(distances));
+                        document.add(new PdfTableGenerator().write(distanceTableColumns));
                     }
                     document.newPage();
 
@@ -516,6 +520,13 @@ public class EmailAssistant {
                     if (!filterOutReceipt(mPreferences, receipts.get(i))) {
                         data += columns.print(receipts.get(i), trip);
                     }
+                }
+                if (mPreferences.getPrintDistanceTable()) {
+                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
+                    Collections.reverse(distances); // Reverse the list, so we print the most recent one first
+                    final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
+                    data += "\n\n";
+                    data += new CsvTableGenerator().write(distanceTableColumns);
                 }
                 String filename = dir.getName() + ".csv";
                 if (!mStorageManager.write(dir, filename, data)) {

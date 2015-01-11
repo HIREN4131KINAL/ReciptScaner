@@ -10,7 +10,7 @@ import co.smartreceipts.android.model.PaymentMethod;
  *
  * @author Will Baumann
  */
-public class ImmutablePaymentMethodImpl implements PaymentMethod {
+public final class ImmutablePaymentMethodImpl implements PaymentMethod {
 
     private final int mId;
     private final String mMethod;

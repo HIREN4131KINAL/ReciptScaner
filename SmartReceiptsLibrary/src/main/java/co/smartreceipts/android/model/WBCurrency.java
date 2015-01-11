@@ -8,13 +8,16 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
-public class WBCurrency {
+public final class WBCurrency {
 
     private Currency currency;
     private String code;
 
     public static final String MISSING_CURRENCY_CODE = "NUL";
     public static final WBCurrency MISSING_CURRENCY = new WBCurrency(MISSING_CURRENCY_CODE);
+
+    public static final String MIXED_CURRENCY_CODE = "MIXED";
+    public static final WBCurrency MIXED_CURRENCY = new WBCurrency(MIXED_CURRENCY_CODE);
 
     private WBCurrency(Currency currency) {
         this.currency = currency;

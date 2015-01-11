@@ -16,7 +16,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 /**
  * An immutable {@link co.smartreceipts.android.model.Distance} implementation to track distance.
  */
-public class ImmutableDistanceImpl implements Distance {
+public final class ImmutableDistanceImpl implements Distance {
 
     private final int mId;
     private final Trip mTrip;

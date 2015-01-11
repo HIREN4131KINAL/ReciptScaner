@@ -5,11 +5,10 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Receipt extends Parcelable {
+public interface Receipt extends Parcelable, Priceable {
 
     public static final String PARCEL_KEY = Receipt.class.getName();
 
@@ -145,101 +144,14 @@ public interface Receipt extends Parcelable {
      */
     String getComment();
 
-    /**
-     * Gets the {@link #getDecimalFormattedPrice()} price for this receipt
-     *
-     * @return the price as a decimal-formatted string
-     */
-    @Deprecated
-    String getPrice();
 
     /**
-     * Gets the float representation of this price
+     * Gets the tax associated with this receipt
      *
-     * @return the float primitive, which represents the total price of this receipt
+     * @return the {@link co.smartreceipts.android.model.Price} for the tax
      */
-    float getPriceAsFloat();
+    Price getTax();
 
-    /**
-     * Gets the {@link java.math.BigDecimal} representation of this price
-     *
-     * @return the {@link java.math.BigDecimal} representation of this price
-     */
-    BigDecimal getPriceAsBigDecimal();
-
-    /**
-     * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
-     * showing naively as "25.2"
-     *
-     * @return the decimal formatted price {@link java.lang.String}
-     */
-    String getDecimalFormattedPrice();
-
-    /**
-     * The "currency-formatted" price, which would appear as "$25.20" or "$25,20" as determined by the user's locale
-     *
-     * @return - the currency formatted price {@link java.lang.String}
-     */
-    String getCurrencyFormattedPrice();
-
-    /**
-     * Tests if the price is empty (i.e. 0)
-     *
-     * @return {@code true} if it is empty, {@code false} if not
-     */
-    boolean isPriceEmpty();
-
-    /**
-     * Gets the {@link #getDecimalFormattedPrice()} tax for this receipt
-     *
-     * @return the tax as a decimal-formatted string
-     */
-    @Deprecated
-    String getTax();
-
-    /**
-     * Gets the float representation of this tax
-     *
-     * @return the float primitive, which represents the total tax of this receipt
-     */
-    float getTaxAsFloat();
-
-    /**
-     * Gets the {@link java.math.BigDecimal} representation of this tax
-     *
-     * @return the {@link java.math.BigDecimal} representation of this tax
-     */
-    BigDecimal getTaxAsBigDecimal();
-
-    /**
-     * A "decimal-formatted" tax, which would appear to the end user as "25.20" or "25,20" instead of
-     * showing naively as "25.2"
-     *
-     * @return the decimal formatted tax {@link java.lang.String}
-     */
-    String getDecimalFormattedTax();
-
-    /**
-     * The "currency-formatted" tax, which would appear as "$25.20" or "$25,20" as determined by the user's locale
-     *
-     * @return - the currency formatted tax {@link java.lang.String}
-     */
-    String getCurrencyFormattedTax();
-
-    /**
-     * Gets the currency which this receipt is tracked in
-     *
-     * @return - the {@link co.smartreceipts.android.model.WBCurrency} currency representation
-     */
-    WBCurrency getCurrency();
-
-    /**
-     * Gets the currency code representation for this receipt or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
-     * if it cannot be found
-     *
-     * @return the currency code {@link java.lang.String} for this receipt
-     */
-    String getCurrencyCode();
 
     /**
      * Returns the date during which this receipt was taken

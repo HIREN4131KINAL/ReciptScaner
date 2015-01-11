@@ -14,7 +14,7 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	
 	@Override
 	protected String getPrice(Receipt data) {
-		return data.getCurrencyFormattedPrice();
+		return data.getPrice().getCurrencyFormattedPrice();
 	}
 	
 	@Override

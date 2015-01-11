@@ -184,7 +184,7 @@ public class Columns {
 			return receipt.getComment();
 		}
 		else if (column.getColumnType().equals(ColumnName.CURRENCY)) {
-			return receipt.getCurrencyCode();
+			return receipt.getPrice().getCurrencyCode();
 		}
 		else if (column.getColumnType().equals(ColumnName.DATE)) {
 			return receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator());
@@ -193,10 +193,10 @@ public class Columns {
 			return receipt.getName();
 		}
 		else if (column.getColumnType().equals(ColumnName.PRICE)) {
-			return receipt.getDecimalFormattedPrice();
+			return receipt.getPrice().getDecimalFormattedPrice();
 		}
 		else if (column.getColumnType().equals(ColumnName.TAX)) {
-			return receipt.getDecimalFormattedTax();
+			return receipt.getTax().getDecimalFormattedPrice();
 		}
 		else if (column.getColumnType().equals(ColumnName.REPORT_NAME)) {
 			return currentTrip.getName();

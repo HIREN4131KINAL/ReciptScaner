@@ -103,6 +103,11 @@ public final class ImmutableNetPriceImpl implements Price, android.os.Parcelable
     }
 
     @Override
+    public String toString() {
+        return getCurrencyFormattedPrice();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -9,6 +9,7 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
@@ -200,7 +201,9 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     @Override
     @NonNull
     public Receipt build() {
-        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _price, _tax, _currency, _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
+        final Price price = new PriceBuilderFactory().setPrice(_price).setCurrency(_currency).build();
+        final Price tax = new PriceBuilderFactory().setPrice(_tax).setCurrency(_currency).build();
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, price, tax, _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
     }
 
     private BigDecimal tryParse(String number) {

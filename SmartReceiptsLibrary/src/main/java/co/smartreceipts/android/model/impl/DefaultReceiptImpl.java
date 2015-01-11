@@ -12,6 +12,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
@@ -31,8 +32,7 @@ public final class DefaultReceiptImpl implements Receipt {
     private final PaymentMethod mPaymentMethod;
     private final int mIndex; // Tracks the index in the list (if specified)
     private final String mName, mCategory, mComment;
-    private final BigDecimal mPrice, mTax;
-    private final WBCurrency mCurrency;
+    private final Price mPrice, mTax;
     private final Date mDate;
     private final TimeZone mTimeZone;
     private final boolean mIsExpensable, mIsFullPage;
@@ -42,7 +42,7 @@ public final class DefaultReceiptImpl implements Receipt {
     private File mFile;
 
     public DefaultReceiptImpl(int id, int index, Trip trip, File file, PaymentMethod paymentMethod, String name, String category, String comment,
-                              BigDecimal price, BigDecimal tax, WBCurrency currency, Date date, TimeZone timeZone, boolean isExpensable,
+                              Price price, Price tax, Date date, TimeZone timeZone, boolean isExpensable,
                               boolean isFullPage, boolean isSelected, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
         mId = id;
         mIndex = index;
@@ -54,7 +54,6 @@ public final class DefaultReceiptImpl implements Receipt {
         mComment = comment;
         mPrice = price;
         mTax = tax;
-        mCurrency = currency;
         mDate = date;
         mTimeZone = timeZone;
         mIsExpensable = isExpensable;
@@ -73,12 +72,11 @@ public final class DefaultReceiptImpl implements Receipt {
         mName = in.readString();
         mCategory = in.readString();
         mComment = in.readString();
-        mPrice = new BigDecimal(in.readFloat());
-        mTax = new BigDecimal(in.readFloat());
+        mPrice = in.readParcelable(Price.class.getClassLoader());
+        mTax = in.readParcelable(Price.class.getClassLoader());
         final String fileName = in.readString();
         mFile = TextUtils.isEmpty(fileName) ? null : new File(fileName);
         mDate = new Date(in.readLong());
-        mCurrency = WBCurrency.getInstance(in.readString());
         mIsExpensable = (in.readByte() != 0);
         mIsFullPage = (in.readByte() != 0);
         mIsSelected = (in.readByte() != 0);
@@ -217,77 +215,15 @@ public final class DefaultReceiptImpl implements Receipt {
         return mComment;
     }
 
+    @NonNull
     @Override
-    public String getPrice() {
-        return getDecimalFormattedPrice();
+    public Price getPrice() {
+        return mPrice;
     }
 
     @Override
-    public float getPriceAsFloat() {
-        if (mPrice != null) {
-            return mPrice.floatValue();
-        } else {
-            return 0f;
-        }
-    }
-
-    @Override
-    public BigDecimal getPriceAsBigDecimal() {
-        if (mPrice != null) {
-            return mPrice;
-        } else {
-            return new BigDecimal(0);
-        }
-    }
-
-    @Override
-    public String getDecimalFormattedPrice() {
-        return ModelUtils.getDecimalFormattedValue(mPrice);
-    }
-
-    @Override
-    public String getCurrencyFormattedPrice() {
-        return ModelUtils.getCurrencyFormattedValue(mPrice, mCurrency);
-    }
-
-    @Override
-    public boolean isPriceEmpty() {
-        return TextUtils.isEmpty(getPrice());
-    }
-
-    @Override
-    public String getTax() {
-        return getDecimalFormattedTax();
-    }
-
-    @Override
-    public float getTaxAsFloat() {
-        return mTax.floatValue();
-    }
-
-    @Override
-    public BigDecimal getTaxAsBigDecimal() {
+    public Price getTax() {
         return mTax;
-    }
-
-    @Override
-    public String getDecimalFormattedTax() {
-        return ModelUtils.getDecimalFormattedValue(mTax);
-    }
-
-    @Override
-    public String getCurrencyFormattedTax() {
-        return ModelUtils.getCurrencyFormattedValue(mTax, mCurrency);
-    }
-
-    @Override
-    public WBCurrency getCurrency() {
-        return mCurrency;
-    }
-
-    @Override
-    public String getCurrencyCode() {
-        return getCurrency().getCurrencyCode();
     }
 
     @Override
@@ -376,7 +312,7 @@ public final class DefaultReceiptImpl implements Receipt {
         return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "id => "
                 + getId() + "; \n" + "name => " + getName() + "; \n" + "category =>" + getCategory() + "; \n"
                 + "comment =>" + getComment() + "; \n" + "price =>" + getPrice() + "; \n" + "tax =>" + getTax()
-                + "; \n" + "filePath =>" + getFilePath() + "; \n" + "currency =>" + getCurrencyCode() + "; \n"
+                + "; \n" + "filePath =>" + getFilePath() + "; \n" + "; \n"
                 + "date =>" + getDate().toGMTString() + "; \n" + "isExpensable =>" + isExpensable() + "; \n"
                 + "isFullPage =>" + isFullPage() + "; \n" + "extraEditText1 =>" + getExtraEditText1() + "; \n"
                 + "extraEditText2 =>" + getExtraEditText2() + "; \n" + "extraEditText3 =>" + getExtraEditText3() + "]";
@@ -418,11 +354,10 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeString(getName());
         dest.writeString(getCategory());
         dest.writeString(getComment());
-        dest.writeFloat(getPriceAsFloat());
-        dest.writeFloat(getTaxAsFloat());
+        dest.writeParcelable(getPrice(), flags);
+        dest.writeParcelable(getTax(), flags);
         dest.writeString(getFilePath());
         dest.writeLong(getDate().getTime());
-        dest.writeString(getCurrencyCode());
         dest.writeByte((byte) (isExpensable() ? 1 : 0));
         dest.writeByte((byte) (isFullPage() ? 1 : 0));
         dest.writeByte((byte) (isSelected() ? 1 : 0));

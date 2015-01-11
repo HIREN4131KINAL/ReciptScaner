@@ -32,8 +32,8 @@ public class ReceiptMinimumPriceFilter implements Filter<Receipt> {
 
 	@Override
 	public boolean accept(Receipt t) {
-		return t.getPriceAsFloat() >= mMinPrice
-				&& t.getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
+		return t.getPrice().getPriceAsFloat() >= mMinPrice
+				&& t.getPrice().getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
 	}
 
 	@Override

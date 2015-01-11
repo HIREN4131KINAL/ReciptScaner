@@ -402,9 +402,9 @@ public class EmailAssistant {
                     BigDecimal taxPrice = new BigDecimal(0);
                     for (int i = 0; i < len; i++) {
                         final Receipt receipt = receipts.get(i);
-                        taxPrice = taxPrice.add(receipt.getTaxAsBigDecimal());
+                        taxPrice = taxPrice.add(receipt.getTax().getPrice());
                         if (receipt.isExpensable()) {
-                            expensablePrice = expensablePrice.add(receipt.getPriceAsBigDecimal());
+                            expensablePrice = expensablePrice.add(receipt.getPrice().getPrice());
                         }
                     }
 
@@ -584,7 +584,7 @@ public class EmailAssistant {
         private boolean filterOutReceipt(Preferences preferences, Receipt receipt) {
             if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
                 return true;
-            } else if (receipt.getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports()) {
+            } else if (receipt.getPrice().getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports()) {
                 return true;
             } else {
                 return false;
@@ -653,10 +653,10 @@ public class EmailAssistant {
                 y = background.getHeight() - yPad / 2 + spacing * 2;
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_NAME) + ": " + receipt.getName(), xPad / 2, y, brush);
                 y += spacing;
-                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getDecimalFormattedPrice() + " " + receipt.getCurrencyCode(), xPad / 2, y, brush);
+                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getPrice().getDecimalFormattedPrice() + " " + receipt.getPrice().getCurrencyCode(), xPad / 2, y, brush);
                 y += spacing;
                 if (mPreferences.includeTaxField()) {
-                    canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_TAX) + ": " + receipt.getDecimalFormattedTax() + " " + receipt.getCurrencyCode(), xPad / 2, y, brush);
+                    canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_TAX) + ": " + receipt.getTax().getDecimalFormattedPrice() + " " + receipt.getPrice().getCurrencyCode(), xPad / 2, y, brush);
                     y += spacing;
                 }
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_DATE) + ": " + receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad / 2, y, brush);
@@ -804,7 +804,7 @@ public class EmailAssistant {
             if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
                 return;
             }
-            if (receipt.getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {
+            if (receipt.getPrice().getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {
                 return;
             }
             PdfPTable table;

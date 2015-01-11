@@ -555,8 +555,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			if (!TextUtils.isEmpty(receipt.getName())) {
 				nameBox.setText(receipt.getName());
 			}
-			if (!TextUtils.isEmpty(receipt.getPrice())) {
-				priceBox.setText(receipt.getPrice());
+			if (!TextUtils.isEmpty(receipt.getPrice().getDecimalFormattedPrice())) {
+				priceBox.setText(receipt.getPrice().getDecimalFormattedPrice());
 			}
 			if (receipt.getDate() != null) {
 				dateBox.setText(receipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
@@ -568,10 +568,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			if (!TextUtils.isEmpty(receipt.getComment())) {
 				commentBox.setText(receipt.getComment());
 			}
-			if (!TextUtils.isEmpty(receipt.getTax())) {
-				taxBox.setText(receipt.getTax());
+			if (!TextUtils.isEmpty(receipt.getTax().getDecimalFormattedPrice())) {
+				taxBox.setText(receipt.getTax().getDecimalFormattedPrice());
 			}
-			int idx = currenices.getPosition(receipt.getCurrencyCode());
+			int idx = currenices.getPosition(receipt.getPrice().getCurrencyCode());
 			if (idx > 0) {
 				currencySpinner.setSelection(idx);
 			}
@@ -1097,9 +1097,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 					Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
 				}
 			}
-			if (!receipt.isPriceEmpty()) {
-				ReceiptsListFragment.this.updateActionBarTitle();
-			}
+			ReceiptsListFragment.this.updateActionBarTitle();
 		}
 	}
 

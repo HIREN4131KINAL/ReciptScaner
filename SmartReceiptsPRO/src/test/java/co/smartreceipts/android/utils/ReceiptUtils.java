@@ -120,7 +120,7 @@ public class ReceiptUtils {
         assertEquals(receipt1.isSelected(), receipt2.isSelected());
         assertEquals(receipt1.getName(), receipt2.getName());
         assertEquals(receipt1.getPrice(), receipt2.getPrice());
-        assertEquals(receipt1.getTax(), receipt2.getPrice());
+        assertEquals(receipt1.getTax(), receipt2.getTax());
         assertEquals(receipt1.getTimeZone(), receipt2.getTimeZone());
         assertEquals(receipt1.getPaymentMethod(), receipt2.getPaymentMethod());
     }

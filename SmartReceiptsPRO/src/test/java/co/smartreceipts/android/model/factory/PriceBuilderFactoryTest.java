@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 public class PriceBuilderFactoryTest {
 
     private static final BigDecimal ONE_DOLLAR = new BigDecimal(1);
-    private static final BigDecimal TWO_DOLLARS = new BigDecimal(1);
+    private static final BigDecimal TWO_DOLLARS = new BigDecimal(2);
 
     PriceBuilderFactory priceBuilderFactory;
 

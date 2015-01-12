@@ -114,7 +114,7 @@ public final class ImmutableDistanceImpl implements Distance {
     @NonNull
     @Override
     public Price getPrice() {
-        return null;
+        return mPrice;
     }
 
     @Override

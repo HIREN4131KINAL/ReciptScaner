@@ -74,16 +74,14 @@ public class PriceBuilderFactory implements BuilderFactory<Price> {
             }
             return new ImmutableNetPriceImpl(actualPrices);
         }
-        else if (mPriceDecimal != null) {
+        else {
+            final BigDecimal price = mPriceDecimal != null ? mPriceDecimal : new BigDecimal(0);
             if (mCurrency != null) {
-                return new ImmutablePriceImpl(mPriceDecimal, mCurrency);
+                return new ImmutablePriceImpl(price, mCurrency);
             }
             else {
-                return new LegacyTripPriceImpl(mPriceDecimal, mCurrency);
+                return new LegacyTripPriceImpl(price, mCurrency);
             }
-        }
-        else {
-            throw new IllegalArgumentException("Not enough arguments have been supplied to create a price");
         }
     }
 

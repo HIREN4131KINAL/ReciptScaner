@@ -142,7 +142,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             builder.setPositiveButton(getString(R.string.dialog_mileage_positive_create), this);
             mDate.date = mSuggestedDate;
             mDate.setText(DateFormat.getDateFormat(getActivity()).format(mDate.date));
-            int idx = currencies.getPosition(mTrip.getCurrencyCode());
+            int idx = currencies.getPosition(mTrip.getPrice().getCurrencyCode());
             if (idx > 0) {
                 mCurrency.setSelection(idx);
             }

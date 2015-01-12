@@ -183,12 +183,12 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		if (mCurrentTrip == null) {
 			return;
 		}
-    	getActivity().setTitle(mCurrentTrip.getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
+    	getActivity().setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
     	if (getPersistenceManager().getPreferences().isShowReceiptID()) {
     		getSupportActionBar().setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
     	}
     	else {
-            getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getCurrencyFormattedDailySubTotal()));
+            getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
     	}
 	}
 

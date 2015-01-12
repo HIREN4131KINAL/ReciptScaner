@@ -11,6 +11,8 @@ import java.util.TimeZone;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -28,13 +30,13 @@ public final class ImmutableDistanceImpl implements Distance {
     private final Price mPrice;
     private final String mComment;
 
-    public ImmutableDistanceImpl(int id, Trip trip, String location, BigDecimal distance, BigDecimal rate, Price price, Date date, TimeZone timeZone, String comment) {
+    public ImmutableDistanceImpl(int id, Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
         mId = id;
         mTrip = trip;
         mLocation = location;
         mDistance = distance;
         mRate = rate;
-        mPrice = price;
+        mPrice = new PriceBuilderFactory().setCurrency(currency).setPrice(distance.multiply(rate)).build();
         mDate = date;
         mTimezone = timeZone;
         mComment = comment;

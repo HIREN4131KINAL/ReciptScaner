@@ -14,7 +14,7 @@ public class TripCardAdapter extends CardAdapter<Trip> {
 	
 	@Override
 	protected String getPrice(Trip data) {
-		return data.getCurrencyFormattedPrice();
+		return data.getPrice().getCurrencyFormattedPrice();
 	}
 	
 	@Override

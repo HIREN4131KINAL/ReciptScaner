@@ -55,37 +55,37 @@ public class ReceiptBuilderFactoryTest {
     @Test
     public void testPriceAsDouble() {
         receiptBuilderFactory.setPrice(ReceiptUtils.Constants.PRICE);
-        assertEquals((float) ReceiptUtils.Constants.PRICE, receiptBuilderFactory.build().getPriceAsFloat(), TestUtils.EPSILON);
+        assertEquals((float) ReceiptUtils.Constants.PRICE, receiptBuilderFactory.build().getPrice().getPriceAsFloat(), TestUtils.EPSILON);
     }
 
     @Test
     public void testPriceAsString() {
         receiptBuilderFactory.setPrice(ReceiptUtils.Constants.PRICE);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receiptBuilderFactory.build().getPrice());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receiptBuilderFactory.build().getPrice().getDecimalFormattedPrice());
     }
 
     @Test
     public void testTaxAsDouble() {
         receiptBuilderFactory.setTax(ReceiptUtils.Constants.TAX);
-        assertEquals((float) ReceiptUtils.Constants.TAX, receiptBuilderFactory.build().getTaxAsFloat(), TestUtils.EPSILON);
+        assertEquals((float) ReceiptUtils.Constants.TAX, receiptBuilderFactory.build().getTax().getPriceAsFloat(), TestUtils.EPSILON);
     }
 
     @Test
     public void testTaxAsString() {
         receiptBuilderFactory.setTax(ReceiptUtils.Constants.TAX);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receiptBuilderFactory.build().getTax());
+        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receiptBuilderFactory.build().getTax().getDecimalFormattedPrice());
     }
 
     @Test
     public void testCurrencyWithCurrency() {
         receiptBuilderFactory.setCurrency(ReceiptUtils.Constants.CURRENCY);
-        assertEquals(ReceiptUtils.Constants.CURRENCY, receiptBuilderFactory.build().getCurrency());
+        assertEquals(ReceiptUtils.Constants.CURRENCY, receiptBuilderFactory.build().getPrice().getCurrency());
     }
 
     @Test
     public void testCurrencyWithString() {
         receiptBuilderFactory.setCurrency(ReceiptUtils.Constants.CURRENCY_CODE);
-        assertEquals(ReceiptUtils.Constants.CURRENCY_CODE, receiptBuilderFactory.build().getCurrencyCode());
+        assertEquals(ReceiptUtils.Constants.CURRENCY_CODE, receiptBuilderFactory.build().getPrice().getCurrencyCode());
     }
 
     @Test
@@ -232,8 +232,8 @@ public class ReceiptBuilderFactoryTest {
         assertNotNull(receipt.getCategory());
         assertNotNull(receipt.getDate());
         assertNotNull(receipt.getTimeZone());
-        assertNotNull(receipt.getDecimalFormattedPrice());
-        assertNotNull(receipt.getDecimalFormattedTax());
+        assertNotNull(receipt.getPrice());
+        assertNotNull(receipt.getTax());
         assertNotNull(receipt.getSource());
 
         // nullable

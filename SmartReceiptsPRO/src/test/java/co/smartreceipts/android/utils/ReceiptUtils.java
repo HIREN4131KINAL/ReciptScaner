@@ -4,6 +4,7 @@ import org.robolectric.Robolectric;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -110,7 +111,6 @@ public class ReceiptUtils {
     private static void assertFieldEqualityHelper(Receipt receipt1, Receipt receipt2) {
         assertEquals(receipt1.getComment(), receipt2.getComment());
         assertEquals(receipt1.getCategory(), receipt2.getCategory());
-        assertEquals(receipt1.getCurrencyCode(), receipt2.getCurrencyCode());
         assertEquals(receipt1.getExtraEditText1(), receipt2.getExtraEditText1());
         assertEquals(receipt1.getExtraEditText2(), receipt2.getExtraEditText2());
         assertEquals(receipt1.getExtraEditText3(), receipt2.getExtraEditText3());
@@ -119,8 +119,8 @@ public class ReceiptUtils {
         assertEquals(receipt1.isFullPage(), receipt2.isFullPage());
         assertEquals(receipt1.isSelected(), receipt2.isSelected());
         assertEquals(receipt1.getName(), receipt2.getName());
-        assertEquals(receipt1.getPriceAsFloat(), receipt2.getPriceAsFloat(), TestUtils.EPSILON);
-        assertEquals(receipt1.getTaxAsFloat(), receipt2.getTaxAsFloat(), TestUtils.EPSILON);
+        assertEquals(receipt1.getPrice(), receipt2.getPrice());
+        assertEquals(receipt1.getTax(), receipt2.getPrice());
         assertEquals(receipt1.getTimeZone(), receipt2.getTimeZone());
         assertEquals(receipt1.getPaymentMethod(), receipt2.getPaymentMethod());
     }

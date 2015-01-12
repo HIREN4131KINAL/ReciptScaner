@@ -87,7 +87,7 @@ public final class ImmutableNetPriceImpl implements Price, android.os.Parcelable
         for (WBCurrency currency : mCurrencyToPriceMap.keySet()) {
             currencyStrings.add(ModelUtils.getCurrencyFormattedValue(mCurrencyToPriceMap.get(currency), currency));
         }
-        return TextUtils.join(", ", currencyStrings);
+        return TextUtils.join("; ", currencyStrings);
     }
 
     @NonNull

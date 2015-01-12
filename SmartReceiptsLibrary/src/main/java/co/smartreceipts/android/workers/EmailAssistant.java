@@ -410,13 +410,13 @@ public class EmailAssistant {
 
                     // Add the table (TODO: Use formatting at some point so it doesn't look like crap)
                     document.add(new Paragraph(dir.getName() + "\n"));
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_price, trip.getCurrencyFormattedPrice()) + "\n"));
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_price, trip.getPrice().getCurrencyFormattedPrice()) + "\n"));
                     if (mPreferences.includeTaxField() && taxPrice.abs().floatValue() > EPSILON) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, ModelUtils.getCurrencyFormattedValue(trip.getPriceAsBigDecimal().subtract(taxPrice), trip.getCurrency())) + "\n"));
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, ModelUtils.getCurrencyFormattedValue(trip.getPrice().getPrice().subtract(taxPrice), trip.getPrice().getCurrency())) + "\n"));
                     }
-                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && expensablePrice.subtract(trip.getPriceAsBigDecimal()).abs().floatValue() > EPSILON) {
+                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && expensablePrice.subtract(trip.getPrice().getPrice()).abs().floatValue() > EPSILON) {
                         // Assume epsilon equality
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_expensable, ModelUtils.getCurrencyFormattedValue(expensablePrice, trip.getCurrency())) + "\n"));
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_expensable, ModelUtils.getCurrencyFormattedValue(expensablePrice, trip.getPrice().getCurrency())) + "\n"));
                     }
 
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "

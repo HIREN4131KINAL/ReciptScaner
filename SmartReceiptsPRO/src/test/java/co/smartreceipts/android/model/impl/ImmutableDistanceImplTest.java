@@ -64,8 +64,8 @@ public class ImmutableDistanceImplTest {
 
     @Test
     public void testCurrency() {
-        assertEquals(DistanceUtils.Constants.CURRENCY, distance1.getCurrency());
-        assertEquals(DistanceUtils.Constants.CURRENCY_CODE, distance1.getCurrencyCode());
+        assertEquals(DistanceUtils.Constants.CURRENCY, distance1.getPrice().getCurrency());
+        assertEquals(DistanceUtils.Constants.CURRENCY_CODE, distance1.getPrice().getCurrencyCode());
     }
 
     @Test

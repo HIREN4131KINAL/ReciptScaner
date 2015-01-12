@@ -12,6 +12,7 @@ import org.robolectric.annotation.Config;
 import java.io.File;
 import java.math.BigDecimal;
 
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
@@ -33,11 +34,14 @@ public class DefaultReceiptImplTest {
 
     Trip parent;
     DefaultReceiptImpl receipt1, receipt2, receipt3, receipt4;
+    Price price, tax;
 
     @Before
     public void setUp() throws Exception {
         parent = TripUtils.newDefaultTrip();
         final File img = ReceiptUtils.createRoboElectricStubFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
+        price = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.PRICE), ReceiptUtils.Constants.CURRENCY);
+        tax = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.TAX), ReceiptUtils.Constants.CURRENCY);
         receipt1 = new DefaultReceiptImpl(ReceiptUtils.Constants.ID,
                 ReceiptUtils.Constants.INDEX,
                 parent,
@@ -46,9 +50,8 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
                 ReceiptUtils.Constants.COMMENT,
-                new BigDecimal(ReceiptUtils.Constants.PRICE),
-                new BigDecimal(ReceiptUtils.Constants.TAX),
-                ReceiptUtils.Constants.CURRENCY,
+                price,
+                tax,
                 ReceiptUtils.Constants.DATE,
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
@@ -66,9 +69,8 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
                 ReceiptUtils.Constants.COMMENT,
-                new BigDecimal(ReceiptUtils.Constants.PRICE),
-                new BigDecimal(ReceiptUtils.Constants.TAX),
-                ReceiptUtils.Constants.CURRENCY,
+                price,
+                tax,
                 ReceiptUtils.Constants.DATE,
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
@@ -86,9 +88,8 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
                 ReceiptUtils.Constants.COMMENT,
-                new BigDecimal(ReceiptUtils.Constants.PRICE),
-                new BigDecimal(ReceiptUtils.Constants.TAX),
-                ReceiptUtils.Constants.CURRENCY,
+                price,
+                tax,
                 ReceiptUtils.Constants.DATE,
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
@@ -106,9 +107,8 @@ public class DefaultReceiptImplTest {
                 ReceiptUtils.Constants.NAME,
                 ReceiptUtils.Constants.CATEGORY,
                 ReceiptUtils.Constants.COMMENT,
-                new BigDecimal(ReceiptUtils.Constants.PRICE),
-                new BigDecimal(ReceiptUtils.Constants.TAX),
-                ReceiptUtils.Constants.CURRENCY,
+                price,
+                tax,
                 ReceiptUtils.Constants.DATE,
                 ReceiptUtils.Constants.TIMEZONE,
                 ReceiptUtils.Constants.IS_EXPENSABLE,
@@ -158,23 +158,13 @@ public class DefaultReceiptImplTest {
     }
 
     @Test
-    public void testCurrency() {
-        assertEquals(ReceiptUtils.Constants.CURRENCY, receipt1.getCurrency());
-        assertEquals(ReceiptUtils.Constants.CURRENCY_CODE, receipt1.getCurrencyCode());
+    public void testPrice() {
+        assertEquals(price, receipt1.getPrice());
     }
 
     @Test
-    public void testPriceAndCurrency() {
-        assertEquals((float) ReceiptUtils.Constants.PRICE, receipt1.getPriceAsFloat(), TestUtils.EPSILON);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_PRICE, receipt1.getDecimalFormattedPrice());
-        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_PRICE, receipt1.getCurrencyFormattedPrice());
-    }
-
-    @Test
-    public void testTaxAndCurrency() {
-        assertEquals((float) ReceiptUtils.Constants.TAX, receipt1.getTaxAsFloat(), TestUtils.EPSILON);
-        assertEquals(ReceiptUtils.Constants.DECIMAL_FORMATTED_TAX, receipt1.getDecimalFormattedTax());
-        assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_TAX, receipt1.getCurrencyFormattedTax());
+    public void testTax() {
+        assertEquals(tax, receipt1.getTax());
     }
 
     @Test

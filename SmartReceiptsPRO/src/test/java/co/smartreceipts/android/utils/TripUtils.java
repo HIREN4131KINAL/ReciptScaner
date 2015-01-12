@@ -3,12 +3,14 @@ package co.smartreceipts.android.utils;
 import android.os.Environment;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
 
 import static org.junit.Assert.assertEquals;
 
@@ -48,7 +50,6 @@ public class TripUtils {
         final TripBuilderFactory factory = new TripBuilderFactory().setDirectory(Constants.DIRECTORY)
                 .setComment(Constants.COMMENT)
                 .setCostCenter(Constants.COST_CENTER)
-                .setCurrency(Constants.CURRENCY)
                 .setDefaultCurrency(Constants.DEFAULT_CURRENCY)
                 .setStartDate(Constants.START_DATE)
                 .setStartTimeZone(Constants.START_TIMEZONE)
@@ -59,8 +60,8 @@ public class TripUtils {
 
     public static Trip newDefaultTrip() {
         final Trip trip = newDefaultTripBuilderFactory().build();
-        trip.setPrice(TripUtils.Constants.PRICE);
-        trip.setDailySubTotal(TripUtils.Constants.DAILY_SUBTOTAL);
+        trip.setPrice(new ImmutablePriceImpl(new BigDecimal(TripUtils.Constants.PRICE), Constants.CURRENCY));
+        trip.setDailySubTotal(new ImmutablePriceImpl(new BigDecimal(Constants.DAILY_SUBTOTAL), Constants.CURRENCY));
         return trip;
     }
 
@@ -70,13 +71,8 @@ public class TripUtils {
         assertEquals(trip1.getStartTimeZone(), trip2.getStartTimeZone());
         assertEquals(trip1.getEndDate(), trip2.getEndDate());
         assertEquals(trip1.getEndTimeZone(), trip2.getEndTimeZone());
-        assertEquals(trip1.getPriceAsFloat(), trip2.getPriceAsFloat(), TestUtils.EPSILON);
-        assertEquals(trip1.getDecimalFormattedPrice(), trip2.getDecimalFormattedPrice());
-        assertEquals(trip1.getCurrencyFormattedPrice(), trip2.getCurrencyFormattedPrice());
-        assertEquals(trip1.getCurrencyCode(), trip2.getCurrencyCode());
-        assertEquals(trip1.getDailySubTotalAsFloat(), trip2.getDailySubTotalAsFloat(), TestUtils.EPSILON);
-        assertEquals(trip1.getDecimalFormattedDailySubTotal(), trip2.getDecimalFormattedDailySubTotal());
-        assertEquals(trip1.getCurrencyFormattedDailySubTotal(), trip2.getCurrencyFormattedDailySubTotal());
+        assertEquals(trip1.getPrice(), trip2.getPrice());
+        assertEquals(trip1.getDailySubTotal(), trip2.getDailySubTotal());
         assertEquals(trip1.getComment(), trip2.getComment());
         assertEquals(trip1.getCostCenter(), trip2.getCostCenter());
     }

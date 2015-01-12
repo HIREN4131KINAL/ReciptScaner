@@ -32,8 +32,8 @@ public class TripMaximumPriceFilter implements Filter<Trip>{
 
 	@Override
 	public boolean accept(Trip t) {
-		return t.getPriceAsFloat() <= mMaxPrice
-				&& t.getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
+		return t.getPrice().getPriceAsFloat() <= mMaxPrice
+				&& t.getPrice().getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
 	}
 
 	@Override

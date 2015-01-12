@@ -82,24 +82,6 @@ public class TripBuilderFactoryTest {
         tripBuilderFactory.setEndTimeZone(TripUtils.Constants.END_TIMEZONE_CODE);
         assertEquals(TripUtils.Constants.END_TIMEZONE_CODE, tripBuilderFactory.build().getEndTimeZone().getID());
     }
-
-    @Test
-    public void testCurrencyWithCurrency() {
-        tripBuilderFactory.setCurrency(TripUtils.Constants.CURRENCY);
-        assertEquals(TripUtils.Constants.CURRENCY, tripBuilderFactory.build().getCurrency());
-    }
-
-    @Test
-    public void testCurrencyWithString() {
-        tripBuilderFactory.setCurrency(TripUtils.Constants.CURRENCY_CODE);
-        assertEquals(TripUtils.Constants.CURRENCY_CODE, tripBuilderFactory.build().getCurrencyCode());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testCurrencyWithEmptyString() {
-        tripBuilderFactory.setCurrency("");
-    }
-
     @Test
     public void testDefaultCurrencyWithDefaultCurrency() {
         tripBuilderFactory.setDefaultCurrency(TripUtils.Constants.CURRENCY);
@@ -148,7 +130,6 @@ public class TripBuilderFactoryTest {
         assertNotNull(trip.getComment());
         assertNotNull(trip.getCostCenter());
         assertNotNull(trip.getDefaultCurrency());
-        assertNotNull(trip.getCurrency());
         assertNotNull(trip.getStartDate());
         assertNotNull(trip.getStartTimeZone());
         assertNotNull(trip.getEndDate());

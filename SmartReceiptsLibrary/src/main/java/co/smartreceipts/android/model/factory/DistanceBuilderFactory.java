@@ -110,7 +110,6 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     @Override
     @NonNull
     public Distance build() {
-        final Price price = new PriceBuilderFactory().setCurrency(_currency).setPrice(_distance.multiply(_rate)).build();
-        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, price, _date, _timezone, _comment);
+        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _currency, _date, _timezone, _comment);
     }
 }

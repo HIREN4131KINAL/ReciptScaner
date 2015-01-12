@@ -334,7 +334,7 @@ public class ReceiptsDBTest {
                 mTrip.getEndDate(),
                 mTrip.getComment(),
                 mTrip.getCostCenter(),
-                mTrip.getCurrencyCode());
+                mTrip.getPrice().getCurrencyCode());
         List<Receipt> receipts = mDB.getReceiptsSerial(newTrip);
         assertNotNull(newTrip);
         assertNotNull(receipts);

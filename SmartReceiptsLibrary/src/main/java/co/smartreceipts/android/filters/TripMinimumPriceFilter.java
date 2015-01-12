@@ -32,8 +32,8 @@ public class TripMinimumPriceFilter implements Filter<Trip>{
 
 	@Override
 	public boolean accept(Trip t) {
-		return t.getPriceAsFloat() >= mMinPrice
-				&& t.getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
+		return t.getPrice().getPriceAsFloat() >= mMinPrice
+				&& t.getPrice().getCurrencyCode().equalsIgnoreCase(mCurrencyCode);
 	}
 
 	@Override

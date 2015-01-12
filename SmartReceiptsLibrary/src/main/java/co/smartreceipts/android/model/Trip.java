@@ -2,15 +2,15 @@ package co.smartreceipts.android.model;
 
 import android.content.Context;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
 
-public interface Trip extends Parcelable {
+public interface Trip extends Parcelable, Priceable {
 
     public static final String PARCEL_KEY = Trip.class.getName();
 
@@ -97,104 +97,27 @@ public interface Trip extends Parcelable {
     boolean isDateInsideTripBounds(Date date);
 
     /**
-     * Gets the {@link #getDecimalFormattedPrice()} price for this trip
-     *
-     * @return the price as a decimal-formatted string
-     */
-    @Deprecated
-    String getPrice();
-
-    /**
-     * Gets the float representation of this price
-     *
-     * @return the float primitive, which represents the total price of this trip
-     */
-    float getPriceAsFloat();
-
-    /**
-     * Gets the {@link java.math.BigDecimal} representation of this price
-     *
-     * @return the {@link java.math.BigDecimal} representation of this price
-     */
-    BigDecimal getPriceAsBigDecimal();
-
-    /**
-     * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
-     * showing naively as "25.2"
-     *
-     * @return the decimal formatted price {@link java.lang.String}
-     */
-    String getDecimalFormattedPrice();
-
-    /**
-     * The "currency-formatted" price, which would appear as "$25.20" or "$25,20" as determined by the user's locale
-     *
-     * @return - the currency formatted price {@link java.lang.String}
-     */
-    String getCurrencyFormattedPrice();
-
-    /**
      * As the price of a trip exists as a function of it's receipt children (and not itself), this method can
      * be used to update the price representation
      *
      * @param price - the new price to use
      */
-    void setPrice(double price);
+    void setPrice(@NonNull Price price);
 
     /**
-     * Gets the {@link #getDecimalFormattedPrice()} daily sub-total price (i.e. all expenditures that occurred today) for this trip
+     * Gets the daily sub-total price (i.e. all expenditures that occurred today) for this trip
      *
-     * @return the daily sub-total price as a decimal-formatted string
+     * @return the daily sub-total {@link co.smartreceipts.android.model.Price}
      */
-    @Deprecated
-    String getDailySubTotal();
-
-    /**
-     * Gets the float representation of the daily sub-total price (i.e. all expenditures that occurred today)
-     *
-     * @return the float primitive, which represents the daily sub-total price of this trip
-     */
-    float getDailySubTotalAsFloat();
-
-    /**
-     * A "decimal-formatted" daily sub-total price (i.e. all expenditures that occurred today), which would appear
-     * to the end user as "25.20" or "25,20" instead of showing naively as "25.2"
-     *
-     * @return the decimal formatted daily sub-total price {@link java.lang.String}
-     */
-    String getDecimalFormattedDailySubTotal();
-
-    /**
-     * The "currency-formatted" daily sub-total price (i.e. all expenditures that occurred today), which would
-     * appear as "$25.20" or "$25,20" as determined by the user's locale
-     *
-     * @return - the currency formatted daily sub-total price {@link java.lang.String}
-     */
-    String getCurrencyFormattedDailySubTotal();
+    Price getDailySubTotal();
 
     /**
      * As the daily sub-total of a trip exists as a function of it's receipt children (and not itself), this method can
      * be used to update the sub-total representation
      *
-     * @param dailySubTotal - the new daily sub-total to use
+     * @param dailySubTotal - the new daily sub-total {@link co.smartreceipts.android.model.Price} to use
      */
-    void setDailySubTotal(double dailySubTotal);
-
-    /**
-     * Gets the currency which this trip is tracked in
-     *
-     * @return - the {@link co.smartreceipts.android.model.WBCurrency} currency representation
-     */
-    WBCurrency getCurrency();
-
-    /**
-     * Gets the currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
-     * if it cannot be found
-     *
-     * @return the currency code {@link java.lang.String} for this trip
-     */
-    String getCurrencyCode();
-
+    void setDailySubTotal(@NonNull Price dailySubTotal);
 
     /**
      * Gets the default currency which this trip is tracked in

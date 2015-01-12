@@ -33,13 +33,13 @@ public class DistanceBuilderFactoryTest {
     @Test
     public void testCurrencyWithCurrency() {
         distanceBuilderFactory.setCurrency(DistanceUtils.Constants.CURRENCY);
-        assertEquals(DistanceUtils.Constants.CURRENCY, distanceBuilderFactory.build().getCurrency());
+        assertEquals(DistanceUtils.Constants.CURRENCY, distanceBuilderFactory.build().getPrice().getCurrency());
     }
 
     @Test
     public void testCurrencyWithString() {
         distanceBuilderFactory.setCurrency(DistanceUtils.Constants.CURRENCY_CODE);
-        assertEquals(DistanceUtils.Constants.CURRENCY_CODE, distanceBuilderFactory.build().getCurrencyCode());
+        assertEquals(DistanceUtils.Constants.CURRENCY_CODE, distanceBuilderFactory.build().getPrice().getCurrencyCode());
     }
 
     @Test

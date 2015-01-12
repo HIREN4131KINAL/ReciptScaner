@@ -9,6 +9,9 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.math.BigDecimal;
+
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.TestUtils;
@@ -24,7 +27,7 @@ import static org.junit.Assert.assertNull;
 public class DefaultTripImplTest {
 
     DefaultTripImpl trip;
-
+    Price price, subtotal;
 
     @Before
     public void setUp() throws Exception {
@@ -33,14 +36,15 @@ public class DefaultTripImplTest {
                 TripUtils.Constants.START_TIMEZONE,
                 TripUtils.Constants.END_DATE,
                 TripUtils.Constants.END_TIMEZONE,
-                TripUtils.Constants.CURRENCY,
                 TripUtils.Constants.DEFAULT_CURRENCY,
                 TripUtils.Constants.COMMENT,
                 TripUtils.Constants.COST_CENTER,
                 null, // filter
                 Source.Undefined);
-        trip.setPrice(TripUtils.Constants.PRICE);
-        trip.setDailySubTotal(TripUtils.Constants.DAILY_SUBTOTAL);
+        price = new ImmutablePriceImpl(new BigDecimal(TripUtils.Constants.PRICE), TripUtils.Constants.CURRENCY);
+        subtotal = new ImmutablePriceImpl(new BigDecimal(TripUtils.Constants.DAILY_SUBTOTAL), TripUtils.Constants.CURRENCY);
+        trip.setPrice(price);
+        trip.setDailySubTotal(subtotal);
     }
 
 
@@ -72,29 +76,13 @@ public class DefaultTripImplTest {
     }
 
     @Test
-    public void testCurrency() {
-        assertEquals(TripUtils.Constants.CURRENCY, trip.getCurrency());
-        assertEquals(TripUtils.Constants.CURRENCY_CODE, trip.getCurrencyCode());
+    public void testPrice() {
+        assertEquals(price, trip.getPrice());
     }
 
     @Test
-    public void testDefaultCurrency() {
-        assertEquals(TripUtils.Constants.DEFAULT_CURRENCY, trip.getDefaultCurrency());
-        assertEquals(TripUtils.Constants.DEFAULT_CURRENCY_CODE, trip.getDefaultCurrencyCode());
-    }
-
-    @Test
-    public void testPriceAndCurrency() {
-        assertEquals((float) TripUtils.Constants.PRICE, trip.getPriceAsFloat(), TestUtils.EPSILON);
-        assertEquals(TripUtils.Constants.DECIMAL_FORMATTED_PRICE, trip.getDecimalFormattedPrice());
-        assertEquals(TripUtils.Constants.CURRENCY_FORMATTED_PRICE, trip.getCurrencyFormattedPrice());
-    }
-
-    @Test
-    public void testDailySubtotalAndCurrency() {
-        assertEquals((float) TripUtils.Constants.DAILY_SUBTOTAL, trip.getDailySubTotalAsFloat(), TestUtils.EPSILON);
-        assertEquals(TripUtils.Constants.DECIMAL_FORMATTED_SUBTOTAL, trip.getDecimalFormattedDailySubTotal());
-        assertEquals(TripUtils.Constants.CURRENCY_FORMATTED_SUBTOTAL, trip.getCurrencyFormattedDailySubTotal());
+    public void testDailySubTotal() {
+        assertEquals(subtotal, trip.getDailySubTotal());
     }
 
     @Test

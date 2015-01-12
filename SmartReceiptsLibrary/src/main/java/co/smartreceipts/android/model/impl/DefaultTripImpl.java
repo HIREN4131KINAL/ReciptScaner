@@ -2,9 +2,9 @@ package co.smartreceipts.android.model.impl;
 
 import android.content.Context;
 import android.os.Parcel;
+import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.Calendar;
 import java.util.Currency;
@@ -12,46 +12,49 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 public class DefaultTripImpl implements Trip {
 
     private final File mReportDirectory;
     private String mComment, mCostCenter;
-    private BigDecimal mPrice, mDailySubTotal;
+    private Price mPrice, mDailySubTotal;
     private Date mStartDate, mEndDate;
     private TimeZone mStartTimeZone, mEndTimeZone;
-    private WBCurrency mCurrency, mDefaultCurrency;
+    private WBCurrency mDefaultCurrency;
     private Source mSource;
     private Filter<Receipt> mFilter;
 
-    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency currency, WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
+    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
         mReportDirectory = directory;
         mStartDate = startDate;
         mStartTimeZone = startTimeZone;
         mEndDate = endDate;
         mEndTimeZone = endTimeZone;
-        mCurrency = currency;
         mDefaultCurrency = defaultCurrency;
         mComment = comment;
         mCostCenter = costCenter;
         mFilter = filter;
         mSource = source;
+        // Sets a simple default for price and daily of 0
+        mPrice = new PriceBuilderFactory().setPrice(0).setCurrency(defaultCurrency).build();
+        mDailySubTotal = new PriceBuilderFactory().setPrice(0).setCurrency(defaultCurrency).build();
     }
 
     private DefaultTripImpl(Parcel in) {
         mReportDirectory = new File(in.readString());
-        mPrice = new BigDecimal(in.readFloat());
+        mPrice = in.readParcelable(Price.class.getClassLoader());
         mStartDate = new Date(in.readLong());
         mEndDate = new Date(in.readLong());
-        mCurrency = WBCurrency.getInstance(in.readString());
         mStartTimeZone = TimeZone.getTimeZone(in.readString());
         mEndTimeZone = TimeZone.getTimeZone(in.readString());
-        mDailySubTotal = new BigDecimal(in.readFloat());
+        mDailySubTotal = in.readParcelable(Price.class.getClassLoader());
         mComment = in.readString();
         mCostCenter = in.readString();
         mDefaultCurrency = WBCurrency.getInstance(in.readString());
@@ -150,81 +153,6 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
-    public String getPrice() {
-        return getDecimalFormattedPrice();
-    }
-
-    @Override
-    public float getPriceAsFloat() {
-        if (mPrice != null) {
-            return mPrice.floatValue();
-        } else {
-            return 0f;
-        }
-    }
-
-    @Override
-    public BigDecimal getPriceAsBigDecimal() {
-        if (mPrice != null) {
-            return mPrice;
-        } else {
-            return new BigDecimal(0);
-        }
-    }
-
-    @Override
-    public String getDecimalFormattedPrice() {
-        return ModelUtils.getDecimalFormattedValue(mPrice);
-    }
-
-    @Override
-    public String getCurrencyFormattedPrice() {
-        if (mCurrency != null) {
-            return mCurrency.format(mPrice);
-        } else {
-            return "Mixed";
-        }
-    }
-
-    @Override
-    public String getDailySubTotal() {
-        return getDecimalFormattedDailySubTotal();
-    }
-
-    @Override
-    public float getDailySubTotalAsFloat() {
-        if (mDailySubTotal != null) {
-            return mDailySubTotal.floatValue();
-        } else {
-            return 0f;
-        }
-    }
-
-    @Override
-    public String getDecimalFormattedDailySubTotal() {
-        return ModelUtils.getDecimalFormattedValue(mDailySubTotal);
-    }
-
-    @Override
-    public String getCurrencyFormattedDailySubTotal() {
-        return ModelUtils.getCurrencyFormattedValue(mDailySubTotal, mDefaultCurrency);
-    }
-
-    @Override
-    public WBCurrency getCurrency() {
-        return mCurrency;
-    }
-
-    @Override
-    public String getCurrencyCode() {
-        if (mCurrency != null) {
-            return mCurrency.getCurrencyCode();
-        } else {
-            return WBCurrency.MISSING_CURRENCY_CODE;
-        }
-    }
-
-    @Override
     public WBCurrency getDefaultCurrency() {
         return mDefaultCurrency;
     }
@@ -268,14 +196,25 @@ public class DefaultTripImpl implements Trip {
         return mSource;
     }
 
+    @NonNull
     @Override
-    public void setPrice(double price) {
-        mPrice = new BigDecimal(price);
+    public Price getPrice() {
+        return mPrice;
     }
 
     @Override
-    public void setDailySubTotal(double dailyTotal) {
-        mDailySubTotal = new BigDecimal(dailyTotal);
+    public void setPrice(@NonNull Price price) {
+        mPrice = price;
+    }
+
+    @Override
+    public Price getDailySubTotal() {
+        return mDailySubTotal;
+    }
+
+    @Override
+    public void setDailySubTotal(@NonNull Price dailyTotal) {
+        mDailySubTotal = dailyTotal;
     }
 
     @Override
@@ -296,13 +235,12 @@ public class DefaultTripImpl implements Trip {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(getDirectoryPath());
-        dest.writeFloat(getPriceAsFloat());
+        dest.writeParcelable(getPrice(), flags);
         dest.writeLong(getStartDate().getTime());
         dest.writeLong(getEndDate().getTime());
-        dest.writeString(getCurrencyCode());
         dest.writeString(getStartTimeZone().getID());
         dest.writeString(getEndTimeZone().getID());
-        dest.writeFloat(getDailySubTotalAsFloat());
+        dest.writeParcelable(getDailySubTotal(), flags);
         dest.writeString(getComment());
         dest.writeString(getCostCenter());
         dest.writeString(getDefaultCurrencyCode());
@@ -314,7 +252,7 @@ public class DefaultTripImpl implements Trip {
         return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "name => "
                 + getName() + "; \n" + "directory =>" + getDirectory().getAbsolutePath() + "; \n" + "startDate =>"
                 + getStartDate().toGMTString() + "; \n" + "endDate => " + getEndDate().toGMTString() + "; \n"
-                + "currency =>" + getCurrency().getCurrencyCode() + "; \n" + "miles => " + getMilesAsString() + "]";
+                + "price =>" + getPrice() + "; \n" + "miles => " + getMilesAsString() + "]";
     }
 
     @Override

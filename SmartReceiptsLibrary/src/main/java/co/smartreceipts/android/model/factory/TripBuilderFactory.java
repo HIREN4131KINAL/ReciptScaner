@@ -28,7 +28,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     private String _comment, _costCenter;
     private Date _startDate, _endDate;
     private TimeZone _startTimeZone, _endTimeZone;
-    private WBCurrency _currency, _defaultCurrency;
+    private WBCurrency _defaultCurrency;
     private Filter<Receipt> _filter;
     private Source _source;
 
@@ -36,7 +36,6 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _dir = new File("");
         _comment = "";
         _costCenter = "";
-        _currency = WBCurrency.getDefault();
         _defaultCurrency = WBCurrency.getDefault();
         _startDate = new Date(System.currentTimeMillis());
         _endDate = _startDate;
@@ -91,19 +90,6 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         if (timeZoneId != null) {
             _endTimeZone = TimeZone.getTimeZone(timeZoneId);
         }
-        return this;
-    }
-
-    public TripBuilderFactory setCurrency(WBCurrency currency) {
-        _currency = currency;
-        return this;
-    }
-
-    public TripBuilderFactory setCurrency(@NonNull String currencyCode) {
-        if (TextUtils.isEmpty(currencyCode)) {
-            throw new IllegalArgumentException("The currency code cannot be null or empty");
-        }
-        _currency = WBCurrency.getInstance(currencyCode);
         return this;
     }
 
@@ -172,6 +158,6 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     @Override
     @NonNull
     public Trip build() {
-        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _currency, _defaultCurrency, _comment, _costCenter, _filter, _source);
+        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _defaultCurrency, _comment, _costCenter, _filter, _source);
     }
 }

@@ -166,7 +166,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             mComment.setText(mUpdateableDistance.getComment());
             mDate.setText(mUpdateableDistance.getFormattedDate(getActivity(), mPrefs.getDateSeparator()));
             mDate.date = mUpdateableDistance.getDate();
-            int idx = currencies.getPosition(mUpdateableDistance.getCurrencyCode());
+            int idx = currencies.getPosition(mUpdateableDistance.getPrice().getCurrencyCode());
             if (idx > 0) {
                 mCurrency.setSelection(idx);
             }

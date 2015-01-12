@@ -27,7 +27,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     private File _file;
     private String _name, _category, _comment;
     private String _extraEditText1, _extraEditText2, _extraEditText3;
-    private BigDecimal _price, _tax;
+    private final PriceBuilderFactory _priceBuilderFactory, _taxBuilderFactory;
     private Date _date;
     private TimeZone _timezone;
     private final int _id;
@@ -43,8 +43,8 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _name = "";
         _category = "";
         _comment = "";
-        _price = new BigDecimal(0);
-        _tax = new BigDecimal(0);
+        _priceBuilderFactory = new PriceBuilderFactory();
+        _taxBuilderFactory = new PriceBuilderFactory();
         _date = new Date(System.currentTimeMillis());
         _timezone = TimeZone.getDefault();
     }
@@ -81,17 +81,22 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
      * @return the {@link ReceiptBuilderFactory} instance for method chaining
      */
     public ReceiptBuilderFactory setPrice(String price) {
-        _price = tryParse(price);
+        _priceBuilderFactory.setPrice(price);
         return this;
     }
 
     public ReceiptBuilderFactory setPrice(double price) {
-        _price = new BigDecimal(price);
+        _priceBuilderFactory.setPrice(price);
         return this;
     }
 
     public ReceiptBuilderFactory setPrice(BigDecimal price) {
-        _price = price;
+        _priceBuilderFactory.setPrice(price);
+        return this;
+    }
+
+    public ReceiptBuilderFactory setPrice(Price price) {
+        _priceBuilderFactory.setPrice(price);
         return this;
     }
 
@@ -102,12 +107,17 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
      * @return the {@link ReceiptBuilderFactory} instance for method chaining
      */
     public ReceiptBuilderFactory setTax(String tax) {
-        _tax = tryParse(tax);
+        _taxBuilderFactory.setPrice(tax);
         return this;
     }
 
     public ReceiptBuilderFactory setTax(double tax) {
-        _tax = new BigDecimal(tax);
+        _taxBuilderFactory.setPrice(tax);
+        return this;
+    }
+
+    public ReceiptBuilderFactory setTax(Price tax) {
+        _taxBuilderFactory.setPrice(tax);
         return this;
     }
 
@@ -164,12 +174,14 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     }
 
     public ReceiptBuilderFactory setCurrency(WBCurrency currency) {
-        _currency = currency;
+        _priceBuilderFactory.setCurrency(currency);
+        _taxBuilderFactory.setCurrency(currency);
         return this;
     }
 
     public ReceiptBuilderFactory setCurrency(String currencyCode) {
-        _currency = WBCurrency.getInstance(currencyCode);
+        _priceBuilderFactory.setCurrency(currencyCode);
+        _taxBuilderFactory.setCurrency(currencyCode);
         return this;
     }
 
@@ -201,9 +213,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     @Override
     @NonNull
     public Receipt build() {
-        final Price price = new PriceBuilderFactory().setPrice(_price).setCurrency(_currency).build();
-        final Price tax = new PriceBuilderFactory().setPrice(_tax).setCurrency(_currency).build();
-        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, price, tax, _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
     }
 
     private BigDecimal tryParse(String number) {

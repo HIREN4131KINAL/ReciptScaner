@@ -8,6 +8,7 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
@@ -109,6 +110,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     @Override
     @NonNull
     public Distance build() {
-        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _currency, _date, _timezone, _comment);
+        final Price price = new PriceBuilderFactory().setCurrency(_currency).setPrice(_distance.multiply(_rate)).build();
+        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, price, _date, _timezone, _comment);
     }
 }

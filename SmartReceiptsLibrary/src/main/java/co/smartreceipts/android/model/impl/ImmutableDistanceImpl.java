@@ -9,8 +9,8 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -25,16 +25,16 @@ public final class ImmutableDistanceImpl implements Distance {
     private final Date mDate;
     private final TimeZone mTimezone;
     private final BigDecimal mRate;
-    private final WBCurrency mCurrency;
+    private final Price mPrice;
     private final String mComment;
 
-    public ImmutableDistanceImpl(int id, Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
+    public ImmutableDistanceImpl(int id, Trip trip, String location, BigDecimal distance, BigDecimal rate, Price price, Date date, TimeZone timeZone, String comment) {
         mId = id;
         mTrip = trip;
         mLocation = location;
         mDistance = distance;
         mRate = rate;
-        mCurrency = currency;
+        mPrice = price;
         mDate = date;
         mTimezone = timeZone;
         mComment = comment;
@@ -49,7 +49,7 @@ public final class ImmutableDistanceImpl implements Distance {
         mDate = tmpDate != -1 ? new Date(tmpDate) : null;
         mTimezone = TimeZone.getTimeZone(in.readString());
         mRate = (BigDecimal) in.readValue(BigDecimal.class.getClassLoader());
-        mCurrency = WBCurrency.getInstance(in.readString());
+        mPrice = in.readParcelable(Price.class.getClassLoader());
         mComment = in.readString();
     }
 
@@ -106,32 +106,13 @@ public final class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getCurrencyFormattedRate() {
-        return ModelUtils.getCurrencyFormattedValue(mRate, mCurrency);
+        return ModelUtils.getCurrencyFormattedValue(mRate, mPrice.getCurrency());
     }
 
+    @NonNull
     @Override
-    public BigDecimal getPrice() {
-        return mRate.multiply(mDistance);
-    }
-
-    @Override
-    public String getDecimalFormattedPrice() {
-        return ModelUtils.getDecimalFormattedValue(getPrice());
-    }
-
-    @Override
-    public String getCurrencyFormattedPrice() {
-        return ModelUtils.getCurrencyFormattedValue(getPrice(), mCurrency);
-    }
-
-    @Override
-    public WBCurrency getCurrency() {
-        return mCurrency;
-    }
-
-    @Override
-    public String getCurrencyCode() {
-        return mCurrency.getCurrencyCode();
+    public Price getPrice() {
+        return null;
     }
 
     @Override
@@ -153,7 +134,7 @@ public final class ImmutableDistanceImpl implements Distance {
         dest.writeLong(mDate != null ? mDate.getTime() : -1L);
         dest.writeString(mTimezone.getID());
         dest.writeValue(mRate);
-        dest.writeString(mCurrency.getCurrencyCode());
+        dest.writeParcelable(mPrice, flags);
         dest.writeString(mComment);
     }
 
@@ -171,7 +152,7 @@ public final class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String toString() {
-        return "Distance [" + "mLocation=" + mLocation + ", mDistance=" + mDistance + ", mDate=" + mDate + ", mTimezone=" + mTimezone + ", mRate=" + mRate + ", mCurrency= " + mCurrency + ", mComment=" + mComment + "]";
+        return "Distance [" + "mLocation=" + mLocation + ", mDistance=" + mDistance + ", mDate=" + mDate + ", mTimezone=" + mTimezone + ", mRate=" + mRate + ", mPrice= " + mPrice + ", mComment=" + mComment + "]";
     }
 
     @Override
@@ -184,7 +165,7 @@ public final class ImmutableDistanceImpl implements Distance {
         result = prime * result + ((mDistance == null) ? 0 : mDistance.hashCode());
         result = prime * result + ((mLocation == null) ? 0 : mLocation.hashCode());
         result = prime * result + ((mRate == null) ? 0 : mRate.hashCode());
-        result = prime * result + ((mCurrency == null) ? 0 : mCurrency.hashCode());
+        result = prime * result + ((mPrice == null) ? 0 : mPrice.hashCode());
         result = prime * result + ((mTimezone == null) ? 0 : mTimezone.hashCode());
         return result;
     }
@@ -233,10 +214,10 @@ public final class ImmutableDistanceImpl implements Distance {
         } else if (!mRate.equals(other.mRate))
             return false;
 
-        if (mCurrency == null) {
-            if (other.mCurrency != null)
+        if (mPrice == null) {
+            if (other.mPrice != null)
                 return false;
-        } else if (!mCurrency.equals(other.mCurrency))
+        } else if (!mPrice.equals(other.mPrice))
             return false;
 
         if (mTimezone == null) {

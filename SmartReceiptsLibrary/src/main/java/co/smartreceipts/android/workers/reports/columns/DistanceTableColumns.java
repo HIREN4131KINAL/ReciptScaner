@@ -8,6 +8,7 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.Preferences;
 
@@ -50,13 +51,13 @@ public class DistanceTableColumns implements TableColumns {
             if (column == 0) {
                 return distance.getLocation();
             } else if (column == 1) {
-                return distance.getCurrencyFormattedPrice();
+                return distance.getPrice().getCurrencyFormattedPrice();
             } else if (column == 2) {
                 return distance.getDecimalFormattedDistance();
             } else if (column == 3) {
                 return distance.getDecimalFormattedRate();
             } else if (column == 4) {
-                return distance.getCurrencyCode();
+                return distance.getPrice().getCurrencyCode();
             } else if (column == 5) {
                 return distance.getFormattedDate(mContext, mPreferences.getDateSeparator());
             } else if (column == 6) {
@@ -91,11 +92,7 @@ public class DistanceTableColumns implements TableColumns {
         if (column == 0) {
             return mContext.getString(R.string.total_item);
         } else if (column == 1) {
-            BigDecimal price = new BigDecimal(0);
-            for (int i = 0; i < mDistances.size(); i++) {
-                price = price.add(mDistances.get(i).getPrice());
-            }
-            return ModelUtils.getDecimalFormattedValue(price);
+            return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyFormattedPrice();
         } else if (column == 2) {
             BigDecimal distance = new BigDecimal(0);
             for (int i = 0; i < mDistances.size(); i++) {

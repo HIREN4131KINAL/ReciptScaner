@@ -14,6 +14,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
 
@@ -94,22 +95,8 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         factory.setIsExpenseable(true);
         factory.setTimeZone(distance0.getTimeZone());
         factory.setCategory(mContext.getString(R.string.distance));
+        factory.setPrice(new PriceBuilderFactory().setPriceables(distancesThisDay).build());
 
-        // Next - figure out the price and if we have a standard currency
-        BigDecimal price = new BigDecimal(0);
-        WBCurrency currency = distance0.getCurrency();
-        final int size = distancesThisDay.size();
-        for (int i = 0; i < size; i++) {
-            final Distance distance = distancesThisDay.get(i);
-            price = price.add(distance.getDistance().multiply(distance.getRate()));
-            if (!currency.equals(distance.getCurrency())) {
-                currency = WBCurrency.MISSING_CURRENCY;
-            }
-        }
-
-        // Lastly, set the price/currency and build
-        factory.setPrice(price);
-        factory.setCurrency(currency);
         return factory.build();
     }
 }

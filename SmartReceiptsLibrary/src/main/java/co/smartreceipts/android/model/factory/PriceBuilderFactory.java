@@ -20,22 +20,28 @@ import co.smartreceipts.android.model.impl.LegacyTripPriceImpl;
  */
 public class PriceBuilderFactory implements BuilderFactory<Price> {
 
-    private BigDecimal mPrice;
+    private Price mPrice;
+    private BigDecimal mPriceDecimal;
     private WBCurrency mCurrency;
     private List<Priceable> mPriceables;
 
+    public PriceBuilderFactory setPrice(Price price) {
+        mPrice = price;
+        return this;
+    }
+
     public PriceBuilderFactory setPrice(String price) {
-        mPrice = tryParse(price);
+        mPriceDecimal = tryParse(price);
         return this;
     }
 
     public PriceBuilderFactory setPrice(double price) {
-        mPrice = new BigDecimal(price);
+        mPriceDecimal = new BigDecimal(price);
         return this;
     }
 
     public PriceBuilderFactory setPrice(BigDecimal price) {
-        mPrice = price;
+        mPriceDecimal = price;
         return this;
     }
 
@@ -49,7 +55,7 @@ public class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setPriceables(List<Priceable> prices) {
+    public PriceBuilderFactory setPriceables(List<? extends Priceable> prices) {
         mPriceables = new ArrayList<Priceable>(prices);
         return this;
     }
@@ -57,7 +63,10 @@ public class PriceBuilderFactory implements BuilderFactory<Price> {
     @NonNull
     @Override
     public Price build() {
-        if (mPriceables != null) {
+        if (mPrice != null) {
+            return mPrice;
+        }
+        else if (mPriceables != null) {
             final int size = mPriceables.size();
             final ArrayList<Price> actualPrices = new ArrayList<Price>(size);
             for (int i = 0; i < size; i++) {
@@ -65,12 +74,12 @@ public class PriceBuilderFactory implements BuilderFactory<Price> {
             }
             return new ImmutableNetPriceImpl(actualPrices);
         }
-        else if (mPrice != null) {
+        else if (mPriceDecimal != null) {
             if (mCurrency != null) {
-                return new ImmutablePriceImpl(mPrice, mCurrency);
+                return new ImmutablePriceImpl(mPriceDecimal, mCurrency);
             }
             else {
-                return new LegacyTripPriceImpl(mPrice, mCurrency);
+                return new LegacyTripPriceImpl(mPriceDecimal, mCurrency);
             }
         }
         else {

@@ -42,10 +42,10 @@ public class DistanceTableGenerator {
             for (int i = 0; i < distances.size(); i++) {
                 final Distance distance = distances.get(i);
                 table.addCell(distance.getLocation());
-                table.addCell(distance.getCurrencyFormattedPrice());
+                table.addCell(distance.getPrice().getCurrencyFormattedPrice());
                 table.addCell(distance.getDecimalFormattedDistance());
                 table.addCell(distance.getDecimalFormattedRate());
-                table.addCell(distance.getCurrencyCode());
+                table.addCell(distance.getPrice().getCurrencyCode());
                 table.addCell(distance.getFormattedDate(mContext, mPreferences.getDateSeparator()));
                 table.addCell(distance.getComment());
             }

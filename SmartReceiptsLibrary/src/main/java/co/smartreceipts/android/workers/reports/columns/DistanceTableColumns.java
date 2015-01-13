@@ -90,7 +90,7 @@ public class DistanceTableColumns implements TableColumns {
 
     private String getFooterValueAt(int column) {
         if (column == 0) {
-            return mContext.getString(R.string.total_item);
+            return mContext.getString(R.string.total);
         } else if (column == 1) {
             return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyFormattedPrice();
         } else if (column == 2) {

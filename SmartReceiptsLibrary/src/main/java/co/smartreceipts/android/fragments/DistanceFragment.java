@@ -18,7 +18,9 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.DistanceAdapter;
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
@@ -108,13 +110,8 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
-            final int size = distances.size();
-            BigDecimal total = new BigDecimal(0);
-            for (int i = 0; i < size; i++) {
-                final Distance distance = distances.get(i);
-                total = total.add(distance.getDistance().multiply(distance.getRate()));
-            }
-            getSupportActionBar().setSubtitle(getString(R.string.total_item, ModelUtils.getCurrencyFormattedValue(total, mTrip.getDefaultCurrency())));
+            final Price total = new PriceBuilderFactory().setPriceables(distances).build();
+            getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
         }
     }
 

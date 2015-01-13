@@ -18,7 +18,7 @@ import co.smartreceipts.android.model.impl.LegacyTripPriceImpl;
  * A {@link co.smartreceipts.android.model.Price} {@link co.smartreceipts.android.model.factory.BuilderFactory}
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Price} objects
  */
-public class PriceBuilderFactory implements BuilderFactory<Price> {
+public final class PriceBuilderFactory implements BuilderFactory<Price> {
 
     private Price mPrice;
     private BigDecimal mPriceDecimal;

@@ -1241,12 +1241,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             // Get the Trip's total Price
             BigDecimal price = new BigDecimal(0);
             WBCurrency currency = trip.getDefaultCurrency();
+            boolean firstPass = true;
             c = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName()}, null, null, null);
             if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
                 do {
                     price = price.add(getDecimal(c, 0));
-                    if (currency != WBCurrency.getInstance(c.getString(1))) {
-                        currency = null;
+                    if (firstPass) {
+                        currency = WBCurrency.getInstance(c.getString(1));
+                        firstPass = false;
+                    }
+                    else {
+                        if (currency != null && !currency.equals(WBCurrency.getInstance(c.getString(1)))) {
+                            currency = null;
+                        }
                     }
                 }
                 while (c.moveToNext());
@@ -1302,12 +1309,19 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
             BigDecimal subTotal = new BigDecimal(0);
             WBCurrency currency = trip.getDefaultCurrency();
+            boolean firstPass = true;
             priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
             if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
                 do {
                     subTotal = subTotal.add(getDecimal(priceCursor, 0));
-                    if (currency != WBCurrency.getInstance(priceCursor.getString(1))) {
-                        currency = null;
+                    if (firstPass) {
+                        currency = WBCurrency.getInstance(priceCursor.getString(1));
+                        firstPass = false;
+                    }
+                    else {
+                        if (currency != null && !currency.equals(WBCurrency.getInstance(priceCursor.getString(1)))) {
+                            currency = null;
+                        }
                     }
                 }
                 while (priceCursor.moveToNext());
@@ -1320,7 +1334,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
     }
 
-    private final void updateTripPrice(final Trip trip) {
+    private void updateTripPrice(final Trip trip) {
         synchronized (mDatabaseLock) {
             mAreTripsValid = false;
             queryTripPrice(trip);

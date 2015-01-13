@@ -329,6 +329,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, e.toString());
                 }
+            } catch (RuntimeException e) {
+                // Only intended for RoboE
+                Log.e(TAG, e.toString());
             }
         } else {
             if (BuildConfig.DEBUG) {

@@ -42,56 +42,57 @@ public class Flex {
 		
 		//Try to find an old flex file
 		SharedPreferences prefs = context.getSharedPreferences(FLEX_PREFERENCES, 0);
-    	String flexFilePath = prefs.getString(STRING_FLEX_FILE, "");
-    	if (D) Log.d(TAG, flexFilePath);
-    	
-		if (this.isFleXMLDefined(rawID)) {
-			InputStream is = context.getResources().openRawResource(rawID);
-			this.parseFleXML(is); //Since this InputStream gets closed here
-			is = context.getResources().openRawResource(rawID);
-			if (flexFilePath.length() > 0) { //A Flex file exists. Let's test if any updates have been applied
-				String rawHash = StorageManager.getMD5Checksum(is);
-				String flexHash = StorageManager.getMD5Checksum(new File(flexFilePath));
-				if (D) Log.d(TAG, "Raw Hash: " + rawHash);
-				if (D) Log.d(TAG, "Flex Hash: " + flexHash);
-				if (rawHash != null && flexHash != null) {
-					if (!rawHash.equalsIgnoreCase(flexHash)) {
-						//It really should check that the file on Disk has a lesser version number, instead of just auto overwriting
-						writeFlexFileToSD(is, prefs, context);
-					}
-				}
-				else { //Something went wrong. Try writing the file again
-					writeFlexFileToSD(is, prefs, context);
-				}
-			}
-			else { //Write the new Flex File
-				writeFlexFileToSD(is, prefs, context);
-			}
-			try { if (is != null) is.close(); } catch (IOException e) { Log.e(TAG, e.toString()); }
-		}
-		else {
-	    	if (flexFilePath.length() > 0) { //If a flex file exists. If not, all defaults will be used
-	    		FileInputStream fis = null;
-	    		try {
-	    			fis = new FileInputStream(flexFilePath);
-					this.parseFleXML(fis);
-					fis.close();
-				} 
-	    		catch (FileNotFoundException e) {
-					Log.e(TAG, "The defined flex file does not exists: " + flexFilePath);
-				} catch (IOException e) {
-					Log.e(TAG, toString());
-				}
-	    		finally {
-	    			try {
-	    				if (fis != null) fis.close();
-	    			} 
-	    			catch (IOException e) {
-						Log.e(TAG, toString());
-					}
-	    		}
-	    	}
-		}
+        if (prefs != null) {
+            // This check is really just to avoid RoboElectric failures
+            String flexFilePath = prefs.getString(STRING_FLEX_FILE, "");
+            if (D) Log.d(TAG, flexFilePath);
+
+            if (this.isFleXMLDefined(rawID)) {
+                InputStream is = context.getResources().openRawResource(rawID);
+                this.parseFleXML(is); //Since this InputStream gets closed here
+                is = context.getResources().openRawResource(rawID);
+                if (flexFilePath.length() > 0) { //A Flex file exists. Let's test if any updates have been applied
+                    String rawHash = StorageManager.getMD5Checksum(is);
+                    String flexHash = StorageManager.getMD5Checksum(new File(flexFilePath));
+                    if (D) Log.d(TAG, "Raw Hash: " + rawHash);
+                    if (D) Log.d(TAG, "Flex Hash: " + flexHash);
+                    if (rawHash != null && flexHash != null) {
+                        if (!rawHash.equalsIgnoreCase(flexHash)) {
+                            //It really should check that the file on Disk has a lesser version number, instead of just auto overwriting
+                            writeFlexFileToSD(is, prefs, context);
+                        }
+                    } else { //Something went wrong. Try writing the file again
+                        writeFlexFileToSD(is, prefs, context);
+                    }
+                } else { //Write the new Flex File
+                    writeFlexFileToSD(is, prefs, context);
+                }
+                try {
+                    if (is != null) is.close();
+                } catch (IOException e) {
+                    Log.e(TAG, e.toString());
+                }
+            } else {
+                if (flexFilePath.length() > 0) { //If a flex file exists. If not, all defaults will be used
+                    FileInputStream fis = null;
+                    try {
+                        fis = new FileInputStream(flexFilePath);
+                        this.parseFleXML(fis);
+                        fis.close();
+                    } catch (FileNotFoundException e) {
+                        Log.e(TAG, "The defined flex file does not exists: " + flexFilePath);
+                    } catch (IOException e) {
+                        Log.e(TAG, toString());
+                    } finally {
+                        try {
+                            if (fis != null) fis.close();
+                        } catch (IOException e) {
+                            Log.e(TAG, toString());
+                        }
+                    }
+                }
+            }
+        }
 	}
 	
 	private final void writeFlexFileToSD(InputStream is, SharedPreferences prefs, Context context) {

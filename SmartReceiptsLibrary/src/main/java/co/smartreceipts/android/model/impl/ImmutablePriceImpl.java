@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.util.FloatMath;
 
 import java.math.BigDecimal;
 
@@ -14,8 +15,9 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  *
  * @author williambaumann
  */
-public final class ImmutablePriceImpl implements Price, android.os.Parcelable {
+public final class ImmutablePriceImpl implements Price {
 
+    public static final float EPSILON = 0.00001f;
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
 
@@ -77,7 +79,7 @@ public final class ImmutablePriceImpl implements Price, android.os.Parcelable {
         ImmutablePriceImpl that = (ImmutablePriceImpl) o;
 
         if (!mCurrency.equals(that.mCurrency)) return false;
-        if (!mPrice.equals(that.mPrice)) return false;
+        if (Math.abs(mPrice.floatValue() - that.mPrice.floatValue()) > EPSILON) return false;
 
         return true;
     }

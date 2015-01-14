@@ -24,6 +24,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     private BigDecimal mPriceDecimal;
     private WBCurrency mCurrency;
     private List<Priceable> mPriceables;
+    private List<Price> mPrices;
 
     public PriceBuilderFactory setPrice(Price price) {
         mPrice = price;
@@ -55,8 +56,13 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setPriceables(List<? extends Priceable> prices) {
-        mPriceables = new ArrayList<Priceable>(prices);
+    public PriceBuilderFactory setPrices(List<? extends Price> prices) {
+        mPrices = new ArrayList<Price>(prices);
+        return this;
+    }
+
+    public PriceBuilderFactory setPriceables(List<? extends Priceable> priceables) {
+        mPriceables = new ArrayList<Priceable>(priceables);
         return this;
     }
 
@@ -65,6 +71,9 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     public Price build() {
         if (mPrice != null) {
             return mPrice;
+        }
+        else if (mPrices != null) {
+            return new ImmutableNetPriceImpl(mPrices);
         }
         else if (mPriceables != null) {
             final int size = mPriceables.size();

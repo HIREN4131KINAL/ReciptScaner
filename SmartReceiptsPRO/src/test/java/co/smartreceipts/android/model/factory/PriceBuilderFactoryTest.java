@@ -85,6 +85,13 @@ public class PriceBuilderFactoryTest {
     }
 
     @Test
+    public void testPrices() {
+        final List<Price> prices = Arrays.asList(price, price);
+        priceBuilderFactory.setPrices(prices);
+        assertEquals(TWO_DOLLARS.floatValue(), priceBuilderFactory.build().getPriceAsFloat(), TestUtils.EPSILON);
+    }
+
+    @Test
     public void testPriceables() {
         final List<Priceable> priceables = Arrays.asList(priceable1, priceable2);
         priceBuilderFactory.setPriceables(priceables);

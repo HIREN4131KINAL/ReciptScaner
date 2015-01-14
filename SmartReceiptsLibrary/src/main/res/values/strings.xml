@@ -62,9 +62,11 @@
     <!-- ============= Report Generation ============== -->
     <string name="report_header_from">From: %s</string>
     <string name="report_header_to">To: %s</string>
-    <string name="report_header_price">Total: %s</string>
-    <string name="report_header_price_no_tax">Total (Sans Tax): %s</string>
-    <string name="report_header_price_expensable">Total (Expensable): %s</string>
+    <string name="report_header_receipts_total">Receipts Total: %s</string>
+    <string name="report_header_receipts_total_no_tax">Receipts Total (Sans Tax): %s</string>
+    <string name="report_header_receipts_total_expensable">Receipts Total (Expensable): %s</string>
+    <string name="report_header_distance_total">Distance Total: %s</string>
+    <string name="report_header_net_total">Net Total: %s</string>
 
     <!-- ================ Categories ================== -->
     <string name="category_name">Name: </string>

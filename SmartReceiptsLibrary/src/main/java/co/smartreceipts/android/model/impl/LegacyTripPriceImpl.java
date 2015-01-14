@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import java.math.BigDecimal;
 
-import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
@@ -16,7 +15,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  *
  * @author williambaumann
  */
-public class LegacyTripPriceImpl implements Price, android.os.Parcelable {
+public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
@@ -88,27 +87,6 @@ public class LegacyTripPriceImpl implements Price, android.os.Parcelable {
     @Override
     public String toString() {
         return getCurrencyFormattedPrice();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        LegacyTripPriceImpl that = (LegacyTripPriceImpl) o;
-
-        if (mCurrency != null ? !mCurrency.equals(that.mCurrency) : that.mCurrency != null)
-            return false;
-        if (!mPrice.equals(that.mPrice)) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = mPrice.hashCode();
-        result = 31 * result + (mCurrency != null ? mCurrency.hashCode() : 0);
-        return result;
     }
 
 

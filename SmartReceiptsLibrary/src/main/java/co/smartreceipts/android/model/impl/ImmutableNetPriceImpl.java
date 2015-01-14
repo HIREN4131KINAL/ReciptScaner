@@ -23,7 +23,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  *
  * @author williambaumann
  */
-public final class ImmutableNetPriceImpl implements Price, android.os.Parcelable {
+public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
     private final List<Price> mPrices;
     private final Map<WBCurrency, BigDecimal> mCurrencyToPriceMap;
@@ -106,31 +106,6 @@ public final class ImmutableNetPriceImpl implements Price, android.os.Parcelable
     public String toString() {
         return getCurrencyFormattedPrice();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ImmutableNetPriceImpl that = (ImmutableNetPriceImpl) o;
-
-        if (!mCurrency.equals(that.mCurrency)) return false;
-        if (!mCurrencyToPriceMap.equals(that.mCurrencyToPriceMap)) return false;
-        if (!mPossiblyIncorrectTotalPrice.equals(that.mPossiblyIncorrectTotalPrice)) return false;
-        if (!mPrices.equals(that.mPrices)) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = mPrices.hashCode();
-        result = 31 * result + mCurrencyToPriceMap.hashCode();
-        result = 31 * result + mPossiblyIncorrectTotalPrice.hashCode();
-        result = 31 * result + mCurrency.hashCode();
-        return result;
-    }
-
 
     @Override
     public int describeContents() {

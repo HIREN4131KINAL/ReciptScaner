@@ -2,11 +2,9 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;
-import android.util.FloatMath;
 
 import java.math.BigDecimal;
 
-import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
@@ -15,9 +13,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  *
  * @author williambaumann
  */
-public final class ImmutablePriceImpl implements Price {
+public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
-    public static final float EPSILON = 0.00001f;
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
 
@@ -69,26 +66,6 @@ public final class ImmutablePriceImpl implements Price {
     @Override
     public String toString() {
         return getCurrencyFormattedPrice();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ImmutablePriceImpl that = (ImmutablePriceImpl) o;
-
-        if (!mCurrency.equals(that.mCurrency)) return false;
-        if (Math.abs(mPrice.floatValue() - that.mPrice.floatValue()) > EPSILON) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = mPrice.hashCode();
-        result = 31 * result + mCurrency.hashCode();
-        return result;
     }
 
     @Override

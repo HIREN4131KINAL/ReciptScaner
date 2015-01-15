@@ -59,10 +59,12 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.CSVColumns;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PDFColumns;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
+import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -398,27 +400,60 @@ public class EmailAssistant {
                     writer.setPageEvent(new Footer());
                     document.open();
 
-                    BigDecimal expensablePrice = new BigDecimal(0);
-                    BigDecimal taxPrice = new BigDecimal(0);
+                    // Pre-tax => receipt total does not include price
+                    final boolean usePrexTaxPrice = mPreferences.getUsesPreTaxPrice();
+                    final boolean onlyUseExpensable = mPreferences.onlyIncludeExpensableReceiptsInReports();
+                    final ArrayList<Price> netTotal = new ArrayList<Price>(receipts.size());
+                    final ArrayList<Price> receiptTotal = new ArrayList<Price>(receipts.size());
+                    final ArrayList<Price> expensableTotal = new ArrayList<Price>(receipts.size());
+                    final ArrayList<Price> taxTotal = new ArrayList<Price>(receipts.size());
+                    final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
+
                     for (int i = 0; i < len; i++) {
                         final Receipt receipt = receipts.get(i);
-                        taxPrice = taxPrice.add(receipt.getTax().getPrice());
-                        if (receipt.isExpensable()) {
-                            expensablePrice = expensablePrice.add(receipt.getPrice().getPrice());
+                        if (!onlyUseExpensable || receipt.isExpensable()) {
+                            netTotal.add(receipt.getPrice());
+                            receiptTotal.add(receipt.getPrice());
+                            taxTotal.add(receipt.getTax());
+                            if (usePrexTaxPrice) {
+                                netTotal.add(receipt.getTax());
+                            }
+                            if (receipt.isExpensable()) {
+                                expensableTotal.add(receipt.getPrice());
+                            }
                         }
                     }
 
-                    // Add the table (TODO: Use formatting at some point so it doesn't look like crap)
-                    document.add(new Paragraph(dir.getName() + "\n"));
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_price, trip.getPrice().getCurrencyFormattedPrice()) + "\n"));
-                    if (mPreferences.includeTaxField() && taxPrice.abs().floatValue() > EPSILON) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, ModelUtils.getCurrencyFormattedValue(trip.getPrice().getPrice().subtract(taxPrice), trip.getPrice().getCurrency())) + "\n"));
-                    }
-                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && expensablePrice.subtract(trip.getPrice().getPrice()).abs().floatValue() > EPSILON) {
-                        // Assume epsilon equality
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_expensable, ModelUtils.getCurrencyFormattedValue(expensablePrice, trip.getPrice().getCurrency())) + "\n"));
+                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
+                    Collections.reverse(distances); // Reverse the list, so we start with the earliest one
+                    for (int i = 0; i < distances.size(); i++) {
+                        final Distance distance = distances.get(i);
+                        netTotal.add(distance.getPrice());
+                        distanceTotal.add(distance.getPrice());
                     }
 
+                    final Price netPrice = new PriceBuilderFactory().setPrices(netTotal).build();
+                    final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal).build();
+                    final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal).build();
+                    final Price taxPrice = new PriceBuilderFactory().setPrices(taxTotal).build();
+                    final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal).build();
+
+
+                    // Add the table (TODO: Use formatting at some point so it doesn't look like crap)
+                    document.add(new Paragraph(dir.getName() + "\n"));
+                    if (!receiptsPrice.equals(netPrice)) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total, receiptsPrice.getCurrencyFormattedPrice()) + "\n"));
+                    }
+                    if (mPreferences.includeTaxField() && taxPrice.getPriceAsFloat() > EPSILON) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
+                    }
+                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && !expensablePrice.equals(receiptsPrice)) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_expensable, expensablePrice.getCurrencyFormattedPrice()) + "\n"));
+                    }
+                    if (distances.size() > 0) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_distance_total, distancePrice.getCurrencyFormattedPrice()) + "\n"));
+                    }
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_net_total, trip.getPrice().getCurrencyFormattedPrice()) + "\n"));
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
                             + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n\n\n"));
                     PDFColumns columns = mDB.getPDFColumns();
@@ -433,8 +468,6 @@ public class EmailAssistant {
                     document.add(table);
 
                     if (mPreferences.getPrintDistanceTable()) {
-                        final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
-                        Collections.reverse(distances); // Reverse the list, so we print the most recent one first
                         final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
                         document.add(new Paragraph("\n\n"));
                         document.add(new PdfTableGenerator().write(distanceTableColumns));

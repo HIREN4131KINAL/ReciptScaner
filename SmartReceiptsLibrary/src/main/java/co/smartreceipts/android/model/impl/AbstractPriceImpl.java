@@ -14,9 +14,9 @@ abstract class AbstractPriceImpl implements Price {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || (o instanceof AbstractPriceImpl)) return false;
 
-        ImmutablePriceImpl that = (ImmutablePriceImpl) o;
+        Price that = (Price) o;
 
         if (!getCurrency().equals(that.getCurrency())) {
             return false;

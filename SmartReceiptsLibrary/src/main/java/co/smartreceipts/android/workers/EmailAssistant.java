@@ -400,6 +400,9 @@ public class EmailAssistant {
                     writer.setPageEvent(new Footer());
                     document.open();
 
+                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
+                    Collections.reverse(distances); // Reverse the list, so we start with the earliest one
+
                     // Pre-tax => receipt total does not include price
                     final boolean usePrexTaxPrice = mPreferences.getUsesPreTaxPrice();
                     final boolean onlyUseExpensable = mPreferences.onlyIncludeExpensableReceiptsInReports();
@@ -409,6 +412,7 @@ public class EmailAssistant {
                     final ArrayList<Price> taxTotal = new ArrayList<Price>(receipts.size());
                     final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
 
+                    // Sum up our receipt totals for various conditions
                     for (int i = 0; i < len; i++) {
                         final Receipt receipt = receipts.get(i);
                         if (!onlyUseExpensable || receipt.isExpensable()) {
@@ -424,8 +428,7 @@ public class EmailAssistant {
                         }
                     }
 
-                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
-                    Collections.reverse(distances); // Reverse the list, so we start with the earliest one
+                    // Sum up our distance totals
                     for (int i = 0; i < distances.size(); i++) {
                         final Distance distance = distances.get(i);
                         netTotal.add(distance.getPrice());
@@ -445,7 +448,7 @@ public class EmailAssistant {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total, receiptsPrice.getCurrencyFormattedPrice()) + "\n"));
                     }
                     if (mPreferences.includeTaxField() && taxPrice.getPriceAsFloat() > EPSILON) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_price_no_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
                     }
                     if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && !expensablePrice.equals(receiptsPrice)) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_expensable, expensablePrice.getCurrencyFormattedPrice()) + "\n"));

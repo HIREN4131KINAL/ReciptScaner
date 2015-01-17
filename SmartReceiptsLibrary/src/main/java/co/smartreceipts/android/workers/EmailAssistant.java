@@ -101,6 +101,8 @@ public class EmailAssistant {
     private static final String TAG = "EmailAssistant";
 
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
+    private static final int DEFAULT_MARGIN = 36;
+    private static final int DEFAULT_MARGIN_BOTTOM = 50;
     private static final float EPSILON = 0.0001f;
 
     private final Context mContext;
@@ -395,7 +397,7 @@ public class EmailAssistant {
                     //Setup work
                     mStorageManager.delete(dir, dir.getName() + ".pdf");
                     pdfStream = mStorageManager.getFOS(dir, dir.getName() + ".pdf");
-                    document = new Document();
+                    document = new Document(DEFAULT_PAGE_SIZE, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN_BOTTOM);
                     writer = PdfWriter.getInstance(document, pdfStream);
                     writer.setPageEvent(new Footer());
                     document.open();
@@ -513,7 +515,7 @@ public class EmailAssistant {
                     //Setup work
                     mStorageManager.delete(dir, dir.getName() + IMAGES_PDF);
                     pdfStream = mStorageManager.getFOS(dir, dir.getName() + IMAGES_PDF);
-                    document = new Document();
+                    document = new Document(DEFAULT_PAGE_SIZE, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN_BOTTOM);
                     writer = PdfWriter.getInstance(document, pdfStream);
                     writer.setPageEvent(new Footer());
                     document.open();

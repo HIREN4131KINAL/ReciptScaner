@@ -16,6 +16,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -461,6 +462,9 @@ public class EmailAssistant {
                     document.add(new Paragraph(mContext.getString(R.string.report_header_net_total, trip.getPrice().getCurrencyFormattedPrice()) + "\n"));
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
                             + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n\n\n"));
+                    if (!TextUtils.isEmpty(trip.getComment())) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_comment, trip.getComment()) + "\n"));
+                    }
                     PDFColumns columns = mDB.getPDFColumns();
                     PdfPTable table = columns.getTableWithHeaders();
                     Receipt receipt;

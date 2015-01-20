@@ -374,10 +374,6 @@ public class EmailAssistant {
             // Set up our initial variables
             final Trip trip = trips[0];
             final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
-            if (mPreferences.getPrintDistanceAsDailyReceipt()) {
-                receipts.addAll(new DistanceToReceiptsConverter(mContext, mPreferences).convert(mDB.getDistanceSerial(trip)));
-                Collections.sort(receipts, new ReceiptDateComparator());
-            }
             final int len = receipts.size();
             final WriterResults results = new WriterResults();
 
@@ -459,17 +455,25 @@ public class EmailAssistant {
                     if (distances.size() > 0) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_distance_total, distancePrice.getCurrencyFormattedPrice()) + "\n"));
                     }
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_net_total, trip.getPrice().getCurrencyFormattedPrice()) + "\n"));
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_net_total, netPrice.getCurrencyFormattedPrice()) + "\n"));
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
-                            + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n\n\n"));
+                            + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n"));
                     if (!TextUtils.isEmpty(trip.getComment())) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_comment, trip.getComment()) + "\n"));
                     }
+                    document.add(new Paragraph("\n\n")); // Add the line break before our table
+
+                    // Now build the table
                     PDFColumns columns = mDB.getPDFColumns();
                     PdfPTable table = columns.getTableWithHeaders();
                     Receipt receipt;
-                    for (int i = 0; i < len; i++) {
-                        receipt = receipts.get(i);
+                    final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
+                    if (mPreferences.getPrintDistanceAsDailyReceipt()) {
+                        receiptsTableList.addAll(new DistanceToReceiptsConverter(mContext, mPreferences).convert(mDB.getDistanceSerial(trip)));
+                        Collections.sort(receiptsTableList, new ReceiptDateComparator());
+                    }
+                    for (int i = 0; i < receiptsTableList.size(); i++) {
+                        receipt = receiptsTableList.get(i);
                         if (!filterOutReceipt(mPreferences, receipt)) {
                             columns.print(table, receipt, trip);
                         }

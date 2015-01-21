@@ -480,7 +480,7 @@ public class EmailAssistant {
                     }
                     document.add(table);
 
-                    if (mPreferences.getPrintDistanceTable()) {
+                    if (mPreferences.getPrintDistanceTable() && !distances.isEmpty()) {
                         final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
                         document.add(new Paragraph("\n\n"));
                         document.add(new PdfTableGenerator().write(distanceTableColumns));

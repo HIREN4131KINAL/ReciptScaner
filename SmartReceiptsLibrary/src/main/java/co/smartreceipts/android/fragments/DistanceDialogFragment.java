@@ -147,7 +147,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 mCurrency.setSelection(idx);
             }
             if (mPrefs.hasDefaultDistanceRate()) {
-                mRate.setText(ModelUtils.getDecimalFormattedValue(mPrefs.getDefaultDistanceRate()));
+                mRate.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(mPrefs.getDefaultDistanceRate()), Distance.RATE_PRECISION));
             }
             if (mLocationAutoCompleteAdapter == null) {
                 mLocationAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_DISTANCE_LOCATION, mDB);

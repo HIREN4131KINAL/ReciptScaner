@@ -7,11 +7,10 @@ import android.util.AttributeSet;
 import java.text.DecimalFormat;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.model.Distance;
 import wb.android.preferences.FloatSummaryEditTextPreference;
 
 public class DefaultDistanceRatePreference extends FloatSummaryEditTextPreference {
-
-    private static final int DECIMAL_PRECISION = 5;
 
 	public DefaultDistanceRatePreference(Context context) {
 		super(context);
@@ -37,8 +36,8 @@ public class DefaultDistanceRatePreference extends FloatSummaryEditTextPreferenc
                     return getContext().getString(R.string.pref_distance_rate_summaryOff);
 				}
 				DecimalFormat decimalFormat = new DecimalFormat();
-				decimalFormat.setMaximumFractionDigits(DECIMAL_PRECISION);
-				decimalFormat.setMinimumFractionDigits(DECIMAL_PRECISION);
+				decimalFormat.setMaximumFractionDigits(Distance.RATE_PRECISION);
+				decimalFormat.setMinimumFractionDigits(Distance.RATE_PRECISION);
 				decimalFormat.setGroupingUsed(false);
 				return getContext().getString(R.string.pref_distance_rate_summaryOn, decimalFormat.format(value));
 			} catch (NumberFormatException e) {

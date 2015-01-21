@@ -59,9 +59,21 @@ public class ModelUtils {
      * @return the decimal formatted price {@link java.lang.String}
      */
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal) {
+        return getDecimalFormattedValue(decimal, 2);
+    }
+
+    /**
+     * Generates "decimal-formatted" value, which would appear to the end user as "25.20" or "25,20" instead of
+     * showing naively as "25.2" or "25.2001910". The number of decimal digits is based on the set precision
+     *
+     * @param decimal - the {@link java.math.BigDecimal} to format
+     * @param precision - the number of digits precision to use
+     * @return the decimal formatted price {@link java.lang.String}
+     */
+    public static String getDecimalFormattedValue(@NonNull BigDecimal decimal, int precision) {
         final DecimalFormat decimalFormat = new DecimalFormat();
-        decimalFormat.setMaximumFractionDigits(2);
-        decimalFormat.setMinimumFractionDigits(2);
+        decimalFormat.setMaximumFractionDigits(precision);
+        decimalFormat.setMinimumFractionDigits(precision);
         decimalFormat.setGroupingUsed(false);
         return decimalFormat.format(decimal);
     }

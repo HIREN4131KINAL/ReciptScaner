@@ -11,6 +11,7 @@ import java.util.TimeZone;
 public interface Distance extends Parcelable, Priceable {
 
     public static final String PARCEL_KEY = Distance.class.getName();
+    public static final int RATE_PRECISION = 3;
 
     /**
      * Gets the primary key id for this distance

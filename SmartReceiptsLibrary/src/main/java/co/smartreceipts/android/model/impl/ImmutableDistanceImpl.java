@@ -103,7 +103,7 @@ public final class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getDecimalFormattedRate() {
-        return ModelUtils.getDecimalFormattedValue(mRate);
+        return ModelUtils.getDecimalFormattedValue(mRate, 3);
     }
 
     @Override

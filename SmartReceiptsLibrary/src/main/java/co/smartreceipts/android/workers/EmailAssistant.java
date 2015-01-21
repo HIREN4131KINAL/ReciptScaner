@@ -408,7 +408,8 @@ public class EmailAssistant {
                     final ArrayList<Price> netTotal = new ArrayList<Price>(receipts.size());
                     final ArrayList<Price> receiptTotal = new ArrayList<Price>(receipts.size());
                     final ArrayList<Price> expensableTotal = new ArrayList<Price>(receipts.size());
-                    final ArrayList<Price> taxTotal = new ArrayList<Price>(receipts.size());
+                    final ArrayList<Price> noTaxesTotal = new ArrayList<Price>(receipts.size()*2);
+                    final ArrayList<Price> taxesTotal = new ArrayList<Price>(receipts.size()*2);
                     final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
 
                     // Sum up our receipt totals for various conditions
@@ -417,7 +418,10 @@ public class EmailAssistant {
                         if (!onlyUseExpensable || receipt.isExpensable()) {
                             netTotal.add(receipt.getPrice());
                             receiptTotal.add(receipt.getPrice());
-                            taxTotal.add(receipt.getTax());
+                            // Treat taxes as negative prices for the sake of this conversion
+                            noTaxesTotal.add(receipt.getPrice());
+                            noTaxesTotal.add(new PriceBuilderFactory().setCurrency(receipt.getTax().getCurrency()).setPrice(receipt.getTax().getPrice().multiply(new BigDecimal(-1))).build());
+                            taxesTotal.add(receipt.getTax());
                             if (usePrexTaxPrice) {
                                 netTotal.add(receipt.getTax());
                             }
@@ -437,7 +441,8 @@ public class EmailAssistant {
                     final Price netPrice = new PriceBuilderFactory().setPrices(netTotal).build();
                     final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal).build();
                     final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal).build();
-                    final Price taxPrice = new PriceBuilderFactory().setPrices(taxTotal).build();
+                    final Price noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal).build();
+                    final Price taxPrice = new PriceBuilderFactory().setPrices(taxesTotal).build();
                     final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal).build();
 
 
@@ -446,8 +451,13 @@ public class EmailAssistant {
                     if (!receiptsPrice.equals(netPrice)) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total, receiptsPrice.getCurrencyFormattedPrice()) + "\n"));
                     }
-                    if (mPreferences.includeTaxField() && taxPrice.getPriceAsFloat() > EPSILON) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
+                    if (mPreferences.includeTaxField()) {
+                        if (usePrexTaxPrice && taxPrice.getPriceAsFloat() > EPSILON) {
+                            document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
+                        }
+                        else if (noTaxPrice.getPriceAsFloat() > EPSILON) {
+                            document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, noTaxPrice.getCurrencyFormattedPrice()) + "\n"));
+                        }
                     }
                     if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && !expensablePrice.equals(receiptsPrice)) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_expensable, expensablePrice.getCurrencyFormattedPrice()) + "\n"));

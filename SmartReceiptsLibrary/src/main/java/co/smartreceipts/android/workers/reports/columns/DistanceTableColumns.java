@@ -55,9 +55,9 @@ public class DistanceTableColumns implements TableColumns {
             } else if (column == 2) {
                 return distance.getDecimalFormattedDistance();
             } else if (column == 3) {
-                return distance.getDecimalFormattedRate();
-            } else if (column == 4) {
                 return distance.getPrice().getCurrencyCode();
+            } else if (column == 4) {
+                return distance.getDecimalFormattedRate();
             } else if (column == 5) {
                 return distance.getFormattedDate(mContext, mPreferences.getDateSeparator());
             } else if (column == 6) {
@@ -76,9 +76,9 @@ public class DistanceTableColumns implements TableColumns {
         } else if (column == 2) {
             return mContext.getString(R.string.distance_distance_field);
         } else if (column == 3) {
-            return mContext.getString(R.string.distance_rate_field);
-        } else if (column == 4) {
             return mContext.getString(R.string.dialog_currency_field);
+        } else if (column == 4) {
+            return mContext.getString(R.string.distance_rate_field);
         } else if (column == 5) {
             return mContext.getString(R.string.distance_date_field);
         } else if (column == 6) {
@@ -99,6 +99,8 @@ public class DistanceTableColumns implements TableColumns {
                 distance = distance.add(mDistances.get(i).getDistance());
             }
             return ModelUtils.getDecimalFormattedValue(distance);
+        } else if (column == 3) {
+            return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyCode();
         } else {
             return "";
         }

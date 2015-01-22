@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,11 +65,9 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
-import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.workers.reports.DistanceTableGenerator;
 import co.smartreceipts.android.workers.reports.columns.DistanceTableColumns;
 import co.smartreceipts.android.workers.reports.columns.TableColumns;
 import co.smartreceipts.android.workers.reports.writers.CsvTableGenerator;
@@ -465,7 +462,7 @@ public class EmailAssistant {
                     if (distances.size() > 0) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_distance_total, distancePrice.getCurrencyFormattedPrice()) + "\n"));
                     }
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_net_total, netPrice.getCurrencyFormattedPrice()) + "\n"));
+                    document.add(new Paragraph(mContext.getString(R.string.report_header_gross_total, netPrice.getCurrencyFormattedPrice()) + "\n"));
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
                             + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n"));
                     if (!TextUtils.isEmpty(trip.getComment())) {

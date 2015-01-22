@@ -616,5 +616,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPreferenceFolder;
     }
 
+    public boolean getShouldTheDistancePriceBeIncludedInReports() {
+        return getPrintDistanceTable() || getPrintDistanceAsDailyReceipt();
+    }
+
 
 }

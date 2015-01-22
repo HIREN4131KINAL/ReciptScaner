@@ -622,65 +622,65 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 		}
 		builder.setTitle(title).setCancelable(true).setView(scrollView).setLongLivedPositiveButton((newReceipt) ? getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE) : getFlexString(R.string.DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int whichButton) {
-				mNameBox = null; // Un-set
-				mCategoriesSpinner = null; // Un-set
-				mPriceBox = null; // Un-set
-				final String name = nameBox.getText().toString();
-				String price = priceBox.getText().toString();
-				String tax = taxBox.getText().toString();
-				final String category = categoriesSpinner.getSelectedItem().toString();
-				final String currency = currencySpinner.getSelectedItem().toString();
-				final String comment = commentBox.getText().toString();
-				final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
-				final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
-				final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
-				final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
-				if (name.length() == 0) {
-					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
-					return;
-				}
-				if (dateBox.date == null) {
-					Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
-					return;
-				}
-				else if (!dateBox.date.equals(mNow)) {
-					mCachedDate = (Date) dateBox.date.clone();
-				}
-				mCachedCategory = category;
-				mCachedCurrency = currency;
+            @Override
+            public void onClick(DialogInterface dialog, int whichButton) {
+                mNameBox = null; // Un-set
+                mCategoriesSpinner = null; // Un-set
+                mPriceBox = null; // Un-set
+                final String name = nameBox.getText().toString();
+                String price = priceBox.getText().toString();
+                String tax = taxBox.getText().toString();
+                final String category = categoriesSpinner.getSelectedItem().toString();
+                final String currency = currencySpinner.getSelectedItem().toString();
+                final String comment = commentBox.getText().toString();
+                final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
+                final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
+                final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
+                final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
+                if (name.length() == 0) {
+                    Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (dateBox.date == null) {
+                    Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (!dateBox.date.equals(mNow)) {
+                    mCachedDate = (Date) dateBox.date.clone();
+                }
+                mCachedCategory = category;
+                mCachedCurrency = currency;
 
-				if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
-					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
-				}
+                if (!mCurrentTrip.isDateInsideTripBounds(dateBox.date)) {
+                    if (isAdded()) {
+                        Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
+                    }
+                }
 
-				if (newReceipt) {// Insert
-					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Insert_Receipt");
-					getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
-					getDateManager().setDateEditTextListenerDialogHolder(null);
-					dialog.cancel();
-				}
-				else { // Update
-					if (TextUtils.isEmpty(price)) {
-						price = "0";
-					}
-					getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Update_Receipt");
-					getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
-					getDateManager().setDateEditTextListenerDialogHolder(null);
-					dialog.cancel();
-				}
-			}
-		}).setNegativeButton(getFlexString(R.string.DIALOG_RECEIPTMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				if (img != null && newReceipt) {
-					getPersistenceManager().getStorageManager().delete(img); // Clean Up On Cancel
-				}
-				getDateManager().setDateEditTextListenerDialogHolder(null);
-				dialog.cancel();
-			}
-		});
+                if (newReceipt) {// Insert
+                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Insert_Receipt");
+                    getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+                    getDateManager().setDateEditTextListenerDialogHolder(null);
+                    dialog.cancel();
+                } else { // Update
+                    if (TextUtils.isEmpty(price)) {
+                        price = "0";
+                    }
+                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Update_Receipt");
+                    getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+                    getDateManager().setDateEditTextListenerDialogHolder(null);
+                    dialog.cancel();
+                }
+            }
+        }).setNegativeButton(getFlexString(R.string.DIALOG_RECEIPTMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (img != null && newReceipt) {
+                    getPersistenceManager().getStorageManager().delete(img); // Clean Up On Cancel
+                }
+                getDateManager().setDateEditTextListenerDialogHolder(null);
+                dialog.cancel();
+            }
+        });
 		final AlertDialog dialog = builder.show();
 		getDateManager().setDateEditTextListenerDialogHolder(dialog);
 		if (newReceipt) {

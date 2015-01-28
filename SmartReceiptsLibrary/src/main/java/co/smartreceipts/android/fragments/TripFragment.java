@@ -280,24 +280,24 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 final String costCenter = costCenterBox.getText().toString();
 				// Error Checking
 				if (name.length() == 0 || startDate.length() == 0 || endDate.length() == 0) {
-					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_LONG).show();
 					return;
 				}
 				if (startBox.date == null || endBox.date == null) {
-					Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_LONG).show();
 					return;
 				}
 				if (startBox.date.getTime() > endBox.date.getTime()) {
-					Toast.makeText(getActivity(), getFlexString(R.string.DURATION_ERROR), Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), getFlexString(R.string.DURATION_ERROR), Toast.LENGTH_LONG).show();
 					return;
 				}
 				if (name.startsWith(" ")) {
-					Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_LONG).show();
 					return;
 				}
 				for (int i = 0; i < RESERVED_CHARS.length; i++) {
 					if (name.contains(RESERVED_CHARS[i])) {
-						Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_SHORT).show();
+						Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_LONG).show();
 						return;
 					}
 				}
@@ -437,12 +437,12 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	public void onTripRowInsertFailure(SQLException ex, File directory) {
 		if (ex != null) {
 			if (isAdded()) {
-				Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_SHORT).show();
+				Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
 			}
 		}
 		else {
 			if (isAdded()) {
-				Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+				Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
 			}
 			getPersistenceManager().getStorageManager().delete(directory);
 		}
@@ -465,7 +465,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	public void onTripRowUpdateFailure(Trip newTrip, Trip oldTrip, File directory) {
 		getPersistenceManager().getStorageManager().rename(directory, oldTrip.getName());
 		if (isAdded()) {
-			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
 			viewReceipts(newTrip);
 		}
 	}
@@ -488,7 +488,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 	@Override
 	public void onTripDeleteFailure() {
 		if (isAdded()) {
-			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
 		}
 	}
 

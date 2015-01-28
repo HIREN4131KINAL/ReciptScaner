@@ -8,6 +8,7 @@
     <string name="pref_output_signature_picture_defaultValue"></string>
 
     <!-- ============= Preference Distance ================= -->
+    <bool name="pref_distance_include_price_in_report_defaultValue">false</bool>
     <item name="pref_distance_rate_defaultValue" format="float" type="dimen">0.0</item>
     <bool name="pref_distance_print_table_defaultValue">true</bool>
     <bool name="pref_distance_print_daily_defaultValue">false</bool>

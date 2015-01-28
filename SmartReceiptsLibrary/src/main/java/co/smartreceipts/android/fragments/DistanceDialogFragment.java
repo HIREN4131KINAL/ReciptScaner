@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -12,6 +13,7 @@ import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -155,6 +157,16 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 mLocationAutoCompleteAdapter.reset();
             }
             mLocation.setAdapter(mLocationAutoCompleteAdapter);
+            mDistance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus && getActivity() != null && getDialog() != null) {
+                        if (getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
+                            getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                        }
+                    }
+                }
+            });
         } else {
             // Update distance
             builder.setTitle(getString(R.string.dialog_mileage_title_update));
@@ -174,6 +186,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         builder.setNegativeButton(android.R.string.cancel, this);
 
         final Dialog dialog = builder.create();
+        mDistance.requestFocus();
         getDateManager().setDateEditTextListenerDialogHolder(dialog);
         return dialog;
     }

@@ -18,9 +18,7 @@
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:hint="@string/distance_distance_field"
-				android:layout_weight="7" >
-				<requestFocus />
-		    </EditText>
+				android:layout_weight="7" />
 		    <EditText android:id="@+id/dialog_mileage_rate"
 				android:inputType="number|numberDecimal"
 				android:layout_width="0dp"

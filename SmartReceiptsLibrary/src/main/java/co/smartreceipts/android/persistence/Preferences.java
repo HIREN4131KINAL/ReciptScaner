@@ -62,7 +62,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Distance Preferences
     private float mDefaultDistanceRate;
-    private boolean mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
+    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
 
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
@@ -238,6 +238,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPrintDistanceTable = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_table_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_table_defaultValue));
     }
 
+    private void initShouldDistancePriceBeIncludedInReports(SharedPreferences prefs) {
+        this.mShouldDistancePriceBeIncludedInReports = prefs.getBoolean(mContext.getString(R.string.pref_distance_include_price_in_report_key), mContext.getResources().getBoolean(R.bool.pref_distance_include_price_in_report_defaultValue));
+    }
+
     private void initPrintDistanceAsDailyReceipt(SharedPreferences prefs) {
         this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
     }
@@ -302,6 +306,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initShowPhotoPDFMarker(prefs);
 
         // Distance Preferences
+        this.initShouldDistancePriceBeIncludedInReports(prefs);
         this.initDefaultMileageRate(prefs);
         this.initPrintDistanceTable(prefs);
         this.initPrintDistanceAsDailyReceipt(prefs);
@@ -617,7 +622,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     public boolean getShouldTheDistancePriceBeIncludedInReports() {
-        return getPrintDistanceTable() || getPrintDistanceAsDailyReceipt();
+        return mShouldDistancePriceBeIncludedInReports;
     }
 
 

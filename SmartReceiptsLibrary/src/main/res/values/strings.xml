@@ -524,6 +524,10 @@
     <string name="pref_layout_display_photo_summary">Indicate if entries have a photo/PDF</string>
 
     <!-- ============= Preference Distance ================= -->
+    <string name="pref_distance_include_price_in_report_key" translatable="false">MileageTotalInReport</string>
+    <string name="pref_distance_include_price_in_report_title">Add Distance Price to Report</string>
+    <string name="pref_distance_include_price_in_report_summaryOn">Includes distance price in report total</string>
+    <string name="pref_distance_include_price_in_report_summaryOff">Excludes distance price from report total</string>
     <string name="pref_distance_rate_key" translatable="false">MileageRate</string>
     <string name="pref_distance_rate_title">Gas Rate</string>
     <string name="pref_distance_rate_summaryOff">The rate per mi or km travelled</string>

@@ -1228,40 +1228,66 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      */
     private void queryTripPrice(final Trip trip) {
         SQLiteDatabase db = null;
-        Cursor c = null;
+        Cursor receiptPriceCursor = null;
+        Cursor distancePriceCursor = null;
         try {
             mAreTripsValid = false;
             db = this.getReadableDatabase();
 
-            String selection = ReceiptsTable.COLUMN_PARENT + "= ?";
+            String receiptSelection = ReceiptsTable.COLUMN_PARENT + "= ?";
             if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
-                selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
+                receiptSelection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
             }
 
             // Get the Trip's total Price
             BigDecimal price = new BigDecimal(0);
             WBCurrency currency = trip.getDefaultCurrency();
             boolean firstPass = true;
-            c = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName()}, null, null, null);
-            if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
+            receiptPriceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, receiptSelection, new String[]{trip.getName()}, null, null, null);
+            if (receiptPriceCursor != null && receiptPriceCursor.moveToFirst() && receiptPriceCursor.getColumnCount() > 0) {
                 do {
-                    price = price.add(getDecimal(c, 0));
+                    price = price.add(getDecimal(receiptPriceCursor, 0));
                     if (firstPass) {
-                        currency = WBCurrency.getInstance(c.getString(1));
+                        currency = WBCurrency.getInstance(receiptPriceCursor.getString(1));
                         firstPass = false;
                     }
                     else {
-                        if (currency != null && !currency.equals(WBCurrency.getInstance(c.getString(1)))) {
+                        if (currency != null && !currency.equals(WBCurrency.getInstance(receiptPriceCursor.getString(1)))) {
                             currency = null;
                         }
                     }
                 }
-                while (c.moveToNext());
+                while (receiptPriceCursor.moveToNext());
             }
+
+            if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ?";
+                final String[] distanceColumns = new String[] {DistanceTable.COLUMN_DISTANCE + "*" + DistanceTable.COLUMN_RATE, DistanceTable.COLUMN_RATE_CURRENCY};
+                distancePriceCursor = db.query(DistanceTable.TABLE_NAME, distanceColumns, distanceSelection, new String[] {trip.getName()}, null, null, null);
+                if (distancePriceCursor != null && distancePriceCursor.moveToFirst() && distancePriceCursor.getColumnCount() > 0) {
+                    do {
+                        price = price.add(getDecimal(distancePriceCursor, 0));
+                        if (firstPass) {
+                            currency = WBCurrency.getInstance(distancePriceCursor.getString(1));
+                            firstPass = false;
+                        }
+                        else {
+                            if (currency != null && !currency.equals(WBCurrency.getInstance(distancePriceCursor.getString(1)))) {
+                                currency = null;
+                            }
+                        }
+                    }
+                    while (distancePriceCursor.moveToNext());
+                }
+            }
+
             trip.setPrice(new PriceBuilderFactory().setPrice(price).setCurrency(currency).build());
         } finally {
-            if (c != null) {
-                c.close();
+            if (receiptPriceCursor != null) {
+                receiptPriceCursor.close();
+            }
+            if (distancePriceCursor != null) {
+                distancePriceCursor.close();
             }
         }
     }
@@ -1273,7 +1299,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      */
     private void queryTripDailyPrice(final Trip trip) {
         SQLiteDatabase db = null;
-        Cursor priceCursor = null;
+        Cursor receiptPriceCursor = null;
+        Cursor distancePriceCursor = null;
         try {
             db = this.getReadableDatabase();
 
@@ -1305,31 +1332,54 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
             }
 
-            priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{"SUM(" + ReceiptsTable.COLUMN_PRICE + ")"}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
-
             BigDecimal subTotal = new BigDecimal(0);
             WBCurrency currency = trip.getDefaultCurrency();
             boolean firstPass = true;
-            priceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
-            if (priceCursor != null && priceCursor.moveToFirst() && priceCursor.getColumnCount() > 0) {
+            receiptPriceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
+            if (receiptPriceCursor != null && receiptPriceCursor.moveToFirst() && receiptPriceCursor.getColumnCount() > 0) {
                 do {
-                    subTotal = subTotal.add(getDecimal(priceCursor, 0));
+                    subTotal = subTotal.add(getDecimal(receiptPriceCursor, 0));
                     if (firstPass) {
-                        currency = WBCurrency.getInstance(priceCursor.getString(1));
+                        currency = WBCurrency.getInstance(receiptPriceCursor.getString(1));
                         firstPass = false;
                     }
                     else {
-                        if (currency != null && !currency.equals(WBCurrency.getInstance(priceCursor.getString(1)))) {
+                        if (currency != null && !currency.equals(WBCurrency.getInstance(receiptPriceCursor.getString(1)))) {
                             currency = null;
                         }
                     }
                 }
-                while (priceCursor.moveToNext());
+                while (receiptPriceCursor.moveToNext());
             }
+
+            if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ?" + DistanceTable.COLUMN_DATE + " >= ? AND " + DistanceTable.COLUMN_DATE + " <= ?";
+                final String[] distanceColumns = new String[] {DistanceTable.COLUMN_DISTANCE + "*" + DistanceTable.COLUMN_RATE, DistanceTable.COLUMN_RATE_CURRENCY};
+                distancePriceCursor = db.query(DistanceTable.TABLE_NAME, distanceColumns, distanceSelection, new String[] {trip.getName()}, null, null, null);
+                if (distancePriceCursor != null && distancePriceCursor.moveToFirst() && distancePriceCursor.getColumnCount() > 0) {
+                    do {
+                        subTotal = subTotal.add(getDecimal(distancePriceCursor, 0));
+                        if (firstPass) {
+                            currency = WBCurrency.getInstance(distancePriceCursor.getString(1));
+                            firstPass = false;
+                        }
+                        else {
+                            if (currency != null && !currency.equals(WBCurrency.getInstance(distancePriceCursor.getString(1)))) {
+                                currency = null;
+                            }
+                        }
+                    }
+                    while (distancePriceCursor.moveToNext());
+                }
+            }
+
             trip.setDailySubTotal(new PriceBuilderFactory().setPrice(subTotal).setCurrency(currency).build());
         } finally { // Close the cursor to avoid memory leaks
-            if (priceCursor != null) {
-                priceCursor.close();
+            if (receiptPriceCursor != null) {
+                receiptPriceCursor.close();
+            }
+            if (distancePriceCursor != null) {
+                distancePriceCursor.close();
             }
         }
     }

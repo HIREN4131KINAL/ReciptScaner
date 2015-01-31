@@ -465,6 +465,9 @@ public class EmailAssistant {
                     document.add(new Paragraph(mContext.getString(R.string.report_header_gross_total, netPrice.getCurrencyFormattedPrice()) + "\n"));
                     document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
                             + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n"));
+                    if (mPreferences.getIncludeCostCenter() && !TextUtils.isEmpty(trip.getCostCenter())) {
+                        document.add(new Paragraph(mContext.getString(R.string.report_header_cost_center, trip.getCostCenter()) + "\n"));
+                    }
                     if (!TextUtils.isEmpty(trip.getComment())) {
                         document.add(new Paragraph(mContext.getString(R.string.report_header_comment, trip.getComment()) + "\n"));
                     }

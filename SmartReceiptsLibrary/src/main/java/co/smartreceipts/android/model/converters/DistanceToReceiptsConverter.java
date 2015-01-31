@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.converters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -89,7 +90,14 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         // Set up default values for everything
         final Distance distance0 = distancesThisDay.get(0);
         final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(-1); // Randomize the id
-        factory.setName(mContext.getString(R.string.distance));
+        final ArrayList<String> names = new ArrayList<String>();
+        for (int i = 0; i < distancesThisDay.size(); i++) {
+            final Distance distance = distancesThisDay.get(i);
+            if (!names.contains(distance.getLocation())) {
+                names.add(distance.getLocation());
+            }
+        }
+        factory.setName(TextUtils.join("; ", names));
         factory.setDate(distance0.getDate());
         factory.setImage(null);
         factory.setIsExpenseable(true);

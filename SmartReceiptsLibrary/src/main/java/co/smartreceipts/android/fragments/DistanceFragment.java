@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import co.smartreceipts.android.R;
@@ -21,7 +20,6 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
-import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
@@ -112,6 +110,8 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
             }
             final Price total = new PriceBuilderFactory().setPriceables(distances).build();
             getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
+            // Fetch trips in the background to ensure this info is up to date
+            getPersistenceManager().getDatabase().getTripsParallel();
         }
     }
 

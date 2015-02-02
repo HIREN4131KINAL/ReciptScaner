@@ -1353,7 +1353,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
 
             if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
-                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ?" + DistanceTable.COLUMN_DATE + " >= ? AND " + DistanceTable.COLUMN_DATE + " <= ?";
+                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ? AND " + DistanceTable.COLUMN_DATE + " >= ? AND " + DistanceTable.COLUMN_DATE + " <= ?";
                 final String[] distanceColumns = new String[] {DistanceTable.COLUMN_DISTANCE + "*" + DistanceTable.COLUMN_RATE, DistanceTable.COLUMN_RATE_CURRENCY};
                 distancePriceCursor = db.query(DistanceTable.TABLE_NAME, distanceColumns, distanceSelection, new String[] {trip.getName()}, null, null, null);
                 if (distancePriceCursor != null && distancePriceCursor.moveToFirst() && distancePriceCursor.getColumnCount() > 0) {
@@ -1560,6 +1560,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     if (cur != null && cur.moveToFirst() && cur.getColumnCount() > 0) {
                         final int id = cur.getInt(0);
                         toReturn = new DistanceBuilderFactory(id)
+                                .setTrip(trip)
                                 .setLocation(location)
                                 .setDistance(distance)
                                 .setDate(date)
@@ -1568,21 +1569,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                                 .setCurrency(rateCurrency)
                                 .setComment(comment)
                                 .build();
+                        this.updateTripPrice(trip);
                     }
                 } finally {
-                    if (cur != null)
+                    if (cur != null) {
                         cur.close();
-
-                    if (db != null)
-                        db.close();
+                    }
                 }
-            }
-        }
-
-        if (this.getReadableDatabase() != null) {
-            String databasePath = this.getReadableDatabase().getPath();
-            if (!TextUtils.isEmpty(databasePath)) {
-                backUpDatabase(databasePath);
             }
         }
 
@@ -1701,6 +1694,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     new String[]{String.valueOf(id)}) > 0) {
 
                 toReturn = new DistanceBuilderFactory(id)
+                        .setTrip(oldDistance.getTrip())
                         .setLocation(location)
                         .setDistance(distance)
                         .setDate(date)
@@ -1709,6 +1703,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         .setCurrency(rateCurrency)
                         .setComment(comment)
                         .build();
+                this.updateTripPrice(oldDistance.getTrip());
 
             } else {
                 toReturn = null;
@@ -1789,6 +1784,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 result = db.delete(DistanceTable.TABLE_NAME,
                         DistanceTable.COLUMN_ID + " = ?",
                         new String[]{String.valueOf(distance.getId())});
+                this.updateTripPrice(distance.getTrip());
             } catch (Exception e) {
                 return false;
             }

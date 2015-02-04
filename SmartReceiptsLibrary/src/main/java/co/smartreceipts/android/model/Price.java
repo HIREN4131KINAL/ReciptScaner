@@ -43,6 +43,14 @@ public interface Price extends Parcelable {
     String getCurrencyFormattedPrice();
 
     /**
+     * The "currency-code-formatted" price, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale
+     *
+     * @return - the currency formatted price {@link java.lang.String}
+     */
+    @NonNull
+    String getCurrencyCodeFormattedPrice();
+
+    /**
      * Gets the currency which this price is tracked in
      *
      * @return - the {@link co.smartreceipts.android.model.WBCurrency} currency representation

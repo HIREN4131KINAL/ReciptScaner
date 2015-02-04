@@ -25,12 +25,18 @@ public class DistanceTableColumns implements TableColumns {
     private final Context mContext;
     private final Preferences mPreferences;
     private final List<Distance> mDistances;
+    private final boolean mAllowSpecialCharacters;
     private int row;
 
     public DistanceTableColumns(@NonNull Context context, @NonNull Preferences preferences, @NonNull List<Distance> distances) {
+        this(context, preferences, distances, true);
+    }
+
+    public DistanceTableColumns(@NonNull Context context, @NonNull Preferences preferences, @NonNull List<Distance> distances, boolean allowSpecialCharacters) {
         mContext = context;
         mPreferences = preferences;
         mDistances = distances;
+        mAllowSpecialCharacters = allowSpecialCharacters;
         row = -2; // So next goes to -1 => Header
     }
 
@@ -51,7 +57,11 @@ public class DistanceTableColumns implements TableColumns {
             if (column == 0) {
                 return distance.getLocation();
             } else if (column == 1) {
-                return distance.getPrice().getCurrencyFormattedPrice();
+                if (mAllowSpecialCharacters) {
+                    return distance.getPrice().getCurrencyFormattedPrice();
+                } else {
+                    return distance.getPrice().getCurrencyCodeFormattedPrice();
+                }
             } else if (column == 2) {
                 return distance.getDecimalFormattedDistance();
             } else if (column == 3) {
@@ -92,7 +102,11 @@ public class DistanceTableColumns implements TableColumns {
         if (column == 0) {
             return mContext.getString(R.string.total);
         } else if (column == 1) {
-            return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyFormattedPrice();
+            if (mAllowSpecialCharacters) {
+                return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyFormattedPrice();
+            } else {
+                return new PriceBuilderFactory().setPriceables(mDistances).build().getCurrencyCodeFormattedPrice();
+            }
         } else if (column == 2) {
             BigDecimal distance = new BigDecimal(0);
             for (int i = 0; i < mDistances.size(); i++) {

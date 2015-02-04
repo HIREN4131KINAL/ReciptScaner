@@ -92,6 +92,16 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
     @NonNull
     @Override
+    public String getCurrencyCodeFormattedPrice() {
+        final List<String> currencyStrings = new ArrayList<String>();
+        for (WBCurrency currency : mCurrencyToPriceMap.keySet()) {
+            currencyStrings.add(ModelUtils.getCurrencyCodeFormattedValue(mCurrencyToPriceMap.get(currency), currency));
+        }
+        return TextUtils.join("; ", currencyStrings);
+    }
+
+    @NonNull
+    @Override
     public WBCurrency getCurrency() {
         return mCurrency;
     }

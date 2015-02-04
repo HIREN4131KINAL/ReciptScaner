@@ -51,6 +51,12 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
         return ModelUtils.getCurrencyFormattedValue(mPrice, mCurrency);
     }
 
+    @NonNull
+    @Override
+    public String getCurrencyCodeFormattedPrice() {
+        return ModelUtils.getCurrencyCodeFormattedValue(mPrice, mCurrency);
+    }
+
     @Override
     @NonNull
     public WBCurrency getCurrency() {

@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.math.BigDecimal;
 
@@ -34,7 +35,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     private LegacyTripPriceImpl(Parcel in) {
         mPrice = new BigDecimal(in.readFloat());
         final String currencyCode = in.readString();
-        mCurrency = currencyCode != null ? WBCurrency.getInstance(currencyCode) : null;
+        mCurrency = !TextUtils.isEmpty(currencyCode) ? WBCurrency.getInstance(currencyCode) : null;
     }
 
     @Override
@@ -57,6 +58,16 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     @Override
     @NonNull
     public String getCurrencyFormattedPrice() {
+        if (mCurrency != null) {
+            return ModelUtils.getCurrencyCodeFormattedValue(mPrice, mCurrency);
+        } else {
+            return "Mixed";
+        }
+    }
+
+    @NonNull
+    @Override
+    public String getCurrencyCodeFormattedPrice() {
         if (mCurrency != null) {
             return ModelUtils.getCurrencyFormattedValue(mPrice, mCurrency);
         } else {

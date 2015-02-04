@@ -66,7 +66,7 @@ public class ModelUtils {
      * Generates "decimal-formatted" value, which would appear to the end user as "25.20" or "25,20" instead of
      * showing naively as "25.2" or "25.2001910". The number of decimal digits is based on the set precision
      *
-     * @param decimal - the {@link java.math.BigDecimal} to format
+     * @param decimal   - the {@link java.math.BigDecimal} to format
      * @param precision - the number of digits precision to use
      * @return the decimal formatted price {@link java.lang.String}
      */
@@ -91,5 +91,22 @@ public class ModelUtils {
         } else {
             return getDecimalFormattedValue(decimal);
         }
+    }
+
+
+    /**
+     * The "currency-code-formatted" value, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale.
+     *
+     * @param decimal  - the {@link java.math.BigDecimal} to format
+     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
+     * @return - the currency formatted price {@link java.lang.String}
+     */
+    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable WBCurrency currency) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        if (currency != null) {
+            stringBuilder.append(currency.getCurrencyCode());
+        }
+        stringBuilder.append(getDecimalFormattedValue(decimal));
+        return stringBuilder.toString();
     }
 }

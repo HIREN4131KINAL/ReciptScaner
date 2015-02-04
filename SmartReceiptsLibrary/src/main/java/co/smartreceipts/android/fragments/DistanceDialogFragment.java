@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -160,6 +161,8 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             mDistance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
+                    final Activity activity = getActivity();
+                    final Dialog dialog = getDialog();
                     if (hasFocus && getActivity() != null && getDialog() != null) {
                         if (getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
                             getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -186,7 +189,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         builder.setNegativeButton(android.R.string.cancel, this);
 
         final Dialog dialog = builder.create();
-        mDistance.requestFocus();
         getDateManager().setDateEditTextListenerDialogHolder(dialog);
         return dialog;
     }

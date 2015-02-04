@@ -187,7 +187,12 @@ public class CameraManager {
                         break;
 
                     case AUTO_FOCUS:
-                        mCamera.autoFocus((AutoFocusCallback) msg.obj);
+                        try {
+                            mCamera.autoFocus((AutoFocusCallback) msg.obj);
+                        } catch (RuntimeException e) {
+                            Log.e(TAG, "autoFocus failed; error" + e);
+                            ((AutoFocusCallback) msg.obj).onAutoFocus(false, null); // Pass along the failure
+                        }
                         break;
 
                     case CANCEL_AUTO_FOCUS:

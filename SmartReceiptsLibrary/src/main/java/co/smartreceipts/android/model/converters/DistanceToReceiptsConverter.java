@@ -75,14 +75,14 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         final List<Receipt> receipts = new ArrayList<Receipt>(distancesPerDay.keySet().size());
         for (Map.Entry<String, List<Distance>> entry : distancesPerDay.entrySet()) {
             if (!entry.getValue().isEmpty()) {
-                receipts.add(generateReceipt(entry.getKey(), entry.getValue()));
+                receipts.add(generateReceipt(entry.getValue()));
             }
         }
         return receipts;
     }
 
     @NonNull
-    private Receipt generateReceipt(@NonNull String formattedDay, @NonNull List<Distance> distancesThisDay) {
+    private Receipt generateReceipt(@NonNull List<Distance> distancesThisDay) {
         if (distancesThisDay.isEmpty()) {
             throw new IllegalArgumentException("distancesThisDay must not be empty");
         }
@@ -97,7 +97,11 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
                 names.add(distance.getLocation());
             }
         }
-        factory.setName(TextUtils.join("; ", names));
+        if (names.isEmpty()) {
+            factory.setName(mContext.getString(R.string.distance));
+        } else {
+            factory.setName(TextUtils.join("; ", names));
+        }
         factory.setDate(distance0.getDate());
         factory.setImage(null);
         factory.setIsExpenseable(true);

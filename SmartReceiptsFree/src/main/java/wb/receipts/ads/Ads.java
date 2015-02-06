@@ -15,7 +15,7 @@ public class Ads {
 
 	private Ads() { }
 
-	public static AdRequest getAdRequest() {
+	public static AdRequest     getAdRequest() {
 		return new AdRequest.Builder()
 					        .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
 					        .addTestDevice("18A4E00B14321F0C9A3EA60E38A32932")

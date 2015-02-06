@@ -748,7 +748,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     private Trip[] getTripsHelper() throws SQLiteDatabaseCorruptException {
         SQLiteDatabase db;
-        Cursor c = null, qc = null;
+        Cursor c = null;
         synchronized (mDatabaseLock) {
             Trip[] trips;
             try {
@@ -789,9 +789,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             } finally { // Close the cursor and db to avoid memory leaks
                 if (c != null) {
                     c.close();
-                }
-                if (qc != null && !qc.isClosed()) {
-                    qc.close();
                 }
             }
             return trips;

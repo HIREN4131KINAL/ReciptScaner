@@ -1536,14 +1536,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         final TimeZone timeZone = TimeZone.getDefault();
         final ContentValues values = new ContentValues(8);
         values.put(DistanceTable.COLUMN_PARENT, trip.getName());
-        values.put(DistanceTable.COLUMN_LOCATION, location);
+        values.put(DistanceTable.COLUMN_LOCATION, location.trim());
         values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue());
         // Fudge the data millis by the distance count (for this trip) to help with uniqueness
         values.put(DistanceTable.COLUMN_DATE, date.getTime() + distanceCount);
         values.put(DistanceTable.COLUMN_TIMEZONE, timeZone.getID());
         values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
         values.put(DistanceTable.COLUMN_RATE_CURRENCY, rateCurrency);
-        values.put(DistanceTable.COLUMN_COMMENT, comment);
+        values.put(DistanceTable.COLUMN_COMMENT, comment.trim());
 
         Distance toReturn = null;
         synchronized (mDatabaseLock) {
@@ -1674,13 +1674,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         final TimeZone timeZone = TimeZone.getDefault();
         final ContentValues values = new ContentValues(7);
-        values.put(DistanceTable.COLUMN_LOCATION, location);
+        values.put(DistanceTable.COLUMN_LOCATION, location.trim());
         values.put(DistanceTable.COLUMN_DISTANCE, distance.doubleValue());
         values.put(DistanceTable.COLUMN_DATE, date.getTime());
         values.put(DistanceTable.COLUMN_TIMEZONE, timeZone.getID());
         values.put(DistanceTable.COLUMN_RATE, rate.doubleValue());
         values.put(DistanceTable.COLUMN_RATE_CURRENCY, rateCurrency);
-        values.put(DistanceTable.COLUMN_COMMENT, comment);
+        values.put(DistanceTable.COLUMN_COMMENT, comment.trim());
 
         Distance toReturn = null;
         final int id = oldDistance.getId();

@@ -1449,6 +1449,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final String comment = c.getString(commentIndex);
 
                         distances.add(new DistanceBuilderFactory(id)
+                                .setTrip(trip)
                                 .setLocation(location)
                                 .setDistance(distance)
                                 .setDate(date)

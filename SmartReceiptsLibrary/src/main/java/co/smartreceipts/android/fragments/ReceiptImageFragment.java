@@ -221,7 +221,6 @@ public class ReceiptImageFragment extends WBFragment {
 			restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); // Added here since onActivityResult
 																					// is called before onResume
 			final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
-			worker.deleteDuplicateGalleryImage(); // Some devices duplicate the gallery images
 			File imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
 			if (imgFile == null) {
 				Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();

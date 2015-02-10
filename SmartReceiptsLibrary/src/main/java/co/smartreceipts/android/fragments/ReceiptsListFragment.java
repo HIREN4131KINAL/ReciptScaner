@@ -290,7 +290,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
 			if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
 				final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
-				worker.deleteDuplicateGalleryImage(); // Some devices duplicate the gallery images
 				imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
 			}
 			if (imgFile == null) {

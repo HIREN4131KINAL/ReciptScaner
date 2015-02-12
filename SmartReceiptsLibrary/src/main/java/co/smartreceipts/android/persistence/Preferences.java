@@ -49,7 +49,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Output Preferences
     private String mUserID;
     private File mSignaturePhoto;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mOptimizePDFSpace, mShowSignature;
+    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -174,6 +174,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mIncludeIDNotIndex = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_id_by_photo_key), false);
     }
 
+    private void initIncludeCommentByReceiptPhoto(SharedPreferences prefs) {
+        this.mIncludeCommentByReceiptPhoto = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_comment_by_photo_key), mContext.getResources().getBoolean(R.bool.pref_output_print_receipt_comment_by_photo_defaultValue));
+    }
+
     private void initOptimizeSpaceForPDFOutput(SharedPreferences prefs) {
         this.mOptimizePDFSpace = prefs.getBoolean(mContext.getString(R.string.pref_output_optimize_space_key), true);
     }
@@ -289,6 +293,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initUserID(prefs);
         this.initIncludeCSVHeaders(prefs);
         this.initIncludeReceiptIdNotIndex(prefs);
+        this.initIncludeCommentByReceiptPhoto(prefs);
         this.initUseFileExplorerForOutput(prefs);
         this.initOptimizeSpaceForPDFOutput(prefs);
         this.initShowBlankSignature(prefs);
@@ -501,6 +506,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     public boolean includeReceiptIdInsteadOfIndexByPhoto() {
         return this.mIncludeIDNotIndex;
     }
+
+    public boolean getIncludeCommentByReceiptPhoto() { return this.mIncludeCommentByReceiptPhoto; }
 
     public boolean isBlankSignatureShownForPdfs() {
         return this.mShowSignature;

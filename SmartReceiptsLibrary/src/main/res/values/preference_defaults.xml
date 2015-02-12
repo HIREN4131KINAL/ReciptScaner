@@ -4,8 +4,10 @@
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============= Preference Output ================= -->
+    <bool name="pref_output_print_receipt_comment_by_photo_defaultValue">false</bool>
     <bool name="pref_output_blank_signature_defaultValue">false</bool>
     <string name="pref_output_signature_picture_defaultValue"></string>
+
 
     <!-- ============= Preference Camera ================= -->
     <bool name="pref_camera_use_native_camera_defaultValue">true</bool>

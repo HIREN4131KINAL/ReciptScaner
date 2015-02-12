@@ -852,8 +852,9 @@ public class EmailAssistant {
         }
 
         private void addHeaderCell(PdfPTable table, Receipt receipt) {
-            int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
-            table.addCell(num + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()));
+            final int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
+            final String extra = (mPreferences.getIncludeCommentByReceiptPhoto()) ? "  \u2022  " + receipt.getComment() : "";
+            table.addCell(num + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()) + extra);
         }
 
         private void addFullPageImage(Document document, Receipt receipt, PdfWriter writer) {

@@ -133,7 +133,7 @@ public class ImageGalleryWorker extends WorkerChild {
             }
             catch (IOException e) { }
         }
-        if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
+        if (mPreferences.getRotateImages() && orientation != ExifInterface.ORIENTATION_UNDEFINED) {
             endBitmap = ImageUtils.rotateBitmap(endBitmap, orientation);
         }
         if (mPreferences.isCameraGrayScale()) {

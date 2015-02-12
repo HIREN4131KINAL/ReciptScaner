@@ -55,7 +55,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
 
     // Camera Preferences
-    private boolean mUseNativeCamera, mCameraGrayScale;
+    private boolean mUseNativeCamera, mCameraGrayScale, mRotateImages;
 
     // Layout Preferences
     private boolean mShowDate, mShowCategory, mShowPhotoPDFMarker;
@@ -216,6 +216,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mCameraGrayScale = prefs.getBoolean(mContext.getString(R.string.pref_camera_bw_key), false);
     }
 
+    private void initRotateImages(SharedPreferences prefs) {
+        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_use_native_camera_defaultValue));
+    }
+
     private void initShowDate(SharedPreferences prefs) {
         this.mShowDate = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_date_key), true);
     }
@@ -299,6 +303,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         // Camera Preferences
         this.initUseNativeCamera(prefs);
         this.initCameraGrayScale(prefs);
+        this.initRotateImages(prefs);
 
         // Layout Preferences
         this.initShowDate(prefs);
@@ -550,6 +555,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean isCameraGrayScale() {
         return mCameraGrayScale;
+    }
+
+    public boolean getRotateImages() {
+        return mRotateImages;
     }
 
     public boolean isShowDate() {

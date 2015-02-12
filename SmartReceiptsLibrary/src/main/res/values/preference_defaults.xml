@@ -7,6 +7,9 @@
     <bool name="pref_output_blank_signature_defaultValue">false</bool>
     <string name="pref_output_signature_picture_defaultValue"></string>
 
+    <!-- ============= Preference Camera ================= -->
+    <bool name="pref_camera_use_native_camera_defaultValue">true</bool>
+
     <!-- ============= Preference Distance ================= -->
     <bool name="pref_distance_include_price_in_report_defaultValue">false</bool>
     <item name="pref_distance_rate_defaultValue" format="float" type="dimen">0.0</item>

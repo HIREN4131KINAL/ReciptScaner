@@ -512,6 +512,10 @@
     <string name="pref_camera_bw_key" translatable="false">SaveBW</string>
     <string name="pref_camera_bw_title">Convert to Grayscale</string>
     <string name="pref_camera_bw_summary">Saves image in black and white</string>
+    <string name="pref_camera_rotate_key" translatable="false">Camera_Rotate</string>
+    <string name="pref_camera_rotate_title">Automatically rotate images</string>
+    <string name="pref_camera_rotate_summaryOn">Try to rotate images upright</string>
+    <string name="pref_camera_rotate_summaryOff">Do not rotate images</string>
 
     <!-- ============= Preference Layout ================= -->
     <string name="pref_layout_display_date_key" translatable="false">LayoutIncludeReceiptDate</string>

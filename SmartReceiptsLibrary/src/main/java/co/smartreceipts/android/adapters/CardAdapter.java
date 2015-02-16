@@ -21,7 +21,8 @@ public class CardAdapter<T> extends BaseAdapter {
 	
 	private static final int MAX_PRICE_WIDTH_DIVIDER = 2;
 	private static final int MIN_PRICE_WIDTH_DIVIDER = 6;
-	
+	private static final float PRICE_WIDTH_BUFFER = 1.1f;
+
 	private final LayoutInflater mInflater;
 	private final Preferences mPreferences;
 	private final Context mContext;
@@ -122,7 +123,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		else {
 			Paint paint = new Paint();
 			paint.setAntiAlias(true);
-			paint.setTextSize(mCardPriceTextSize);
+			paint.setTextSize(mCardPriceTextSize*PRICE_WIDTH_BUFFER);
 			paint.setTypeface(Typeface.DEFAULT_BOLD); // Set in the Price field
 			int curr = mMinPriceWidth, measured;
 			final int size = mData.size();

@@ -853,7 +853,7 @@ public class EmailAssistant {
 
         private void addHeaderCell(PdfPTable table, Receipt receipt) {
             final int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto()) ? receipt.getId() : receipt.getIndex();
-            final String extra = (mPreferences.getIncludeCommentByReceiptPhoto()) ? "  \u2022  " + receipt.getComment() : "";
+            final String extra = (mPreferences.getIncludeCommentByReceiptPhoto() && !TextUtils.isEmpty(receipt.getComment())) ? "  \u2022  " + receipt.getComment() : "";
             table.addCell(num + "  \u2022  " + receipt.getName() + "  \u2022  " + receipt.getFormattedDate(mContext, mPreferences.getDateSeparator()) + extra);
         }
 

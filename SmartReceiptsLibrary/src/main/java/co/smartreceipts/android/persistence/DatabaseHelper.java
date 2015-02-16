@@ -3472,6 +3472,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final int filtersIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
                         final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
                         final int processingStatusIndex = c.getColumnIndex(TripsTable.COLUMN_PROCESSING_STATUS);
+                        final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
                         do {
                             String name = getString(c, nameIndex, "");
                             if (name.contains("wb.receipts")) { // Backwards compatibility stuff
@@ -3490,15 +3491,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             final String filters = getString(c, filtersIndex, "");
                             final String costCenter = getString(c, costCenterIndex, "");
                             final String processingStatus = getString(c, processingStatusIndex, "");
+                            final String defaultCurrency = getString(c, defaultCurrencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
                             ContentValues values = new ContentValues(10);
                             values.put(TripsTable.COLUMN_NAME, name);
                             values.put(TripsTable.COLUMN_FROM, from);
                             values.put(TripsTable.COLUMN_TO, to);
-                            values.put(TripsTable.COLUMN_MILEAGE, mileage);
                             values.put(TripsTable.COLUMN_COMMENT, comment);
                             values.put(TripsTable.COLUMN_FILTERS, filters);
                             values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
+                            values.put(TripsTable.COLUMN_MILEAGE, mileage);
                             values.put(TripsTable.COLUMN_PROCESSING_STATUS, processingStatus);
+                            values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrency);
                             if (fromTimeZoneIndex > 0) {
                                 final String fromTimeZome = c.getString(fromTimeZoneIndex);
                                 values.put(TripsTable.COLUMN_FROM_TIMEZONE, fromTimeZome);

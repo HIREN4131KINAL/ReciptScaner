@@ -452,7 +452,7 @@ public class EmailAssistant {
                         if (usePrexTaxPrice && taxPrice.getPriceAsFloat() > EPSILON) {
                             document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
                         }
-                        else if (noTaxPrice.getPriceAsFloat() > EPSILON) {
+                        else if (!noTaxPrice.equals(receiptsPrice) && noTaxPrice.getPriceAsFloat() > EPSILON) {
                             document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, noTaxPrice.getCurrencyFormattedPrice()) + "\n"));
                         }
                     }

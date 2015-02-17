@@ -633,8 +633,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 final String currency = currencySpinner.getSelectedItem().toString();
                 final String comment = commentBox.getText().toString();
                 final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
-                final String extra_edittext_2 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_2.getText().toString();
-                final String extra_edittext_3 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_3.getText().toString();
+                final String extra_edittext_2 = (extra_edittext_box_2 == null) ? null : extra_edittext_box_2.getText().toString();
+                final String extra_edittext_3 = (extra_edittext_box_3 == null) ? null : extra_edittext_box_3.getText().toString();
                 final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
                 if (name.length() == 0) {
                     Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();

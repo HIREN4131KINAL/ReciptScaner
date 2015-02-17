@@ -82,7 +82,7 @@ public class Attachment {
 	        else { 
 	            cursor.moveToFirst();
 	            int idx = cursor.getColumnIndex(column); 
-	            if (idx > 0) {
+	            if (idx >= 0) {
 	            	return Uri.fromFile(new File(cursor.getString(idx)));
 	            }
 	            else {

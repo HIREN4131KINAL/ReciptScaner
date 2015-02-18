@@ -49,7 +49,7 @@
     <string name="save">Save</string>
     <string name="signature">Signature</string>
     <string name="send_file">Get File&#8230;</string>
-    <string name="send_email">Send Email&#8230;</string>
+    <string name="send_email">Send File&#8230;</string>
     <string name="support">%s - Support</string>
     <string name="total">Total</string>
     <string name="total_item">Total: %s</string>
@@ -216,7 +216,7 @@
     <string name="DIALOG_EMAIL_CHECKBOX_PDF_IMAGES">PDF Report - No Table</string>
     <string name="DIALOG_EMAIL_CHECKBOX_CSV">CSV File</string>
     <string name="DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED">ZIP - Stamped JPGs</string>
-    <string name="DIALOG_EMAIL_POSITIVE_BUTTON">Email</string>
+    <string name="DIALOG_EMAIL_POSITIVE_BUTTON">Send</string>
     <string name="DIALOG_EMAIL_NEGATIVE_BUTTON">Cancel</string>
     <string name="DIALOG_EMAIL_TOAST_NO_SELECTION">Please Check At Least Attachment Option</string>
     <string name="DIALOG_EMAIL_TOAST_NO_RECEIPTS">There are No Receipts in this Report</string>

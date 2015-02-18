@@ -579,10 +579,12 @@ public class EmailAssistant {
                 }
                 if (mPreferences.getPrintDistanceTable()) {
                     final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
-                    Collections.reverse(distances); // Reverse the list, so we print the most recent one first
-                    final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances, false);
-                    data += "\n\n";
-                    data += new CsvTableGenerator().write(distanceTableColumns);
+                    if (!distances.isEmpty()) {
+                        Collections.reverse(distances); // Reverse the list, so we print the most recent one first
+                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances, false);
+                        data += "\n\n";
+                        data += new CsvTableGenerator().write(distanceTableColumns);
+                    }
                 }
                 String filename = dir.getName() + ".csv";
                 if (!mStorageManager.write(dir, filename, data)) {

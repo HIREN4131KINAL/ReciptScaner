@@ -72,10 +72,10 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         if (mPrice != null) {
             return mPrice;
         }
-        else if (mPrices != null) {
+        else if (mPrices != null && !mPrices.isEmpty()) {
             return new ImmutableNetPriceImpl(mPrices);
         }
-        else if (mPriceables != null) {
+        else if (mPriceables != null && !mPriceables.isEmpty()) {
             final int size = mPriceables.size();
             final ArrayList<Price> actualPrices = new ArrayList<Price>(size);
             for (int i = 0; i < size; i++) {

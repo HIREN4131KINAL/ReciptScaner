@@ -13,9 +13,15 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import java.util.List;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
-import co.smartreceipts.android.model.Columns;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.ColumnDefinitions;
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 
 public abstract class ColumnsListFragment extends WBFragment implements AdapterView.OnItemSelectedListener {
 
@@ -23,16 +29,19 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 
 	private BaseAdapter mAdapter;
 	private ListView mListView;
-	private Columns mColumns;
+	private List<Column<Receipt>> mColumns;
+    private ArrayAdapter<Column<Receipt>> mSpinnerAdapter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mColumns = getColumns();
+        mSpinnerAdapter = new ArrayAdapter<Column<Receipt>>(getActivity(), android.R.layout.simple_spinner_item, getColumnDefinitions().getAllColumns());
+        mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		setHasOptionsMenu(true);
 	}
 
-	public abstract Columns getColumns();
+	public abstract List<Column<Receipt>> getColumns();
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,7 +87,9 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 		SpinnerTag spinnerTag = (SpinnerTag) parent.getTag();
-		updateColumn(spinnerTag.index, position);
+        final Column<Receipt> oldColumn = mColumns.get(spinnerTag.index);
+        final Column<Receipt> newColumn = mSpinnerAdapter.getItem(position);
+		updateColumn(oldColumn, newColumn);
 		mAdapter.notifyDataSetChanged();
 	}
 
@@ -86,6 +97,10 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	public void onNothingSelected(AdapterView<?> parent) {
 		// Stub
 	}
+
+    protected ColumnDefinitions<Receipt> getColumnDefinitions() {
+        return new ReceiptColumnDefinitions(getActivity(), getPersistenceManager(), getFlex());
+    }
 
 	protected BaseAdapter getAdapter() {
 		return new SettingsListAdapter(LayoutInflater.from(getActivity()));
@@ -99,7 +114,7 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 
 	public abstract void deleteLastColumn();
 
-	public abstract void updateColumn(int arrayListIndex, int optionIndex);
+	public abstract void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn);
 
 	private static final class SpinnerTag {
 		public int index; //0s index
@@ -113,12 +128,10 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	private class SettingsListAdapter extends BaseAdapter {
 
 		private final LayoutInflater mInflater;
-		private final ArrayAdapter<CharSequence> mSpinnerAdapter;
 
 		public SettingsListAdapter(LayoutInflater inflater) {
 			mInflater = inflater;
-			mSpinnerAdapter = mColumns.generateArrayAdapter(getActivity(), getFlex());
-			mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
 		}
 
 		@Override
@@ -127,8 +140,8 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 		}
 
 		@Override
-		public String getItem(int i) {
-			return mColumns.getType(i);
+		public Column<Receipt> getItem(int i) {
+			return mColumns.get(i);
 		}
 
 		@Override
@@ -154,15 +167,6 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 			}
 			holder.column.setText(getString(R.string.column_item, Integer.toString(i+1))); //Add +1 to make it not 0-th index
 			SpinnerTag spinnerTag = (SpinnerTag) holder.spinner.getTag();
-			String type = getItem(i);
-	        int pos = mSpinnerAdapter.getPosition(type);
-	        if (pos < 0) { //This was a customized, non-accessible entry
-	        	mSpinnerAdapter.add(type);
-	        	holder.spinner.setSelection(mSpinnerAdapter.getPosition(type));
-	        }
-	        else {
-	        	holder.spinner.setSelection(pos);
-	        }
 	        spinnerTag.index = i;
 			return convertView;
 		}

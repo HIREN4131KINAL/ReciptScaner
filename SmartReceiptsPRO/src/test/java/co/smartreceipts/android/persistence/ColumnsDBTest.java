@@ -12,8 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.model.Columns;
-import co.smartreceipts.android.model.Columns.Column;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.impl.columns.BlankColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryCodeColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPaymentMethodColumn;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -42,149 +45,151 @@ public class ColumnsDBTest {
 
     @Test
     public void getCSV() {
-        final Columns columns = mDB.getCSVColumns();
+        final List<Column<Receipt>> columns = mDB.getCSVColumns();
         assertNotNull(columns);
         assertTrue(columns.size() > 0);
     }
 
     @Test
     public void getPDF() {
-        final Columns columns = mDB.getPDFColumns();
+        final List<Column<Receipt>> columns = mDB.getPDFColumns();
         assertNotNull(columns);
         assertTrue(columns.size() > 0);
     }
 
     @Test
     public void insertCSV() {
-        final Columns oldColumns = mDB.getCSVColumns();
+        final List<Column<Receipt>> oldColumns = mDB.getCSVColumns();
         final int oldSize = oldColumns.size();
         assertTrue(mDB.insertCSVColumn());
-        final Columns newColumns = mDB.getCSVColumns();
+        final List<Column<Receipt>> newColumns = mDB.getCSVColumns();
         assertEquals(oldSize + 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         final int lastIdx = newColumns.size() - 1;
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), Columns.BLANK(mApp.getFlex()));
-        assertEquals(lastCol.getIndex(), lastIdx + 1); //1-th indexed (not 0)
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertTrue(lastCol instanceof BlankColumn);
+        assertEquals(lastCol.getId(), lastIdx + 1); //1-th indexed (not 0)
     }
 
     @Test
     public void insertPDF() {
-        final Columns oldColumns = mDB.getPDFColumns();
+        final List<Column<Receipt>> oldColumns = mDB.getPDFColumns();
         final int oldSize = oldColumns.size();
         assertTrue(mDB.insertPDFColumn());
-        final Columns newColumns = mDB.getPDFColumns();
+        final List<Column<Receipt>> newColumns = mDB.getPDFColumns();
         assertEquals(oldSize + 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         final int lastIdx = newColumns.size() - 1;
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), Columns.BLANK(mApp.getFlex()));
-        assertEquals(lastCol.getIndex(), lastIdx + 1); //1-th indexed (not 0)
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertTrue(lastCol instanceof BlankColumn);
+        assertEquals(lastCol.getId(), lastIdx + 1); //1-th indexed (not 0)
     }
 
     @Test
     public void insertCSVNoCache() {
-        final Columns columns = mDB.getCSVColumns();
-        assertTrue(mDB.insertCSVColumnNoCache(Columns.CATEGORY_CODE(mApp.getFlex())));
+        final List<Column<Receipt>> columns = mDB.getCSVColumns();
+        final String name = "CategoryCode";
+        assertTrue(mDB.insertCSVColumnNoCache(name));
         final int lastIdx = columns.size() - 1;
-        final Column lastCol = columns.get(lastIdx);
-        assertNotSame(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
+        final Column<Receipt> lastCol = columns.get(lastIdx);
+        assertNotSame(lastCol.getName(), name);
     }
 
     @Test
     public void insertPDFNoCache() {
-        Columns columns = mDB.getPDFColumns();
-        assertTrue(mDB.insertPDFColumnNoCache(Columns.CATEGORY_CODE(mApp.getFlex())));
+        final List<Column<Receipt>> columns = mDB.getPDFColumns();
+        final String name = "CategoryCode";
+        assertTrue(mDB.insertPDFColumnNoCache(name));
         final int lastIdx = columns.size() - 1;
-        final Column lastCol = columns.get(lastIdx);
-        assertNotSame(lastCol.getColumnType(), Columns.CATEGORY_CODE(mApp.getFlex()));
+        final Column<Receipt> lastCol = columns.get(lastIdx);
+        assertNotSame(lastCol.getName(), name);
     }
 
     @Test
     public void insertCSVFirst() {
         assertTrue(mDB.insertCSVColumn());
-        final Columns newColumns = mDB.getCSVColumns();
+        final List<Column<Receipt>> newColumns = mDB.getCSVColumns();
         final int lastIdx = newColumns.size() - 1;
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), Columns.BLANK(mApp.getFlex()));
-        assertEquals(lastCol.getIndex(), lastIdx + 1);
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertTrue(lastCol instanceof BlankColumn);
+        assertEquals(lastCol.getId(), lastIdx + 1);
     }
 
     @Test
     public void insertPDFFirst() {
         assertTrue(mDB.insertPDFColumn());
-        final Columns newColumns = mDB.getPDFColumns();
+        final List<Column<Receipt>> newColumns = mDB.getPDFColumns();
         final int lastIdx = newColumns.size() - 1;
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), Columns.BLANK(mApp.getFlex()));
-        assertEquals(lastCol.getIndex(), lastIdx + 1);
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertTrue(lastCol instanceof BlankColumn);
+        assertEquals(lastCol.getId(), lastIdx + 1);
     }
 
     @Test
     public void updateCSV() {
-        final Columns oldColumns = mDB.getCSVColumns();
-        final int optionIndex = 5;
-        final String newColString = oldColumns.getSpinnerOptionAt(optionIndex);
+        final List<Column<Receipt>> oldColumns = mDB.getCSVColumns();
         final int lastIdx = oldColumns.size() - 1;
         final int oldSize = oldColumns.size();
-        assertTrue(mDB.updateCSVColumn(lastIdx, optionIndex));
-        final Columns newColumns = mDB.getCSVColumns();
+        final Column<Receipt> oldColumn = oldColumns.get(lastIdx);
+        final String newName = "Payment Method";
+        final Column<Receipt> newColumn = new ReceiptPaymentMethodColumn(-1, newName);
+        assertTrue(mDB.updateCSVColumn(oldColumn, newColumn));
+        final List<Column<Receipt>> newColumns = mDB.getCSVColumns();
         assertEquals(oldSize, newColumns.size());
         assertEquals(oldColumns, newColumns);
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), newColString);
-        assertTrue(mDB.updateCSVColumn(lastIdx, optionIndex)); // Repeat update but with no change
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertEquals(lastCol.getName(), newName);
     }
 
     @Test
     public void updatePDF() {
-        final Columns oldColumns = mDB.getPDFColumns();
-        final int optionIndex = 5;
-        final String newColString = oldColumns.getSpinnerOptionAt(optionIndex);
+        final List<Column<Receipt>> oldColumns = mDB.getPDFColumns();
         final int lastIdx = oldColumns.size() - 1;
         final int oldSize = oldColumns.size();
-        assertTrue(mDB.updatePDFColumn(lastIdx, optionIndex));
-        final Columns newColumns = mDB.getPDFColumns();
+        final Column<Receipt> oldColumn = oldColumns.get(lastIdx);
+        final String newName = "Payment Method";
+        final Column<Receipt> newColumn = new ReceiptPaymentMethodColumn(-1, newName);
+        assertTrue(mDB.updatePDFColumn(oldColumn, newColumn));
+        final List<Column<Receipt>> newColumns = mDB.getPDFColumns();
         assertEquals(oldSize, newColumns.size());
         assertEquals(oldColumns, newColumns);
-        final Column lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getColumnType(), newColString);
-        assertTrue(mDB.updatePDFColumn(lastIdx, optionIndex)); // Repeat update but with no change
+        final Column<Receipt> lastCol = newColumns.get(lastIdx);
+        assertEquals(lastCol.getName(), newName);
     }
 
     @Test
     public void deleteCSV() {
-        final Columns oldColumns = mDB.getCSVColumns();
+        final List<Column<Receipt>> oldColumns = mDB.getCSVColumns();
         final int oldSize = oldColumns.size();
         final List<Column> columnsList = new ArrayList<Column>(oldSize - 1);
         for (int i = 0; i < oldSize - 1; i++) {
             columnsList.add(oldColumns.get(i));
         }
         assertTrue(mDB.deleteCSVColumn());
-        final Columns newColumns = mDB.getCSVColumns();
+        final List<Column<Receipt>> newColumns = mDB.getCSVColumns();
         assertEquals(oldSize - 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         for (int i = 0; i < newColumns.size(); i++) {
-            assertEquals(columnsList.get(i).getColumnType(), newColumns.get(i).getColumnType());
-            assertEquals(columnsList.get(i).getIndex(), newColumns.get(i).getIndex());
+            assertEquals(columnsList.get(i).getName(), newColumns.get(i).getName());
+            assertEquals(columnsList.get(i).getId(), newColumns.get(i).getId());
         }
     }
 
     @Test
     public void deletePDF() {
-        final Columns oldColumns = mDB.getPDFColumns();
+        final List<Column<Receipt>> oldColumns = mDB.getPDFColumns();
         final int oldSize = oldColumns.size();
         final List<Column> columnsList = new ArrayList<Column>(oldSize - 1);
         for (int i = 0; i < oldSize - 1; i++) {
             columnsList.add(oldColumns.get(i));
         }
         assertTrue(mDB.deletePDFColumn());
-        final Columns newColumns = mDB.getPDFColumns();
+        final List<Column<Receipt>> newColumns = mDB.getPDFColumns();
         assertEquals(oldSize - 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         for (int i = 0; i < newColumns.size(); i++) {
-            assertEquals(columnsList.get(i).getColumnType(), newColumns.get(i).getColumnType());
-            assertEquals(columnsList.get(i).getIndex(), newColumns.get(i).getIndex());
+            assertEquals(columnsList.get(i).getName(), newColumns.get(i).getName());
+            assertEquals(columnsList.get(i).getId(), newColumns.get(i).getId());
         }
     }
 

@@ -31,19 +31,21 @@ import java.util.TimeZone;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.model.CSVColumns;
-import co.smartreceipts.android.model.Columns.Column;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImportTask;
 import wb.android.autocomplete.AutoCompleteAdapter;
@@ -79,8 +81,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     private int mNextReceiptAutoIncrementId = -1;
     private HashMap<String, String> mCategories;
     private ArrayList<CharSequence> mCategoryList, mCurrencyList;
-    private CSVColumns mCSVColumns;
-    private PDFColumns mPDFColumns;
+    private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
+    private List<Column<Receipt>> mCSVColumns;
+    private List<Column<Receipt>> mPDFColumns;
     private List<PaymentMethod> mPaymentMethods;
     private Time mNow;
 
@@ -296,6 +299,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         mFlex = application.getFlex();
         mPersistenceManager = persistenceManager;
         mCustomizations = application;
+        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
         this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
     }
 
@@ -2996,11 +3000,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // CSV Columns Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public final CSVColumns getCSVColumns() {
+    public final List<Column<Receipt>> getCSVColumns() {
         if (mCSVColumns != null) {
             return mCSVColumns;
         }
-        mCSVColumns = new CSVColumns(mContext, this, mFlex, mPersistenceManager);
+        mCSVColumns = new ArrayList<Column<Receipt>>();
         synchronized (mDatabaseLock) {
             SQLiteDatabase db = null;
             Cursor c = null;
@@ -3008,12 +3012,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db = this.getReadableDatabase();
                 c = db.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
                 if (c != null && c.moveToFirst()) {
-                    final int idxIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
+                    final int idIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
                     final int typeIndex = c.getColumnIndex(CSVTable.COLUMN_TYPE);
                     do {
-                        final int index = c.getInt(idxIndex);
+                        final int id = c.getInt(idIndex);
                         final String type = c.getString(typeIndex);
-                        mCSVColumns.add(index, type);
+                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
+                        mCSVColumns.add(column);
                     }
                     while (c.moveToNext());
                 }
@@ -3027,23 +3032,24 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public final boolean insertCSVColumn() {
-        ContentValues values = new ContentValues(1);
-        values.put(CSVTable.COLUMN_TYPE, CSVColumns.BLANK(mFlex));
+        final ContentValues values = new ContentValues(1);
+        final Column<Receipt> defaultColumn = mReceiptColumnDefinitions.getDefaultInsertColumn();
+        values.put(CSVTable.COLUMN_TYPE, defaultColumn.getName());
         if (mCSVColumns == null) {
             getCSVColumns();
         }
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             Cursor c = null;
             try {
-                db = this.getWritableDatabase();
+                final SQLiteDatabase db = this.getWritableDatabase();
                 if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
                     return false;
                 } else {
                     c = db.rawQuery("SELECT last_insert_rowid()", null);
                     if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int idx = c.getInt(0);
-                        mCSVColumns.add(idx, CSVColumns.BLANK(mFlex));
+                        final int id = c.getInt(0);
+                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
+                        mCSVColumns.add(column);
                     } else {
                         return false;
                     }
@@ -3058,10 +3064,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public final boolean insertCSVColumnNoCache(String column) {
-        ContentValues values = new ContentValues(1);
+        final ContentValues values = new ContentValues(1);
         values.put(CSVTable.COLUMN_TYPE, column);
         if (_initDB != null) {
-            // TODO: Determine if database lock should be used here
             if (_initDB.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
                 return false;
             } else {
@@ -3069,8 +3074,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
         } else {
             synchronized (mDatabaseLock) {
-                SQLiteDatabase db = null;
-                db = this.getWritableDatabase();
+                final SQLiteDatabase db = this.getWritableDatabase();
                 if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
                     return false;
                 } else {
@@ -3082,33 +3086,30 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     public final boolean deleteCSVColumn() {
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            int idx = mCSVColumns.removeLast();
-            if (idx < 0) {
+            final SQLiteDatabase db = this.getWritableDatabase();
+            final Column<Receipt> column = ListUtils.removeLast(mCSVColumns);
+            if (column != null) {
+                return db.delete(CSVTable.TABLE_NAME, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getId())}) > 0;
+            } else {
                 return false;
             }
-            return db.delete(CSVTable.TABLE_NAME, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(idx)}) > 0;
         }
     }
 
-    public final boolean updateCSVColumn(int arrayListIndex, int optionIndex) { // Note index here refers to the actual
-        // index and not the ID
-        Column currentColumn = mCSVColumns.get(arrayListIndex);
-        if (currentColumn.getColumnType().equals(mCSVColumns.getSpinnerOptionAt(optionIndex))) {
+    public final boolean updateCSVColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) { // Note index here refers to the actual
+        if (oldColumn.getName().equals(newColumn.getName())) {
             // Don't bother updating, since we've already set this column type
             return true;
         }
-        Column column = mCSVColumns.update(arrayListIndex, optionIndex);
-        ContentValues values = new ContentValues(1);
-        values.put(CSVTable.COLUMN_TYPE, column.getColumnType());
+        final ContentValues values = new ContentValues(1);
+        values.put(CSVTable.COLUMN_TYPE, newColumn.getName());
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             try {
-                db = this.getWritableDatabase();
-                if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getIndex())}) == 0) {
+                final SQLiteDatabase db = this.getWritableDatabase();
+                if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
                     return false;
                 } else {
+                    ListUtils.replace(mCSVColumns, oldColumn, newColumn);
                     return true;
                 }
             } catch (SQLException e) {
@@ -3120,11 +3121,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // PDF Columns Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public final PDFColumns getPDFColumns() {
+    public final List<Column<Receipt>> getPDFColumns() {
         if (mPDFColumns != null) {
             return mPDFColumns;
         }
-        mPDFColumns = new PDFColumns(mContext, this, mFlex, mPersistenceManager);
+        mPDFColumns = new ArrayList<Column<Receipt>>();
         synchronized (mDatabaseLock) {
             SQLiteDatabase db = null;
             Cursor c = null;
@@ -3132,12 +3133,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db = this.getReadableDatabase();
                 c = db.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
                 if (c != null && c.moveToFirst()) {
-                    final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
+                    final int idIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
                     final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
                     do {
-                        final int index = c.getInt(idxIndex);
+                        final int id = c.getInt(idIndex);
                         final String type = c.getString(typeIndex);
-                        mPDFColumns.add(index, type);
+                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
+                        mPDFColumns.add(column);
                     }
                     while (c.moveToNext());
                 }
@@ -3151,23 +3153,24 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public final boolean insertPDFColumn() {
-        ContentValues values = new ContentValues(1);
-        values.put(PDFTable.COLUMN_TYPE, PDFColumns.BLANK(mFlex));
+        final ContentValues values = new ContentValues(1);
+        final Column<Receipt> defaultColumn = mReceiptColumnDefinitions.getDefaultInsertColumn();
+        values.put(PDFTable.COLUMN_TYPE, defaultColumn.getName());
         if (mPDFColumns == null) {
             getPDFColumns();
         }
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             Cursor c = null;
             try {
-                db = this.getWritableDatabase();
+                final SQLiteDatabase db = this.getWritableDatabase();
                 if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
                     return false;
                 } else {
                     c = db.rawQuery("SELECT last_insert_rowid()", null);
                     if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int idx = c.getInt(0);
-                        mPDFColumns.add(idx, PDFColumns.BLANK(mFlex));
+                        final int id = c.getInt(0);
+                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
+                        mPDFColumns.add(column);
                     } else {
                         return false;
                     }
@@ -3182,10 +3185,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public final boolean insertPDFColumnNoCache(String column) {
-        ContentValues values = new ContentValues(1);
+        final ContentValues values = new ContentValues(1);
         values.put(PDFTable.COLUMN_TYPE, column);
         if (_initDB != null) {
-            // TODO: Determine if database lock should be used here
             if (_initDB.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
                 return false;
             } else {
@@ -3193,8 +3195,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
         } else {
             synchronized (mDatabaseLock) {
-                SQLiteDatabase db = null;
-                db = this.getWritableDatabase();
+                final SQLiteDatabase db = this.getWritableDatabase();
                 if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
                     return false;
                 } else {
@@ -3206,33 +3207,30 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     public final boolean deletePDFColumn() {
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            int idx = mPDFColumns.removeLast();
-            if (idx < 0) {
+            final SQLiteDatabase db = this.getWritableDatabase();
+            final Column<Receipt> column = ListUtils.removeLast(mPDFColumns);
+            if (column != null) {
+                return db.delete(PDFTable.TABLE_NAME, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getId())}) > 0;
+            } else {
                 return false;
             }
-            return db.delete(PDFTable.TABLE_NAME, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(idx)}) > 0;
         }
     }
 
-    public final boolean updatePDFColumn(int arrayListIndex, int optionIndex) { // Note index here refers to the actual
-        // index and not the ID
-        Column currentColumn = mPDFColumns.get(arrayListIndex);
-        if (currentColumn.getColumnType().equals(mPDFColumns.getSpinnerOptionAt(optionIndex))) {
+    public final boolean updatePDFColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) { // Note index here refers to the actual
+        if (oldColumn.getName().equals(newColumn.getName())) {
             // Don't bother updating, since we've already set this column type
             return true;
         }
-        Column column = mPDFColumns.update(arrayListIndex, optionIndex);
-        ContentValues values = new ContentValues(1);
-        values.put(PDFTable.COLUMN_TYPE, column.getColumnType());
+        final ContentValues values = new ContentValues(1);
+        values.put(PDFTable.COLUMN_TYPE, newColumn.getName());
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             try {
-                db = this.getWritableDatabase();
-                if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getIndex())}) == 0) {
+                final SQLiteDatabase db = this.getWritableDatabase();
+                if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
                     return false;
                 } else {
+                    ListUtils.replace(mPDFColumns, oldColumn, newColumn);
                     return true;
                 }
             } catch (SQLException e) {

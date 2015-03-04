@@ -19,8 +19,13 @@ public class PersistenceManager {
 		mApplication =  application;
 		mStorageManager = StorageManager.getInstance(application);
 		mPreferences = new Preferences(application, application.getFlex(), mStorageManager);
-		mDatabase = DatabaseHelper.getInstance(application, this);
+
 	}
+
+    public void initDatabase() {
+        // TODO: Fix this anti-pattern
+        mDatabase = DatabaseHelper.getInstance(mApplication, this);
+    }
 
 	public void onDestroy() {
 		mDatabase.onDestroy();

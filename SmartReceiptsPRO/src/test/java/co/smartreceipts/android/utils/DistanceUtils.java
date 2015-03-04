@@ -26,7 +26,7 @@ public class DistanceUtils {
         public static final String LOCATION = "Location";
         public static final double RATE_DOUBLE = 0.33d;
         public static final BigDecimal RATE = new BigDecimal(RATE_DOUBLE);
-        public static final String DECIMAL_FORMATTED_RATE = "0.33";
+        public static final String DECIMAL_FORMATTED_RATE = "0.330";
         public static final String CURRENCY_FORMATTED_RATE = "$0.33";
         public static final TimeZone TIMEZONE = TimeZone.getDefault();
         public static final String TIMEZONE_CODE = TIMEZONE.getID();

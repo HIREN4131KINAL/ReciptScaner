@@ -56,22 +56,22 @@ import java.util.List;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.model.CSVColumns;
+import co.smartreceipts.android.filters.LegacyReceiptFilter;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.workers.reports.columns.DistanceTableColumns;
-import co.smartreceipts.android.workers.reports.columns.TableColumns;
-import co.smartreceipts.android.workers.reports.writers.CsvTableGenerator;
-import co.smartreceipts.android.workers.reports.writers.PdfTableGenerator;
+import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
+import co.smartreceipts.android.workers.reports.tables.PdfTableGenerator;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -405,8 +405,8 @@ public class EmailAssistant {
                     final ArrayList<Price> netTotal = new ArrayList<Price>(receipts.size());
                     final ArrayList<Price> receiptTotal = new ArrayList<Price>(receipts.size());
                     final ArrayList<Price> expensableTotal = new ArrayList<Price>(receipts.size());
-                    final ArrayList<Price> noTaxesTotal = new ArrayList<Price>(receipts.size()*2);
-                    final ArrayList<Price> taxesTotal = new ArrayList<Price>(receipts.size()*2);
+                    final ArrayList<Price> noTaxesTotal = new ArrayList<Price>(receipts.size() * 2);
+                    final ArrayList<Price> taxesTotal = new ArrayList<Price>(receipts.size() * 2);
                     final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
 
                     // Sum up our receipt totals for various conditions
@@ -451,8 +451,7 @@ public class EmailAssistant {
                     if (mPreferences.includeTaxField()) {
                         if (usePrexTaxPrice && taxPrice.getPriceAsFloat() > EPSILON) {
                             document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
-                        }
-                        else if (!noTaxPrice.equals(receiptsPrice) && noTaxPrice.getPriceAsFloat() > EPSILON) {
+                        } else if (!noTaxPrice.equals(receiptsPrice) && noTaxPrice.getPriceAsFloat() > EPSILON) {
                             document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, noTaxPrice.getCurrencyFormattedPrice()) + "\n"));
                         }
                     }
@@ -474,26 +473,21 @@ public class EmailAssistant {
                     document.add(new Paragraph("\n\n")); // Add the line break before our table
 
                     // Now build the table
-                    PDFColumns columns = mDB.getPDFColumns();
-                    PdfPTable table = columns.getTableWithHeaders();
-                    Receipt receipt;
+                    final List<Column<Receipt>> columns = mDB.getPDFColumns();
                     final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
                     if (mPreferences.getPrintDistanceAsDailyReceipt()) {
                         receiptsTableList.addAll(new DistanceToReceiptsConverter(mContext, mPreferences).convert(mDB.getDistanceSerial(trip)));
                         Collections.sort(receiptsTableList, new ReceiptDateComparator());
                     }
-                    for (int i = 0; i < receiptsTableList.size(); i++) {
-                        receipt = receiptsTableList.get(i);
-                        if (!filterOutReceipt(mPreferences, receipt)) {
-                            columns.print(table, receipt, trip);
-                        }
-                    }
-                    document.add(table);
+                    final PdfTableGenerator<Receipt> pdfTableGenerator = new PdfTableGenerator<Receipt>(columns, new LegacyReceiptFilter(mPreferences), true, false);
+                    document.add(pdfTableGenerator.generate(receiptsTableList));
 
                     if (mPreferences.getPrintDistanceTable() && !distances.isEmpty()) {
-                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
+                        // PDFs can print special characters
+                        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
+                        final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         document.add(new Paragraph("\n\n"));
-                        document.add(new PdfTableGenerator().write(distanceTableColumns));
+                        document.add(new PdfTableGenerator<Distance>(distanceColumns, true, true).generate(distances));
                     }
                     document.newPage();
 
@@ -567,23 +561,20 @@ public class EmailAssistant {
             }
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
-                String data = "";
-                CSVColumns columns = mDB.getCSVColumns();
-                if (mPreferences.includeCSVHeaders()) {
-                    data += columns.printHeaders();
-                }
-                for (int i = 0; i < len; i++) {
-                    if (!filterOutReceipt(mPreferences, receipts.get(i))) {
-                        data += columns.print(receipts.get(i), trip);
-                    }
-                }
+
+                final List<Column<Receipt>> csvColumns = mDB.getCSVColumns();
+                final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
+                String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
                     final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
                     if (!distances.isEmpty()) {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
-                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances, false);
+
+                        // CSVs cannot print special characters
+                        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
+                        final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         data += "\n\n";
-                        data += new CsvTableGenerator().write(distanceTableColumns);
+                        data += new CsvTableGenerator<Distance>(distanceColumns, true, true).generate(distances);
                     }
                 }
                 String filename = dir.getName() + ".csv";

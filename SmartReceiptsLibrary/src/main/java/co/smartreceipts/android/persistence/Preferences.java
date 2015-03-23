@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -221,7 +220,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initRotateImages(SharedPreferences prefs) {
-        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_use_native_camera_defaultValue));
+        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_rotate_key_defaultValue));
     }
 
     private void initShowDate(SharedPreferences prefs) {

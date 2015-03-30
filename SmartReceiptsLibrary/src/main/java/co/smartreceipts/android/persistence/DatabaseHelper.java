@@ -1048,14 +1048,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                                 mReceiptCache.remove(oldTrip);
                             }
                         }
-                        String oldName = oldTrip.getName();
-                        String newName = dir.getName();
-                        ContentValues rcptVals = new ContentValues(1);
+                        final String oldName = oldTrip.getName();
+                        final String newName = dir.getName();
+                        final ContentValues rcptVals = new ContentValues(1);
+                        final ContentValues distVals = new ContentValues(1);
                         rcptVals.put(ReceiptsTable.COLUMN_PARENT, newName);
-                        // Update parent
-                        db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[]{oldName}); // Consider
-                        // rollback
-                        // here
+                        distVals.put(DistanceTable.COLUMN_PARENT, newName);
+                        db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[]{oldName});
+                        db.update(DistanceTable.TABLE_NAME, distVals, DistanceTable.COLUMN_PARENT + " = ?", new String[]{oldName});
+                        // TODO: Build in a rollback mechanism if the update fails
                     }
                     return (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setComment(comment).setCostCenter(costCenter).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
                 }

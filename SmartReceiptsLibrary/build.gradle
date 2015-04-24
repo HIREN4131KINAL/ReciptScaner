@@ -5,17 +5,17 @@ dependencies {
     compile project(':wbMiniLibrary')
     compile project(':androidCamera')
     compile project(':mupdf')
-    compile 'com.android.support:support-v4:20.0.0'
-    compile "com.android.support:appcompat-v7:19.1.0"
+    compile 'com.android.support:support-v4:22.1.0'
+    compile "com.android.support:appcompat-v7:22.1.0"
 }
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 22
     buildToolsVersion "21.0.2"
 
     defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 21
+        minSdkVersion 15
+        targetSdkVersion 22
     }
 
     lintOptions {

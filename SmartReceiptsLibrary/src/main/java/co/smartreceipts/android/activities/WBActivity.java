@@ -3,12 +3,14 @@ package co.smartreceipts.android.activities;
 import android.app.Application;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.utils.Utils;
 
-public class WBActivity extends ActionBarActivity {
+public class WBActivity extends AppCompatActivity {
 
 	private SmartReceiptsApplication mApplication;
 

@@ -3,6 +3,7 @@
     
     <!-- All SDK 8 specific settings in here. *** Updated later versions in their styles folders -->
     <style name="Theme.SmartReceiptsBase" parent="Theme.AppCompat">
+
 		<item name="actionBarStyle">@style/Widget.SmartReceipts.ActionBar</item>
         <item name="popupMenuStyle">@style/Widget.SmartReceipts.PopupMenu</item>
         <item name="android:windowBackground">@color/dark_purple</item>

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.activities;
 
+import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.model.Trip;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.ui.UpNavigationSlidingPaneLayout;
@@ -88,7 +89,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "displayTripsLayout");
 		}
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).commit();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, new ReportInfoFragment(), TripFragment.TAG).commit();
 		if (getIntent().hasExtra(Trip.PARCEL_KEY)) { // We already have a feed we're looking to use
 			final Trip trip = (Trip) getIntent().getParcelableExtra(Trip.PARCEL_KEY);
 			viewReceiptsAsList(trip);
@@ -197,14 +198,14 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	@Override
 	public void setTitle(CharSequence title) {
 		super.setTitle(title);
-		getSupportActionBar().setTitle(title);
+		// getSupportActionBar().setTitle(title);
 		// mActionBarController.setTitle(title);
 	}
 
 	@Override
 	public void setTitle(int titleId) {
 		super.setTitle(titleId);
-		getSupportActionBar().setTitle(titleId);
+		// getSupportActionBar().setTitle(titleId);
 		// mActionBarController.setTitle(titleId);
 	}
 
@@ -228,7 +229,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 			// mActionBarController.displayStandardActionBar();
 			enableUpNavigation(false);
 			setTitle(getSmartReceiptsApplication().getFlex().getString(this, R.string.sr_app_name));
-			getSupportActionBar().setSubtitle(null);
+			// getSupportActionBar().setSubtitle(null);
 			Fragment fragment = getSupportFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
 			if (fragment != null) {
 				getSupportFragmentManager().beginTransaction().remove(fragment).commitAllowingStateLoss();
@@ -251,7 +252,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 
 	@Override
 	public void viewReceiptsAsList(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsListFragment(trip), ReceiptsListFragment.TAG).commitAllowingStateLoss();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, new ReportInfoFragment(), ReceiptsListFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
 			if (mSlidingPaneLayout.isOpen()) {
 				enableUpNavigation(true);

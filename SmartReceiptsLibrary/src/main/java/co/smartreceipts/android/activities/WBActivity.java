@@ -22,9 +22,9 @@ public class WBActivity extends AppCompatActivity {
         }
 		setResult(RESULT_CANCELED); // In case the user backs out
 		mApplication = getSmartReceiptsApplication();
-        getSupportActionBar().setDisplayShowTitleEnabled(true); //Use this by default - override as needed
+        // getSupportActionBar().setDisplayShowTitleEnabled(true); //Use this by default - override as needed
         if (!Utils.ApiHelper.hasICS()) { //Pre-ICS version need this set manually
-			getSupportActionBar().setLogo(R.drawable.logo);
+			// getSupportActionBar().setLogo(R.drawable.logo);
 		}
 	}
 

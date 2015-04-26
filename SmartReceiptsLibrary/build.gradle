@@ -7,6 +7,7 @@ dependencies {
     compile project(':mupdf')
     compile 'com.android.support:support-v4:22.1.0'
     compile "com.android.support:appcompat-v7:22.1.0"
+    compile 'com.jpardogo.materialtabstrip:library:1.0.9'
 }
 
 android {
@@ -20,6 +21,7 @@ android {
 
     lintOptions {
         abortOnError false
+        disable 'InvalidPackage'
     }
 
     sourceSets {

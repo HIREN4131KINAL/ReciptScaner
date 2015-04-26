@@ -2,16 +2,18 @@
 <resources>
     
     <!-- All SDK 8 specific settings in here. *** Updated later versions in their styles folders -->
-    <style name="Theme.SmartReceiptsBase" parent="Theme.AppCompat">
+    <style name="Theme.SmartReceiptsBase" parent="Theme.AppCompat.NoActionBar">
 
+        <!--
 		<item name="actionBarStyle">@style/Widget.SmartReceipts.ActionBar</item>
         <item name="popupMenuStyle">@style/Widget.SmartReceipts.PopupMenu</item>
-        <item name="android:windowBackground">@color/dark_purple</item>
+        <item name="android:windowBackground">@color/dark_purple</item> -->
 
-        <!-- Define the app theme colors for Lollipop (and above)
+        <!-- Define the app theme colors for Lollipop (and above) -->
+        <item name="windowActionBar">false</item>
         <item name="colorPrimary">@color/smart_receipts_colorPrimary</item>
         <item name="colorPrimaryDark">@color/smart_receipts_colorPrimaryDark</item>
-        -->
+
     </style>
 
     <!-- All customizations that are NOT specific to a particular API-level can go here. -->

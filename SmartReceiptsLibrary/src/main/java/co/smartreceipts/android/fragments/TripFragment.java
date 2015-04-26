@@ -134,7 +134,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		super.onResume();
 		getPersistenceManager().getDatabase().getTripsParallel();
 		getActivity().setTitle(getFlexString(R.string.sr_app_name));
-		getSupportActionBar().setSubtitle(null);
+		// getSupportActionBar().setSubtitle(null);
 		getWorkerManager().getAdManager().onAdResumed(mAdView);
 		// Handles SMR imports
 		final Attachment attachment = mAttachable.getAttachment();
@@ -480,7 +480,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
 		if (detailsFragment != null) {
 			getFragmentManager().beginTransaction().remove(detailsFragment).commit();
-			getSupportActionBar().setTitle(getFlexString(R.string.sr_app_name));
+			// getSupportActionBar().setTitle(getFlexString(R.string.sr_app_name));
 		}
 		getPersistenceManager().getDatabase().getTripsParallel();
 	}

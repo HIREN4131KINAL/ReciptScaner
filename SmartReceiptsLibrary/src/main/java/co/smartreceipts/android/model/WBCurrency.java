@@ -37,7 +37,12 @@ public final class WBCurrency {
     }
 
     public static WBCurrency getDefault() {
-        return new WBCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+        try {
+            return new WBCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+        } catch (IllegalArgumentException e) {
+            // For users that don't have an ISO 3166 locale code
+            return WBCurrency.getInstance("USD"); // Fallback to USD
+        }
     }
 
     public final String getCurrencyCode() {

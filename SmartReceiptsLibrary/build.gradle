@@ -5,9 +5,10 @@ dependencies {
     compile project(':wbMiniLibrary')
     compile project(':androidCamera')
     compile project(':mupdf')
-    compile 'com.android.support:support-v4:22.1.0'
-    compile "com.android.support:appcompat-v7:22.1.0"
+    compile 'com.android.support:support-v4:22.1.1'
+    compile "com.android.support:appcompat-v7:22.1.1"
     compile 'com.jpardogo.materialtabstrip:library:1.0.9'
+    compile 'com.github.clans:fab:1.4.0'
 }
 
 android {

@@ -16,6 +16,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
@@ -196,6 +198,12 @@ public class EmailAssistant {
                     }
                 })
                 .show();
+    }
+
+    public void emailTrip(@NonNull EnumSet<EmailOptions> options) {
+        ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
+        EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
+        attachmentWriter.execute(mTrip);
     }
 
     public void onAttachmentsCreated(File[] attachments) {

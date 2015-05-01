@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.SmartReceipts.RelativeLayout.SlidingPane" >
+    style="@style/Widget.SmartReceipts.RelativeLayout.SlidingPane"
+    xmlns:fab="http://schemas.android.com/apk/res-auto">
    	<include 
 		android:id="@+id/receipts_footer"
 		layout="@layout/receipts_footer"/>
@@ -14,4 +15,43 @@
 	    android:id="@+id/no_data"
         android:text="@string/receipt_no_data"
         android:visibility="invisible" />
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fab_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
+        fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
+        fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
+        fab:menu_animationDelayPerItem="50"
+        fab:menu_icon="@drawable/fab_add" >
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/receipt_action_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_text"
+            fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
+            fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
+            fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
+            fab:fab_size="normal"
+            fab:fab_label="@string/receipt_action_text" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/receipt_action_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_camera"
+            fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
+            fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
+            fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
+            fab:fab_size="normal"
+            fab:fab_label="@string/@string/receipt_action_camera" />
+
+    </com.github.clans.fab.FloatingActionMenu>
 </RelativeLayout>

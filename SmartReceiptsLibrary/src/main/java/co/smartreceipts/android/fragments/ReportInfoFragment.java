@@ -1,9 +1,10 @@
 package co.smartreceipts.android.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -11,27 +12,41 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.astuetz.PagerSlidingTabStrip;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
+import co.smartreceipts.android.model.Trip;
 
 public class ReportInfoFragment extends Fragment {
 
+    public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
     private Toolbar mToolbar;
     private ViewPager mViewPager;
     private PagerSlidingTabStrip mPagerSlidingTabStrip;
 
     private FragmentPagerAdapter mFragmentPagerAdapter;
+    private Trip mTrip;
+
+    @NonNull
+    public static ReportInfoFragment newInstance(@NonNull Trip currentTrip) {
+        final ReportInfoFragment fragment = new ReportInfoFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(Trip.PARCEL_KEY, currentTrip);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFragmentPagerAdapter = new MyAdapter(getChildFragmentManager());
+        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        mFragmentPagerAdapter = new TripFragmentPagerAdapter(getChildFragmentManager(), mTrip);
     }
+
 
     @Nullable
     @Override
@@ -48,40 +63,11 @@ public class ReportInfoFragment extends Fragment {
         mPagerSlidingTabStrip = (PagerSlidingTabStrip) view.findViewById(R.id.tabs);
         mViewPager.setAdapter(mFragmentPagerAdapter);
         mPagerSlidingTabStrip.setViewPager(mViewPager);
-        ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
-        mToolbar.setTitle("Smart Receipts");
+        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
     }
 
-
-    public static class MyAdapter extends FragmentPagerAdapter {
-
-        public MyAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public int getCount() {
-            return 4;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return new TextViewFragment();
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return "Title " + position;
-        }
-    }
-
-    public static final class TextViewFragment extends Fragment {
-        @Nullable
-        @Override
-        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            final TextView textView = new TextView(getActivity());
-            textView.setText(System.currentTimeMillis() + "");
-            return textView;
-        }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

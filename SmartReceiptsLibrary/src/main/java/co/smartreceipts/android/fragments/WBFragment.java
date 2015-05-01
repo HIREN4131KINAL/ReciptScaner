@@ -22,10 +22,6 @@ public class WBFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mApplication = getSmartReceiptsApplication();
-		// By setting setRetainInstance to true, the Fragment will not receive subsequent calls
-		// to onCreate and onDestroy. onAttach and onCreateView will still be called for the
-		// new activity context
-		setRetainInstance(true);
 	}
 
 	@Override

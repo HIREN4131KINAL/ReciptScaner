@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- New Colors for Material -->
+    <color name="smart_receipts_colorPrimary">#512da8</color>
+    <color name="smart_receipts_colorPrimaryDark">#311b92</color>
+    <color name="smart_receipts_colorPrimaryDark_pressed">#200a81</color>
+    <color name="smart_receipts_ripple_light">#44FFFFFF</color>
+    <color name="smart_receipts_ripple_dark">#44000000</color>
     
     <!-- Smart Receipts color -->
     <color name="white">#ffffff</color>
@@ -10,9 +17,6 @@
     <color name="smart_receipts_purple_dark">#1d0536</color>
     <color name="light_purple">#7715D8</color>
     <color name="dark_purple">#0B0114</color>
-    
-    <color name="smart_receipts_colorPrimary">#4a148c</color>
-    <color name="smart_receipts_colorPrimaryDark">#311b92</color>
     
     <!-- Action Bar -->
     <color name="action_bar_background">@color/smart_receipts_purple</color>

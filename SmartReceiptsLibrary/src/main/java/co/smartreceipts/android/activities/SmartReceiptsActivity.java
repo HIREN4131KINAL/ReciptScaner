@@ -89,7 +89,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "displayTripsLayout");
 		}
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, new ReportInfoFragment(), TripFragment.TAG).commit();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).commit();
 		if (getIntent().hasExtra(Trip.PARCEL_KEY)) { // We already have a feed we're looking to use
 			final Trip trip = (Trip) getIntent().getParcelableExtra(Trip.PARCEL_KEY);
 			viewReceiptsAsList(trip);
@@ -252,7 +252,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 
 	@Override
 	public void viewReceiptsAsList(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, new ReportInfoFragment(), ReceiptsListFragment.TAG).commitAllowingStateLoss();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, ReportInfoFragment.newInstance(trip), ReceiptsListFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
 			if (mSlidingPaneLayout.isOpen()) {
 				enableUpNavigation(true);

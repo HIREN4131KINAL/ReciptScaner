@@ -16,6 +16,9 @@ import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.text.method.TextKeyListener;
 import android.util.Log;
@@ -97,6 +100,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
 		mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
 		mAdView = getWorkerManager().getAdManager().onCreateAd(rootView);
+        ((AppCompatActivity)getActivity()).setSupportActionBar((Toolbar) rootView.findViewById(R.id.toolbar));
 		return rootView;
 	}
 
@@ -134,7 +138,10 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		super.onResume();
 		getPersistenceManager().getDatabase().getTripsParallel();
 		getActivity().setTitle(getFlexString(R.string.sr_app_name));
-		// getSupportActionBar().setSubtitle(null);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            getSupportActionBar().setSubtitle(null);
+        }
 		getWorkerManager().getAdManager().onAdResumed(mAdView);
 		// Handles SMR imports
 		final Attachment attachment = mAttachable.getAttachment();
@@ -480,7 +487,10 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 		final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
 		if (detailsFragment != null) {
 			getFragmentManager().beginTransaction().remove(detailsFragment).commit();
-			// getSupportActionBar().setTitle(getFlexString(R.string.sr_app_name));
+            final ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(getFlexString(R.string.sr_app_name));
+            }
 		}
 		getPersistenceManager().getDatabase().getTripsParallel();
 	}

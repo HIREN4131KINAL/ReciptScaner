@@ -8,6 +8,10 @@
     <color name="smart_receipts_ripple_light">#44FFFFFF</color>
     <color name="smart_receipts_ripple_dark">#44000000</color>
     
+    <color name="text_primary">#DFFFFFFF</color>
+    <color name="text_secondary">#8AFFFFFF</color>
+
+
     <!-- Smart Receipts color -->
     <color name="white">#ffffff</color>
     <color name="snow">#fffafa</color>

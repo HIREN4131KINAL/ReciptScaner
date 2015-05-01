@@ -2,13 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/Widget.SmartReceipts.RelativeLayout.SlidingPane"
     xmlns:fab="http://schemas.android.com/apk/res-auto">
-   	<include 
-		android:id="@+id/receipts_footer"
-		layout="@layout/receipts_footer"/>
 	<ListView style="@style/Widget.SmartReceipts.ListView"
 		android:id="@android:id/list" 
- 		android:visibility="invisible"
- 		android:layout_above="@id/receipts_footer" />
+ 		android:visibility="invisible" />
 	<ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
         android:id="@+id/progress" />
 	<TextView style="@style/Widget.SmartReceipts.TextView.NoData"

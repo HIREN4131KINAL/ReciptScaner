@@ -40,5 +40,9 @@
     <!-- Action Bar -->
     <dimen name="action_bar_border_stroke_inverted">-2dp</dimen>
     <dimen name="action_bar_border_stroke">2dp</dimen>
-    
+
+    <!-- Generate Report -->
+    <dimen name="generate_report_padding">16dp</dimen>
+    <dimen name="generate_report_item_separation">8dp</dimen>
+
 </resources>

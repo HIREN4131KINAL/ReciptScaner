@@ -32,9 +32,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_action_text"
-            fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
-            fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-            fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
+            fab:fab_colorNormal="@color/smart_receipts_colorPrimaryDark"
+            fab:fab_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
+            fab:fab_colorRipple="@color/smart_receipts_ripple_dark"
             fab:fab_size="normal"
             fab:fab_label="@string/receipt_action_text" />
 
@@ -43,11 +43,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_action_camera"
-            fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
-            fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-            fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
+            fab:fab_colorNormal="@color/smart_receipts_colorPrimaryDark"
+            fab:fab_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
+            fab:fab_colorRipple="@color/smart_receipts_ripple_dark"
             fab:fab_size="normal"
-            fab:fab_label="@string/@string/receipt_action_camera" />
+            fab:fab_label="@string/receipt_action_camera" />
 
     </com.github.clans.fab.FloatingActionMenu>
 </RelativeLayout>

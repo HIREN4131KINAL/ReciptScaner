@@ -52,10 +52,17 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.simple_card_list, container, false);
+        final View view = inflater.inflate(R.layout.report_distance_list, container, false);
         mProgressDialog = view.findViewById(R.id.progress);
         mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
         mNoDataAlert.setText(R.string.distance_no_data);
+        view.findViewById(R.id.distance_action_new).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
+                dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
+            }
+        });
         return view;
     }
 
@@ -65,21 +72,10 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
         setListAdapter(mAdapter);
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
         getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.distance_action_new) {
-            final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
-            dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

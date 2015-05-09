@@ -18,8 +18,9 @@ import com.astuetz.PagerSlidingTabStrip;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.LastTripController;
 
-public class ReportInfoFragment extends Fragment {
+public class ReportInfoFragment extends WBFragment {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
@@ -27,6 +28,7 @@ public class ReportInfoFragment extends Fragment {
     private ViewPager mViewPager;
     private PagerSlidingTabStrip mPagerSlidingTabStrip;
 
+    private LastTripController mLastTripController;
     private FragmentPagerAdapter mFragmentPagerAdapter;
     private Trip mTrip;
 
@@ -44,6 +46,11 @@ public class ReportInfoFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        mLastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
+        if (mTrip == null) {
+            mTrip = mLastTripController.getLastTrip();
+            // TODO: What happens if this is still null?
+        }
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getChildFragmentManager(), mTrip);
     }
 
@@ -69,5 +76,14 @@ public class ReportInfoFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        for (final Fragment fragment : getChildFragmentManager().getFragments()) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        mLastTripController.setLastTrip(mTrip);
+        super.onPause();
     }
 }

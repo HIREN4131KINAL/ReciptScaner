@@ -11,42 +11,23 @@
 	    android:id="@+id/no_data"
         android:text="@string/receipt_no_data"
         android:visibility="invisible" />
-    <com.github.clans.fab.FloatingActionMenu
+    <com.github.clans.fab.FloatingActionMenu style="@style/Widget.SmartReceipts.FloatingActionButton.Menu"
         android:id="@+id/fab_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="15dp"
-        android:layout_marginBottom="15dp"
-        android:layout_marginLeft="15dp"
-        fab:menu_colorNormal="@color/smart_receipts_colorPrimaryDark"
-        fab:menu_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-        fab:menu_colorRipple="@color/smart_receipts_ripple_dark"
-        fab:menu_animationDelayPerItem="50"
         fab:menu_icon="@drawable/fab_add" >
 
-        <com.github.clans.fab.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
+           android:id="@+id/receipt_action_import"
+           android:src="@drawable/ic_action_cancel"
+           fab:fab_label="@string/receipt_action_import" />
+
+        <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
             android:id="@+id/receipt_action_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:src="@drawable/ic_action_text"
-            fab:fab_colorNormal="@color/smart_receipts_colorPrimaryDark"
-            fab:fab_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-            fab:fab_colorRipple="@color/smart_receipts_ripple_dark"
-            fab:fab_size="normal"
             fab:fab_label="@string/receipt_action_text" />
 
-        <com.github.clans.fab.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
             android:id="@+id/receipt_action_camera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:src="@drawable/ic_action_camera"
-            fab:fab_colorNormal="@color/smart_receipts_colorPrimaryDark"
-            fab:fab_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-            fab:fab_colorRipple="@color/smart_receipts_ripple_dark"
-            fab:fab_size="normal"
             fab:fab_label="@string/receipt_action_camera" />
 
     </com.github.clans.fab.FloatingActionMenu>

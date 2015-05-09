@@ -192,6 +192,7 @@
     <string name="receipt_action_camera">Picture</string>
     <string name="receipt_action_gallery">Gallery</string>
     <string name="receipt_action_text">Text-Only</string>
+    <string name="receipt_action_import">Import</string>
     <string name="receipt_action_send">Generate</string>
     <string name="receipt_action_distance">Distance</string>
 

@@ -42,18 +42,7 @@
             android:paddingRight="@dimen/generate_report_item_separation"
     		android:text="@string/DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED" />
     </LinearLayout>
-    <com.github.clans.fab.FloatingActionButton
+    <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
         android:id="@+id/fab_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="15dp"
-        android:layout_marginBottom="15dp"
-        android:layout_marginLeft="15dp"
-        android:src="@drawable/ic_action_send"
-        fab:fab_colorNormal="@color/smart_receipts_colorPrimaryDark"
-        fab:fab_colorPressed="@color/smart_receipts_colorPrimaryDark_pressed"
-        fab:fab_colorRipple="@color/smart_receipts_ripple_dark" />
+        android:src="@drawable/ic_action_send" />
 </RelativeLayout>

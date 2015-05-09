@@ -45,4 +45,7 @@
     <dimen name="generate_report_padding">16dp</dimen>
     <dimen name="generate_report_item_separation">8dp</dimen>
 
+    <!-- Floating Action Buttons -->
+    <dimen name="fab_margins">15dp</dimen>
+
 </resources>

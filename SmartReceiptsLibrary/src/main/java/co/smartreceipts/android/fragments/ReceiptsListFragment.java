@@ -156,8 +156,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		};
 		rootView.findViewById(R.id.receipt_action_camera).setOnClickListener(listener);
 		rootView.findViewById(R.id.receipt_action_text).setOnClickListener(listener);
-		rootView.findViewById(R.id.receipt_action_distance).setOnClickListener(listener);
-		rootView.findViewById(R.id.receipt_action_send).setOnClickListener(listener);
+		// rootView.findViewById(R.id.receipt_action_distance).setOnClickListener(listener);
+		// rootView.findViewById(R.id.receipt_action_send).setOnClickListener(listener);
 		return rootView;
 	}
 

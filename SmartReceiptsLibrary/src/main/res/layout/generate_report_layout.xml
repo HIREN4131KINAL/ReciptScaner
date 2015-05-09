@@ -43,6 +43,6 @@
     		android:text="@string/DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED" />
     </LinearLayout>
     <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
-        android:id="@+id/fab_menu"
+        android:id="@+id/receipt_action_send"
         android:src="@drawable/ic_action_send" />
 </RelativeLayout>

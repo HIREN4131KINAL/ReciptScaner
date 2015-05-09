@@ -48,6 +48,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
         mPdfImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
         mCsvCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
         mZipStampedImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
+        root.findViewById(R.id.receipt_action_send).setOnClickListener(this);
         return root;
     }
 

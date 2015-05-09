@@ -72,7 +72,7 @@ import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
 
-public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowListener, LoaderCallbacks<SharedPreferences> {
+public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowListener {
 
 	public static final String TAG = "ReceiptsListFragment";
 
@@ -121,7 +121,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
-		getLoaderManager().initLoader(getResources().getInteger(R.integer.receipts_list_fragment_loader), null, this);
 	}
 
 	@Override
@@ -188,7 +187,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	@Override
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public void onPause() {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onPause");
@@ -199,31 +197,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		if (mReceiptsCommentAutoCompleteAdapter != null) {
 			mReceiptsCommentAutoCompleteAdapter.onPause();
 		}
-		if (mCurrentTrip != null) {
-			// Save persistent data state
-			SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
-			SharedPreferences.Editor editor = preferences.edit();
-			final int id = (mHighlightedReceipt == null) ? -1 : mHighlightedReceipt.getId();
-			editor.putInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, id);
-			final String uriPath = (mImageUri == null) ? null : mImageUri.toString();
-			editor.putString(PREFERENCE_IMAGE_URI, uriPath);
-			if (Utils.ApiHelper.hasGingerbread()) {
-				editor.apply();
-			}
-			else {
-				editor.commit();
-			}
-		}
 		getWorkerManager().getAdManager().onAdPaused(mAdView);
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 		super.onPause();
-	}
-
-	// Restore persistent data (Called serially)
-	@Override
-	protected void restoreData() {
-		super.restoreData();
-		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0));
 	}
 
 	private void restoreDataHelper(SharedPreferences preferences) {
@@ -255,20 +231,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		super.onDestroy();
 	}
 
-	@Override
-	public Loader<SharedPreferences> onCreateLoader(int id, Bundle args) {
-		return new SharedPreferencesLoader(getActivity(), PREFERENCES);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<SharedPreferences> loader, SharedPreferences prefs) {
-		restoreDataHelper(prefs);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<SharedPreferences> loader) {
-		// Unused
-	}
 
 	@Override
 	public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
@@ -282,11 +244,11 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		// Need to make this call here, since users with "Don't keep activities" will hit this call
 		// before any of onCreate/onStart/onResume is called. This should restore our current trip (what
 		// onResume() would normally do to prevent a variety of crashes that we might encounter
-		ensureValidCurrentTrip();
+		if (mCurrentTrip == null) {
+            mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        }
 
 		if (resultCode == Activity.RESULT_OK) { // -1
-			restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); // Added here since onActivityResult
-																					// is called before onResume
 			File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
 			if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
 				final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
@@ -329,8 +291,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 			}
 		}
 		else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) { // 51
-			restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0)); // Added here since onActivityResult
-																					// is called before onResume
 			switch (requestCode) {
 				case NEW_RECEIPT_CAMERA_REQUEST:
 					File imgFile = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));

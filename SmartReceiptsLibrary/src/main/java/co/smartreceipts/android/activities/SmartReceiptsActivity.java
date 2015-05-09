@@ -263,13 +263,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 
 	@Override
 	public void viewReceiptsAsChart(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsChartFragment(trip), ReceiptsChartFragment.TAG).commitAllowingStateLoss();
-		if (!mIsDualPane) {
-			if (mSlidingPaneLayout.isOpen()) {
-				enableUpNavigation(true);
-				mSlidingPaneLayout.closePane();
-			}
-		}
+		throw new UnsupportedOperationException("This method has not been implemented");
 	}
 
 	@Override
@@ -328,13 +322,6 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	 */
 	protected ReceiptsListFragment getReceiptsListFragment(Trip trip) {
 		return ReceiptsFragment.newListInstance(trip);
-	}
-
-	/**
-	 * @return - an instance of our {@link ReceiptsChartFragment} class. Allows for subclass flexibility
-	 */
-	protected ReceiptsChartFragment getReceiptsChartFragment(Trip trip) {
-		return ReceiptsFragment.newChartInstance(trip);
 	}
 
 }

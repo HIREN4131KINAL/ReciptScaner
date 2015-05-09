@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar.OnNavigationListener;
@@ -22,52 +23,19 @@ import co.smartreceipts.android.utils.Utils;
 
 
 
-public class ReceiptsFragment extends WBListFragment implements OnNavigationListener,
-																LoaderCallbacks<SharedPreferences> {
+public class ReceiptsFragment extends WBListFragment implements OnNavigationListener {
 
 	public static final String TAG = "ReceiptsFragment";
-
-    //Preferences
-	protected static final String PREFERENCES = SharedPreferenceDefinitions.ReceiptFragment_Preferences.toString();
-  	private static final String PREFERENCE_TRIP_NAME = "tripName";
 
 	protected Trip mCurrentTrip;
 	protected Navigable mNavigator;
 
-	public static ReceiptsListFragment newListInstance() {
-		ReceiptsListFragment fragment = new ReceiptsListFragment();
-		return fragment;
-	}
-
-	public static ReceiptsListFragment newListInstance(Trip currentTrip) {
-		if (currentTrip == null) {
-			return newListInstance();
-		}
-		else {
-			ReceiptsListFragment fragment = new ReceiptsListFragment();
-			Bundle args = new Bundle();
-			args.putParcelable(Trip.PARCEL_KEY, currentTrip);
-			fragment.setArguments(args);
-			return fragment;
-		}
-	}
-
-	public static ReceiptsChartFragment newChartInstance() {
-		ReceiptsChartFragment fragment = new ReceiptsChartFragment();
-		return fragment;
-	}
-
-	public static ReceiptsChartFragment newChartInstance(Trip currentTrip) {
-		if (currentTrip == null) {
-			return newChartInstance();
-		}
-		else {
-			ReceiptsChartFragment fragment = new ReceiptsChartFragment();
-			Bundle args = new Bundle();
-			args.putParcelable(Trip.PARCEL_KEY, currentTrip);
-			fragment.setArguments(args);
-			return fragment;
-		}
+	public static ReceiptsListFragment newListInstance(@NonNull Trip currentTrip) {
+        final ReceiptsListFragment fragment = new ReceiptsListFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(Trip.PARCEL_KEY, currentTrip);
+        fragment.setArguments(args);
+        return fragment;
 	}
 
 	@Override
@@ -83,86 +51,29 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onCreate");
 		}
-		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
+        mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
 	}
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onResume");
+        }
+    }
+
 	@Override
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public void onPause() {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "onPause");
 		}
 		super.onPause();
-		if (mCurrentTrip != null) {
-			// Save persistent data state
-	    	SharedPreferences preferences = getActivity().getSharedPreferences(PREFERENCES, 0);
-	    	SharedPreferences.Editor editor = preferences.edit();
-	    	editor.putString(PREFERENCE_TRIP_NAME, mCurrentTrip.getName());
-	    	if (Utils.ApiHelper.hasGingerbread()) {
-				editor.apply();
-			} else {
-				editor.commit();
-			}
-    	}
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
-	}
-
-	@Override
-	public void onResume() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onResume");
-		}
-		super.onResume();
-		ensureValidCurrentTrip();
-	}
-	
-	protected void ensureValidCurrentTrip() {
-		if (mCurrentTrip == null) {
-			if (getArguments() != null) {
-				Parcelable parcel = getArguments().getParcelable(Trip.PARCEL_KEY);
-				if (parcel == null || !(parcel instanceof Trip)) {
-					restoreData();
-				}
-				else {
-					setTrip((Trip)parcel);
-				}
-			}
-			else {
-				restoreData();
-			}
-		}
-	}
-
-	// Restore persistent data
-	protected void restoreData() {
-		restoreDataHelper(getActivity().getSharedPreferences(PREFERENCES, 0));
-	}
-
-	private void restoreDataHelper(SharedPreferences preferences) {
-		if (mCurrentTrip == null) {
-			final DatabaseHelper db = getPersistenceManager().getDatabase();
-			final String tripName = preferences.getString(PREFERENCE_TRIP_NAME, "");
-			setTrip(db.getTripByName(tripName));
-		}
-	}
-
-	@Override
-	public Loader<SharedPreferences> onCreateLoader(int id, Bundle args) {
-		return new SharedPreferencesLoader(getActivity(), PREFERENCES);
-	}
-
-	@Override
-	public void onLoadFinished(Loader<SharedPreferences> loader, SharedPreferences prefs) {
-		restoreDataHelper(prefs);
-	}
-
-	@Override
-	public void onLoaderReset(Loader<SharedPreferences> loader) {
-		// Unused
 	}
 
 	public void setTrip(Trip trip) {

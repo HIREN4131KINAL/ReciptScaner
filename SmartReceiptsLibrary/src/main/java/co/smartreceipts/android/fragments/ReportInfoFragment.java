@@ -7,17 +7,21 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.astuetz.PagerSlidingTabStrip;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
@@ -26,13 +30,14 @@ public class ReportInfoFragment extends WBFragment {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
-    private Toolbar mToolbar;
-    private ViewPager mViewPager;
-    private PagerSlidingTabStrip mPagerSlidingTabStrip;
-
+    private NavigationHandler mNavigationHandler;
     private LastTripController mLastTripController;
     private FragmentPagerAdapter mFragmentPagerAdapter;
     private Trip mTrip;
+
+    private Toolbar mToolbar;
+    private ViewPager mViewPager;
+    private PagerSlidingTabStrip mPagerSlidingTabStrip;
 
     @NonNull
     public static ReportInfoFragment newInstance(@NonNull Trip currentTrip) {
@@ -48,6 +53,7 @@ public class ReportInfoFragment extends WBFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mLastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
         if (mTrip == null) {
@@ -87,6 +93,26 @@ public class ReportInfoFragment extends WBFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            mNavigationHandler.navigateToTripsFragment();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override

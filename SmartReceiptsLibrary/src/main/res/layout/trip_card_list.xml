@@ -17,4 +17,9 @@
 	    android:id="@+id/no_data"
         android:text="@string/trip_no_data"
         android:visibility="invisible" />
+
+    <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
+        android:id="@+id/trip_action_new"
+        android:src="@drawable/fab_add" />
+
 </RelativeLayout>

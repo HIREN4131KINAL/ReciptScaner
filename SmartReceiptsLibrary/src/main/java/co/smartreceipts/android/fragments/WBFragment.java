@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -59,7 +61,7 @@ public class WBFragment extends Fragment {
 	}
 
 	public ActionBar getSupportActionBar() {
-		return ((ActionBarActivity)getActivity()).getSupportActionBar();
+		return ((AppCompatActivity)getActivity()).getSupportActionBar();
 	}
 
 	protected PersistenceManager getPersistenceManager() {

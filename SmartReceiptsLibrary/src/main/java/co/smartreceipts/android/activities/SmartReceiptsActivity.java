@@ -44,64 +44,30 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	private static final int LAUNCHES_UNTIL_PROMPT = 30;
 	private static final int DAYS_UNTIL_PROMPT = 7;
 
-	// Instace Vars
-	private UpNavigationSlidingPaneLayout mSlidingPaneLayout;
 	private boolean mIsDualPane;
 	private Attachment mAttachment;
-
-	// private ActionBarController mActionBarController;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onCreate");
-		}
+        Log.d(TAG, "onCreate");
+
+        mIsDualPane = getResources().getBoolean(R.bool.isTablet);
 		setContentView(R.layout.activity_main);
 
-		mIsDualPane = getResources().getBoolean(R.bool.isTablet);
-		if (!mIsDualPane) {
-			mSlidingPaneLayout = (UpNavigationSlidingPaneLayout) findViewById(R.id.slidingpanelayout);
-			mSlidingPaneLayout.setPanelSlideListener(this);
-			mSlidingPaneLayout.openPane();
-		}
-
-		// mActionBarController = new ActionBarController(this, getSupportActionBar(),
-		// getResources().getStringArray(R.array.actionbar_subtitles));
-
-		// savedInstanceState is non-null when there is fragment state saved from previous configurations of this
-		// activity
-		// (e.g. when rotating the screen from portrait to landscape). In this case, the fragment will automatically be
-		// re-added
-		// to its container so we don't need to manually add it. Since the SlidingPaneLayout is controlled at the
-		// activity
-		// layer, however, as opposed to the fragment layer, it will need to be recreated regardless of what the current
-		// fragment
-		// state is
 		if (savedInstanceState == null) {
-			displayTripsLayout();
+            Log.d(TAG, "savedInstanceState == null");
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).addToBackStack(TripFragment.TAG).commit();
 			AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
 		}
 
 	}
 
-	private void displayTripsLayout() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "displayTripsLayout");
-		}
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).commit();
-		if (getIntent().hasExtra(Trip.PARCEL_KEY)) { // We already have a feed we're looking to use
-			final Trip trip = (Trip) getIntent().getParcelableExtra(Trip.PARCEL_KEY);
-			viewReceiptsAsList(trip);
-		}
-	}
-
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onStart");
-		}
+		Log.d(TAG, "onStart");
+
 		if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal()) {
 			Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
 		}
@@ -110,9 +76,8 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onResume");
-		}
+		Log.d(TAG, "onResume");
+
 		// Present dialog for viewing an attachment
 		final Attachment attachment = new Attachment(getIntent(), getContentResolver());
 		setAttachment(attachment);
@@ -143,6 +108,7 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 
 	@Override
 	protected void onDestroy() {
+        // TODO: Handle destruction of this DB more generally
 		getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
 		super.onDestroy();
 	}
@@ -153,25 +119,15 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 			getMenuInflater().inflate(R.menu.menu_trip, menu);
 		}
 		else {
-			if (mSlidingPaneLayout.isOpen()) {
-				getMenuInflater().inflate(R.menu.menu_trip, menu);
-			}
-			else {
-				getMenuInflater().inflate(R.menu.menu_receipts, menu);
-			}
+		    // TODO: Leverage the fragment for this instead
+            getMenuInflater().inflate(R.menu.menu_trip, menu);
 		}
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == android.R.id.home) {
-			if (!mIsDualPane) { // Home should never be enabled for tablets anyway but just in case
-				mSlidingPaneLayout.openPane();
-			}
-			return true;
-		}
-		else if (item.getItemId() == R.id.menu_main_settings) {
+		if (item.getItemId() == R.id.menu_main_settings) {
 			// getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
 			SRNavUtils.showSettings(this);
 			return true;
@@ -180,33 +136,10 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 			final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.TAG);
 			getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
 			return true;
-		}/*
-		 * else if (item.getItemId() == R.id.menu_main_settings) { final Intent intent = new Intent(this,
-		 * SettingsActivity.class);; startActivity(intent); return true; }
-		 */
+		}
 		else {
 			return super.onOptionsItemSelected(item);
 		}
-	}
-
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		// mActionBarController.refreshActionBar(); // Used to refresh the ActionBar view on rotation
-	}
-
-	@Override
-	public void setTitle(CharSequence title) {
-		super.setTitle(title);
-		// getSupportActionBar().setTitle(title);
-		// mActionBarController.setTitle(title);
-	}
-
-	@Override
-	public void setTitle(int titleId) {
-		super.setTitle(titleId);
-		// getSupportActionBar().setTitle(titleId);
-		// mActionBarController.setTitle(titleId);
 	}
 
 	@Override
@@ -215,81 +148,12 @@ public class SmartReceiptsActivity extends WBActivity implements Navigable, Atta
 	}
 
 	@Override
-	public void onPanelSlide(View panel, float slideOffset) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onPanelOpened(View panel) { // onTripsBeingViewed
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onPanelOpened");
-		}
-		if (!mIsDualPane) {
-			// mActionBarController.displayStandardActionBar();
-			enableUpNavigation(false);
-			setTitle(getSmartReceiptsApplication().getFlex().getString(this, R.string.sr_app_name));
-			// getSupportActionBar().setSubtitle(null);
-			Fragment fragment = getSupportFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
-			if (fragment != null) {
-				getSupportFragmentManager().beginTransaction().remove(fragment).commitAllowingStateLoss();
-			}
-			supportInvalidateOptionsMenu();
-		}
-	}
-
-	@Override
-	public void onPanelClosed(View panel) { // onReceiptsBeingViewed
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onPanelClosed");
-		}
-		if (!mIsDualPane) {
-			// mActionBarController.displayNaviagationActionBar();
-			enableUpNavigation(true);
-			supportInvalidateOptionsMenu();
-		}
-	}
-
-	@Override
 	public void viewReceiptsAsList(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, ReportInfoFragment.newInstance(trip), ReceiptsListFragment.TAG).commitAllowingStateLoss();
 		if (!mIsDualPane) {
-			if (mSlidingPaneLayout.isOpen()) {
-				enableUpNavigation(true);
-				mSlidingPaneLayout.closePane();
-			}
-		}
-	}
-
-	@Override
-	public void viewReceiptsAsChart(Trip trip) {
-		throw new UnsupportedOperationException("This method has not been implemented");
-	}
-
-	@Override
-	public void viewTrips() {
-		Fragment fragment = getSupportFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
-		if (fragment != null) {
-			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
-		}
-		if (!mIsDualPane) {
-			mSlidingPaneLayout.openPane();
-		}
-	}
-
-	@Override
-	public void onBackPressed() {
-		if (!mIsDualPane) {
-			if (!mSlidingPaneLayout.isOpen()) {
-				mSlidingPaneLayout.openPane();
-			}
-			else {
-				super.onBackPressed();
-			}
-		}
-		else {
-			super.onBackPressed();
-		}
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_list, ReportInfoFragment.newInstance(trip), ReportInfoFragment.TAG).addToBackStack(ReportInfoFragment.TAG).commit();
+		} else {
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_details, ReportInfoFragment.newInstance(trip), ReportInfoFragment.TAG).addToBackStack(ReportInfoFragment.TAG).commit();
+        }
 	}
 
 	/**

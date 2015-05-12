@@ -76,20 +76,6 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		getPersistenceManager().getDatabase().unregisterReceiptRowListener();
 	}
 
-	public void setTrip(Trip trip) {
-		if (trip == null) {
-			mNavigator.viewTrips();
-		}
-		else {
-			if (BuildConfig.DEBUG) {
-				Log.i(TAG, "Setting Trip: " + trip.getName());
-			}
-			mCurrentTrip = trip;
-			getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-			updateActionBarTitle();
-		}
-	}
-
 	protected void updateActionBarTitle() {
 		if (mCurrentTrip == null) {
 			return;
@@ -108,10 +94,6 @@ public class ReceiptsFragment extends WBListFragment implements OnNavigationList
 		String item = getResources().getStringArray(R.array.actionbar_subtitles)[itemPosition];
 		if (!(this instanceof ReceiptsListFragment) && item.equals(getString(R.string.actionbar_subtitle_list))) {
 			mNavigator.viewReceiptsAsList(mCurrentTrip);
-			return true;
-		}
-		else if (!(this instanceof ReceiptsChartFragment) && item.equals(getString(R.string.actionbar_subtitle_chart))) {
-			mNavigator.viewReceiptsAsChart(mCurrentTrip);
 			return true;
 		}
 		else {

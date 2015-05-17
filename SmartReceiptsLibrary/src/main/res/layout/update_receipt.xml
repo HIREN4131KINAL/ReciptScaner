@@ -17,76 +17,94 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/DIALOG_RECEIPTMENU_HINT_NAME"
                 android:completionThreshold="1"
-                android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                android:textAppearance="@style/Widget.SmartReceipts.TextView.Title"
                 android:inputType="textCapSentences"
                 android:maxLength="50" />
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
-                <EditText android:id="@+id/DIALOG_RECEIPTMENU_PRICE"
-                    android:inputType="number|numberSigned|numberDecimal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/DIALOG_RECEIPTMENU_HINT_PRICE"
-                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
-                    android:layout_weight=".45" />
-                <AutoCompleteTextView android:id="@+id/DIALOG_RECEIPTMENU_TAX"
-                    android:inputType="number|numberSigned|numberDecimal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/DIALOG_RECEIPTMENU_HINT_TAX"
-                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
-                    android:visibility="gone"
-                    android:completionThreshold="1"
-                    android:layout_weight=".3" />
-                <Spinner android:id="@+id/DIALOG_RECEIPTMENU_CURRENCY"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:drawSelectorOnTop="true"
-                    android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CURRENCY"
-                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
-                    android:layout_weight=".25" />
-            </LinearLayout>
-            <co.smartreceipts.android.date.DateEditText android:id="@+id/DIALOG_RECEIPTMENU_DATE"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/DIALOG_RECEIPTMENU_HINT_DATE" />
-            <Spinner android:id="@+id/DIALOG_RECEIPTMENU_CATEGORY"
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <LinearLayout
+                    android:id="@+id/price_entry_layout"
+                    android:orientation="horizontal"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:drawSelectorOnTop="true"
-                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
-                    android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CATEGORY" />
-            <AutoCompleteTextView android:id="@+id/DIALOG_RECEIPTMENU_COMMENT"
-                    android:layout_width="fill_parent"
-                    android:layout_height="0dip"
-                    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT"
-                    android:completionThreshold="1"
-                    android:inputType="textCapSentences"
-                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
-                    android:layout_weight="1" />
-            <Spinner android:id="@+id/dialog_receiptmenu_payment_methods_spinner"
+                    android:layout_alignParentTop="true" >
+                    <EditText android:id="@+id/DIALOG_RECEIPTMENU_PRICE"
+                        android:inputType="number|numberSigned|numberDecimal"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/DIALOG_RECEIPTMENU_HINT_PRICE"
+                        android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                        android:layout_weight=".45" />
+                    <AutoCompleteTextView android:id="@+id/DIALOG_RECEIPTMENU_TAX"
+                        android:inputType="number|numberSigned|numberDecimal"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/DIALOG_RECEIPTMENU_HINT_TAX"
+                        android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                        android:visibility="gone"
+                        android:completionThreshold="1"
+                        android:layout_weight=".3" />
+                    <Spinner android:id="@+id/DIALOG_RECEIPTMENU_CURRENCY"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:drawSelectorOnTop="true"
+                        android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CURRENCY"
+                        android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                        android:layout_weight=".25" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/price_entry_layout" >
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+                    <co.smartreceipts.android.date.DateEditText
+                        android:id="@+id/DIALOG_RECEIPTMENU_DATE"
+
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/DIALOG_RECEIPTMENU_HINT_DATE" />
+                </LinearLayout>
+                <Spinner android:id="@+id/DIALOG_RECEIPTMENU_CATEGORY"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:drawSelectorOnTop="true"
+                        android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                        android:prompt="@string/DIALOG_RECEIPTMENU_HINT_CATEGORY" />
+                <AutoCompleteTextView android:id="@+id/DIALOG_RECEIPTMENU_COMMENT"
+                        android:layout_width="fill_parent"
+                        android:layout_height="0dip"
+                        android:hint="@string/DIALOG_RECEIPTMENU_HINT_COMMENT"
+                        android:completionThreshold="1"
+                        android:inputType="textCapSentences"
+                        android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
+                        android:layout_weight="1" />
+                <Spinner
+                    android:id="@+id/dialog_receiptmenu_payment_methods_spinner"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:drawSelectorOnTop="true"
                     android:prompt="@string/payment_method"
                     android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead"
                     android:visibility="gone" />
-            <LinearLayout android:id="@+id/DIALOG_RECEIPTMENU_EXTRAS"
-                android:orientation="vertical"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
-            <CheckBox android:id="@+id/DIALOG_RECEIPTMENU_EXPENSABLE"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/DIALOG_RECEIPTMENU_HINT_EXPENSABLE"
-                android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
-            <CheckBox android:id="@+id/DIALOG_RECEIPTMENU_FULLPAGE"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/DIALOG_RECEIPTMENU_HINT_FULLPAGE"
-                android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
+                <LinearLayout android:id="@+id/DIALOG_RECEIPTMENU_EXTRAS"
+                    android:orientation="vertical"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content" />
+                <CheckBox android:id="@+id/DIALOG_RECEIPTMENU_EXPENSABLE"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/DIALOG_RECEIPTMENU_HINT_EXPENSABLE"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
+                <CheckBox android:id="@+id/DIALOG_RECEIPTMENU_FULLPAGE"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/DIALOG_RECEIPTMENU_HINT_FULLPAGE"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
+            </RelativeLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

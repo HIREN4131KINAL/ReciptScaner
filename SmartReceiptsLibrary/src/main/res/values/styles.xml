@@ -176,4 +176,12 @@
         <item name="menu_animationDelayPerItem">50</item>
     </style>
 
+    <style name="Widget.SmartReceipts.GuideImage">
+        <item name="android:layout_width">@dimen/guide_image_size</item>
+        <item name="android:layout_height">@dimen/guide_image_size</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_marginRight">@dimen/guide_image_margin</item>
+    </style>
+
 </resources>

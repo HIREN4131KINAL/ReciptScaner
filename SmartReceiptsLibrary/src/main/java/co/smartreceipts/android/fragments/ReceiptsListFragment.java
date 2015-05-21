@@ -928,10 +928,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	private final void showImage(Receipt receipt) {
-		final Intent intent = new Intent(getActivity(), ReceiptImageActivity.class);
-		intent.putExtra(Receipt.PARCEL_KEY, receipt);
-		intent.putExtra(Trip.PARCEL_KEY, mCurrentTrip);
-		startActivity(intent);
+		mNavigationHandler.navigateToViewReceiptImage(mCurrentTrip, receipt);
 	}
 
 	private final void showPDF(Receipt receipt) {

@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import java.io.File;
 
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
+import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
@@ -15,7 +16,7 @@ import co.smartreceipts.android.model.Trip;
 public interface FragmentProvider {
 
     /**
-     * Builds a {@link co.smartreceipts.android.fragments.TripFragment} instance
+     * Creates a {@link co.smartreceipts.android.fragments.TripFragment} instance
      *
      * @return a new trip fragment
      */
@@ -23,8 +24,9 @@ public interface FragmentProvider {
     TripFragment newTripFragmentInstance();
 
     /**
-     * Builds a {@link co.smartreceipts.android.fragments.ReportInfoFragment} instance
+     * Creates a {@link co.smartreceipts.android.fragments.ReportInfoFragment} instance
      *
+     * @param trip the trip to display info for
      * @return a new report info fragment
      */
     @NonNull
@@ -49,4 +51,14 @@ public interface FragmentProvider {
      */
     @NonNull
     ReceiptCreateEditFragment newEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit);
+
+    /**
+     * Creates a {@link co.smartreceipts.android.fragments.ReceiptImageFragment} instance
+     *
+     * @param trip the parent trip of the receipt
+     * @param receipt the receipt to show the image for
+     * @return a new instance of this fragment
+     */
+    @NonNull
+    ReceiptImageFragment newReceiptImageFragment(@NonNull Trip trip, @NonNull Receipt receipt);
 }

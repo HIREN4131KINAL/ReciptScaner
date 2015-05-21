@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import java.io.File;
 
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
+import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
@@ -38,5 +39,12 @@ public class DefaultFragmentProvider implements FragmentProvider {
     public ReceiptCreateEditFragment newEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
         return ReceiptCreateEditFragment.newInstance(trip, receiptToEdit);
     }
+
+    @NonNull
+    @Override
+    public ReceiptImageFragment newReceiptImageFragment(@NonNull Trip trip, @NonNull Receipt receipt) {
+        return ReceiptImageFragment.newInstance(receipt, trip);
+    }
+
 
 }

@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.sql.Date;
 import java.util.List;
 
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.DistanceActivity;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.Trip;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
@@ -98,6 +100,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private Attachable mAttachable;
 	private View mAdView;
 
+    private NavigationHandler mNavigationHandler;
 	private boolean mShowDialogOnResume = false;
 	private File mImageFile;
 
@@ -121,6 +124,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
+        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
 	}
 
 	@Override
@@ -372,7 +376,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	}
 
 	public final void addTextReceipt() {
-		receiptMenu(mCurrentTrip, null, null);
+		// receiptMenu(mCurrentTrip, null, null);
+        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, null);
 	}
 
 	public final void receiptMenu(final Trip trip, final Receipt receipt, final File img) {

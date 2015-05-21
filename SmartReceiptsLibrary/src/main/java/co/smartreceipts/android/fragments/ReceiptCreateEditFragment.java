@@ -1,0 +1,451 @@
+package co.smartreceipts.android.fragments;
+
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.text.format.DateFormat;
+import android.text.format.Time;
+import android.text.method.TextKeyListener;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.File;
+import java.sql.Date;
+
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
+import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
+import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
+import wb.android.autocomplete.AutoCompleteAdapter;
+
+public class ReceiptCreateEditFragment extends WBFragment {
+
+    private static final String ARG_FILE = "arg_file";
+
+    // Metadata
+    private Trip mTrip;
+    private Receipt mReceipt;
+    private File mFile;
+
+    // Views
+    private AutoCompleteTextView nameBox;
+    private EditText priceBox;
+    private AutoCompleteTextView taxBox;
+    private Spinner currencySpinner;
+    private DateEditText dateBox;
+    private AutoCompleteTextView commentBox;
+    private Spinner categoriesSpinner;
+    private CheckBox expensable;
+    private CheckBox fullpage;
+    private Spinner paymentMethodsSpinner;
+    private EditText extra_edittext_box_1;
+    private EditText extra_edittext_box_2;
+    private EditText extra_edittext_box_3;
+    private ViewGroup mPaymentMethodsContainer;
+    private Toolbar mToolbar;
+
+    // Misc
+    private NavigationHandler mNavigationHandler;
+    private ReceiptInputCache mReceiptInputCache;
+    private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
+    private Time mNow;
+
+    /**
+     * Creates a new instance of this fragment for a new receipt
+     *
+     * @param trip - the parent trip of this receipt
+     * @param file - the file associated with this receipt or null if we do not have one
+     * @return the new instance of this fragment
+     */
+    public static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable File file) {
+        return newInstance(trip, null, file);
+    }
+
+    /**
+     * Creates a new instance of this fragment to edit an existing receipt
+     *
+     * @param trip          - the parent trip of this receipt
+     * @param receiptToEdit - the receipt to edit
+     * @return the new instance of this fragment
+     */
+    public static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
+        return newInstance(trip, receiptToEdit, null);
+    }
+
+    private static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable Receipt receiptToEdit, @Nullable File file) {
+        final ReceiptCreateEditFragment fragment = new ReceiptCreateEditFragment();
+        final Bundle args = new Bundle();
+        args.putParcelable(Trip.PARCEL_KEY, trip);
+        args.putParcelable(Receipt.PARCEL_KEY, receiptToEdit);
+        args.putSerializable(ARG_FILE, file);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
+        mFile = (File) getArguments().getSerializable(ARG_FILE);
+        mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        setHasOptionsMenu(true);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.update_receipt, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View rootView, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(rootView, savedInstanceState);
+        this.nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_NAME);
+        this.priceBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
+        this.taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);
+        this.currencySpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
+        this.dateBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
+        this.commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
+        this.categoriesSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
+        this.expensable = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
+        this.fullpage = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
+        this.paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.dialog_receiptmenu_payment_methods_spinner);
+        mPaymentMethodsContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.payment_methods_container);
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+
+        // Extras
+        final LinearLayout extras = (LinearLayout) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
+        this.extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
+        this.extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
+        this.extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        final boolean isNewReceipt = mReceipt == null;
+
+        final String title;
+        if (isNewReceipt) {
+            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
+            }
+            else {
+                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
+            }
+        }
+        else {
+            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
+            }
+            else {
+                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
+            }
+        }
+
+        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_close_clear_cancel);
+            actionBar.setTitle(title);
+        }
+
+        if (getPersistenceManager().getPreferences().includeTaxField()) {
+            priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
+            taxBox.setVisibility(View.VISIBLE);
+        }
+
+        // Show default dictionary with auto-complete
+        nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
+
+        final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
+        currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(currenices);
+
+        dateBox.setFocusableInTouchMode(false);
+        dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
+        final ArrayAdapter<CharSequence> categories = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
+        categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categoriesSpinner.setAdapter(categories);
+
+        // Focused View
+        View focusedView = nameBox;
+
+        if (isNewReceipt) {
+            if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
+                final DatabaseHelper db = getPersistenceManager().getDatabase();
+                if (mReceiptsNameAutoCompleteAdapter == null) {
+                    mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
+                } else {
+                    mReceiptsNameAutoCompleteAdapter.reset();
+                }
+                if (mReceiptsCommentAutoCompleteAdapter == null) {
+                    mReceiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
+                } else {
+                    mReceiptsCommentAutoCompleteAdapter.reset();
+                }
+                nameBox.setAdapter(mReceiptsNameAutoCompleteAdapter);
+                commentBox.setAdapter(mReceiptsCommentAutoCompleteAdapter);
+            }
+            if (getPersistenceManager().getPreferences().includeTaxField()) {
+                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
+            }
+            mNow = new Time();
+            mNow.setToNow();
+            if (mReceiptInputCache.getCachedDate() == null) {
+                if (getPersistenceManager().getPreferences().defaultToFirstReportDate()) {
+                    dateBox.date = mTrip.getStartDate();
+                } else {
+                    dateBox.date = new Date(mNow.toMillis(false));
+                }
+            } else {
+                dateBox.date = mReceiptInputCache.getCachedDate();
+            }
+            dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
+            expensable.setChecked(true);
+            Preferences preferences = getPersistenceManager().getPreferences();
+            if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, categories));
+                focusedView = priceBox;
+            } else if (preferences.matchCommentToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));
+            } else if (preferences.matchNameToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
+                focusedView = priceBox;
+            }
+            if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
+                if (mReceiptInputCache.getCachedCategory() == null) {
+                    if (mNow.hour >= 4 && mNow.hour < 11) { // Breakfast hours
+                        int idx = categories.getPosition(getString(R.string.category_breakfast));
+                        if (idx > 0) {
+                            categoriesSpinner.setSelection(idx);
+                        }
+                    } else if (mNow.hour >= 11 && mNow.hour < 16) { // Lunch hours
+                        int idx = categories.getPosition(getString(R.string.category_lunch));
+                        if (idx > 0) {
+                            categoriesSpinner.setSelection(idx);
+                        }
+                    } else if (mNow.hour >= 16 && mNow.hour < 23) { // Dinner hours
+                        int idx = categories.getPosition(getString(R.string.category_dinner));
+                        if (idx > 0) {
+                            categoriesSpinner.setSelection(idx);
+                        }
+                    }
+                } else {
+                    int idx = categories.getPosition(mReceiptInputCache.getCachedCategory());
+                    if (idx > 0) {
+                        categoriesSpinner.setSelection(idx);
+                    }
+                }
+            }
+            int idx = currenices.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
+            int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? currenices.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
+            idx = (cachedIdx > 0) ? cachedIdx : idx;
+            if (idx > 0) {
+                currencySpinner.setSelection(idx);
+            }
+            fullpage.setChecked(preferences.shouldDefaultToFullPage());
+            if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+                mPaymentMethodsContainer.setVisibility(View.VISIBLE);
+                final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
+                paymentMethodsSpinner.setVisibility(View.VISIBLE);
+                paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+            }
+        } else {
+            nameBox.setText(mReceipt.getName());
+            priceBox.setText(mReceipt.getPrice().getDecimalFormattedPrice());
+            dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+            dateBox.date = mReceipt.getDate();
+            categoriesSpinner.setSelection(categories.getPosition(mReceipt.getCategory()));
+            commentBox.setText(mReceipt.getComment());
+            taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());
+
+            int idx = currenices.getPosition(mReceipt.getPrice().getCurrencyCode());
+            if (idx > 0) {
+                currencySpinner.setSelection(idx);
+            }
+
+            expensable.setChecked(mReceipt.isExpensable());
+            fullpage.setChecked(mReceipt.isFullPage());
+
+            if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+                final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
+                paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+                mPaymentMethodsContainer.setVisibility(View.VISIBLE);
+                final PaymentMethod oldPaymentMethod = mReceipt.getPaymentMethod();
+                paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+
+                if (oldPaymentMethod != null) {
+                    final int paymentIdx = paymentMethodsAdapter.getPosition(oldPaymentMethod);
+                    if (paymentIdx > 0) {
+                        paymentMethodsSpinner.setSelection(paymentIdx);
+                    }
+                }
+            }
+            if (extra_edittext_box_1 != null && mReceipt.hasExtraEditText1()) {
+                extra_edittext_box_1.setText(mReceipt.getExtraEditText1());
+            }
+            if (extra_edittext_box_2 != null && mReceipt.hasExtraEditText2()) {
+                extra_edittext_box_2.setText(mReceipt.getExtraEditText2());
+            }
+            if (extra_edittext_box_3 != null && mReceipt.hasExtraEditText3()) {
+                extra_edittext_box_3.setText(mReceipt.getExtraEditText3());
+            }
+        }
+
+        if (isNewReceipt) {
+            focusedView.setOnFocusChangeListener(new ShowSoftKeyboardOnFocusChangeListener(getActivity()));
+        }
+        focusedView.requestFocus(); // Make sure we're focused on the right view
+
+        categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+    }
+
+    @Override
+    public void onPause() {
+        if (mReceiptsNameAutoCompleteAdapter != null) {
+            mReceiptsNameAutoCompleteAdapter.onPause();
+        }
+        if (mReceiptsCommentAutoCompleteAdapter != null) {
+            mReceiptsCommentAutoCompleteAdapter.onPause();
+        }
+        super.onPause();
+    }
+
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_save, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            mNavigationHandler.navigateToReportInfoFragment(mTrip);
+            return true;
+        }
+        if (item.getItemId() == R.id.action_save) {
+            saveReceipt();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void saveReceipt() {
+        final String name = nameBox.getText().toString();
+        final String category = categoriesSpinner.getSelectedItem().toString();
+        final String currency = currencySpinner.getSelectedItem().toString();
+        final String comment = commentBox.getText().toString();
+        final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
+        final String extra_edittext_2 = (extra_edittext_box_2 == null) ? null : extra_edittext_box_2.getText().toString();
+        final String extra_edittext_3 = (extra_edittext_box_3 == null) ? null : extra_edittext_box_3.getText().toString();
+        final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
+
+        String price = priceBox.getText().toString();
+        String tax = taxBox.getText().toString();
+
+        if (TextUtils.isEmpty(price)) {
+            price = "0";
+        }
+        if (TextUtils.isEmpty(tax)) {
+            tax = "0";
+        }
+
+        if (name.length() == 0) {
+            Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (dateBox.date == null) {
+            Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            mReceiptInputCache.setCachedDate((Date) dateBox.date.clone());
+        }
+
+        mReceiptInputCache.setCachedCategory(category);
+        mReceiptInputCache.setCachedCurrency(currency);
+
+        if (!mTrip.isDateInsideTripBounds(dateBox.date)) {
+            if (isAdded()) {
+                Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
+            }
+        }
+
+        final boolean isNewReceipt = mReceipt == null;
+        if (isNewReceipt) {
+            getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Insert_Receipt");
+            getPersistenceManager().getDatabase().insertReceiptParallel(mTrip, mFile, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+            getDateManager().setDateEditTextListenerDialogHolder(null);
+        } else {
+            getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Update_Receipt");
+            getPersistenceManager().getDatabase().updateReceiptParallel(mReceipt, mTrip, name, category, (dateBox.date == null) ? mReceipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+            getDateManager().setDateEditTextListenerDialogHolder(null);
+        }
+
+        mNavigationHandler.navigateToReportInfoFragment(mTrip);
+    }
+
+    private AdapterView.OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
+        return new SpinnerSelectionListener(nameBox, commentBox, categories);
+    }
+
+    private final class SpinnerSelectionListener implements AdapterView.OnItemSelectedListener {
+
+        private final TextView sNameBox, sCommentBox;
+        private final ArrayAdapter<CharSequence> sCategories;
+
+        public SpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
+            sNameBox = nameBox;
+            sCommentBox = commentBox;
+            sCategories = categories;
+        }
+
+        @Override
+        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+            if (sNameBox != null) {
+                sNameBox.setText(sCategories.getItem(position));
+            }
+            if (sCommentBox != null) {
+                sCommentBox.setText(sCategories.getItem(position));
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> arg0) {
+        }
+    }
+}

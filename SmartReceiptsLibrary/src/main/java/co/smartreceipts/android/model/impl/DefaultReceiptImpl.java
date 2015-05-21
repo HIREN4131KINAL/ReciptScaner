@@ -227,6 +227,7 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
+    @NonNull
     public Date getDate() {
         return mDate;
     }

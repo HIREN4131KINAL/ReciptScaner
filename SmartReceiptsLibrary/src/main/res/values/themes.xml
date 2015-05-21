@@ -13,7 +13,7 @@
         <item name="windowActionBar">false</item>
         <item name="colorPrimary">@color/smart_receipts_colorPrimary</item>
         <item name="colorPrimaryDark">@color/smart_receipts_colorPrimaryDark</item>
-
+        <item name="android:spinnerStyle">@style/Widget.AppCompat.Spinner.Underlined</item>
     </style>
 
     <!-- All customizations that are NOT specific to a particular API-level can go here. -->

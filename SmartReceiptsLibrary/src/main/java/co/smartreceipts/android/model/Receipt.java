@@ -158,6 +158,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.sql.Date} this receipt was captured
      */
+    @NonNull
     Date getDate();
 
     /**

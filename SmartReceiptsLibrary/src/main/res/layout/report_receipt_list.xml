@@ -11,23 +11,29 @@
 	    android:id="@+id/no_data"
         android:text="@string/receipt_no_data"
         android:visibility="invisible" />
+    <View
+        android:id="@+id/fab_active_mask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/fab_transparency_mask"
+        android:visibility="gone" />
     <com.github.clans.fab.FloatingActionMenu style="@style/Widget.SmartReceipts.FloatingActionButton.Menu"
         android:id="@+id/fab_menu"
         fab:menu_icon="@drawable/fab_add" >
 
         <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
            android:id="@+id/receipt_action_import"
-           android:src="@drawable/ic_action_cancel"
+           android:src="@drawable/fab_gallery"
            fab:fab_label="@string/receipt_action_import" />
 
         <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
             android:id="@+id/receipt_action_text"
-            android:src="@drawable/ic_action_text"
+            android:src="@drawable/fab_text_only"
             fab:fab_label="@string/receipt_action_text" />
 
         <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
             android:id="@+id/receipt_action_camera"
-            android:src="@drawable/ic_action_camera"
+            android:src="@drawable/fab_camera"
             fab:fab_label="@string/receipt_action_camera" />
 
     </com.github.clans.fab.FloatingActionMenu>

@@ -56,6 +56,9 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.clans.fab.FloatingActionMenu;
+
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
@@ -98,7 +101,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 	private ProgressBar mProgressDialog;
 	private TextView mNoDataAlert;
 	private Attachable mAttachable;
+
 	private View mAdView;
+    private FloatingActionMenu mFloatingActionMenu;
+    private View mFloatingActionMenuActiveMaskView;
 
     private NavigationHandler mNavigationHandler;
 	private boolean mShowDialogOnResume = false;
@@ -160,8 +166,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		};
 		rootView.findViewById(R.id.receipt_action_camera).setOnClickListener(listener);
 		rootView.findViewById(R.id.receipt_action_text).setOnClickListener(listener);
-		// rootView.findViewById(R.id.receipt_action_distance).setOnClickListener(listener);
-		// rootView.findViewById(R.id.receipt_action_send).setOnClickListener(listener);
+        mFloatingActionMenu = (FloatingActionMenu) rootView.findViewById(R.id.fab_menu);
+        mFloatingActionMenuActiveMaskView = rootView.findViewById(R.id.fab_active_mask);
+        mFloatingActionMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
+            @Override
+            public void onMenuToggle(boolean isOpen) {
+                // TODO: Animate this change with the buttons appearing for cleaner effect
+                if (isOpen) {
+                    mFloatingActionMenuActiveMaskView.setVisibility(View.VISIBLE);
+                } else {
+                    mFloatingActionMenuActiveMaskView.setVisibility(View.GONE);
+                }
+            }
+        });
 		return rootView;
 	}
 

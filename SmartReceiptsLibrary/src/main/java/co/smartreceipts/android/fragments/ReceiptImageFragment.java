@@ -14,9 +14,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -27,6 +31,8 @@ import java.io.File;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
@@ -47,9 +53,13 @@ public class ReceiptImageFragment extends WBFragment {
 
     private Receipt mCurrentReceipt;
     private String mReceiptPath;
+
     private PinchToZoomImageView mImageView;
     private LinearLayout mFooter;
     private ProgressBar mProgress;
+    private Toolbar mToolbar;
+
+    private NavigationHandler mNavigationHandler;
     private boolean mIsRotateOngoing;
     private Uri mImageUri;
 
@@ -66,16 +76,17 @@ public class ReceiptImageFragment extends WBFragment {
         super.onCreate(savedInstanceState);
         mCurrentReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mReceiptPath = mCurrentReceipt.getTrip().getDirectoryPath();
-        setHasOptionsMenu(true);
         mIsRotateOngoing = false;
+        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(getLayoutId(), container, false);
+        final View rootView = inflater.inflate(getLayoutId(), container, false);
         mImageView = (PinchToZoomImageView) rootView.findViewById(R.id.receiptimagefragment_imageview);
         mFooter = (LinearLayout) rootView.findViewById(R.id.footer);
         mProgress = (ProgressBar) rootView.findViewById(R.id.progress);
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
         LinearLayout rotateCCW = (LinearLayout) rootView.findViewById(R.id.rotate_ccw);
         LinearLayout retakePhoto = (LinearLayout) rootView.findViewById(R.id.retake_photo);
         LinearLayout rotateCW = (LinearLayout) rootView.findViewById(R.id.rotate_cw);
@@ -121,7 +132,7 @@ public class ReceiptImageFragment extends WBFragment {
     }
 
     public int getLayoutId() {
-        return R.layout.receiptimagefragment;
+        return R.layout.receipt_image_view;
     }
 
 
@@ -182,6 +193,30 @@ public class ReceiptImageFragment extends WBFragment {
                 Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
             }
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(mCurrentReceipt.getName());
+        }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            mNavigationHandler.navigateToReportInfoFragment(mCurrentReceipt.getTrip());
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

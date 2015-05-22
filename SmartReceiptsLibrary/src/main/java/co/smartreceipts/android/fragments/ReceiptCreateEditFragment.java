@@ -114,7 +114,7 @@ public class ReceiptCreateEditFragment extends WBFragment {
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mFile = (File) getArguments().getSerializable(ARG_FILE);
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         setHasOptionsMenu(true);
     }
 

@@ -29,6 +29,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
@@ -927,14 +928,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 		EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), mCurrentTrip);
 	}
 
-	private final void showImage(Receipt receipt) {
-		mNavigationHandler.navigateToViewReceiptImage(mCurrentTrip, receipt);
+	private void showImage(@NonNull Receipt receipt) {
+		mNavigationHandler.navigateToViewReceiptImage(receipt);
 	}
 
-	private final void showPDF(Receipt receipt) {
-		final Intent intent = new Intent(getActivity(), ReceiptPDFActivity.class);
-		intent.setData(Uri.fromFile(receipt.getPDF()));
-		startActivity(intent);
+	private void showPDF(@NonNull Receipt receipt) {
+		mNavigationHandler.navigateToViewReceiptPdf(receipt);
 	}
 
 	public final void deleteReceipt(final Receipt receipt) {

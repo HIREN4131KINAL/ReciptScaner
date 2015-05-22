@@ -1,5 +1,6 @@
 package co.smartreceipts.android.activities;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -7,6 +8,7 @@ import java.io.File;
 
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
+import co.smartreceipts.android.fragments.ReceiptPDFFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
@@ -55,10 +57,18 @@ public interface FragmentProvider {
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReceiptImageFragment} instance
      *
-     * @param trip the parent trip of the receipt
      * @param receipt the receipt to show the image for
      * @return a new instance of this fragment
      */
     @NonNull
-    ReceiptImageFragment newReceiptImageFragment(@NonNull Trip trip, @NonNull Receipt receipt);
+    ReceiptImageFragment newReceiptImageFragment(@NonNull Receipt receipt);
+
+    /**
+     * Creates a {@link co.smartreceipts.android.fragments.ReceiptPDFFragment} instance
+     *
+     * @param receipt the path to the pdf to load
+     * @return a new instance of this fragment
+     */
+    @NonNull
+    ReceiptPDFFragment newReceiptPdfFragment(@NonNull Receipt receipt);
 }

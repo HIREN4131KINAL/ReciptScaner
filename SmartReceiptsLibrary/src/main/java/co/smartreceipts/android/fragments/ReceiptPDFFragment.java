@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.model.Receipt;
 
 import com.artifex.mupdfdemo.FilePicker;
 import com.artifex.mupdfdemo.MuPDFCore;
@@ -22,25 +24,28 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
 	private MuPDFReaderView mReaderView;
 	private MuPDFCore mCore;
 	private MuPDFPageAdapter mAdapter;
+    private Receipt mReceipt;
 
-	public static ReceiptPDFFragment newInstance() {
-		return new ReceiptPDFFragment();
+	public static ReceiptPDFFragment newInstance(@NonNull Receipt receipt) {
+        final ReceiptPDFFragment fragment = new ReceiptPDFFragment();
+        final Bundle args = new Bundle();
+        args.putParcelable(Receipt.PARCEL_KEY, receipt);
+        fragment.setArguments(args);
+		return fragment;
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		final Uri uri = getActivity().getIntent().getData();
-		if (uri != null) {
+		mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
+		if (mReceipt.hasPDF()) {
 			//TODO: Off main thread - follow steps in example (might be okay actually, looks to be async behind the scenes)
 			try {
-				mCore = new MuPDFCore(getActivity(), uri.getPath());
+				mCore = new MuPDFCore(getActivity(), mReceipt.getFilePath());
 				mAdapter = new MuPDFPageAdapter(getActivity(), this, mCore);
 			} catch (Exception e) {
-				if (BuildConfig.DEBUG) {
-					Log.e(TAG, e.toString());
-				}
+                Log.e(TAG, e.toString());
 				Toast.makeText(getActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -56,9 +61,7 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
 			mReaderView.setAdapter(mAdapter);
 			return mReaderView;
 		} catch (Exception e) {
-			if (BuildConfig.DEBUG) {
-				Log.e(TAG, e.toString());
-			}
+            Log.e(TAG, e.toString());
 			Toast.makeText(getActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
 			return new View(getActivity());
 		}

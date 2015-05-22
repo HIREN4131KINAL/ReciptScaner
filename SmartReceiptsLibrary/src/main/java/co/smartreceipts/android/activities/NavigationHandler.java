@@ -58,9 +58,14 @@ public class NavigationHandler {
         replaceFragment(mFragmentProvider.newEditReceiptFragment(trip, receiptToEdit), R.id.content_list);
     }
 
-    public void navigateToViewReceiptImage(@NonNull Trip trip, @NonNull Receipt receipt) {
+    public void navigateToViewReceiptImage(@NonNull Receipt receipt) {
         // TODO: Determine what to do with tablets
-        replaceFragment(mFragmentProvider.newReceiptImageFragment(trip, receipt), R.id.content_list);
+        replaceFragment(mFragmentProvider.newReceiptImageFragment(receipt), R.id.content_list);
+    }
+
+    public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
+        // TODO: Determine what to do with tablets
+        replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_list);
     }
 
     public boolean isDualPane() {

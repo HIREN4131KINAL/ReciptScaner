@@ -1,6 +1,7 @@
 package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -94,15 +95,21 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void setUpActionBar11() {
         if (Utils.ApiHelper.hasHoneycomb()) {
-            getActionBar().setTitle(R.string.menu_main_settings);
-            getActionBar().setDisplayHomeAsUpEnabled(true);
+            final ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                getActionBar().setTitle(R.string.menu_main_settings);
+                getActionBar().setDisplayHomeAsUpEnabled(true);
+            }
         }
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private void setUpActionBar14() {
         if (Utils.ApiHelper.hasICS()) {
-            getActionBar().setHomeButtonEnabled(true);
+            final ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                getActionBar().setHomeButtonEnabled(true);
+            }
         }
     }
 

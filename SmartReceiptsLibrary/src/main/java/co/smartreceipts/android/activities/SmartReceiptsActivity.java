@@ -25,12 +25,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
     public static final int DIR = 0;
     public static final int NAME = 1;
 
-    // Action Send Extras
-    public static final String ACTION_SEND_URI = "actionSendUri";
-
-    // Receiver Settings
-    protected static final String FILTER_ACTION = "co.smartreceipts.android";
-
     // AppRating (Use a combination of launches and a timer for the app rating
     // to ensure that we aren't prompting new users too soon
     private static final int LAUNCHES_UNTIL_PROMPT = 30;

@@ -2,8 +2,12 @@ package co.smartreceipts.android.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -15,16 +19,22 @@ import com.artifex.mupdfdemo.MuPDFPageAdapter;
 import com.artifex.mupdfdemo.MuPDFReaderView;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.Receipt;
 
 public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePickerSupport {
 
     public static final String TAG = "ReceiptPDFFragment";
 
+    private Receipt mReceipt;
+
     private MuPDFReaderView mReaderView;
+    private Toolbar mToolbar;
+
     private MuPDFCore mCore;
     private MuPDFPageAdapter mAdapter;
-    private Receipt mReceipt;
+    private NavigationHandler mNavigationHandler;
 
     public static ReceiptPDFFragment newInstance(@NonNull Receipt receipt) {
         final ReceiptPDFFragment fragment = new ReceiptPDFFragment();
@@ -37,7 +47,6 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         if (mReceipt.hasPDF()) {
             try {
@@ -50,21 +59,45 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
         } else {
             Toast.makeText(getActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
         }
+        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.receipt_pdf_view, container, false);
         final FrameLayout pdfFrame = (FrameLayout) rootView.findViewById(R.id.pdf_frame);
-        try {
-            mReaderView = new MuPDFReaderView(getActivity()); //Can't inflate b/c this takes activity... rewrite this class?
-            mReaderView.setAdapter(mAdapter);
-            pdfFrame.addView(mReaderView);
-            return rootView;
-        } catch (Exception e) {
-            Log.e(TAG, e.toString());
-            Toast.makeText(getActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
-            return new View(getActivity());
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        if (mCore != null && mAdapter != null) {
+            try {
+                mReaderView = new MuPDFReaderView(getActivity()); //Can't inflate b/c this takes activity... rewrite this class?
+                mReaderView.setAdapter(mAdapter);
+                pdfFrame.addView(mReaderView);
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
+            }
+        }
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(mReceipt.getName());
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            mNavigationHandler.navigateToReportInfoFragment(mReceipt.getTrip());
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

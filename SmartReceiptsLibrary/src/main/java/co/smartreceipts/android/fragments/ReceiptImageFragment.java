@@ -51,7 +51,7 @@ public class ReceiptImageFragment extends WBFragment {
     // Settings
     private static final int FADE_IN_TIME = 75;
 
-    private Receipt mCurrentReceipt;
+    private Receipt mReceipt;
     private String mReceiptPath;
 
     private PinchToZoomImageView mImageView;
@@ -74,8 +74,8 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mCurrentReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
-        mReceiptPath = mCurrentReceipt.getTrip().getDirectoryPath();
+        mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
+        mReceiptPath = mReceipt.getTrip().getDirectoryPath();
         mIsRotateOngoing = false;
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
     }
@@ -103,18 +103,18 @@ public class ReceiptImageFragment extends WBFragment {
                 getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Retake_Photo");
                 if (getPersistenceManager().getPreferences().useNativeCamera()) {
                     final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    mImageUri = Uri.fromFile(new File(mReceiptPath, mCurrentReceipt.getImage().getName()));
+                    mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
                     startActivityForResult(intent, NATIVE_RETAKE_PHOTO_CAMERA_REQUEST);
                 } else {
                     if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
                         final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                        mImageUri = Uri.fromFile(new File(mReceiptPath, mCurrentReceipt.getImage().getName()));
+                        mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
                         startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
                     } else {
                         final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                        String[] strings = new String[]{mReceiptPath, mCurrentReceipt.getImage().getName()};
+                        String[] strings = new String[]{mReceiptPath, mReceipt.getImage().getName()};
                         intent.putExtra(MyCameraActivity.STRING_DATA, strings);
                         startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
                     }
@@ -139,9 +139,9 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         Log.d(TAG, "Result Code: " + resultCode);
-        if (mCurrentReceipt == null) {
-            mCurrentReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
-            mReceiptPath = mCurrentReceipt.getTrip().getDirectoryPath();
+        if (mReceipt == null) {
+            mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
+            mReceiptPath = mReceipt.getTrip().getDirectoryPath();
         }
 
         if (resultCode == Activity.RESULT_OK) { // -1
@@ -154,9 +154,9 @@ public class ReceiptImageFragment extends WBFragment {
             switch (requestCode) {
                 case NATIVE_RETAKE_PHOTO_CAMERA_REQUEST:
                 case RETAKE_PHOTO_CAMERA_REQUEST:
-                    final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, imgFile);
+                    final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mReceipt, imgFile);
                     if (retakeReceipt != null) {
-                        mImageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentReceipt.getImage().getAbsolutePath()));
+                        mImageView.setImageBitmap(BitmapFactory.decodeFile(mReceipt.getImage().getAbsolutePath()));
                     } else {
                         Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
                         // Add overwrite rollback here
@@ -174,9 +174,9 @@ public class ReceiptImageFragment extends WBFragment {
             switch (requestCode) {
                 case RETAKE_PHOTO_CAMERA_REQUEST:
                     File retakeImg = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-                    final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mCurrentReceipt, retakeImg);
+                    final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mReceipt, retakeImg);
                     if (retakeReceipt != null) {
-                        mImageView.setImageBitmap(BitmapFactory.decodeFile(mCurrentReceipt.getImage().getAbsolutePath()));
+                        mImageView.setImageBitmap(BitmapFactory.decodeFile(mReceipt.getImage().getAbsolutePath()));
                     } else {
                         Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
                         // Add overwrite rollback here
@@ -205,7 +205,7 @@ public class ReceiptImageFragment extends WBFragment {
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(mCurrentReceipt.getName());
+            actionBar.setTitle(mReceipt.getName());
         }
     }
 
@@ -213,7 +213,7 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            mNavigationHandler.navigateToReportInfoFragment(mCurrentReceipt.getTrip());
+            mNavigationHandler.navigateToReportInfoFragment(mReceipt.getTrip());
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -226,7 +226,7 @@ public class ReceiptImageFragment extends WBFragment {
         }
         mIsRotateOngoing = true;
         mProgress.setVisibility(View.VISIBLE);
-        (new ImageRotater(orientation, mCurrentReceipt.getImage())).execute();
+        (new ImageRotater(orientation, mReceipt.getImage())).execute();
     }
 
     private void onRotateComplete(boolean success) {

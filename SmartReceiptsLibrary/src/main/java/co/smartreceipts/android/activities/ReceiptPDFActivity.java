@@ -26,7 +26,7 @@ public class ReceiptPDFActivity extends WBActivity {
 		// to its container so we don't need to manually add it. For more information, see the Fragments API guide at:
 		// http://developer.android.com/guide/components/fragments.html
 		if (savedInstanceState == null) {
-			final ReceiptPDFFragment fragment = ReceiptPDFFragment.newInstance();
+			final ReceiptPDFFragment fragment = ReceiptPDFFragment.newInstance(null);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_list, fragment, ReceiptPDFFragment.TAG).commit();
 		}
 	}

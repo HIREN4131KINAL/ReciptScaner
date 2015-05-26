@@ -30,16 +30,9 @@ public class ReceiptImageActivity extends WBActivity {
 		if (savedInstanceState == null) {
 			// Create the detail fragment and add it to the activity using a fragment transaction.
 			final Intent intent = getIntent();
-			if (intent.hasExtra(Trip.PARCEL_KEY) && intent.hasExtra(Receipt.PARCEL_KEY)) {
-				Trip trip = (Trip) intent.getParcelableExtra(Trip.PARCEL_KEY);
-				Receipt receipt = (Receipt) intent.getParcelableExtra(Receipt.PARCEL_KEY);
-				final ReceiptImageFragment fragment = ReceiptImageFragment.newInstance(receipt, trip);
-				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, fragment, ReceiptImageFragment.TAG).commit();
-			}
-			else {
-				final ReceiptImageFragment fragment = ReceiptImageFragment.newInstance();
-				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, fragment, ReceiptImageFragment.TAG).commit();
-			}
+            final Receipt receipt = intent.getParcelableExtra(Receipt.PARCEL_KEY);
+            final ReceiptImageFragment fragment = ReceiptImageFragment.newInstance(receipt);
+            getSupportFragmentManager().beginTransaction().replace(R.id.content_list, fragment, ReceiptImageFragment.TAG).commit();
 		}
 	}
 

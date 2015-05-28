@@ -1,6 +1,7 @@
 package co.smartreceipts.android.activities;
 
 import android.content.Context;
+import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -17,6 +18,8 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 
 public class NavigationHandler {
+
+    private static final int NO_RES_ID = -1;
 
     private final FragmentManager mFragmentManager;
     private final FragmentProvider mFragmentProvider;
@@ -50,7 +53,7 @@ public class NavigationHandler {
 
     public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file) {
         // TODO: Determine what to do with tablets
-        replaceFragment(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list);
+        replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, R.anim.exit_to_top);
     }
 
     public void navigateToEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
@@ -77,10 +80,18 @@ public class NavigationHandler {
     }
 
     private void replaceFragment(@NonNull Fragment fragment, @IdRes int layoutResId) {
+        replaceFragmentWithAnimation(fragment, layoutResId, NO_RES_ID, NO_RES_ID);
+    }
+
+    private void replaceFragmentWithAnimation(@NonNull Fragment fragment, @IdRes int layoutResId, @AnimRes int enterAnimId, @AnimRes int exitAnimId) {
         final String backstackTag = fragment.getClass().getName();
         final boolean wasFragmentPopped = mFragmentManager.popBackStackImmediate(backstackTag, 0);
         if (!wasFragmentPopped) {
-            mFragmentManager.beginTransaction().replace(layoutResId, fragment).addToBackStack(backstackTag).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+            final FragmentTransaction transaction = mFragmentManager.beginTransaction();
+            if (enterAnimId >= 0 && exitAnimId >= 0) {
+                transaction.setCustomAnimations(enterAnimId, exitAnimId);
+            }
+            transaction.replace(layoutResId, fragment).addToBackStack(backstackTag).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
         }
     }
 }

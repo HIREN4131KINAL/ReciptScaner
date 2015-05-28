@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import wb.android.flex.Flex;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -39,6 +40,15 @@ public class WBFragment extends Fragment {
 		super.onDetach();
 		mApplication = null;
 	}
+
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+        if (getParentFragment() != null) {
+            getParentFragment().startActivityForResult(intent, requestCode);
+        } else {
+            super.startActivityForResult(intent, requestCode);
+        }
+    }
 
 	protected Flex getFlex() {
 		return getSmartReceiptsApplication().getFlex();

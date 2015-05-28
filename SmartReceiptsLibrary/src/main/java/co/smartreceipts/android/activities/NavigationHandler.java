@@ -3,7 +3,6 @@ package co.smartreceipts.android.activities;
 import android.content.Context;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -19,7 +18,8 @@ import co.smartreceipts.android.model.Trip;
 
 public class NavigationHandler {
 
-    private static final int NO_RES_ID = -1;
+    private static final int DO_NOT_ANIM = 0;
+    private static final int MISSING_RES_ID = -1;
 
     private final FragmentManager mFragmentManager;
     private final FragmentProvider mFragmentProvider;
@@ -53,7 +53,7 @@ public class NavigationHandler {
 
     public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file) {
         // TODO: Determine what to do with tablets
-        replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, R.anim.exit_to_top);
+        replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
     }
 
     public void navigateToEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
@@ -80,7 +80,7 @@ public class NavigationHandler {
     }
 
     private void replaceFragment(@NonNull Fragment fragment, @IdRes int layoutResId) {
-        replaceFragmentWithAnimation(fragment, layoutResId, NO_RES_ID, NO_RES_ID);
+        replaceFragmentWithAnimation(fragment, layoutResId, MISSING_RES_ID, MISSING_RES_ID);
     }
 
     private void replaceFragmentWithAnimation(@NonNull Fragment fragment, @IdRes int layoutResId, @AnimRes int enterAnimId, @AnimRes int exitAnimId) {

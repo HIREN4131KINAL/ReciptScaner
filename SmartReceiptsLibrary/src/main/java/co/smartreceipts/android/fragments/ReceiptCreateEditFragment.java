@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -43,7 +45,7 @@ import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
-public class ReceiptCreateEditFragment extends WBFragment {
+public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener {
 
     private static final String ARG_FILE = "arg_file";
 
@@ -68,6 +70,7 @@ public class ReceiptCreateEditFragment extends WBFragment {
     private EditText extra_edittext_box_3;
     private ViewGroup mPaymentMethodsContainer;
     private Toolbar mToolbar;
+    private View mFocusedView;
 
     // Misc
     private NavigationHandler mNavigationHandler;
@@ -145,6 +148,14 @@ public class ReceiptCreateEditFragment extends WBFragment {
         this.extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
         this.extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
         this.extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
+
+        // Set each focus listener, so we can track the focus view across resume -> pauses
+        this.nameBox.setOnFocusChangeListener(this);
+        this.priceBox.setOnFocusChangeListener(this);
+        this.taxBox.setOnFocusChangeListener(this);
+        this.currencySpinner.setOnFocusChangeListener(this);
+        this.dateBox.setOnFocusChangeListener(this);
+        this.commentBox.setOnFocusChangeListener(this);
     }
 
     @Override
@@ -198,8 +209,6 @@ public class ReceiptCreateEditFragment extends WBFragment {
         categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categoriesSpinner.setAdapter(categories);
 
-        // Focused View
-        View focusedView = nameBox;
 
         if (isNewReceipt) {
             if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
@@ -236,12 +245,16 @@ public class ReceiptCreateEditFragment extends WBFragment {
             Preferences preferences = getPersistenceManager().getPreferences();
             if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
                 categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, categories));
-                focusedView = priceBox;
+                if (mFocusedView == null) {
+                    mFocusedView = priceBox;
+                }
             } else if (preferences.matchCommentToCategory()) {
                 categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));
             } else if (preferences.matchNameToCategory()) {
                 categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
-                focusedView = priceBox;
+                if (mFocusedView == null) {
+                    mFocusedView = priceBox;
+                }
             }
             if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
                 if (mReceiptInputCache.getCachedCategory() == null) {
@@ -325,22 +338,34 @@ public class ReceiptCreateEditFragment extends WBFragment {
             }
         }
 
-        if (isNewReceipt) {
-            focusedView.setOnFocusChangeListener(new ShowSoftKeyboardOnFocusChangeListener(getActivity()));
+        // Focused View
+        if (mFocusedView == null) {
+            mFocusedView = nameBox;
         }
-        focusedView.requestFocus(); // Make sure we're focused on the right view
 
+        mFocusedView.requestFocus(); // Make sure we're focused on the right view
+
+        dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
     }
 
     @Override
     public void onPause() {
+        // Notify the downstream adapters
         if (mReceiptsNameAutoCompleteAdapter != null) {
             mReceiptsNameAutoCompleteAdapter.onPause();
         }
         if (mReceiptsCommentAutoCompleteAdapter != null) {
             mReceiptsCommentAutoCompleteAdapter.onPause();
+        }
+
+        // Dismiss the soft keyboard
+        if (mFocusedView != null) {
+            final InputMethodManager inputMethodManager = (InputMethodManager) mFocusedView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (inputMethodManager != null) {
+                inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
+            }
         }
         super.onPause();
     }
@@ -362,6 +387,15 @@ public class ReceiptCreateEditFragment extends WBFragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        mFocusedView = hasFocus ? v : null;
+        if (hasFocus && mReceipt == null) {
+            // Only launch if we have focus and it's a new receipt
+            new ShowSoftKeyboardOnFocusChangeListener().onFocusChange(v, hasFocus);
+        }
     }
 
     private void saveReceipt() {

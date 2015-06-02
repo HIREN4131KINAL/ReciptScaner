@@ -191,7 +191,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         getPersistenceManager().getDatabase().registerReceiptRowListener(this);
         getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
         if (mShowDialogOnResume) {
-            receiptMenu(mCurrentTrip, null, mImageFile);
+            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, mImageFile);
+            // receiptMenu(mCurrentTrip, null, mImageFile);
             mShowDialogOnResume = false;
         }
     }
@@ -268,7 +269,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
                 case NEW_RECEIPT_CAMERA_REQUEST:
                     if (this.isResumed()) {
-                        receiptMenu(mCurrentTrip, null, imgFile);
+                        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, imgFile);
+                        // receiptMenu(mCurrentTrip, null, imgFile);
                     } else {
                         mShowDialogOnResume = true;
                         mImageFile = imgFile;
@@ -298,7 +300,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 case NEW_RECEIPT_CAMERA_REQUEST:
                     File imgFile = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
                     if (this.isResumed()) {
-                        receiptMenu(mCurrentTrip, null, imgFile);
+                        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, imgFile);
+                        // receiptMenu(mCurrentTrip, null, imgFile);
                     } else {
                         mShowDialogOnResume = true;
                         mImageFile = imgFile;
@@ -372,6 +375,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, null);
     }
 
+    @Deprecated
     public final void receiptMenu(final Trip trip, final Receipt receipt, final File img) {
         final boolean newReceipt = (receipt == null);
         final View scrollView = getFlex().getView(getActivity(), R.layout.dialog_receiptmenu);
@@ -740,7 +744,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                     final String selection = receiptActions[item].toString();
                     if (selection == receiptActionEdit) { // Edit Receipt
                         getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Receipt");
-                        ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
+                        // ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
+                        mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
                     } else if (selection == receiptActionCamera) { // Take Photo
                         getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Take_Photo_For_Existing_Receipt");
                         File dir = mCurrentTrip.getDirectory();

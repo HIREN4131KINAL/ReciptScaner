@@ -43,10 +43,12 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         getPersistenceManager().getDatabase().registerDistanceRowListener(this);
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        if (savedInstanceState ==  null) {
+            getWorkerManager().getLogger().logEvent(this, "Edit_Mileage");
+        }
     }
 
 
@@ -59,6 +61,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
         view.findViewById(R.id.distance_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                getWorkerManager().getLogger().logEvent(DistanceFragment.this, "Add_Mileage");
                 final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
                 dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             }
@@ -76,11 +79,6 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     public void onResume() {
         super.onResume();
         getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_distance, menu);
     }
 
     @Override

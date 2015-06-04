@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -144,12 +145,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 } else if (id == R.id.receipt_action_text) {
                     getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Text_Receipt");
                     addTextReceipt();
-                } else if (id == R.id.receipt_action_distance) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Mileage");
-                    showMileage();
-                } else if (id == R.id.receipt_action_send) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Generate_Report");
-                    emailTrip();
                 }
             }
         };
@@ -161,9 +156,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             @Override
             public void onMenuToggle(boolean isOpen) {
                 // TODO: Animate this change with the buttons appearing for cleaner effect
+                final Context context = mFloatingActionMenuActiveMaskView.getContext();
                 if (isOpen) {
+                    mFloatingActionMenuActiveMaskView.startAnimation(AnimationUtils.loadAnimation(context, R.anim.out_from_bottom_right));
                     mFloatingActionMenuActiveMaskView.setVisibility(View.VISIBLE);
                 } else {
+                    mFloatingActionMenuActiveMaskView.startAnimation(AnimationUtils.loadAnimation(context, R.anim.in_to_bottom_right));
                     mFloatingActionMenuActiveMaskView.setVisibility(View.GONE);
                 }
             }
@@ -208,6 +206,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         if (mReceiptsCommentAutoCompleteAdapter != null) {
             mReceiptsCommentAutoCompleteAdapter.onPause();
         }
+        mFloatingActionMenu.close(false);
         getWorkerManager().getAdManager().onAdPaused(mAdView);
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
         super.onPause();

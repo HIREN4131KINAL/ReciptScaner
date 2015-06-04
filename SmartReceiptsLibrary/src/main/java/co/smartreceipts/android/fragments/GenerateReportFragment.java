@@ -54,6 +54,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
+        getWorkerManager().getLogger().logEvent(this, "Generate_Report");
         if (!mPdfFullCheckbox.isChecked() && !mPdfImagesCheckbox.isChecked() && !mCsvCheckbox.isChecked() && !mZipStampedImagesCheckbox.isChecked()) {
             Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
             return;

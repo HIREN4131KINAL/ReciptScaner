@@ -14,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -87,9 +88,11 @@ public class ReceiptImageFragment extends WBFragment {
         mFooter = (LinearLayout) rootView.findViewById(R.id.footer);
         mProgress = (ProgressBar) rootView.findViewById(R.id.progress);
         mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        LinearLayout rotateCCW = (LinearLayout) rootView.findViewById(R.id.rotate_ccw);
-        LinearLayout retakePhoto = (LinearLayout) rootView.findViewById(R.id.retake_photo);
-        LinearLayout rotateCW = (LinearLayout) rootView.findViewById(R.id.rotate_cw);
+
+        final LinearLayout rotateCCW = (LinearLayout) rootView.findViewById(R.id.rotate_ccw);
+        final LinearLayout retakePhoto = (LinearLayout) rootView.findViewById(R.id.retake_photo);
+        final LinearLayout rotateCW = (LinearLayout) rootView.findViewById(R.id.rotate_cw);
+
         rotateCCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,6 +132,12 @@ public class ReceiptImageFragment extends WBFragment {
             }
         });
         return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        new ImageLoader().execute(new File(mReceiptPath, mReceipt.getImage().getName()).getAbsolutePath());
     }
 
     public int getLayoutId() {

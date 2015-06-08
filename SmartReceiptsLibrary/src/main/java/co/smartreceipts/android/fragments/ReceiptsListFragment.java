@@ -80,6 +80,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
     private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
     private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
+    private static final int IMPORT_GALLERY_IMAGE = 5;
 
     // Preferences
     private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
@@ -145,6 +146,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 } else if (id == R.id.receipt_action_text) {
                     getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Text_Receipt");
                     addTextReceipt();
+                } else if (id == R.id.receipt_action_import) {
+                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Import from gallery");
+                    importReceipt();
                 }
             }
         };
@@ -256,7 +260,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
         if (resultCode == Activity.RESULT_OK) { // -1
             File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
-            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
+            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST || requestCode == IMPORT_GALLERY_IMAGE) {
                 final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
                 imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
             }
@@ -265,6 +269,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 return;
             }
             switch (requestCode) {
+                case IMPORT_GALLERY_IMAGE:
                 case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
                 case NEW_RECEIPT_CAMERA_REQUEST:
                     if (this.isResumed()) {
@@ -372,6 +377,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public final void addTextReceipt() {
         // receiptMenu(mCurrentTrip, null, null);
         mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, null);
+    }
+
+    private void importReceipt() {
+        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, IMPORT_GALLERY_IMAGE);
     }
 
     @Deprecated
@@ -669,13 +680,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         });
     }
 
-    public final void showMileage() {
-        final Intent intent = new Intent(getActivity(), DistanceActivity.class);
-        intent.putExtra(Trip.PARCEL_KEY, mCurrentTrip);
-        startActivity(intent);
-
-    }
-
     public final boolean editReceipt(final Receipt receipt) {
         mHighlightedReceipt = receipt;
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
@@ -941,7 +945,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        editReceipt(mAdapter.getItem(position));
+        // editReceipt(mAdapter.getItem(position));
+        mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, mAdapter.getItem(position));
     }
 
     @Override

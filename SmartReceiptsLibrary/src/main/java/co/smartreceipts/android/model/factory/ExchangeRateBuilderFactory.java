@@ -39,23 +39,22 @@ public final class ExchangeRateBuilderFactory implements BuilderFactory<Exchange
     }
 
     public ExchangeRateBuilderFactory setRate(@NonNull String currencyCode, double rate) {
-        _rates.put(currencyCode, rate);
+        if (rate > 0) {
+            _rates.put(currencyCode, rate);
+        }
         return this;
     }
 
     public ExchangeRateBuilderFactory setRate(@NonNull String currencyCode, @NonNull BigDecimal rate) {
-        _rates.put(currencyCode, rate.doubleValue());
-        return this;
+        return setRate(currencyCode, rate.doubleValue());
     }
 
     public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, double rate) {
-        _rates.put(currency.getCurrencyCode(), rate);
-        return this;
+        return setRate(currency.getCurrencyCode(), rate);
     }
 
     public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, @NonNull BigDecimal rate) {
-        _rates.put(currency.getCurrencyCode(), rate.doubleValue());
-        return this;
+        return setRate(currency.getCurrencyCode(), rate.doubleValue());
     }
 
     @Override

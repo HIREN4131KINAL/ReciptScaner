@@ -2,11 +2,15 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -20,22 +24,25 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
+    private final ExchangeRate mExchangeRate;
 
     /**
      * Default constructor
      *
-     * @param price    - the price as a {@link java.math.BigDecimal}
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
+     * @param price the price as a {@link java.math.BigDecimal}
+     * @param currency the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
      */
-    public LegacyTripPriceImpl(@NonNull BigDecimal price, WBCurrency currency) {
+    public LegacyTripPriceImpl(@NonNull BigDecimal price, @Nullable WBCurrency currency) {
         mPrice = price;
         mCurrency = currency;
+        mExchangeRate = new ExchangeRateBuilderFactory().build();
     }
 
-    private LegacyTripPriceImpl(Parcel in) {
+    private LegacyTripPriceImpl(@NonNull Parcel in) {
         mPrice = new BigDecimal(in.readFloat());
         final String currencyCode = in.readString();
         mCurrency = !TextUtils.isEmpty(currencyCode) ? WBCurrency.getInstance(currencyCode) : null;
+        mExchangeRate = new ExchangeRateBuilderFactory().build();
     }
 
     @Override
@@ -93,6 +100,12 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
         } else {
             return WBCurrency.MISSING_CURRENCY_CODE;
         }
+    }
+
+    @NonNull
+    @Override
+    public ExchangeRate getExchangeRate() {
+        return mExchangeRate;
     }
 
     @Override

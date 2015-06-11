@@ -10,9 +10,7 @@ import org.robolectric.annotation.Config;
 
 import java.math.BigDecimal;
 
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TestUtils;
@@ -23,25 +21,27 @@ import static org.junit.Assert.assertNotSame;
 
 @Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
-public class ImmutablePriceImplTest {
+public class ImmutableLegacyNetPriceImplTest {
+
+    private static final WBCurrency BASE_CURRENCY = WBCurrency.getInstance("EUR");
 
     ImmutablePriceImpl price1, price2, price3;
     BigDecimal bigDecimal1, bigDecimal2, bigDecimal3;
     WBCurrency currency1, currency2, currency3;
-    ExchangeRate exchangeRate;
+    ExchangeRate exchangeRate1, exchangeRate2, exchangeRate3;
 
     @Before
     public void setUp() throws Exception {
+
         currency1 = ReceiptUtils.Constants.CURRENCY;
         currency2 = ReceiptUtils.Constants.CURRENCY;
         currency3 = ReceiptUtils.Constants.CURRENCY;
         bigDecimal1 = new BigDecimal(ReceiptUtils.Constants.PRICE);
         bigDecimal2 = new BigDecimal(ReceiptUtils.Constants.PRICE);
         bigDecimal3 = new BigDecimal(-1*ReceiptUtils.Constants.PRICE); // Note the negative here
-        exchangeRate =  new ExchangeRateBuilderFactory().build();
-        price1 = new ImmutablePriceImpl(bigDecimal1, currency1, exchangeRate);
-        price2 = new ImmutablePriceImpl(bigDecimal2, currency2, exchangeRate);
-        price3 = new ImmutablePriceImpl(bigDecimal3, currency3, exchangeRate);
+        // price1 = new ImmutablePriceImpl(bigDecimal1, currency1);
+        // price2 = new ImmutablePriceImpl(bigDecimal2, currency2);
+        // price3 = new ImmutablePriceImpl(bigDecimal3, currency3);
     }
 
     @Test
@@ -72,11 +72,6 @@ public class ImmutablePriceImplTest {
     @Test
     public void testGetCurrencyFormattedPrice() {
         assertEquals(ReceiptUtils.Constants.CURRENCY_FORMATTED_PRICE, price1.getCurrencyFormattedPrice());
-    }
-
-    @Test
-    public void testGetExchangeRate() {
-        assertEquals(exchangeRate, price1.getExchangeRate());
     }
 
     @Test

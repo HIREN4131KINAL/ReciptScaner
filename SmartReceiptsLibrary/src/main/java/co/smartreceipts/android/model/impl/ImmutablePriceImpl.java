@@ -3,9 +3,11 @@ package co.smartreceipts.android.model.impl;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -17,15 +19,18 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
+    private final ExchangeRate mExchangeRate;
 
-    public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull WBCurrency currency) {
+    public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull WBCurrency currency, @NonNull ExchangeRate exchangeRate) {
         mPrice = price;
         mCurrency = currency;
+        mExchangeRate = exchangeRate;
     }
 
-    private ImmutablePriceImpl(Parcel in) {
+    private ImmutablePriceImpl(@NonNull Parcel in) {
         this.mPrice = new BigDecimal(in.readFloat());
         this.mCurrency = WBCurrency.getInstance(in.readString());
+        this.mExchangeRate = (ExchangeRate) in.readSerializable();
     }
 
     @Override
@@ -69,6 +74,12 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
         return mCurrency.getCurrencyCode();
     }
 
+    @NonNull
+    @Override
+    public ExchangeRate getExchangeRate() {
+        return mExchangeRate;
+    }
+
     @Override
     public String toString() {
         return getCurrencyFormattedPrice();
@@ -83,6 +94,7 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeFloat(getPriceAsFloat());
         dest.writeString(getCurrencyCode());
+        dest.writeSerializable(mExchangeRate);
     }
 
     public static final Creator<ImmutablePriceImpl> CREATOR = new Creator<ImmutablePriceImpl>() {

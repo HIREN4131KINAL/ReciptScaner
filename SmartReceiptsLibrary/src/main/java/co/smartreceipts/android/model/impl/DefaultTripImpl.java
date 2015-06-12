@@ -31,7 +31,7 @@ public class DefaultTripImpl implements Trip {
     private Source mSource;
     private Filter<Receipt> mFilter;
 
-    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
+    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, @NonNull WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
         mReportDirectory = directory;
         mStartDate = startDate;
         mStartTimeZone = startTimeZone;
@@ -153,6 +153,7 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
+    @NonNull
     public WBCurrency getDefaultCurrency() {
         return mDefaultCurrency;
     }

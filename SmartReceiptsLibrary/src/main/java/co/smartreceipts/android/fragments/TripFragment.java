@@ -1,5 +1,18 @@
 package co.smartreceipts.android.fragments;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import co.smartreceipts.android.apis.ExchangeRateService;
+import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.gson.ExchangeRate;
+import retrofit.RestAdapter;
+import wb.android.async.BooleanTaskCompleteDelegate;
+import wb.android.autocomplete.AutoCompleteAdapter;
+import wb.android.dialog.BetterDialogBuilder;
+import wb.android.dialog.LongLivedOnClickListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;

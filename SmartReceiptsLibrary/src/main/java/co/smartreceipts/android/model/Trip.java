@@ -124,6 +124,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return - the default {@link co.smartreceipts.android.model.WBCurrency} currency representation
      */
+    @NonNull
     WBCurrency getDefaultCurrency();
 
     /**

@@ -16,6 +16,7 @@ import co.smartreceipts.android.model.impl.ImmutableLegacyNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
 import co.smartreceipts.android.model.impl.LegacyTripPriceImpl;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * A {@link co.smartreceipts.android.model.Price} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -36,7 +37,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     }
 
     public PriceBuilderFactory setPrice(String price) {
-        mPriceDecimal = tryParse(price);
+        mPriceDecimal = ModelUtils.tryParse(price);
         return this;
     }
 
@@ -115,18 +116,4 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         }
     }
 
-    private BigDecimal tryParse(@Nullable String number) {
-        return tryParse(number, new BigDecimal(0));
-    }
-
-    private BigDecimal tryParse(@Nullable String number, @Nullable BigDecimal defaultValue) {
-        if (TextUtils.isEmpty(number)) {
-            return defaultValue;
-        }
-        try {
-            return new BigDecimal(number.replace(",", "."));
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
 }

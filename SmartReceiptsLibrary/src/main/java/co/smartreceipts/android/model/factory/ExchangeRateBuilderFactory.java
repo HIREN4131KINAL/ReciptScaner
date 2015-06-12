@@ -14,6 +14,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * A {@link co.smartreceipts.android.model.gson.ExchangeRate} {@link BuilderFactory}
@@ -49,12 +50,20 @@ public final class ExchangeRateBuilderFactory implements BuilderFactory<Exchange
         return setRate(currencyCode, rate.doubleValue());
     }
 
+    public ExchangeRateBuilderFactory setRate(@NonNull String currencyCode, @NonNull String rateString) {
+        return setRate(currencyCode, ModelUtils.tryParse(rateString, new BigDecimal(-1)));
+    }
+
     public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, double rate) {
         return setRate(currency.getCurrencyCode(), rate);
     }
 
     public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, @NonNull BigDecimal rate) {
         return setRate(currency.getCurrencyCode(), rate.doubleValue());
+    }
+
+    public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, @NonNull String rateString) {
+        return setRate(currency.getCurrencyCode(), ModelUtils.tryParse(rateString, new BigDecimal(-1)));
     }
 
     @Override

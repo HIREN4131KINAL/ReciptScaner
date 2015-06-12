@@ -40,10 +40,12 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
@@ -224,6 +226,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_CATEGORY = "category";
         public static final String COLUMN_PRICE = "price";
         public static final String COLUMN_TAX = "tax";
+        public static final String COLUMN_EXCHANGE_RATE = "exchange_rate";
         public static final String COLUMN_DATE = "rcpt_date";
         public static final String COLUMN_TIMEZONE = "timezone";
         public static final String COLUMN_COMMENT = "comment";
@@ -368,6 +371,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
                     + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
                     + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
+                    + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
                     + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
                     + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
                     + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
@@ -599,6 +603,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db.execSQL(alterTripsWithCostCenter);
                 db.execSQL(alterTripsWithProcessingStatus);
                 db.execSQL(alterReceiptsWithProcessingStatus);
+            }
+            if (oldVersion <= 13) {
+                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00";
+                Log.d(TAG, alterReceipts);
+                db.execSQL(alterReceipts);
             }
             _initDB = null;
         }
@@ -1907,6 +1916,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     final int categoryIndex = c.getColumnIndex(ReceiptsTable.COLUMN_CATEGORY);
                     final int priceIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PRICE);
                     final int taxIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TAX);
+                    final int exchangeRateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXCHANGE_RATE);
                     final int dateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_DATE);
                     final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
                     final int commentIndex = c.getColumnIndex(ReceiptsTable.COLUMN_COMMENT);
@@ -1924,8 +1934,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final String category = c.getString(categoryIndex);
                         final double priceDouble = c.getDouble(priceIndex);
                         final double taxDouble = c.getDouble(taxIndex);
+                        final double exchangeRateDouble = c.getDouble(exchangeRateIndex);
                         final String priceString = c.getString(priceIndex);
                         final String taxString = c.getString(taxIndex);
+                        final String exchangeRateString = c.getString(exchangeRateIndex);
                         final long date = c.getLong(dateIndex);
                         final String timezone = (timeZoneIndex > 0) ? c.getString(timeZoneIndex) : null;
                         final String comment = c.getString(commentIndex);
@@ -1961,6 +1973,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         } else {
                             builder.setTax(taxDouble);
                         }
+                        final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(trip.getDefaultCurrency());
+                        if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
+                            exchangeRateBuilder.setRate(currency, exchangeRateString);
+                        } else {
+                            exchangeRateBuilder.setRate(currency, exchangeRateDouble);
+                        }
+                        builder.setExchangeRate(exchangeRateBuilder.build());
                         receipts.add(builder.build());
                     }
                     while (c.moveToNext());
@@ -2028,6 +2047,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     final int categoryIndex = c.getColumnIndex(ReceiptsTable.COLUMN_CATEGORY);
                     final int priceIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PRICE);
                     final int taxIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TAX);
+                    final int exchangeRateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXCHANGE_RATE);
                     final int dateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_DATE);
                     final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
                     final int commentIndex = c.getColumnIndex(ReceiptsTable.COLUMN_COMMENT);
@@ -2042,8 +2062,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     final String parent = c.getString(parentIndex);
                     final String name = c.getString(nameIndex);
                     final String category = c.getString(categoryIndex);
-                    final String price = c.getString(priceIndex);
-                    final String tax = c.getString(taxIndex);
+                    final double priceDouble = c.getDouble(priceIndex);
+                    final double taxDouble = c.getDouble(taxIndex);
+                    final double exchangeRateDouble = c.getDouble(exchangeRateIndex);
+                    final String priceString = c.getString(priceIndex);
+                    final String taxString = c.getString(taxIndex);
+                    final String exchangeRateString = c.getString(exchangeRateIndex);
                     final long date = c.getLong(dateIndex);
                     final String timezone = c.getString(timeZoneIndex);
                     final String comment = c.getString(commentIndex);
@@ -2060,7 +2084,35 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         img = storageManager.getFile(storageManager.getFile(parent), path);
                     }
                     final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
-                    return builder.setTrip(getTripByName(parent)).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
+                    final Trip trip = getTripByName(parent);
+                    builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+                    /**
+                     * Please note that a very frustrating bug exists here. Android cursors only return the first 6
+                     * characters of a price string if that string contains a '.' character. It returns all of them
+                     * if not. This means we'll break for prices over 5 digits unless we are using a comma separator,
+                     * which we'd do in the EU. Stupid check below to un-break this. Stupid Android.
+                     *
+                     * TODO: Longer term, everything should be saved with a decimal point
+                     * https://code.google.com/p/android/issues/detail?id=22219
+                     */
+                    if (!TextUtils.isEmpty(priceString) && priceString.contains(",")) {
+                        builder.setPrice(priceString);
+                    } else {
+                        builder.setPrice(priceDouble);
+                    }
+                    if (!TextUtils.isEmpty(taxString) && taxString.contains(",")) {
+                        builder.setTax(taxString);
+                    } else {
+                        builder.setTax(taxDouble);
+                    }
+                    final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(trip.getDefaultCurrency());
+                    if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
+                        exchangeRateBuilder.setRate(currency, exchangeRateString);
+                    } else {
+                        exchangeRateBuilder.setRate(currency, exchangeRateDouble);
+                    }
+                    builder.setExchangeRate(exchangeRateBuilder.build());
+                    return builder.build();
                 } else {
                     return null;
                 }

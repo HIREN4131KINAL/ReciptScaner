@@ -62,7 +62,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     // Database Info
     public static final String DATABASE_NAME = "receipts.db";
-    private static final int DATABASE_VERSION = 13;
+    private static final int DATABASE_VERSION = 14;
     public static final String NO_DATA = "null"; // TODO: Just set to null
     static final String MULTI_CURRENCY = "XXXXXX";
 

@@ -39,6 +39,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
@@ -59,6 +60,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private EditText priceBox;
     private AutoCompleteTextView taxBox;
     private Spinner currencySpinner;
+    private EditText exchangeRateBox;
     private DateEditText dateBox;
     private AutoCompleteTextView commentBox;
     private Spinner categoriesSpinner;
@@ -69,6 +71,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private EditText extra_edittext_box_2;
     private EditText extra_edittext_box_3;
     private ViewGroup mPaymentMethodsContainer;
+    private ViewGroup mExchangeRateContainer;
     private Toolbar mToolbar;
     private View mFocusedView;
 
@@ -134,6 +137,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.priceBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
         this.taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);
         this.currencySpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
+        this.exchangeRateBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXCHANGE_RATE);
+        mExchangeRateContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.exchange_rate_container);
         this.dateBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
         this.commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
         this.categoriesSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
@@ -303,10 +308,21 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             categoriesSpinner.setSelection(categories.getPosition(mReceipt.getCategory()));
             commentBox.setText(mReceipt.getComment());
             taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());
+            final ExchangeRate exchangeRate = mReceipt.getPrice().getExchangeRate();
+            if (exchangeRate.supportsExchangeRateFor(mTrip.getDefaultCurrencyCode())) {
+                exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(mTrip.getDefaultCurrencyCode()));
+            }
+
 
             int idx = currenices.getPosition(mReceipt.getPrice().getCurrencyCode());
             if (idx > 0) {
                 currencySpinner.setSelection(idx);
+            }
+
+            if (mReceipt.getPrice().getCurrency().equals(mTrip.getPrice().getCurrency())) {
+                mExchangeRateContainer.setVisibility(View.GONE);
+            } else {
+                mExchangeRateContainer.setVisibility(View.VISIBLE);
             }
 
             expensable.setChecked(mReceipt.isExpensable());
@@ -348,6 +364,22 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (currenices.getItem(position).equals(mTrip.getDefaultCurrencyCode())) {
+                    mExchangeRateContainer.setVisibility(View.GONE);
+                } else {
+                    mExchangeRateContainer.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Intentional no-op
+            }
+        });
+
     }
 
     @Override

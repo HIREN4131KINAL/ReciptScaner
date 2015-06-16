@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * <p>
@@ -80,7 +81,7 @@ public class ExchangeRate implements Serializable {
             return false;
         } else {
             if (rates.containsKey(currencyCode)) {
-                return true;
+                return rates.get(currencyCode) > 0;
             } else {
                 return false;
             }
@@ -115,6 +116,38 @@ public class ExchangeRate implements Serializable {
             return new BigDecimal(rates.get(exchangeCurrencyCode));
         } else {
             return null;
+        }
+    }
+
+    /**
+     A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
+     * showing naively as "25.2"
+     *
+     * @param exchangeCurrency the {@link co.smartreceipts.android.model.WBCurrency} to exchange to
+     * @return the decimal exchange rate or an empty string if we did not define one for this currency
+     */
+    @NonNull
+    public String getDecimalFormattedExchangeRate(@NonNull WBCurrency exchangeCurrency) {
+        return getDecimalFormattedExchangeRate(exchangeCurrency.getCurrencyCode());
+    }
+
+    /**
+     * Gets the exchange rate from the base currency to a currency of your choice
+     *
+     * @param exchangeCurrencyCode the currency code (e.g. "USD") to exchange to
+     * @return the exchange rate or {@code null} if we did not define one for this currency code. If the
+     * desired currency is the same as base currency, the "1" will be returned.
+     */
+    @NonNull
+    public String getDecimalFormattedExchangeRate(@NonNull String exchangeCurrencyCode) {
+        if (exchangeCurrencyCode.equalsIgnoreCase(base)) {
+            // We always support same currency exchange (i.e. "USD" -> "USD")
+            return ModelUtils.getDecimalFormattedValue(new BigDecimal(1));
+        }
+        if (supportsExchangeRateFor(exchangeCurrencyCode)) {
+            return ModelUtils.getDecimalFormattedValue(new BigDecimal(rates.get(exchangeCurrencyCode)));
+        } else {
+            return "";
         }
     }
 

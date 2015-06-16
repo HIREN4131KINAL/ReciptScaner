@@ -63,6 +63,24 @@
                     android:layout_weight=".25" />
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/exchange_rate_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/default_input_row_size"
+                android:layout_marginTop="@dimen/input_item_top_margin"
+                android:visibility="gone" >
+                <ImageView style="@style/Widget.SmartReceipts.GuideImage"
+                    android:src="@drawable/ic_exchange_rate" />
+                <EditText
+                    android:id="@+id/DIALOG_RECEIPTMENU_EXCHANGE_RATE"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:hint="@string/DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE"
+                    android:inputType="number|numberSigned|numberDecimal"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
+            </LinearLayout>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="@dimen/default_input_row_size"

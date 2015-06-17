@@ -615,7 +615,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
                 if (newReceipt) {// Insert
                     getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Insert_Receipt");
-                    getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+                    // getPersistenceManager().getDatabase().insertReceiptParallel(trip, img, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
                     getDateManager().setDateEditTextListenerDialogHolder(null);
                     dialog.cancel();
                 } else { // Update
@@ -623,7 +623,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                         price = "0";
                     }
                     getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Update_Receipt");
-                    getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+                    // getPersistenceManager().getDatabase().updateReceiptParallel(receipt, trip, name, category, (dateBox.date == null) ? receipt.getDate() : dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
                     getDateManager().setDateEditTextListenerDialogHolder(null);
                     dialog.cancel();
                 }

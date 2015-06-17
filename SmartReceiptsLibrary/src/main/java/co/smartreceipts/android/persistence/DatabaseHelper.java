@@ -2186,6 +2186,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             final Integer integer = null;
             values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
         }
+        values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, receipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(receipt.getTrip().getDefaultCurrencyCode()).replace(",", "."));
 
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
@@ -2279,7 +2280,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         ContentValues values = new ContentValues(10);
         values.put(ReceiptsTable.COLUMN_NAME, updatedReceipt.getName().trim());
 
-        TimeZone timeZone = oldReceipt.getTimeZone();
         if (!updatedReceipt.getDate().equals(oldReceipt.getDate())) { // Update the timezone if the date changes
             values.put(ReceiptsTable.COLUMN_TIMEZONE, updatedReceipt.getTimeZone().getID());
         }
@@ -2309,6 +2309,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             final Integer integer = null;
             values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
         }
+        values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, updatedReceipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(updatedReceipt.getTrip().getDefaultCurrencyCode()).replace(",", "."));
 
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, updatedReceipt.getExtraEditText1());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, updatedReceipt.getExtraEditText2());

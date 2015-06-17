@@ -24,7 +24,6 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public final class PriceBuilderFactory implements BuilderFactory<Price> {
 
-    private Price mPrice;
     private BigDecimal mPriceDecimal;
     private ExchangeRate mExchangeRate;
     private WBCurrency mCurrency;
@@ -32,7 +31,9 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     private List<Price> mPrices;
 
     public PriceBuilderFactory setPrice(Price price) {
-        mPrice = price;
+        mPriceDecimal = price.getPrice();
+        mCurrency = price.getCurrency();
+        mExchangeRate = price.getExchangeRate();
         return this;
     }
 
@@ -79,10 +80,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     @NonNull
     @Override
     public Price build() {
-        if (mPrice != null) {
-            return mPrice;
-        }
-        else if (mPrices != null && !mPrices.isEmpty()) {
+        if (mPrices != null && !mPrices.isEmpty()) {
             if (mCurrency != null) {
                 return new ImmutableNetPriceImpl(mCurrency, mPrices);
             } else {

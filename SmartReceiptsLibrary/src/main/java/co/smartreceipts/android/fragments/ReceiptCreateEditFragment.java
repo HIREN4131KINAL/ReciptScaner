@@ -39,6 +39,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
@@ -434,21 +435,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         final String name = nameBox.getText().toString();
         final String category = categoriesSpinner.getSelectedItem().toString();
         final String currency = currencySpinner.getSelectedItem().toString();
-        final String comment = commentBox.getText().toString();
-        final String extra_edittext_1 = (extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString();
-        final String extra_edittext_2 = (extra_edittext_box_2 == null) ? null : extra_edittext_box_2.getText().toString();
-        final String extra_edittext_3 = (extra_edittext_box_3 == null) ? null : extra_edittext_box_3.getText().toString();
-        final PaymentMethod paymentMethod = (PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null);
-
-        String price = priceBox.getText().toString();
-        String tax = taxBox.getText().toString();
-
-        if (TextUtils.isEmpty(price)) {
-            price = "0";
-        }
-        if (TextUtils.isEmpty(tax)) {
-            tax = "0";
-        }
 
         if (name.length() == 0) {
             Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
@@ -472,7 +458,26 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         final boolean isNewReceipt = mReceipt == null;
+
+        final ReceiptBuilderFactory builderFactory = (isNewReceipt) ? new ReceiptBuilderFactory(-1) : new ReceiptBuilderFactory(mReceipt);
+        builderFactory.setName(name);
+        builderFactory.setTrip(mTrip);
+        builderFactory.setDate((Date) dateBox.date.clone());
+        builderFactory.setPrice(priceBox.getText().toString());
+        builderFactory.setTax(taxBox.getText().toString());
+        builderFactory.setCategory(category);
+        builderFactory.setCurrency(currency);
+        builderFactory.setComment(commentBox.getText().toString());
+        builderFactory.setPaymentMethod((PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null));
+        builderFactory.setIsExpenseable(expensable.isChecked());
+        builderFactory.setIsFullPage(fullpage.isChecked());
+        builderFactory.setExtraEditText1((extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString());
+        builderFactory.setExtraEditText2((extra_edittext_box_2 == null) ? null : extra_edittext_box_2.getText().toString());
+        builderFactory.setExtraEditText3((extra_edittext_box_3 == null) ? null : extra_edittext_box_3.getText().toString());
+
+
         if (isNewReceipt) {
+            builderFactory.setFile(mFile);
             getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Insert_Receipt");
             getPersistenceManager().getDatabase().insertReceiptParallel(mTrip, mFile, name, category, dateBox.date, comment, price, tax, expensable.isChecked(), currency, fullpage.isChecked(), paymentMethod, extra_edittext_1, extra_edittext_2, extra_edittext_3);
             getDateManager().setDateEditTextListenerDialogHolder(null);

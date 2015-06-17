@@ -2129,113 +2129,72 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public Receipt insertReceiptSerial(Trip parent, Receipt receipt, File newFile) throws SQLException {
-        return insertReceiptHelper(parent, newFile, receipt.getName(), receipt.getCategory(), receipt.getDate(), receipt.getTimeZone(), receipt.getComment(), receipt.getPrice().getDecimalFormattedPrice(), receipt.getTax().getDecimalFormattedPrice(), receipt.isExpensable(), receipt.getPrice().getCurrencyCode(), receipt.isFullPage(), receipt.getPaymentMethod(), receipt.getExtraEditText1(), receipt.getExtraEditText2(), receipt.getExtraEditText3());
+        receipt.setFile(newFile);
+        return insertReceiptHelper(receipt);
     }
 
-    public Receipt insertReceiptSerial(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                       String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
-
-        return insertReceiptHelper(trip, img, name, category, date, null, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
-    }
-
-    public void insertReceiptParallel(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                      String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+    public void insertReceiptParallel(@NonNull Receipt receipt) {
         if (mReceiptRowListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowListener was registered.");
-            }
+            Log.e(TAG, "No ReceiptRowListener was registered.");
         }
-        (new InsertReceiptWorker(trip, img, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
+        new InsertReceiptWorker(receipt).execute();
     }
 
-    private Receipt insertReceiptHelper(Trip trip, File img, String name, String category, Date date, TimeZone timeZone, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage,
-                                        PaymentMethod method, String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) throws SQLException {
+    private Receipt insertReceiptHelper(@NonNull Receipt receipt) throws SQLException {
 
-        final int rcptNum = this.getReceiptsSerial(trip).size() + 1; // Use this to order things more properly
-        StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
-        ContentValues values = new ContentValues(10);
+        final int rcptNum = this.getReceiptsSerial(receipt.getTrip()).size() + 1; // Use this to order things more properly
+        final StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
+        final ContentValues values = new ContentValues(20);
 
-        values.put(ReceiptsTable.COLUMN_PARENT, trip.getName());
-        if (name.length() > 0) {
-            stringBuilder.append(name.trim());
-            values.put(ReceiptsTable.COLUMN_NAME, name.trim());
+        values.put(ReceiptsTable.COLUMN_PARENT, receipt.getTrip().getName());
+        if (receipt.getName().length() > 0) {
+            stringBuilder.append(receipt.getName().trim());
+            values.put(ReceiptsTable.COLUMN_NAME, receipt.getName().trim());
         }
-        values.put(ReceiptsTable.COLUMN_CATEGORY, category);
-        if (date == null) {
-            if (mNow == null) {
-                mNow = new Time();
+        values.put(ReceiptsTable.COLUMN_CATEGORY, receipt.getCategory());
+
+        // In theory, this hack may cause issue if there are > 1000 receipts. I imagine other bugs will arise before this point
+        values.put(ReceiptsTable.COLUMN_DATE, receipt.getDate().getTime() + rcptNum);
+
+        values.put(ReceiptsTable.COLUMN_TIMEZONE, receipt.getTimeZone().getID());
+        values.put(ReceiptsTable.COLUMN_COMMENT, receipt.getComment());
+        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, receipt.isExpensable());
+        values.put(ReceiptsTable.COLUMN_ISO4217, receipt.getPrice().getCurrencyCode());
+        values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !receipt.isFullPage());
+        if (receipt.getPrice().getDecimalFormattedPrice().length() > 0) {
+            values.put(ReceiptsTable.COLUMN_PRICE, receipt.getPrice().getDecimalFormattedPrice().replace(",", "."));
+        }
+        if (receipt.getTax().getDecimalFormattedPrice().length() > 0) {
+            values.put(ReceiptsTable.COLUMN_TAX, receipt.getTax().getDecimalFormattedPrice().replace(",", "."));
+        }
+
+        File file = receipt.getFile();
+        if (file != null) {
+            stringBuilder.append('.').append(StorageManager.getExtension(receipt.getFile()));
+            final String newName = stringBuilder.toString();
+            File renamedFile = mPersistenceManager.getStorageManager().getFile(receipt.getTrip().getDirectory(), newName);
+            if (!renamedFile.exists()) { // If this file doesn't exist, let's rename our current one
+                Log.e(TAG, "Changing image name from: " + receipt.getFile().getName() + " to: " + newName);
+                file = mPersistenceManager.getStorageManager().rename(file, newName); // Returns oldFile on failure
             }
-            mNow.setToNow();
-            values.put(ReceiptsTable.COLUMN_DATE, mNow.toMillis(false));
-        } else {
-            values.put(ReceiptsTable.COLUMN_DATE, date.getTime() + rcptNum); // In theory, this hack may cause issue if
-            // there are > 1000 receipts. I imagine
-            // other bugs will arise before this
-            // point
-        }
-        if (timeZone == null) {
-            timeZone = TimeZone.getDefault();
-            values.put(ReceiptsTable.COLUMN_TIMEZONE, TimeZone.getDefault().getID());
-        } else {
-            values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone.getID());
-        }
-        values.put(ReceiptsTable.COLUMN_COMMENT, comment);
-        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
-        values.put(ReceiptsTable.COLUMN_ISO4217, currency);
-        values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
-        if (price.length() > 0) {
-            values.put(ReceiptsTable.COLUMN_PRICE, price.replace(",", "."));
-        }
-        if (tax.length() > 0) {
-            values.put(ReceiptsTable.COLUMN_TAX, tax.replace(",", "."));
-            // Extras
+            values.put(ReceiptsTable.COLUMN_PATH, file.getName());
         }
 
-        if (img == null) {
-            values.put(ReceiptsTable.COLUMN_PATH, NO_DATA);
-        } else {
-            stringBuilder.append('.').append(StorageManager.getExtension(img));
-            String newName = stringBuilder.toString();
-            File file = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), newName);
-            if (!file.exists()) { // If this file doesn't exist, let's rename our current one
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "Changing image name from: " + img.getName() + " to: " + newName);
-                }
-                img = mPersistenceManager.getStorageManager().rename(img, newName); // Returns oldFile on failure
-            }
-            values.put(ReceiptsTable.COLUMN_PATH, img.getName());
-        }
-
-        if (method != null) {
-            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, method.getId());
+        if (receipt.getPaymentMethod() != null) {
+            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, receipt.getPaymentMethod().getId());
         } else {
             final Integer integer = null;
             values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
         }
 
-        if (extra_edittext_1 == null) {
+        if (receipt.hasExtraEditText1()) {
             values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
-        } else {
-            if (extra_edittext_1.equalsIgnoreCase("null")) {
-                extra_edittext_1 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
         }
-        if (extra_edittext_2 == null) {
+        if (receipt.hasExtraEditText2()) {
             values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NO_DATA);
-        } else {
-            if (extra_edittext_2.equalsIgnoreCase("null")) {
-                extra_edittext_2 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
         }
-        if (extra_edittext_3 == null) {
+        if (receipt.hasExtraEditText3()) {
             values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NO_DATA);
-        } else {
-            if (extra_edittext_3.equalsIgnoreCase("null")) {
-                extra_edittext_3 = ""; // I don't know why I hard-coded null here -- NO_DATA = "null"
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
         }
 
         Receipt insertReceipt;
@@ -2247,16 +2206,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1) {
                     insertReceipt = null;
                 } else {
-                    this.updateTripPrice(trip);
-                    if (mReceiptCache.containsKey(trip)) {
-                        mReceiptCache.remove(trip);
+                    this.updateTripPrice(receipt.getTrip());
+                    if (mReceiptCache.containsKey(receipt.getTrip())) {
+                        mReceiptCache.remove(receipt.getTrip());
                     }
                     c = db.rawQuery("SELECT last_insert_rowid()", null);
                     if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
                         final int id = c.getInt(0);
-                        date.setTime(date.getTime() + rcptNum);
-                        final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
-                        insertReceipt = builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timeZone).setComment(comment).setPrice(price).setTax(tax).setIndex(rcptNum).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(method).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
+                        final Date newDate = new Date(values.getAsLong(ReceiptsTable.COLUMN_DATE));
+                        final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id, receipt);
+                        insertReceipt = builder.setDate(newDate).setFile(file).build();
                     } else {
                         insertReceipt = null;
                     }
@@ -2269,8 +2228,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
         if (insertReceipt != null) {
             synchronized (mReceiptCacheLock) {
-                if (mReceiptCache.containsKey(trip)) {
-                    mReceiptCache.remove(trip);
+                if (mReceiptCache.containsKey(receipt.getTrip())) {
+                    mReceiptCache.remove(receipt.getTrip());
                 }
                 mNextReceiptAutoIncrementId = -1;
             }
@@ -2280,37 +2239,17 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     private class InsertReceiptWorker extends AsyncTask<Void, Void, Receipt> {
 
-        private final Trip mTrip;
-        private final File mImg;
-        private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
-        private final Date mDate;
-        private final PaymentMethod mPaymentMethod;
-        private final boolean mExpensable, mFullpage;
+        private final Receipt mReceipt;
         private SQLException mException;
 
-        public InsertReceiptWorker(Trip trip, File img, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                   String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
-            mTrip = trip;
-            mImg = img;
-            mName = name;
-            mCategory = category;
-            mDate = date;
-            mComment = comment;
-            mPrice = price;
-            mTax = tax;
-            mExpensable = expensable;
-            mCurrency = currency;
-            mFullpage = fullpage;
-            mPaymentMethod = method;
-            mExtra_edittext_1 = extra_edittext_1;
-            mExtra_edittext_2 = extra_edittext_2;
-            mExtra_edittext_3 = extra_edittext_3;
+        public InsertReceiptWorker(@NonNull Receipt receipt) {
+            mReceipt = receipt;
         }
 
         @Override
         protected Receipt doInBackground(Void... params) {
             try {
-                return insertReceiptHelper(mTrip, mImg, mName, mCategory, mDate, null, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+                return insertReceiptHelper(mReceipt);
             } catch (SQLException ex) {
                 mException = ex;
                 return null;

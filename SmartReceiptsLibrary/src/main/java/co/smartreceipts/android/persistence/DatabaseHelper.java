@@ -2158,8 +2158,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         values.put(ReceiptsTable.COLUMN_TIMEZONE, receipt.getTimeZone().getID());
         values.put(ReceiptsTable.COLUMN_COMMENT, receipt.getComment());
-        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, receipt.isExpensable());
         values.put(ReceiptsTable.COLUMN_ISO4217, receipt.getPrice().getCurrencyCode());
+        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, receipt.isExpensable());
         values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !receipt.isFullPage());
         if (receipt.getPrice().getDecimalFormattedPrice().length() > 0) {
             values.put(ReceiptsTable.COLUMN_PRICE, receipt.getPrice().getDecimalFormattedPrice().replace(",", "."));
@@ -2187,15 +2187,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
         }
 
-        if (receipt.hasExtraEditText1()) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
-        }
-        if (receipt.hasExtraEditText2()) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NO_DATA);
-        }
-        if (receipt.hasExtraEditText3()) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NO_DATA);
-        }
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, receipt.getExtraEditText3());
 
         Receipt insertReceipt;
         synchronized (mDatabaseLock) {
@@ -2268,94 +2262,68 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
     }
 
-    public Receipt updateReceiptSerial(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                       String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
-        return updateReceiptHelper(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3);
+    public Receipt updateReceiptSerial(@NonNull Receipt oldReceipt, @NonNull Receipt updatedReceipt) {
+        return updateReceiptHelper(oldReceipt, updatedReceipt);
     }
 
-    public void updateReceiptParallel(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                      String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+    public void updateReceiptParallel(@NonNull Receipt oldReceipt, @NonNull Receipt updatedReceipt) {
 
         if (mReceiptRowListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowListener was registered.");
-            }
+            Log.w(TAG, "No ReceiptRowListener was registered.");
         }
-        (new UpdateReceiptWorker(oldReceipt, trip, name, category, date, comment, price, tax, expensable, currency, fullpage, method, extra_edittext_1, extra_edittext_2, extra_edittext_3)).execute(new Void[0]);
+        new UpdateReceiptWorker(oldReceipt, updatedReceipt).execute();
     }
 
-    private Receipt updateReceiptHelper(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                        String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+    private Receipt updateReceiptHelper(@NonNull Receipt oldReceipt, @NonNull Receipt updatedReceipt) {
 
         ContentValues values = new ContentValues(10);
-        values.put(ReceiptsTable.COLUMN_NAME, name.trim());
-        values.put(ReceiptsTable.COLUMN_CATEGORY, category);
-        TimeZone timeZone = oldReceipt.getTimeZone();
-        if (!date.equals(oldReceipt.getDate())) { // Update the timezone if the date changes
-            timeZone = TimeZone.getDefault();
-            values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone.getID());
-        }
-        if ((date.getTime() % 3600000) == 0) {
-            values.put(ReceiptsTable.COLUMN_DATE, date.getTime() + oldReceipt.getId());
-        } else {
-            values.put(ReceiptsTable.COLUMN_DATE, date.getTime());
-        }
-        values.put(ReceiptsTable.COLUMN_COMMENT, comment);
-        if (price.length() > 0) {
-            values.put(ReceiptsTable.COLUMN_PRICE, price);
-        }
-        if (tax.length() > 0) {
-            values.put(ReceiptsTable.COLUMN_TAX, tax);
-        }
-        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
-        values.put(ReceiptsTable.COLUMN_ISO4217, currency);
-        values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !fullpage);
-        // //Extras
+        values.put(ReceiptsTable.COLUMN_NAME, updatedReceipt.getName().trim());
 
-        if (method != null) {
-            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, method.getId());
+        TimeZone timeZone = oldReceipt.getTimeZone();
+        if (!updatedReceipt.getDate().equals(oldReceipt.getDate())) { // Update the timezone if the date changes
+            values.put(ReceiptsTable.COLUMN_TIMEZONE, updatedReceipt.getTimeZone().getID());
+        }
+
+        if ((updatedReceipt.getDate().getTime() % 3600000) == 0) {
+            values.put(ReceiptsTable.COLUMN_DATE, updatedReceipt.getDate().getTime() + oldReceipt.getId());
+        } else {
+            values.put(ReceiptsTable.COLUMN_DATE, updatedReceipt.getDate().getTime());
+        }
+
+        if (updatedReceipt.getPrice().getDecimalFormattedPrice().length() > 0) {
+            values.put(ReceiptsTable.COLUMN_PRICE, updatedReceipt.getPrice().getDecimalFormattedPrice().replace(",", "."));
+        }
+        if (updatedReceipt.getTax().getDecimalFormattedPrice().length() > 0) {
+            values.put(ReceiptsTable.COLUMN_TAX, updatedReceipt.getTax().getDecimalFormattedPrice().replace(",", "."));
+        }
+
+        values.put(ReceiptsTable.COLUMN_CATEGORY, updatedReceipt.getCategory());
+        values.put(ReceiptsTable.COLUMN_COMMENT, updatedReceipt.getComment());
+        values.put(ReceiptsTable.COLUMN_ISO4217, updatedReceipt.getPrice().getCurrencyCode());
+        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, updatedReceipt.isExpensable());
+        values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !updatedReceipt.isFullPage());
+
+        if (updatedReceipt.getPaymentMethod() != null) {
+            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, updatedReceipt.getPaymentMethod().getId());
         } else {
             final Integer integer = null;
             values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
         }
 
-        if (extra_edittext_1 == null) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, NO_DATA);
-        } else {
-            if (extra_edittext_1.equalsIgnoreCase("null")) {
-                extra_edittext_1 = "";
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);
-        }
-        if (extra_edittext_2 == null) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, NO_DATA);
-        } else {
-            if (extra_edittext_2.equalsIgnoreCase("null")) {
-                extra_edittext_2 = "";
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, extra_edittext_2);
-        }
-        if (extra_edittext_3 == null) {
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, NO_DATA);
-        } else {
-            if (extra_edittext_3.equalsIgnoreCase("null")) {
-                extra_edittext_3 = "";
-            }
-            values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
-        }
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, updatedReceipt.getExtraEditText1());
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, updatedReceipt.getExtraEditText2());
+        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, updatedReceipt.getExtraEditText3());
 
-        Receipt updatedReceipt;
+        Receipt receiptToReturn;
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             try {
-                db = this.getWritableDatabase();
-                if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldReceipt.getId())}) == 0)) {
-                    updatedReceipt = null;
+                final SQLiteDatabase db = this.getWritableDatabase();
+                if ((db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldReceipt.getId())}) == 0)) {
+                    receiptToReturn = null;
                 } else {
-                    this.updateTripPrice(trip);
-                    final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(oldReceipt.getId());
-                    updatedReceipt = builder.setTrip(trip).setName(name).setCategory(category).setFile(oldReceipt.getFile()).setDate(date).setTimeZone(timeZone).setComment(comment).setPrice(price).setTax(tax).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(oldReceipt.getIndex()).setPaymentMethod(method).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3).build();
-
+                    this.updateTripPrice(updatedReceipt.getTrip());
+                    final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(updatedReceipt);
+                    receiptToReturn = builder.setDate(values.getAsLong(ReceiptsTable.COLUMN_DATE)).build();
                 }
             } catch (SQLException e) {
                 return null;
@@ -2363,44 +2331,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
         synchronized (mReceiptCacheLock) {
             mNextReceiptAutoIncrementId = -1;
-            if (updatedReceipt != null) {
-                mReceiptCache.remove(trip);
+            if (receiptToReturn != null) {
+                mReceiptCache.remove(receiptToReturn.getTrip());
             }
         }
-        return updatedReceipt;
+        return receiptToReturn;
     }
 
     private class UpdateReceiptWorker extends AsyncTask<Void, Void, Receipt> {
 
         private final Receipt mOldReceipt;
-        private final Trip mTrip;
-        private final String mName, mCategory, mComment, mPrice, mTax, mCurrency, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3;
-        private final Date mDate;
-        private final PaymentMethod mPaymentMethod;
-        private final boolean mExpensable, mFullpage;
+        private final Receipt mUpdatedReceipt;
 
-        public UpdateReceiptWorker(Receipt oldReceipt, Trip trip, String name, String category, Date date, String comment, String price, String tax, boolean expensable, String currency, boolean fullpage, PaymentMethod method,
-                                   String extra_edittext_1, String extra_edittext_2, String extra_edittext_3) {
+        public UpdateReceiptWorker(@NonNull Receipt oldReceipt, @NonNull Receipt updatedReceipt) {
             mOldReceipt = oldReceipt;
-            mTrip = trip;
-            mName = name;
-            mCategory = category;
-            mDate = date;
-            mComment = comment;
-            mPrice = price;
-            mTax = tax;
-            mExpensable = expensable;
-            mCurrency = currency;
-            mFullpage = fullpage;
-            mPaymentMethod = method;
-            mExtra_edittext_1 = extra_edittext_1;
-            mExtra_edittext_2 = extra_edittext_2;
-            mExtra_edittext_3 = extra_edittext_3;
+            mUpdatedReceipt = updatedReceipt;
         }
 
         @Override
         protected Receipt doInBackground(Void... params) {
-            return updateReceiptHelper(mOldReceipt, mTrip, mName, mCategory, mDate, mComment, mPrice, mTax, mExpensable, mCurrency, mFullpage, mPaymentMethod, mExtra_edittext_1, mExtra_edittext_2, mExtra_edittext_3);
+            return updateReceiptHelper(mOldReceipt, mUpdatedReceipt);
         }
 
         @Override

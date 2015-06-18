@@ -7,10 +7,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.text.method.TextKeyListener;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,25 +30,34 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.sql.Date;
+import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
+import co.smartreceipts.android.apis.ExchangeRateService;
+import co.smartreceipts.android.apis.ExchangeRateServiceManager;
+import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
+import co.smartreceipts.android.apis.NetworkRequestManager;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener {
 
+    private static final String TAG = ReceiptCreateEditFragment.class.getSimpleName();
     private static final String ARG_FILE = "arg_file";
 
     // Metadata
@@ -78,6 +87,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     // Misc
     private NavigationHandler mNavigationHandler;
+    private ExchangeRateServiceManager mExchangeRateServiceManager;
     private ReceiptInputCache mReceiptInputCache;
     private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
     private Time mNow;
@@ -122,6 +132,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mFile = (File) getArguments().getSerializable(ARG_FILE);
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         setHasOptionsMenu(true);
     }
 
@@ -368,10 +379,25 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (currenices.getItem(position).equals(mTrip.getDefaultCurrencyCode())) {
+                final String baseCurrencyCode = currenices.getItem(position).toString();
+                final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+                if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
                     mExchangeRateContainer.setVisibility(View.GONE);
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
+                    final String date = "2015-06-16"; // TODO: Do not hardcode
+                    mExchangeRateServiceManager.getService().getExchangeRate(date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
+
+                        @Override
+                        public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
+                            editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                        }
+
+                        @Override
+                        public void failure(EditText editText, RetrofitError error) {
+                            Log.e(TAG, "" + error);
+                        }
+                    });
                 }
             }
 

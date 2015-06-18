@@ -10,13 +10,13 @@ import java.sql.Date;
 
 public class ReceiptInputCache {
 
-    private final HeadlessFragment mHeadlessFragment;
+    private final InputCacheHeadlessFragment mHeadlessFragment;
 
     public ReceiptInputCache(@NonNull FragmentManager fragmentManager) {
-        HeadlessFragment headlessFragment = (HeadlessFragment) fragmentManager.findFragmentByTag(HeadlessFragment.TAG);
+        InputCacheHeadlessFragment headlessFragment = (InputCacheHeadlessFragment) fragmentManager.findFragmentByTag(InputCacheHeadlessFragment.TAG);
         if (headlessFragment == null) {
-            headlessFragment = new HeadlessFragment();
-            fragmentManager.beginTransaction().add(headlessFragment, HeadlessFragment.TAG).commit();
+            headlessFragment = new InputCacheHeadlessFragment();
+            fragmentManager.beginTransaction().add(headlessFragment, InputCacheHeadlessFragment.TAG).commit();
         }
         mHeadlessFragment = headlessFragment;
     }
@@ -45,9 +45,9 @@ public class ReceiptInputCache {
         mHeadlessFragment.mCachedCurrency = cachedCurrency;
     }
 
-    public static final class HeadlessFragment extends Fragment {
+    public static final class InputCacheHeadlessFragment extends Fragment {
 
-        private static final String TAG = HeadlessFragment.class.getName();
+        private static final String TAG = InputCacheHeadlessFragment.class.getName();
 
         private Date mCachedDate;
         private String mCachedCategory, mCachedCurrency;

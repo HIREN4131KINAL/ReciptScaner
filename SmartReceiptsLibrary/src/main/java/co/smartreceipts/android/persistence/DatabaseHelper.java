@@ -1949,7 +1949,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
                         final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
                         File img = null;
-                        if (!path.equalsIgnoreCase(DatabaseHelper.NO_DATA)) {
+                        if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
                             img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
                         }
                         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
@@ -2078,13 +2078,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     final String extra_edittext_1 = c.getString(extra_edittext_1_Index);
                     final String extra_edittext_2 = c.getString(extra_edittext_2_Index);
                     final String extra_edittext_3 = c.getString(extra_edittext_3_Index);
-                    File img = null;
-                    if (!path.equalsIgnoreCase(DatabaseHelper.NO_DATA)) {
-                        final StorageManager storageManager = mPersistenceManager.getStorageManager();
-                        img = storageManager.getFile(storageManager.getFile(parent), path);
-                    }
                     final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
                     final Trip trip = getTripByName(parent);
+                    File img = null;
+                    if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
+                        img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
+                    }
                     builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
                     /**
                      * Please note that a very frustrating bug exists here. Android cursors only return the first 6

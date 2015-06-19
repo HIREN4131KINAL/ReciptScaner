@@ -24,6 +24,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public class ExchangeRate implements Serializable {
 
+    private static final int PRECISION = 6;
+
     private final String base;
     private final Map<String, Double> rates;
 
@@ -142,10 +144,10 @@ public class ExchangeRate implements Serializable {
     public String getDecimalFormattedExchangeRate(@NonNull String exchangeCurrencyCode) {
         if (exchangeCurrencyCode.equalsIgnoreCase(base)) {
             // We always support same currency exchange (i.e. "USD" -> "USD")
-            return ModelUtils.getDecimalFormattedValue(new BigDecimal(1));
+            return ModelUtils.getDecimalFormattedValue(new BigDecimal(1), PRECISION);
         }
         if (supportsExchangeRateFor(exchangeCurrencyCode)) {
-            return ModelUtils.getDecimalFormattedValue(new BigDecimal(rates.get(exchangeCurrencyCode)));
+            return ModelUtils.getDecimalFormattedValue(new BigDecimal(rates.get(exchangeCurrencyCode)), PRECISION);
         } else {
             return "";
         }

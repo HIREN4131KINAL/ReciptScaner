@@ -122,7 +122,7 @@ public class ExchangeRate implements Serializable {
     }
 
     /**
-     A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
+     * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
      * showing naively as "25.2"
      *
      * @param exchangeCurrency the {@link co.smartreceipts.android.model.WBCurrency} to exchange to
@@ -153,4 +153,8 @@ public class ExchangeRate implements Serializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ExchangeRate{" + "base='" + base + '\'' + ", rates=" + rates + '}';
+    }
 }

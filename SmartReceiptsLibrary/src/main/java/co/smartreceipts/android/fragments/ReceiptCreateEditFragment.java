@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.text.method.TextKeyListener;
@@ -390,7 +391,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                         @Override
                         public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
-                            editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                            if (!TextUtils.isEmpty(editText.getText())) {
+                                // Only set our text if we haven't started typing
+                                editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                            }
                         }
 
                         @Override

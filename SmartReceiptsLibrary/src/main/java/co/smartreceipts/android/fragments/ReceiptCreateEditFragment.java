@@ -386,14 +386,18 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     mExchangeRateContainer.setVisibility(View.GONE);
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
-                    final String date = "2015-06-16"; // TODO: Do not hardcode
-                    mExchangeRateServiceManager.getService().getExchangeRate(date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
+                    mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
 
                         @Override
                         public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
-                            if (!TextUtils.isEmpty(editText.getText())) {
-                                // Only set our text if we haven't started typing
-                                editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                            if (exchangeRate != null) {
+                                if (TextUtils.isEmpty(editText.getText())) {
+                                    editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                                } else {
+                                    Log.w(TAG, "User already started typing... Ignorning exchange rate result");
+                                }
+                            } else {
+                                Log.e(TAG, "Received a null exchange rate");
                             }
                         }
 

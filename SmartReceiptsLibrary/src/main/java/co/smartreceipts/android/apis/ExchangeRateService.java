@@ -2,6 +2,8 @@ package co.smartreceipts.android.apis;
 
 import android.support.annotation.NonNull;
 
+import java.sql.Date;
+
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import retrofit.Callback;
 import retrofit.http.GET;
@@ -22,7 +24,7 @@ public interface ExchangeRateService {
      * @return the {@link co.smartreceipts.android.model.gson.ExchangeRate} containing this information
      */
     @GET("/{date}")
-    ExchangeRate getExchangeRate(@NonNull @Path("date") String date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbol") String exchangeCurrencyCode);
+    ExchangeRate getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbols") String exchangeCurrencyCode);
 
     /**
      * Submits an asynchronous network request to get the exchange rate for a particular currency on a given date
@@ -33,5 +35,5 @@ public interface ExchangeRateService {
      * @param callback             the callback that gets triggered when the request completes
      */
     @GET("/{date}")
-    void getExchangeRate(@NonNull @Path("date") String date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbol") String exchangeCurrencyCode, @NonNull Callback<ExchangeRate> callback);
+    void getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbols") String exchangeCurrencyCode, @NonNull Callback<ExchangeRate> callback);
 }

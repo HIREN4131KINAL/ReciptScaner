@@ -31,32 +31,29 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.sql.Date;
-import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
-import co.smartreceipts.android.apis.ExchangeRateService;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
-import co.smartreceipts.android.apis.NetworkRequestManager;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
-import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
+import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
-public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener {
+public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener {
 
     private static final String TAG = ReceiptCreateEditFragment.class.getSimpleName();
     private static final String ARG_FILE = "arg_file";
@@ -71,7 +68,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private EditText priceBox;
     private AutoCompleteTextView taxBox;
     private Spinner currencySpinner;
-    private EditText exchangeRateBox;
+    private NetworkRequestAwareEditText exchangeRateBox;
     private DateEditText dateBox;
     private AutoCompleteTextView commentBox;
     private Spinner categoriesSpinner;
@@ -150,7 +147,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.priceBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
         this.taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);
         this.currencySpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
-        this.exchangeRateBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXCHANGE_RATE);
+        this.exchangeRateBox = (NetworkRequestAwareEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXCHANGE_RATE);
         mExchangeRateContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.exchange_rate_container);
         this.dateBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
         this.commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
@@ -174,6 +171,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.currencySpinner.setOnFocusChangeListener(this);
         this.dateBox.setOnFocusChangeListener(this);
         this.commentBox.setOnFocusChangeListener(this);
+
+        // Custom view properties
+        exchangeRateBox.setFailedHint(R.string.DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED);
     }
 
     @Override
@@ -386,26 +386,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     mExchangeRateContainer.setVisibility(View.GONE);
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
-                    mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
-
-                        @Override
-                        public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
-                            if (exchangeRate != null) {
-                                if (TextUtils.isEmpty(editText.getText())) {
-                                    editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
-                                } else {
-                                    Log.w(TAG, "User already started typing... Ignorning exchange rate result");
-                                }
-                            } else {
-                                Log.e(TAG, "Received a null exchange rate");
-                            }
-                        }
-
-                        @Override
-                        public void failure(EditText editText, RetrofitError error) {
-                            Log.e(TAG, "" + error);
-                        }
-                    });
+                    submitExchangeRateRequest(baseCurrencyCode);
                 }
             }
 
@@ -415,6 +396,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             }
         });
 
+        exchangeRateBox.setRetryListener(this);
     }
 
     @Override
@@ -434,6 +416,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
             }
         }
+
+        exchangeRateBox.setRetryListener(null);
         super.onPause();
     }
 
@@ -463,6 +447,39 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             // Only launch if we have focus and it's a new receipt
             new ShowSoftKeyboardOnFocusChangeListener().onFocusChange(v, hasFocus);
         }
+    }
+
+    @Override
+    public void onUserRetry() {
+        submitExchangeRateRequest((String)currencySpinner.getSelectedItem());
+    }
+
+    private void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
+        final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+        exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
+        mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
+
+            @Override
+            public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
+                if (exchangeRate != null) {
+                    if (TextUtils.isEmpty(editText.getText())) {
+                        editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                    } else {
+                        Log.w(TAG, "User already started typing... Ignorning exchange rate result");
+                    }
+                    exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
+                } else {
+                    Log.e(TAG, "Received a null exchange rate");
+                    exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
+                }
+            }
+
+            @Override
+            public void failure(EditText editText, RetrofitError error) {
+                Log.e(TAG, "" + error);
+                exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
+            }
+        });
     }
 
     private void saveReceipt() {

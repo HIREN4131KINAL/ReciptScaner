@@ -265,6 +265,7 @@
     <string name="DIALOG_RECEIPTMENU_HINT_TAX">Tax</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CURRENCY">Currency</string>
     <string name="DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE">Exchange Rate</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED">Exchange Rate Failed. Retry?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Category</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Comment</string>

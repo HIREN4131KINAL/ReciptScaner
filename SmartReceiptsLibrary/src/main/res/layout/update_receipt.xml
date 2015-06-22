@@ -71,7 +71,7 @@
                 android:visibility="gone" >
                 <ImageView style="@style/Widget.SmartReceipts.GuideImage"
                     android:src="@drawable/ic_exchange_rate" />
-                <EditText
+                <co.smartreceipts.android.widget.NetworkRequestAwareEditText
                     android:id="@+id/DIALOG_RECEIPTMENU_EXCHANGE_RATE"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

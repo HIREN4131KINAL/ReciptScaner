@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.database.SQLException;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,7 +44,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getPersistenceManager().getDatabase().registerDistanceRowListener(this);
+        Log.d(TAG, "onCreate");
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         if (savedInstanceState ==  null) {
@@ -54,6 +55,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         final View view = inflater.inflate(R.layout.report_distance_list, container, false);
         mProgressDialog = view.findViewById(R.id.progress);
         mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
@@ -72,13 +74,23 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "onActivityCreated");
         setListAdapter(mAdapter);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume");
+        getPersistenceManager().getDatabase().registerDistanceRowListener(this);
         getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        getPersistenceManager().getDatabase().unregisterDistanceRowListener();
     }
 
     @Override

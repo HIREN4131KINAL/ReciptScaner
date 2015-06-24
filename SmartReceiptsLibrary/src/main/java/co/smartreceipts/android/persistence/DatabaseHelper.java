@@ -35,6 +35,8 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.Price;
+import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
@@ -1238,69 +1240,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @param trip the trip, which will be updated
      */
     private void queryTripPrice(final Trip trip) {
-        SQLiteDatabase db = null;
-        Cursor receiptPriceCursor = null;
-        Cursor distancePriceCursor = null;
-        try {
-            mAreTripsValid = false;
-            db = this.getReadableDatabase();
-
-            String receiptSelection = ReceiptsTable.COLUMN_PARENT + "= ?";
-            if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
-                receiptSelection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
-            }
-
-            // Get the Trip's total Price
-            BigDecimal price = new BigDecimal(0);
-            WBCurrency currency = trip.getDefaultCurrency();
-            boolean firstPass = true;
-            receiptPriceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, receiptSelection, new String[]{trip.getName()}, null, null, null);
-            if (receiptPriceCursor != null && receiptPriceCursor.moveToFirst() && receiptPriceCursor.getColumnCount() > 0) {
-                do {
-                    price = price.add(getDecimal(receiptPriceCursor, 0));
-                    if (firstPass) {
-                        currency = WBCurrency.getInstance(receiptPriceCursor.getString(1));
-                        firstPass = false;
-                    }
-                    else {
-                        if (currency != null && !currency.equals(WBCurrency.getInstance(receiptPriceCursor.getString(1)))) {
-                            currency = null;
-                        }
-                    }
-                }
-                while (receiptPriceCursor.moveToNext());
-            }
-
-            if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
-                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ?";
-                final String[] distanceColumns = new String[] {DistanceTable.COLUMN_DISTANCE + "*" + DistanceTable.COLUMN_RATE, DistanceTable.COLUMN_RATE_CURRENCY};
-                distancePriceCursor = db.query(DistanceTable.TABLE_NAME, distanceColumns, distanceSelection, new String[] {trip.getName()}, null, null, null);
-                if (distancePriceCursor != null && distancePriceCursor.moveToFirst() && distancePriceCursor.getColumnCount() > 0) {
-                    do {
-                        price = price.add(getDecimal(distancePriceCursor, 0));
-                        if (firstPass) {
-                            currency = WBCurrency.getInstance(distancePriceCursor.getString(1));
-                            firstPass = false;
-                        }
-                        else {
-                            if (currency != null && !currency.equals(WBCurrency.getInstance(distancePriceCursor.getString(1)))) {
-                                currency = null;
-                            }
-                        }
-                    }
-                    while (distancePriceCursor.moveToNext());
-                }
-            }
-
-            trip.setPrice(new PriceBuilderFactory().setPrice(price).setCurrency(currency).build());
-        } finally {
-            if (receiptPriceCursor != null) {
-                receiptPriceCursor.close();
-            }
-            if (distancePriceCursor != null) {
-                distancePriceCursor.close();
+        final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
+        final List<Receipt> receipts = getReceiptsSerial(trip);
+        final List<Priceable> prices = new ArrayList<>(receipts.size());
+        for (final Receipt receipt : receipts) {
+            if (!onlyUseExpensable || receipt.isExpensable()) {
+                prices.add(receipt);
             }
         }
+
+        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+            prices.addAll(getDistanceSerial(trip));
+        }
+
+        trip.setPrice(new PriceBuilderFactory().setPriceables(prices).setCurrency(trip.getDefaultCurrency()).build());
     }
 
     /**

@@ -42,6 +42,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -516,6 +517,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         builderFactory.setDate((Date) dateBox.date.clone());
         builderFactory.setPrice(priceBox.getText().toString());
         builderFactory.setTax(taxBox.getText().toString());
+        builderFactory.setExchangeRate(new ExchangeRateBuilderFactory().setBaseCurrency(mTrip.getDefaultCurrency()).setRate(currency, exchangeRateBox.getText().toString()).build());
         builderFactory.setCategory(category);
         builderFactory.setCurrency(currency);
         builderFactory.setComment(commentBox.getText().toString());

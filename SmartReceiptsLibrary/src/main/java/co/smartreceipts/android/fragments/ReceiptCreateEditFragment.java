@@ -90,6 +90,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private ReceiptInputCache mReceiptInputCache;
     private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
     private Time mNow;
+    private ArrayAdapter<CharSequence> mCurrencies;
 
     /**
      * Creates a new instance of this fragment for a new receipt
@@ -132,6 +133,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
+        mCurrencies = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
         setHasOptionsMenu(true);
     }
 
@@ -178,8 +180,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
         final boolean isNewReceipt = mReceipt == null;
 
@@ -187,16 +189,13 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             if (getPersistenceManager().getPreferences().isShowReceiptID()) {
                 title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
-            }
-            else {
+            } else {
                 title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
             }
-        }
-        else {
+        } else {
             if (getPersistenceManager().getPreferences().isShowReceiptID()) {
                 title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
-            }
-            else {
+            } else {
                 title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
             }
         }
@@ -218,9 +217,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         // Show default dictionary with auto-complete
         nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
 
-        final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
-        currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        currencySpinner.setAdapter(currenices);
+        mCurrencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(mCurrencies);
 
         dateBox.setFocusableInTouchMode(false);
         dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
@@ -230,21 +228,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
 
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
-                final DatabaseHelper db = getPersistenceManager().getDatabase();
-                if (mReceiptsNameAutoCompleteAdapter == null) {
-                    mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
-                } else {
-                    mReceiptsNameAutoCompleteAdapter.reset();
-                }
-                if (mReceiptsCommentAutoCompleteAdapter == null) {
-                    mReceiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
-                } else {
-                    mReceiptsCommentAutoCompleteAdapter.reset();
-                }
-                nameBox.setAdapter(mReceiptsNameAutoCompleteAdapter);
-                commentBox.setAdapter(mReceiptsCommentAutoCompleteAdapter);
-            }
             if (getPersistenceManager().getPreferences().includeTaxField()) {
                 taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
             }
@@ -300,8 +283,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     }
                 }
             }
-            int idx = currenices.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
-            int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? currenices.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
+            int idx = mCurrencies.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
+            int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrencies.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
             idx = (cachedIdx > 0) ? cachedIdx : idx;
             if (idx > 0) {
                 currencySpinner.setSelection(idx);
@@ -328,7 +311,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             }
 
 
-            int idx = currenices.getPosition(mReceipt.getPrice().getCurrencyCode());
+            int idx = mCurrencies.getPosition(mReceipt.getPrice().getCurrencyCode());
             if (idx > 0) {
                 currencySpinner.setSelection(idx);
             }
@@ -373,15 +356,40 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             mFocusedView = nameBox;
         }
 
-        mFocusedView.requestFocus(); // Make sure we're focused on the right view
-
         dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        final boolean isNewReceipt = mReceipt == null;
+        if (isNewReceipt) {
+            if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
+                final DatabaseHelper db = getPersistenceManager().getDatabase();
+                if (mReceiptsNameAutoCompleteAdapter == null) {
+                    mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
+                } else {
+                    mReceiptsNameAutoCompleteAdapter.reset();
+                }
+                if (mReceiptsCommentAutoCompleteAdapter == null) {
+                    mReceiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
+                } else {
+                    mReceiptsCommentAutoCompleteAdapter.reset();
+                }
+                nameBox.setAdapter(mReceiptsNameAutoCompleteAdapter);
+                commentBox.setAdapter(mReceiptsCommentAutoCompleteAdapter);
+            }
+        }
+
+        mFocusedView.requestFocus(); // Make sure we're focused on the right view
         currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final String baseCurrencyCode = currenices.getItem(position).toString();
+                final String baseCurrencyCode = mCurrencies.getItem(position).toString();
                 final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
                 if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
                     mExchangeRateContainer.setVisibility(View.GONE);
@@ -404,6 +412,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     public void onPause() {
         // Notify the downstream adapters
         if (mReceiptsNameAutoCompleteAdapter != null) {
+            mReceiptsCommentAutoCompleteAdapter.onPause();
             mReceiptsNameAutoCompleteAdapter.onPause();
         }
         if (mReceiptsCommentAutoCompleteAdapter != null) {
@@ -517,7 +526,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         builderFactory.setDate((Date) dateBox.date.clone());
         builderFactory.setPrice(priceBox.getText().toString());
         builderFactory.setTax(taxBox.getText().toString());
-        builderFactory.setExchangeRate(new ExchangeRateBuilderFactory().setBaseCurrency(mTrip.getDefaultCurrency()).setRate(currency, exchangeRateBox.getText().toString()).build());
+        builderFactory.setExchangeRate(new ExchangeRateBuilderFactory().setBaseCurrency(currency).setRate(mTrip.getDefaultCurrency(), exchangeRateBox.getText().toString()).build());
         builderFactory.setCategory(category);
         builderFactory.setCurrency(currency);
         builderFactory.setComment(commentBox.getText().toString());

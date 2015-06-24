@@ -1926,11 +1926,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         } else {
                             builder.setTax(taxDouble);
                         }
-                        final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(trip.getDefaultCurrency());
+                        final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(currency);
                         if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
-                            exchangeRateBuilder.setRate(currency, exchangeRateString);
+                            exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateString);
                         } else {
-                            exchangeRateBuilder.setRate(currency, exchangeRateDouble);
+                            exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateDouble);
                         }
                         builder.setExchangeRate(exchangeRateBuilder.build());
                         receipts.add(builder.build());
@@ -2057,11 +2057,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     } else {
                         builder.setTax(taxDouble);
                     }
-                    final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(trip.getDefaultCurrency());
+                    final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(currency);
                     if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
-                        exchangeRateBuilder.setRate(currency, exchangeRateString);
+                        exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateString);
                     } else {
-                        exchangeRateBuilder.setRate(currency, exchangeRateDouble);
+                        exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateDouble);
                     }
                     builder.setExchangeRate(exchangeRateBuilder.build());
                     return builder.build();

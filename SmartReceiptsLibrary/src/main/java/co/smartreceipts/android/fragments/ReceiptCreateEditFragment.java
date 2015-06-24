@@ -393,6 +393,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
                 if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
                     mExchangeRateContainer.setVisibility(View.GONE);
+                    exchangeRateBox.setText(""); // Clear out when we reset
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
                     submitExchangeRateRequest(baseCurrencyCode);

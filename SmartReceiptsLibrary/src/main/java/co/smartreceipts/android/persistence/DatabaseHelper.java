@@ -1534,12 +1534,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                                 .setCurrency(rateCurrency)
                                 .setComment(comment)
                                 .build();
-                        this.updateTripPrice(trip);
                     }
                 } finally {
                     if (cur != null) {
                         cur.close();
                     }
+                    this.updateTripPrice(trip);
                 }
             }
         }
@@ -1749,9 +1749,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 result = db.delete(DistanceTable.TABLE_NAME,
                         DistanceTable.COLUMN_ID + " = ?",
                         new String[]{String.valueOf(distance.getId())});
-                this.updateTripPrice(distance.getTrip());
             } catch (Exception e) {
                 return false;
+            } finally {
+                this.updateTripPrice(distance.getTrip());
             }
         }
 
@@ -2144,19 +2145,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, receipt.getExtraEditText3());
 
-        Receipt insertReceipt;
+        Receipt insertReceipt = null;
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
             Cursor c = null;
             try {
-                db = this.getWritableDatabase();
+                final SQLiteDatabase db = this.getWritableDatabase();
                 if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1) {
                     insertReceipt = null;
                 } else {
-                    this.updateTripPrice(receipt.getTrip());
-                    if (mReceiptCache.containsKey(receipt.getTrip())) {
-                        mReceiptCache.remove(receipt.getTrip());
-                    }
                     c = db.rawQuery("SELECT last_insert_rowid()", null);
                     if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
                         final int id = c.getInt(0);
@@ -2171,14 +2167,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 if (c != null) {
                     c.close();
                 }
-            }
-        }
-        if (insertReceipt != null) {
-            synchronized (mReceiptCacheLock) {
-                if (mReceiptCache.containsKey(receipt.getTrip())) {
-                    mReceiptCache.remove(receipt.getTrip());
+                if (insertReceipt != null) {
+                    synchronized (mReceiptCacheLock) {
+                        if (mReceiptCache.containsKey(receipt.getTrip())) {
+                            mReceiptCache.remove(receipt.getTrip());
+                        }
+                        mNextReceiptAutoIncrementId = -1;
+                    }
                 }
-                mNextReceiptAutoIncrementId = -1;
+                this.updateTripPrice(receipt.getTrip());
             }
         }
         return insertReceipt;
@@ -2267,25 +2264,27 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, updatedReceipt.getExtraEditText2());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, updatedReceipt.getExtraEditText3());
 
-        Receipt receiptToReturn;
+        Receipt receiptToReturn = null;
         synchronized (mDatabaseLock) {
             try {
                 final SQLiteDatabase db = this.getWritableDatabase();
                 if ((db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldReceipt.getId())}) == 0)) {
                     receiptToReturn = null;
                 } else {
-                    this.updateTripPrice(updatedReceipt.getTrip());
+
                     final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(updatedReceipt);
                     receiptToReturn = builder.setDate(values.getAsLong(ReceiptsTable.COLUMN_DATE)).build();
                 }
             } catch (SQLException e) {
-                return null;
-            }
-        }
-        synchronized (mReceiptCacheLock) {
-            mNextReceiptAutoIncrementId = -1;
-            if (receiptToReturn != null) {
-                mReceiptCache.remove(receiptToReturn.getTrip());
+                receiptToReturn =  null;
+            } finally {
+                synchronized (mReceiptCacheLock) {
+                    mNextReceiptAutoIncrementId = -1;
+                    if (receiptToReturn != null) {
+                        mReceiptCache.remove(receiptToReturn.getTrip());
+                    }
+                }
+                this.updateTripPrice(updatedReceipt.getTrip());
             }
         }
         return receiptToReturn;
@@ -2494,13 +2493,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
         if (success) {
             if (receipt.hasFile()) {
-                success = success & mPersistenceManager.getStorageManager().delete(receipt.getFile());
+                success = mPersistenceManager.getStorageManager().delete(receipt.getFile());
             }
-            this.updateTripPrice(currentTrip);
             synchronized (mReceiptCacheLock) {
                 mNextReceiptAutoIncrementId = -1;
                 mReceiptCache.remove(currentTrip);
             }
+            this.updateTripPrice(currentTrip);
         }
         return success;
     }

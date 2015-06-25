@@ -42,7 +42,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
         mPrice = new BigDecimal(in.readFloat());
         final String currencyCode = in.readString();
         mCurrency = !TextUtils.isEmpty(currencyCode) ? WBCurrency.getInstance(currencyCode) : null;
-        mExchangeRate = new ExchangeRateBuilderFactory().build();
+        mExchangeRate = (ExchangeRate) in.readSerializable();
     }
 
     @Override
@@ -123,6 +123,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeFloat(getPriceAsFloat());
         dest.writeString(getCurrencyCode());
+        dest.writeSerializable(mExchangeRate);
     }
 
     public static final Creator<LegacyTripPriceImpl> CREATOR = new Creator<LegacyTripPriceImpl>() {

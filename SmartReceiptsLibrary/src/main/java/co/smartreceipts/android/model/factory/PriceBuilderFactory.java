@@ -105,7 +105,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
                 if (mExchangeRate != null) {
                     return new ImmutablePriceImpl(price, mCurrency, mExchangeRate);
                 } else {
-                    return new ImmutablePriceImpl(price, mCurrency, new ExchangeRateBuilderFactory().build());
+                    return new ImmutablePriceImpl(price, mCurrency, new ExchangeRateBuilderFactory().setBaseCurrency(mCurrency).build());
                 }
             }
             else {

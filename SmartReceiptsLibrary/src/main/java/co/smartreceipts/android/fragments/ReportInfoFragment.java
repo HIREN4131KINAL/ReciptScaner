@@ -1,6 +1,7 @@
 package co.smartreceipts.android.fragments;
 
 import android.content.Intent;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,14 +20,17 @@ import android.view.ViewGroup;
 
 import com.astuetz.PagerSlidingTabStrip;
 
+import java.io.File;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 
-public class ReportInfoFragment extends WBFragment {
+public class ReportInfoFragment extends WBFragment implements DatabaseHelper.TripRowListener {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
@@ -119,5 +123,45 @@ public class ReportInfoFragment extends WBFragment {
     public void onPause() {
         mLastTripController.setLastTrip(mTrip);
         super.onPause();
+    }
+
+    @Override
+    public void onTripRowsQuerySuccess(Trip[] trips) {
+
+    }
+
+    @Override
+    public void onTripRowInsertSuccess(Trip trip) {
+
+    }
+
+    @Override
+    public void onTripRowInsertFailure(SQLException ex, File directory) {
+
+    }
+
+    @Override
+    public void onTripRowUpdateSuccess(Trip trip) {
+
+    }
+
+    @Override
+    public void onTripRowUpdateFailure(Trip newTrip, Trip oldTrip, File directory) {
+
+    }
+
+    @Override
+    public void onTripDeleteSuccess(Trip oldTrip) {
+
+    }
+
+    @Override
+    public void onTripDeleteFailure() {
+
+    }
+
+    @Override
+    public void onSQLCorruptionException() {
+
     }
 }

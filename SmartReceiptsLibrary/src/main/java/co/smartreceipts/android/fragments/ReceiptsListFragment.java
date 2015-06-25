@@ -51,7 +51,6 @@ import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
-import co.smartreceipts.android.activities.DistanceActivity;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
@@ -123,16 +122,15 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onCreateView");
-        }
-        View rootView = inflater.inflate(getLayoutId(), container, false);
+        Log.d(TAG, "onCreateView");
+        final View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
         mAdView = getWorkerManager().getAdManager().onCreateAd(rootView);
@@ -154,6 +152,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         };
         rootView.findViewById(R.id.receipt_action_camera).setOnClickListener(listener);
         rootView.findViewById(R.id.receipt_action_text).setOnClickListener(listener);
+        rootView.findViewById(R.id.receipt_action_import).setOnClickListener(listener);
         mFloatingActionMenu = (FloatingActionMenu) rootView.findViewById(R.id.fab_menu);
         mFloatingActionMenuActiveMaskView = rootView.findViewById(R.id.fab_active_mask);
         mFloatingActionMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
@@ -176,6 +175,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "onActivityCreated");
         setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
     }
 
@@ -185,10 +185,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onResume() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onResume");
-        }
         super.onResume();
+        Log.d(TAG, "onResume");
         getWorkerManager().getAdManager().onAdResumed(mAdView);
         getPersistenceManager().getDatabase().registerReceiptRowListener(this);
         getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
@@ -201,9 +199,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onPause() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onPause");
-        }
+        Log.d(TAG, "onPause");
         if (mReceiptsNameAutoCompleteAdapter != null) {
             mReceiptsNameAutoCompleteAdapter.onPause();
         }
@@ -234,9 +230,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onDestroy() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onDestroy");
-        }
+        Log.d(TAG, "onDestroy");
         mCachedDate = null;
         mCachedCategory = null;
         mCachedCurrency = null;
@@ -248,6 +242,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        Log.d(TAG, "onActivityResult");
         Log.d(TAG, "Result Code: " + resultCode);
         Log.d(TAG, "Request Code: " + requestCode);
 
@@ -381,6 +376,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     private void importReceipt() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, IMPORT_GALLERY_IMAGE);
     }
@@ -680,7 +676,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         });
     }
 
-    public final boolean editReceipt(final Receipt receipt) {
+    public final boolean showReceiptMenu(final Receipt receipt) {
         mHighlightedReceipt = receipt;
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
         builder.setTitle(receipt.getName()).setCancelable(true).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -705,7 +701,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             builder.setItems(receiptActions, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int item) {
-                    final String selection = receiptActions[item].toString();
+                    final String selection = receiptActions[item];
                     if (selection == viewFile) { // Show File
                         if (attachment.isPDF()) {
                             ReceiptsListFragment.this.showPDF(receipt);
@@ -744,7 +740,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             builder.setItems(receiptActions, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int item) {
-                    final String selection = receiptActions[item].toString();
+                    final String selection = receiptActions[item];
                     if (selection == receiptActionEdit) { // Edit Receipt
                         getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Receipt");
                         // ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
@@ -945,8 +941,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        // editReceipt(mAdapter.getItem(position));
-        mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, mAdapter.getItem(position));
+        showReceiptMenu(mAdapter.getItem(position));
     }
 
     @Override

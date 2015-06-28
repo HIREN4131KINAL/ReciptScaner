@@ -185,29 +185,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         final boolean isNewReceipt = mReceipt == null;
 
-        final String title;
-        if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
-                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
-            } else {
-                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
-            }
-        } else {
-            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
-                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
-            } else {
-                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
-            }
-        }
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
-        final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setHomeButtonEnabled(true);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_close_clear_cancel);
-            actionBar.setTitle(title);
-        }
 
         if (getPersistenceManager().getPreferences().includeTaxField()) {
             priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
@@ -367,6 +346,30 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         super.onResume();
 
         final boolean isNewReceipt = mReceipt == null;
+
+        final String title;
+        if (isNewReceipt) {
+            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
+            } else {
+                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
+            }
+        } else {
+            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
+            } else {
+                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
+            }
+        }
+
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_action_cancel);
+            actionBar.setTitle(title);
+        }
+
         if (isNewReceipt) {
             if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
                 final DatabaseHelper db = getPersistenceManager().getDatabase();

@@ -2,7 +2,7 @@
 <resources>
 
     <!-- New Colors for Material -->
-    <color name="smart_receipts_colorPrimary">#512da8</color>
+    <color name="smart_receipts_colorPrimary">#4527a0</color>
     <color name="smart_receipts_colorPrimaryDark">#311b92</color>
     <color name="smart_receipts_colorPrimaryDark_pressed">#200a81</color>
     <color name="smart_receipts_ripple_light">#44FFFFFF</color>

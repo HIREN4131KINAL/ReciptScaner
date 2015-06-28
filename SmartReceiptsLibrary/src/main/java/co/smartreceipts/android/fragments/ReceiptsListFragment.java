@@ -255,9 +255,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
         if (resultCode == Activity.RESULT_OK) { // -1
             File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
-            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST || requestCode == IMPORT_GALLERY_IMAGE) {
-                final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
-                imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
+            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
+                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(mImageUri, data, null);
+            } else if (requestCode == IMPORT_GALLERY_IMAGE) {
+                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(mImageUri, data, Uri.fromFile(new File(mCurrentTrip.getDirectory(), System.currentTimeMillis() + ".jpg")));
             }
             if (imgFile == null) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();

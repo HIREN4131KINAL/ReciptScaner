@@ -125,6 +125,7 @@ public class ImageGalleryWorker extends WorkerChild {
         BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
         smallerOpts.inSampleSize=scale;
         System.gc();
+        imageUriCopy.in
         Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
         if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
             try {
@@ -145,5 +146,15 @@ public class ImageGalleryWorker extends WorkerChild {
         }
         return imgFile;
     }
-    
+
+    void temp() {/*
+        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(photoUri, filePathColumn, null, null, null);
+        cursor.moveToFirst();
+        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+        String filePath = cursor.getString(columnIndex);
+        cursor.close();*/
+
+    }
+
 }

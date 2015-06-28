@@ -79,6 +79,7 @@ public class ReceiptImageFragment extends WBFragment {
         mReceiptPath = mReceipt.getTrip().getDirectoryPath();
         mIsRotateOngoing = false;
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        setHasOptionsMenu(true);
     }
 
     @Override

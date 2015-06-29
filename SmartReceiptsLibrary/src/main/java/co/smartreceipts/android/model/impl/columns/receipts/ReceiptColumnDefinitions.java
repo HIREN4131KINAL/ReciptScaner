@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl.columns.receipts;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         NAME(R.string.RECEIPTMENU_FIELD_NAME),
         PRICE(R.string.RECEIPTMENU_FIELD_PRICE),
         TAX(R.string.RECEIPTMENU_FIELD_TAX),
+        EXCHANGE_RATE(R.string.column_item_exchange_rate),
         PICTURED(R.string.column_item_pictured),
         EXPENSABLE(R.string.column_item_expensable),
         INDEX(R.string.column_item_index),
@@ -56,10 +58,11 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
         private final int mStringResId;
 
-        private ActualDefinition(int stringResId) {
+        private ActualDefinition(@StringRes int stringResId) {
             mStringResId = stringResId;
         }
 
+        @StringRes
         public final int getStringResId() {
             return mStringResId;
         }
@@ -151,13 +154,13 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     private AbstractColumnImpl<Receipt> getColumnFromClass(int id, @NonNull ActualDefinition definition, @NonNull String definitionName) {
         switch (definition) {
             case BLANK:
-                return new BlankColumn<Receipt>(id, definitionName);
+                return new BlankColumn<>(id, definitionName);
             case CATEGORY_CODE:
                 return new ReceiptCategoryCodeColumn(id, definitionName, mDB);
             case CATEGORY_NAME:
                 return new ReceiptCategoryNameColumn(id, definitionName);
             case USER_ID:
-                return new SettingUserIdColumn<Receipt>(id, definitionName, mPreferences);
+                return new SettingUserIdColumn<>(id, definitionName, mPreferences);
             case REPORT_NAME:
                 return new ReportNameColumn(id, definitionName);
             case REPORT_START_DATE:
@@ -184,6 +187,8 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
                 return new ReceiptPriceColumn(id, definitionName);
             case TAX:
                 return new ReceiptTaxColumn(id, definitionName);
+            case EXCHANGE_RATE:
+                return new ReceiptExchangeRateColumn(id, definitionName);
             case PICTURED:
                 return new ReceiptIsPicturedColumn(id, definitionName, mContext);
             case EXPENSABLE:

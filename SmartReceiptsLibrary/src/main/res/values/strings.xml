@@ -360,7 +360,10 @@
     <string name="column_item_date">@string/RECEIPTMENU_FIELD_DATE</string>
     <string name="column_item_name">@string/RECEIPTMENU_FIELD_NAME</string>
     <string name="column_item_price">@string/RECEIPTMENU_FIELD_PRICE</string>
+    <string name="column_item_converted_price_exchange_rate">Price (Exchanged)</string>
     <string name="column_item_tax">@string/RECEIPTMENU_FIELD_TAX</string>
+    <string name="column_item_converted_tax_exchange_rate">Tax (Exchanged)</string>
+    <string name="column_item_converted_price_plus_tax_exchange_rate">Price Plus Tax (Exchanged)</string>
     <string name="column_item_exchange_rate">Exchange Rate</string>
     <string name="column_item_pictured">Pictured</string>
     <string name="column_item_expensable">Expensable</string>

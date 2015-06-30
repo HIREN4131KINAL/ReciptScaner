@@ -45,7 +45,10 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         DATE(R.string.RECEIPTMENU_FIELD_DATE),
         NAME(R.string.RECEIPTMENU_FIELD_NAME),
         PRICE(R.string.RECEIPTMENU_FIELD_PRICE),
+        PRICE_EXCHANGED(R.string.column_item_converted_price_exchange_rate),
         TAX(R.string.RECEIPTMENU_FIELD_TAX),
+        TAX_EXCHANGED(R.string.column_item_converted_tax_exchange_rate),
+        PRICE_PLUS_TAX_EXCHANGED(R.string.column_item_converted_price_plus_tax_exchange_rate),
         EXCHANGE_RATE(R.string.column_item_exchange_rate),
         PICTURED(R.string.column_item_pictured),
         EXPENSABLE(R.string.column_item_expensable),
@@ -185,8 +188,14 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
                 return new ReceiptNameColumn(id, definitionName);
             case PRICE:
                 return new ReceiptPriceColumn(id, definitionName);
+            case PRICE_EXCHANGED:
+                return new ReceiptExchangedPriceColumn(id, definitionName, mContext);
             case TAX:
                 return new ReceiptTaxColumn(id, definitionName);
+            case TAX_EXCHANGED:
+                return new ReceiptExchangedTaxColumn(id, definitionName, mContext);
+            case PRICE_PLUS_TAX_EXCHANGED:
+                return new ReceiptNetExchangedPricePlusTaxColumn(id, definitionName, mContext, mPreferences);
             case EXCHANGE_RATE:
                 return new ReceiptExchangeRateColumn(id, definitionName);
             case PICTURED:

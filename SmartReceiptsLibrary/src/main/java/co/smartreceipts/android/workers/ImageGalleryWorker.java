@@ -1,6 +1,8 @@
 package co.smartreceipts.android.workers;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import wb.android.flex.Flex;
@@ -14,7 +16,9 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
@@ -125,8 +129,20 @@ public class ImageGalleryWorker extends WorkerChild {
         BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
         smallerOpts.inSampleSize=scale;
         System.gc();
-        imageUriCopy.in
+
+        // First, just see if we can get the bitmap directly
         Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
+
+        if (endBitmap == null) {
+            // If not, let's try to decode from the media store
+            endBitmap = BitmapFactory.decodeFile(getMediaStoreUri(imageUriCopy).getPath(), smallerOpts);
+        }
+
+        if (endBitmap == null) {
+            // If we still have nothing, see if we can use some KitKat and above fixes
+            endBitmap = getKitKatAndAboveBitmap(imageUriCopy);
+        }
+
         if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
             try {
                 ExifInterface exif = new ExifInterface(imageUriCopy.getPath());
@@ -147,14 +163,47 @@ public class ImageGalleryWorker extends WorkerChild {
         return imgFile;
     }
 
-    void temp() {/*
-        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(photoUri, filePathColumn, null, null, null);
-        cursor.moveToFirst();
-        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-        String filePath = cursor.getString(columnIndex);
-        cursor.close();*/
+    @NonNull
+    private Uri getMediaStoreUri(@NonNull Uri photoUri) {
+        final String[] selection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = null;
+        try {
+            cursor = mWorkerManager.getContext().getContentResolver().query(photoUri, selection, null, null, null);
+            if (cursor.moveToFirst()) {
+                final int columnIndex = cursor.getColumnIndex(selection[0]);
+                final String newPath = cursor.getString(columnIndex);
+                if (newPath != null) {
+                    return Uri.parse(newPath);
+                } else {
+                    return Uri.EMPTY;
+                }
+            } else {
+                return Uri.EMPTY;
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
 
+    private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri) {
+        ParcelFileDescriptor parcelFileDescriptor = null;
+        try {
+            parcelFileDescriptor = mWorkerManager.getContext().getContentResolver().openFileDescriptor(photoUri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            return BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        } catch (FileNotFoundException e) {
+            return null;
+        } finally {
+            try {
+                if (parcelFileDescriptor != null) {
+                    parcelFileDescriptor.close();
+                }
+            } catch (IOException e) {
+                // Close quietly
+            }
+        }
     }
 
 }

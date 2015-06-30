@@ -55,6 +55,7 @@
     <string name="total_item">Total: %s</string>
     <string name="text">Text</string>
     <string name="type">Type</string>
+    <string name="undefined">Undefined</string>
     <string name="update">Update</string>
     <string name="yes">Yes</string>
     <string name="yes_as_pdf">Yes - As PDF</string>

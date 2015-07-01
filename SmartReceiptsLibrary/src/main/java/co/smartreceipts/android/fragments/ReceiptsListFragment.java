@@ -989,22 +989,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
     @Override
-    public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category) {
-        if (isAdded()) {
-            if (mNameBox != null && name != null) {
-                mNameBox.setText(name);
-                mNameBox.setSelection(name.length());
-            }
-            if (mPriceBox != null && price != null && mPriceBox.getText().length() == 0) {
-                mPriceBox.setText(price);
-            }
-            if (mCategoriesSpinner != null && category != null) {
-                mCategoriesSpinner.setSelection(getPersistenceManager().getDatabase().getCategoriesList().indexOf(category));
-            }
-        }
-    }
-
-    @Override
     public void onReceiptDeleteSuccess(Receipt receipt) {
         getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
         if (isAdded()) {

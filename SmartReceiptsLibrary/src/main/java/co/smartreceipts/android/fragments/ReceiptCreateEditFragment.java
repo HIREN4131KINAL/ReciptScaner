@@ -54,7 +54,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
-public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener {
+public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener, DatabaseHelper.ReceiptAutoCompleteListener {
 
     private static final String TAG = ReceiptCreateEditFragment.class.getSimpleName();
     private static final String ARG_FILE = "arg_file";
@@ -410,13 +410,13 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         });
 
         exchangeRateBox.setRetryListener(this);
+        getPersistenceManager().getDatabase().registerReceiptAutoCompleteListener(this);
     }
 
     @Override
     public void onPause() {
         // Notify the downstream adapters
         if (mReceiptsNameAutoCompleteAdapter != null) {
-            mReceiptsCommentAutoCompleteAdapter.onPause();
             mReceiptsNameAutoCompleteAdapter.onPause();
         }
         if (mReceiptsCommentAutoCompleteAdapter != null) {
@@ -432,6 +432,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         exchangeRateBox.setRetryListener(null);
+        getPersistenceManager().getDatabase().unregisterReceiptAutoCompleteListener();
         super.onPause();
     }
 
@@ -457,7 +458,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         mFocusedView = hasFocus ? v : null;
-        if (hasFocus && mReceipt == null) {
+        if (mReceipt == null) {
             // Only launch if we have focus and it's a new receipt
             new ShowSoftKeyboardOnFocusChangeListener().onFocusChange(v, hasFocus);
         }
@@ -466,6 +467,22 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onUserRetry() {
         submitExchangeRateRequest((String)currencySpinner.getSelectedItem());
+    }
+
+    @Override
+    public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category) {
+        if (isAdded()) {
+            if (nameBox != null && name != null) {
+                nameBox.setText(name);
+                nameBox.setSelection(name.length());
+            }
+            if (priceBox != null && price != null && priceBox.getText().length() == 0) {
+                priceBox.setText(price);
+            }
+            if (categoriesSpinner != null && category != null) {
+                categoriesSpinner.setSelection(getPersistenceManager().getDatabase().getCategoriesList().indexOf(category));
+            }
+        }
     }
 
     private void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
@@ -573,10 +590,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         @Override
         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-            if (sNameBox != null) {
+            if (sNameBox != null && TextUtils.isEmpty(sNameBox.getText())) {
                 sNameBox.setText(sCategories.getItem(position));
             }
-            if (sCommentBox != null) {
+            if (sCommentBox != null && TextUtils.isEmpty(sCommentBox.getText())) {
                 sCommentBox.setText(sCategories.getItem(position));
             }
         }

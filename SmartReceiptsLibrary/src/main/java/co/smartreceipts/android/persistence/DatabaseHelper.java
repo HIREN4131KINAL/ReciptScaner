@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -100,6 +101,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // Listeners
     private TripRowListener mTripRowListener;
     private ReceiptRowListener mReceiptRowListener;
+    private ReceiptAutoCompleteListener mReceiptAutoCompleteListener;
     private DistanceRowListener mDistanceRowListener;
     private ReceiptRowGraphListener mReceiptRowGraphListener;
 
@@ -146,9 +148,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         public void onReceiptDeleteSuccess(Receipt receipt);
 
-        public void onReceiptRowAutoCompleteQueryResult(String name, String price, String category); // Any of these can
-        // be null!
-
         public void onReceiptCopySuccess(Trip trip);
 
         public void onReceiptCopyFailure();
@@ -158,6 +157,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public void onReceiptMoveFailure();
 
         public void onReceiptDeleteFailure();
+    }
+
+    public interface ReceiptAutoCompleteListener {
+
+        public void onReceiptRowAutoCompleteQueryResult(@Nullable String name, @Nullable String price, @Nullable String category);
     }
 
     public interface DistanceRowListener {
@@ -3859,6 +3863,15 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // AutoCompleteTextView Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void registerReceiptAutoCompleteListener(ReceiptAutoCompleteListener listener) {
+        mReceiptAutoCompleteListener = listener;
+    }
+
+    public void unregisterReceiptAutoCompleteListener() {
+        mReceiptAutoCompleteListener = null;
+    }
+
     @Override
     public Cursor getAutoCompleteCursor(CharSequence text, CharSequence tag) {
         // TODO: Fix SQL vulnerabilities
@@ -3921,8 +3934,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     }
                 }
             }
-            if (mReceiptRowListener != null) {
-                mReceiptRowListener.onReceiptRowAutoCompleteQueryResult(name, price, category);
+            if (mReceiptAutoCompleteListener != null) {
+                mReceiptAutoCompleteListener.onReceiptRowAutoCompleteQueryResult(name, price, category);
             }
         }
     }

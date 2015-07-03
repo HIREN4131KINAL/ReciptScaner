@@ -22,4 +22,8 @@
         
     </style>
 
+    <style name="Theme.SmartReceipts.Toolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar" >
+
+    </style>
+
 </resources>

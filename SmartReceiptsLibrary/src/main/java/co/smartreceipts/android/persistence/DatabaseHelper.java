@@ -3452,6 +3452,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final int timeZoneIndex = c.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
                         final int paymentMethodIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID);
                         final int processingStatusIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PROCESSING_STATUS);
+                        final int exchangeRateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXCHANGE_RATE);
                         do {
                             final String oldPath = getString(c, pathIndex, "");
                             String newPath = new String(oldPath);
@@ -3489,6 +3490,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             final BigDecimal tax = getDecimal(c, taxIndex);
                             final int paymentMethod = getInt(c, paymentMethodIndex, 0);
                             final String processingStatus = getString(c, processingStatusIndex, "");
+                            final BigDecimal exchangeRate = getDecimal(c, exchangeRateIndex);
                             try {
                                 countCursor = currDB.rawQuery(queryCount, new String[]{newPath, name, Long.toString(date)});
                                 if (countCursor != null && countCursor.moveToFirst()) {
@@ -3510,6 +3512,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                                     values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, extra_edittext_3);
                                     values.put(ReceiptsTable.COLUMN_TAX, tax.doubleValue());
                                     values.put(ReceiptsTable.COLUMN_PROCESSING_STATUS, processingStatus);
+                                    values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, exchangeRate.doubleValue());
                                     if (timeZoneIndex > 0) {
                                         final String timeZone = c.getString(timeZoneIndex);
                                         values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
@@ -3843,6 +3846,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @see https://code.google.com/p/android/issues/detail?id=22219.
      */
     private BigDecimal getDecimal(@NonNull Cursor cursor, int index) {
+        return getDecimal(cursor, index, new BigDecimal(0));
+    }
+
+    private BigDecimal getDecimal(@NonNull Cursor cursor, int index, @Nullable BigDecimal defaultValue) {
         if (index >= 0) {
             final String decimalString = cursor.getString(index);
             final double decimalDouble = cursor.getDouble(index);
@@ -3856,7 +3863,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 return new BigDecimal(decimalDouble);
             }
         } else {
-            return new BigDecimal(0);
+            return defaultValue;
         }
     }
 

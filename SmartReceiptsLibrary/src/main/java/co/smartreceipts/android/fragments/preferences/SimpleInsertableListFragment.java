@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,7 +17,8 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 
 public abstract class SimpleInsertableListFragment<T> extends WBFragment implements View.OnClickListener {
-	
+
+    private Toolbar mToolbar;
 	private ListView mListView;
 	private Adapter<T> mAdapter;
 	
@@ -29,7 +31,8 @@ public abstract class SimpleInsertableListFragment<T> extends WBFragment impleme
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.simple_list, container, false);
+		final View rootView = inflater.inflate(R.layout.simple_list, container, false);
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
 		mListView.setAdapter(mAdapter);
 		return rootView;
@@ -39,6 +42,7 @@ public abstract class SimpleInsertableListFragment<T> extends WBFragment impleme
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		mListView.setAdapter(mAdapter);
+        setSupportActionBar(mToolbar);
 	}
 	
 	@Override

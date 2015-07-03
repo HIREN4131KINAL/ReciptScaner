@@ -4,10 +4,12 @@ import wb.android.flex.Flex;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
@@ -70,7 +72,12 @@ public class WBFragment extends Fragment {
 		return mDateManager;
 	}
 
-	public ActionBar getSupportActionBar() {
+    public final void setSupportActionBar(@Nullable Toolbar toolbar) {
+        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+    }
+
+    @Nullable
+	public final ActionBar getSupportActionBar() {
 		return ((AppCompatActivity)getActivity()).getSupportActionBar();
 	}
 

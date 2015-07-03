@@ -7,6 +7,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.database.SQLException;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +31,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	public static String TAG = "CategoriesListFragment";
 
 	private BaseAdapter mAdapter;
+    private Toolbar mToolbar;
 	private ListView mListView;
 	private List<CharSequence> mCategories;
 
@@ -45,17 +49,28 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.simple_list, container, false);
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
 		mAdapter = getAdapter();
 		mListView.setAdapter(mAdapter);
 		return rootView;
 	}
 
-	@Override
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setSupportActionBar(mToolbar);
+
+    }
+
+    @Override
 	public void onResume() {
 		super.onResume();
-		getSupportActionBar().setTitle(R.string.menu_main_categories);
-		getSupportActionBar().setSubtitle(null);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.menu_main_categories);
+            actionBar.setSubtitle(null);
+        }
 	}
 
 	@Override

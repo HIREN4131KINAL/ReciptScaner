@@ -1,7 +1,6 @@
 package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
-import android.app.ActionBar;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,12 +11,19 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 
 import com.artifex.mupdfdemo.AsyncTask;
 
@@ -40,7 +46,7 @@ import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
 import wb.android.util.Utils;
 
-public class SettingsActivity extends PreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
+public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
 
     public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
@@ -79,6 +85,53 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     }
 
     @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            final LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
+            if (root != null) {
+                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
+                root.addView(toolbar, 0); // insert at top
+                setSupportActionBar(toolbar);
+                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
+            }
+        } else {
+            final ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+            if (root != null) {
+                final ListView content = (ListView) root.getChildAt(0);
+                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
+                root.removeAllViews();
+
+                final int height;
+                final TypedValue tv = new TypedValue();
+                if (getTheme().resolveAttribute(R.attr.actionBarSize, tv, true)) {
+                    height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+                } else {
+                    height = toolbar.getHeight();
+                }
+
+                content.setPadding(0, height, 0, 0);
+                root.addView(content);
+                root.addView(toolbar);
+                setSupportActionBar(toolbar);
+                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
+            }
+        }
+
+    }
+
+    @Override
     protected void onStart() {
         mApp.getWorkerManager().getLogger().logScreen(this);
         super.onStart();
@@ -87,29 +140,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     @Override
     protected void onResume() {
         super.onResume();
-        setTitle(R.string.menu_main_settings);
-        setUpActionBar11();
-        setUpActionBar14();
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setUpActionBar11() {
-        if (Utils.ApiHelper.hasHoneycomb()) {
-            final ActionBar actionBar = getActionBar();
-            if (actionBar != null) {
-                getActionBar().setTitle(R.string.menu_main_settings);
-                getActionBar().setDisplayHomeAsUpEnabled(true);
-            }
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    private void setUpActionBar14() {
-        if (Utils.ApiHelper.hasICS()) {
-            final ActionBar actionBar = getActionBar();
-            if (actionBar != null) {
-                getActionBar().setHomeButtonEnabled(true);
-            }
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.menu_main_settings);
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
 

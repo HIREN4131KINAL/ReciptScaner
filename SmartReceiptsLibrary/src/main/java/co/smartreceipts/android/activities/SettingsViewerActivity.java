@@ -16,12 +16,8 @@ public class SettingsViewerActivity extends WBActivity {
         super.onCreate(savedInstanceState);        
         setContentView(R.layout.activity_main_onepane);
         
-		// savedInstanceState is non-null when there is fragment state saved from previous configurations of this activity
-		// (e.g. when rotating the screen from portrait to landscape). In this case, the fragment will automatically be re-added
-		// to its container so we don't need to manually add it. For more information, see the Fragments API guide at:
-		// http://developer.android.com/guide/components/fragments.html
 		if (savedInstanceState == null) {
-			String key = getKey();
+			final String key = getKey();
 			if (key.equalsIgnoreCase(getString(R.string.pref_receipt_customize_categories_key))) {
 				getSupportFragmentManager().beginTransaction().replace(R.id.content_list, CategoriesListFragment.newInstance(), CategoriesListFragment.TAG).commitAllowingStateLoss();
 			}

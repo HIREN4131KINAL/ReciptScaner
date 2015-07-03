@@ -1,5 +1,7 @@
 package co.smartreceipts.android.fragments.preferences;
 
+import android.support.v7.app.ActionBar;
+
 import java.util.List;
 
 import co.smartreceipts.android.R;
@@ -17,7 +19,10 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        getSupportActionBar().setTitle(R.string.menu_main_pdf);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            getSupportActionBar().setTitle(R.string.menu_main_pdf);
+        }
     }
 
     @Override

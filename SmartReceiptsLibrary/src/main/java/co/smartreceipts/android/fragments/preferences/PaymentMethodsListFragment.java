@@ -5,6 +5,7 @@ import java.util.List;
 import wb.android.dialog.fragments.EditTextDialogFragment;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,15 +17,18 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 
 	public static final String TAG = PaymentMethodsListFragment.class.getSimpleName();
 	
-	public static final PaymentMethodsListFragment newInstance() {
+	public static PaymentMethodsListFragment newInstance() {
 		return new PaymentMethodsListFragment();
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
-		getSupportActionBar().setTitle(R.string.payment_methods);
-		getSupportActionBar().setSubtitle(null);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            getSupportActionBar().setTitle(R.string.payment_methods);
+            getSupportActionBar().setSubtitle(null);
+        }
 	}
 	
 	@Override

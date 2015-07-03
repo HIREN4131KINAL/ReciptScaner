@@ -186,7 +186,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         final boolean isNewReceipt = mReceipt == null;
 
 
-        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        setSupportActionBar(mToolbar);
 
         if (getPersistenceManager().getPreferences().includeTaxField()) {
             priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));

@@ -1,6 +1,9 @@
 package co.smartreceipts.android.fragments.preferences;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,6 +31,7 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	public static String TAG = "ColumnsListFragment";
 
 	private BaseAdapter mAdapter;
+    private Toolbar mToolbar;
 	private ListView mListView;
 	private List<Column<Receipt>> mColumns;
     private ArrayAdapter<Column<Receipt>> mSpinnerAdapter;
@@ -46,16 +50,26 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.simple_list, container, false);
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
 		mAdapter = getAdapter();
 		mListView.setAdapter(mAdapter);
 		return rootView;
 	}
 
-	@Override
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setSupportActionBar(mToolbar);
+    }
+
+    @Override
 	public void onResume() {
 		super.onResume();
-		getSupportActionBar().setSubtitle(null);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setSubtitle(null);
+        }
 	}
 
 	@Override

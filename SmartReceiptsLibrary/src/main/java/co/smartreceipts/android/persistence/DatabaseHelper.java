@@ -1266,90 +1266,27 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @param trip the trip, which will be updated
      */
     private void queryTripDailyPrice(final Trip trip) {
-        SQLiteDatabase db = null;
-        Cursor receiptPriceCursor = null;
-        Cursor distancePriceCursor = null;
-        try {
-            db = this.getReadableDatabase();
-
-            // Build a calendar for the start of today
-            final Time now = new Time();
-            now.setToNow();
-            final Calendar startCalendar = Calendar.getInstance();
-            startCalendar.setTimeInMillis(now.toMillis(false));
-            startCalendar.setTimeZone(TimeZone.getDefault());
-            startCalendar.set(Calendar.HOUR_OF_DAY, 0);
-            startCalendar.set(Calendar.MINUTE, 0);
-            startCalendar.set(Calendar.SECOND, 0);
-            startCalendar.set(Calendar.MILLISECOND, 0);
-
-            // Build a calendar for the end date
-            final Calendar endCalendar = Calendar.getInstance();
-            endCalendar.setTimeInMillis(now.toMillis(false));
-            endCalendar.setTimeZone(TimeZone.getDefault());
-            endCalendar.set(Calendar.HOUR_OF_DAY, 23);
-            endCalendar.set(Calendar.MINUTE, 59);
-            endCalendar.set(Calendar.SECOND, 59);
-            endCalendar.set(Calendar.MILLISECOND, 999);
-
-            // Set the timers
-            final long startTime = startCalendar.getTimeInMillis();
-            final long endTime = endCalendar.getTimeInMillis();
-            String selection = ReceiptsTable.COLUMN_PARENT + "= ? AND " + ReceiptsTable.COLUMN_DATE + " >= ? AND " + ReceiptsTable.COLUMN_DATE + " <= ?";
-            if (mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports()) {
-                selection += " AND " + ReceiptsTable.COLUMN_EXPENSEABLE + " = 1";
-            }
-
-            BigDecimal subTotal = new BigDecimal(0);
-            WBCurrency currency = trip.getDefaultCurrency();
-            boolean firstPass = true;
-            receiptPriceCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_PRICE, ReceiptsTable.COLUMN_ISO4217}, selection, new String[]{trip.getName(), Long.toString(startTime), Long.toString(endTime)}, null, null, null);
-            if (receiptPriceCursor != null && receiptPriceCursor.moveToFirst() && receiptPriceCursor.getColumnCount() > 0) {
-                do {
-                    subTotal = subTotal.add(getDecimal(receiptPriceCursor, 0));
-                    if (firstPass) {
-                        currency = WBCurrency.getInstance(receiptPriceCursor.getString(1));
-                        firstPass = false;
-                    }
-                    else {
-                        if (currency != null && !currency.equals(WBCurrency.getInstance(receiptPriceCursor.getString(1)))) {
-                            currency = null;
-                        }
-                    }
+        final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
+        final List<Receipt> receipts = getReceiptsSerial(trip);
+        final List<Priceable> prices = new ArrayList<>(receipts.size());
+        for (final Receipt receipt : receipts) {
+            if (!onlyUseExpensable || receipt.isExpensable()) {
+                if(DateUtils.isToday(receipt.getDate())) {
+                    prices.add(receipt);
                 }
-                while (receiptPriceCursor.moveToNext());
-            }
-
-            if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
-                final String distanceSelection = DistanceTable.COLUMN_PARENT + " = ? AND " + DistanceTable.COLUMN_DATE + " >= ? AND " + DistanceTable.COLUMN_DATE + " <= ?";
-                final String[] distanceColumns = new String[] {DistanceTable.COLUMN_DISTANCE + "*" + DistanceTable.COLUMN_RATE, DistanceTable.COLUMN_RATE_CURRENCY};
-                distancePriceCursor = db.query(DistanceTable.TABLE_NAME, distanceColumns, distanceSelection, new String[] {trip.getName()}, null, null, null);
-                if (distancePriceCursor != null && distancePriceCursor.moveToFirst() && distancePriceCursor.getColumnCount() > 0) {
-                    do {
-                        subTotal = subTotal.add(getDecimal(distancePriceCursor, 0));
-                        if (firstPass) {
-                            currency = WBCurrency.getInstance(distancePriceCursor.getString(1));
-                            firstPass = false;
-                        }
-                        else {
-                            if (currency != null && !currency.equals(WBCurrency.getInstance(distancePriceCursor.getString(1)))) {
-                                currency = null;
-                            }
-                        }
-                    }
-                    while (distancePriceCursor.moveToNext());
-                }
-            }
-
-            trip.setDailySubTotal(new PriceBuilderFactory().setPrice(subTotal).setCurrency(currency).build());
-        } finally { // Close the cursor to avoid memory leaks
-            if (receiptPriceCursor != null) {
-                receiptPriceCursor.close();
-            }
-            if (distancePriceCursor != null) {
-                distancePriceCursor.close();
             }
         }
+
+        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+            final List<Distance> distances = getDistanceSerial(trip);
+            for (final Distance distance : distances) {
+                if(DateUtils.isToday(distance.getDate())) {
+                    prices.add(distance);
+                }
+            }
+        }
+
+        trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices).setCurrency(trip.getDefaultCurrency()).build());
     }
 
     private void updateTripPrice(final Trip trip) {

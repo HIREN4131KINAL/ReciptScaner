@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 
 import co.smartreceipts.android.BuildConfig;
@@ -54,10 +55,13 @@ public class ReceiptsFragment extends WBListFragment {
             return;
         }
         getActivity().setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
-        if (getPersistenceManager().getPreferences().isShowReceiptID()) {
-            getSupportActionBar().setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
-        } else {
-            getSupportActionBar().setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null && isResumed()) {
+            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                actionBar.setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
+            } else {
+                actionBar.setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+            }
         }
     }
 

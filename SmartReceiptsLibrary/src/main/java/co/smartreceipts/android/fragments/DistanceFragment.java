@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.database.SQLException;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -114,8 +115,11 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
-            final Price total = new PriceBuilderFactory().setPriceables(distances).build();
-            getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
+            final ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null && isResumed()) {
+                final Price total = new PriceBuilderFactory().setPriceables(distances).build();
+                getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
+            }
             // Fetch trips in the background to ensure this info is up to date
             getPersistenceManager().getDatabase().getTripsParallel();
         }

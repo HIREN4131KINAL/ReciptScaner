@@ -1062,11 +1062,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     return null;
                 } else {
                     if (!oldTrip.getName().equalsIgnoreCase(dir.getName())) {
-                        synchronized (mReceiptCacheLock) {
-                            if (mReceiptCache.containsKey(oldTrip)) {
-                                mReceiptCache.remove(oldTrip);
-                            }
-                        }
+                        // Make sure any name changes are reflected
+                        // TODO: Build in a rollback mechanism if the update fails
                         final String oldName = oldTrip.getName();
                         final String newName = dir.getName();
                         final ContentValues rcptVals = new ContentValues(1);
@@ -1075,7 +1072,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         distVals.put(DistanceTable.COLUMN_PARENT, newName);
                         db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[]{oldName});
                         db.update(DistanceTable.TABLE_NAME, distVals, DistanceTable.COLUMN_PARENT + " = ?", new String[]{oldName});
+                    }
+                    if (!oldTrip.getDefaultCurrencyCode().equalsIgnoreCase(defaultCurrencyCode)) {
+                        // Make sure any currency changes are reflected
                         // TODO: Build in a rollback mechanism if the update fails
+                        final ContentValues rcptVals = new ContentValues(1);
+                        rcptVals.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, -1);
+                        db.update(ReceiptsTable.TABLE_NAME, rcptVals, ReceiptsTable.COLUMN_PARENT + " = ?", new String[]{dir.getName()});
                     }
                     return (new TripBuilderFactory()).setDirectory(dir).setStartDate(from).setEndDate(to).setStartTimeZone(startTimeZone).setEndTimeZone(endTimeZone).setComment(comment).setCostCenter(costCenter).setDefaultCurrency(defaultCurrencyCode, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
                 }
@@ -1084,6 +1087,12 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     Log.e(TAG, e.toString());
                 }
                 return null;
+            } finally {
+                synchronized (mReceiptCacheLock) {
+                    if (mReceiptCache.containsKey(oldTrip)) {
+                        mReceiptCache.remove(oldTrip);
+                    }
+                }
             }
         }
     }

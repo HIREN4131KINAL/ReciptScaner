@@ -295,6 +295,21 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             if (!TextUtils.isEmpty(trip.getCostCenter())) {
                 costCenterBox.setText(trip.getCostCenter());
             }
+
+            currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    final String newCurrencyCode = currenices.getItem(position).toString();
+                    if (!trip.getDefaultCurrencyCode().equals(newCurrencyCode)) {
+                        Toast.makeText(view.getContext(), R.string.toast_warning_reset_exchange_rate, Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // Intentional no-op
+                }
+            });
         }
         endBox.setFocusableInTouchMode(false);
         endBox.setOnClickListener(getDateManager().getDateEditTextListener());

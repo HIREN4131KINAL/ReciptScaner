@@ -153,6 +153,7 @@
     <string name="IMPORT_ERROR">Error: Failed to recognize the file as importable</string>
     <string name="MOVE_ERROR">Error: Failed to move the receipt</string>
     <string name="COPY_ERROR">Error: Failed to copy the receipt</string>
+    <string name="toast_warning_reset_exchange_rate">Warning: Changing the currency will reset ALL exchange rates</string>
     <string name="toast_error_trip_exists">Error: An expense report with that name already exists</string>
     <string name="toast_error_category_exists">Error: An category with that name already exists</string>
     <string name="toast_error_invalid_input">Invalid Input</string>

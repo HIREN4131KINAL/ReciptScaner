@@ -133,6 +133,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the default currency code {@link java.lang.String} for this trip
      */
+    @NonNull
     String getDefaultCurrencyCode();
 
     /**

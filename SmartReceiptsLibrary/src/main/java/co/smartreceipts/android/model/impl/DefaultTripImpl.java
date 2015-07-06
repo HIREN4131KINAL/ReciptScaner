@@ -159,6 +159,7 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
+    @NonNull
     public String getDefaultCurrencyCode() {
         if (mDefaultCurrency != null) {
             return mDefaultCurrency.getCurrencyCode();

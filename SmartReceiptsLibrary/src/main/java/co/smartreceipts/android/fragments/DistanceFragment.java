@@ -116,7 +116,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                 getListView().setVisibility(View.VISIBLE);
             }
             final ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null && isResumed()) {
+            if (actionBar != null && getUserVisibleHint()) {
                 final Price total = new PriceBuilderFactory().setPriceables(distances).build();
                 getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
             }

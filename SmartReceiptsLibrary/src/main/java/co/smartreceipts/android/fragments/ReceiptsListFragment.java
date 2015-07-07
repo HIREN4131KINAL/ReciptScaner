@@ -155,6 +155,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         rootView.findViewById(R.id.receipt_action_import).setOnClickListener(listener);
         mFloatingActionMenu = (FloatingActionMenu) rootView.findViewById(R.id.fab_menu);
         mFloatingActionMenuActiveMaskView = rootView.findViewById(R.id.fab_active_mask);
+        mFloatingActionMenuActiveMaskView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Intentional stub to block click events when this view is active
+            }
+        });
         mFloatingActionMenu.setOnMenuToggleListener(new FloatingActionMenu.OnMenuToggleListener() {
             @Override
             public void onMenuToggle(boolean isOpen) {

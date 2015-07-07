@@ -56,7 +56,7 @@ public class ReceiptsFragment extends WBListFragment {
         }
         getActivity().setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
         final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null && isResumed()) {
+        if (actionBar != null && getUserVisibleHint()) {
             if (getPersistenceManager().getPreferences().isShowReceiptID()) {
                 actionBar.setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
             } else {

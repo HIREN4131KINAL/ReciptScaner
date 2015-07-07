@@ -88,6 +88,15 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            // Refresh as soon as we're visible
+            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+        }
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");

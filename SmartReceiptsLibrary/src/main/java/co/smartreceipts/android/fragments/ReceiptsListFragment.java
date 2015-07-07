@@ -204,6 +204,15 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            // Refresh as soon as we're visible
+            getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+        }
+    }
+
+    @Override
     public void onPause() {
         Log.d(TAG, "onPause");
         if (mReceiptsNameAutoCompleteAdapter != null) {

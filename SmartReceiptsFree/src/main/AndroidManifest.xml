@@ -16,8 +16,7 @@
         android:allowBackup="true"
         android:name=".SmartReceiptsFreeApplication" >
         <activity android:name=".SmartReceiptsFreeActivity"
-			android:label="@string/sr_app_name"
-			android:configChanges="orientation|keyboardHidden|screenSize" >
+			android:label="@string/sr_app_name" >
 			
             <!-- Main Launcher filter -->
             <intent-filter>

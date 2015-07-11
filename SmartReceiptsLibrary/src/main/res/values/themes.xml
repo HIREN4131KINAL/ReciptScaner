@@ -14,6 +14,17 @@
         <item name="windowActionBar">false</item>
         <item name="colorPrimary">@color/smart_receipts_colorPrimary</item>
         <item name="colorPrimaryDark">@color/smart_receipts_colorPrimaryDark</item>
+        <item name="colorAccent">@color/smart_receipts_colorAccent</item>
+        <item name="alertDialogStyle">@style/Theme.SmartReceiptsBase.Dialog</item>
+        <item name="android:spinnerStyle">@style/Widget.AppCompat.Spinner.Underlined</item>
+    </style>
+
+    <style name="Theme.SmartReceiptsBase.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="colorPrimary">@color/smart_receipts_colorPrimary</item>
+        <item name="colorPrimaryDark">@color/smart_receipts_colorPrimaryDark</item>
+        <item name="colorAccent">@color/smart_receipts_colorAccent</item>
         <item name="android:spinnerStyle">@style/Widget.AppCompat.Spinner.Underlined</item>
     </style>
 

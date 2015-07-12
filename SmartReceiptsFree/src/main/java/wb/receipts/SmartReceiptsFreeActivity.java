@@ -9,12 +9,10 @@ import co.smartreceipts.android.model.Trip;
 
 public class SmartReceiptsFreeActivity extends SmartReceiptsActivity {
 
-	@Override
 	protected TripFragment getTripsFragment() {
 		return AdsTripFragment.newInstance();
 	}
 
-	@Override
 	protected ReceiptsListFragment getReceiptsListFragment(Trip trip) {
 		return AdsReceiptsListFragment.newListInstance(trip);
 	}

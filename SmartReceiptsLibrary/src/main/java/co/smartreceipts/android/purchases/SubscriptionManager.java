@@ -215,7 +215,7 @@ public final class SubscriptionManager {
                                 final String sku = object.getString("productId");
                                 final String price = object.getString("price");
                                 final Subscription subscription = Subscription.from(sku);
-                                if (subscription != null) {
+                                if (subscription != null && !mSubscriptionCache.getSubscriptionWallet().hasSubscription(subscription)) {
                                     availableSubscriptions.add(new PurchaseableSubscription(subscription, price));
                                 } else {
                                     Log.w(TAG, "Unknown sku returned from the available subscriptions query: " + sku);

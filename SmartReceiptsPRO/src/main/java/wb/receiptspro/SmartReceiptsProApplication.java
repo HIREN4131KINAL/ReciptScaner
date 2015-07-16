@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
+import co.smartreceipts.android.purchases.ProSubscriptionCache;
+import co.smartreceipts.android.purchases.SubscriptionCache;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -128,7 +130,12 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 
 	}
 
-	/*
+    @Override
+    protected SubscriptionCache initiateSubscriptionCache() {
+        return new ProSubscriptionCache();
+    }
+
+    /*
 	@Override
 	public int getFleXML() {
 		return wb.receiptspro.R.raw.flex;

@@ -8,6 +8,8 @@ import java.util.List;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
+import co.smartreceipts.android.purchases.SubscriptionCache;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
@@ -65,7 +67,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 																				// in onVersionUpgrade
 	}
 
-	public static final SmartReceiptsApplication getInstance() {
+    @Deprecated
+	public static SmartReceiptsApplication getInstance() {
 		return sApplication;
 	}
 
@@ -288,7 +291,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	 * @return a PersistenceManager Instance
 	 */
 	protected PersistenceManager instantiatePersistenceManager() {
-		return new PersistenceManager(this);
+		return new PersistenceManager(this, initiateSubscriptionCache());
 	}
 
 	/**
@@ -308,6 +311,15 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	protected Settings instantiateSettings() {
 		return new Settings(this);
 	}
+
+    /**
+     * Protected method to enable subclasses to create custom instances
+     *
+     * @return a SubscriptionCache Instance
+     */
+    protected SubscriptionCache initiateSubscriptionCache() {
+        return new DefaultSubscriptionCache(this);
+    }
 
 	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
 		return SmartReceiptsActivity.class;

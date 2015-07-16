@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence;
 
+import co.smartreceipts.android.purchases.SubscriptionCache;
 import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
@@ -14,12 +15,13 @@ public class PersistenceManager {
 	private SDCardFileManager mExternalStorageManager;
 	private InternalStorageManager mInternalStorageManager;
 	private Preferences mPreferences;
+    private final SubscriptionCache mSubscriptionCache;
 
-	public PersistenceManager(SmartReceiptsApplication application) {
+	public PersistenceManager(SmartReceiptsApplication application, SubscriptionCache subscriptionCache) {
 		mApplication =  application;
 		mStorageManager = StorageManager.getInstance(application);
 		mPreferences = new Preferences(application, application.getFlex(), mStorageManager);
-
+        mSubscriptionCache = subscriptionCache;
 	}
 
     public void initDatabase() {
@@ -89,5 +91,9 @@ public class PersistenceManager {
 	public void setPreferences(Preferences preferences) {
 		mPreferences = preferences;
 	}
+
+    public SubscriptionCache getSubscriptionCache() {
+        return mSubscriptionCache;
+    }
 
 }

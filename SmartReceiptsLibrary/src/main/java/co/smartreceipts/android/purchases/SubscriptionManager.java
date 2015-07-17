@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +30,6 @@ public final class SubscriptionManager {
     public static final int REQUEST_CODE = 5435;
 
     private static final String TAG = SubscriptionManager.class.getSimpleName();
-    private static final String DEVELOPER_PAYLAOD = "tbd"; // TODO
     private static final int BILLING_RESPONSE_CODE_OK = 0;
     private static final int API_VERSION = 3;
 
@@ -38,6 +38,7 @@ public final class SubscriptionManager {
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
     private final CopyOnWriteArrayList<SubscriptionEventsListener> mListeners;
+    private final String mSessionDeveloperPayload;
     private IInAppBillingService mService;
 
     public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache) {
@@ -58,6 +59,12 @@ public final class SubscriptionManager {
                 mService = null;
             }
         };
+
+        // Note: this isn't actually secure at all... but it's okay given that the Pro version is open source anyway
+        final byte[] payloadBytes = new byte[32];
+        new Random().nextBytes(payloadBytes);
+        mSessionDeveloperPayload = new String(payloadBytes);
+
         mExecutorService = backgroundTasksExecutor;
         mListeners = new CopyOnWriteArrayList<>();
     }
@@ -101,7 +108,7 @@ public final class SubscriptionManager {
             public void run() {
                 try {
                     // TODO: Developer payload should be a randomly generated string
-                    final String developerPayload = DEVELOPER_PAYLAOD;
+                    final String developerPayload = mSessionDeveloperPayload;
                     final Bundle buyIntentBundle = mService.getBuyIntent(3, mContext.getPackageName(), subscription.getSku(), "subs", developerPayload);
                     final PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                     if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
@@ -135,7 +142,6 @@ public final class SubscriptionManager {
 
             // TODO: Check signature as well
             final String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
-
             if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_CODE_OK) {
                 try {
                     final JSONObject json = new JSONObject(purchaseData);

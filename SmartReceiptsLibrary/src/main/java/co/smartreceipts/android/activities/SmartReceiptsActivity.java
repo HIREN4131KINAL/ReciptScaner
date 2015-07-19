@@ -1,21 +1,32 @@
 package co.smartreceipts.android.activities;
 
+import android.app.PendingIntent;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.List;
+
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseableSubscription;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.util.AppRating;
 
-public class SmartReceiptsActivity extends WBActivity implements Attachable {
+public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
     // logging variables
     static final String TAG = "SmartReceiptsActivity";
@@ -31,6 +42,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
     private static final int DAYS_UNTIL_PROMPT = 7;
 
     private NavigationHandler mNavigationHandler;
+    private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
 
     @Override
@@ -40,6 +52,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
         setContentView(R.layout.activity_main);
+        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
 
         if (savedInstanceState == null) {
             Log.d(TAG, "savedInstanceState == null");
@@ -92,15 +105,15 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
     }
 
     @Override
-    protected void onDestroy() {
-        getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
-        super.onDestroy();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data, /* TODO: */ null)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
-            // getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
             SRNavUtils.showSettings(this);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
@@ -119,6 +132,12 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
+        super.onDestroy();
     }
 
     @Override
@@ -145,4 +164,37 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable {
     }
 
 
+    @Override
+    public void onSubscriptionsAvailable(@NonNull List<PurchaseableSubscription> subscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        for (final PurchaseableSubscription purchaseableSubscription : subscriptions) {
+            if (Subscription.SmartReceiptsPro == purchaseableSubscription.getSubscription()) {
+                // TODO: Add to buy menu
+            }
+        }
+    }
+
+    @Override
+    public void onSubscriptionsUnavailable() {
+        // Intentional no-op
+    }
+
+    @Override
+    public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+        // TODO: Start for result
+    }
+
+    @Override
+    public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+        Toast.makeText(this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet) {
+        Toast.makeText(this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPurchaseFailed() {
+        Toast.makeText(this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+    }
 }

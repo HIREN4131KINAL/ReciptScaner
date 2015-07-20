@@ -60,6 +60,9 @@
     <string name="yes">Yes</string>
     <string name="yes_as_pdf">Yes - As PDF</string>
 
+    <!-- =============== Subscriptions ================ -->
+    <string name="pro_subscription">Smart Receipts Pro</string>
+
     <!-- ============= Report Generation ============== -->
     <string name="report_header_from">From: %s</string>
     <string name="report_header_to">To: %s</string>

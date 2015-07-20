@@ -3,6 +3,7 @@ package co.smartreceipts.android.activities;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -11,7 +12,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -41,6 +45,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private static final int LAUNCHES_UNTIL_PROMPT = 30;
     private static final int DAYS_UNTIL_PROMPT = 7;
 
+    private final Set<PurchaseableSubscription> mPurchaseableSubscriptions = new CopyOnWriteArraySet<>();
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
@@ -51,8 +56,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Log.d(TAG, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
-        setContentView(R.layout.activity_main);
         mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager.addEventListener(this);
+        mSubscriptionManager.querySubscriptions();
+
+        setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
             Log.d(TAG, "savedInstanceState == null");
@@ -112,6 +120,16 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        for (final PurchaseableSubscription purchaseableSubscription : mPurchaseableSubscriptions) {
+            if (purchaseableSubscription.getSubscription() == Subscription.SmartReceiptsPro) {
+                menu.add(0, -1, Menu.NONE, R.string.pro_subscription);
+            }
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
             SRNavUtils.showSettings(this);
@@ -136,6 +154,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onDestroy() {
+        mSubscriptionManager.removeEventListener(this);
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
         super.onDestroy();
     }
@@ -145,19 +164,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         return TAG;
     }
 
-    /**
-     * Returns the attachment that is generated via the main activity
-     *
-     * @return
-     */
     @Override
     public Attachment getAttachment() {
         return mAttachment;
     }
 
-    /**
-     * Stores the main attachment details for later
-     */
     @Override
     public void setAttachment(Attachment attachment) {
         mAttachment = attachment;
@@ -166,11 +177,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     public void onSubscriptionsAvailable(@NonNull List<PurchaseableSubscription> subscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        for (final PurchaseableSubscription purchaseableSubscription : subscriptions) {
-            if (Subscription.SmartReceiptsPro == purchaseableSubscription.getSubscription()) {
-                // TODO: Add to buy menu
-            }
-        }
+        mPurchaseableSubscriptions.addAll(subscriptions);
+        invalidateOptionsMenu(); // To show the subscription option
     }
 
     @Override
@@ -180,7 +188,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
-        // TODO: Start for result
+        try {
+            startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            Toast.makeText(this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

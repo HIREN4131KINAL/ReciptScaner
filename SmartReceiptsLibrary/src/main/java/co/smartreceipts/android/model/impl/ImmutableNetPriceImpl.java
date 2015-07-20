@@ -144,6 +144,11 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
         return mExchangeRate;
     }
 
+    public boolean areAllExchangeRatesValid() {
+        // TODO: Figure out how to expose this better
+        return mCurrencyToPriceMap.isEmpty();
+    }
+
     @Override
     public String toString() {
         return getCurrencyFormattedPrice();

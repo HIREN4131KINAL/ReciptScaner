@@ -3,6 +3,9 @@
     <!-- ============= Preference General ================= -->
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
+    <!-- ============== Preference Receipt ================ -->
+    <bool name="pref_receipt_include_tax_field_defaultValue">false</bool>
+
     <!-- ============= Preference Output ================= -->
     <bool name="pref_output_print_receipt_comment_by_photo_defaultValue">false</bool>
     <bool name="pref_output_blank_signature_defaultValue">false</bool>

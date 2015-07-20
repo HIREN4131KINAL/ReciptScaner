@@ -88,7 +88,7 @@
             android:key="@string/pref_receipt_include_tax_field_key"
             android:title="@string/pref_receipt_include_tax_field_title"
             android:summary="@string/pref_receipt_include_tax_field_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_include_tax_field_defaultValue"/>
         <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"

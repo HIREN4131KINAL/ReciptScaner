@@ -90,7 +90,9 @@ public class ReportInfoFragment extends WBFragment implements DatabaseHelper.Tri
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         for (final Fragment fragment : getChildFragmentManager().getFragments()) {
-            fragment.onActivityResult(requestCode, resultCode, data);
+            if (fragment != null) {
+                fragment.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 

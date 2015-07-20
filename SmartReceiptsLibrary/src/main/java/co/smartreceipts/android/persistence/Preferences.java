@@ -142,7 +142,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initIncludeTaxField(SharedPreferences prefs) {
-        this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), false);
+        this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), mContext.getResources().getBoolean(R.bool.pref_receipt_include_tax_field_defaultValue));
     }
 
     private void initUsePreTaxPrice(SharedPreferences prefs) {

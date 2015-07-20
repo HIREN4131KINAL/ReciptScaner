@@ -57,12 +57,24 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     private static final int DEFAULT_MARGIN_BOTTOM = 50;
     private static final float BIG_COLUMN_DIVIDER = 2.1f;
 
+    private final String mFooterMessage;
+
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex) {
+        this(context, persistenceManager, flex, FOOTER);
+    }
+
+    protected AbstractPdfImagesReport(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex, @NonNull String footerMessage) {
         super(context, persistenceManager, flex);
+        mFooterMessage = footerMessage;
     }
 
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, @NonNull StorageManager storageManager, Flex flex) {
+        this(context, db, preferences, storageManager, flex, FOOTER);
+    }
+
+    protected AbstractPdfImagesReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, @NonNull StorageManager storageManager, Flex flex, @NonNull String footerMessage) {
         super(context, db, preferences, storageManager, flex);
+        mFooterMessage = footerMessage;
     }
 
 
@@ -356,7 +368,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
         public void onEndPage(PdfWriter writer, Document document) {
             Rectangle rect = writer.getPageSize();
             ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
-                    new Phrase(FOOTER, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
+                    new Phrase(mFooterMessage, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
         }
     }
 

@@ -102,6 +102,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         } else {
             factory.setName(TextUtils.join("; ", names));
         }
+        factory.setTrip(distance0.getTrip());
         factory.setDate(distance0.getDate());
         factory.setImage(null);
         factory.setIsExpenseable(true);

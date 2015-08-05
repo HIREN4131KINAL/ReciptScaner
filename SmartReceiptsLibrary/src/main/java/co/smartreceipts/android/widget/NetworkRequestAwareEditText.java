@@ -72,6 +72,7 @@ public class NetworkRequestAwareEditText extends EditText {
     private CharSequence mOriginalHint;
     private CharSequence mFailedHint;
     private RetryListener mRetryListener;
+    private boolean mUserRetryActionEnabled;
 
     public NetworkRequestAwareEditText(Context context) {
         super(context);
@@ -97,12 +98,16 @@ public class NetworkRequestAwareEditText extends EditText {
     private void init() {
         mOriginalHint = getHint();
         mFailedHint = getHint();
+        mUserRetryActionEnabled = true;
     }
 
     @Override
     public boolean onTouchEvent(@NonNull MotionEvent event) {
         final Drawable drawableEnd;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (!mUserRetryActionEnabled) {
+            drawableEnd = null;
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             drawableEnd = getCompoundDrawablesRelative()[2];
         } else {
             drawableEnd = getCompoundDrawables()[2];
@@ -162,27 +167,32 @@ public class NetworkRequestAwareEditText extends EditText {
         final Drawable drawableTop = drawables[1];
         final Drawable drawableBottom = drawables[3];
         final Drawable drawableEnd;
-        switch (state) {
-            case Ready:
-                drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh, getContext().getTheme());
-                setHint(mOriginalHint);
-                break;
-            case Loading:
-                drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh_in_progress, getContext().getTheme());
-                setHint(mOriginalHint);
-                break;
-            case Failure:
-                drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh, getContext().getTheme());
-                setHint(mFailedHint);
-                break;
-            case Success:
-                drawableEnd = null;
-                setHint(mOriginalHint);
-                break;
-            default:
-                drawableEnd = null;
-                setHint(mOriginalHint);
-                break;
+        if (mUserRetryActionEnabled) {
+            switch (state) {
+                case Ready:
+                    drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh, getContext().getTheme());
+                    setHint(mOriginalHint);
+                    break;
+                case Loading:
+                    drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh_in_progress, getContext().getTheme());
+                    setHint(mOriginalHint);
+                    break;
+                case Failure:
+                    drawableEnd = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_refresh, getContext().getTheme());
+                    setHint(mFailedHint);
+                    break;
+                case Success:
+                    drawableEnd = null;
+                    setHint(mOriginalHint);
+                    break;
+                default:
+                    drawableEnd = null;
+                    setHint(mOriginalHint);
+                    break;
+            }
+        } else {
+            drawableEnd = null;
+            setHint(mOriginalHint);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -233,6 +243,23 @@ public class NetworkRequestAwareEditText extends EditText {
      */
     public void setFailedHint(@StringRes int failedHint) {
         mFailedHint = getContext().getString(failedHint);
+    }
+
+    /**
+     * Allows us to selectively enable/disable the ability for user's to retry
+     *
+     * @param enabled {@code true} if this behavior should be enabled. {@code false} otherwise
+     */
+    public void setUserRetryActionEnabled(boolean enabled) {
+        mUserRetryActionEnabled = enabled;
+        invalidate();
+    }
+
+    /**
+     * @return {@code true} if user retry actions are enabled, {@code false} otherwise
+     */
+    public boolean isUserRetryActionEnabled() {
+        return mUserRetryActionEnabled;
     }
 
 }

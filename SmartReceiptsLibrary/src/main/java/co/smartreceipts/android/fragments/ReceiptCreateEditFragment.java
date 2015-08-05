@@ -47,6 +47,7 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
@@ -410,6 +411,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         });
 
         exchangeRateBox.setRetryListener(this);
+        exchangeRateBox.setUserRetryActionEnabled(getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro));
         getPersistenceManager().getDatabase().registerReceiptAutoCompleteListener(this);
     }
 
@@ -486,31 +488,36 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     private void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
-        final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
-        exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
-        mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
+        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+            Log.i(TAG, "Submitting exchange rate request");
+            final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+            exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
+            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
 
-            @Override
-            public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
-                if (exchangeRate != null) {
-                    if (TextUtils.isEmpty(editText.getText())) {
-                        editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                @Override
+                public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
+                    if (exchangeRate != null) {
+                        if (TextUtils.isEmpty(editText.getText())) {
+                            editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
+                        } else {
+                            Log.w(TAG, "User already started typing... Ignorning exchange rate result");
+                        }
+                        exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
-                        Log.w(TAG, "User already started typing... Ignorning exchange rate result");
+                        Log.e(TAG, "Received a null exchange rate");
+                        exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
-                    exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
-                } else {
-                    Log.e(TAG, "Received a null exchange rate");
+                }
+
+                @Override
+                public void failure(EditText editText, RetrofitError error) {
+                    Log.e(TAG, "" + error);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
-            }
-
-            @Override
-            public void failure(EditText editText, RetrofitError error) {
-                Log.e(TAG, "" + error);
-                exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
-            }
-        });
+            });
+        } else {
+            Log.i(TAG, "Ignoring exchange rate request, since there is no subscription for it");
+        }
     }
 
     private void saveReceipt() {

@@ -2,6 +2,7 @@ package co.smartreceipts.android.purchases;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -17,8 +18,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,13 +37,22 @@ public final class SubscriptionManager {
     private static final int BILLING_RESPONSE_CODE_OK = 0;
     private static final int API_VERSION = 3;
 
+    /**
+     * Apparently, this has to be the same across all future sessions to recover this information, so we
+     * can't use a random value (unless we build in server-side logic). Adding a hard-coded value instead,
+     * since anyone can just download the source for this app anyway
+     */
+    private static final String HARDCODED_DEVELOPER_PAYLOAD = "1234567890";
+
     private final Context mContext;
     private final SubscriptionCache mSubscriptionCache;
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
     private final CopyOnWriteArrayList<SubscriptionEventsListener> mListeners;
     private final String mSessionDeveloperPayload;
-    private IInAppBillingService mService;
+    private final Queue<Runnable> mTaskQueue = new LinkedList<>();
+    private final Object mQueueLock = new Object();
+    private volatile IInAppBillingService mService;
 
     public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache) {
         this(context, subscriptionCache, Executors.newSingleThreadExecutor());
@@ -51,22 +64,26 @@ public final class SubscriptionManager {
         mServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
-                mService = IInAppBillingService.Stub.asInterface(service);
+                synchronized (mQueueLock) {
+                    mService = IInAppBillingService.Stub.asInterface(service);
+                    for (final Runnable task : mTaskQueue) {
+                        mExecutorService.execute(task);
+                    }
+                }
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                mService = null;
+                synchronized (mQueueLock) {
+                    mService = null;
+                    mTaskQueue.clear();
+                }
             }
         };
 
-        // Note: this isn't actually secure at all... but it's okay given that the Pro version is open source anyway
-        final byte[] payloadBytes = new byte[32];
-        new Random().nextBytes(payloadBytes);
-        mSessionDeveloperPayload = new String(payloadBytes);
-
         mExecutorService = backgroundTasksExecutor;
         mListeners = new CopyOnWriteArrayList<>();
+        mSessionDeveloperPayload = HARDCODED_DEVELOPER_PAYLOAD;
     }
 
     /**
@@ -96,6 +113,9 @@ public final class SubscriptionManager {
     }
 
     public void onDestroy() {
+        synchronized (mQueueLock) {
+            mTaskQueue.clear();
+        }
         if (mService != null) {
             mContext.unbindService(mServiceConnection);
         }
@@ -103,20 +123,27 @@ public final class SubscriptionManager {
     }
 
     public void queryBuyIntent(@NonNull final Subscription subscription) {
-        mExecutorService.execute(new Runnable() {
+        this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
                 try {
-                    // TODO: Developer payload should be a randomly generated string
                     final String developerPayload = mSessionDeveloperPayload;
-                    final Bundle buyIntentBundle = mService.getBuyIntent(3, mContext.getPackageName(), subscription.getSku(), "subs", developerPayload);
+                    final IInAppBillingService service = mService;
+                    if (service == null) {
+                        Log.e(TAG, "Failed to purchase subscription due to unbound service");
+                        for (final SubscriptionEventsListener listener : mListeners) {
+                            listener.onPurchaseIntentUnavailable(subscription);
+                        }
+                        return;
+                    }
+
+                    final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), subscription.getSku(), "subs", developerPayload);
                     final PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                     if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onPurchaseIntentAvailable(subscription, pendingIntent, developerPayload);
                         }
-                    }
-                    else {
+                    } else {
                         Log.w(TAG, "Received an unexpected response code for the buy intent.");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onPurchaseIntentUnavailable(subscription);
@@ -182,13 +209,22 @@ public final class SubscriptionManager {
         final Bundle querySkus = new Bundle();
         querySkus.putStringArrayList("ITEM_ID_LIST", Subscription.getSkus());
 
-        mExecutorService.execute(new Runnable() {
+        this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
                 try {
                     // First, let's query what we already own...
                     final List<Subscription> ownedSubscriptions = new ArrayList<>();
-                    final Bundle ownedItems = mService.getPurchases(API_VERSION, mContext.getPackageName(), "subs", null);
+                    final IInAppBillingService service = mService;
+                    if (service == null) {
+                        Log.e(TAG, "Failed to query subscriptions due to unbound service");
+                        for (final SubscriptionEventsListener listener : mListeners) {
+                            listener.onSubscriptionsUnavailable();
+                        }
+                        return;
+                    }
+
+                    final Bundle ownedItems = service.getPurchases(API_VERSION, mContext.getPackageName(), "subs", null);
                     if (ownedItems.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
@@ -245,5 +281,23 @@ public final class SubscriptionManager {
             }
         });
     }
+
+    /**
+     * Since we do not know exactly when our {@link com.android.vending.billing.IInAppBillingService} will be bound,
+     * we can use this utility method to queue up any tasks that we need until the binding completes. Once bound, all
+     * queued tasks will be executed.
+     *
+     * @param task the {@link java.lang.Runnable} to either queue or execute immediately (if we're bound)
+     */
+    private void queueOrExecuteTask(@NonNull Runnable task) {
+        synchronized (mQueueLock) {
+            if (mService == null) {
+                mTaskQueue.add(task);
+            } else {
+                mExecutorService.execute(task);
+            }
+        }
+    }
+
 
 }

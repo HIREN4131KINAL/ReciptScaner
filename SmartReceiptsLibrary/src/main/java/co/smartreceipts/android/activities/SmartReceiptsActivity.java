@@ -57,6 +57,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
         mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
 
@@ -155,6 +156,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onDestroy() {
         mSubscriptionManager.removeEventListener(this);
+        mSubscriptionManager.onDestroy();
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
         super.onDestroy();
     }
@@ -177,12 +179,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     public void onSubscriptionsAvailable(@NonNull List<PurchaseableSubscription> subscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        Log.i(TAG, "The following subscriptions are available: " + subscriptions);
         mPurchaseableSubscriptions.addAll(subscriptions);
         invalidateOptionsMenu(); // To show the subscription option
     }
 
     @Override
     public void onSubscriptionsUnavailable() {
+        Log.w(TAG, "No subscriptions were found for this session");
         // Intentional no-op
     }
 

@@ -3,8 +3,8 @@
     <!--
     Layout alias to manage which views get ads and which ones do not
     Tablets do not need two ads running at once
-    -->
+
     <item name="trip_fragment_layout" type="layout">@layout/trip_card_list_ads</item>
     <item name="receipt_fragment_layout" type="layout">@layout/receipt_card_list_ads</item>
-
+-->
 </resources>

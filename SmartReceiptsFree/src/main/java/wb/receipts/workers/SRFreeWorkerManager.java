@@ -1,6 +1,7 @@
 package wb.receipts.workers;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.Logger;
 import co.smartreceipts.android.workers.WorkerManager;
 
@@ -15,4 +16,8 @@ public class SRFreeWorkerManager extends WorkerManager {
 		return new SRFreeLogger(this);
 	}
 
+    @Override
+    protected AdManager instantiateAdManager() {
+        return new SRFreeAdManager(this, getApplication().getPersistenceManager().getSubscriptionCache().getSubscriptionWallet());
+    }
 }

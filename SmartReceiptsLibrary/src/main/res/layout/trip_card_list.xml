@@ -8,7 +8,8 @@
 	<ListView style="@style/Widget.SmartReceipts.ListView"
 		android:id="@android:id/list"
 		android:visibility="invisible"
-        android:layout_below="@+id/toolbar" />
+        android:layout_below="@+id/toolbar"
+        android:layout_above="@+id/footer_placeholder" />
 
 	<ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
         android:id="@+id/progress" />
@@ -21,5 +22,11 @@
     <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
         android:id="@+id/trip_action_new"
         android:src="@drawable/fab_add" />
+
+    <include layout="@layout/footer_placeholder_home"
+             android:id="@+id/footer_placeholder"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

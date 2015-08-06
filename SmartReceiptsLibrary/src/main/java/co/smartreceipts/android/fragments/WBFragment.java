@@ -10,6 +10,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
@@ -29,7 +30,13 @@ public class WBFragment extends Fragment {
 		mApplication = getSmartReceiptsApplication();
 	}
 
-	@Override
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        getWorkerManager().getAdManager().onViewCreated(view);
+    }
+
+    @Override
 	public void onStart() {
 		super.onStart();
 		if (!mDisableScreenLoggingOnStart) {
@@ -37,7 +44,25 @@ public class WBFragment extends Fragment {
 		}
 	}
 
-	@Override
+    @Override
+    public void onResume() {
+        super.onResume();
+        getWorkerManager().getAdManager().onResume();
+    }
+
+    @Override
+    public void onPause() {
+        getWorkerManager().getAdManager().onPause();
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        getWorkerManager().getAdManager().onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
 	public void onDetach() {
 		super.onDetach();
 		mApplication = null;

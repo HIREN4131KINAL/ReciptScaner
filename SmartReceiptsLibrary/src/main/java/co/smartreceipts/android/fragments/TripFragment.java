@@ -78,7 +78,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     private Attachable mAttachable;
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
-    private View mAdView;
 
     public static TripFragment newInstance() {
         return new TripFragment();
@@ -115,7 +114,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
-        mAdView = getWorkerManager().getAdManager().onCreateAd(rootView);
         ((AppCompatActivity) getActivity()).setSupportActionBar((Toolbar) rootView.findViewById(R.id.toolbar));
         rootView.findViewById(R.id.trip_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,7 +146,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
-        getWorkerManager().getAdManager().onAdPaused(mAdView);
         super.onPause();
     }
 
@@ -164,7 +161,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (actionBar != null) {
             getSupportActionBar().setSubtitle(null);
         }
-        getWorkerManager().getAdManager().onAdResumed(mAdView);
         // Handles SMR imports
         final Attachment attachment = mAttachable.getAttachment();
         if (attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
@@ -177,7 +173,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onDestroy");
         }
-        getWorkerManager().getAdManager().onAdDestroyed(mAdView);
         getPersistenceManager().getDatabase().unregisterTripRowListener(this);
         super.onDestroy();
     }

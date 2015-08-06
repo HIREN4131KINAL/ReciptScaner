@@ -92,7 +92,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     private TextView mNoDataAlert;
     private Attachable mAttachable;
 
-    private View mAdView;
     private FloatingActionMenu mFloatingActionMenu;
     private View mFloatingActionMenuActiveMaskView;
 
@@ -125,7 +124,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         final View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
-        mAdView = getWorkerManager().getAdManager().onCreateAd(rootView);
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -185,7 +183,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        getWorkerManager().getAdManager().onAdResumed(mAdView);
         getPersistenceManager().getDatabase().registerReceiptRowListener(this);
         getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
         if (mShowDialogOnResume) {
@@ -208,7 +205,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onPause() {
         Log.d(TAG, "onPause");
         mFloatingActionMenu.close(false);
-        getWorkerManager().getAdManager().onAdPaused(mAdView);
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
         super.onPause();
     }
@@ -232,7 +228,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
-        getWorkerManager().getAdManager().onAdDestroyed(mAdView);
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
         super.onDestroy();
     }

@@ -50,7 +50,7 @@ public class ImageGalleryWorker extends WorkerChild {
     private int deleteDuplicateGalleryImage() {
         Cursor c = null;
         try {
-            final Context context = mWorkerManager.getContext();
+            final Context context = mWorkerManager.getApplication();
             final String[] imageColumns = { MediaStore.Images.Media._ID, MediaStore.Images.Media.ORIENTATION };
             c = MediaStore.Images.Media.query(context.getContentResolver(),
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -108,7 +108,7 @@ public class ImageGalleryWorker extends WorkerChild {
         if (imageDestination == null) {
             imageDestination = imageUriCopy;
         }
-        final Context context = mWorkerManager.getContext();
+        final Context context = mWorkerManager.getApplication();
         if (imageDestination == null) {
             Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
             return null;
@@ -168,7 +168,7 @@ public class ImageGalleryWorker extends WorkerChild {
         final String[] selection = {MediaStore.Images.Media.DATA};
         Cursor cursor = null;
         try {
-            cursor = mWorkerManager.getContext().getContentResolver().query(photoUri, selection, null, null, null);
+            cursor = mWorkerManager.getApplication().getContentResolver().query(photoUri, selection, null, null, null);
             if (cursor.moveToFirst()) {
                 final int columnIndex = cursor.getColumnIndex(selection[0]);
                 final String newPath = cursor.getString(columnIndex);
@@ -190,7 +190,7 @@ public class ImageGalleryWorker extends WorkerChild {
     private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri) {
         ParcelFileDescriptor parcelFileDescriptor = null;
         try {
-            parcelFileDescriptor = mWorkerManager.getContext().getContentResolver().openFileDescriptor(photoUri, "r");
+            parcelFileDescriptor = mWorkerManager.getApplication().getContentResolver().openFileDescriptor(photoUri, "r");
             FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
             return BitmapFactory.decodeFileDescriptor(fileDescriptor);
         } catch (FileNotFoundException e) {

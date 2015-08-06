@@ -1,39 +1,37 @@
 package co.smartreceipts.android.workers;
 
+import android.support.annotation.NonNull;
 import android.view.View;
+
+import co.smartreceipts.android.purchases.SubscriptionWallet;
 
 public class AdManager extends WorkerChild {
 
-	protected AdManager(WorkerManager manager) {
+    private final SubscriptionWallet mSubscriptionWallet;
+
+	public AdManager(@NonNull WorkerManager manager, @NonNull SubscriptionWallet subscriptionWallet) {
 		super(manager);
+        mSubscriptionWallet = subscriptionWallet;
 	}
 
-	public final View onCreateAd(View rootView) {
-		View ad = rootView.findViewById(getAdId());
-		if (ad != null) {
-			onAdCreated(ad);
-		}
-		return ad;
-	}
+    public void onViewCreated(@NonNull View rootView) {
+        // Stub method. Override in child subclasses
+    }
 
-	protected void onAdCreated(View ad) {
-		// Stub method. Override in child subclasses
-	}
+    public void onResume() {
+        // Stub method. Override in child subclasses
+    }
 
-	public void onAdResumed(View ad) {
-		// Stub method. Override in child subclasses
-	}
+    public void onPause() {
+        // Stub method. Override in child subclasses
+    }
 
-	public void onAdPaused(View ad) {
-		// Stub method. Override in child subclasses
-	}
+    public void onDestroy() {
+        // Stub method. Override in child subclasses
+    }
 
-	public void onAdDestroyed(View ad) {
-		// Stub method. Override in child subclasses
-	}
-
-	protected int getAdId() {
-		return 0;
-	}
+    protected final SubscriptionWallet getSubscriptionWallet() {
+        return mSubscriptionWallet;
+    }
 
 }

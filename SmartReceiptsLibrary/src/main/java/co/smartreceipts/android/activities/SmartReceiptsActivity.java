@@ -121,13 +121,18 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // TODO: Replace with contains somehow... Don't use reversable logic (i.e. owned should default to false)
+        boolean isProSubscriptionOwned = true;
         for (final PurchaseableSubscription purchaseableSubscription : mPurchaseableSubscriptions) {
             if (purchaseableSubscription.getSubscription() == Subscription.SmartReceiptsPro) {
-                menu.add(0, -1, Menu.NONE, R.string.pro_subscription);
+                isProSubscriptionOwned = false;
             }
         }
-        return super.onPrepareOptionsMenu(menu);
+        if (!isProSubscriptionOwned) {
+            menu.removeItem(R.id.menu_main_pro_subscription);
+        }
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -138,6 +143,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         } else if (item.getItemId() == R.id.menu_main_export) {
             final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.TAG);
             getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
+            return true;
+        } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
             return true;
         } else {
             return super.onOptionsItemSelected(item);

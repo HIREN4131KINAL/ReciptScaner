@@ -21,7 +21,8 @@
 
     <com.github.clans.fab.FloatingActionButton style="@style/Widget.SmartReceipts.FloatingActionButton"
         android:id="@+id/trip_action_new"
-        android:src="@drawable/fab_add" />
+        android:src="@drawable/fab_add"
+        android:layout_above="@+id/footer_placeholder" />
 
     <include layout="@layout/footer_placeholder_home"
              android:id="@+id/footer_placeholder"

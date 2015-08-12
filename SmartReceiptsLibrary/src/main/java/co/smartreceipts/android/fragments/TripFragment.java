@@ -1,18 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import co.smartreceipts.android.apis.ExchangeRateService;
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.gson.ExchangeRate;
-import retrofit.RestAdapter;
-import wb.android.async.BooleanTaskCompleteDelegate;
-import wb.android.autocomplete.AutoCompleteAdapter;
-import wb.android.dialog.BetterDialogBuilder;
-import wb.android.dialog.LongLivedOnClickListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -47,7 +34,6 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.Arrays;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
@@ -57,6 +43,7 @@ import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
@@ -70,6 +57,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public static final String TAG = "TripFragment";
 
     private static final CharSequence[] RESERVED_CHARS = {"|", "\\", "?", "*", "<", "\"", ":", ">", "+", "[", "]", "/", "'", "\n", "\r", "\t", "\0", "\f"};
+    private static final String KEY_BOOL_FIRST_PASS = "key_first_pass";
 
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
@@ -86,6 +74,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        Log.d(TAG, "onAttach");
         if (activity instanceof Attachable) {
             mAttachable = (Attachable) activity;
         } else {
@@ -95,23 +84,19 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onCreate");
-        }
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         setHasOptionsMenu(true);
-        mIsFirstPass = true;
+        mIsFirstPass = savedInstanceState == null || savedInstanceState.getBoolean(KEY_BOOL_FIRST_PASS, true);
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
         getPersistenceManager().getDatabase().registerTripRowListener(this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onCreateView");
-        }
-        View rootView = inflater.inflate(getLayoutId(), container, false);
+        Log.d(TAG, "onCreateView");
+        final View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
         ((AppCompatActivity) getActivity()).setSupportActionBar((Toolbar) rootView.findViewById(R.id.toolbar));
@@ -136,25 +121,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onPause() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onPause");
-        }
-        if (mNameAutoCompleteAdapter != null) {
-            mNameAutoCompleteAdapter.onPause();
-        }
-        if (mCostCenterAutoCompleteAdapter != null) {
-            mCostCenterAutoCompleteAdapter.onPause();
-        }
-        super.onPause();
-    }
-
-    @Override
     public void onResume() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onResume");
-        }
         super.onResume();
+        Log.d(TAG, "onResume");
         getPersistenceManager().getDatabase().getTripsParallel();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
@@ -169,10 +138,26 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onDestroy");
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        if (mNameAutoCompleteAdapter != null) {
+            mNameAutoCompleteAdapter.onPause();
         }
+        if (mCostCenterAutoCompleteAdapter != null) {
+            mCostCenterAutoCompleteAdapter.onPause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(KEY_BOOL_FIRST_PASS, mIsFirstPass);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
         getPersistenceManager().getDatabase().unregisterTripRowListener(this);
         super.onDestroy();
     }
@@ -196,12 +181,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Result Code: " + resultCode);
-        }
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Request Code: " + requestCode);
-        }
+        Log.d(TAG, "Result Code: " + resultCode);
+        Log.d(TAG, "Request Code: " + requestCode);
 
         if (resultCode == Activity.RESULT_OK) { // -1
             if (requestCode == ImportTask.TASK_ID) {
@@ -210,9 +191,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 }
             }
         } else {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            }
+            Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
@@ -457,8 +436,12 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 }
                 if (trips.length > 0) {
                     // If we have trips, open up whatever one was last
-                    // TODO: Use the last trip controller here, so we can check if it's null before launching
-                    viewReceipts(null);
+                    final LastTripController lastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
+                    // TODO: Move this request off the UI thread
+                    final Trip lastTrip = lastTripController.getLastTrip();
+                    if (lastTrip != null) {
+                        viewReceipts(lastTrip);
+                    }
                 }
             }
         }
@@ -496,6 +479,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     public void viewReceipts(Trip trip) {
+        Log.e(TAG, "Will was here");
         mNavigationHandler.navigateToReportInfoFragment(trip);
     }
 

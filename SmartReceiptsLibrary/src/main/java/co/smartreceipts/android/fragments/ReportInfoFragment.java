@@ -30,7 +30,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 
-public class ReportInfoFragment extends WBFragment implements DatabaseHelper.TripRowListener {
+public class ReportInfoFragment extends WBFragment {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
@@ -39,7 +39,6 @@ public class ReportInfoFragment extends WBFragment implements DatabaseHelper.Tri
     private FragmentPagerAdapter mFragmentPagerAdapter;
     private Trip mTrip;
 
-    private Toolbar mToolbar;
     private ViewPager mViewPager;
     private PagerSlidingTabStrip mPagerSlidingTabStrip;
 
@@ -78,12 +77,18 @@ public class ReportInfoFragment extends WBFragment implements DatabaseHelper.Tri
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
         mPagerSlidingTabStrip = (PagerSlidingTabStrip) view.findViewById(R.id.tabs);
         mViewPager.setAdapter(mFragmentPagerAdapter);
         mPagerSlidingTabStrip.setViewPager(mViewPager);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
     }
 
     @Override
@@ -115,7 +120,7 @@ public class ReportInfoFragment extends WBFragment implements DatabaseHelper.Tri
     public void onResume() {
         super.onResume();
         final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
+        if (actionBar != null && mNavigationHandler.isDualPane()) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
@@ -127,43 +132,4 @@ public class ReportInfoFragment extends WBFragment implements DatabaseHelper.Tri
         super.onPause();
     }
 
-    @Override
-    public void onTripRowsQuerySuccess(Trip[] trips) {
-
-    }
-
-    @Override
-    public void onTripRowInsertSuccess(Trip trip) {
-
-    }
-
-    @Override
-    public void onTripRowInsertFailure(SQLException ex, File directory) {
-
-    }
-
-    @Override
-    public void onTripRowUpdateSuccess(Trip trip) {
-
-    }
-
-    @Override
-    public void onTripRowUpdateFailure(Trip newTrip, Trip oldTrip, File directory) {
-
-    }
-
-    @Override
-    public void onTripDeleteSuccess(Trip oldTrip) {
-
-    }
-
-    @Override
-    public void onTripDeleteFailure() {
-
-    }
-
-    @Override
-    public void onSQLCorruptionException() {
-
-    }
 }

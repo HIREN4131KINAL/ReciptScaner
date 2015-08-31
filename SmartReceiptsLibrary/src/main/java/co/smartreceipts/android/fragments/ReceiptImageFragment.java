@@ -88,7 +88,6 @@ public class ReceiptImageFragment extends WBFragment {
         mImageView = (PinchToZoomImageView) rootView.findViewById(R.id.receiptimagefragment_imageview);
         mFooter = (LinearLayout) rootView.findViewById(R.id.footer);
         mProgress = (ProgressBar) rootView.findViewById(R.id.progress);
-        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 
         final LinearLayout rotateCCW = (LinearLayout) rootView.findViewById(R.id.rotate_ccw);
         final LinearLayout retakePhoto = (LinearLayout) rootView.findViewById(R.id.retake_photo);
@@ -139,6 +138,13 @@ public class ReceiptImageFragment extends WBFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         new ImageLoader().execute(new File(mReceiptPath, mReceipt.getImage().getName()).getAbsolutePath());
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mToolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
     }
 
     public int getLayoutId() {

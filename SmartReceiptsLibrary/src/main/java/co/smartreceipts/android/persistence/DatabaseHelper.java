@@ -22,7 +22,6 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -48,7 +46,6 @@ import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
-import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
@@ -85,7 +82,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     private final HashMap<Trip, List<Receipt>> mReceiptCache;
     private int mNextReceiptAutoIncrementId = -1;
     private HashMap<String, String> mCategories;
-    private ArrayList<CharSequence> mCategoryList, mCurrencyList;
+    private ArrayList<CharSequence> mCategoryList;
+    private ArrayList<CharSequence> mFullCurrencyList;
+    private ArrayList<CharSequence> mMostRecentlyUsedCurrencyList;
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
     private List<Column<Receipt>> mCSVColumns;
     private List<Column<Receipt>> mPDFColumns;
@@ -810,6 +809,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     c.close();
                 }
             }
+            // Pre-fetch currencies in background here too
+            getMostRecentlyUsedCurrencies();
             return trips;
         }
     }
@@ -2766,20 +2767,47 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public final ArrayList<CharSequence> getCurrenciesList() {
-        if (mCurrencyList != null) {
-            return mCurrencyList;
+        if (mFullCurrencyList != null) {
+            return mFullCurrencyList;
         }
-        mCurrencyList = new ArrayList<CharSequence>();
-        mCurrencyList.addAll(WBCurrency.getIso4217CurrencyCodes());
-        mCurrencyList.addAll(WBCurrency.getNonIso4217CurrencyCodes());
-        Collections.sort(mCurrencyList, _charSequenceComparator);
-        return mCurrencyList;
+        mFullCurrencyList = new ArrayList<>();
+        mFullCurrencyList.addAll(WBCurrency.getIso4217CurrencyCodes());
+        mFullCurrencyList.addAll(WBCurrency.getNonIso4217CurrencyCodes());
+        Collections.sort(mFullCurrencyList, _charSequenceComparator);
+        mFullCurrencyList.addAll(0, getMostRecentlyUsedCurrencies());
+        return mFullCurrencyList;
+    }
+
+    private List<CharSequence> getMostRecentlyUsedCurrencies() {
+        if (mMostRecentlyUsedCurrencyList != null) {
+            return mMostRecentlyUsedCurrencyList;
+        }
+        mMostRecentlyUsedCurrencyList = new ArrayList<>();
+        final String query = "SELECT " + ReceiptsTable.COLUMN_ISO4217 + ", COUNT(*) FROM " + ReceiptsTable.TABLE_NAME + " GROUP BY " + ReceiptsTable.COLUMN_ISO4217;
+        synchronized (mDatabaseLock) {
+            Cursor cursor = null;
+            try {
+                final SQLiteDatabase db = this.getReadableDatabase();
+                cursor = db.rawQuery(query, new String[0]);
+                if (cursor != null && cursor.moveToFirst()) {
+                    do {
+                        mMostRecentlyUsedCurrencyList.add(cursor.getString(0));
+                    }
+                    while (cursor.moveToNext());
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        Collections.sort(mMostRecentlyUsedCurrencyList, _charSequenceComparator);
+        return mMostRecentlyUsedCurrencyList;
     }
 
     public final boolean insertCategory(final String name, final String code) throws SQLException {
         synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
+            SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues(2);
             values.put(CategoriesTable.COLUMN_NAME, name);
             values.put(CategoriesTable.COLUMN_CODE, code);

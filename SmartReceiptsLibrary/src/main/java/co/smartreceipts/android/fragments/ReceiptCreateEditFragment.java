@@ -160,13 +160,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.fullpage = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
         this.paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.dialog_receiptmenu_payment_methods_spinner);
         mPaymentMethodsContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.payment_methods_container);
-        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 
         // Extras
         final LinearLayout extras = (LinearLayout) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
         this.extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
         this.extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
         this.extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
+
+        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 
         // Set each focus listener, so we can track the focus view across resume -> pauses
         this.nameBox.setOnFocusChangeListener(this);
@@ -185,7 +186,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         super.onActivityCreated(savedInstanceState);
 
         final boolean isNewReceipt = mReceipt == null;
-
 
         setSupportActionBar(mToolbar);
 

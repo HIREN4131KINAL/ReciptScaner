@@ -87,7 +87,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
-        setHasOptionsMenu(true);
         mIsFirstPass = savedInstanceState == null || savedInstanceState.getBoolean(KEY_BOOL_FIRST_PASS, true);
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
         getPersistenceManager().getDatabase().registerTripRowListener(this);
@@ -99,7 +98,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         final View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
-        ((AppCompatActivity) getActivity()).setSupportActionBar((Toolbar) rootView.findViewById(R.id.toolbar));
         rootView.findViewById(R.id.trip_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -109,11 +107,16 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         return rootView;
     }
 
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
         getListView().setOnItemLongClickListener(this);
+        final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        }
     }
 
     public int getLayoutId() {
@@ -160,23 +163,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         Log.d(TAG, "onDestroy");
         getPersistenceManager().getDatabase().unregisterTripRowListener(this);
         super.onDestroy();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (mNavigationHandler.isDualPane()) {
-            // Only use the Action Bar for dual pane
-            inflater.inflate(R.menu.menu_trip, menu);
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.trip_action_new) {
-            tripMenu(null);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -479,7 +465,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     public void viewReceipts(Trip trip) {
-        Log.e(TAG, "Will was here");
         mNavigationHandler.navigateToReportInfoFragment(trip);
     }
 

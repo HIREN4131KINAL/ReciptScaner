@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -66,7 +67,6 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.receipt_pdf_view, container, false);
         final FrameLayout pdfFrame = (FrameLayout) rootView.findViewById(R.id.pdf_frame);
-        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
         if (mCore != null && mAdapter != null) {
             try {
                 mReaderView = new MuPDFReaderView(getActivity()); //Can't inflate b/c this takes activity... rewrite this class?
@@ -77,6 +77,12 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
             }
         }
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mToolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
     }
 
     @Override

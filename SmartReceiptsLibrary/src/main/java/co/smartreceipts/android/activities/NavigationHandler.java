@@ -52,23 +52,35 @@ public class NavigationHandler {
     }
 
     public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file) {
-        // TODO: Determine what to do with tablets
-        replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
+        if (mIsDualPane) {
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_details, R.anim.enter_from_bottom, DO_NOT_ANIM);
+        } else {
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
+        }
     }
 
     public void navigateToEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
-        // TODO: Determine what to do with tablets
-        replaceFragment(mFragmentProvider.newEditReceiptFragment(trip, receiptToEdit), R.id.content_list);
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newEditReceiptFragment(trip, receiptToEdit), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newEditReceiptFragment(trip, receiptToEdit), R.id.content_list);
+        }
     }
 
     public void navigateToViewReceiptImage(@NonNull Receipt receipt) {
-        // TODO: Determine what to do with tablets
-        replaceFragment(mFragmentProvider.newReceiptImageFragment(receipt), R.id.content_list);
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newReceiptImageFragment(receipt), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newReceiptImageFragment(receipt), R.id.content_list);
+        }
     }
 
     public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
-        // TODO: Determine what to do with tablets
-        replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_list);
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_list);
+        }
     }
 
     public boolean isDualPane() {

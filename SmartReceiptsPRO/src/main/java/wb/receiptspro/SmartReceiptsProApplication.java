@@ -37,7 +37,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 							mProgress = new WeakReference<ProgressDialog>(progress);
 							progress.setMessage(getString(R.string.progress_import));
 							progress.show();
-							new QuickImport().execute(new Void[0]);
+							new QuickImport().execute();
 						}
 		 		   })
 		 		   .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

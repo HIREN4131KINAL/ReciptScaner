@@ -1,17 +1,20 @@
 package co.smartreceipts.android.fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.Time;
@@ -80,6 +83,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
     private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
     private static final int IMPORT_GALLERY_IMAGE = 5;
+
+    // Permissions Request Ints
+    private static final int PERMISSION_CAMERA_REQUEST = 21;
 
     // Preferences
     private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
@@ -346,18 +352,42 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
             startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
         } else {
-            if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "User does not have camera permissions. Requesting...");
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_CAMERA_REQUEST);
             } else {
-                final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
-                intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                Log.i(TAG, "User has appropriate permissions. Granting camera access");
+                if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
+                    final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
+                    mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+                    startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                } else {
+                    final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
+                    String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
+                    intent.putExtra(MyCameraActivity.STRING_DATA, strings);
+                    startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                }
             }
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_CAMERA_REQUEST) {
+            Log.i(TAG, "Received response for Camera permission request.");
+
+            // Check if the only required permission has been granted
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "CAMERA permission has now been granted.");
+            } else {
+                Log.i(TAG, "CAMERA permission was NOT granted.");
+                getPersistenceManager().getPreferences().setUseNativeCamera(true);
+            }
+            // Retry add now with either native camera or now granted way
+            addPictureReceipt();
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     public final void addTextReceipt() {

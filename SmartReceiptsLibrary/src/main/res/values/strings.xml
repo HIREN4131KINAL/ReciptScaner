@@ -213,7 +213,7 @@
     <string name="DIALOG_WELCOME_MESSAGE">Thanks for downloading Smart Receipts. To get started, tap the "Expense Report" button. Once you\'ve created a report, tap on it to begin adding receipts. At the end of each week, you can export PDF and CSV reports of your receipt totals. Also, be sure to check out the settings menu to customize this application for your needs. Thanks!</string>
     <string name="DIALOG_WELCOME_POSITIVE_BUTTON">Get Started</string>
     <string name="dialog_pro_welcome_title">@string/sr_app_name</string>
-    <string name="dialog_pro_welcome_message">It seems that you previously used the Free version of Smart Receipts. Would you like to import that data?</string>
+    <string name="dialog_pro_welcome_message">It seems that you previously used the Free version of Smart Receipts. Would you like to import that data? Please note that you must allow Smart Receipts to read external storage for this to work.</string>
 
     <!-- ================== DIALOG_EMAIL ===================== -->
     <string name="DIALOG_EMAIL_TITLE">Select Attachments&#8230;</string>

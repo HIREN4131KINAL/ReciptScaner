@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -398,24 +399,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPredictCategories;
     }
 
-    public void setPredictCategories(boolean predictCategories) {
-        this.mPredictCategories = predictCategories;
-    }
-
     public boolean matchCommentToCategory() {
         return mMatchCommentCats;
     }
 
-    public void setMatchCommentToCategory(boolean matchCommentCats) {
-        this.mMatchCommentCats = matchCommentCats;
-    }
-
     public boolean matchNameToCategory() {
         return mMatchNameCats;
-    }
-
-    public void setMatchNameToCategory(boolean matchNameCats) {
-        this.mMatchNameCats = matchNameCats;
     }
 
     public boolean useNativeCamera() {
@@ -424,22 +413,15 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public void setUseNativeCamera(boolean useNativeCamera) {
         this.mUseNativeCamera = useNativeCamera;
+        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
     }
 
     public boolean onlyIncludeExpensableReceiptsInReports() {
         return mOnlyIncludeExpensable;
     }
 
-    public void setOnlyIncludeExpensableReceiptsInReports(boolean onlyIncludeExpensable) {
-        this.mOnlyIncludeExpensable = onlyIncludeExpensable;
-    }
-
     public boolean includeTaxField() {
         return mIncludeTaxField;
-    }
-
-    public void setIncludeTaxField(boolean includeTaxField) {
-        this.mIncludeTaxField = includeTaxField;
     }
 
     public boolean usePreTaxPrice() {
@@ -450,56 +432,28 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mDefaultToFullPage;
     }
 
-    public void setDateSeparator(String dateSeparator) {
-        this.mDateSeparator = dateSeparator;
-    }
-
     public boolean enableAutoCompleteSuggestions() {
         return mEnableAutoCompleteSuggestions;
-    }
-
-    public void setEnableAutoCompleteSuggestions(boolean enableAutoCompleteSuggestions) {
-        this.mEnableAutoCompleteSuggestions = enableAutoCompleteSuggestions;
     }
 
     public String getEmailTo() {
         return mEmailTo;
     }
 
-    public void setDefaultEmailReceipient(String emailTo) {
-        this.mEmailTo = emailTo;
-    }
-
     public String getDefaultCurreny() {
         return mDefaultCurrency;
-    }
-
-    public void setDefaultCurreny(String currency) {
-        this.mDefaultCurrency = currency;
     }
 
     public String getUserID() {
         return mUserID;
     }
 
-    public void setUserID(String userID) {
-        this.mUserID = userID;
-    }
-
     public int getDefaultTripDuration() {
         return mDefaultTripDuration;
     }
 
-    public void setDefaultTripDuration(int defaultTripDuration) {
-        this.mDefaultTripDuration = defaultTripDuration;
-    }
-
     public float getMinimumReceiptPriceToIncludeInReports() {
         return mMinReceiptPrice;
-    }
-
-    public void setMinimumReceiptPriceToIncludeInReports(float minReceiptPrice) {
-        this.mMinReceiptPrice = minReceiptPrice;
     }
 
     public boolean includeReceiptIdInsteadOfIndexByPhoto() {
@@ -521,10 +475,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
-    }
-
-    public void setDefaultToFirstReportDate(boolean defaultToFirstReportDate) {
-        this.mDefaultToFirstReportDate = defaultToFirstReportDate;
     }
 
     public boolean showActionSendHelpDialog() {
@@ -581,20 +531,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean getUsesPaymentMethods() {
         return this.mUsePaymentMethods;
-    }
-
-    public boolean showAds() {
-        return false;
-    }
-
-    public void setIncludeCSVHeaders(boolean includeCSVHeaders) {
-        /*
-        this.mIncludeCSVHeaders = includeCSVHeaders;
-		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(BOOL_INCL_CSV_HEADERS, this.mIncludeCSVHeaders);
-        editor.commit();
-        */
     }
 
     public String getDateSeparator() {

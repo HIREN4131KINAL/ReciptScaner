@@ -11,11 +11,9 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
-import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
@@ -46,7 +44,6 @@ import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
-import wb.android.util.Utils;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
 

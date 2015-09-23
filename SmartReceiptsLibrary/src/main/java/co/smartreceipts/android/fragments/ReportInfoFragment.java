@@ -120,7 +120,7 @@ public class ReportInfoFragment extends WBFragment {
     public void onResume() {
         super.onResume();
         final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null && mNavigationHandler.isDualPane()) {
+        if (actionBar != null && !mNavigationHandler.isDualPane()) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }

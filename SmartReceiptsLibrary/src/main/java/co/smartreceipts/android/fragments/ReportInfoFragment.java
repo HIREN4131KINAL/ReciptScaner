@@ -61,7 +61,10 @@ public class ReportInfoFragment extends WBFragment {
         mLastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
         if (mTrip == null) {
             mTrip = mLastTripController.getLastTrip();
-            // TODO: What happens if this is still null?
+            if (mTrip == null) {
+                // If it's still null, let's just go back
+                mNavigationHandler.navigateToTripsFragment();
+            }
         }
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getChildFragmentManager(), mTrip);
     }

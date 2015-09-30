@@ -122,6 +122,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
         // TODO: Replace with contains somehow... Don't use reversable logic (i.e. owned should default to false)
         boolean isProSubscriptionOwned = true;
         for (final PurchaseableSubscription purchaseableSubscription : mPurchaseableSubscriptions) {

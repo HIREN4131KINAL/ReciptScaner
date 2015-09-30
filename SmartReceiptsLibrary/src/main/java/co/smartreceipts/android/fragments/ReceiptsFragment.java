@@ -29,7 +29,6 @@ public class ReceiptsFragment extends WBListFragment {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onCreate");
         }
-        setHasOptionsMenu(true);
         mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
     }
 

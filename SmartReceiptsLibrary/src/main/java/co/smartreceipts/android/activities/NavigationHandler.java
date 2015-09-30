@@ -97,13 +97,19 @@ public class NavigationHandler {
 
     private void replaceFragmentWithAnimation(@NonNull Fragment fragment, @IdRes int layoutResId, @AnimRes int enterAnimId, @AnimRes int exitAnimId) {
         final String backstackTag = fragment.getClass().getName();
-        final boolean wasFragmentPopped = mFragmentManager.popBackStackImmediate(backstackTag, 0);
+        boolean wasFragmentPopped;
+        try {
+            wasFragmentPopped = mFragmentManager.popBackStackImmediate(backstackTag, 0);
+        } catch (final IllegalStateException e) {
+            // This exception is always thrown if saveInstanceState was already been called.
+            wasFragmentPopped = false;
+        }
         if (!wasFragmentPopped) {
             final FragmentTransaction transaction = mFragmentManager.beginTransaction();
             if (enterAnimId >= 0 && exitAnimId >= 0) {
                 transaction.setCustomAnimations(enterAnimId, exitAnimId);
             }
-            transaction.replace(layoutResId, fragment).addToBackStack(backstackTag).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+            transaction.replace(layoutResId, fragment).addToBackStack(backstackTag).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
         }
     }
 }

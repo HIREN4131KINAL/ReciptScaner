@@ -214,22 +214,42 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         try {
             startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
         } catch (IntentSender.SendIntentException e) {
-            Toast.makeText(this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
 
     @Override
     public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
-        Toast.makeText(this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
     public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet) {
-        Toast.makeText(this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
     public void onPurchaseFailed() {
-        Toast.makeText(this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

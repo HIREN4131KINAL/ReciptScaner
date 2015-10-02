@@ -332,7 +332,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         } else {
             if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 Log.i(TAG, "User does not have camera permissions. Requesting...");
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_CAMERA_REQUEST);
+                requestPermissionsWithPossibleChildFragment(new String[]{Manifest.permission.CAMERA}, PERMISSION_CAMERA_REQUEST);
             } else {
                 Log.i(TAG, "User has appropriate permissions. Granting camera access");
                 if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {

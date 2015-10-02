@@ -105,6 +105,16 @@ public class ReportInfoFragment extends WBFragment {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (final Fragment fragment : getChildFragmentManager().getFragments()) {
+            if (fragment != null) {
+                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             mNavigationHandler.navigateToTripsFragment();
@@ -118,9 +128,14 @@ public class ReportInfoFragment extends WBFragment {
     public void onResume() {
         super.onResume();
         final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null && !mNavigationHandler.isDualPane()) {
-            actionBar.setHomeButtonEnabled(true);
-            actionBar.setDisplayHomeAsUpEnabled(true);
+        if (actionBar != null) {
+            if (!mNavigationHandler.isDualPane()) {
+                actionBar.setHomeButtonEnabled(true);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            } else {
+                actionBar.setHomeButtonEnabled(false);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            }
         }
     }
 

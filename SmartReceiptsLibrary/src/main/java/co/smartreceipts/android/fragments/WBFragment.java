@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -31,36 +30,12 @@ public class WBFragment extends Fragment {
 	}
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        getWorkerManager().getAdManager().onViewCreated(view);
-    }
-
-    @Override
 	public void onStart() {
 		super.onStart();
 		if (!mDisableScreenLoggingOnStart) {
 			getWorkerManager().getLogger().logScreen(this);
 		}
 	}
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        getWorkerManager().getAdManager().onResume();
-    }
-
-    @Override
-    public void onPause() {
-        getWorkerManager().getAdManager().onPause();
-        super.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        getWorkerManager().getAdManager().onDestroy();
-        super.onDestroy();
-    }
 
     @Override
 	public void onDetach() {

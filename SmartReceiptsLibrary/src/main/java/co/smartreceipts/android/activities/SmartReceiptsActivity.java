@@ -68,6 +68,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             mNavigationHandler.navigateToTripsFragment();
             AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
         }
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this);
 
     }
 
@@ -111,6 +112,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                 Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
             }
         }
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();
     }
 
     @Override
@@ -164,7 +166,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
+    protected void onPause() {
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
+        super.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
         mSubscriptionManager.removeEventListener(this);
         mSubscriptionManager.onDestroy();
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();

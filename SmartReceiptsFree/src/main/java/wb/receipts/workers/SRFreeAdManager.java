@@ -6,11 +6,13 @@ import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.receipts.R;
 
+import android.app.Activity;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.view.View;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
@@ -28,11 +30,11 @@ public class SRFreeAdManager extends AdManager {
         super(manager, subscriptionWallet);
     }
 
-    public void onViewCreated(@NonNull View rootView) {
-        final AdView adView = (AdView) rootView.findViewById(R.id.adView);
+    public void onActivityCreated(@NonNull Activity activity) {
+        final AdView adView = (AdView) activity.findViewById(R.id.adView);
         mAdViewReference = new WeakReference<>(adView);
         if (adView != null) {
-            if (!rootView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, true) || getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+            if (!activity.getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, true) || getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
                 adView.setVisibility(View.GONE);
             } else {
                 adView.loadAd(getAdRequest());

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.workers;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.view.View;
 
@@ -14,7 +15,7 @@ public class AdManager extends WorkerChild {
         mSubscriptionWallet = subscriptionWallet;
 	}
 
-    public void onViewCreated(@NonNull View rootView) {
+    public void onActivityCreated(@NonNull Activity activity) {
         // Stub method. Override in child subclasses
     }
 

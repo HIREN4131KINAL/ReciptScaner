@@ -356,7 +356,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             Log.i(TAG, "Received response for Camera permission request.");
 
             // Check if the only required permission has been granted
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.i(TAG, "CAMERA permission has now been granted.");
             } else {
                 Log.i(TAG, "CAMERA permission was NOT granted.");

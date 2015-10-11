@@ -64,6 +64,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     // Permissions Request Ints
     private static final int PERMISSION_CAMERA_REQUEST = 21;
+    private static final int PERMISSION_STORAGE_REQUEST = 22;
 
     // Preferences
     private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
@@ -335,16 +336,21 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 requestPermissionsWithPossibleChildFragment(new String[]{Manifest.permission.CAMERA}, PERMISSION_CAMERA_REQUEST);
             } else {
                 Log.i(TAG, "User has appropriate permissions. Granting camera access");
-                if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                    final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                    mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                    startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    Log.i(TAG, "User does not have storage permissions. Requesting...");
+                    requestPermissionsWithPossibleChildFragment(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_STORAGE_REQUEST);
                 } else {
-                    final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                    String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
-                    intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                    startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                    if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
+                        final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
+                        mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+                        startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                    } else {
+                        final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
+                        String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
+                        intent.putExtra(MyCameraActivity.STRING_DATA, strings);
+                        startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+                    }
                 }
             }
         }
@@ -360,6 +366,18 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                 Log.i(TAG, "CAMERA permission has now been granted.");
             } else {
                 Log.i(TAG, "CAMERA permission was NOT granted.");
+                getPersistenceManager().getPreferences().setUseNativeCamera(true);
+            }
+            // Retry add now with either native camera or now granted way
+            addPictureReceipt();
+        } else if (requestCode == PERMISSION_STORAGE_REQUEST) {
+            Log.i(TAG, "Received response for storage permission request.");
+
+            // Check if the only required permission has been granted
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.i(TAG, "STORAGE permission has now been granted.");
+            } else {
+                Log.i(TAG, "STORAGE permission was NOT granted.");
                 getPersistenceManager().getPreferences().setUseNativeCamera(true);
             }
             // Retry add now with either native camera or now granted way

@@ -133,7 +133,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                 isProSubscriptionOwned = false;
             }
         }
-        if (!isProSubscriptionOwned) {
+        if (isProSubscriptionOwned) {
             menu.removeItem(R.id.menu_main_pro_subscription);
         }
         return super.onCreateOptionsMenu(menu);

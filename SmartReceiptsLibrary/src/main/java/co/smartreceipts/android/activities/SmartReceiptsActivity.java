@@ -117,7 +117,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data, /* TODO: */ null)) {
+        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }

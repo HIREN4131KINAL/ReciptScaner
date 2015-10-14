@@ -162,7 +162,7 @@ public final class SubscriptionManager {
     /**
      * @return {@code true} if we handled the request. {@code false} otherwise
      */
-    public boolean onActivityResult(int requestCode, int resultCode, Intent data, String expectedDeveloperPayload) {
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE) {
             final int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
             final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
@@ -173,7 +173,7 @@ public final class SubscriptionManager {
                 try {
                     final JSONObject json = new JSONObject(purchaseData);
                     final String actualDeveloperPayload = json.getString("developerPayload");
-                    if (expectedDeveloperPayload.equals(actualDeveloperPayload)) {
+                    if (mSessionDeveloperPayload.equals(actualDeveloperPayload)) {
                         final String sku = json.getString("productId");
                         final Subscription subscription = Subscription.from(sku);
                         if (subscription != null) {

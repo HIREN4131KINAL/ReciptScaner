@@ -34,10 +34,10 @@ public class SRFreeAdManager extends AdManager {
         final AdView adView = (AdView) activity.findViewById(R.id.adView);
         mAdViewReference = new WeakReference<>(adView);
         if (adView != null) {
-            if (!activity.getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, true) || getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
-                adView.setVisibility(View.GONE);
-            } else {
+            if (shouldShowAds(adView)) {
                 adView.loadAd(getAdRequest());
+            } else {
+                adView.setVisibility(View.GONE);
             }
         }
     }
@@ -45,22 +45,38 @@ public class SRFreeAdManager extends AdManager {
     public void onResume() {
         final AdView adView = mAdViewReference.get();
         if (adView != null) {
-            adView.resume();
+            if (shouldShowAds(adView)) {
+                adView.resume();
+            } else {
+                adView.setVisibility(View.GONE);
+            }
         }
     }
 
     public void onPause() {
         final AdView adView = mAdViewReference.get();
         if (adView != null) {
-            adView.pause();
+            if (shouldShowAds(adView)) {
+                adView.pause();
+            } else {
+                adView.setVisibility(View.GONE);
+            }
         }
     }
 
     public void onDestroy() {
         final AdView adView = mAdViewReference.get();
         if (adView != null) {
-            adView.destroy();
+            if (shouldShowAds(adView)) {
+                adView.destroy();
+            } else {
+                adView.setVisibility(View.GONE);
+            }
         }
+    }
+
+    private boolean shouldShowAds(@NonNull AdView adView) {
+        return !adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, true) || getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
     }
 
     private static AdRequest getAdRequest() {

@@ -122,7 +122,12 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
             throw new ReportGenerationException(e);
         } finally {
             if (document != null) {
-                document.close(); //Close me first
+                try {
+                    document.close(); //Close me first
+                } catch (Exception e) {
+                    // We might see this if it was an empty document
+                    Log.e(TAG, e.toString(), e);
+                }
             }
             if (pdfStream != null) {
                 StorageManager.closeQuietly(pdfStream);

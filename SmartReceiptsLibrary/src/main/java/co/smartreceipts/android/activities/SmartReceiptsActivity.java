@@ -238,6 +238,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                invalidateOptionsMenu(); // To hide the subscription option
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
             }
         });

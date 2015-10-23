@@ -24,12 +24,8 @@ public class ProSubscriptionCache implements SubscriptionCache {
     }
 
     @Override
-    public void addSubscriptionsToWallet(@NonNull Collection<Subscription> subscriptions) {
+    public void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions) {
         // Intentional No-op
     }
 
-    @Override
-    public void addSubscriptionToWallet(@NonNull Subscription subscription) {
-        // Intentional No-op
-    }
 }

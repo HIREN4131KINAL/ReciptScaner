@@ -2,7 +2,6 @@ package co.smartreceipts.android.purchases;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -21,8 +20,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -213,8 +210,7 @@ public final class SubscriptionManager {
             @Override
             public void run() {
                 try {
-                    // First, let's query what we already own...
-                    final List<Subscription> ownedSubscriptions = new ArrayList<>();
+                    // First, let's double check that we're bound
                     final IInAppBillingService service = mService;
                     if (service == null) {
                         Log.e(TAG, "Failed to query subscriptions due to unbound service");
@@ -224,11 +220,13 @@ public final class SubscriptionManager {
                         return;
                     }
 
+                    // Next, let's query what we already own...
                     final Bundle ownedItems = service.getPurchases(API_VERSION, mContext.getPackageName(), "subs", null);
                     if (ownedItems.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
                         final ArrayList<String> signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
+                        final List<Subscription> ownedSubscriptions = new ArrayList<>();
                         for (int i = 0; i < purchaseDataList.size(); ++i) {
                             final String purchaseData = purchaseDataList.get(i);
 
@@ -242,11 +240,13 @@ public final class SubscriptionManager {
                                 Log.w(TAG, "Unknown sku returned from the owned subscriptions query: " + sku);
                             }
                         }
+
+                        // Now that we successfully got everything, let's save it
+                        mSubscriptionCache.updateSubscriptionsInWallet(ownedSubscriptions);
                     }
-                    mSubscriptionCache.addSubscriptionsToWallet(ownedSubscriptions);
-                    final SubscriptionWallet subscriptionWallet = mSubscriptionCache.getSubscriptionWallet();
 
                     // Next, let's figure out what is available for purchase
+                    final SubscriptionWallet subscriptionWallet = mSubscriptionCache.getSubscriptionWallet();
                     final List<PurchaseableSubscription> availableSubscriptions = new ArrayList<>();
                     final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), "subs", querySkus);
                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {

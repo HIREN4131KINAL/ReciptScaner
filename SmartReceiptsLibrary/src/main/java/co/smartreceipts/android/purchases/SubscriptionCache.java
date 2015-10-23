@@ -15,17 +15,10 @@ public interface SubscriptionCache {
     SubscriptionWallet getSubscriptionWallet();
 
     /**
-     * Adds a list of subscriptions to the existing wallet
+     * Updates the list of subscriptions in the existing wallet
      *
      * @param subscriptions the subscription to add
      */
-    void addSubscriptionsToWallet(@NonNull Collection<Subscription> subscriptions);
-
-    /**
-     * Adds a subscription to the existing wallet
-     *
-     * @param subscription the subscription to add
-     */
-    void addSubscriptionToWallet(@NonNull Subscription subscription);
+    void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions);
 
 }

@@ -28,22 +28,14 @@ public final class DefaultSubscriptionCache implements SubscriptionCache {
         mSubscriptionWallet = restoreWallet();
     }
 
-    @Override
-    public synchronized void addSubscriptionToWallet(@NonNull Subscription subscription) {
-        final Set<Subscription> subscriptionSet = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
-        if (subscriptionSet.add(subscription)) {
-            // Only update if we actually added something to the underlying set
-            mSubscriptionWallet = new DefaultSubscriptionWallet(subscriptionSet);
-            persistWallet(mSubscriptionWallet);
-        }
-    }
 
     @Override
-    public synchronized void addSubscriptionsToWallet(@NonNull Collection<Subscription> subscriptions) {
-        final Set<Subscription> subscriptionSet = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
-        if (subscriptionSet.addAll(subscriptions)) {
+    public synchronized void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions) {
+        final Set<Subscription> actualSubscriptionSet = new HashSet<>(subscriptions);
+        final Set<Subscription> knownSubscriptionSet = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
+        if (!actualSubscriptionSet.equals(knownSubscriptionSet)) {
             // Only update if we actually added something to the underlying set
-            mSubscriptionWallet = new DefaultSubscriptionWallet(subscriptionSet);
+            mSubscriptionWallet = new DefaultSubscriptionWallet(actualSubscriptionSet);
             persistWallet(mSubscriptionWallet);
         }
     }

@@ -6,14 +6,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class ProSubscriptionCache implements SubscriptionCache {
+public final class ProSubscriptionCache implements SubscriptionCache {
 
     private final SubscriptionWallet mSubscriptionWallet;
 
     public ProSubscriptionCache() {
-        // For pro users, just add all subscriptions
-        final List<Subscription> subscriptions = Arrays.asList(Subscription.values());
-        mSubscriptionWallet = new DefaultSubscriptionWallet(subscriptions);
+        mSubscriptionWallet = new ProSubscriptionWallet();
     }
 
 

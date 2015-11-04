@@ -14,8 +14,6 @@
         android:largeHeap="true"
         android:logo="@drawable/logo" >
 
-        <activity android:name=".activities.DistanceActivity" />
-
         <activity
             android:name="co.smartreceipts.android.activities.SettingsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" >

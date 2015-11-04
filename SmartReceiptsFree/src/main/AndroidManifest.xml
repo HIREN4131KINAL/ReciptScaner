@@ -93,32 +93,6 @@
         
         </activity>
         
-         <activity
-			android:name="co.smartreceipts.android.activities.ReceiptImageActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsFreeActivity" />
-        </activity>
-        
-        <!-- 
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsProActivity" />
-        </activity>
-        
-        <activity
-			android:name="co.smartreceipts.android.activities.SettingsDetailsActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="co.smartreceipts.android.activities.SettingsDetailsActivity" />
-        </activity>
-        -->
-        
-        <activity
-			android:name="co.smartreceipts.android.activities.ReceiptPDFActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".SmartReceiptsFreeActivity" />
-        </activity>
-        
         <activity android:name="co.smartreceipts.android.legacycamera.MyCameraActivity"
                   android:label="@string/sr_app_name"
                   android:configChanges="orientation|keyboardHidden"
@@ -137,11 +111,7 @@
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         <activity android:name="com.google.android.gms.ads.AdActivity"
              	  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
-        
 
-
-        
-        
     </application>
 	
 </manifest>

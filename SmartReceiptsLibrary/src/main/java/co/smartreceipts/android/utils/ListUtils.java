@@ -16,7 +16,7 @@ public final class ListUtils {
      */
     public static <T> boolean replace(@NonNull List<T> list, @NonNull T oldItem, @NonNull T newItem) {
         final int id = list.indexOf(oldItem);
-        if (id > 0) {
+        if (id >= 0) {
             list.remove(id);
             list.add(id, newItem);
             return true;

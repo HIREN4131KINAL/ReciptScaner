@@ -2920,7 +2920,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     c = db.rawQuery("SELECT last_insert_rowid()", null);
                     if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
                         final int id = c.getInt(0);
-                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
+                        final Column<Receipt> column = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
                         mCSVColumns.add(column);
                     } else {
                         return false;
@@ -2981,7 +2981,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
                     return false;
                 } else {
-                    ListUtils.replace(mCSVColumns, oldColumn, newColumn);
+                    ListUtils.replace(mCSVColumns, oldColumn, new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build());
                     return true;
                 }
             } catch (SQLException e) {
@@ -3102,7 +3102,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
                     return false;
                 } else {
-                    ListUtils.replace(mPDFColumns, oldColumn, newColumn);
+                    ListUtils.replace(mPDFColumns, oldColumn, new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build());
                     return true;
                 }
             } catch (SQLException e) {

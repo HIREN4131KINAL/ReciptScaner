@@ -50,4 +50,23 @@ public abstract class AbstractColumnImpl<T> implements Column<T>, Comparable<Abs
         return getName();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractColumnImpl)) return false;
+
+        AbstractColumnImpl that = (AbstractColumnImpl) o;
+
+        if (mId != that.mId) return false;
+        if (!mName.equals(that.mName)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mId;
+        result = 31 * result + mName.hashCode();
+        return result;
+    }
 }

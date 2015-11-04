@@ -2,7 +2,9 @@ package co.smartreceipts.android.model.impl.columns.receipts;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,6 +94,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     }
 
 
+    @Nullable
     @Override
     public Column<Receipt> getColumn(int id, @NonNull String definitionName) {
         for (int i = 0; i < mActualDefinitions.length; i++) {
@@ -106,7 +109,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     @NonNull
     @Override
     public List<Column<Receipt>> getAllColumns() {
-        final ArrayList<AbstractColumnImpl<Receipt>> columns = new ArrayList<AbstractColumnImpl<Receipt>>(mActualDefinitions.length);
+        final ArrayList<AbstractColumnImpl<Receipt>> columns = new ArrayList<>(mActualDefinitions.length);
         for (int i = 0; i < mActualDefinitions.length; i++) {
             final ActualDefinition definition = mActualDefinitions[i];
             final AbstractColumnImpl<Receipt> column = getColumnFromClass(Column.UNKNOWN_ID, definition, getColumnNameFromStringResId(definition.getStringResId()));
@@ -121,8 +124,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     @NonNull
     @Override
     public Column<Receipt> getDefaultInsertColumn() {
-        final ActualDefinition blankDefinition = ActualDefinition.BLANK;
-        return getColumnFromClass(Column.UNKNOWN_ID, blankDefinition, getColumnNameFromStringResId(blankDefinition.getStringResId()));
+        return new BlankColumn<>(Column.UNKNOWN_ID, getColumnNameFromStringResId(ActualDefinition.BLANK.getStringResId()));
     }
 
     public List<Column<Receipt>> getCsvDefaults() {
@@ -153,8 +155,12 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         return getColumnFromClass(Column.UNKNOWN_ID, actualDefinition, getColumnNameFromStringResId(actualDefinition.getStringResId()));
     }
 
-
+    @Nullable
     private AbstractColumnImpl<Receipt> getColumnFromClass(int id, @NonNull ActualDefinition definition, @NonNull String definitionName) {
+        if (TextUtils.isEmpty(definitionName)) {
+            // Exit early if we have no name (i.e. it's an undefined extra)
+            return null;
+        }
         switch (definition) {
             case BLANK:
                 return new BlankColumn<>(id, definitionName);

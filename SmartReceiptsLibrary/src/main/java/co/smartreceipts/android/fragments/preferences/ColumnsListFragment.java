@@ -40,7 +40,7 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mColumns = getColumns();
-        mSpinnerAdapter = new ArrayAdapter<Column<Receipt>>(getActivity(), android.R.layout.simple_spinner_item, getColumnDefinitions().getAllColumns());
+        mSpinnerAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getColumnDefinitions().getAllColumns());
         mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		setHasOptionsMenu(true);
 	}
@@ -172,18 +172,41 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 				holder.column = (TextView) convertView.findViewById(android.R.id.title);
 				holder.spinner = (Spinner) convertView.findViewById(R.id.column_spinner);
 				holder.spinner.setAdapter(mSpinnerAdapter);
-				holder.spinner.setOnItemSelectedListener(ColumnsListFragment.this);
 				holder.spinner.setTag(new SpinnerTag());
 				convertView.setTag(holder);
 			}
 			else {
 				holder = (MyViewHolder) convertView.getTag();
+                holder.spinner.setOnItemSelectedListener(null); // Null out each time to not artificially hit the setter
 			}
 			holder.column.setText(getString(R.string.column_item, Integer.toString(i+1))); //Add +1 to make it not 0-th index
+            final int selectedPosition = getColumnPositionByName(i);
+            if (selectedPosition >= 0) {
+                holder.spinner.setSelection(selectedPosition);
+            }
+            holder.spinner.setOnItemSelectedListener(ColumnsListFragment.this);
 			SpinnerTag spinnerTag = (SpinnerTag) holder.spinner.getTag();
 	        spinnerTag.index = i;
 			return convertView;
 		}
+
+        /**
+         * Attempts to get the position in the spinner based on the column name. Since column "equals"
+         * also takes into account the actual position in the database, we do a pseudo equals here by
+         * name
+         * @param columnPosition the position of the column
+         * @return the position in the spinner or -1 if unknown
+         */
+        private int getColumnPositionByName(int columnPosition) {
+            final String columnName = getItem(columnPosition).getName();
+            for (int i = 0; i < mSpinnerAdapter.getCount(); i++) {
+                if (columnName.equals(mSpinnerAdapter.getItem(i).getName())) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
 
 	}
 

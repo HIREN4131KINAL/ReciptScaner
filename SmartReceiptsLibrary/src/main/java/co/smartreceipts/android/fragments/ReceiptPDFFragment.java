@@ -61,6 +61,7 @@ public class ReceiptPDFFragment extends WBFragment implements FilePicker.FilePic
             Toast.makeText(getActivity(), getString(R.string.toast_pdf_open_error), Toast.LENGTH_SHORT).show();
         }
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        setHasOptionsMenu(true);
     }
 
     @Override

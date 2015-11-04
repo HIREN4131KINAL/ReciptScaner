@@ -38,6 +38,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.Attachment;
@@ -135,7 +136,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         }
         // Handles SMR imports
         final Attachment attachment = mAttachable.getAttachment();
-        if (attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
+        if (attachment != null && attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
             performImport(attachment.getUri());
         }
     }
@@ -510,11 +511,12 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 (new ImportTask(getActivity(), TripFragment.this, getString(R.string.progress_import), IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
+                mAttachable.setAttachment(null);
             }
         }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                return;
+                mAttachable.setAttachment(null);
             }
         }).show();
     }

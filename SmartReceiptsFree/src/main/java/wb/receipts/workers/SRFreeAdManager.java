@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
@@ -34,6 +35,13 @@ public class SRFreeAdManager extends AdManager {
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 adView.loadAd(getAdRequest());
+                adView.setAdListener(new AdListener() {
+                    @Override
+                    public void onAdFailedToLoad(int errorCode) {
+                        // If we fail to load the ad, just hide it
+                        adView.setVisibility(View.GONE);
+                    }
+                });
             } else {
                 adView.setVisibility(View.GONE);
             }

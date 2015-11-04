@@ -14,7 +14,7 @@ public class SettingsViewerActivity extends WBActivity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);        
-        setContentView(R.layout.activity_main_onepane);
+        setContentView(R.layout.activity_main_onepane_no_ad_override);
         
 		if (savedInstanceState == null) {
 			final String key = getKey();

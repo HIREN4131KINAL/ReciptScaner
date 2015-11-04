@@ -76,7 +76,7 @@ public class SRFreeAdManager extends AdManager {
     }
 
     private boolean shouldShowAds(@NonNull AdView adView) {
-        return !adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, true) && !getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        return !adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, false) && !getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
     }
 
     private static AdRequest getAdRequest() {

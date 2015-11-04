@@ -3654,8 +3654,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             currDB.insert(PaymentMethodsTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
-                    } else {
-                        return false;
                     }
                 } catch (SQLiteException e) {
                     if (BuildConfig.DEBUG) {
@@ -3727,8 +3725,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             }
                         }
                         while (c.moveToNext());
-                    } else {
-                        return false;
                     }
                 } catch (SQLiteException e) {
                     if (BuildConfig.DEBUG) {

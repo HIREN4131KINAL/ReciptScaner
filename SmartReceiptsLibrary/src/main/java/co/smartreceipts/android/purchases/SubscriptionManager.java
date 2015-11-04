@@ -243,6 +243,12 @@ public final class SubscriptionManager {
 
                         // Now that we successfully got everything, let's save it
                         mSubscriptionCache.updateSubscriptionsInWallet(ownedSubscriptions);
+                    } else {
+                        Log.e(TAG, "Failed to get the user's owned skus");
+                        for (final SubscriptionEventsListener listener : mListeners) {
+                            listener.onSubscriptionsUnavailable();
+                        }
+                        return;
                     }
 
                     // Next, let's figure out what is available for purchase
@@ -266,6 +272,12 @@ public final class SubscriptionManager {
                                 Log.e(TAG, "Failed to parse JSON about available skus for purchase", e);
                             }
                         }
+                    } else {
+                        Log.e(TAG, "Failed to get available skus for purchase");
+                        for (final SubscriptionEventsListener listener : mListeners) {
+                            listener.onSubscriptionsUnavailable();
+                        }
+                        return;
                     }
 
                     // Lastly, pass this info back to our listeners

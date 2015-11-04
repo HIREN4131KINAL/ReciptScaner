@@ -7,12 +7,10 @@ import co.smartreceipts.android.workers.WorkerManager;
 import wb.receipts.R;
 
 import android.app.Activity;
-import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.view.View;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 

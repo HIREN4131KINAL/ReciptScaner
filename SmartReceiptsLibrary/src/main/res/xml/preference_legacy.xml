@@ -256,6 +256,16 @@
             android:summaryOff="@string/pref_distance_print_daily_summaryOff"
             android:defaultValue="@bool/pref_distance_print_daily_defaultValue"/>
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_pro_header"
+        android:key="pref_pro_category_key">
+        <wb.android.preferences.SummaryEditTextPreference
+            android:key="@string/pref_pro_pdf_footer_key"
+            android:title="@string/pref_pro_pdf_footer_title"
+            android:inputType="text"
+            android:defaultValue="@string/pref_pro_pdf_footer_defaultValue" />
+    </PreferenceCategory>
 	
     <PreferenceCategory 
         android:title="@string/pref_help_header"

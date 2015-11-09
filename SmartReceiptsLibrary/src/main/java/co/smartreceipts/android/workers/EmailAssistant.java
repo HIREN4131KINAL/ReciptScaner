@@ -347,15 +347,13 @@ public class EmailAssistant {
         private final EnumSet<EmailOptions> mOptions;
         private boolean memoryErrorOccured = false;
 
-        private static final String FOOTER = "Report Generated using Smart Receipts for Android";
-
         public EmailAttachmentWriter(PersistenceManager persistenceManager,
                                      ProgressDialog dialog,
                                      EnumSet<EmailOptions> options) {
             mStorageManager = persistenceManager.getStorageManager();
             mDB = persistenceManager.getDatabase();
             mPreferences = persistenceManager.getPreferences();
-            mProgressDialog = new WeakReference<ProgressDialog>(dialog);
+            mProgressDialog = new WeakReference<>(dialog);
             mOptions = options;
             mFiles = new File[]{null, null, null, null};
             memoryErrorOccured = false;
@@ -853,7 +851,7 @@ public class EmailAssistant {
             public void onEndPage(PdfWriter writer, Document document) {
                 Rectangle rect = writer.getPageSize();
                 ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
-                        new Phrase(FOOTER, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
+                        new Phrase(mPreferences.getPdfFooterText(), FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
             }
         }
 

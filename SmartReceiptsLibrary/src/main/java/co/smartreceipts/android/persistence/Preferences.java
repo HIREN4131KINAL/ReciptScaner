@@ -64,6 +64,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private float mDefaultDistanceRate;
     private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
 
+    // Pro Preferences
+    private String mPdfFooterText;
+
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
     private boolean mShowActionSendHelpDialog;
@@ -254,6 +257,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
     }
 
+    private void initPdfFooterText(SharedPreferences prefs) {
+        this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
+    }
+
     Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
@@ -321,6 +328,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initPrintDistanceTable(prefs);
         this.initPrintDistanceAsDailyReceipt(prefs);
 
+        // Pro Preferences
+        this.initPdfFooterText(prefs);
+
         // Misc (i.e. inaccessible preferences) for app use only
         this.mShowActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
         this.mVersionCode = prefs.getInt(INT_VERSION_CODE, 78);
@@ -338,7 +348,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
                     SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putInt(INT_VERSION_CODE, mVersionCode);
-                    editor.commit();
+                    editor.apply();
                 }
             } catch (NameNotFoundException e) {
                 if (BuildConfig.DEBUG) {
@@ -576,5 +586,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mShouldDistancePriceBeIncludedInReports;
     }
 
+    public String getPdfFooterText() {
+        return mPdfFooterText;
+    }
 
 }

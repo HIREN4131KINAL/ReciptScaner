@@ -65,6 +65,10 @@ public class PreferenceHeaderFragment extends android.preference.PreferenceFragm
             addPreferencesFromResource(R.xml.preferences_distance);
             mSettingsActivity.configurePreferencesDistance(this);
         }
+        else if (getString(R.string.pref_pro_header).equals(key)) {
+            addPreferencesFromResource(R.xml.preferences_pro);
+            mSettingsActivity.configureProPreferences(this);
+        }
 		else if (getString(R.string.pref_help_header).equals(key)) {
 			addPreferencesFromResource(R.xml.preferences_help);
 			mSettingsActivity.configurePreferencesHelp(this);

@@ -41,6 +41,7 @@ import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
@@ -78,6 +79,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             configurePreferencesCamera(this);
             configurePreferencesLayoutCustomizations(this);
             configurePreferencesDistance(this);
+            configureProPreferences(this);
             configurePreferencesHelp(this);
             configurePreferencesAbout(this);
         }
@@ -296,6 +298,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     public void configurePreferencesDistance(UniversalPreferences universal) {
 
+    }
+
+    public void configureProPreferences(UniversalPreferences universal) {
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        universal.findPreference(R.string.pref_pro_pdf_footer_key).setEnabled(hasProSubscription);
     }
 
     public void configurePreferencesHelp(UniversalPreferences universal) {

@@ -147,7 +147,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
                 final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
                 final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                 document.add(new Paragraph("\n\n"));
-                document.add(new PdfTableGenerator<Distance>(distanceColumns, true, true).generate(distances));
+                document.add(new PdfTableGenerator<>(distanceColumns, true, true).generate(distances));
             }
             document.newPage();
         } catch (DocumentException e) {

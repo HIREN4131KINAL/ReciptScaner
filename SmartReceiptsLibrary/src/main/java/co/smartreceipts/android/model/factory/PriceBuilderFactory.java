@@ -68,12 +68,12 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
     }
 
     public PriceBuilderFactory setPrices(List<? extends Price> prices) {
-        mPrices = new ArrayList<Price>(prices);
+        mPrices = new ArrayList<>(prices);
         return this;
     }
 
     public PriceBuilderFactory setPriceables(List<? extends Priceable> priceables) {
-        mPriceables = new ArrayList<Priceable>(priceables);
+        mPriceables = new ArrayList<>(priceables);
         return this;
     }
 
@@ -89,7 +89,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         }
         else if (mPriceables != null && !mPriceables.isEmpty()) {
             final int size = mPriceables.size();
-            final ArrayList<Price> actualPrices = new ArrayList<Price>(size);
+            final ArrayList<Price> actualPrices = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 actualPrices.add(mPriceables.get(i).getPrice());
             }

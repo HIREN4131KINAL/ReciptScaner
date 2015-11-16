@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.itextpdf.text.pdf.PdfPTable;
 
@@ -27,7 +28,7 @@ public final class PdfTableGenerator<DataType> implements TableGenerator<PdfPTab
         this(columns, null, printHeaders, printFooters);
     }
 
-    public PdfTableGenerator(@NonNull List<Column<DataType>> columns, Filter<DataType> filter, boolean printHeaders, boolean printFooters) {
+    public PdfTableGenerator(@NonNull List<Column<DataType>> columns, @Nullable Filter<DataType> filter, boolean printHeaders, boolean printFooters) {
         mColumns = columns;
         mFilter = filter;
         mPrintHeaders = printHeaders;
@@ -50,14 +51,14 @@ public final class PdfTableGenerator<DataType> implements TableGenerator<PdfPTab
             }
 
             // Add each row
-            final List<DataType> filteredList = new ArrayList<DataType>(list.size());
+            final List<DataType> filteredList = new ArrayList<>(list.size());
             for (int j = 0; j < list.size(); j++) {
                 final DataType data = list.get(j);
-                for (int i = 0; i < columnCount; i++) {
-                    if (mFilter != null && mFilter.accept(data)) {
+                if (mFilter == null || mFilter.accept(data)) {
+                    for (int i = 0; i < columnCount; i++) {
                         table.addCell(mColumns.get(i).getValue(data));
-                        filteredList.add(data);
                     }
+                    filteredList.add(data);
                 }
             }
 

@@ -175,14 +175,14 @@
     <!-- ================== Trip Adapter ===================== -->
     <string name="trip_adapter_new_trip">Expense Report</string>
     <string name="trip_adapter_list_item_to">\u0020to\u0020</string>
-    <string name="trip_no_data">You don\'t seem to have any reports defined at the moment. Try clicking the "+" (plus) button up top to get started.\n\nSmart Receipts lets you create Expense reports, track receipts within each, and quickly generate PDF &amp; CSV reports for your receipt totals. It\'s quick and easy! Also, be sure to check out the menu to customize the categories, reports, and other settings to best suit for your needs.</string>
+    <string name="trip_no_data">You don\'t seem to have any reports defined at the moment. Try clicking the "+" (plus) button to get started.\n\nSmart Receipts lets you create Expense reports, track receipts within each, and quickly generate PDF &amp; CSV reports for your receipt totals. It\'s quick and easy! Also, be sure to check out the menu to customize the categories, reports, and other settings to best suit for your needs.</string>
 
     <!-- ================= Receipt Adapter =================== -->
     <string name="receipt_adapter_picture_receipt">Picture Receipt</string>
     <string name="receipt_adapter_text_receipt">Text-Only Receipt</string>
     <string name="receipt_adapter_email">Email Report</string>
     <string name="receipt_adapter_distance">Distance -\u0020</string>
-    <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the \"Picture\" or \"Text-Only\" option below to get started&#8230;</string>
+    <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the "+" (plus) button to get started&#8230;</string>
 
     <!-- ================= Distance Adapter ================== -->
     <string name="distance_no_data">You don\'t seem to have any distance tracked yet. Try clicking the "+" (plus) button up top to get started.</string>

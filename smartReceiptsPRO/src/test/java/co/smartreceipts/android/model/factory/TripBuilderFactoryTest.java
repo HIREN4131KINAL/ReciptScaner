@@ -85,7 +85,7 @@ public class TripBuilderFactoryTest {
     @Test
     public void testDefaultCurrencyWithDefaultCurrency() {
         tripBuilderFactory.setDefaultCurrency(TripUtils.Constants.CURRENCY);
-        assertEquals(TripUtils.Constants.CURRENCY, tripBuilderFactory.build().getDefaultCurrency());
+        assertEquals(TripUtils.Constants.CURRENCY, tripBuilderFactory.build().getTripCurrency());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class TripBuilderFactoryTest {
         assertNotNull(trip.getDirectory());
         assertNotNull(trip.getComment());
         assertNotNull(trip.getCostCenter());
-        assertNotNull(trip.getDefaultCurrency());
+        assertNotNull(trip.getTripCurrency());
         assertNotNull(trip.getStartDate());
         assertNotNull(trip.getStartTimeZone());
         assertNotNull(trip.getEndDate());

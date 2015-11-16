@@ -21,6 +21,6 @@ public final class DistanceCurrencyColumn extends AbstractColumnImpl<Distance> {
 
     @Override
     public String getFooter(@NonNull List<Distance> distances) {
-        return new PriceBuilderFactory().setPriceables(distances).build().getCurrencyCode();
+        return new PriceBuilderFactory().setPriceables(distances, null).build().getCurrencyCode();
     }
 }

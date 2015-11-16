@@ -19,6 +19,7 @@ import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TestUtils;
 import co.smartreceipts.android.utils.TripUtils;
@@ -87,14 +88,14 @@ public class PriceBuilderFactoryTest {
     @Test
     public void testPrices() {
         final List<Price> prices = Arrays.asList(price, price);
-        priceBuilderFactory.setPrices(prices);
+        priceBuilderFactory.setPrices(prices, ReceiptUtils.Constants.CURRENCY);
         assertEquals(TWO_DOLLARS.floatValue(), priceBuilderFactory.build().getPriceAsFloat(), TestUtils.EPSILON);
     }
 
     @Test
     public void testPriceables() {
         final List<Priceable> priceables = Arrays.asList(priceable1, priceable2);
-        priceBuilderFactory.setPriceables(priceables);
+        priceBuilderFactory.setPriceables(priceables, ReceiptUtils.Constants.CURRENCY);
         assertEquals(TWO_DOLLARS.floatValue(), priceBuilderFactory.build().getPriceAsFloat(), TestUtils.EPSILON);
     }
 

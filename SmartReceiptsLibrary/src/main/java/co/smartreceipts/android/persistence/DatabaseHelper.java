@@ -1267,7 +1267,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             prices.addAll(getDistanceSerial(trip));
         }
 
-        trip.setPrice(new PriceBuilderFactory().setPriceables(prices).setCurrency(trip.getDefaultCurrency()).build());
+        trip.setPrice(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
 
     /**
@@ -1296,7 +1296,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
         }
 
-        trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices).setCurrency(trip.getDefaultCurrency()).build());
+        trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
 
     private void updateTripPrice(final Trip trip) {
@@ -1880,9 +1880,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         }
                         final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(currency);
                         if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
-                            exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateString);
+                            exchangeRateBuilder.setRate(trip.getTripCurrency(), exchangeRateString);
                         } else {
-                            exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateDouble);
+                            exchangeRateBuilder.setRate(trip.getTripCurrency(), exchangeRateDouble);
                         }
                         builder.setExchangeRate(exchangeRateBuilder.build());
                         receipts.add(builder.build());
@@ -2011,9 +2011,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     }
                     final ExchangeRateBuilderFactory exchangeRateBuilder = new ExchangeRateBuilderFactory().setBaseCurrency(currency);
                     if (!TextUtils.isEmpty(exchangeRateString) && exchangeRateString.contains(",")) {
-                        exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateString);
+                        exchangeRateBuilder.setRate(trip.getTripCurrency(), exchangeRateString);
                     } else {
-                        exchangeRateBuilder.setRate(trip.getDefaultCurrency(), exchangeRateDouble);
+                        exchangeRateBuilder.setRate(trip.getTripCurrency(), exchangeRateDouble);
                     }
                     builder.setExchangeRate(exchangeRateBuilder.build());
                     return builder.build();

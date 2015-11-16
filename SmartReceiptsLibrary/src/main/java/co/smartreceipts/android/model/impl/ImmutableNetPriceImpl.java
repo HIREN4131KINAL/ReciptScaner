@@ -35,7 +35,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     public ImmutableNetPriceImpl(@NonNull WBCurrency baseCurrency, @NonNull List<Price> prices) {
         mCurrency = baseCurrency;
         mPrices = Collections.unmodifiableList(prices);
-        mCurrencyToPriceMap = new HashMap<WBCurrency, BigDecimal>();
+        mCurrencyToPriceMap = new HashMap<>();
         BigDecimal possiblyIncorrectTotalPrice = new BigDecimal(0);
         BigDecimal totalPrice = new BigDecimal(0);
         for (final Price price : prices) {

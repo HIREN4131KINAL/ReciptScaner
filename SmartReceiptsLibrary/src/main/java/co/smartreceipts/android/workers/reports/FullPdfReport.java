@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
@@ -94,12 +95,13 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
             distanceTotal.add(distance.getPrice());
         }
 
-        final Price netPrice = new PriceBuilderFactory().setPrices(netTotal).build();
-        final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal).build();
-        final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal).build();
-        final Price noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal).build();
-        final Price taxPrice = new PriceBuilderFactory().setPrices(taxesTotal).build();
-        final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal).build();
+        final WBCurrency tripCurrency = trip.getTripCurrency();
+        final Price netPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
+        final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
+        final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal, tripCurrency).build();
+        final Price noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal, tripCurrency).build();
+        final Price taxPrice = new PriceBuilderFactory().setPrices(taxesTotal, tripCurrency).build();
+        final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal, tripCurrency).build();
 
 
         try {

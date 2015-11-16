@@ -67,13 +67,15 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setPrices(List<? extends Price> prices) {
+    public PriceBuilderFactory setPrices(@NonNull List<? extends Price> prices, @Nullable WBCurrency desiredCurrency) {
         mPrices = new ArrayList<>(prices);
+        mCurrency = desiredCurrency;
         return this;
     }
 
-    public PriceBuilderFactory setPriceables(List<? extends Priceable> priceables) {
+    public PriceBuilderFactory setPriceables(@NonNull List<? extends Priceable> priceables, @Nullable WBCurrency desiredCurrency) {
         mPriceables = new ArrayList<>(priceables);
+        mCurrency = desiredCurrency;
         return this;
     }
 

@@ -16,6 +16,6 @@ public final class ReceiptExchangeRateColumn extends AbstractColumnImpl<Receipt>
 
     @Override
     public String getValue(@NonNull Receipt receipt) {
-        return receipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(receipt.getTrip().getDefaultCurrency());
+        return receipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(receipt.getTrip().getTripCurrency());
     }
 }

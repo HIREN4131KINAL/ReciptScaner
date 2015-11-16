@@ -108,8 +108,8 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         factory.setIsExpenseable(true);
         factory.setTimeZone(distance0.getTimeZone());
         factory.setCategory(mContext.getString(R.string.distance));
-        factory.setCurrency(distance0.getPrice().getCurrency());
-        factory.setPrice(new PriceBuilderFactory().setPriceables(distancesThisDay).build());
+        factory.setCurrency(distance0.getTrip().getTripCurrency());
+        factory.setPrice(new PriceBuilderFactory().setPriceables(distancesThisDay, distance0.getTrip().getTripCurrency()).build());
 
         return factory.build();
     }

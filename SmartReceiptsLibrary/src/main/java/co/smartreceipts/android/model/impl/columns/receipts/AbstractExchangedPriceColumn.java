@@ -8,7 +8,6 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Price;
-import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
@@ -33,7 +32,7 @@ public abstract class AbstractExchangedPriceColumn extends AbstractColumnImpl<Re
     public String getValue(@NonNull Receipt receipt) {
         final Price price = getPrice(receipt);
         final ExchangeRate exchangeRate = price.getExchangeRate();
-        final WBCurrency baseCurrency = receipt.getTrip().getDefaultCurrency();
+        final WBCurrency baseCurrency = receipt.getTrip().getTripCurrency();
         if (exchangeRate.supportsExchangeRateFor(baseCurrency)) {
             return ModelUtils.getDecimalFormattedValue(price.getPrice().multiply(exchangeRate.getExchangeRate(baseCurrency)));
         } else {
@@ -47,10 +46,10 @@ public abstract class AbstractExchangedPriceColumn extends AbstractColumnImpl<Re
             final PriceBuilderFactory factory = new PriceBuilderFactory();
             final List<Price> prices = new ArrayList<>(rows.size());
             for (final Receipt receipt : rows) {
-                factory.setCurrency(receipt.getTrip().getDefaultCurrency());
+                factory.setCurrency(receipt.getTrip().getTripCurrency());
                 prices.add(getPrice(receipt));
             }
-            factory.setPrices(prices);
+            factory.setPrices(prices, rows.get(0).getTrip().getTripCurrency());
             final Price netPrice = factory.build();
             if (netPrice instanceof ImmutableNetPriceImpl) {
                 // TODO: This should be slightly less hacky

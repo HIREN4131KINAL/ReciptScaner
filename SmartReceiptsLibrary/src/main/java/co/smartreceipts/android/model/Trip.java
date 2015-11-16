@@ -120,12 +120,12 @@ public interface Trip extends Parcelable, Priceable {
     void setDailySubTotal(@NonNull Price dailySubTotal);
 
     /**
-     * Gets the default currency which this trip is tracked in
+     * Gets the currency which this trip is tracked in
      *
      * @return - the default {@link co.smartreceipts.android.model.WBCurrency} currency representation
      */
     @NonNull
-    WBCurrency getDefaultCurrency();
+    WBCurrency getTripCurrency();
 
     /**
      * Gets the default currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}

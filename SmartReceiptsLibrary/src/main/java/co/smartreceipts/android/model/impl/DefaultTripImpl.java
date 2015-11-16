@@ -154,7 +154,7 @@ public class DefaultTripImpl implements Trip {
 
     @Override
     @NonNull
-    public WBCurrency getDefaultCurrency() {
+    public WBCurrency getTripCurrency() {
         return mDefaultCurrency;
     }
 

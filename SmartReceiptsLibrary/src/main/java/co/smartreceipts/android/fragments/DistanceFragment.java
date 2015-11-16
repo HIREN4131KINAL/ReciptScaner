@@ -127,7 +127,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
                 final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
-                getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
+                getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
             }
             // Fetch trips in the background to ensure this info is up to date
             getPersistenceManager().getDatabase().getTripsParallel();

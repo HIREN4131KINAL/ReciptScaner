@@ -49,8 +49,6 @@ import wb.android.storage.StorageManager;
  */
 abstract class AbstractPdfImagesReport extends AbstractReport {
 
-    // TODO: Move footer to strings.xml
-    private static final String FOOTER = "Report Generated using Smart Receipts for Android";
     private static final String TAG = AbstractPdfImagesReport.class.getName();
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
     private static final int DEFAULT_MARGIN = 36;
@@ -60,7 +58,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     private final String mFooterMessage;
 
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex) {
-        this(context, persistenceManager, flex, FOOTER);
+        this(context, persistenceManager, flex, persistenceManager.getPreferences().getPdfFooterText());
     }
 
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex, @NonNull String footerMessage) {
@@ -69,7 +67,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     }
 
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, @NonNull StorageManager storageManager, Flex flex) {
-        this(context, db, preferences, storageManager, flex, FOOTER);
+        this(context, db, preferences, storageManager, flex, preferences.getPdfFooterText());
     }
 
     protected AbstractPdfImagesReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, @NonNull StorageManager storageManager, Flex flex, @NonNull String footerMessage) {

@@ -31,6 +31,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     private final BigDecimal mPossiblyIncorrectTotalPrice;
     private final WBCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
+    private final boolean mAreAllExchangeRatesValid;
 
     public ImmutableNetPriceImpl(@NonNull WBCurrency baseCurrency, @NonNull List<Price> prices) {
         mCurrency = baseCurrency;
@@ -38,20 +39,28 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
         mCurrencyToPriceMap = new HashMap<>();
         BigDecimal possiblyIncorrectTotalPrice = new BigDecimal(0);
         BigDecimal totalPrice = new BigDecimal(0);
+        boolean areAllExchangeRatesValid = true;
         for (final Price price : prices) {
+            final BigDecimal priceToAdd;
+            final WBCurrency currencyForPriceToAdd;
             if (price.getExchangeRate().supportsExchangeRateFor(baseCurrency)) {
-                final BigDecimal priceToAdd = price.getPrice().multiply(price.getExchangeRate().getExchangeRate(baseCurrency));
+                priceToAdd = price.getPrice().multiply(price.getExchangeRate().getExchangeRate(baseCurrency));
                 totalPrice = totalPrice.add(priceToAdd);
-                possiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice.add(priceToAdd);
+                currencyForPriceToAdd = baseCurrency;
+
             } else {
-                // Let's create a map of all the currencies we have
-                possiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice.add(price.getPrice());
-                final BigDecimal priceToAdd = mCurrencyToPriceMap.containsKey(price.getCurrency()) ? mCurrencyToPriceMap.get(price.getCurrency()).add(price.getPrice()) : price.getPrice();
-                mCurrencyToPriceMap.put(price.getCurrency(), priceToAdd);
+                // If not, let's just hope for the best with whatever we have to add
+                priceToAdd = price.getPrice();
+                currencyForPriceToAdd = price.getCurrency();
+                areAllExchangeRatesValid = false;
             }
+            possiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice.add(priceToAdd);
+            final BigDecimal priceForCurrency = mCurrencyToPriceMap.containsKey(currencyForPriceToAdd) ? mCurrencyToPriceMap.get(currencyForPriceToAdd).add(priceToAdd) : priceToAdd;
+            mCurrencyToPriceMap.put(currencyForPriceToAdd, priceForCurrency);
         }
         mTotalPrice = totalPrice;
         mPossiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice;
+        mAreAllExchangeRatesValid = areAllExchangeRatesValid;
         mExchangeRate = new ExchangeRateBuilderFactory().setBaseCurrency(baseCurrency).build();
     }
 
@@ -71,7 +80,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
     @Override
     public float getPriceAsFloat() {
-        if (mCurrencyToPriceMap.isEmpty()) {
+        if (mAreAllExchangeRatesValid) {
             return mTotalPrice.floatValue();
         } else {
             return mPossiblyIncorrectTotalPrice.floatValue();
@@ -81,7 +90,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public BigDecimal getPrice() {
-        if (mCurrencyToPriceMap.isEmpty()) {
+        if (mAreAllExchangeRatesValid) {
             return mTotalPrice;
         } else {
             return mPossiblyIncorrectTotalPrice;
@@ -91,7 +100,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public String getDecimalFormattedPrice() {
-        if (mCurrencyToPriceMap.isEmpty()) {
+        if (mAreAllExchangeRatesValid) {
             return ModelUtils.getDecimalFormattedValue(mTotalPrice);
         } else {
             return ModelUtils.getDecimalFormattedValue(mPossiblyIncorrectTotalPrice);
@@ -101,7 +110,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public String getCurrencyFormattedPrice() {
-        if (mCurrencyToPriceMap.isEmpty()) {
+        if (mAreAllExchangeRatesValid) {
             return ModelUtils.getCurrencyFormattedValue(mTotalPrice, mCurrency);
         } else {
             final List<String> currencyStrings = new ArrayList<String>();
@@ -115,7 +124,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public String getCurrencyCodeFormattedPrice() {
-        if (mCurrencyToPriceMap.isEmpty()) {
+        if (mAreAllExchangeRatesValid) {
             return ModelUtils.getCurrencyCodeFormattedValue(mTotalPrice, mCurrency);
         } else {
             final List<String> currencyStrings = new ArrayList<String>();
@@ -146,7 +155,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
     public boolean areAllExchangeRatesValid() {
         // TODO: Figure out how to expose this better
-        return mCurrencyToPriceMap.isEmpty();
+        return mAreAllExchangeRatesValid;
     }
 
     @Override

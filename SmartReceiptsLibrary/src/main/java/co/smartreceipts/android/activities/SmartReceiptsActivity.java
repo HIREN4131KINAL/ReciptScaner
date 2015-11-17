@@ -145,7 +145,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             SRNavUtils.showSettings(this);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
-            final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.TAG);
+            final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
             getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {

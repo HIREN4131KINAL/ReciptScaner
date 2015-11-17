@@ -47,7 +47,7 @@ public class Settings implements ExportTask.Listener {
                 intent.setType("*/*");
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 try {
-                    if (fragment.isAdded()) {
+                    if (fragment.getActivity() != null) {
                         fragment.startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), ImportTask.TASK_ID);
                     }
                 } catch (android.content.ActivityNotFoundException ex) {

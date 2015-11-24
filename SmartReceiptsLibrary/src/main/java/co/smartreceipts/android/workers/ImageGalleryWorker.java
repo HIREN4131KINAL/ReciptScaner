@@ -93,7 +93,7 @@ public class ImageGalleryWorker extends WorkerChild {
      */
     public File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
         // TODO: Move this all to a separate thread
-        Log.i(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");
+        Log.d(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");
         System.gc();
         int orientation = this.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
         Uri imageUriCopy;

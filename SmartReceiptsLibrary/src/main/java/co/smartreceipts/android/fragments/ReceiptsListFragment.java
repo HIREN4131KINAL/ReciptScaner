@@ -194,29 +194,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         super.onPause();
     }
 
-    private void restoreDataHelper(SharedPreferences preferences) {
-        if (mHighlightedReceipt == null) { // Attempt to Restore
-            final DatabaseHelper db = getPersistenceManager().getDatabase();
-            final int receiptId = preferences.getInt(PREFERENCE_HIGHLIGHTED_RECEIPT_ID, -1);
-            if (receiptId > 0) {
-                mHighlightedReceipt = db.getReceiptByID(receiptId);
-            }
-        }
-        if (mImageUri == null) { // Attempt to Restore
-            final String uriPath = preferences.getString(PREFERENCE_IMAGE_URI, "");
-            if (uriPath != null) {
-                mImageUri = Uri.parse(uriPath);
-            }
-        }
-    }
-
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
         super.onDestroy();
     }
-
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
@@ -231,12 +214,16 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         }
 
+        // Let's cache the image uri and then null it out to not impact future requests
+        final Uri cachedImageUriForRequest = mImageUri;
+        mImageUri = null;
+
         if (resultCode == Activity.RESULT_OK) { // -1
-            File imgFile = (mImageUri != null) ? new File(mImageUri.getPath()) : null;
+            File imgFile = (cachedImageUriForRequest != null) ? new File(cachedImageUriForRequest.getPath()) : null;
             if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(mImageUri, data, null);
+                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, null);
             } else if (requestCode == IMPORT_GALLERY_IMAGE) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(mImageUri, data, Uri.fromFile(new File(mCurrentTrip.getDirectory(), System.currentTimeMillis() + ".jpg")));
+                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, Uri.fromFile(new File(mCurrentTrip.getDirectory(), System.currentTimeMillis() + ".jpg")));
             }
             if (imgFile == null) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();

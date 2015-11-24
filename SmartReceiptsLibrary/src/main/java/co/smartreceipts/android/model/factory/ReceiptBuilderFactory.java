@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -185,7 +186,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setTimeZone(String timeZoneId) {
+    public ReceiptBuilderFactory setTimeZone(@Nullable String timeZoneId) {
         if (timeZoneId != null) {
             _timezone = TimeZone.getTimeZone(timeZoneId);
         }

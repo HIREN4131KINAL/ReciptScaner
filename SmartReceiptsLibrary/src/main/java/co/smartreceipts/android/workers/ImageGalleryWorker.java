@@ -27,7 +27,7 @@ import co.smartreceipts.android.persistence.Preferences;
 public class ImageGalleryWorker extends WorkerChild {
 
     private static final String TAG = ImageGalleryWorker.class.getSimpleName();
-	private static final int GALLERY_TIME_DIFF_MILLIS = 5000; //5secs
+	private static final int GALLERY_TIME_DIFF_MILLIS = 15000; //5secs
 	
 	private final StorageManager mStorageManager;
 	private final Preferences mPreferences;
@@ -58,7 +58,7 @@ public class ImageGalleryWorker extends WorkerChild {
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     imageColumns,
                     MediaStore.Images.Media.DATE_TAKEN + " > " + (System.currentTimeMillis() - GALLERY_TIME_DIFF_MILLIS),
-                    MediaStore.Images.Media.DATE_TAKEN + "desc");
+                    MediaStore.Images.Media.DATE_TAKEN + " desc");
             if(c.moveToFirst()){
                 int id = c.getInt(c.getColumnIndex(MediaStore.Images.Media._ID));
                 int orientiation = c.getInt(c.getColumnIndex(MediaStore.Images.Media.ORIENTATION));
@@ -72,6 +72,7 @@ public class ImageGalleryWorker extends WorkerChild {
             }
         }
         catch (Exception e) {
+            Log.e(TAG, "", e);
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
         finally {

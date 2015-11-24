@@ -19,12 +19,14 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
 
 public class ImageGalleryWorker extends WorkerChild {
 
+    private static final String TAG = ImageGalleryWorker.class.getSimpleName();
 	private static final int GALLERY_TIME_DIFF_MILLIS = 5000; //5secs
 	
 	private final StorageManager mStorageManager;
@@ -91,6 +93,7 @@ public class ImageGalleryWorker extends WorkerChild {
      */
     public File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
         // TODO: Move this all to a separate thread
+        Log.i(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");
         System.gc();
         int orientation = this.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
         Uri imageUriCopy;
@@ -102,6 +105,7 @@ public class ImageGalleryWorker extends WorkerChild {
                 imageUriCopy = data.getData();
             }
             else {
+                Log.e(TAG, "Failed to find enough intent data to save. Aborting");
                 return null;
             }
         }
@@ -111,6 +115,7 @@ public class ImageGalleryWorker extends WorkerChild {
         final Context context = mWorkerManager.getApplication();
         if (imageDestination == null) {
             Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "No save destination. Aborting");
             return null;
         }
         File imgFile = new File(imageDestination.getPath());
@@ -158,6 +163,7 @@ public class ImageGalleryWorker extends WorkerChild {
         }
         if (!mStorageManager.writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
             Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Failed to write the image data. Aborting");
             imgFile = null;
         }
         return imgFile;
@@ -169,7 +175,7 @@ public class ImageGalleryWorker extends WorkerChild {
         Cursor cursor = null;
         try {
             cursor = mWorkerManager.getApplication().getContentResolver().query(photoUri, selection, null, null, null);
-            if (cursor.moveToFirst()) {
+            if (cursor!= null && cursor.moveToFirst()) {
                 final int columnIndex = cursor.getColumnIndex(selection[0]);
                 final String newPath = cursor.getString(columnIndex);
                 if (newPath != null) {

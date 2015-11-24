@@ -167,12 +167,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onPause() {
+        Log.i(TAG, "onPause");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG, "onDestroy");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
         mSubscriptionManager.removeEventListener(this);
         mSubscriptionManager.onDestroy();

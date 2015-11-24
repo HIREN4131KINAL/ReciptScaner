@@ -90,7 +90,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mIsFirstPass = savedInstanceState == null || savedInstanceState.getBoolean(KEY_BOOL_FIRST_PASS, true);
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
-        getPersistenceManager().getDatabase().registerTripRowListener(this);
     }
 
     @Override
@@ -128,6 +127,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        getPersistenceManager().getDatabase().registerTripRowListener(this);
         getPersistenceManager().getDatabase().getTripsParallel();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
@@ -150,20 +150,15 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
+        getPersistenceManager().getDatabase().unregisterTripRowListener(this);
         super.onPause();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState");
         outState.putBoolean(KEY_BOOL_FIRST_PASS, mIsFirstPass);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        getPersistenceManager().getDatabase().unregisterTripRowListener(this);
-        super.onDestroy();
     }
 
     @Override
@@ -404,7 +399,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     @Override
     public void onTripRowsQuerySuccess(Trip[] trips) {
-        if (isAdded()) {
+        if (isResumed()) {
             mProgressDialog.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
             if (trips == null || trips.length == 0) {
@@ -436,7 +431,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     @Override
     public void onTripRowInsertSuccess(Trip trip) {
-        if (isAdded()) {
+        if (isResumed()) {
             viewReceipts(trip);
         }
         getPersistenceManager().getDatabase().getTripsParallel();
@@ -460,13 +455,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     @Override
     public void onTripRowUpdateSuccess(Trip trip) {
         getPersistenceManager().getDatabase().getTripsParallel();
-        if (isAdded()) {
+        if (isResumed()) {
             viewReceipts(trip);
         }
-    }
-
-    public void viewReceipts(Trip trip) {
-        mNavigationHandler.navigateToReportInfoFragment(trip);
     }
 
     @Override
@@ -474,6 +465,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         getPersistenceManager().getStorageManager().rename(directory, oldTrip.getName());
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
+        }
+        if (isResumed()) {
             viewReceipts(newTrip);
         }
     }
@@ -482,15 +475,19 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onTripDeleteSuccess(Trip oldTrip) {
         if (oldTrip != null) {
             if (!getPersistenceManager().getStorageManager().deleteRecursively(oldTrip.getDirectory())) {
-                Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+                if (isAdded()) {
+                    Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
+                }
             }
         }
-        final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
-        if (detailsFragment != null) {
-            getFragmentManager().beginTransaction().remove(detailsFragment).commit();
-            final ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setTitle(getFlexString(R.string.sr_app_name));
+        if (isAdded()) {
+            final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
+            if (detailsFragment != null) {
+                getFragmentManager().beginTransaction().remove(detailsFragment).commit();
+                final ActionBar actionBar = getSupportActionBar();
+                if (actionBar != null) {
+                    actionBar.setTitle(getFlexString(R.string.sr_app_name));
+                }
             }
         }
         getPersistenceManager().getDatabase().getTripsParallel();
@@ -501,6 +498,10 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void viewReceipts(Trip trip) {
+        mNavigationHandler.navigateToReportInfoFragment(trip);
     }
 
     private void performImport(final Uri uri) {

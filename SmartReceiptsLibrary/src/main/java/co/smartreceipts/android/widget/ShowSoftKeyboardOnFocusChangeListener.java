@@ -10,9 +10,9 @@ public class ShowSoftKeyboardOnFocusChangeListener implements View.OnFocusChange
     /**
      * After we resume Smart Receipts after using the camera, the input manager isn't quite ready yet to actually
      * show the keyboard for some reason (as opposed to using a text receipt). I wasn't able to find any checks
-     * for why this fails programtically, so I built in a hacky hardcoded delay to help resolve this
+     * for why this fails, so I built in a hacky hardcoded delay to help resolve this
      */
-    private static final int DELAY_TO_SHOW_KEYBOARD_MILLIS = 250;
+    private static final int DELAY_TO_SHOW_KEYBOARD_MILLIS = 400;
 
     @Override
     public void onFocusChange(final View view, final boolean hasFocus) {

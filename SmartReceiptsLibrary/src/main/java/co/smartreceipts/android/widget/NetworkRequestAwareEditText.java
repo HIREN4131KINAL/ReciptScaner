@@ -40,6 +40,11 @@ public class NetworkRequestAwareEditText extends EditText {
     public enum State {
 
         /**
+         * Initial/default state before another gets set
+         */
+        Unprepared,
+
+        /**
          * Indicates that this view is ready to submit a network request
          */
         Ready,
@@ -68,7 +73,7 @@ public class NetworkRequestAwareEditText extends EditText {
         void onUserRetry();
     }
 
-    private State mState = State.Ready;
+    private State mState = State.Unprepared;
     private CharSequence mOriginalHint;
     private CharSequence mFailedHint;
     private RetryListener mRetryListener;
@@ -115,7 +120,7 @@ public class NetworkRequestAwareEditText extends EditText {
 
         if (drawableEnd != null) {
             final int start;
-            if (View.LAYOUT_DIRECTION_LTR == ViewCompat.getLayoutDirection(this)) {
+            if (ViewCompat.LAYOUT_DIRECTION_LTR == ViewCompat.getLayoutDirection(this)) {
                 start = getWidth() - ViewCompat.getPaddingEnd(this) - drawableEnd.getIntrinsicWidth();
             } else {
                 start = ViewCompat.getPaddingEnd(this);

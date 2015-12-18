@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,6 +35,7 @@ import java.sql.Date;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
@@ -47,6 +49,7 @@ import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
@@ -410,7 +413,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         });
 
         exchangeRateBox.setRetryListener(this);
-        exchangeRateBox.setUserRetryActionEnabled(getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro));
         getPersistenceManager().getDatabase().registerReceiptAutoCompleteListener(this);
     }
 
@@ -467,7 +469,18 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onUserRetry() {
-        submitExchangeRateRequest((String)currencySpinner.getSelectedItem());
+        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+            submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
+        } else {
+            final Activity activity = getActivity();
+            if (activity instanceof SmartReceiptsActivity) {
+                final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
+                final SubscriptionManager subscriptionManager = smartReceiptsActivity.getSubscriptionManager();
+                if (subscriptionManager != null) {
+                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+                }
+            }
+        }
     }
 
     @Override
@@ -515,6 +528,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
             });
         } else {
+            exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);
             Log.i(TAG, "Ignoring exchange rate request, since there is no subscription for it");
         }
     }

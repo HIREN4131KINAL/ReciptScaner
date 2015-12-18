@@ -23,6 +23,7 @@ import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.PurchaseableSubscription;
+import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
@@ -45,7 +46,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private static final int LAUNCHES_UNTIL_PROMPT = 30;
     private static final int DAYS_UNTIL_PROMPT = 7;
 
-    private final Set<PurchaseableSubscription> mPurchaseableSubscriptions = new CopyOnWriteArraySet<>();
+    private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
@@ -126,14 +127,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        // TODO: Replace with contains somehow... Don't use reversable logic (i.e. owned should default to false)
-        boolean isProSubscriptionOwned = true;
-        for (final PurchaseableSubscription purchaseableSubscription : mPurchaseableSubscriptions) {
-            if (purchaseableSubscription.getSubscription() == Subscription.SmartReceiptsPro) {
-                isProSubscriptionOwned = false;
-            }
-        }
-        if (isProSubscriptionOwned) {
+        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+
+        // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
+        if (!proSubscriptionIsAvailable || haveProSubscription) {
             menu.removeItem(R.id.menu_main_pro_subscription);
         }
         return super.onCreateOptionsMenu(menu);
@@ -199,9 +197,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
 
     @Override
-    public void onSubscriptionsAvailable(@NonNull List<PurchaseableSubscription> subscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        Log.i(TAG, "The following subscriptions are available: " + subscriptions);
-        mPurchaseableSubscriptions.addAll(subscriptions);
+    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
     }
 

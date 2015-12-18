@@ -1,8 +1,10 @@
 package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
@@ -11,6 +13,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
@@ -24,6 +27,7 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.artifex.mupdfdemo.AsyncTask;
 
@@ -32,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -41,17 +47,25 @@ import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseableSubscription;
+import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.workers.EmailAssistant;
+import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
 
-public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
+public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
     public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
+    private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private SmartReceiptsApplication mApp;
+    private SubscriptionManager mSubscriptionManager;
     private boolean mIsUsingHeaders;
 
     /**
@@ -83,6 +97,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             configurePreferencesHelp(this);
             configurePreferencesAbout(this);
         }
+
+        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager.onCreate();
+        mSubscriptionManager.addEventListener(this);
+        mSubscriptionManager.querySubscriptions();
     }
 
     @Override
@@ -203,8 +222,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             }
         }
         else {
-            super.onActivityResult(requestCode, resultCode, data);
+            if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        mSubscriptionManager.removeEventListener(this);
+        mSubscriptionManager.onDestroy();
+        super.onDestroy();
     }
 
     public boolean isUsingHeaders() {
@@ -302,7 +330,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     public void configureProPreferences(UniversalPreferences universal) {
         final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-        universal.findPreference(R.string.pref_pro_pdf_footer_key).setEnabled(hasProSubscription);
+        final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
+        pdfFooterPreference.setAppearsEnabled(hasProSubscription);
+        pdfFooterPreference.setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesHelp(UniversalPreferences universal) {
@@ -318,17 +348,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         versionPreference.setSummary(getAppVersion());
     }
 
-    private String getAppVersion() {
-        try {
-            return getPackageManager().getPackageInfo(getString(R.string.package_name), 0).versionName;
-        } catch (NameNotFoundException e) {
-            return null;
-        }
-    }
-
     @Override
     public boolean onPreferenceClick(Preference preference) {
-        String key = preference.getKey();
+        final String key = preference.getKey();
         if (key.equals(getString(R.string.pref_receipt_customize_categories_key)) || key.equals(getString(R.string.pref_output_custom_csv_key)) || key.equals(getString(R.string.pref_output_custom_pdf_key)) || key.equals(getString(R.string.pref_receipt_payment_methods_key))) {
             final Intent intent = new Intent(this, SettingsViewerActivity.class);
             intent.putExtra(SettingsViewerActivity.KEY_FLAG, key);
@@ -352,8 +374,83 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
             return true;
+        } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
+            // Let's check if we should prompt the user to upgrade for this preference
+            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+
+            // If we don't already have the pro subscription and it's available, let's buy it
+            if (proSubscriptionIsAvailable && !haveProSubscription) {
+                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+            }
+            return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        mPurchaseableSubscriptions = purchaseableSubscriptions;
+    }
+
+    @Override
+    public void onSubscriptionsUnavailable() {
+        Log.w(TAG, "No subscriptions were found for this session");
+        // Intentional no-op
+    }
+
+    @Override
+    public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+        try {
+            startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                invalidateOptionsMenu(); // To hide the subscription option
+                Toast.makeText(SettingsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onPurchaseFailed() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private String getAppVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getString(R.string.package_name), 0).versionName;
+        } catch (NameNotFoundException e) {
+            return null;
         }
     }
 

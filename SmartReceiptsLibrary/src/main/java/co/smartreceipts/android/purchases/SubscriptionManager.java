@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.android.vending.billing.IInAppBillingService;
 
@@ -159,7 +160,10 @@ public final class SubscriptionManager {
     /**
      * @return {@code true} if we handled the request. {@code false} otherwise
      */
-    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+    public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (data == null) {
+            return false;
+        }
         if (requestCode == REQUEST_CODE) {
             final int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
             final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
@@ -282,7 +286,7 @@ public final class SubscriptionManager {
 
                     // Lastly, pass this info back to our listeners
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onSubscriptionsAvailable(availableSubscriptions, subscriptionWallet);
+                        listener.onSubscriptionsAvailable(new PurchaseableSubscriptions(availableSubscriptions), subscriptionWallet);
                     }
                 } catch (RemoteException e) {
                     Log.e(TAG, "Failed to get available skus for purchase", e);

@@ -3,12 +3,20 @@ package wb.android.preferences;
 import android.content.Context;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.view.View;
+import android.view.ViewGroup;
 
 public class SummaryEditTextPreference extends EditTextPreference implements Preference.OnPreferenceChangeListener {
 
 	private OnPreferenceChangeListener mOnPreferenceChangeListener;
-	
+
+    /**
+     * All this enabled stuff is a nifty hack for Pro subscription upsells
+     */
+    private boolean mAppearsEnabled = true;
+
 	public SummaryEditTextPreference(Context context) {
 		super(context);
 		super.setOnPreferenceChangeListener(this); //Must use the super's method here (since we overwrite)
@@ -42,5 +50,37 @@ public class SummaryEditTextPreference extends EditTextPreference implements Pre
 	public CharSequence getSummary() {
 		return getText();
 	}
+
+    public boolean appearsEnabled() {
+        return mAppearsEnabled;
+    }
+
+    public void setAppearsEnabled(boolean appearsEnabled) {
+        mAppearsEnabled = appearsEnabled;
+    }
+
+    @Override
+    protected void onClick() {
+        if (mAppearsEnabled) {
+            super.onClick();
+        }
+    }
+
+    @Override
+    protected void onBindView(@NonNull View view) {
+        super.onBindView(view);
+        boolean viewEnabled = isEnabled() && mAppearsEnabled;
+        enableView(view, viewEnabled);
+    }
+
+    private void enableView(@NonNull View view, boolean enabled) {
+        view.setEnabled(enabled);
+        if (view instanceof ViewGroup) {
+            final ViewGroup viewGroup = (ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                enableView(viewGroup.getChildAt(i), enabled);
+            }
+        }
+    }
 
 }

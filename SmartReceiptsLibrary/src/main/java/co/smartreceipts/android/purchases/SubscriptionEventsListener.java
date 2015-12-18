@@ -10,10 +10,10 @@ public interface SubscriptionEventsListener {
     /**
      * Called as soon as we have successfully queried a list of available subscriptions
      *
-     * @param subscriptions a list of subscriptions for purchase
+     * @param purchaseableSubscriptions a list of subscriptions for purchase
      * @param subscriptionWallet a wallet of owned subscriptions
      */
-    void onSubscriptionsAvailable(@NonNull List<PurchaseableSubscription> subscriptions, @NonNull SubscriptionWallet subscriptionWallet);
+    void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet);
 
     /**
      * Called if we failed to find to query subscriptions

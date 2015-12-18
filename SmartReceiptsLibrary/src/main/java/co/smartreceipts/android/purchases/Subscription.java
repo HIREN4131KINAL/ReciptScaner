@@ -8,7 +8,7 @@ import java.util.List;
 
 public enum Subscription {
 
-    SmartReceiptsPro("pro_sku");
+    SmartReceiptsPro("pro_sku_2");
 
     private final String mSku;
 

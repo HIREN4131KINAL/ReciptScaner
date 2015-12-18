@@ -42,7 +42,7 @@ public interface SubscriptionEventsListener {
      * @param subscription the new subscription that we purchased
      * @param updateSubscriptionWallet the updated subscription wallet
      */
-    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet);
+    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet);
 
     /**
      * Called if we failed to complete a purchase

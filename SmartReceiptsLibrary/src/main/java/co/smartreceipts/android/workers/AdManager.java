@@ -8,7 +8,7 @@ import co.smartreceipts.android.purchases.SubscriptionWallet;
 
 public class AdManager extends WorkerChild {
 
-    private final SubscriptionWallet mSubscriptionWallet;
+    private SubscriptionWallet mSubscriptionWallet;
 
 	public AdManager(@NonNull WorkerManager manager, @NonNull SubscriptionWallet subscriptionWallet) {
 		super(manager);
@@ -35,4 +35,7 @@ public class AdManager extends WorkerChild {
         return mSubscriptionWallet;
     }
 
+    protected void setSubscriptionWallet(@NonNull SubscriptionWallet subscriptionWallet) {
+        mSubscriptionWallet = subscriptionWallet;
+    }
 }

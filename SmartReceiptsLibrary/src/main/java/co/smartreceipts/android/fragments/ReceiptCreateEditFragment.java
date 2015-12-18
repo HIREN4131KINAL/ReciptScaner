@@ -391,7 +391,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             }
         }
 
-        mFocusedView.requestFocus(); // Make sure we're focused on the right view
+        if (mFocusedView != null) {
+            mFocusedView.requestFocus(); // Make sure we're focused on the right view
+        }
         currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

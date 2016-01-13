@@ -14,7 +14,7 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 144
+        versionCode 145
     }
 
     lintOptions {

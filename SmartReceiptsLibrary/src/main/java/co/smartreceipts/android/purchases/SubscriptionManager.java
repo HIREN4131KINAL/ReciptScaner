@@ -298,6 +298,10 @@ public final class SubscriptionManager {
         });
     }
 
+    public SubscriptionCache getSubscriptionCache() {
+        return mSubscriptionCache;
+    }
+
     /**
      * Since we do not know exactly when our {@link com.android.vending.billing.IInAppBillingService} will be bound,
      * we can use this utility method to queue up any tasks that we need until the binding completes. Once bound, all

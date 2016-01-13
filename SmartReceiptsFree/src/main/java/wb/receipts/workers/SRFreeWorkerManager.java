@@ -18,6 +18,6 @@ public class SRFreeWorkerManager extends WorkerManager {
 
     @Override
     protected AdManager instantiateAdManager() {
-        return new SRFreeAdManager(this, getApplication().getPersistenceManager().getSubscriptionCache().getSubscriptionWallet());
+        return new SRFreeAdManager(this);
     }
 }

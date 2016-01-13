@@ -7,7 +7,7 @@ import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 import co.smartreceipts.android.SmartReceiptsApplication;
 
-public class PersistenceManager {
+public class    PersistenceManager {
 
 	private SmartReceiptsApplication mApplication;
 	private DatabaseHelper mDatabase;

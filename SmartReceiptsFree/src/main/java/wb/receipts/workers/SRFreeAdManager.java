@@ -3,6 +3,7 @@ package wb.receipts.workers;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.WorkerManager;
@@ -12,6 +13,8 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
@@ -24,17 +27,20 @@ import java.util.logging.Handler;
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
 
+    private static final String TAG = SRFreeAdManager.class.getSimpleName();
+
     //Preference Identifiers - SubClasses Only
     private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
     private static final String HIDE_AD = "pref1";
 
     private WeakReference<AdView> mAdViewReference;
 
-    public SRFreeAdManager(@NonNull WorkerManager manager, @NonNull SubscriptionWallet subscriptionWallet) {
-        super(manager, subscriptionWallet);
+    public SRFreeAdManager(@NonNull WorkerManager manager) {
+        super(manager);
     }
 
-    public synchronized void onActivityCreated(@NonNull Activity activity) {
+    public synchronized void onActivityCreated(@NonNull Activity activity, @Nullable SubscriptionManager subscriptionManager) {
+        super.onActivityCreated(activity, subscriptionManager);
         final AdView adView = (AdView) activity.findViewById(R.id.adView);
         mAdViewReference = new WeakReference<>(adView);
         if (adView != null) {
@@ -51,9 +57,13 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                 adView.setVisibility(View.GONE);
             }
         }
+        if (getSubscriptionManager() != null) {
+            getSubscriptionManager().addEventListener(this);
+        }
     }
 
     public synchronized void onResume() {
+        super.onResume();
         final AdView adView = mAdViewReference.get();
         if (adView != null) {
             if (shouldShowAds(adView)) {
@@ -73,6 +83,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                 adView.setVisibility(View.GONE);
             }
         }
+        super.onPause();
     }
 
     public synchronized void onDestroy() {
@@ -84,10 +95,16 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                 adView.setVisibility(View.GONE);
             }
         }
+        if (getSubscriptionManager() != null) {
+            getSubscriptionManager().removeEventListener(this);
+        }
+        super.onDestroy();
     }
 
     private boolean shouldShowAds(@NonNull AdView adView) {
-        return !adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, false) && !getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean hasProSubscrittion = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean wereAdsManuallyDisabled = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, false);
+        return !wereAdsManuallyDisabled && !hasProSubscrittion;
     }
 
     private static AdRequest getAdRequest() {
@@ -119,16 +136,18 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     @Override
     public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+        Log.i(TAG, "Received purchase success in our ad manager for: " + subscription);
         if (Subscription.SmartReceiptsPro == subscription) {
-            setSubscriptionWallet(updatedSubscriptionWallet);
             final AdView adView = mAdViewReference.get();
             if (adView != null) {
                 adView.post(new Runnable() {
                     @Override
                     public void run() {
                         if (shouldShowAds(adView)) {
+                            Log.w(TAG, "Showing the original ad following a purchase");
                             adView.setVisibility(View.VISIBLE);
                         } else {
+                            Log.i(TAG, "Hiding the original ad following a purchase");
                             adView.setVisibility(View.GONE);
                         }
                     }

@@ -472,8 +472,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onUserRetry() {
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+            Log.i(TAG, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
+            Log.i(TAG, "Attempting to retry without valid subscription. Directing user to purchase intent");
             final Activity activity = getActivity();
             if (activity instanceof SmartReceiptsActivity) {
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;

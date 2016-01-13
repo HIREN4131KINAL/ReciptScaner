@@ -70,7 +70,7 @@ public class WorkerManager {
 	 * @return a AdManager Instance
 	 */
 	protected AdManager instantiateAdManager() {
-		return new AdManager(this, mApplication.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet());
+		return new AdManager(this);
 	}
 	
 }

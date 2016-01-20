@@ -102,9 +102,9 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     private boolean shouldShowAds(@NonNull AdView adView) {
-        final boolean hasProSubscrittion = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
         final boolean wereAdsManuallyDisabled = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, false);
-        return !wereAdsManuallyDisabled && !hasProSubscrittion;
+        return !wereAdsManuallyDisabled && !hasProSubscription;
     }
 
     private static AdRequest getAdRequest() {
@@ -116,7 +116,20 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     @Override
     public synchronized void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        // Intentional Stub. Handled with parent activity
+        // Refresh our subscriptions now
+        final AdView adView = mAdViewReference.get();
+        if (adView != null) {
+            adView.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (shouldShowAds(adView)) {
+                        adView.setVisibility(View.VISIBLE);
+                    } else {
+                        adView.setVisibility(View.GONE);
+                    }
+                }
+            });
+        }
     }
 
     @Override

@@ -89,6 +89,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private View mFocusedView;
 
     // Misc
+    private MemoryLeakSafeCallback<ExchangeRate, EditText> mLastExchangeRateFetchCallback;
     private NavigationHandler mNavigationHandler;
     private ExchangeRateServiceManager mExchangeRateServiceManager;
     private ReceiptInputCache mReceiptInputCache;
@@ -399,14 +400,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
             @Override
             public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
-                // Clear out the rate whenever we change currencies
-                exchangeRateBox.setText("");
-
                 // Then determine if we should show/hide the box
                 final String baseCurrencyCode = mCurrencies.getItem(position).toString();
                 final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
                 if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
                     mExchangeRateContainer.setVisibility(View.GONE);
+                    exchangeRateBox.setText(""); // Clear out if we're hiding the box
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
                     submitExchangeRateRequest(baseCurrencyCode);
@@ -508,13 +507,17 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
     }
 
-    private void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
+    private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
             Log.i(TAG, "Submitting exchange rate request");
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
-            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
-
+            if (mLastExchangeRateFetchCallback != null) {
+                // Ignore any outstanding results to not confuse ourselves
+                mLastExchangeRateFetchCallback.ignoreResult();
+            }
+            exchangeRateBox.setText(""); // Clear results to avoid stale data here
+            mLastExchangeRateFetchCallback = new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
                 @Override
                 public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
                     if (exchangeRate != null) {
@@ -535,7 +538,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     Log.e(TAG, "" + error);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
-            });
+            };
+            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, mLastExchangeRateFetchCallback);
         } else {
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);
             Log.i(TAG, "Ignoring exchange rate request, since there is no subscription for it");

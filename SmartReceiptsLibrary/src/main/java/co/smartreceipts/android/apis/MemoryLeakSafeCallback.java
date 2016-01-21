@@ -15,25 +15,33 @@ import retrofit.client.Response;
 public abstract class MemoryLeakSafeCallback<Data, Leakable> implements Callback<Data> {
 
     private final WeakReference<Leakable> mWeakReference;
+    private boolean mIgnoreResult = false;
 
     public MemoryLeakSafeCallback(final Leakable leakable) {
-        mWeakReference = new WeakReference<Leakable>(leakable);
+        mWeakReference = new WeakReference<>(leakable);
     }
 
     @Override
-    public final void success(Data data, Response response) {
+    public final synchronized void success(Data data, Response response) {
         final Leakable leakable = mWeakReference.get();
-        if (leakable != null) {
+        if (!mIgnoreResult && leakable != null) {
             success(leakable, data, response);
         }
     }
 
     @Override
-    public void failure(RetrofitError error) {
+    public final synchronized void failure(RetrofitError error) {
         final Leakable leakable = mWeakReference.get();
-        if (leakable != null) {
+        if (!mIgnoreResult && leakable != null) {
             failure(leakable, error);
         }
+    }
+
+    /**
+     * Indicates that the result should be ignored (akin to cancel but the request may still complete)
+     */
+    public final synchronized void ignoreResult() {
+        mIgnoreResult = true;
     }
 
     /**

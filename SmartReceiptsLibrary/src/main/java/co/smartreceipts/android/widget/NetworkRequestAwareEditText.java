@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -265,6 +267,65 @@ public class NetworkRequestAwareEditText extends EditText {
      */
     public boolean isUserRetryActionEnabled() {
         return mUserRetryActionEnabled;
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        final Parcelable superState = super.onSaveInstanceState();
+        return new SavedState(superState, mState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        if (state instanceof SavedState) {
+            SavedState savedState = (SavedState) state;
+            super.onRestoreInstanceState(savedState.getSuperState());
+            mState = savedState.getState();
+        } else {
+            super.onRestoreInstanceState(state);
+        }
+    }
+
+    /**
+     * Utility class that allows us to persist {@link co.smartreceipts.android.widget.NetworkRequestAwareEditText.State} information
+     * across network changes
+     */
+    static class SavedState extends BaseSavedState {
+
+        private final State mState;
+
+        public SavedState(@NonNull Parcelable superState, @NonNull State currentState) {
+            super(superState);
+            mState = currentState;
+        }
+
+        public SavedState(@NonNull Parcel in) {
+            super(in);
+            final State state = (State) in.readSerializable();
+            mState = state != null ? state : State.Unprepared;
+        }
+
+        @NonNull
+        public State getState() {
+            return mState;
+        }
+
+        @Override
+        public void writeToParcel(@NonNull Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeSerializable(mState);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(@NonNull Parcel in) {
+                return new SavedState(in);
+            }
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
     }
 
 }

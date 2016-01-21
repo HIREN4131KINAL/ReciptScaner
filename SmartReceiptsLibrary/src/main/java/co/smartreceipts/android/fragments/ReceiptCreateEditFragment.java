@@ -53,6 +53,7 @@ import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
+import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import wb.android.autocomplete.AutoCompleteAdapter;
@@ -394,14 +395,18 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (mFocusedView != null) {
             mFocusedView.requestFocus(); // Make sure we're focused on the right view
         }
-        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        currencySpinner.setOnItemSelectedListener(new UserSelectionTrackingOnItemSelectedListener() {
+
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
+                // Clear out the rate whenever we change currencies
+                exchangeRateBox.setText("");
+
+                // Then determine if we should show/hide the box
                 final String baseCurrencyCode = mCurrencies.getItem(position).toString();
                 final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
                 if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
                     mExchangeRateContainer.setVisibility(View.GONE);
-                    exchangeRateBox.setText(""); // Clear out when we reset
                 } else {
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
                     submitExchangeRateRequest(baseCurrencyCode);

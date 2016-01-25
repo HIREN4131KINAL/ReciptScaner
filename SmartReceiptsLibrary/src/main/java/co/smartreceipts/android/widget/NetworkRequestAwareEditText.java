@@ -288,7 +288,7 @@ public class NetworkRequestAwareEditText extends EditText {
 
     /**
      * Utility class that allows us to persist {@link co.smartreceipts.android.widget.NetworkRequestAwareEditText.State} information
-     * across network changes
+     * across config changes
      */
     static class SavedState extends BaseSavedState {
 

@@ -62,6 +62,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private static final String TAG = ReceiptCreateEditFragment.class.getSimpleName();
     private static final String ARG_FILE = "arg_file";
+    private static final String KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE = "key_is_exchange_rate_visible";
 
     // Metadata
     private Trip mTrip;
@@ -94,8 +95,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private ExchangeRateServiceManager mExchangeRateServiceManager;
     private ReceiptInputCache mReceiptInputCache;
     private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
-    private Time mNow;
-    private ArrayAdapter<CharSequence> mCurrencies;
+    private ArrayAdapter<CharSequence> mCurrenciesAdapter;
+    private ArrayAdapter<CharSequence> mCategoriesAdpater;
+    private ArrayAdapter<PaymentMethod> mPaymentMethodsAdapter;
 
     /**
      * Creates a new instance of this fragment for a new receipt
@@ -138,7 +140,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
-        mCurrencies = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
+        mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
+        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
+        mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
         setHasOptionsMenu(true);
     }
 
@@ -171,7 +175,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
         this.extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
 
+        // Toolbar stuff
         mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         // Set each focus listener, so we can track the focus view across resume -> pauses
         this.nameBox.setOnFocusChangeListener(this);
@@ -183,167 +189,211 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         // Custom view properties
         exchangeRateBox.setFailedHint(R.string.DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED);
+
+        // Set click listeners
+        dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+
+        // Show default dictionary with auto-complete
+        nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
+
+        // Set-up tax layers
+        if (getPersistenceManager().getPreferences().includeTaxField()) {
+            priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
+            taxBox.setVisibility(View.VISIBLE);
+        }
+
+        // Configure dropdown defaults for currencies
+        mCurrenciesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(mCurrenciesAdapter);
+
+        // And categories
+        mCategoriesAdpater.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categoriesSpinner.setAdapter(mCategoriesAdpater);
+
+        // And payment methods
+        mPaymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        paymentMethodsSpinner.setAdapter(mPaymentMethodsAdapter);
+
+        // And the exchange rate processing for our currencies
+        final boolean exchangeRateIsVisible = savedInstanceState != null && savedInstanceState.getBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE);
+        if (exchangeRateIsVisible) {
+            // Note: the restoration of selected spinner items (in the currency spinner) is delayed so we use this state tracker to restore immediately
+            mExchangeRateContainer.setVisibility(View.VISIBLE);
+        }
+        currencySpinner.setOnItemSelectedListener(new UserSelectionTrackingOnItemSelectedListener() {
+
+            @Override
+            public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
+                // Then determine if we should show/hide the box
+                final String baseCurrencyCode = mCurrenciesAdapter.getItem(position).toString();
+                final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+                if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
+                    mExchangeRateContainer.setVisibility(View.GONE);
+                    exchangeRateBox.setText(""); // Clear out if we're hiding the box
+                } else {
+                    mExchangeRateContainer.setVisibility(View.VISIBLE);
+                    submitExchangeRateRequest(baseCurrencyCode);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Intentional no-op
+            }
+        });
+
+        // Outline date defaults
+        dateBox.setFocusableInTouchMode(false);
+        dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
+
+        // Lastly, preset adapters for "new" receipts
+        final boolean isNewReceipt = mReceipt == null;
+        if (isNewReceipt) {
+            if (getPersistenceManager().getPreferences().includeTaxField()) {
+                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
+            }
+
+            final Preferences preferences = getPersistenceManager().getPreferences();
+            if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, mCategoriesAdpater));
+            } else if (preferences.matchCommentToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, mCategoriesAdpater));
+            } else if (preferences.matchNameToCategory()) {
+                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, mCategoriesAdpater));
+            }
+        }
+
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        final boolean isNewReceipt = mReceipt == null;
+        // Configure things if it's not a restored fragment
+        if (savedInstanceState == null) {
 
-        setSupportActionBar(mToolbar);
+            final boolean isNewReceipt = mReceipt == null;
+            if (isNewReceipt) {
 
-        if (getPersistenceManager().getPreferences().includeTaxField()) {
-            priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
-            taxBox.setVisibility(View.VISIBLE);
-        }
-
-        // Show default dictionary with auto-complete
-        nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
-
-        mCurrencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        currencySpinner.setAdapter(mCurrencies);
-
-        dateBox.setFocusableInTouchMode(false);
-        dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
-        final ArrayAdapter<CharSequence> categories = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
-        categories.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categoriesSpinner.setAdapter(categories);
-
-
-        if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().includeTaxField()) {
-                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
-            }
-            mNow = new Time();
-            mNow.setToNow();
-            if (mReceiptInputCache.getCachedDate() == null) {
-                if (getPersistenceManager().getPreferences().defaultToFirstReportDate()) {
-                    dateBox.date = mTrip.getStartDate();
-                } else {
-                    dateBox.date = new Date(mNow.toMillis(false));
-                }
-            } else {
-                dateBox.date = mReceiptInputCache.getCachedDate();
-            }
-            dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
-            expensable.setChecked(true);
-            Preferences preferences = getPersistenceManager().getPreferences();
-            if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
-                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, commentBox, categories));
-                if (mFocusedView == null) {
-                    mFocusedView = priceBox;
-                }
-            } else if (preferences.matchCommentToCategory()) {
-                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(null, commentBox, categories));
-            } else if (preferences.matchNameToCategory()) {
-                categoriesSpinner.setOnItemSelectedListener(getSpinnerSelectionListener(nameBox, null, categories));
-                if (mFocusedView == null) {
-                    mFocusedView = priceBox;
-                }
-            }
-            if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
-                if (mReceiptInputCache.getCachedCategory() == null) {
-                    if (mNow.hour >= 4 && mNow.hour < 11) { // Breakfast hours
-                        int idx = categories.getPosition(getString(R.string.category_breakfast));
-                        if (idx > 0) {
-                            categoriesSpinner.setSelection(idx);
-                        }
-                    } else if (mNow.hour >= 11 && mNow.hour < 16) { // Lunch hours
-                        int idx = categories.getPosition(getString(R.string.category_lunch));
-                        if (idx > 0) {
-                            categoriesSpinner.setSelection(idx);
-                        }
-                    } else if (mNow.hour >= 16 && mNow.hour < 23) { // Dinner hours
-                        int idx = categories.getPosition(getString(R.string.category_dinner));
-                        if (idx > 0) {
-                            categoriesSpinner.setSelection(idx);
-                        }
+                final Time now = new Time();
+                now.setToNow();
+                if (mReceiptInputCache.getCachedDate() == null) {
+                    if (getPersistenceManager().getPreferences().defaultToFirstReportDate()) {
+                        dateBox.date = mTrip.getStartDate();
+                    } else {
+                        dateBox.date = new Date(now.toMillis(false));
                     }
                 } else {
-                    int idx = categories.getPosition(mReceiptInputCache.getCachedCategory());
-                    if (idx > 0) {
-                        categoriesSpinner.setSelection(idx);
+                    dateBox.date = mReceiptInputCache.getCachedDate();
+                }
+                dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
+                expensable.setChecked(true);
+
+                final Preferences preferences = getPersistenceManager().getPreferences();
+                if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
+                    if (mFocusedView == null) {
+                        mFocusedView = priceBox;
+                    }
+                } else if (preferences.matchNameToCategory()) {
+                    if (mFocusedView == null) {
+                        mFocusedView = priceBox;
                     }
                 }
-            }
-            int idx = mCurrencies.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
-            int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrencies.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
-            idx = (cachedIdx > 0) ? cachedIdx : idx;
-            if (idx > 0) {
-                currencySpinner.setSelection(idx);
-            }
-            fullpage.setChecked(preferences.shouldDefaultToFullPage());
-            if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
-                mPaymentMethodsContainer.setVisibility(View.VISIBLE);
-                final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
-                paymentMethodsSpinner.setVisibility(View.VISIBLE);
-                paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
-            }
-        } else {
-            nameBox.setText(mReceipt.getName());
-            priceBox.setText(mReceipt.getPrice().getDecimalFormattedPrice());
-            dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
-            dateBox.date = mReceipt.getDate();
-            categoriesSpinner.setSelection(categories.getPosition(mReceipt.getCategory()));
-            commentBox.setText(mReceipt.getComment());
-            taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());
-            final ExchangeRate exchangeRate = mReceipt.getPrice().getExchangeRate();
-            if (exchangeRate.supportsExchangeRateFor(mTrip.getDefaultCurrencyCode())) {
-                exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(mTrip.getDefaultCurrencyCode()));
-            }
 
+                if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
+                    if (mReceiptInputCache.getCachedCategory() == null) {
+                        if (now.hour >= 4 && now.hour < 11) { // Breakfast hours
+                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_breakfast));
+                            if (idx > 0) {
+                                categoriesSpinner.setSelection(idx);
+                            }
+                        } else if (now.hour >= 11 && now.hour < 16) { // Lunch hours
+                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_lunch));
+                            if (idx > 0) {
+                                categoriesSpinner.setSelection(idx);
+                            }
+                        } else if (now.hour >= 16 && now.hour < 23) { // Dinner hours
+                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_dinner));
+                            if (idx > 0) {
+                                categoriesSpinner.setSelection(idx);
+                            }
+                        }
+                    } else {
+                        int idx = mCategoriesAdpater.getPosition(mReceiptInputCache.getCachedCategory());
+                        if (idx > 0) {
+                            categoriesSpinner.setSelection(idx);
+                        }
+                    }
+                }
 
-            int idx = mCurrencies.getPosition(mReceipt.getPrice().getCurrencyCode());
-            if (idx > 0) {
-                currencySpinner.setSelection(idx);
-            }
+                int idx = mCurrenciesAdapter.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
+                int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrenciesAdapter.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
+                idx = (cachedIdx > 0) ? cachedIdx : idx;
+                if (idx > 0) {
+                    currencySpinner.setSelection(idx);
+                }
+                fullpage.setChecked(preferences.shouldDefaultToFullPage());
+                if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+                    mPaymentMethodsContainer.setVisibility(View.VISIBLE);
+                }
 
-            if (mReceipt.getPrice().getCurrency().equals(mTrip.getPrice().getCurrency())) {
-                mExchangeRateContainer.setVisibility(View.GONE);
             } else {
-                mExchangeRateContainer.setVisibility(View.VISIBLE);
-            }
+                nameBox.setText(mReceipt.getName());
+                priceBox.setText(mReceipt.getPrice().getDecimalFormattedPrice());
+                dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+                dateBox.date = mReceipt.getDate();
+                categoriesSpinner.setSelection(mCategoriesAdpater.getPosition(mReceipt.getCategory()));
+                commentBox.setText(mReceipt.getComment());
+                taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());
 
-            expensable.setChecked(mReceipt.isExpensable());
-            fullpage.setChecked(mReceipt.isFullPage());
+                final ExchangeRate exchangeRate = mReceipt.getPrice().getExchangeRate();
+                if (exchangeRate.supportsExchangeRateFor(mTrip.getDefaultCurrencyCode())) {
+                    exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(mTrip.getDefaultCurrencyCode()));
+                }
 
-            if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
-                final ArrayAdapter<PaymentMethod> paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
-                paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                int idx = mCurrenciesAdapter.getPosition(mReceipt.getPrice().getCurrencyCode());
+                if (idx > 0) {
+                    currencySpinner.setSelection(idx);
+                }
 
-                mPaymentMethodsContainer.setVisibility(View.VISIBLE);
-                final PaymentMethod oldPaymentMethod = mReceipt.getPaymentMethod();
-                paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+                if (mReceipt.getPrice().getCurrency().equals(mTrip.getPrice().getCurrency())) {
+                    mExchangeRateContainer.setVisibility(View.GONE);
+                } else {
+                    mExchangeRateContainer.setVisibility(View.VISIBLE);
+                }
 
-                if (oldPaymentMethod != null) {
-                    final int paymentIdx = paymentMethodsAdapter.getPosition(oldPaymentMethod);
-                    if (paymentIdx > 0) {
-                        paymentMethodsSpinner.setSelection(paymentIdx);
+                expensable.setChecked(mReceipt.isExpensable());
+                fullpage.setChecked(mReceipt.isFullPage());
+
+                if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+                    mPaymentMethodsContainer.setVisibility(View.VISIBLE);
+                    final PaymentMethod oldPaymentMethod = mReceipt.getPaymentMethod();
+                    if (oldPaymentMethod != null) {
+                        final int paymentIdx = mPaymentMethodsAdapter.getPosition(oldPaymentMethod);
+                        if (paymentIdx > 0) {
+                            paymentMethodsSpinner.setSelection(paymentIdx);
+                        }
                     }
                 }
+                if (extra_edittext_box_1 != null && mReceipt.hasExtraEditText1()) {
+                    extra_edittext_box_1.setText(mReceipt.getExtraEditText1());
+                }
+                if (extra_edittext_box_2 != null && mReceipt.hasExtraEditText2()) {
+                    extra_edittext_box_2.setText(mReceipt.getExtraEditText2());
+                }
+                if (extra_edittext_box_3 != null && mReceipt.hasExtraEditText3()) {
+                    extra_edittext_box_3.setText(mReceipt.getExtraEditText3());
+                }
             }
-            if (extra_edittext_box_1 != null && mReceipt.hasExtraEditText1()) {
-                extra_edittext_box_1.setText(mReceipt.getExtraEditText1());
+
+            // Focused View
+            if (mFocusedView == null) {
+                mFocusedView = nameBox;
             }
-            if (extra_edittext_box_2 != null && mReceipt.hasExtraEditText2()) {
-                extra_edittext_box_2.setText(mReceipt.getExtraEditText2());
-            }
-            if (extra_edittext_box_3 != null && mReceipt.hasExtraEditText3()) {
-                extra_edittext_box_3.setText(mReceipt.getExtraEditText3());
-            }
+
         }
-
-        // Focused View
-        if (mFocusedView == null) {
-            mFocusedView = nameBox;
-        }
-
-        dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-        categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-        currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-
     }
 
     @Override
@@ -396,27 +446,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (mFocusedView != null) {
             mFocusedView.requestFocus(); // Make sure we're focused on the right view
         }
-        currencySpinner.setOnItemSelectedListener(new UserSelectionTrackingOnItemSelectedListener() {
-
-            @Override
-            public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
-                // Then determine if we should show/hide the box
-                final String baseCurrencyCode = mCurrencies.getItem(position).toString();
-                final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
-                if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
-                    mExchangeRateContainer.setVisibility(View.GONE);
-                    exchangeRateBox.setText(""); // Clear out if we're hiding the box
-                } else {
-                    mExchangeRateContainer.setVisibility(View.VISIBLE);
-                    submitExchangeRateRequest(baseCurrencyCode);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Intentional no-op
-            }
-        });
 
         exchangeRateBox.setRetryListener(this);
         getPersistenceManager().getDatabase().registerReceiptAutoCompleteListener(this);
@@ -445,6 +474,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         super.onPause();
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -508,6 +543,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
+        exchangeRateBox.setText(""); // Clear results to avoid stale data here
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
             Log.i(TAG, "Submitting exchange rate request");
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
@@ -516,7 +552,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 // Ignore any outstanding results to not confuse ourselves
                 mLastExchangeRateFetchCallback.ignoreResult();
             }
-            exchangeRateBox.setText(""); // Clear results to avoid stale data here
             mLastExchangeRateFetchCallback = new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
                 @Override
                 public void success(EditText editText, ExchangeRate exchangeRate, Response response) {

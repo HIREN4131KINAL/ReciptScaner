@@ -7,7 +7,7 @@
         android:id="@+id/toolbar"/>
 
     <!-- The PDF View has to be added dynamically here -->
-    <FrameLayout
+    <com.joanzapata.pdfview.PDFView
         android:id="@+id/pdf_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

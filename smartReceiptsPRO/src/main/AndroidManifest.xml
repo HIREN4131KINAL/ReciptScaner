@@ -10,7 +10,8 @@
         android:allowBackup="true"
         android:name=".SmartReceiptsProApplication" >
         <activity android:name=".SmartReceiptsProActivity"
-			android:label="@string/sr_app_name" >
+			android:label="@string/sr_app_name"
+			android:windowSoftInputMode="adjustPan" >
 			
             <!-- Main Launcher filter -->
             <intent-filter>

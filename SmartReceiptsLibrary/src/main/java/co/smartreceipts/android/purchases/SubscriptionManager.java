@@ -157,6 +157,21 @@ public final class SubscriptionManager {
         });
     }
 
+    public void sendMockPurchaseRequest(@NonNull Subscription subscription) {
+        try {
+            final Intent data = new Intent();
+            final JSONObject json = new JSONObject();
+            json.put("developerPayload", mSessionDeveloperPayload);
+            json.put("productId", subscription.getSku());
+
+            data.putExtra("RESPONSE_CODE", BILLING_RESPONSE_CODE_OK);
+            data.putExtra("INAPP_PURCHASE_DATA", json.toString());
+            onActivityResult(REQUEST_CODE, Activity.RESULT_OK, data);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
     /**
      * @return {@code true} if we handled the request. {@code false} otherwise
      */
@@ -178,6 +193,7 @@ public final class SubscriptionManager {
                         final String sku = json.getString("productId");
                         final Subscription subscription = Subscription.from(sku);
                         if (subscription != null) {
+                            mSubscriptionCache.addSubscriptionToWallet(subscription);
                             for (final SubscriptionEventsListener listener : mListeners) {
                                 listener.onPurchaseSuccess(subscription, mSubscriptionCache.getSubscriptionWallet());
                             }

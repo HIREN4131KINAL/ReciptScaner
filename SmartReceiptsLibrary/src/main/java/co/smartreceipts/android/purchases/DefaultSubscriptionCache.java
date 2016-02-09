@@ -46,6 +46,16 @@ public final class DefaultSubscriptionCache implements SubscriptionCache {
         return mSubscriptionWallet;
     }
 
+    @Override
+    public synchronized void addSubscriptionToWallet(@NonNull Subscription subscription) {
+        final Set<Subscription> subscriptions = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
+        if (!subscriptions.contains(subscription)) {
+            subscriptions.add(subscription);
+            mSubscriptionWallet = new DefaultSubscriptionWallet(subscriptions);
+            persistWallet(mSubscriptionWallet);
+        }
+    }
+
     @NonNull
     private SubscriptionWallet restoreWallet() {
         final Set<String> skusSet = mPreferences.getStringSet(KEY_SKU_SET, Collections.<String>emptySet());

@@ -1,7 +1,9 @@
 package co.smartreceipts.android.fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -15,6 +17,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -104,7 +107,9 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onClick(View view) {
                 getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Retake_Photo");
-                if (getPersistenceManager().getPreferences().useNativeCamera()) {
+                final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
+                final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+                if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
                     final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);

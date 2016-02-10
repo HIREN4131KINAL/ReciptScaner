@@ -177,7 +177,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         // Toolbar stuff
         mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        if (mNavigationHandler.isDualPane()) {
+            mToolbar.setVisibility(View.GONE);
+        } else {
+            setSupportActionBar(mToolbar);
+        }
 
         // Set each focus listener, so we can track the focus view across resume -> pauses
         this.nameBox.setOnFocusChangeListener(this);

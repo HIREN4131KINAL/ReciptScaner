@@ -312,33 +312,24 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         } else {
             dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
         }
-        if (getPersistenceManager().getPreferences().useNativeCamera()) {
+        final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
+        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+        if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
             final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
             startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
         } else {
-            if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "User does not have camera permissions. Requesting...");
-                requestPermissionsWithPossibleChildFragment(new String[]{Manifest.permission.CAMERA}, PERMISSION_CAMERA_REQUEST);
+            if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
+                final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
+                mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
             } else {
-                Log.i(TAG, "User has appropriate permissions. Granting camera access");
-                if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    Log.i(TAG, "User does not have storage permissions. Requesting...");
-                    requestPermissionsWithPossibleChildFragment(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_STORAGE_REQUEST);
-                } else {
-                    if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                        final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                        mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                        startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
-                    } else {
-                        final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                        String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
-                        intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                        startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
-                    }
-                }
+                final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
+                String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
+                intent.putExtra(MyCameraActivity.STRING_DATA, strings);
+                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
             }
         }
     }

@@ -467,11 +467,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         // Dismiss the soft keyboard
-        if (mFocusedView != null) {
-            final InputMethodManager inputMethodManager = (InputMethodManager) mFocusedView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (inputMethodManager != null) {
-                inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
-            }
+        final InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
         }
 
         exchangeRateBox.setRetryListener(null);

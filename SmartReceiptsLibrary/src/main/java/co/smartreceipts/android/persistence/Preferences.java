@@ -42,7 +42,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Receipt Preferences
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mDefaultToFirstReportDate,
+    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mReceiptsDefaultAsExpensable, mDefaultToFirstReportDate,
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
@@ -127,6 +127,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initOnlyIncludeExpensable(SharedPreferences prefs) {
         this.mOnlyIncludeExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_only_key), false);
+    }
+
+    private void initReceiptsDefaultAsExpensable(SharedPreferences prefs) {
+        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), mContext.getResources().getBoolean(R.bool.pref_receipt_expensable_default_defaultValue));
     }
 
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
@@ -287,6 +291,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initPredictCategories(prefs);
         this.initEnableAutoCompleteSuggestions(prefs);
         this.initOnlyIncludeExpensable(prefs);
+        this.initReceiptsDefaultAsExpensable(prefs);
         this.initDefaultToFirstReportDate(prefs);
         this.initMatchNameCats(prefs);
         this.initMatchCommentCats(prefs);
@@ -428,6 +433,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean onlyIncludeExpensableReceiptsInReports() {
         return mOnlyIncludeExpensable;
+    }
+
+    public boolean doReceiptsDefaultAsExpensable() {
+        return mReceiptsDefaultAsExpensable;
     }
 
     public boolean includeTaxField() {

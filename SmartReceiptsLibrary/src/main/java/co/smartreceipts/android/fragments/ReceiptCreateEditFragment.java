@@ -293,9 +293,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     dateBox.date = mReceiptInputCache.getCachedDate();
                 }
                 dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
-                expensable.setChecked(true);
 
                 final Preferences preferences = getPersistenceManager().getPreferences();
+                expensable.setChecked(preferences.doReceiptsDefaultAsExpensable());
                 if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
                     if (mFocusedView == null) {
                         mFocusedView = priceBox;

@@ -23,6 +23,10 @@
 	        android:title="@string/pref_receipt_expensable_only_title"
 	        android:summary="@string/pref_receipt_expensable_only_summary"
 	        android:defaultValue="false"/>
+		<CheckBoxPreference
+			android:key="@string/pref_receipt_expensable_default_key"
+			android:title="@string/pref_receipt_expensable_default_title"
+			android:defaultValue="@bool/pref_receipt_expensable_default_defaultValue"/>
 	    <CheckBoxPreference
 	        android:key="@string/pref_receipt_default_to_report_start_date_key"
 	        android:title="@string/pref_receipt_default_to_report_start_date_title"

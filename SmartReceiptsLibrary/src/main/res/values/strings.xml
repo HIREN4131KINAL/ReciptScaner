@@ -447,6 +447,8 @@
     <string name="pref_receipt_expensable_only_key" translatable="false">OnlyIncludeExpensable</string>
     <string name="pref_receipt_expensable_only_title">Only Report Expensable</string>
     <string name="pref_receipt_expensable_only_summary">Omit other receipts from output</string>
+    <string name="pref_receipt_expensable_default_key" translatable="false">ExpensableDefault</string>
+    <string name="pref_receipt_expensable_default_title">Receipts Default As Expensable</string>
     <string name="pref_receipt_include_tax_field_key" translatable="false">IncludeTaxField</string>
     <string name="pref_receipt_include_tax_field_title">Include Tax Field</string>
     <string name="pref_receipt_include_tax_field_summary">Adds a line item for taxes</string>

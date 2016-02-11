@@ -1263,6 +1263,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
         }
 
+        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+            final List<Distance> distances = getDistanceSerial(trip);
+            for (final Distance distance : distances) {
+                prices.add(distance);
+            }
+        }
+
         trip.setPrice(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
 

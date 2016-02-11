@@ -427,6 +427,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.ic_action_cancel);
             actionBar.setTitle(title);
+            actionBar.setSubtitle("");
         }
 
         if (isNewReceipt) {

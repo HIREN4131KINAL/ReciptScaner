@@ -655,7 +655,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             }
             getPersistenceManager().getDatabase().getTripsParallel();
             mAdapter.notifyDataSetChanged(receipts);
-            updateActionBarTitle();
+            updateActionBarTitle(getUserVisibleHint());
         }
     }
 
@@ -675,7 +675,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onReceiptRowUpdateSuccess(Receipt receipt) {
         getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
         if (isAdded()) {
-            ReceiptsListFragment.this.updateActionBarTitle();
+            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
 
@@ -695,7 +695,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                     Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
                 }
             }
-            ReceiptsListFragment.this.updateActionBarTitle();
+            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
 

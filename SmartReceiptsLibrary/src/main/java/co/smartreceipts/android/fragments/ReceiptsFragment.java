@@ -3,7 +3,6 @@ package co.smartreceipts.android.fragments;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
-import android.util.Log;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
@@ -26,40 +25,34 @@ public class ReceiptsFragment extends WBListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onCreate");
-        }
         mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onResume");
-        }
     }
 
     @Override
     public void onPause() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onPause");
-        }
-        super.onPause();
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
+        super.onPause();
     }
 
-    protected void updateActionBarTitle() {
+    protected void updateActionBarTitle(boolean updateSubtitle) {
         if (mCurrentTrip == null) {
             return;
         }
-        getActivity().setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
+
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null && getUserVisibleHint()) {
-            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
-                actionBar.setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
-            } else {
-                actionBar.setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+            actionBar.setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
+            if (updateSubtitle) {
+                if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                    actionBar.setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));
+                } else {
+                    actionBar.setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+                }
             }
         }
     }

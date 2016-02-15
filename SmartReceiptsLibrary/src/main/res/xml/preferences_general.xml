@@ -7,10 +7,11 @@
             android:key="@string/pref_general_trip_duration_key"
             android:title="@string/pref_general_trip_duration_title"
             android:inputType="number"
-            android:defaultValue="3" />
+            android:defaultValue="@integer/pref_general_trip_duration_defaultValue" />
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_currency_key"
-            android:title="@string/pref_general_default_currency_title" />
+            android:title="@string/pref_general_default_currency_title"
+            android:defaultValue="@string/pref_general_default_currency_defaultValue"/>
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_date_separator_key"
             android:title="@string/pref_general_default_date_separator_title" />

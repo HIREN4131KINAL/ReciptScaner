@@ -245,8 +245,6 @@
     <string name="DIALOG_SETTINGS_TEXTVIEW_SEPARATOR">Date Separator:</string>
     <string name="DIALOG_SETTINGS_DEFAULT_TO_FIRST_DATE">Default Receipt Date to Report Start Date</string>
 
-    <!-- =================== EMAIL_DATA ====================== -->
-    <string name="EMAIL_DATA_SUBJECT">SmartReceipts - %REPORT_NAME%</string>
 
     <!-- ================= DIALOG_TRIPMENU =================== -->
     <string name="DIALOG_TRIPMENU_HINT_NAME">Name</string>

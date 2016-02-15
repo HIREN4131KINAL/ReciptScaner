@@ -19,10 +19,11 @@
             android:key="@string/pref_general_trip_duration_key"
             android:title="@string/pref_general_trip_duration_title"
             android:inputType="number"
-            android:defaultValue="3" />
+            android:defaultValue="@integer/pref_general_trip_duration_defaultValue" />
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_currency_key"
-            android:title="@string/pref_general_default_currency_title" />
+            android:title="@string/pref_general_default_currency_title"
+            android:defaultValue="@string/pref_general_default_currency_defaultValue" />
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_date_separator_key"
             android:title="@string/pref_general_default_date_separator_title" />
@@ -126,7 +127,7 @@
             android:key="@string/pref_output_csv_header_key"
             android:title="@string/pref_output_csv_header_title"
             android:summary="@string/pref_output_csv_header_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_output_csv_header_defaultValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_output_username_key"
             android:title="@string/pref_output_username_title"
@@ -175,6 +176,7 @@
             android:key="@string/pref_email_default_email_to_key"
             android:title="@string/pref_email_default_email_to_title"
             android:inputType="textEmailAddress"
+            android:defaultValue="@string/pref_email_default_email_to_defaultValue"
             wb:emptyValue="@string/pref_email_default_email_emptyValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference  
             android:key="@string/pref_email_default_email_cc_key"

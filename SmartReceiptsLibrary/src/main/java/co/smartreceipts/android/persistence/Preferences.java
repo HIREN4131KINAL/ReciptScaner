@@ -82,7 +82,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initDefaultTripDuration(SharedPreferences prefs) {
-        this.mDefaultTripDuration = prefs.getInt(mContext.getString(R.string.pref_general_trip_duration_key), 3);
+        this.mDefaultTripDuration = prefs.getInt(mContext.getString(R.string.pref_general_trip_duration_key), mContext.getResources().getInteger(R.integer.pref_general_trip_duration_defaultValue));
     }
 
     private void initDefaultDateSeparator(SharedPreferences prefs) {
@@ -95,11 +95,18 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initDefaultCurrency(SharedPreferences prefs) {
         try {
-            final String localeDefault = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
-            mDefaultCurrency = prefs.getString(mContext.getString(R.string.pref_general_default_currency_key), localeDefault);
-            if (TextUtils.isEmpty(mDefaultCurrency)) {
-                this.mDefaultCurrency = localeDefault;
+            final String assignedPreferenceCurrencyCode = mContext.getString(R.string.pref_general_default_currency_defaultValue);
+            final String currencyCode;
+            if (TextUtils.isEmpty(assignedPreferenceCurrencyCode)) {
+                currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
+            } else {
+                currencyCode = assignedPreferenceCurrencyCode;
             }
+            mDefaultCurrency = prefs.getString(mContext.getString(R.string.pref_general_default_currency_key), currencyCode);
+            if (TextUtils.isEmpty(mDefaultCurrency)) {
+                this.mDefaultCurrency = currencyCode;
+            }
+
         } catch (IllegalArgumentException ex) {
             this.mDefaultCurrency = "USD";
         }
@@ -130,7 +137,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initReceiptsDefaultAsExpensable(SharedPreferences prefs) {
-        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), mContext.getResources().getBoolean(R.bool.pref_receipt_expensable_default_defaultValue));
+        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), false);
     }
 
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
@@ -170,7 +177,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initIncludeCSVHeaders(SharedPreferences prefs) {
-        this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), false);
+        this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), mContext.getResources().getBoolean(R.bool.pref_output_csv_header_defaultValue));
     }
 
     private void initUseFileExplorerForOutput(SharedPreferences prefs) {
@@ -204,7 +211,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initEmailTo(SharedPreferences prefs) {
-        this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), "");
+        this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), mContext.getString(R.string.pref_email_default_email_to_defaultValue));
     }
 
     private void initEmailCC(SharedPreferences prefs) {

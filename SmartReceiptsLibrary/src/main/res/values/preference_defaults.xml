@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ============= Preference General ================= -->
+    <integer name="pref_general_trip_duration_defaultValue">3</integer>
+    <string name="pref_general_default_currency_defaultValue" />
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============== Preference Receipt ================ -->
@@ -8,10 +10,14 @@
     <bool name="pref_receipt_include_tax_field_defaultValue">false</bool>
 
     <!-- ============= Preference Output ================= -->
+    <bool name="pref_output_csv_header_defaultValue">false</bool>
     <bool name="pref_output_print_receipt_comment_by_photo_defaultValue">false</bool>
     <bool name="pref_output_blank_signature_defaultValue">false</bool>
-    <string name="pref_output_signature_picture_defaultValue"></string>
+    <string name="pref_output_signature_picture_defaultValue"/>
 
+    <!-- ============== Preference Email ================= -->
+    <string name="pref_email_default_email_to_defaultValue" />
+    <string name="EMAIL_DATA_SUBJECT">SmartReceipts - %REPORT_NAME%</string> <!-- Note: The item should be "pref_email_default_email_subject_defaultValue" but cannot for legacy flex reasons -->
 
     <!-- ============= Preference Camera ================= -->
     <bool name="pref_camera_rotate_key_defaultValue">true</bool>

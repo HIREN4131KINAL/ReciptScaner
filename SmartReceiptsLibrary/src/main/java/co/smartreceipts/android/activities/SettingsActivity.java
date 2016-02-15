@@ -190,7 +190,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             return super.onOptionsItemSelected(item);
         }
         if (item.getItemId() == android.R.id.home) {
-            final Intent upIntent = new Intent(this, mApp.getTopLevelActivity());
+            final Intent upIntent = new Intent(this, SmartReceiptsActivity.class);
             if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
                 // This activity is NOT part of this app's task, so create a new task
                 // when navigating up, with a synthesized back stack.

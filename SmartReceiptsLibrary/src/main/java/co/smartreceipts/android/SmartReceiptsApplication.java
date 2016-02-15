@@ -339,10 +339,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return new DefaultConfigurationManager(this);
 	}
 
-	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
-		return SmartReceiptsActivity.class;
-	}
-
 	@Override
 	public void insertPaymentMethodDefaults(DatabaseHelper db) {
 		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_unspecified));

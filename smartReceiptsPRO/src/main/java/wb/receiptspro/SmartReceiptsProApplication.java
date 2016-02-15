@@ -60,11 +60,6 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 		}
 	}
 
-	@Override
-	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
-		return SmartReceiptsProActivity.class;
-	}
-
 	private boolean containsSmartReceiptsFree() {
 		try {
 			getPackageManager().getApplicationInfo("wb.receipts", 0);

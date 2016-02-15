@@ -19,6 +19,7 @@ import wb.android.flex.Flex;
  *
  * @author WRB
  */
+@Deprecated
 public class Settings implements ExportTask.Listener {
 
     private static final String TAG = "Settings";

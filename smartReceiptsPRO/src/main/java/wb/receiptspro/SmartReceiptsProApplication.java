@@ -131,7 +131,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 	}
 
     @Override
-    protected SubscriptionCache initiateSubscriptionCache() {
+    protected SubscriptionCache instantiateSubscriptionCache() {
         return new ProSubscriptionCache();
     }
 

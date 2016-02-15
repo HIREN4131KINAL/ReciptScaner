@@ -135,6 +135,12 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         if (!proSubscriptionIsAvailable || haveProSubscription) {
             menu.removeItem(R.id.menu_main_pro_subscription);
         }
+
+        // If we disabled settings in our config, let's remove it
+        if (!getSmartReceiptsApplication().getConfigurationManager().isSettingsMenuAvailable()) {
+            menu.removeItem(R.id.menu_main_settings);
+        }
+
         return super.onCreateOptionsMenu(menu);
     }
 

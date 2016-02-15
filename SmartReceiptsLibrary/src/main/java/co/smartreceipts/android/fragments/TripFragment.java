@@ -46,6 +46,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
 import wb.android.async.BooleanTaskCompleteDelegate;
@@ -57,7 +58,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     public static final String TAG = "TripFragment";
 
-    private static final CharSequence[] RESERVED_CHARS = {"|", "\\", "?", "*", "<", "\"", ":", ">", "+", "[", "]", "/", "'", "\n", "\r", "\t", "\0", "\f"};
     private static final String KEY_BOOL_FIRST_PASS = "key_first_pass";
 
     private NavigationHandler mNavigationHandler;
@@ -299,12 +299,11 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                     Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_LONG).show();
                     return;
                 }
-                for (int i = 0; i < RESERVED_CHARS.length; i++) {
-                    if (name.contains(RESERVED_CHARS[i])) {
-                        Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_LONG).show();
-                        return;
-                    }
+                if (FileUtils.filenameContainsIllegalCharacter(name)) {
+                    Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_LONG).show();
+                    return;
                 }
+
                 if (newTrip) { // Insert
                     getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
                     File dir = persistenceManager.getStorageManager().mkdir(name);

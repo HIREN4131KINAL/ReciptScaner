@@ -47,6 +47,7 @@ import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.workers.ImportTask;
@@ -2055,7 +2056,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         values.put(ReceiptsTable.COLUMN_PARENT, receipt.getTrip().getName());
         if (receipt.getName().length() > 0) {
-            stringBuilder.append(receipt.getName().trim());
+            stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
             values.put(ReceiptsTable.COLUMN_NAME, receipt.getName().trim());
         }
         values.put(ReceiptsTable.COLUMN_CATEGORY, receipt.getCategory());

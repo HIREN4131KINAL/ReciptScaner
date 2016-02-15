@@ -65,6 +65,7 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
@@ -433,7 +434,7 @@ public class EmailAssistant {
                         try {
                             Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
                             if (b != null) {
-                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
+                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
                                 b.recycle();
                                 b = null;
                             }
@@ -442,7 +443,7 @@ public class EmailAssistant {
                             try {
                                 Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
                                 if (b != null) {
-                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
+                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
                                     b.recycle();
                                 }
                             } catch (OutOfMemoryError e2) {

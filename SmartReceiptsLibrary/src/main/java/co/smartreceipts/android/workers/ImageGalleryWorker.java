@@ -187,7 +187,11 @@ public class ImageGalleryWorker extends WorkerChild {
             } else {
                 return Uri.EMPTY;
             }
-        } finally {
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Unabled to find the requested column", e);
+            return Uri.EMPTY;
+        }
+        finally {
             if (cursor != null) {
                 cursor.close();
             }

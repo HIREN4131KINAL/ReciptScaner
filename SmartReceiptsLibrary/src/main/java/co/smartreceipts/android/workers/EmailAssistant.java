@@ -70,6 +70,7 @@ import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
+import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
@@ -272,7 +273,7 @@ public class EmailAssistant {
             emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
             emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
             emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()).replace("%REPORT_START%", mTrip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())).replace("%REPORT_END%", mTrip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())));
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
             emailIntent.putExtra(Intent.EXTRA_TEXT, body);
             // emailIntent.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, new ArrayList<CharSequence>(Arrays.asList(body)));
             emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);

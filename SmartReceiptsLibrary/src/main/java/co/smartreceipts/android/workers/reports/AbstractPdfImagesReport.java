@@ -2,6 +2,7 @@ package co.smartreceipts.android.workers.reports;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -40,6 +41,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -89,7 +91,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
             document = new Document(DEFAULT_PAGE_SIZE, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN_BOTTOM);
 
             final PdfWriter writer = PdfWriter.getInstance(document, pdfStream);
-            writer.setPageEvent(new Footer());
+            writer.setPageEvent(new Footer(trip));
 
             // Open the document
             document.open();
@@ -306,7 +308,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     }
 
     private PdfPTable getSingleElementTable() {
-        PdfPTable table = new PdfPTable(1);
+        final PdfPTable table = new PdfPTable(1);
         table.getDefaultCell().disableBorderSide(PdfPCell.LEFT);
         table.getDefaultCell().disableBorderSide(PdfPCell.RIGHT);
         table.getDefaultCell().disableBorderSide(PdfPCell.TOP);
@@ -320,7 +322,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
 
     private PdfPTable getPanedPdfPTable() {
         // Here we create a table with 3 columns - col 1 holds img 1, col 2 is a divider, col 3 is img 2
-        PdfPTable table = new PdfPTable(3);
+        final PdfPTable table = new PdfPTable(3);
         table.getDefaultCell().disableBorderSide(PdfPCell.LEFT);
         table.getDefaultCell().disableBorderSide(PdfPCell.RIGHT);
         table.getDefaultCell().disableBorderSide(PdfPCell.TOP);
@@ -340,8 +342,8 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
         return table;
     }
 
-    private final PdfPCell getCell(Image img) {
-        PdfPCell cell = new PdfPCell(img, true);
+    private PdfPCell getCell(Image img) {
+        final PdfPCell cell = new PdfPCell(img, true);
         cell.disableBorderSide(PdfPCell.LEFT);
         cell.disableBorderSide(PdfPCell.RIGHT);
         cell.disableBorderSide(PdfPCell.TOP);
@@ -353,8 +355,8 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
         return cell;
     }
 
-    private final PdfPCell getFullCell(Image img) {
-        PdfPCell cell = new PdfPCell(img, true);
+    private PdfPCell getFullCell(Image img) {
+        final PdfPCell cell = new PdfPCell(img, true);
         cell.disableBorderSide(PdfPCell.LEFT);
         cell.disableBorderSide(PdfPCell.RIGHT);
         cell.disableBorderSide(PdfPCell.TOP);
@@ -367,8 +369,15 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     }
 
     private class Footer extends PdfPageEventHelper {
+        private final Trip mTrip;
+
+        public Footer(@NonNull Trip trip) {
+            mTrip = trip;
+        }
+
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
+            final String formattedFooterMessage = new SmartReceiptsFormattableString(mFooterMessage, getContext(), mTrip, getPreferences()).toString();
             Rectangle rect = writer.getPageSize();
             ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
                     new Phrase(mFooterMessage, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);

@@ -380,7 +380,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
             final String formattedFooterMessage = new SmartReceiptsFormattableString(mFooterMessage, getContext(), mTrip, getPreferences()).toString();
             Rectangle rect = writer.getPageSize();
             ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
-                    new Phrase(mFooterMessage, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
+                    new Phrase(formattedFooterMessage, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
         }
     }
 

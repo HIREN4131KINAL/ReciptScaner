@@ -261,6 +261,12 @@
             android:summaryOn="@string/pref_distance_print_daily_summaryOn"
             android:summaryOff="@string/pref_distance_print_daily_summaryOff"
             android:defaultValue="@bool/pref_distance_print_daily_defaultValue"/>
+        <CheckBoxPreference
+            android:key="@string/pref_distance_as_price_key"
+            android:title="@string/pref_distance_as_price_title"
+            android:summaryOn="@string/pref_distance_as_price_summaryOn"
+            android:summaryOff="@string/pref_distance_as_price_summaryOff"
+            android:defaultValue="@bool/pref_distance_as_price_defaultValue"/>
     </PreferenceCategory>
 
     <PreferenceCategory

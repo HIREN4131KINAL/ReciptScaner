@@ -14,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import co.smartreceipts.android.R;
@@ -22,6 +23,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
@@ -126,8 +128,16 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
             }
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
-                final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
-                getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
+                if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {
+                    final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
+                    getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
+                } else {
+                    BigDecimal distanceTotal = new BigDecimal(0);
+                    for (final Distance distance : distances) {
+                        distanceTotal = distanceTotal.add(distance.getDistance());
+                    }
+                    getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, ModelUtils.getDecimalFormattedValue(distanceTotal)));
+                }
             }
             // Fetch trips in the background to ensure this info is up to date
             getPersistenceManager().getDatabase().getTripsParallel();

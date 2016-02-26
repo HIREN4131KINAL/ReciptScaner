@@ -62,7 +62,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Distance Preferences
     private float mDefaultDistanceRate;
-    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
+    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt, mShowDistanceAsPriceInSubtotal;
 
     // Pro Preferences
     private String mPdfFooterText;
@@ -268,6 +268,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
     }
 
+    private void initShowDistanceAsPriceInSubtotal(SharedPreferences prefs) {
+        this.mShowDistanceAsPriceInSubtotal = prefs.getBoolean(mContext.getString(R.string.pref_distance_as_price_key), mContext.getResources().getBoolean(R.bool.pref_distance_as_price_defaultValue));
+    }
+
     private void initPdfFooterText(SharedPreferences prefs) {
         this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
     }
@@ -339,6 +343,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultMileageRate(prefs);
         this.initPrintDistanceTable(prefs);
         this.initPrintDistanceAsDailyReceipt(prefs);
+        this.initShowDistanceAsPriceInSubtotal(prefs);
 
         // Pro Preferences
         this.initPdfFooterText(prefs);
@@ -585,6 +590,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean getPrintDistanceAsDailyReceipt() {
         return mPrintDistanceAsDailyReceipt;
+    }
+
+    public boolean getShowDistanceAsPriceInSubtotal() {
+        return mShowDistanceAsPriceInSubtotal;
     }
 
     public boolean getIncludeCostCenter() {

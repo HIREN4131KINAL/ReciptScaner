@@ -66,9 +66,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     private static final int PERMISSION_CAMERA_REQUEST = 21;
     private static final int PERMISSION_STORAGE_REQUEST = 22;
 
-    // Preferences
-    private static final String PREFERENCE_HIGHLIGHTED_RECEIPT_ID = "highlightedReceiptId";
-    private static final String PREFERENCE_IMAGE_URI = "imageUri";
+    // Outstate
+    private static final String OUT_IMAGE_URI = "out_image_uri";
 
     private ReceiptCardAdapter mAdapter;
     private Receipt mHighlightedReceipt;
@@ -101,6 +100,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         Log.d(TAG, "onCreate");
         mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        if (savedInstanceState != null) {
+            mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
+        }
     }
 
     @Override
@@ -192,6 +194,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         mFloatingActionMenu.close(false);
         getPersistenceManager().getDatabase().unregisterReceiptRowListener();
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(OUT_IMAGE_URI, mImageUri);
     }
 
     @Override
@@ -312,8 +320,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         } else {
             dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
         }
-        final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
-        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+        final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
             final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));

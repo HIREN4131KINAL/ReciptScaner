@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -313,7 +314,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configurePreferencesCamera(UniversalPreferences universal) {
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // We always use the native camera for M+
+            ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
+        }
     }
 
     public void configurePreferencesLayoutCustomizations(UniversalPreferences universal) {

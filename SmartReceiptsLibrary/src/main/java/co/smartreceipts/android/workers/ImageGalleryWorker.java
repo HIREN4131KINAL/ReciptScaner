@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -133,9 +134,10 @@ public class ImageGalleryWorker extends WorkerChild {
         final int maxDimension = 1024;
         BitmapFactory.Options fullOpts = new BitmapFactory.Options();
         fullOpts.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(imageUriCopy.getPath(), fullOpts);
+
+        // Decode just the size info
+        getBitmap(imageUriCopy, fullOpts);
         int fullWidth=fullOpts.outWidth, fullHeight=fullOpts.outHeight;
-        fullOpts = null;
         int scale=1;
         while(fullWidth > maxDimension && fullHeight > maxDimension){
             fullWidth>>>=1;
@@ -146,18 +148,8 @@ public class ImageGalleryWorker extends WorkerChild {
         smallerOpts.inSampleSize=scale;
         System.gc();
 
-        // First, just see if we can get the bitmap directly
-        Bitmap endBitmap = BitmapFactory.decodeFile(imageUriCopy.getPath(), smallerOpts);
-
-        if (endBitmap == null) {
-            // If not, let's try to decode from the media store
-            endBitmap = BitmapFactory.decodeFile(getMediaStoreUri(imageUriCopy).getPath(), smallerOpts);
-        }
-
-        if (endBitmap == null) {
-            // If we still have nothing, see if we can use some KitKat and above fixes
-            endBitmap = getKitKatAndAboveBitmap(imageUriCopy);
-        }
+        // Decode the actual bitmap
+        Bitmap endBitmap = getBitmap(imageUriCopy, smallerOpts);
 
         if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
             try {
@@ -178,6 +170,23 @@ public class ImageGalleryWorker extends WorkerChild {
             imgFile = null;
         }
         return imgFile;
+    }
+
+    @Nullable
+    private Bitmap getBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options) {
+        // First, just see if we can get the bitmap directly
+        Bitmap bitmap = BitmapFactory.decodeFile(photoUri.getPath(), options);
+
+        if (bitmap == null) {
+            // If not, let's try to decode from the media store
+            bitmap = BitmapFactory.decodeFile(getMediaStoreUri(photoUri).getPath(), options);
+        }
+
+        if (bitmap == null) {
+            // If we still have nothing, see if we can use some KitKat and above fixes
+            bitmap = getKitKatAndAboveBitmap(photoUri, options);
+        }
+        return bitmap;
     }
 
     @NonNull
@@ -208,12 +217,16 @@ public class ImageGalleryWorker extends WorkerChild {
         }
     }
 
-    private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri) {
+    private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options) {
         ParcelFileDescriptor parcelFileDescriptor = null;
         try {
             parcelFileDescriptor = mWorkerManager.getApplication().getContentResolver().openFileDescriptor(photoUri, "r");
-            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-            return BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            if (parcelFileDescriptor != null) {
+                FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+                return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+            } else {
+                return null;
+            }
         } catch (FileNotFoundException e) {
             return null;
         } finally {

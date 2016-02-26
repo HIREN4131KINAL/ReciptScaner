@@ -148,13 +148,16 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
             SRNavUtils.showSettings(this);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Settings_Menu");
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
             final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
             getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
             mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Pro_Purchase_Menu");
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -208,6 +211,12 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
+
+        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPro)) {
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Has_Pro_Sub");
+        } else {
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Without_Pro_Sub");
+        }
     }
 
     @Override
@@ -241,10 +250,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Success_" + subscription.getSku());
                 invalidateOptionsMenu(); // To hide the subscription option
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
             }
@@ -256,6 +266,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Failed");
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
             }
         });

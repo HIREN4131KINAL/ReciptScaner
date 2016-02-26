@@ -549,6 +549,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
             Log.i(TAG, "Submitting exchange rate request");
+            getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Submit_Exchange_Rate_Request");
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
             if (mLastExchangeRateFetchCallback != null) {
@@ -559,6 +560,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 @Override
                 public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
                     if (exchangeRate != null) {
+                        getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Submit_Exchange_Rate_Success");
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
@@ -567,6 +569,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
                         Log.e(TAG, "Received a null exchange rate");
+                        getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Submit_Exchange_Rate_Failed_Null");
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
                 }
@@ -574,6 +577,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 @Override
                 public void failure(EditText editText, RetrofitError error) {
                     Log.e(TAG, "" + error);
+                    getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Submit_Exchange_Rate_Failed");
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };

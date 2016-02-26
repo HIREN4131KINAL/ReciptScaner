@@ -8,8 +8,11 @@ import java.io.IOException;
 import wb.android.flex.Flex;
 import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
+
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -19,6 +22,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 import co.smartreceipts.android.R;
@@ -50,6 +54,12 @@ public class ImageGalleryWorker extends WorkerChild {
      * @return the rotation of this image or {@link android.media.ExifInterface#ORIENTATION_UNDEFINED} if none was set
      */
     private int deleteDuplicateGalleryImage() {
+        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getWorkerManager().getApplication(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        if (!hasWritePermission) {
+            Log.e(TAG, "Storage permission is not allowed... Skipping rotate and duplicate deletion check");
+            return ExifInterface.ORIENTATION_UNDEFINED;
+        }
+
         Cursor c = null;
         try {
             final Context context = mWorkerManager.getApplication();

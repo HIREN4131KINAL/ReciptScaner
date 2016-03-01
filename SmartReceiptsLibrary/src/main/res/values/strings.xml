@@ -64,6 +64,11 @@
     <!-- =============== Subscriptions ================ -->
     <string name="pro_subscription">Smart Receipts Pro</string>
 
+    <!-- ============= Report Navigation ============== -->
+    <string name="report_info_receipts">Receipts</string>
+    <string name="report_info_distance">Distance</string>
+    <string name="report_info_reports">Reports</string>
+
     <!-- ============= Report Generation ============== -->
     <string name="report_header_from">From: %s</string>
     <string name="report_header_to">To: %s</string>

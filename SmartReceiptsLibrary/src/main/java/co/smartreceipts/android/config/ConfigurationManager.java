@@ -11,4 +11,14 @@ public interface ConfigurationManager {
      * @return {@code true} if we should show the settings menu. {@code false} if it should be hidden
      */
     boolean isSettingsMenuAvailable();
+
+    /**
+     * @return {@code true} if we should show let the user create text receipts. {@code false} if it should be hidden
+     */
+    boolean isTextReceiptsOptionAvailable();
+
+    /**
+     * @return {@code true} if we should show let the user track distance. {@code false} if it should be hidden
+     */
+    boolean isDistanceTrackingOptionAvailable();
 }

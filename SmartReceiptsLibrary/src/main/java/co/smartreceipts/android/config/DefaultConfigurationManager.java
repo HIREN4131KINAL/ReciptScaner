@@ -21,4 +21,16 @@ public final class DefaultConfigurationManager implements ConfigurationManager {
     public boolean isSettingsMenuAvailable() {
         return mContext.getResources().getBoolean(R.bool.config_is_settings_menu_available);
     }
+
+
+    @Override
+    public boolean isTextReceiptsOptionAvailable() {
+        return mContext.getResources().getBoolean(R.bool.config_is_settings_menu_available);
+    }
+
+
+    @Override
+    public boolean isDistanceTrackingOptionAvailable() {
+        return mContext.getResources().getBoolean(R.bool.config_is_settings_menu_available);
+    }
 }

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import co.smartreceipts.android.config.ConfigurationManager;
 import wb.android.flex.Flex;
 import android.app.Application;
 import android.content.Intent;
@@ -88,6 +89,11 @@ public class WBListFragment extends ListFragment {
 
 	protected WorkerManager getWorkerManager() {
 		return getSmartReceiptsApplication().getWorkerManager();
+	}
+
+	@NonNull
+	protected ConfigurationManager getConfigurationManager() {
+		return getSmartReceiptsApplication().getConfigurationManager();
 	}
 
     public final void setSupportActionBar(@Nullable Toolbar toolbar) {

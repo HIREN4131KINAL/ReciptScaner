@@ -130,6 +130,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         rootView.findViewById(R.id.receipt_action_camera).setOnClickListener(listener);
         rootView.findViewById(R.id.receipt_action_text).setOnClickListener(listener);
         rootView.findViewById(R.id.receipt_action_import).setOnClickListener(listener);
+        rootView.findViewById(R.id.receipt_action_text).setVisibility(getConfigurationManager().isTextReceiptsOptionAvailable() ? View.VISIBLE : View.GONE);
         mFloatingActionMenu = (FloatingActionMenu) rootView.findViewById(R.id.fab_menu);
         mFloatingActionMenuActiveMaskView = rootView.findViewById(R.id.fab_active_mask);
         mFloatingActionMenuActiveMaskView.setOnClickListener(new View.OnClickListener() {

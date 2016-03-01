@@ -66,7 +66,7 @@ public class ReportInfoFragment extends WBFragment {
                 mNavigationHandler.navigateToTripsFragment();
             }
         }
-        mFragmentPagerAdapter = new TripFragmentPagerAdapter(getChildFragmentManager(), mTrip);
+        mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), mTrip, getConfigurationManager());
     }
 
 

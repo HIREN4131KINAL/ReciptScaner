@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import co.smartreceipts.android.config.ConfigurationManager;
 import wb.android.flex.Flex;
 import android.app.Application;
 import android.content.Intent;
@@ -96,6 +97,11 @@ public class WBFragment extends Fragment {
 
 	protected WorkerManager getWorkerManager() {
 		return getSmartReceiptsApplication().getWorkerManager();
+	}
+
+	@NonNull
+	protected ConfigurationManager getConfigurationManager() {
+		return getSmartReceiptsApplication().getConfigurationManager();
 	}
 
 	public SmartReceiptsApplication getSmartReceiptsApplication() {

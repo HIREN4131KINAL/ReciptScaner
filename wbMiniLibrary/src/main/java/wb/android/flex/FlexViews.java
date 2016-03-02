@@ -16,6 +16,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 
 class FlexViews {
 	
@@ -32,6 +33,7 @@ class FlexViews {
 	enum Element {
 		EDIT_TEXT ("EditText", EditText.class),
 		CHECKBOX ("CheckBox", CheckBox.class),
+		SPINNER ("Spinner", Spinner.class),
 		AUTOCOMPLETE_TEXT_VIEW ("AutoCompleteTextView", AutoCompleteTextView.class),
 		LINEAR_LAYOUT ("LinearLayout", LinearLayout.class);
 		

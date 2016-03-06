@@ -123,7 +123,7 @@ public class ReceiptsDBTest {
     @Test
     public void insertMultipleAndGetAll() {
         Receipt insertReceipt1 = insertDefaultReceipt();
-        Receipt insertReceipt2 = mDB.insertReceiptSerial(mTrip, insertReceipt1);
+        Receipt insertReceipt2 = mDB.insertReceiptSerial(insertReceipt1);
         List<Receipt> receipts = mDB.getReceiptsSerial(mTrip);
         assertNotNull(insertReceipt1);
         assertNotNull(insertReceipt2);

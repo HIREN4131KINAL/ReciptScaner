@@ -2032,12 +2032,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         }
     }
 
-    public Receipt insertReceiptSerial(Trip parent, Receipt receipt) throws SQLException {
-        return insertReceiptSerial(parent, receipt, receipt.getFile());
-    }
-
-    public Receipt insertReceiptSerial(Trip parent, Receipt receipt, File newFile) throws SQLException {
-        receipt.setFile(newFile);
+    public Receipt insertReceiptSerial(Receipt receipt) throws SQLException {
         return insertReceiptHelper(receipt);
     }
 
@@ -2333,7 +2328,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 return false;
             }
         }
-        if (insertReceiptSerial(newTrip, receipt, newFile) != null) { // i.e. successfully inserted
+
+        final Receipt newReceipt = new ReceiptBuilderFactory(receipt).setTrip(newTrip).setFile(newFile).build();
+        if (insertReceiptSerial(newReceipt) != null) { // i.e. successfully inserted
             return true;
         } else {
             if (newFile != null) { // roll back

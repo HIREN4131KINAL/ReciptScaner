@@ -38,7 +38,7 @@ public class SanityCheck {
     public void sanityCheck() throws Exception
     {
         String appName = mActivity.getString(R.string.sr_app_name);
-        assertEquals(appName, "Smart Receipts Pro");
+        assertEquals(appName, "Smart Receipts Plus");
     }
 
 }

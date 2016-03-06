@@ -382,6 +382,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
                 mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+            } else {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }
             return true;
         } else {

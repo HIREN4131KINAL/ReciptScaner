@@ -2312,6 +2312,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         final StorageManager storageManager = mPersistenceManager.getStorageManager();
         if (receipt.hasFile()) {
             try {
+                // TODO: Check that this file doesn't exist first
                 newFile = storageManager.getFile(newTrip.getDirectory(), receipt.getFileName());
                 if (!storageManager.copy(receipt.getFile(), newFile, true)) {
                     newFile = null; // Unset on failed copy

@@ -469,7 +469,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         // Dismiss the soft keyboard
         final InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (inputMethodManager != null) {
-            inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
+            if (mFocusedView != null) {
+                inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
+            } else {
+                Log.w(TAG, "Unable to dismiss soft keyboard due to a null view");
+            }
         }
 
         exchangeRateBox.setRetryListener(null);

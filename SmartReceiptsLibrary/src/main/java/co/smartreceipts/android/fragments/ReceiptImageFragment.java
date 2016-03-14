@@ -271,15 +271,19 @@ public class ReceiptImageFragment extends WBFragment {
 
         @Override
         protected void onPostExecute(Bitmap result) {
-            mProgress.setVisibility(View.GONE);
-            if (result != null) {
-                mImageView.setVisibility(View.VISIBLE);
-                mFooter.setVisibility(View.VISIBLE);
-                final TransitionDrawable td = new TransitionDrawable(new Drawable[]{new ColorDrawable(android.R.color.transparent), new BitmapDrawable(getResources(), result)});
-                mImageView.setImageDrawable(td);
-                td.startTransition(FADE_IN_TIME);
+            if (isAdded()) {
+                mProgress.setVisibility(View.GONE);
+                if (result != null) {
+                    mImageView.setVisibility(View.VISIBLE);
+                    mFooter.setVisibility(View.VISIBLE);
+                    final TransitionDrawable td = new TransitionDrawable(new Drawable[]{new ColorDrawable(android.R.color.transparent), new BitmapDrawable(getResources(), result)});
+                    mImageView.setImageDrawable(td);
+                    td.startTransition(FADE_IN_TIME);
+                } else {
+                    Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "User has already left the activity. Ignoring result");
             }
         }
 

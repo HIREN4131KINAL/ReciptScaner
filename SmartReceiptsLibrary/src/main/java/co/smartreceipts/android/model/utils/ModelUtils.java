@@ -59,6 +59,7 @@ public class ModelUtils {
      * @param decimal - the {@link java.math.BigDecimal} to format
      * @return the decimal formatted price {@link java.lang.String}
      */
+    @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal) {
         return getDecimalFormattedValue(decimal, 2);
     }
@@ -71,6 +72,7 @@ public class ModelUtils {
      * @param precision - the number of digits precision to use
      * @return the decimal formatted price {@link java.lang.String}
      */
+    @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal, int precision) {
         final DecimalFormat decimalFormat = new DecimalFormat();
         decimalFormat.setMaximumFractionDigits(precision);

@@ -28,6 +28,7 @@ public final class DistancePriceColumn extends AbstractColumnImpl<Distance> {
     }
 
     @Override
+    @NonNull
     public String getFooter(@NonNull List<Distance> distances) {
         final WBCurrency tripCurrency = !distances.isEmpty() ? distances.get(0).getTrip().getTripCurrency() : null;
         if (mAllowSpecialCharacters) {

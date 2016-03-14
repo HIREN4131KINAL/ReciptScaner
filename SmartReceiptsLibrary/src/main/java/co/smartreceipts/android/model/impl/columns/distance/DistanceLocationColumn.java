@@ -24,6 +24,7 @@ public final class DistanceLocationColumn extends AbstractColumnImpl<Distance> {
     }
 
     @Override
+    @NonNull
     public String getFooter(@NonNull List<Distance> distances) {
         return mContext.getString(R.string.total);
     }

@@ -41,6 +41,7 @@ public abstract class AbstractExchangedPriceColumn extends AbstractColumnImpl<Re
     }
 
     @Override
+    @NonNull
     public String getFooter(@NonNull List<Receipt> rows) {
         if (!rows.isEmpty()) {
             final PriceBuilderFactory factory = new PriceBuilderFactory();

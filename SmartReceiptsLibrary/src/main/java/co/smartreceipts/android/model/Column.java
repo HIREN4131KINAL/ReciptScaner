@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ public interface Column<T> {
      *
      * @return the {@link java.lang.String} representation of the header for this particular column
      */
+    @NonNull
     String getHeader();
 
     /**
@@ -38,8 +40,9 @@ public interface Column<T> {
      * represented the name of this item, {@link T}, then this would return the name.
      *
      * @param rowItem the row item to get the value for (based on the column definition)
-     * @return the {@link java.lang.String} representation of the value
+     * @return the {@link java.lang.String} representation of the value //TODO: Make this non-null
      */
+    @Nullable
     String getValue(@NonNull T rowItem);
 
     /**
@@ -49,5 +52,6 @@ public interface Column<T> {
      * @param rows the {@link java.util.List} of rows of {@link T} to process for the footer
      * @return the {@link java.lang.String} representation of the footer for this particular column
      */
+    @NonNull
     String getFooter(@NonNull List<T> rows);
 }

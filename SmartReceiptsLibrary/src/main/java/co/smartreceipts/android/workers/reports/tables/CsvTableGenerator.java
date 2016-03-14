@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,17 +79,19 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
     }
 
 
-    private void addCell(@NonNull StringBuilder csvBuilder, @NonNull String value) {
-        if (value.contains(QUOTE)) {
-            value = value.replace(QUOTE, ESCAPED_QUOTE);
-        }
-        for (String stringToQuote : STRINGS_THAT_MUST_BE_QUOTED) {
-            if (value.contains(stringToQuote)) {
-                value = QUOTE + value + QUOTE;
-                break;
+    private void addCell(@NonNull StringBuilder csvBuilder, @Nullable String value) {
+        if (value != null) {
+            if (value.contains(QUOTE)) {
+                value = value.replace(QUOTE, ESCAPED_QUOTE);
             }
+            for (String stringToQuote : STRINGS_THAT_MUST_BE_QUOTED) {
+                if (value.contains(stringToQuote)) {
+                    value = QUOTE + value + QUOTE;
+                    break;
+                }
+            }
+            csvBuilder.append(value);
         }
-        csvBuilder.append(value);
         csvBuilder.append(",");
     }
 

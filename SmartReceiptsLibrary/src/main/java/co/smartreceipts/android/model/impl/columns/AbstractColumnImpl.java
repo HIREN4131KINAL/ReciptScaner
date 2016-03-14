@@ -31,11 +31,13 @@ public abstract class AbstractColumnImpl<T> implements Column<T>, Comparable<Abs
     }
 
     @Override
+    @NonNull
     public String getHeader() {
         return getName();
     }
 
     @Override
+    @NonNull
     public String getFooter(@NonNull List<T> rows) {
         return "";
     }

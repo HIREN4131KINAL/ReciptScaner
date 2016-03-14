@@ -19,6 +19,7 @@ public final class BlankColumn<T> extends AbstractColumnImpl<T> {
     }
 
     @Override
+    @NonNull
     public String getFooter(@NonNull List<T> rows) {
         return "";
     }

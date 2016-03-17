@@ -31,7 +31,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     //Preference Identifiers - SubClasses Only
     private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
-    private static final String HIDE_AD = "pref1";
+    private static final String SHOW_AD = "pref1";
 
     private WeakReference<AdView> mAdViewReference;
 
@@ -103,8 +103,8 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     private boolean shouldShowAds(@NonNull AdView adView) {
         final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-        final boolean wereAdsManuallyDisabled = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(HIDE_AD, false);
-        return !wereAdsManuallyDisabled && !hasProSubscription;
+        final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
+        return areAdsEnabledLocally && !hasProSubscription;
     }
 
     private static AdRequest getAdRequest() {

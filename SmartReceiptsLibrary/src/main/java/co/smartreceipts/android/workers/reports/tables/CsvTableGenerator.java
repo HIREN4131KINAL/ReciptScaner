@@ -48,8 +48,9 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
             if (mPrintHeaders) {
                 for (int i = 0; i < columnCount; i++) {
                     addCell(csvBuilder, mColumns.get(i).getHeader());
-                    csvBuilder.append("\n");
+                    csvBuilder.append(",");
                 }
+                csvBuilder.append("\n");
             }
 
             // Add each row

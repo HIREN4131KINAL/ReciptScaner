@@ -174,12 +174,17 @@ public class ImageGalleryWorker extends WorkerChild {
 
     @Nullable
     private Bitmap getBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options) {
-        // First, just see if we can get the bitmap directly
-        Bitmap bitmap = BitmapFactory.decodeFile(photoUri.getPath(), options);
+        Bitmap bitmap = null;
+        try {
+            // First, just see if we can get the bitmap directly
+            bitmap = BitmapFactory.decodeFile(photoUri.getPath(), options);
 
-        if (bitmap == null) {
-            // If not, let's try to decode from the media store
-            bitmap = BitmapFactory.decodeFile(getMediaStoreUri(photoUri).getPath(), options);
+            if (bitmap == null) {
+                // If not, let's try to decode from the media store
+                bitmap = BitmapFactory.decodeFile(getMediaStoreUri(photoUri).getPath(), options);
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Caught import security exception. Swallowing", e);
         }
 
         if (bitmap == null) {

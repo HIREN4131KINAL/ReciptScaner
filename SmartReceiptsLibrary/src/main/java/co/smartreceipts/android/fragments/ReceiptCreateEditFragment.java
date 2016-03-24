@@ -484,7 +484,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
+        if (mExchangeRateContainer != null && outState != null) {
+            outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
+        }
         super.onSaveInstanceState(outState);
     }
 

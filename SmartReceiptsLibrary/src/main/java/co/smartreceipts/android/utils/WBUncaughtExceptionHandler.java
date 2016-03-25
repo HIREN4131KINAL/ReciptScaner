@@ -1,5 +1,9 @@
 package co.smartreceipts.android.utils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -39,11 +43,23 @@ public class WBUncaughtExceptionHandler implements UncaughtExceptionHandler {
 	@Override
 	public void uncaughtException(Thread thread, Throwable throwable) {
 		try {
-			final StorageManager storageManager = SmartReceiptsApplication.getInstance().getPersistenceManager().getStorageManager();
+			final File crashFile = new File(SmartReceiptsApplication.getInstance().getExternalFilesDir(null), LOG_FILE);
 			final StringWriter stringWriter = new StringWriter();
 			final PrintWriter printWriter = new PrintWriter(stringWriter);
 			throwable.printStackTrace(printWriter);
-			storageManager.appendTo(LOG_FILE, stringWriter.toString());
+			PrintWriter appendWriter = null;
+			try {
+				appendWriter = new PrintWriter(new BufferedWriter(new FileWriter(crashFile, true)));
+				appendWriter.println(stringWriter.toString());
+			}
+			catch (IOException e) {
+				Log.e(TAG, "Caught IOException in uncaughtException", e);
+			}
+			finally {
+				if (appendWriter != null) {
+					appendWriter.close();
+				}
+			}
 		} catch (Throwable t) {
 			// Silently swallow any issues here to avoid a recursive crash loop
 		}

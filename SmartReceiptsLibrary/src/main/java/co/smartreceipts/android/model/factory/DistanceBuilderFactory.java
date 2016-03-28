@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
@@ -69,8 +70,11 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         return this;
     }
 
-    public DistanceBuilderFactory setTimezone(String timezone) {
-        _timezone = TimeZone.getTimeZone(timezone);
+    public DistanceBuilderFactory setTimezone(@Nullable String timezone) {
+        // Our distance table doesn't have a default timezone, so protect for nulls
+        if (timezone != null) {
+            _timezone = TimeZone.getTimeZone(timezone);
+        }
         return this;
     }
 

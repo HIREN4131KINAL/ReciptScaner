@@ -1,11 +1,18 @@
 package co.smartreceipts.android.fragments;
 
+import co.smartreceipts.android.config.ConfigurationManager;
 import wb.android.flex.Flex;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -22,13 +29,9 @@ public class WBFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mApplication = getSmartReceiptsApplication();
-		// By setting setRetainInstance to true, the Fragment will not receive subsequent calls
-		// to onCreate and onDestroy. onAttach and onCreateView will still be called for the
-		// new activity context
-		setRetainInstance(true);
 	}
 
-	@Override
+    @Override
 	public void onStart() {
 		super.onStart();
 		if (!mDisableScreenLoggingOnStart) {
@@ -36,11 +39,28 @@ public class WBFragment extends Fragment {
 		}
 	}
 
-	@Override
+    @Override
 	public void onDetach() {
 		super.onDetach();
 		mApplication = null;
 	}
+
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode) {
+        if (getParentFragment() != null) {
+            getParentFragment().startActivityForResult(intent, requestCode);
+        } else {
+            super.startActivityForResult(intent, requestCode);
+        }
+    }
+
+    public void requestPermissionsWithPossibleChildFragment(@NonNull java.lang.String[] permissions, int requestCode) {
+        if (getParentFragment() != null) {
+            getParentFragment().requestPermissions(permissions, requestCode);
+        } else {
+            this.requestPermissions(permissions, requestCode);
+        }
+    }
 
 	protected Flex getFlex() {
 		return getSmartReceiptsApplication().getFlex();
@@ -62,8 +82,13 @@ public class WBFragment extends Fragment {
 		return mDateManager;
 	}
 
-	public ActionBar getSupportActionBar() {
-		return ((ActionBarActivity)getActivity()).getSupportActionBar();
+    public final void setSupportActionBar(@Nullable Toolbar toolbar) {
+        ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+    }
+
+    @Nullable
+	public final ActionBar getSupportActionBar() {
+		return ((AppCompatActivity)getActivity()).getSupportActionBar();
 	}
 
 	protected PersistenceManager getPersistenceManager() {
@@ -72,6 +97,11 @@ public class WBFragment extends Fragment {
 
 	protected WorkerManager getWorkerManager() {
 		return getSmartReceiptsApplication().getWorkerManager();
+	}
+
+	@NonNull
+	protected ConfigurationManager getConfigurationManager() {
+		return getSmartReceiptsApplication().getConfigurationManager();
 	}
 
 	public SmartReceiptsApplication getSmartReceiptsApplication() {

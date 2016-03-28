@@ -1,9 +1,6 @@
 package co.smartreceipts.android.sync.provider.parse;
 
-import org.apache.http.MethodNotSupportedException;
-
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.sync.response.SyncError;
 import co.smartreceipts.android.sync.request.SyncRequest;
 import co.smartreceipts.android.sync.response.SyncResponse;
 import co.smartreceipts.android.sync.network.NetworkProvider;

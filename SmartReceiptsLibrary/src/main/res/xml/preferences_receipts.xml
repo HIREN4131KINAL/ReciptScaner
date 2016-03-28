@@ -23,6 +23,10 @@
 	        android:title="@string/pref_receipt_expensable_only_title"
 	        android:summary="@string/pref_receipt_expensable_only_summary"
 	        android:defaultValue="false"/>
+		<CheckBoxPreference
+			android:key="@string/pref_receipt_expensable_default_key"
+			android:title="@string/pref_receipt_expensable_default_title"
+			android:defaultValue="@bool/pref_receipt_expensable_default_defaultValue"/>
 	    <CheckBoxPreference
 	        android:key="@string/pref_receipt_default_to_report_start_date_key"
 	        android:title="@string/pref_receipt_default_to_report_start_date_title"
@@ -56,7 +60,7 @@
 	        android:key="@string/pref_receipt_include_tax_field_key"
 	        android:title="@string/pref_receipt_include_tax_field_title"
 	        android:summary="@string/pref_receipt_include_tax_field_summary"
-	        android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_include_tax_field_defaultValue"/>
 	    <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"

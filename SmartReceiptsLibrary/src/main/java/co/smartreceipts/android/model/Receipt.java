@@ -3,6 +3,7 @@ package co.smartreceipts.android.model;
 import android.content.Context;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.sql.Date;
@@ -25,6 +26,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return - the parent {@link co.smartreceipts.android.model.Trip}
      */
+    @NonNull
     Trip getTrip();
 
     /**
@@ -34,6 +36,7 @@ public interface Receipt extends Parcelable, Priceable {
      * @return the {@link co.smartreceipts.android.model.PaymentMethod} associated with this receipt item or {@code null} if
      * there is none.
      */
+    @Nullable
     PaymentMethod getPaymentMethod();
 
     /**
@@ -79,13 +82,15 @@ public interface Receipt extends Parcelable, Priceable {
      * @param context the current {@link android.content.Context}
      * @return the {@link java.lang.String} representation of the file-type
      */
-    String getMarkerAsString(Context context);
+    @NonNull
+    String getMarkerAsString(@NonNull Context context);
 
     /**
      * Gets the Image attached to this receipt. This is identical to calling {@link #getFile()}
      *
      * @return the {@link java.io.File} or {@code null} if none is present
      */
+    @Nullable
     File getImage();
 
     /**
@@ -93,6 +98,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the PDF {@link java.io.File} or {@code null} if none is present
      */
+    @Nullable
     File getPDF();
 
     /**
@@ -100,6 +106,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the Image {@link java.io.File} or {@code null} if none is present
      */
+    @Nullable
     File getFile();
 
     /**
@@ -107,6 +114,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return a representation of the file path via {@link #getFile()} and {@link java.io.File#getAbsolutePath()}.
      */
+    @Nullable
     String getFilePath();
 
     /**
@@ -114,6 +122,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return a representation of the file name via {@link #getFile()} and {@link java.io.File#getName()}.
      */
+    @Nullable
     String getFileName();
 
     /**
@@ -128,6 +137,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link co.smartreceipts.android.model.Source}
      */
+    @NonNull
     Source getSource();
 
     /**
@@ -135,6 +145,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.lang.String} representation of the category
      */
+    @NonNull
     String getCategory();
 
     /**
@@ -142,6 +153,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return - the current comment as a {@link java.lang.String}
      */
+    @NonNull
     String getComment();
 
 
@@ -150,6 +162,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link co.smartreceipts.android.model.Price} for the tax
      */
+    @NonNull
     Price getTax();
 
 
@@ -158,6 +171,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.sql.Date} this receipt was captured
      */
+    @NonNull
     Date getDate();
 
     /**
@@ -168,13 +182,15 @@ public interface Receipt extends Parcelable, Priceable {
      * @param separator - the date separator (e.g. "/", "-", ".")
      * @return the formatted date string for this receipt
      */
-    String getFormattedDate(Context context, String separator);
+    @NonNull
+    String getFormattedDate(@NonNull Context context, @NonNull String separator);
 
     /**
      * Gets the time zone in which the date was set
      *
      * @return - the {@link java.util.TimeZone} for the date
      */
+    @NonNull
     TimeZone getTimeZone();
 
     /**
@@ -211,6 +227,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.lang.String} for the 1st custom field or {@code null} if not set
      */
+    @Nullable
     String getExtraEditText1();
 
     /**
@@ -218,6 +235,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.lang.String} for the 2nd custom field or {@code null} if not set
      */
+    @Nullable
     String getExtraEditText2();
 
     /**
@@ -225,6 +243,7 @@ public interface Receipt extends Parcelable, Priceable {
      *
      * @return the {@link java.lang.String} for the 3rd custom field or {@code null} if not set
      */
+    @Nullable
     String getExtraEditText3();
 
     /**

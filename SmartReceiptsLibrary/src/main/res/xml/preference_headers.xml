@@ -37,6 +37,11 @@
         <extra android:name="@string/pref_header_key" android:value="@string/pref_distance_header" />
     </header>
     <header
+        android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
+        android:title="@string/pref_pro_header">
+        <extra android:name="@string/pref_header_key" android:value="@string/pref_pro_header" />
+    </header>
+    <header
 	    android:fragment="co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment"
 	    android:title="@string/pref_help_header">
 		<extra android:name="@string/pref_header_key" android:value="@string/pref_help_header" />

@@ -1,6 +1,7 @@
 package co.smartreceipts.android.fragments.preferences;
 
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
@@ -64,6 +65,10 @@ public class PreferenceHeaderFragment extends android.preference.PreferenceFragm
             addPreferencesFromResource(R.xml.preferences_distance);
             mSettingsActivity.configurePreferencesDistance(this);
         }
+        else if (getString(R.string.pref_pro_header).equals(key)) {
+            addPreferencesFromResource(R.xml.preferences_pro);
+            mSettingsActivity.configureProPreferences(this);
+        }
 		else if (getString(R.string.pref_help_header).equals(key)) {
 			addPreferencesFromResource(R.xml.preferences_help);
 			mSettingsActivity.configurePreferencesHelp(this);
@@ -77,7 +82,10 @@ public class PreferenceHeaderFragment extends android.preference.PreferenceFragm
 	@Override
 	public void onResume() {
 		super.onResume();
-		getActivity().getActionBar().setTitle(getArguments().getString(getString(R.string.pref_header_key)));
+        final ActionBar actionBar = getActivity().getActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(getArguments().getString(getString(R.string.pref_header_key)));
+        }
 	}
 	
 	@Override

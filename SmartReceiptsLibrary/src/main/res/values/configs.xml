@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="config_is_settings_menu_available">true</bool>
+    <bool name="config_is_text_receipts_option_available">true</bool>
+    <bool name="config_is_distance_tracking_option_available">true</bool>
+</resources>

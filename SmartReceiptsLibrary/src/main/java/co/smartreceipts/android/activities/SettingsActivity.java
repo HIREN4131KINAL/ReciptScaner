@@ -1,24 +1,35 @@
 package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.preference.PreferenceActivity;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
-
-import com.artifex.mupdfdemo.AsyncTask;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,17 +45,24 @@ import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.workers.EmailAssistant;
+import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
 import wb.android.util.AppRating;
-import wb.android.util.Utils;
 
-public class SettingsActivity extends PreferenceActivity implements OnPreferenceClickListener, UniversalPreferences {
+public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
     public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
+    private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private SmartReceiptsApplication mApp;
+    private SubscriptionManager mSubscriptionManager;
     private boolean mIsUsingHeaders;
 
     /**
@@ -72,9 +90,62 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             configurePreferencesCamera(this);
             configurePreferencesLayoutCustomizations(this);
             configurePreferencesDistance(this);
+            configureProPreferences(this);
             configurePreferencesHelp(this);
             configurePreferencesAbout(this);
         }
+
+        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager.onCreate();
+        mSubscriptionManager.addEventListener(this);
+        mSubscriptionManager.querySubscriptions();
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            final LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
+            if (root != null) {
+                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
+                root.addView(toolbar, 0); // insert at top
+                setSupportActionBar(toolbar);
+                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
+            }
+        } else {
+            final ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
+            if (root != null) {
+                final ListView content = (ListView) root.getChildAt(0);
+                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
+                root.removeAllViews();
+
+                final int height;
+                final TypedValue tv = new TypedValue();
+                if (getTheme().resolveAttribute(R.attr.actionBarSize, tv, true)) {
+                    height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
+                } else {
+                    height = toolbar.getHeight();
+                }
+
+                content.setPadding(0, height, 0, 0);
+                root.addView(content);
+                root.addView(toolbar);
+                setSupportActionBar(toolbar);
+                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
+            }
+        }
+
     }
 
     @Override
@@ -86,23 +157,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     @Override
     protected void onResume() {
         super.onResume();
-        setTitle(R.string.menu_main_settings);
-        setUpActionBar11();
-        setUpActionBar14();
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setUpActionBar11() {
-        if (Utils.ApiHelper.hasHoneycomb()) {
-            getActionBar().setTitle(R.string.menu_main_settings);
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    private void setUpActionBar14() {
-        if (Utils.ApiHelper.hasICS()) {
-            getActionBar().setHomeButtonEnabled(true);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.menu_main_settings);
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
 
@@ -133,7 +191,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             return super.onOptionsItemSelected(item);
         }
         if (item.getItemId() == android.R.id.home) {
-            final Intent upIntent = new Intent(this, mApp.getTopLevelActivity());
+            final Intent upIntent = new Intent(this, SmartReceiptsActivity.class);
             if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
                 // This activity is NOT part of this app's task, so create a new task
                 // when navigating up, with a synthesized back stack.
@@ -161,8 +219,17 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             }
         }
         else {
-            super.onActivityResult(requestCode, resultCode, data);
+            if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        mSubscriptionManager.removeEventListener(this);
+        mSubscriptionManager.onDestroy();
+        super.onDestroy();
     }
 
     public boolean isUsingHeaders() {
@@ -247,7 +314,10 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
     }
 
     public void configurePreferencesCamera(UniversalPreferences universal) {
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // We always use the native camera for M+
+            ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
+        }
     }
 
     public void configurePreferencesLayoutCustomizations(UniversalPreferences universal) {
@@ -256,6 +326,13 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 
     public void configurePreferencesDistance(UniversalPreferences universal) {
 
+    }
+
+    public void configureProPreferences(UniversalPreferences universal) {
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
+        pdfFooterPreference.setAppearsEnabled(hasProSubscription);
+        pdfFooterPreference.setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesHelp(UniversalPreferences universal) {
@@ -271,17 +348,9 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         versionPreference.setSummary(getAppVersion());
     }
 
-    private String getAppVersion() {
-        try {
-            return getPackageManager().getPackageInfo(getString(R.string.package_name), 0).versionName;
-        } catch (NameNotFoundException e) {
-            return null;
-        }
-    }
-
     @Override
     public boolean onPreferenceClick(Preference preference) {
-        String key = preference.getKey();
+        final String key = preference.getKey();
         if (key.equals(getString(R.string.pref_receipt_customize_categories_key)) || key.equals(getString(R.string.pref_output_custom_csv_key)) || key.equals(getString(R.string.pref_output_custom_pdf_key)) || key.equals(getString(R.string.pref_receipt_payment_methods_key))) {
             final Intent intent = new Intent(this, SettingsViewerActivity.class);
             intent.putExtra(SettingsViewerActivity.KEY_FLAG, key);
@@ -305,8 +374,85 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
             return true;
+        } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
+            // Let's check if we should prompt the user to upgrade for this preference
+            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+
+            // If we don't already have the pro subscription and it's available, let's buy it
+            if (proSubscriptionIsAvailable && !haveProSubscription) {
+                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+            } else {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
+            }
+            return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        mPurchaseableSubscriptions = purchaseableSubscriptions;
+    }
+
+    @Override
+    public void onSubscriptionsUnavailable() {
+        Log.w(TAG, "No subscriptions were found for this session");
+        // Intentional no-op
+    }
+
+    @Override
+    public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+        try {
+            startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                invalidateOptionsMenu(); // To hide the subscription option
+                Toast.makeText(SettingsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onPurchaseFailed() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SettingsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private String getAppVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getString(R.string.package_name), 0).versionName;
+        } catch (NameNotFoundException e) {
+            return null;
         }
     }
 

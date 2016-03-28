@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -41,7 +42,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Receipt Preferences
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mDefaultToFirstReportDate,
+    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mReceiptsDefaultAsExpensable, mDefaultToFirstReportDate,
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
@@ -61,7 +62,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Distance Preferences
     private float mDefaultDistanceRate;
-    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt;
+    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt, mShowDistanceAsPriceInSubtotal;
+
+    // Pro Preferences
+    private String mPdfFooterText;
 
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
@@ -78,7 +82,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initDefaultTripDuration(SharedPreferences prefs) {
-        this.mDefaultTripDuration = prefs.getInt(mContext.getString(R.string.pref_general_trip_duration_key), 3);
+        this.mDefaultTripDuration = prefs.getInt(mContext.getString(R.string.pref_general_trip_duration_key), mContext.getResources().getInteger(R.integer.pref_general_trip_duration_defaultValue));
     }
 
     private void initDefaultDateSeparator(SharedPreferences prefs) {
@@ -91,11 +95,18 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initDefaultCurrency(SharedPreferences prefs) {
         try {
-            final String localeDefault = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
-            mDefaultCurrency = prefs.getString(mContext.getString(R.string.pref_general_default_currency_key), localeDefault);
-            if (TextUtils.isEmpty(mDefaultCurrency)) {
-                this.mDefaultCurrency = localeDefault;
+            final String assignedPreferenceCurrencyCode = mContext.getString(R.string.pref_general_default_currency_defaultValue);
+            final String currencyCode;
+            if (TextUtils.isEmpty(assignedPreferenceCurrencyCode)) {
+                currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
+            } else {
+                currencyCode = assignedPreferenceCurrencyCode;
             }
+            mDefaultCurrency = prefs.getString(mContext.getString(R.string.pref_general_default_currency_key), currencyCode);
+            if (TextUtils.isEmpty(mDefaultCurrency)) {
+                this.mDefaultCurrency = currencyCode;
+            }
+
         } catch (IllegalArgumentException ex) {
             this.mDefaultCurrency = "USD";
         }
@@ -125,6 +136,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mOnlyIncludeExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_only_key), false);
     }
 
+    private void initReceiptsDefaultAsExpensable(SharedPreferences prefs) {
+        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), false);
+    }
+
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
         this.mDefaultToFirstReportDate = prefs.getBoolean(mContext.getString(R.string.pref_receipt_default_to_report_start_date_key), false);
     }
@@ -142,7 +157,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initIncludeTaxField(SharedPreferences prefs) {
-        this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), false);
+        this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), mContext.getResources().getBoolean(R.bool.pref_receipt_include_tax_field_defaultValue));
     }
 
     private void initUsePreTaxPrice(SharedPreferences prefs) {
@@ -162,7 +177,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initIncludeCSVHeaders(SharedPreferences prefs) {
-        this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), false);
+        this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), mContext.getResources().getBoolean(R.bool.pref_output_csv_header_defaultValue));
     }
 
     private void initUseFileExplorerForOutput(SharedPreferences prefs) {
@@ -196,7 +211,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initEmailTo(SharedPreferences prefs) {
-        this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), "");
+        this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), mContext.getString(R.string.pref_email_default_email_to_defaultValue));
     }
 
     private void initEmailCC(SharedPreferences prefs) {
@@ -253,6 +268,14 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
     }
 
+    private void initShowDistanceAsPriceInSubtotal(SharedPreferences prefs) {
+        this.mShowDistanceAsPriceInSubtotal = prefs.getBoolean(mContext.getString(R.string.pref_distance_as_price_key), mContext.getResources().getBoolean(R.bool.pref_distance_as_price_defaultValue));
+    }
+
+    private void initPdfFooterText(SharedPreferences prefs) {
+        this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
+    }
+
     Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
@@ -279,6 +302,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initPredictCategories(prefs);
         this.initEnableAutoCompleteSuggestions(prefs);
         this.initOnlyIncludeExpensable(prefs);
+        this.initReceiptsDefaultAsExpensable(prefs);
         this.initDefaultToFirstReportDate(prefs);
         this.initMatchNameCats(prefs);
         this.initMatchCommentCats(prefs);
@@ -319,6 +343,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultMileageRate(prefs);
         this.initPrintDistanceTable(prefs);
         this.initPrintDistanceAsDailyReceipt(prefs);
+        this.initShowDistanceAsPriceInSubtotal(prefs);
+
+        // Pro Preferences
+        this.initPdfFooterText(prefs);
 
         // Misc (i.e. inaccessible preferences) for app use only
         this.mShowActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
@@ -337,7 +365,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
                     SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putInt(INT_VERSION_CODE, mVersionCode);
-                    editor.commit();
+                    editor.apply();
                 }
             } catch (NameNotFoundException e) {
                 if (BuildConfig.DEBUG) {
@@ -398,24 +426,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPredictCategories;
     }
 
-    public void setPredictCategories(boolean predictCategories) {
-        this.mPredictCategories = predictCategories;
-    }
-
     public boolean matchCommentToCategory() {
         return mMatchCommentCats;
     }
 
-    public void setMatchCommentToCategory(boolean matchCommentCats) {
-        this.mMatchCommentCats = matchCommentCats;
-    }
-
     public boolean matchNameToCategory() {
         return mMatchNameCats;
-    }
-
-    public void setMatchNameToCategory(boolean matchNameCats) {
-        this.mMatchNameCats = matchNameCats;
     }
 
     public boolean useNativeCamera() {
@@ -424,22 +440,19 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public void setUseNativeCamera(boolean useNativeCamera) {
         this.mUseNativeCamera = useNativeCamera;
+        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
     }
 
     public boolean onlyIncludeExpensableReceiptsInReports() {
         return mOnlyIncludeExpensable;
     }
 
-    public void setOnlyIncludeExpensableReceiptsInReports(boolean onlyIncludeExpensable) {
-        this.mOnlyIncludeExpensable = onlyIncludeExpensable;
+    public boolean doReceiptsDefaultAsExpensable() {
+        return mReceiptsDefaultAsExpensable;
     }
 
     public boolean includeTaxField() {
         return mIncludeTaxField;
-    }
-
-    public void setIncludeTaxField(boolean includeTaxField) {
-        this.mIncludeTaxField = includeTaxField;
     }
 
     public boolean usePreTaxPrice() {
@@ -450,56 +463,28 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mDefaultToFullPage;
     }
 
-    public void setDateSeparator(String dateSeparator) {
-        this.mDateSeparator = dateSeparator;
-    }
-
     public boolean enableAutoCompleteSuggestions() {
         return mEnableAutoCompleteSuggestions;
-    }
-
-    public void setEnableAutoCompleteSuggestions(boolean enableAutoCompleteSuggestions) {
-        this.mEnableAutoCompleteSuggestions = enableAutoCompleteSuggestions;
     }
 
     public String getEmailTo() {
         return mEmailTo;
     }
 
-    public void setDefaultEmailReceipient(String emailTo) {
-        this.mEmailTo = emailTo;
-    }
-
     public String getDefaultCurreny() {
         return mDefaultCurrency;
-    }
-
-    public void setDefaultCurreny(String currency) {
-        this.mDefaultCurrency = currency;
     }
 
     public String getUserID() {
         return mUserID;
     }
 
-    public void setUserID(String userID) {
-        this.mUserID = userID;
-    }
-
     public int getDefaultTripDuration() {
         return mDefaultTripDuration;
     }
 
-    public void setDefaultTripDuration(int defaultTripDuration) {
-        this.mDefaultTripDuration = defaultTripDuration;
-    }
-
     public float getMinimumReceiptPriceToIncludeInReports() {
         return mMinReceiptPrice;
-    }
-
-    public void setMinimumReceiptPriceToIncludeInReports(float minReceiptPrice) {
-        this.mMinReceiptPrice = minReceiptPrice;
     }
 
     public boolean includeReceiptIdInsteadOfIndexByPhoto() {
@@ -521,10 +506,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
-    }
-
-    public void setDefaultToFirstReportDate(boolean defaultToFirstReportDate) {
-        this.mDefaultToFirstReportDate = defaultToFirstReportDate;
     }
 
     public boolean showActionSendHelpDialog() {
@@ -583,20 +564,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mUsePaymentMethods;
     }
 
-    public boolean showAds() {
-        return false;
-    }
-
-    public void setIncludeCSVHeaders(boolean includeCSVHeaders) {
-        /*
-        this.mIncludeCSVHeaders = includeCSVHeaders;
-		SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(BOOL_INCL_CSV_HEADERS, this.mIncludeCSVHeaders);
-        editor.commit();
-        */
-    }
-
     public String getDateSeparator() {
         return mDateSeparator;
     }
@@ -625,6 +592,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPrintDistanceAsDailyReceipt;
     }
 
+    public boolean getShowDistanceAsPriceInSubtotal() {
+        return mShowDistanceAsPriceInSubtotal;
+    }
+
     public boolean getIncludeCostCenter() {
         return mIncludeCostCenter;
     }
@@ -640,5 +611,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mShouldDistancePriceBeIncludedInReports;
     }
 
+    public String getPdfFooterText() {
+        return mPdfFooterText;
+    }
 
 }

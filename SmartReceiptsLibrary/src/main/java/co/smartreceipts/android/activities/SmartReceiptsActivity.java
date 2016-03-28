@@ -1,339 +1,279 @@
 package co.smartreceipts.android.activities;
 
-import co.smartreceipts.android.model.Trip;
-import wb.android.dialog.BetterDialogBuilder;
-import wb.android.ui.UpNavigationSlidingPaneLayout;
-import wb.android.util.AppRating;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
-import android.content.res.Configuration;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
-import co.smartreceipts.android.BuildConfig;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.fragments.ReceiptsChartFragment;
-import co.smartreceipts.android.fragments.ReceiptsFragment;
-import co.smartreceipts.android.fragments.ReceiptsListFragment;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseableSubscription;
+import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
+import wb.android.dialog.BetterDialogBuilder;
+import wb.android.util.AppRating;
 
-public class SmartReceiptsActivity extends WBActivity implements Navigable, Attachable {
+public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
-	// logging variables
-	static final String TAG = "SmartReceiptsActivity";
+    // logging variables
+    static final String TAG = "SmartReceiptsActivity";
 
-	// Camera Request Extras
-	public static final String STRING_DATA = "strData";
-	public static final int DIR = 0;
-	public static final int NAME = 1;
+    // Camera Request Extras
+    public static final String STRING_DATA = "strData";
+    public static final int DIR = 0;
+    public static final int NAME = 1;
 
-	// Action Send Extras
-	public static final String ACTION_SEND_URI = "actionSendUri";
+    // AppRating (Use a combination of launches and a timer for the app rating
+    // to ensure that we aren't prompting new users too soon
+    private static final int LAUNCHES_UNTIL_PROMPT = 30;
+    private static final int DAYS_UNTIL_PROMPT = 7;
 
-	// Receiver Settings
-	protected static final String FILTER_ACTION = "co.smartreceipts.android";
+    private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
+    private NavigationHandler mNavigationHandler;
+    private SubscriptionManager mSubscriptionManager;
+    private Attachment mAttachment;
 
-	// AppRating (Use a combination of launches and a timer for the app rating
-	// to ensure that we aren't prompting new users too soon
-	private static final int LAUNCHES_UNTIL_PROMPT = 30;
-	private static final int DAYS_UNTIL_PROMPT = 7;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
-	// Instace Vars
-	private UpNavigationSlidingPaneLayout mSlidingPaneLayout;
-	private boolean mIsDualPane;
-	private Attachment mAttachment;
+        mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
+        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager.onCreate();
+        mSubscriptionManager.addEventListener(this);
+        mSubscriptionManager.querySubscriptions();
 
-	// private ActionBarController mActionBarController;
+        setContentView(R.layout.activity_main);
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onCreate");
-		}
-		setContentView(R.layout.activity_main);
+        if (savedInstanceState == null) {
+            Log.d(TAG, "savedInstanceState == null");
+            mNavigationHandler.navigateToTripsFragment();
+            AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
+        }
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
-		mIsDualPane = getResources().getBoolean(R.bool.isTablet);
-		if (!mIsDualPane) {
-			mSlidingPaneLayout = (UpNavigationSlidingPaneLayout) findViewById(R.id.slidingpanelayout);
-			mSlidingPaneLayout.setPanelSlideListener(this);
-			mSlidingPaneLayout.openPane();
-		}
+    }
 
-		// mActionBarController = new ActionBarController(this, getSupportActionBar(),
-		// getResources().getStringArray(R.array.actionbar_subtitles));
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
 
-		// savedInstanceState is non-null when there is fragment state saved from previous configurations of this
-		// activity
-		// (e.g. when rotating the screen from portrait to landscape). In this case, the fragment will automatically be
-		// re-added
-		// to its container so we don't need to manually add it. Since the SlidingPaneLayout is controlled at the
-		// activity
-		// layer, however, as opposed to the fragment layer, it will need to be recreated regardless of what the current
-		// fragment
-		// state is
-		if (savedInstanceState == null) {
-			displayTripsLayout();
-			AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
-		}
+        if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal()) {
+            Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
+        }
+    }
 
-	}
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
 
-	private void displayTripsLayout() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "displayTripsLayout");
-		}
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_list, getTripsFragment(), TripFragment.TAG).commit();
-		if (getIntent().hasExtra(Trip.PARCEL_KEY)) { // We already have a feed we're looking to use
-			final Trip trip = (Trip) getIntent().getParcelableExtra(Trip.PARCEL_KEY);
-			viewReceiptsAsList(trip);
-		}
-	}
+        // Present dialog for viewing an attachment
+        final Attachment attachment = new Attachment(getIntent(), getContentResolver());
+        setAttachment(attachment);
+        if (attachment.isValid() && attachment.isDirectlyAttachable()) {
+            final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
+            final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
+            if (preferences.showActionSendHelpDialog()) {
+                BetterDialogBuilder builder = new BetterDialogBuilder(this);
+                builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        preferences.setShowActionSendHelpDialog(false);
+                        preferences.commit();
+                        dialog.cancel();
+                    }
+                }).show();
+            } else {
+                Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
+            }
+        }
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();
+    }
 
-	@Override
-	protected void onStart() {
-		super.onStart();
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onStart");
-		}
-		if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal()) {
-			Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
-		}
-	}
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 
-	@Override
-	protected void onResume() {
-		super.onResume();
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onResume");
-		}
-		// Present dialog for viewing an attachment
-		final Attachment attachment = new Attachment(getIntent(), getContentResolver());
-		setAttachment(attachment);
-		if (attachment.isValid() && attachment.isDirectlyAttachable()) {
-			final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
-			final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
-			if (preferences.showActionSendHelpDialog()) {
-				BetterDialogBuilder builder = new BetterDialogBuilder(this);
-				builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-					}
-				}).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						preferences.setShowActionSendHelpDialog(false);
-						preferences.commit();
-						dialog.cancel();
-					}
-				}).show();
-			}
-			else {
-				Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
-			}
-		}
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
 
-	@Override
-	protected void onDestroy() {
-		getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
-		super.onDestroy();
-	}
+        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		if (mIsDualPane) {
-			getMenuInflater().inflate(R.menu.menu_trip, menu);
-		}
-		else {
-			if (mSlidingPaneLayout.isOpen()) {
-				getMenuInflater().inflate(R.menu.menu_trip, menu);
-			}
-			else {
-				getMenuInflater().inflate(R.menu.menu_receipts, menu);
-			}
-		}
-		return super.onCreateOptionsMenu(menu);
-	}
+        // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
+        if (!proSubscriptionIsAvailable || haveProSubscription) {
+            menu.removeItem(R.id.menu_main_pro_subscription);
+        }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getItemId() == android.R.id.home) {
-			if (!mIsDualPane) { // Home should never be enabled for tablets anyway but just in case
-				mSlidingPaneLayout.openPane();
-			}
-			return true;
-		}
-		else if (item.getItemId() == R.id.menu_main_settings) {
-			// getSmartReceiptsApplication().getSettings().showSettingsMenu(this);
-			SRNavUtils.showSettings(this);
-			return true;
-		}
-		else if (item.getItemId() == R.id.menu_main_export) {
-			final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.TAG);
-			getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
-			return true;
-		}/*
-		 * else if (item.getItemId() == R.id.menu_main_settings) { final Intent intent = new Intent(this,
-		 * SettingsActivity.class);; startActivity(intent); return true; }
-		 */
-		else {
-			return super.onOptionsItemSelected(item);
-		}
-	}
+        // If we disabled settings in our config, let's remove it
+        if (!getSmartReceiptsApplication().getConfigurationManager().isSettingsMenuAvailable()) {
+            menu.removeItem(R.id.menu_main_settings);
+        }
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		// mActionBarController.refreshActionBar(); // Used to refresh the ActionBar view on rotation
-	}
+        return super.onCreateOptionsMenu(menu);
+    }
 
-	@Override
-	public void setTitle(CharSequence title) {
-		super.setTitle(title);
-		getSupportActionBar().setTitle(title);
-		// mActionBarController.setTitle(title);
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_main_settings) {
+            SRNavUtils.showSettings(this);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Settings_Menu");
+            return true;
+        } else if (item.getItemId() == R.id.menu_main_export) {
+            final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
+            getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
+            return true;
+        } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Pro_Purchase_Menu");
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
 
-	@Override
-	public void setTitle(int titleId) {
-		super.setTitle(titleId);
-		getSupportActionBar().setTitle(titleId);
-		// mActionBarController.setTitle(titleId);
-	}
+    @Override
+    public void onBackPressed() {
+        if (mNavigationHandler.shouldFinishOnBackNaviagtion()) {
+            finish();
+        } else {
+            super.onBackPressed();
+        }
+    }
 
-	@Override
-	public String getTag() {
-		return TAG;
-	}
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "onPause");
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
+        super.onPause();
+    }
 
-	@Override
-	public void onPanelSlide(View panel, float slideOffset) {
-		// TODO Auto-generated method stub
+    @Override
+    protected void onDestroy() {
+        Log.i(TAG, "onDestroy");
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
+        mSubscriptionManager.removeEventListener(this);
+        mSubscriptionManager.onDestroy();
+        getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
+        super.onDestroy();
+    }
 
-	}
+    @Override
+    public String getTag() {
+        return TAG;
+    }
 
-	@Override
-	public void onPanelOpened(View panel) { // onTripsBeingViewed
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onPanelOpened");
-		}
-		if (!mIsDualPane) {
-			// mActionBarController.displayStandardActionBar();
-			enableUpNavigation(false);
-			setTitle(getSmartReceiptsApplication().getFlex().getString(this, R.string.sr_app_name));
-			getSupportActionBar().setSubtitle(null);
-			Fragment fragment = getSupportFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
-			if (fragment != null) {
-				getSupportFragmentManager().beginTransaction().remove(fragment).commitAllowingStateLoss();
-			}
-			supportInvalidateOptionsMenu();
-		}
-	}
+    @Override
+    public Attachment getAttachment() {
+        return mAttachment;
+    }
 
-	@Override
-	public void onPanelClosed(View panel) { // onReceiptsBeingViewed
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "onPanelClosed");
-		}
-		if (!mIsDualPane) {
-			// mActionBarController.displayNaviagationActionBar();
-			enableUpNavigation(true);
-			supportInvalidateOptionsMenu();
-		}
-	}
+    @Override
+    public void setAttachment(Attachment attachment) {
+        mAttachment = attachment;
+    }
 
-	@Override
-	public void viewReceiptsAsList(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsListFragment(trip), ReceiptsListFragment.TAG).commitAllowingStateLoss();
-		if (!mIsDualPane) {
-			if (mSlidingPaneLayout.isOpen()) {
-				enableUpNavigation(true);
-				mSlidingPaneLayout.closePane();
-			}
-		}
-	}
 
-	@Override
-	public void viewReceiptsAsChart(Trip trip) {
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_details, getReceiptsChartFragment(trip), ReceiptsChartFragment.TAG).commitAllowingStateLoss();
-		if (!mIsDualPane) {
-			if (mSlidingPaneLayout.isOpen()) {
-				enableUpNavigation(true);
-				mSlidingPaneLayout.closePane();
-			}
-		}
-	}
+    @Override
+    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        mPurchaseableSubscriptions = purchaseableSubscriptions;
+        invalidateOptionsMenu(); // To show the subscription option
 
-	@Override
-	public void viewTrips() {
-		Fragment fragment = getSupportFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
-		if (fragment != null) {
-			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
-		}
-		if (!mIsDualPane) {
-			mSlidingPaneLayout.openPane();
-		}
-	}
+        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPro)) {
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Has_Pro_Sub");
+        } else {
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Without_Pro_Sub");
+        }
+    }
 
-	@Override
-	public void onBackPressed() {
-		if (!mIsDualPane) {
-			if (!mSlidingPaneLayout.isOpen()) {
-				mSlidingPaneLayout.openPane();
-			}
-			else {
-				super.onBackPressed();
-			}
-		}
-		else {
-			super.onBackPressed();
-		}
-	}
+    @Override
+    public void onSubscriptionsUnavailable() {
+        Log.w(TAG, "No subscriptions were found for this session");
+        // Intentional no-op
+    }
 
-	/**
-	 * Returns the attachment that is generated via the main activity
-	 * 
-	 * @return
-	 */
-	@Override
-	public Attachment getAttachment() {
-		return mAttachment;
-	}
+    @Override
+    public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+        try {
+            startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
 
-	/**
-	 * Stores the main attachment details for later
-	 */
-	@Override
-	public void setAttachment(Attachment attachment) {
-		mAttachment = attachment;
-	}
+    @Override
+    public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
-	/**
-	 * @return - an instance of our {@link TripFragment} class. Allows for subclass flexibility
-	 */
-	protected TripFragment getTripsFragment() {
-		return TripFragment.newInstance();
-	}
+    @Override
+    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Success_" + subscription.getSku());
+                invalidateOptionsMenu(); // To hide the subscription option
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
-	/**
-	 * @return - an instance of our {@link ReceiptsListFragment} class. Allows for subclass flexibility
-	 */
-	protected ReceiptsListFragment getReceiptsListFragment(Trip trip) {
-		return ReceiptsFragment.newListInstance(trip);
-	}
+    @Override
+    public void onPurchaseFailed() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Failed");
+                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
 
-	/**
-	 * @return - an instance of our {@link ReceiptsChartFragment} class. Allows for subclass flexibility
-	 */
-	protected ReceiptsChartFragment getReceiptsChartFragment(Trip trip) {
-		return ReceiptsFragment.newChartInstance(trip);
-	}
-
+    @Nullable
+    public SubscriptionManager getSubscriptionManager() {
+        return mSubscriptionManager;
+    }
 }

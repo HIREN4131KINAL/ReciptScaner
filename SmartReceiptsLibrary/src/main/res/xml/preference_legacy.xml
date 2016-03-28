@@ -19,10 +19,11 @@
             android:key="@string/pref_general_trip_duration_key"
             android:title="@string/pref_general_trip_duration_title"
             android:inputType="number"
-            android:defaultValue="3" />
+            android:defaultValue="@integer/pref_general_trip_duration_defaultValue" />
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_currency_key"
-            android:title="@string/pref_general_default_currency_title" />
+            android:title="@string/pref_general_default_currency_title"
+            android:defaultValue="@string/pref_general_default_currency_defaultValue" />
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_date_separator_key"
             android:title="@string/pref_general_default_date_separator_title" />
@@ -56,6 +57,10 @@
             android:summary="@string/pref_receipt_expensable_only_summary"
             android:defaultValue="false"/>
         <CheckBoxPreference
+            android:key="@string/pref_receipt_expensable_default_key"
+            android:title="@string/pref_receipt_expensable_default_title"
+            android:defaultValue="@bool/pref_receipt_expensable_default_defaultValue"/>
+        <CheckBoxPreference
             android:key="@string/pref_receipt_default_to_report_start_date_key"
             android:title="@string/pref_receipt_default_to_report_start_date_title"
             android:summary="@string/pref_receipt_default_to_report_start_date_summary"
@@ -88,7 +93,7 @@
             android:key="@string/pref_receipt_include_tax_field_key"
             android:title="@string/pref_receipt_include_tax_field_title"
             android:summary="@string/pref_receipt_include_tax_field_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_include_tax_field_defaultValue"/>
         <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"
@@ -122,7 +127,7 @@
             android:key="@string/pref_output_csv_header_key"
             android:title="@string/pref_output_csv_header_title"
             android:summary="@string/pref_output_csv_header_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_output_csv_header_defaultValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_output_username_key"
             android:title="@string/pref_output_username_title"
@@ -171,6 +176,7 @@
             android:key="@string/pref_email_default_email_to_key"
             android:title="@string/pref_email_default_email_to_title"
             android:inputType="textEmailAddress"
+            android:defaultValue="@string/pref_email_default_email_to_defaultValue"
             wb:emptyValue="@string/pref_email_default_email_emptyValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference  
             android:key="@string/pref_email_default_email_cc_key"
@@ -255,6 +261,22 @@
             android:summaryOn="@string/pref_distance_print_daily_summaryOn"
             android:summaryOff="@string/pref_distance_print_daily_summaryOff"
             android:defaultValue="@bool/pref_distance_print_daily_defaultValue"/>
+        <CheckBoxPreference
+            android:key="@string/pref_distance_as_price_key"
+            android:title="@string/pref_distance_as_price_title"
+            android:summaryOn="@string/pref_distance_as_price_summaryOn"
+            android:summaryOff="@string/pref_distance_as_price_summaryOff"
+            android:defaultValue="@bool/pref_distance_as_price_defaultValue"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_pro_header"
+        android:key="pref_pro_category_key">
+        <wb.android.preferences.SummaryEditTextPreference
+            android:key="@string/pref_pro_pdf_footer_key"
+            android:title="@string/pref_pro_pdf_footer_title"
+            android:inputType="text"
+            android:defaultValue="@string/pref_pro_pdf_footer_defaultValue" />
     </PreferenceCategory>
 	
     <PreferenceCategory 

@@ -3,6 +3,7 @@ package co.smartreceipts.android.model.utils;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -58,6 +59,7 @@ public class ModelUtils {
      * @param decimal - the {@link java.math.BigDecimal} to format
      * @return the decimal formatted price {@link java.lang.String}
      */
+    @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal) {
         return getDecimalFormattedValue(decimal, 2);
     }
@@ -70,6 +72,7 @@ public class ModelUtils {
      * @param precision - the number of digits precision to use
      * @return the decimal formatted price {@link java.lang.String}
      */
+    @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal, int precision) {
         final DecimalFormat decimalFormat = new DecimalFormat();
         decimalFormat.setMaximumFractionDigits(precision);
@@ -108,5 +111,33 @@ public class ModelUtils {
         }
         stringBuilder.append(getDecimalFormattedValue(decimal));
         return stringBuilder.toString();
+    }
+
+    /**
+     * Tries to parse a string to find the underlying numerical value
+     *
+     * @param number the string containing a number (hopefully)
+     * @return the {@link java.math.BigDecimal} value or "0" if it cannot be found
+     */
+    public static BigDecimal tryParse(@Nullable String number) {
+        return tryParse(number, new BigDecimal(0));
+    }
+
+    /**
+     * Tries to parse a string to find the underlying numerical value
+     *
+     * @param number the string containing a number (hopefully)
+     * @param defaultValue the default value to use if this string is not parseable
+     * @return the {@link java.math.BigDecimal} value or "0" if it cannot be found
+     */
+    public static BigDecimal tryParse(@Nullable String number, @Nullable BigDecimal defaultValue) {
+        if (TextUtils.isEmpty(number)) {
+            return defaultValue;
+        }
+        try {
+            return new BigDecimal(number.replace(",", "."));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 }

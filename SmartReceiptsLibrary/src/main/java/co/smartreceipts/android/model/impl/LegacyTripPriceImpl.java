@@ -2,11 +2,15 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -20,22 +24,25 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
+    private final ExchangeRate mExchangeRate;
 
     /**
      * Default constructor
      *
-     * @param price    - the price as a {@link java.math.BigDecimal}
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
+     * @param price the price as a {@link java.math.BigDecimal}
+     * @param currency the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
      */
-    public LegacyTripPriceImpl(@NonNull BigDecimal price, WBCurrency currency) {
+    public LegacyTripPriceImpl(@NonNull BigDecimal price, @Nullable WBCurrency currency) {
         mPrice = price;
         mCurrency = currency;
+        mExchangeRate = new ExchangeRateBuilderFactory().build();
     }
 
-    private LegacyTripPriceImpl(Parcel in) {
+    private LegacyTripPriceImpl(@NonNull Parcel in) {
         mPrice = new BigDecimal(in.readFloat());
         final String currencyCode = in.readString();
         mCurrency = !TextUtils.isEmpty(currencyCode) ? WBCurrency.getInstance(currencyCode) : null;
+        mExchangeRate = (ExchangeRate) in.readSerializable();
     }
 
     @Override
@@ -95,6 +102,12 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
         }
     }
 
+    @NonNull
+    @Override
+    public ExchangeRate getExchangeRate() {
+        return mExchangeRate;
+    }
+
     @Override
     public String toString() {
         return getCurrencyFormattedPrice();
@@ -110,6 +123,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeFloat(getPriceAsFloat());
         dest.writeString(getCurrencyCode());
+        dest.writeSerializable(mExchangeRate);
     }
 
     public static final Creator<LegacyTripPriceImpl> CREATOR = new Creator<LegacyTripPriceImpl>() {

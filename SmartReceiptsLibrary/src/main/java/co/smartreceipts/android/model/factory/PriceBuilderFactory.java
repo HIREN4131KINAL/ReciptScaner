@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
@@ -10,9 +11,12 @@ import java.util.List;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.gson.ExchangeRate;
+import co.smartreceipts.android.model.impl.ImmutableLegacyNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
 import co.smartreceipts.android.model.impl.LegacyTripPriceImpl;
+import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * A {@link co.smartreceipts.android.model.Price} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -20,19 +24,21 @@ import co.smartreceipts.android.model.impl.LegacyTripPriceImpl;
  */
 public final class PriceBuilderFactory implements BuilderFactory<Price> {
 
-    private Price mPrice;
     private BigDecimal mPriceDecimal;
+    private ExchangeRate mExchangeRate;
     private WBCurrency mCurrency;
     private List<Priceable> mPriceables;
     private List<Price> mPrices;
 
     public PriceBuilderFactory setPrice(Price price) {
-        mPrice = price;
+        mPriceDecimal = price.getPrice();
+        mCurrency = price.getCurrency();
+        mExchangeRate = price.getExchangeRate();
         return this;
     }
 
     public PriceBuilderFactory setPrice(String price) {
-        mPriceDecimal = tryParse(price);
+        mPriceDecimal = ModelUtils.tryParse(price);
         return this;
     }
 
@@ -56,52 +62,58 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setPrices(List<? extends Price> prices) {
-        mPrices = new ArrayList<Price>(prices);
+    public PriceBuilderFactory setExchangeRate(ExchangeRate exchangeRate) {
+        mExchangeRate = exchangeRate;
         return this;
     }
 
-    public PriceBuilderFactory setPriceables(List<? extends Priceable> priceables) {
-        mPriceables = new ArrayList<Priceable>(priceables);
+    public PriceBuilderFactory setPrices(@NonNull List<? extends Price> prices, @Nullable WBCurrency desiredCurrency) {
+        mPrices = new ArrayList<>(prices);
+        mCurrency = desiredCurrency;
+        return this;
+    }
+
+    public PriceBuilderFactory setPriceables(@NonNull List<? extends Priceable> priceables, @Nullable WBCurrency desiredCurrency) {
+        mPriceables = new ArrayList<>(priceables);
+        mCurrency = desiredCurrency;
         return this;
     }
 
     @NonNull
     @Override
     public Price build() {
-        if (mPrice != null) {
-            return mPrice;
-        }
-        else if (mPrices != null && !mPrices.isEmpty()) {
-            return new ImmutableNetPriceImpl(mPrices);
+        if (mPrices != null && !mPrices.isEmpty()) {
+            if (mCurrency != null) {
+                return new ImmutableNetPriceImpl(mCurrency, mPrices);
+            } else {
+                return new ImmutableLegacyNetPriceImpl(mPrices);
+            }
         }
         else if (mPriceables != null && !mPriceables.isEmpty()) {
             final int size = mPriceables.size();
-            final ArrayList<Price> actualPrices = new ArrayList<Price>(size);
+            final ArrayList<Price> actualPrices = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 actualPrices.add(mPriceables.get(i).getPrice());
             }
-            return new ImmutableNetPriceImpl(actualPrices);
+            if (mCurrency != null) {
+                return new ImmutableNetPriceImpl(mCurrency, actualPrices);
+            } else {
+                return new ImmutableLegacyNetPriceImpl(actualPrices);
+            }
         }
         else {
             final BigDecimal price = mPriceDecimal != null ? mPriceDecimal : new BigDecimal(0);
             if (mCurrency != null) {
-                return new ImmutablePriceImpl(price, mCurrency);
+                if (mExchangeRate != null) {
+                    return new ImmutablePriceImpl(price, mCurrency, mExchangeRate);
+                } else {
+                    return new ImmutablePriceImpl(price, mCurrency, new ExchangeRateBuilderFactory().setBaseCurrency(mCurrency).build());
+                }
             }
             else {
-                return new LegacyTripPriceImpl(price, mCurrency);
+                return new LegacyTripPriceImpl(price, null);
             }
         }
     }
 
-    private BigDecimal tryParse(String number) {
-        if (TextUtils.isEmpty(number)) {
-            return new BigDecimal(0);
-        }
-        try {
-            return new BigDecimal(number.replace(",", "."));
-        } catch (NumberFormatException e) {
-            return new BigDecimal(0);
-        }
-    }
 }

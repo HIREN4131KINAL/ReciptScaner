@@ -61,7 +61,9 @@ public class ComboAlbum extends MediaSet implements ContentListener {
     public int getMediaItemCount() {
         int count = 0;
         for (MediaSet set : mSets) {
-            count += set.getMediaItemCount();
+            if (set != null) {
+                count += set.getMediaItemCount();
+            }
         }
         return count;
     }

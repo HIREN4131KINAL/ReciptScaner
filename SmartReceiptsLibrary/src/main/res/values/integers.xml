@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <integer name="default_animation_speed">250</integer>
     <integer name="trips_fragment_loader">10</integer>
     <integer name="receipts_fragment_loader">20</integer>
     <integer name="receipts_list_fragment_loader">21</integer>

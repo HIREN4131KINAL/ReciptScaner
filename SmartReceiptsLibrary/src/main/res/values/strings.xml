@@ -30,6 +30,7 @@
     <string name="delete_item">Delete %s?</string>
     <string name="distance">Distance</string>
     <string name="distance_item">Distance %s</string>
+    <string name="distance_total_item">Dist. Total: %s</string>
     <string name="edit">Edit</string>
     <string name="export">Export</string>
     <string name="feedback">%s - Feedback</string>
@@ -55,9 +56,18 @@
     <string name="total_item">Total: %s</string>
     <string name="text">Text</string>
     <string name="type">Type</string>
+    <string name="undefined">Undefined</string>
     <string name="update">Update</string>
     <string name="yes">Yes</string>
     <string name="yes_as_pdf">Yes - As PDF</string>
+
+    <!-- =============== Subscriptions ================ -->
+    <string name="pro_subscription">Smart Receipts Plus</string>
+
+    <!-- ============= Report Navigation ============== -->
+    <string name="report_info_receipts">Receipts</string>
+    <string name="report_info_distance">Distance</string>
+    <string name="report_info_reports">Reports</string>
 
     <!-- ============= Report Generation ============== -->
     <string name="report_header_from">From: %s</string>
@@ -152,6 +162,7 @@
     <string name="IMPORT_ERROR">Error: Failed to recognize the file as importable</string>
     <string name="MOVE_ERROR">Error: Failed to move the receipt</string>
     <string name="COPY_ERROR">Error: Failed to copy the receipt</string>
+    <string name="toast_warning_reset_exchange_rate">Warning: Changing the currency will reset ALL exchange rates</string>
     <string name="toast_error_trip_exists">Error: An expense report with that name already exists</string>
     <string name="toast_error_category_exists">Error: An category with that name already exists</string>
     <string name="toast_error_invalid_input">Invalid Input</string>
@@ -170,14 +181,14 @@
     <!-- ================== Trip Adapter ===================== -->
     <string name="trip_adapter_new_trip">Expense Report</string>
     <string name="trip_adapter_list_item_to">\u0020to\u0020</string>
-    <string name="trip_no_data">You don\'t seem to have any reports defined at the moment. Try clicking the "+" (plus) button up top to get started.\n\nSmart Receipts lets you create Expense reports, track receipts within each, and quickly generate PDF &amp; CSV reports for your receipt totals. It\'s quick and easy! Also, be sure to check out the menu to customize the categories, reports, and other settings to best suit for your needs.</string>
+    <string name="trip_no_data">You don\'t seem to have any reports defined at the moment. Try clicking the "+" (plus) button to get started.\n\nSmart Receipts lets you create Expense reports, track receipts within each, and quickly generate PDF &amp; CSV reports for your receipt totals. It\'s quick and easy! Also, be sure to check out the menu to customize the categories, reports, and other settings to best suit for your needs.</string>
 
     <!-- ================= Receipt Adapter =================== -->
     <string name="receipt_adapter_picture_receipt">Picture Receipt</string>
     <string name="receipt_adapter_text_receipt">Text-Only Receipt</string>
     <string name="receipt_adapter_email">Email Report</string>
     <string name="receipt_adapter_distance">Distance -\u0020</string>
-    <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the \"Picture\" or \"Text-Only\" option below to get started&#8230;</string>
+    <string name="receipt_no_data">You don\'t seem to have any receipts yet. Try tapping the "+" (plus) button to get started&#8230;</string>
 
     <!-- ================= Distance Adapter ================== -->
     <string name="distance_no_data">You don\'t seem to have any distance tracked yet. Try clicking the "+" (plus) button up top to get started.</string>
@@ -192,6 +203,7 @@
     <string name="receipt_action_camera">Picture</string>
     <string name="receipt_action_gallery">Gallery</string>
     <string name="receipt_action_text">Text-Only</string>
+    <string name="receipt_action_import">Import</string>
     <string name="receipt_action_send">Generate</string>
     <string name="receipt_action_distance">Distance</string>
 
@@ -207,7 +219,7 @@
     <string name="DIALOG_WELCOME_MESSAGE">Thanks for downloading Smart Receipts. To get started, tap the "Expense Report" button. Once you\'ve created a report, tap on it to begin adding receipts. At the end of each week, you can export PDF and CSV reports of your receipt totals. Also, be sure to check out the settings menu to customize this application for your needs. Thanks!</string>
     <string name="DIALOG_WELCOME_POSITIVE_BUTTON">Get Started</string>
     <string name="dialog_pro_welcome_title">@string/sr_app_name</string>
-    <string name="dialog_pro_welcome_message">It seems that you previously used the Free version of Smart Receipts. Would you like to import that data?</string>
+    <string name="dialog_pro_welcome_message">It seems that you previously used the Free version of Smart Receipts. Would you like to import that data? Please note that you must allow Smart Receipts to read external storage for this to work.</string>
 
     <!-- ================== DIALOG_EMAIL ===================== -->
     <string name="DIALOG_EMAIL_TITLE">Select Attachments&#8230;</string>
@@ -218,7 +230,7 @@
     <string name="DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED">ZIP - Stamped JPGs</string>
     <string name="DIALOG_EMAIL_POSITIVE_BUTTON">Send</string>
     <string name="DIALOG_EMAIL_NEGATIVE_BUTTON">Cancel</string>
-    <string name="DIALOG_EMAIL_TOAST_NO_SELECTION">Please Check At Least Attachment Option</string>
+    <string name="DIALOG_EMAIL_TOAST_NO_SELECTION">Please Check At Least One Report</string>
     <string name="DIALOG_EMAIL_TOAST_NO_RECEIPTS">There are No Receipts in this Report</string>
 
     <!-- ================= DIALOG_SETTINGS =================== -->
@@ -238,8 +250,6 @@
     <string name="DIALOG_SETTINGS_TEXTVIEW_SEPARATOR">Date Separator:</string>
     <string name="DIALOG_SETTINGS_DEFAULT_TO_FIRST_DATE">Default Receipt Date to Report Start Date</string>
 
-    <!-- =================== EMAIL_DATA ====================== -->
-    <string name="EMAIL_DATA_SUBJECT">SmartReceipts - %REPORT_NAME%</string>
 
     <!-- ================= DIALOG_TRIPMENU =================== -->
     <string name="DIALOG_TRIPMENU_HINT_NAME">Name</string>
@@ -263,6 +273,8 @@
     <string name="DIALOG_RECEIPTMENU_HINT_PRICE_SHORT">Price</string>
     <string name="DIALOG_RECEIPTMENU_HINT_TAX">Tax</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CURRENCY">Currency</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE">Exchange Rate</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED">Exchange Rate Failed. Retry?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Category</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Comment</string>
@@ -356,7 +368,11 @@
     <string name="column_item_date">@string/RECEIPTMENU_FIELD_DATE</string>
     <string name="column_item_name">@string/RECEIPTMENU_FIELD_NAME</string>
     <string name="column_item_price">@string/RECEIPTMENU_FIELD_PRICE</string>
+    <string name="column_item_converted_price_exchange_rate">Price (Exchanged)</string>
     <string name="column_item_tax">@string/RECEIPTMENU_FIELD_TAX</string>
+    <string name="column_item_converted_tax_exchange_rate">Tax (Exchanged)</string>
+    <string name="column_item_converted_price_plus_tax_exchange_rate">Price Plus Tax (Exchanged)</string>
+    <string name="column_item_exchange_rate">Exchange Rate</string>
     <string name="column_item_pictured">Pictured</string>
     <string name="column_item_expensable">Expensable</string>
     <string name="column_item_index">Receipt Index</string>
@@ -402,6 +418,7 @@
     <string name="pref_camera_header">Camera</string>
     <string name="pref_layout_header">Layout Customizations</string>
     <string name="pref_distance_header">Distance</string>
+    <string name="pref_pro_header">Smart Receipts Plus</string>
     <string name="pref_help_header">Support</string>
     <string name="pref_about_header">About</string>
 
@@ -433,6 +450,8 @@
     <string name="pref_receipt_expensable_only_key" translatable="false">OnlyIncludeExpensable</string>
     <string name="pref_receipt_expensable_only_title">Only Report Expensable</string>
     <string name="pref_receipt_expensable_only_summary">Omit other receipts from output</string>
+    <string name="pref_receipt_expensable_default_key" translatable="false">ExpensableDefault</string>
+    <string name="pref_receipt_expensable_default_title">Receipts Default As Expensable</string>
     <string name="pref_receipt_include_tax_field_key" translatable="false">IncludeTaxField</string>
     <string name="pref_receipt_include_tax_field_title">Include Tax Field</string>
     <string name="pref_receipt_include_tax_field_summary">Adds a line item for taxes</string>
@@ -549,6 +568,14 @@
     <string name="pref_distance_print_daily_title">Report on Daily Distance</string>
     <string name="pref_distance_print_daily_summaryOn">Show distance as receipt line item</string>
     <string name="pref_distance_print_daily_summaryOff">Don\'t show distance as receipt line item</string>
+    <string name="pref_distance_as_price_key" translatable="false">DistanceAsPrice</string>
+    <string name="pref_distance_as_price_title">Distance Price in Subtitle</string>
+    <string name="pref_distance_as_price_summaryOn">Show distance price total in app subtitle</string>
+    <string name="pref_distance_as_price_summaryOff">Show distance travelled in app subtitle</string>
+
+    <!-- ================= Preference Pro ================== -->
+    <string name="pref_pro_pdf_footer_key" translatable="false">PdfFooterString</string>
+    <string name="pref_pro_pdf_footer_title">PDF Footer Text</string>
 
     <!-- ============== Preference Support ================= -->
     <string name="pref_help_send_love_key" translatable="false">SendLove</string>
@@ -631,5 +658,10 @@
     <string name="payment_method_default_personal_card">Personal Card</string>
     <string name="payment_method_default_corporate_card">Corporate Card</string>
     <string name="payment_method_default_unspecified">Unspecified</string>
+
+    <!-- =================== Payment Methods =================== -->
+    <string name="purchase_succeeded">Successfully completed the purchase</string>
+    <string name="purchase_unavailable">Unable to retrieve purchase information</string>
+    <string name="purchase_failed">Failed to complete the purchase</string>
 
 </resources>

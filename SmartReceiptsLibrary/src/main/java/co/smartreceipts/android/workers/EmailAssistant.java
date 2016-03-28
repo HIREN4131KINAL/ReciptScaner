@@ -16,6 +16,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -30,7 +31,6 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BadPdfFormatException;
@@ -44,34 +44,34 @@ import com.itextpdf.text.pdf.PdfWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.model.CSVColumns;
+import co.smartreceipts.android.filters.LegacyReceiptFilter;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PDFColumns;
-import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
-import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
-import co.smartreceipts.android.model.factory.PriceBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.workers.reports.columns.DistanceTableColumns;
-import co.smartreceipts.android.workers.reports.columns.TableColumns;
-import co.smartreceipts.android.workers.reports.writers.CsvTableGenerator;
-import co.smartreceipts.android.workers.reports.writers.PdfTableGenerator;
+import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.workers.reports.FullPdfReport;
+import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
+import co.smartreceipts.android.workers.reports.Report;
+import co.smartreceipts.android.workers.reports.ReportGenerationException;
+import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
+import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -99,9 +99,6 @@ public class EmailAssistant {
     private static final String TAG = "EmailAssistant";
 
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
-    private static final int DEFAULT_MARGIN = 36;
-    private static final int DEFAULT_MARGIN_BOTTOM = 50;
-    private static final float EPSILON = 0.0001f;
 
     private final Context mContext;
     private final Flex mFlex;
@@ -205,6 +202,12 @@ public class EmailAssistant {
                 .show();
     }
 
+    public void emailTrip(@NonNull EnumSet<EmailOptions> options) {
+        ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
+        EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
+        attachmentWriter.execute(mTrip);
+    }
+
     public void onAttachmentsCreated(File[] attachments) {
         ArrayList<Uri> uris = new ArrayList<Uri>();
         StringBuilder bodyBuilder = new StringBuilder();
@@ -270,7 +273,7 @@ public class EmailAssistant {
             emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
             emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
             emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, mPersistenceManager.getPreferences().getEmailSubject().replace("%REPORT_NAME%", mTrip.getName()).replace("%USER_ID%", mPersistenceManager.getPreferences().getUserID()).replace("%REPORT_START%", mTrip.getFormattedStartDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())).replace("%REPORT_END%", mTrip.getFormattedEndDate(mContext, mPersistenceManager.getPreferences().getDateSeparator())));
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
             emailIntent.putExtra(Intent.EXTRA_TEXT, body);
             // emailIntent.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, new ArrayList<CharSequence>(Arrays.asList(body)));
             emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
@@ -346,16 +349,13 @@ public class EmailAssistant {
         private final EnumSet<EmailOptions> mOptions;
         private boolean memoryErrorOccured = false;
 
-        private static final String IMAGES_PDF = "Images.pdf";
-        private static final String FOOTER = "Report Generated using Smart Receipts for Android";
-
         public EmailAttachmentWriter(PersistenceManager persistenceManager,
                                      ProgressDialog dialog,
                                      EnumSet<EmailOptions> options) {
             mStorageManager = persistenceManager.getStorageManager();
             mDB = persistenceManager.getDatabase();
             mPreferences = persistenceManager.getPreferences();
-            mProgressDialog = new WeakReference<ProgressDialog>(dialog);
+            mProgressDialog = new WeakReference<>(dialog);
             mOptions = options;
             mFiles = new File[]{null, null, null, null};
             memoryErrorOccured = false;
@@ -384,206 +384,37 @@ public class EmailAssistant {
             }
 
             if (mOptions.contains(EmailOptions.PDF_FULL)) {
-                FileOutputStream pdfStream = null;
-                Document document = null;
-                PdfWriter writer = null;
+                final Report pdfFullReport = new FullPdfReport(mContext, mPersistenceManager, mFlex);
                 try {
-                    //Setup work
-                    mStorageManager.delete(dir, dir.getName() + ".pdf");
-                    pdfStream = mStorageManager.getFOS(dir, dir.getName() + ".pdf");
-                    document = new Document(DEFAULT_PAGE_SIZE, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN_BOTTOM);
-                    writer = PdfWriter.getInstance(document, pdfStream);
-                    writer.setPageEvent(new Footer());
-                    document.open();
-
-                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
-                    Collections.reverse(distances); // Reverse the list, so we start with the earliest one
-
-                    // Pre-tax => receipt total does not include price
-                    final boolean usePrexTaxPrice = mPreferences.getUsesPreTaxPrice();
-                    final boolean onlyUseExpensable = mPreferences.onlyIncludeExpensableReceiptsInReports();
-                    final ArrayList<Price> netTotal = new ArrayList<Price>(receipts.size());
-                    final ArrayList<Price> receiptTotal = new ArrayList<Price>(receipts.size());
-                    final ArrayList<Price> expensableTotal = new ArrayList<Price>(receipts.size());
-                    final ArrayList<Price> noTaxesTotal = new ArrayList<Price>(receipts.size()*2);
-                    final ArrayList<Price> taxesTotal = new ArrayList<Price>(receipts.size()*2);
-                    final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
-
-                    // Sum up our receipt totals for various conditions
-                    for (int i = 0; i < len; i++) {
-                        final Receipt receipt = receipts.get(i);
-                        if (!onlyUseExpensable || receipt.isExpensable()) {
-                            netTotal.add(receipt.getPrice());
-                            receiptTotal.add(receipt.getPrice());
-                            // Treat taxes as negative prices for the sake of this conversion
-                            noTaxesTotal.add(receipt.getPrice());
-                            noTaxesTotal.add(new PriceBuilderFactory().setCurrency(receipt.getTax().getCurrency()).setPrice(receipt.getTax().getPrice().multiply(new BigDecimal(-1))).build());
-                            taxesTotal.add(receipt.getTax());
-                            if (usePrexTaxPrice) {
-                                netTotal.add(receipt.getTax());
-                            }
-                            if (receipt.isExpensable()) {
-                                expensableTotal.add(receipt.getPrice());
-                            }
-                        }
-                    }
-
-                    // Sum up our distance totals
-                    for (int i = 0; i < distances.size(); i++) {
-                        final Distance distance = distances.get(i);
-                        netTotal.add(distance.getPrice());
-                        distanceTotal.add(distance.getPrice());
-                    }
-
-                    final Price netPrice = new PriceBuilderFactory().setPrices(netTotal).build();
-                    final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal).build();
-                    final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal).build();
-                    final Price noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal).build();
-                    final Price taxPrice = new PriceBuilderFactory().setPrices(taxesTotal).build();
-                    final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal).build();
-
-
-                    // Add the table (TODO: Use formatting at some point so it doesn't look like crap)
-                    document.add(new Paragraph(dir.getName() + "\n"));
-                    if (!receiptsPrice.equals(netPrice)) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total, receiptsPrice.getCurrencyFormattedPrice()) + "\n"));
-                    }
-                    if (mPreferences.includeTaxField()) {
-                        if (usePrexTaxPrice && taxPrice.getPriceAsFloat() > EPSILON) {
-                            document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_tax, taxPrice.getCurrencyFormattedPrice()) + "\n"));
-                        }
-                        else if (!noTaxPrice.equals(receiptsPrice) && noTaxPrice.getPriceAsFloat() > EPSILON) {
-                            document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_no_tax, noTaxPrice.getCurrencyFormattedPrice()) + "\n"));
-                        }
-                    }
-                    if (!mPreferences.onlyIncludeExpensableReceiptsInReports() && !expensablePrice.equals(receiptsPrice)) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_receipts_total_expensable, expensablePrice.getCurrencyFormattedPrice()) + "\n"));
-                    }
-                    if (distances.size() > 0) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_distance_total, distancePrice.getCurrencyFormattedPrice()) + "\n"));
-                    }
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_gross_total, netPrice.getCurrencyFormattedPrice()) + "\n"));
-                    document.add(new Paragraph(mContext.getString(R.string.report_header_from, trip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())) + " "
-                            + mContext.getString(R.string.report_header_to, trip.getFormattedEndDate(mContext, mPreferences.getDateSeparator())) + "\n"));
-                    if (mPreferences.getIncludeCostCenter() && !TextUtils.isEmpty(trip.getCostCenter())) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_cost_center, trip.getCostCenter()) + "\n"));
-                    }
-                    if (!TextUtils.isEmpty(trip.getComment())) {
-                        document.add(new Paragraph(mContext.getString(R.string.report_header_comment, trip.getComment()) + "\n"));
-                    }
-                    document.add(new Paragraph("\n\n")); // Add the line break before our table
-
-                    // Now build the table
-                    PDFColumns columns = mDB.getPDFColumns();
-                    PdfPTable table = columns.getTableWithHeaders();
-                    Receipt receipt;
-                    final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
-                    if (mPreferences.getPrintDistanceAsDailyReceipt()) {
-                        receiptsTableList.addAll(new DistanceToReceiptsConverter(mContext, mPreferences).convert(mDB.getDistanceSerial(trip)));
-                        Collections.sort(receiptsTableList, new ReceiptDateComparator());
-                    }
-                    for (int i = 0; i < receiptsTableList.size(); i++) {
-                        receipt = receiptsTableList.get(i);
-                        if (!filterOutReceipt(mPreferences, receipt)) {
-                            columns.print(table, receipt, trip);
-                        }
-                    }
-                    document.add(table);
-
-                    if (mPreferences.getPrintDistanceTable() && !distances.isEmpty()) {
-                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances);
-                        document.add(new Paragraph("\n\n"));
-                        document.add(new PdfTableGenerator().write(distanceTableColumns));
-                    }
-                    document.newPage();
-
-                    // Add image Rows
-                    this.addImageRows(document, receipts, writer);
-                    final File signature = mPreferences.getSignaturePhoto();
-                    if (signature != null) {
-                        document.newPage();
-                        document.add(new Paragraph(mContext.getString(R.string.signature) + "\n\n"));
-                        document.add(Image.getInstance(signature.getAbsolutePath()));
-                    }
-                    mFiles[EmailOptions.PDF_FULL.getIndex()] = mStorageManager.getFile(dir, dir.getName() + ".pdf");
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e);
-                    }
-                    results.didPDFFailCompletely = true; //TODO: Add error messages to each of these
-                } catch (DocumentException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e);
-                    }
-                    results.didPDFFailCompletely = true; //TODO: Add error messages to each of these
-                } finally {
-                    if (document != null) {
-                        document.close(); //Close me first
-                    }
-                    if (pdfStream != null) {
-                        StorageManager.closeQuietly(pdfStream);
-                    }
+                    mFiles[EmailOptions.PDF_FULL.getIndex()] = pdfFullReport.generate(trip);
+                } catch (ReportGenerationException e) {
+                    results.didPDFFailCompletely = true;
                 }
             }
             if (mOptions.contains(EmailOptions.PDF_IMAGES_ONLY)) {
-                FileOutputStream pdfStream = null;
-                Document document = null;
-                PdfWriter writer = null;
+                final Report pdfimagesReport = new ImagesOnlyPdfReport(mContext, mPersistenceManager, mFlex);
                 try {
-                    //Setup work
-                    mStorageManager.delete(dir, dir.getName() + IMAGES_PDF);
-                    pdfStream = mStorageManager.getFOS(dir, dir.getName() + IMAGES_PDF);
-                    document = new Document(DEFAULT_PAGE_SIZE, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN_BOTTOM);
-                    writer = PdfWriter.getInstance(document, pdfStream);
-                    writer.setPageEvent(new Footer());
-                    document.open();
-
-                    // Add image Rows
-                    this.addImageRows(document, receipts, writer);
-
-                    mFiles[EmailOptions.PDF_IMAGES_ONLY.getIndex()] = mStorageManager.getFile(dir, dir.getName() + IMAGES_PDF);
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e);
-                    }
-                    results.didSimplePDFFailCompletely = true; //TODO: Add error messages to each of these
-                } catch (DocumentException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e);
-                    }
-                    results.didSimplePDFFailCompletely = true; //TODO: Add error messages to each of these
-                } finally {
-                    try {
-                        if (document != null) {
-                            document.close();
-                        }
-                    } catch (RuntimeException e) {
-                        // Document has no pages exception
-                    }
-                    if (pdfStream != null) {
-                        StorageManager.closeQuietly(pdfStream);
-                    }
+                    mFiles[EmailOptions.PDF_IMAGES_ONLY.getIndex()] = pdfimagesReport.generate(trip);
+                } catch (ReportGenerationException e) {
+                    results.didPDFFailCompletely = true;
                 }
             }
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
-                String data = "";
-                CSVColumns columns = mDB.getCSVColumns();
-                if (mPreferences.includeCSVHeaders()) {
-                    data += columns.printHeaders();
-                }
-                for (int i = 0; i < len; i++) {
-                    if (!filterOutReceipt(mPreferences, receipts.get(i))) {
-                        data += columns.print(receipts.get(i), trip);
-                    }
-                }
+
+                final List<Column<Receipt>> csvColumns = mDB.getCSVColumns();
+                final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
+                String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
                     final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
                     if (!distances.isEmpty()) {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
-                        final TableColumns distanceTableColumns = new DistanceTableColumns(mContext, mPreferences, distances, false);
+
+                        // CSVs cannot print special characters
+                        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
+                        final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         data += "\n\n";
-                        data += new CsvTableGenerator().write(distanceTableColumns);
+                        data += new CsvTableGenerator<Distance>(distanceColumns, true, true).generate(distances);
                     }
                 }
                 String filename = dir.getName() + ".csv";
@@ -604,7 +435,7 @@ public class EmailAssistant {
                         try {
                             Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
                             if (b != null) {
-                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
+                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
                                 b.recycle();
                                 b = null;
                             }
@@ -613,7 +444,7 @@ public class EmailAssistant {
                             try {
                                 Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
                                 if (b != null) {
-                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + receipts.get(i).getName() + ".jpg", CompressFormat.JPEG, 85);
+                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
                                     b.recycle();
                                 }
                             } catch (OutOfMemoryError e2) {
@@ -1022,7 +853,7 @@ public class EmailAssistant {
             public void onEndPage(PdfWriter writer, Document document) {
                 Rectangle rect = writer.getPageSize();
                 ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
-                        new Phrase(FOOTER, FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
+                        new Phrase(mPreferences.getPdfFooterText(), FontFactory.getFont("Times-Roman", 9, Font.ITALIC)), rect.getLeft() + 36, rect.getBottom() + 36, 0);
             }
         }
 

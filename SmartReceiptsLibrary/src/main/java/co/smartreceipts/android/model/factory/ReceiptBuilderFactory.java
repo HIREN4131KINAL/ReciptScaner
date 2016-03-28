@@ -1,6 +1,7 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
 
 /**
@@ -21,6 +23,8 @@ import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Receipt} objects
  */
 public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
+
+    private static final int UNKNOWN_ID = -1;
 
     private Trip _trip;
     private PaymentMethod _paymentMethod;
@@ -30,16 +34,17 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     private final PriceBuilderFactory _priceBuilderFactory, _taxBuilderFactory;
     private Date _date;
     private TimeZone _timezone;
-    private final int _id;
+    private int _id;
     private int _index;
     private boolean _isExpenseable, _isFullPage, _isSelected;
-    private WBCurrency _currency;
     private Source _source;
+
+    public ReceiptBuilderFactory() {
+        this(UNKNOWN_ID);
+    }
 
     public ReceiptBuilderFactory(int id) {
         _id = id;
-        _index = -1;
-        _source = Source.Undefined;
         _name = "";
         _category = "";
         _comment = "";
@@ -47,6 +52,35 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _taxBuilderFactory = new PriceBuilderFactory();
         _date = new Date(System.currentTimeMillis());
         _timezone = TimeZone.getDefault();
+        _index = -1;
+        _source = Source.Undefined;
+    }
+
+    public ReceiptBuilderFactory(@NonNull Receipt receipt) {
+        _id = receipt.getId();
+        _trip = receipt.getTrip();
+        _name = receipt.getName();
+        _file = receipt.getFile();
+        _priceBuilderFactory = new PriceBuilderFactory().setPrice(receipt.getPrice());
+        _taxBuilderFactory = new PriceBuilderFactory().setPrice(receipt.getTax());
+        _date = (Date) receipt.getDate().clone();
+        _timezone = receipt.getTimeZone();
+        _category = receipt.getCategory();
+        _comment = receipt.getComment();
+        _paymentMethod = receipt.getPaymentMethod();
+        _isExpenseable = receipt.isExpensable();
+        _isFullPage = receipt.isFullPage();
+        _isSelected = receipt.isSelected();
+        _extraEditText1 = receipt.getExtraEditText1();
+        _extraEditText2 = receipt.getExtraEditText2();
+        _extraEditText3 = receipt.getExtraEditText3();
+        _index = receipt.getIndex();
+        _source = receipt.getSource();
+    }
+
+    public ReceiptBuilderFactory(int id, @NonNull Receipt receipt) {
+        this(receipt);
+        _id = id;
     }
 
     public ReceiptBuilderFactory setTrip(Trip trip) {
@@ -100,6 +134,12 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
+    public ReceiptBuilderFactory setExchangeRate(ExchangeRate exchangeRate) {
+        _priceBuilderFactory.setExchangeRate(exchangeRate);
+        _taxBuilderFactory.setExchangeRate(exchangeRate);
+        return this;
+    }
+
     /**
      * Sets the tax of this ReceiptBuilderFactory as a string (useful for user input)
      *
@@ -146,7 +186,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setTimeZone(String timeZoneId) {
+    public ReceiptBuilderFactory setTimeZone(@Nullable String timeZoneId) {
         if (timeZoneId != null) {
             _timezone = TimeZone.getTimeZone(timeZoneId);
         }

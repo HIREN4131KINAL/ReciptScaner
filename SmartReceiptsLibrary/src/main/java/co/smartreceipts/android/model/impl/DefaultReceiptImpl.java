@@ -3,6 +3,7 @@ package co.smartreceipts.android.model.impl;
 import android.content.Context;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -93,11 +94,13 @@ public final class DefaultReceiptImpl implements Receipt {
         return mId;
     }
 
+    @NonNull
     @Override
     public Trip getTrip() {
         return mTrip;
     }
 
+    @Nullable
     @Override
     public PaymentMethod getPaymentMethod() {
         return mPaymentMethod;
@@ -108,8 +111,8 @@ public final class DefaultReceiptImpl implements Receipt {
         return mPaymentMethod != null;
     }
 
-    @Override
     @NonNull
+    @Override
     public String getName() {
         return mName;
     }
@@ -149,8 +152,9 @@ public final class DefaultReceiptImpl implements Receipt {
         }
     }
 
+    @NonNull
     @Override
-    public String getMarkerAsString(Context context) {
+    public String getMarkerAsString(@NonNull Context context) {
         if (context == null) {
             return "";
         } else if (hasImage()) {
@@ -162,21 +166,25 @@ public final class DefaultReceiptImpl implements Receipt {
         }
     }
 
+    @Nullable
     @Override
     public File getImage() {
         return mFile;
     }
 
+    @Nullable
     @Override
     public File getPDF() {
         return mFile;
     }
 
+    @Nullable
     @Override
     public File getFile() {
         return mFile;
     }
 
+    @NonNull
     @Override
     public String getFilePath() {
         if (hasFile()) {
@@ -186,6 +194,7 @@ public final class DefaultReceiptImpl implements Receipt {
         }
     }
 
+    @NonNull
     @Override
     public String getFileName() {
         if (hasFile()) {
@@ -200,19 +209,30 @@ public final class DefaultReceiptImpl implements Receipt {
         mFile = file;
     }
 
+    @NonNull
     @Override
     public Source getSource() {
         return mSource;
     }
 
+    @NonNull
     @Override
     public String getCategory() {
-        return mCategory;
+        if (mCategory != null) {
+            return mCategory;
+        } else {
+            return "";
+        }
     }
 
+    @NonNull
     @Override
     public String getComment() {
-        return mComment;
+        if (mComment != null) {
+            return mComment;
+        } else {
+            return "";
+        }
     }
 
     @NonNull
@@ -221,24 +241,28 @@ public final class DefaultReceiptImpl implements Receipt {
         return mPrice;
     }
 
+    @NonNull
     @Override
     public Price getTax() {
         return mTax;
     }
 
+    @NonNull
     @Override
     public Date getDate() {
         return mDate;
     }
 
+    @NonNull
     @Override
-    public String getFormattedDate(Context context, String separator) {
+    public String getFormattedDate(@NonNull Context context, @NonNull String separator) {
         return ModelUtils.getFormattedDate(mDate, (mTimeZone != null) ? mTimeZone : TimeZone.getDefault(), context, separator);
     }
 
+    @NonNull
     @Override
     public TimeZone getTimeZone() {
-        return mTimeZone;
+        return (mTimeZone != null) ? mTimeZone : TimeZone.getDefault();
     }
 
     @Override
@@ -261,6 +285,7 @@ public final class DefaultReceiptImpl implements Receipt {
         return mIndex;
     }
 
+    @Nullable
     @Override
     public String getExtraEditText1() {
         if (DatabaseHelper.NO_DATA.equals(mExtraEditText1)) {
@@ -271,6 +296,7 @@ public final class DefaultReceiptImpl implements Receipt {
         }
     }
 
+    @Nullable
     @Override
     public String getExtraEditText2() {
         if (DatabaseHelper.NO_DATA.equals(mExtraEditText2)) {
@@ -281,6 +307,7 @@ public final class DefaultReceiptImpl implements Receipt {
         }
     }
 
+    @Nullable
     @Override
     public String getExtraEditText3() {
         if (DatabaseHelper.NO_DATA.equals(mExtraEditText3)) {

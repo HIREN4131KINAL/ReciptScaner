@@ -1,0 +1,47 @@
+apply plugin: 'com.android.application'
+// apply plugin: 'robolectric'
+
+dependencies {
+    compile project(':smartReceiptsLibrary')
+    androidTestCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
+    androidTestCompile "junit:junit:$JUNIT_VERSION"
+    androidTestCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
+}
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    sourceSets {
+        // Move the tests to src/test/java, src/test/res, etc...
+
+        /* TODO: Commenting out until I fix Robolectric
+        androidTest {
+            setRoot('src/test')
+        }
+        */
+
+        // Move the build types to build-types/<type>
+        // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
+        // This moves them out of them default location under src/<type>/... which would
+        // conflict with src/ being used by the main source set.
+        // Adding new build types or product flavors should be accompanied
+        // by a similar customization.
+        debug {
+            setRoot('build-types/debug')
+        }
+        release {
+            setRoot('build-types/release')
+        }
+    }
+}

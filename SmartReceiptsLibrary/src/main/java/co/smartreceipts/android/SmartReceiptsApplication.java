@@ -3,7 +3,15 @@ package co.smartreceipts.android;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.List;
 
+import co.smartreceipts.android.config.ConfigurationManager;
+import co.smartreceipts.android.config.DefaultConfigurationManager;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
+import co.smartreceipts.android.purchases.SubscriptionCache;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
@@ -17,9 +25,6 @@ import android.content.res.Resources;
 import android.util.Log;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.fragments.Settings;
-import co.smartreceipts.android.model.CSVColumns;
-import co.smartreceipts.android.model.Columns;
-import co.smartreceipts.android.model.PDFColumns;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -42,6 +47,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	private Flex mFlex;
 	private Activity mCurrentActivity;
 	private Settings mSettings;
+	private ConfigurationManager mConfigurationManager;
 	private boolean mDeferFirstRunDialog;
 
 	/**
@@ -57,13 +63,16 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		sApplication = this;
 		mDeferFirstRunDialog = false;
 		mFlex = instantiateFlex();
+		mConfigurationManager = instantiateConfigurationManager();
 		mWorkerManager = instantiateWorkerManager();
 		mPersistenceManager = instantiatePersistenceManager();
+        mPersistenceManager.initDatabase(); // TODO: Fix anti-pattern
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
 																				// in onVersionUpgrade
 	}
 
-	public static final SmartReceiptsApplication getInstance() {
+    @Deprecated
+	public static SmartReceiptsApplication getInstance() {
 		return sApplication;
 	}
 
@@ -142,11 +151,16 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return mFlex;
 	}
 
+	@Deprecated
 	public Settings getSettings() {
 		if (mSettings == null) {
 			mSettings = instantiateSettings();
 		}
 		return mSettings;
+	}
+
+	public ConfigurationManager getConfigurationManager() {
+		return mConfigurationManager;
 	}
 
 	@Override
@@ -253,27 +267,22 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	@Override
 	public void insertCSVDefaults(final DatabaseHelper db) { // Called in onCreate and onUpgrade
-		@SuppressWarnings("unused")
-		CSVColumns csv = new CSVColumns(getApplicationContext(), this);
-		// TODO: Make this not so hacky and use really OOP
-		db.insertCSVColumnNoCache(CSVColumns.CATEGORY_CODE(mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.NAME(getApplicationContext(), mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.PRICE(getApplicationContext(), mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.CURRENCY(getApplicationContext(), mFlex));
-		db.insertCSVColumnNoCache(CSVColumns.DATE(getApplicationContext(), mFlex));
+        final ReceiptColumnDefinitions receiptColumnDefinitions = new ReceiptColumnDefinitions(this, db, getPersistenceManager().getPreferences(), getFlex());
+        final List<Column<Receipt>> columns = receiptColumnDefinitions.getCsvDefaults();
+        final int size = columns.size();
+        for (int i = 0; i < size; i++) {
+            db.insertCSVColumnNoCache(columns.get(i).getName());
+        }
 	}
 
 	@Override
 	public void insertPDFDefaults(DatabaseHelper db) {
-		@SuppressWarnings("unused")
-		PDFColumns pdf = new PDFColumns(getApplicationContext(), this);
-		// TODO: Make this not so hacky and use really OOP
-		db.insertPDFColumnNoCache(Columns.ColumnName.NAME);
-		db.insertPDFColumnNoCache(Columns.ColumnName.PRICE);
-		db.insertPDFColumnNoCache(Columns.ColumnName.DATE);
-		db.insertPDFColumnNoCache(Columns.ColumnName.CATEGORY_NAME);
-		db.insertPDFColumnNoCache(Columns.ColumnName.EXPENSABLE);
-		db.insertPDFColumnNoCache(Columns.ColumnName.PICTURED);
+        final ReceiptColumnDefinitions receiptColumnDefinitions = new ReceiptColumnDefinitions(this, db, getPersistenceManager().getPreferences(), getFlex());
+        final List<Column<Receipt>> columns = receiptColumnDefinitions.getPdfDefaults();
+        final int size = columns.size();
+        for (int i = 0; i < size; i++) {
+            db.insertPDFColumnNoCache(columns.get(i).getName());
+        }
 	}
 
 	/**
@@ -291,7 +300,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	 * @return a PersistenceManager Instance
 	 */
 	protected PersistenceManager instantiatePersistenceManager() {
-		return new PersistenceManager(this);
+		return new PersistenceManager(this, instantiateSubscriptionCache());
 	}
 
 	/**
@@ -312,8 +321,22 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return new Settings(this);
 	}
 
-	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
-		return SmartReceiptsActivity.class;
+    /**
+     * Protected method to enable subclasses to create custom instances
+     *
+     * @return a SubscriptionCache Instance
+     */
+    protected SubscriptionCache instantiateSubscriptionCache() {
+        return new DefaultSubscriptionCache(this);
+    }
+
+	/**
+	 * Protected method to enable subclasses to create custom instances
+	 *
+	 * @return a ConfigurationManager Instance
+	 */
+	protected ConfigurationManager instantiateConfigurationManager() {
+		return new DefaultConfigurationManager(this);
 	}
 
 	@Override

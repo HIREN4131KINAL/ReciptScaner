@@ -25,7 +25,7 @@ public class Events {
 
 	public static final void sendEvent(Fragment fragment, String category, String action) {
 		if (fragment != null) {
-			Events.sendEvent(fragment.getActivity(), action, category);
+			Events.sendEvent(fragment.getActivity(), category, action);
 		}
 	}
 }

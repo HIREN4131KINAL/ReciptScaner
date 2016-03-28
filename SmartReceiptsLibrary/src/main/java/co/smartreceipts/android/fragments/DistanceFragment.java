@@ -2,6 +2,8 @@ package co.smartreceipts.android.fragments;
 
 import android.database.SQLException;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import co.smartreceipts.android.R;
@@ -20,6 +23,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
+import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
@@ -43,48 +47,62 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-        getPersistenceManager().getDatabase().registerDistanceRowListener(this);
+        Log.d(TAG, "onCreate");
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        if (savedInstanceState ==  null) {
+            getWorkerManager().getLogger().logEvent(this, "Edit_Mileage");
+        }
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.simple_card_list, container, false);
+        Log.d(TAG, "onCreateView");
+        final View view = inflater.inflate(R.layout.report_distance_list, container, false);
         mProgressDialog = view.findViewById(R.id.progress);
         mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
         mNoDataAlert.setText(R.string.distance_no_data);
+        view.findViewById(R.id.distance_action_new).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getWorkerManager().getLogger().logEvent(DistanceFragment.this, "Add_Mileage");
+                final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
+                dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
+            }
+        });
         return view;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "onActivityCreated");
         setListAdapter(mAdapter);
     }
-
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume");
+        getPersistenceManager().getDatabase().registerDistanceRowListener(this);
         getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.distance_action_new) {
-            final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
-            dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
-            return true;
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            // Refresh as soon as we're visible
+            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_distance, menu);
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        getPersistenceManager().getDatabase().unregisterDistanceRowListener();
     }
 
     @Override
@@ -108,8 +126,19 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
-            final Price total = new PriceBuilderFactory().setPriceables(distances).build();
-            getSupportActionBar().setSubtitle(getString(R.string.total_item, total.getCurrencyFormattedPrice()));
+            final ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null && getUserVisibleHint()) {
+                if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {
+                    final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
+                    getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
+                } else {
+                    BigDecimal distanceTotal = new BigDecimal(0);
+                    for (final Distance distance : distances) {
+                        distanceTotal = distanceTotal.add(distance.getDistance());
+                    }
+                    getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, ModelUtils.getDecimalFormattedValue(distanceTotal)));
+                }
+            }
             // Fetch trips in the background to ensure this info is up to date
             getPersistenceManager().getDatabase().getTripsParallel();
         }

@@ -21,28 +21,28 @@ public class WorkerManager {
 		mAdManager = null;
 	}
 	
-	public Logger getLogger() {
+	public final Logger getLogger() {
 		if (mLogger == null) {
 			mLogger = instantiateLogger();
 		}
 		return mLogger;
 	}
 	
-	public ImageGalleryWorker getImageGalleryWorker() {
+	public final ImageGalleryWorker getImageGalleryWorker() {
 		if (mImageGalleryWorker == null) {
 			mImageGalleryWorker = instantiateImageGalleryWorker();
 		}
 		return mImageGalleryWorker;
 	}
 	
-	public AdManager getAdManager() {
+	public final AdManager getAdManager() {
 		if (mAdManager == null) {
 			mAdManager = instantiateAdManager();
 		}
 		return mAdManager;
 	}
 	
-	public Context getContext() {
+	public final SmartReceiptsApplication getApplication() {
 		return mApplication;
 	}
 	

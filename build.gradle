@@ -5,7 +5,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.+'
+        classpath 'com.android.tools.build:gradle:1.1.0'
         classpath 'org.robolectric:robolectric-gradle-plugin:0.13.+'
     }
 }
@@ -17,6 +17,15 @@ allprojects {
     }
 }
 
+ext {
+    minSdkVersion = 15
+    targetSdkVersion = 23
+    compileSdkVersion = 23
+    buildToolsVersion = "23.0.2"
+
+    versionCode = 159
+}
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.1' // Gradle wrapper script
+    gradleVersion = '2.2' // Gradle wrapper script
 }

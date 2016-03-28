@@ -1,7 +1,12 @@
 package co.smartreceipts.android.fragments.preferences;
 
+import android.support.v7.app.ActionBar;
+
+import java.util.List;
+
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.Columns;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Receipt;
 
 public class CSVColumnsListFragment extends ColumnsListFragment {
 
@@ -14,11 +19,14 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		getSupportActionBar().setTitle(R.string.menu_main_csv);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.menu_main_csv);
+        }
 	}
 
 	@Override
-	public Columns getColumns() {
+	public List<Column<Receipt>> getColumns() {
 		return getPersistenceManager().getDatabase().getCSVColumns();
 	}
 
@@ -33,8 +41,8 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 	}
 
 	@Override
-	public void updateColumn(int arrayListIndex, int optionIndex) {
-		getPersistenceManager().getDatabase().updateCSVColumn(arrayListIndex, optionIndex);
+	public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
+		getPersistenceManager().getDatabase().updateCSVColumn(oldColumn, newColumn);
 	}
 
 }

@@ -5,10 +5,4 @@
           android:icon="@drawable/ic_action_new"
           android:title="@string/trip_action_new"
           app:showAsAction="always|withText" />
-    <item android:id="@+id/menu_main_settings"
-        android:title="@string/menu_main_settings"
-        app:showAsAction="never" />
-    <item android:id="@+id/menu_main_export"
-        android:title="@string/menu_main_export"
-        app:showAsAction="never" />
 </menu>

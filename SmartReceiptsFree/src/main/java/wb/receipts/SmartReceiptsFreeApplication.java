@@ -37,11 +37,6 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication {
 	}
 
 	@Override
-	public Class<? extends SmartReceiptsActivity> getTopLevelActivity() {
-		return SmartReceiptsFreeActivity.class;
-	}
-
-	@Override
 	protected WorkerManager instantiateWorkerManager() {
 		return new SRFreeWorkerManager(this);
 	}

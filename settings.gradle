@@ -1,6 +1,5 @@
 include ':smartReceiptsFree'
-include ':mupdf'
+include ':smartReceiptsPRO'
 include ':wbMiniLibrary'
 include ':androidCamera'
-include ':SmartReceiptsPRO'
 include ':smartReceiptsLibrary'

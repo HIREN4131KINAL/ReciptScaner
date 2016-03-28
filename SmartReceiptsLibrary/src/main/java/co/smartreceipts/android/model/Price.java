@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 
 import java.math.BigDecimal;
 
+import co.smartreceipts.android.model.gson.ExchangeRate;
+
 /**
  * Defines a contract from which we can track the price value
  */
@@ -66,4 +68,13 @@ public interface Price extends Parcelable {
      */
     @NonNull
     String getCurrencyCode();
+
+    /**
+     * Gets the exchange rate associated with this particular price object, which we can use to attempt to convert this
+     * price from one currency to another
+     *
+     * @return the {@link co.smartreceipts.android.model.gson.ExchangeRate}
+     */
+    @NonNull
+    ExchangeRate getExchangeRate();
 }

@@ -31,6 +31,9 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.sql.Date;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
@@ -98,6 +101,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private ArrayAdapter<CharSequence> mCurrenciesAdapter;
     private ArrayAdapter<CharSequence> mCategoriesAdpater;
     private ArrayAdapter<PaymentMethod> mPaymentMethodsAdapter;
+    private ExecutorService mExecutorService;
 
     /**
      * Creates a new instance of this fragment for a new receipt
@@ -144,6 +148,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
         mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
         setHasOptionsMenu(true);
+
+        if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+            mExecutorService = Executors.newSingleThreadExecutor();
+        }
     }
 
     @Nullable
@@ -408,11 +416,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         final String title;
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
-                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
-            } else {
-                title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
-            }
+            title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
         } else {
             if (getPersistenceManager().getPreferences().isShowReceiptID()) {
                 title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
@@ -428,6 +432,26 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             actionBar.setHomeAsUpIndicator(R.drawable.ic_action_cancel);
             actionBar.setTitle(title);
             actionBar.setSubtitle("");
+        }
+
+        if (isNewReceipt && getPersistenceManager().getPreferences().isShowReceiptID() && mExecutorService != null) {
+            // To prevent any ANRs due to this DB action in onResume()
+            mExecutorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    final String titleWithId = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial());
+                    if (isAdded()) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isAdded() && actionBar != null) {
+                                    actionBar.setTitle(titleWithId);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
         }
 
         if (isNewReceipt) {
@@ -488,6 +512,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
         }
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+        }
+        super.onDestroy();
     }
 
     @Override

@@ -30,7 +30,7 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
         this(columns, null, printHeaders, printFooters);
     }
 
-    public CsvTableGenerator(@NonNull List<Column<DataType>> columns, Filter<DataType> filter, boolean printHeaders, boolean printFooters) {
+    public CsvTableGenerator(@NonNull List<Column<DataType>> columns, @Nullable Filter<DataType> filter, boolean printHeaders, boolean printFooters) {
         mColumns = columns;
         mFilter = filter;
         mPrintHeaders = printHeaders;
@@ -48,7 +48,6 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
             if (mPrintHeaders) {
                 for (int i = 0; i < columnCount; i++) {
                     addCell(csvBuilder, mColumns.get(i).getHeader());
-                    csvBuilder.append(",");
                 }
                 csvBuilder.append("\n");
             }
@@ -70,8 +69,8 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
             if (mPrintFooters) {
                 for (int i = 0; i < columnCount; i++) {
                     addCell(csvBuilder, mColumns.get(i).getFooter(filteredList));
-                    csvBuilder.append("\n");
                 }
+                csvBuilder.append("\n");
             }
             return csvBuilder.toString();
         } else {

@@ -11,6 +11,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -40,8 +41,15 @@ public class Attachment {
 				mIsValid = true;
 			}
 			else if (Intent.ACTION_SEND.equals(mAction) && intent.getExtras() != null) {
-				mUri = resolveUri((Uri) intent.getExtras().get(Intent.EXTRA_STREAM), resolver, MediaStore.Images.ImageColumns.DATA);
-				mExtension = (mUri != null) ? mUri.toString().substring(mUri.toString().lastIndexOf(".") + 1) : "";
+				final Uri extraStreamUri = (Uri) intent.getExtras().get(Intent.EXTRA_STREAM);
+				final Uri resolvedUri = resolveUri(extraStreamUri, resolver, MediaStore.Images.ImageColumns.DATA);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+					// For M, just use the "content://" one instead of the "file://"
+					mUri = extraStreamUri;
+				} else {
+					mUri = resolvedUri;
+				}
+				mExtension = (resolvedUri != null) ? resolvedUri.toString().substring(resolvedUri.toString().lastIndexOf(".") + 1) : "";
 				mIsValid = true;
 			}
 			else {

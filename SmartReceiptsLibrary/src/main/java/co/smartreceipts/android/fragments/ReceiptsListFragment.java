@@ -609,18 +609,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void moveOrCopy(final Receipt receipt) {
         final DatabaseHelper db = getPersistenceManager().getDatabase();
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        final LinearLayout outerLayout = new LinearLayout(getActivity());
-        outerLayout.setOrientation(LinearLayout.VERTICAL);
-        outerLayout.setGravity(Gravity.BOTTOM);
-        outerLayout.setPadding(10, 0, 10, 10);
-        final Spinner tripsSpinner = new Spinner(getActivity());
+        final View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.move_copy_dialog, null);
+        final Spinner tripsSpinner = (Spinner) dialogView.findViewById(R.id.move_copy_spinner);
         List<CharSequence> trips = db.getTripNames(mCurrentTrip);
         final ArrayAdapter<CharSequence> tripNames = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, trips);
         tripNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         tripsSpinner.setAdapter(tripNames);
         tripsSpinner.setPrompt(getString(R.string.report));
-        outerLayout.addView(tripsSpinner, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        builder.setTitle(getString(R.string.move_copy_item, receipt.getName())).setView(outerLayout).setCancelable(true).setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
+        builder.setTitle(getString(R.string.move_copy_item, receipt.getName())).setView(dialogView).setCancelable(true).setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 if (tripsSpinner.getSelectedItem() != null) {

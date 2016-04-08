@@ -56,11 +56,11 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
             final List<DataType> filteredList = new ArrayList<DataType>(list.size());
             for (int j = 0; j < list.size(); j++) {
                 final DataType data = list.get(j);
-                for (int i = 0; i < columnCount; i++) {
-                    if (mFilter != null && mFilter.accept(data)) {
+                if (mFilter == null || mFilter.accept(data)) {
+                    for (int i = 0; i < columnCount; i++) {
                         addCell(csvBuilder, mColumns.get(i).getValue(data));
-                        filteredList.add(data);
                     }
+                    filteredList.add(data);
                 }
                 csvBuilder.append("\n");
             }

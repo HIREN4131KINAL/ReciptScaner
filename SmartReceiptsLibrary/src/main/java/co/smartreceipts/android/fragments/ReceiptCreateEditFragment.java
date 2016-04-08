@@ -703,10 +703,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         @Override
         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-            if (sNameBox != null && TextUtils.isEmpty(sNameBox.getText())) {
+            if (sNameBox != null) {
                 sNameBox.setText(sCategories.getItem(position));
             }
-            if (sCommentBox != null && TextUtils.isEmpty(sCommentBox.getText())) {
+            if (sCommentBox != null) {
                 sCommentBox.setText(sCategories.getItem(position));
             }
         }

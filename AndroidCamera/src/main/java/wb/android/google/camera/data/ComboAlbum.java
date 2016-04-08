@@ -42,16 +42,18 @@ public class ComboAlbum extends MediaSet implements ContentListener {
     public ArrayList<MediaItem> getMediaItem(int start, int count) {
         ArrayList<MediaItem> items = new ArrayList<MediaItem>();
         for (MediaSet set : mSets) {
-            int size = set.getMediaItemCount();
-            if (count < 1) break;
-            if (start < size) {
-                int fetchCount = (start + count <= size) ? count : size - start;
-                ArrayList<MediaItem> fetchItems = set.getMediaItem(start, fetchCount);
-                items.addAll(fetchItems);
-                count -= fetchItems.size();
-                start = 0;
-            } else {
-                start -= size;
+            if (set != null) {
+                int size = set.getMediaItemCount();
+                if (count < 1) break;
+                if (start < size) {
+                    int fetchCount = (start + count <= size) ? count : size - start;
+                    ArrayList<MediaItem> fetchItems = set.getMediaItem(start, fetchCount);
+                    items.addAll(fetchItems);
+                    count -= fetchItems.size();
+                    start = 0;
+                } else {
+                    start -= size;
+                }
             }
         }
         return items;

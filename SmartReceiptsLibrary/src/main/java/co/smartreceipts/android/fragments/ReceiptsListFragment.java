@@ -380,10 +380,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     private void importReceipt() {
         final Intent intent;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-        } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        } else {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
         }
         intent.setType("image/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);

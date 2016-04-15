@@ -602,7 +602,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
-                            Log.w(TAG, "User already started typing... Ignorning exchange rate result");
+                            Log.w(TAG, "User already started typing... Ignoring exchange rate result");
                         }
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
@@ -619,6 +619,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };
+            mExchangeRateServiceManager.g
             mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, baseCurrencyCode, exchangeRateCurrencyCode, mLastExchangeRateFetchCallback);
         } else {
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);

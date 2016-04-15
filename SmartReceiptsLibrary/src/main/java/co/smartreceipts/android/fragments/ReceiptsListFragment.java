@@ -194,7 +194,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onPause() {
         Log.d(TAG, "onPause");
         mFloatingActionMenu.close(false);
-        getPersistenceManager().getDatabase().unregisterReceiptRowListener();
+        getPersistenceManager().getDatabase().unregisterReceiptRowListener(this);
         super.onPause();
     }
 
@@ -207,7 +207,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
-        getPersistenceManager().getDatabase().unregisterReceiptRowListener();
+        getPersistenceManager().getDatabase().unregisterReceiptRowListener(this);
         super.onDestroy();
     }
 

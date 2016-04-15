@@ -33,12 +33,6 @@ public class ReceiptsFragment extends WBListFragment {
         super.onResume();
     }
 
-    @Override
-    public void onPause() {
-        getPersistenceManager().getDatabase().unregisterReceiptRowListener();
-        super.onPause();
-    }
-
     protected void updateActionBarTitle(boolean updateSubtitle) {
         if (mCurrentTrip == null) {
             return;

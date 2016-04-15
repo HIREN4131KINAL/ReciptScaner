@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -99,8 +100,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     private final TableDefaultsCustomizer mCustomizations;
 
     // Listeners
+    private final CopyOnWriteArrayList<ReceiptRowListener> mReceiptRowListeners = new CopyOnWriteArrayList<>();
     private TripRowListener mTripRowListener;
-    private ReceiptRowListener mReceiptRowListener;
     private ReceiptAutoCompleteListener mReceiptAutoCompleteListener;
     private DistanceRowListener mDistanceRowListener;
     private ReceiptRowGraphListener mReceiptRowGraphListener;
@@ -1744,11 +1745,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     //	ReceiptRow Methods
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     public void registerReceiptRowListener(ReceiptRowListener listener) {
-        mReceiptRowListener = listener;
+        mReceiptRowListeners.add(listener);
     }
 
-    public void unregisterReceiptRowListener() {
-        mReceiptRowListener = null;
+    public void unregisterReceiptRowListener(ReceiptRowListener listener) {
+        mReceiptRowListeners.remove(listener);
     }
 
     public List<Receipt> getReceiptsSerial(final Trip trip) {
@@ -1765,16 +1766,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public void getReceiptsParallel(final Trip trip) {
-        if (mReceiptRowListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowListener was registered.");
-            }
+        if (mReceiptRowListeners.isEmpty()) {
+            Log.d(TAG, "No ReceiptRowListener was registered.");
         }
         synchronized (mReceiptCacheLock) {
-            if (mReceiptCache.containsKey(trip)) { // only cache the default way (otherwise we get into issues with asc
-                // v desc)
-                if (mReceiptRowListener != null) {
-                    mReceiptRowListener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
+            if (mReceiptCache.containsKey(trip)) { // only cache the default way (otherwise we get into issues with asc v desc)
+                for (final ReceiptRowListener listener : mReceiptRowListeners) {
+                    listener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
                 }
                 return;
             }
@@ -1789,16 +1787,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @param silence - silences the result (so no listeners will be alerted)
      */
     public void getReceiptsParallel(final Trip trip, boolean silence) {
-        if (mReceiptRowListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowListener was registered.");
-            }
+        if (mReceiptRowListeners.isEmpty()) {
+            Log.d(TAG, "No ReceiptRowListener was registered.");
         }
         synchronized (mReceiptCacheLock) {
             if (mReceiptCache.containsKey(trip)) { // only cache the default way (otherwise we get into issues with asc
                 // v desc)
-                if (mReceiptRowListener != null) {
-                    mReceiptRowListener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
+                for (final ReceiptRowListener listener : mReceiptRowListeners) {
+                    listener.onReceiptRowsQuerySuccess(mReceiptCache.get(trip));
                 }
                 return;
             }
@@ -1932,8 +1928,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(List<Receipt> result) {
-            if (mReceiptRowListener != null && !mSilence) {
-                mReceiptRowListener.onReceiptRowsQuerySuccess(result);
+            if (!mSilence) {
+                for (final ReceiptRowListener listener : mReceiptRowListeners) {
+                    listener.onReceiptRowsQuerySuccess(result);
+                }
             }
         }
 
@@ -2037,7 +2035,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public void insertReceiptParallel(@NonNull Receipt receipt) {
-        if (mReceiptRowListener == null) {
+        if (mReceiptRowListeners.isEmpty()) {
             Log.e(TAG, "No ReceiptRowListener was registered.");
         }
         new InsertReceiptWorker(receipt).execute();
@@ -2152,11 +2150,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(Receipt result) {
-            if (mReceiptRowListener != null) {
+            for (final ReceiptRowListener listener : mReceiptRowListeners) {
                 if (result != null) {
-                    mReceiptRowListener.onReceiptRowInsertSuccess(result);
+                    listener.onReceiptRowInsertSuccess(result);
                 } else {
-                    mReceiptRowListener.onReceiptRowInsertFailure(mException);
+                    listener.onReceiptRowInsertFailure(mException);
                 }
             }
         }
@@ -2168,7 +2166,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     public void updateReceiptParallel(@NonNull Receipt oldReceipt, @NonNull Receipt updatedReceipt) {
 
-        if (mReceiptRowListener == null) {
+        if (mReceiptRowListeners.isEmpty()) {
             Log.w(TAG, "No ReceiptRowListener was registered.");
         }
         new UpdateReceiptWorker(oldReceipt, updatedReceipt).execute();
@@ -2257,11 +2255,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(Receipt result) {
-            if (mReceiptRowListener != null) {
+            for (final ReceiptRowListener listener : mReceiptRowListeners) {
                 if (result != null) {
-                    mReceiptRowListener.onReceiptRowUpdateSuccess(result);
+                    listener.onReceiptRowUpdateSuccess(result);
                 } else {
-                    mReceiptRowListener.onReceiptRowUpdateFailure();
+                    listener.onReceiptRowUpdateFailure();
                 }
             }
         }
@@ -2299,7 +2297,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public void copyReceiptParallel(Receipt receipt, Trip newTrip) {
-        if (mReceiptRowListener == null) {
+        if (mReceiptRowListeners.isEmpty()) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "No ReceiptRowListener was registered.");
             }
@@ -2358,11 +2356,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(Boolean result) {
-            if (mReceiptRowListener != null) {
+            for (final ReceiptRowListener listener : mReceiptRowListeners) {
                 if (result) {
-                    mReceiptRowListener.onReceiptCopySuccess(mTrip);
+                    listener.onReceiptCopySuccess(mTrip);
                 } else {
-                    mReceiptRowListener.onReceiptCopyFailure();
+                    listener.onReceiptCopyFailure();
                 }
             }
         }
@@ -2374,7 +2372,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public void moveReceiptParallel(Receipt receipt, Trip currentTrip, Trip newTrip) {
-        if (mReceiptRowListener == null) {
+        if (mReceiptRowListeners.isEmpty()) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "No ReceiptRowListener was registered.");
             }
@@ -2413,11 +2411,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(Boolean result) {
-            if (mReceiptRowListener != null) {
+            for (final ReceiptRowListener listener : mReceiptRowListeners) {
                 if (result) {
-                    mReceiptRowListener.onReceiptMoveSuccess(mNewTrip);
+                    listener.onReceiptMoveSuccess(mNewTrip);
                 } else {
-                    mReceiptRowListener.onReceiptMoveFailure();
+                    listener.onReceiptMoveFailure();
                 }
             }
         }
@@ -2429,10 +2427,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     public void deleteReceiptParallel(Receipt receipt, Trip currentTrip) {
-        if (mReceiptRowListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowListener was registered.");
-            }
+        if (mReceiptRowListeners.isEmpty()) {
+            Log.d(TAG, "No ReceiptRowListener was registered.");
         }
         (new DeleteReceiptWorker(receipt, currentTrip)).execute(new Void[0]);
     }
@@ -2474,11 +2470,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         @Override
         protected void onPostExecute(Boolean result) {
-            if (mReceiptRowListener != null) {
+            for (final ReceiptRowListener listener : mReceiptRowListeners) {
                 if (result) {
-                    mReceiptRowListener.onReceiptDeleteSuccess(mReceipt);
+                    listener.onReceiptDeleteSuccess(mReceipt);
                 } else {
-                    mReceiptRowListener.onReceiptDeleteFailure();
+                    listener.onReceiptDeleteFailure();
                 }
             }
         }

@@ -3427,7 +3427,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final int exchangeRateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXCHANGE_RATE);
                         do {
                             final String oldPath = getString(c, pathIndex, "");
-                            String newPath = new String(oldPath);
+                            String newPath = oldPath != null ? oldPath : "";
                             if (newPath.contains("wb.receipts")) { // Backwards compatibility stuff
                                 if (packageName.equalsIgnoreCase("wb.receipts")) {
                                     newPath = oldPath.replace("wb.receiptspro/", "wb.receipts/");
@@ -3439,7 +3439,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             }
                             final String name = getString(c, nameIndex, "");
                             final String oldParent = getString(c, parentIndex, "");
-                            String newParent = new String(oldParent);
+                            String newParent = oldParent != null ? oldParent : "";
                             if (newParent.contains("wb.receipts")) { // Backwards compatibility stuff
                                 if (packageName.equalsIgnoreCase("wb.receipts")) {
                                     newParent = oldParent.replace("wb.receiptspro/", "wb.receipts/");

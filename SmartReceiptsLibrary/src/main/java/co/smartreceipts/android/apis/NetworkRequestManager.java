@@ -9,8 +9,8 @@ import android.support.v4.app.FragmentManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import retrofit.RestAdapter;
-import retrofit.converter.GsonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Safely holds a desired retrofit service in order that it will persist across configuration changes (so long as the parent activity
@@ -28,7 +28,7 @@ public class NetworkRequestManager<T> {
             headlessFragment = new RetrofitHeadlessFragment();
             fragmentManager.beginTransaction().add(headlessFragment, RetrofitHeadlessFragment.TAG).commit();
             final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-            final RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setConverter(new GsonConverter(gson)).setEndpoint(endpoint).build();
+            final Retrofit restAdapter = new Retrofit.Builder().baseUrl(endpoint).addConverterFactory(GsonConverterFactory.create(gson)).build();
             headlessFragment.mServiceClass = restAdapter.create(serviceClass);
         }
         mHeadlessFragment = headlessFragment;

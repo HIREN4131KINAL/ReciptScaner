@@ -61,8 +61,8 @@ import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
 import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Call;
+import retrofit2.Response;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -636,7 +636,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             }
             mLastExchangeRateFetchCallback = new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
                 @Override
-                public void success(EditText editText, ExchangeRate exchangeRate, Response response) {
+                public void success(EditText editText, Call<ExchangeRate> call, Response<ExchangeRate> response) {
+                    final ExchangeRate exchangeRate = response.body();
                     if (exchangeRate != null && exchangeRate.supportsExchangeRateFor(exchangeRateCurrencyCode)) {
                         getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateSuccess);
                         if (TextUtils.isEmpty(editText.getText())) {
@@ -653,8 +654,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
 
                 @Override
-                public void failure(EditText editText, RetrofitError error) {
-                    Log.e(TAG, "" + error);
+                public void failure(EditText editText, Call<ExchangeRate> call, Throwable th) {
+                    Log.e(TAG, "" + th);
                     getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailed);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }

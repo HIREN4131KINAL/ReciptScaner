@@ -15,7 +15,9 @@ dependencies {
     compile "com.google.android.gms:play-services-drive:$GOOGLE_PLAY_SERVICES_VERSION"
     
     compile "com.squareup.picasso:picasso:$PICASSO_VERSION"
-    compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
+    compile "com.squareup.okhttp3:okhttp:$OK_HTTP_VERSION"
+    compile "com.squareup.retrofit2:retrofit:$RETROFIT_VERSION"
+    compile "com.squareup.retrofit2:converter-gson:$RETROFIT_VERSION"
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
 

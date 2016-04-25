@@ -4,12 +4,15 @@ import android.util.Log;
 
 import com.amazonaws.auth.AWSAbstractCognitoDeveloperIdentityProvider;
 import com.amazonaws.regions.Regions;
-import com.google.gson.Gson;
 
+import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
+import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.apis.login.LoginPayload;
+import co.smartreceipts.android.apis.login.LoginResponse;
+import co.smartreceipts.android.apis.login.LoginService;
+import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Retrofit;
-
 
 public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDeveloperIdentityProvider {
 
@@ -39,33 +42,22 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
 
     @Override
     public String getIdentityId() {
-        final Retrofit restAdapter = new RetrofitFactory().get();
-        final LoginService loginService = restAdapter.create(LoginService.class);
-        final LoginPayload request = new LoginPayload(new LoginParams("login", "user", "password", null));
-        loginService.logIn(request).enqueue(new Callback<UserIdResponse>() {
+        final ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration());
+        final LoginService loginService = serviceManager.getService(LoginService.class);
+        final LoginPayload request = new LoginPayload(new SmartReceiptsUserLogin("user", "password"));
+
+        loginService.logIn(request).enqueue(new Callback<LoginResponse>() {
             @Override
-            public void onResponse(Call<UserIdResponse> call, retrofit2.Response<UserIdResponse> response) {
+            public void onResponse(Call<LoginResponse> call, retrofit2.Response<LoginResponse> response) {
                 Log.i("TAG", "WILL");
             }
 
             @Override
-            public void onFailure(Call<UserIdResponse> call, Throwable t) {
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
                 Log.i("TAG", "WILL");
             }
         });
 
-        final UserIdService userIdService = restAdapter.create(UserIdService.class);
-        userIdService.getUserId("2").enqueue(new Callback<UserIdResponse>() {
-            @Override
-            public void onResponse(Call<UserIdResponse> call, retrofit2.Response<UserIdResponse> response) {
-                Log.i("TAG", "WILL");
-            }
-
-            @Override
-            public void onFailure(Call<UserIdResponse> call, Throwable t) {
-                Log.i("TAG", "WILL");
-            }
-        });
         return "";
     }
 

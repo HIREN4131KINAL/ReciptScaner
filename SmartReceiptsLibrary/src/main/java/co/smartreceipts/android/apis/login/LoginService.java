@@ -1,7 +1,8 @@
-package co.smartreceipts.android.cognito;
+package co.smartreceipts.android.apis.login;
 
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.cognito.UserIdResponse;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
@@ -12,5 +13,5 @@ import retrofit2.http.POST;
 public interface LoginService {
 
     @POST("api/users/log_in")
-    Call<UserIdResponse> logIn(@NonNull @Body LoginPayload loginPayload);
+    Call<LoginResponse> logIn(@NonNull @Body LoginPayload loginPayload);
 }

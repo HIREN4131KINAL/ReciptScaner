@@ -1,11 +1,11 @@
-package co.smartreceipts.android.cognito;
+package co.smartreceipts.android.apis.login;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 
-public class LoginParams implements Serializable {
+class LoginParams implements Serializable {
 
     private final String type;
     private final String email;

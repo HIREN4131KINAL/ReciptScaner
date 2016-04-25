@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 
-class LoginParams implements Serializable {
+public abstract class LoginParams implements Serializable {
 
     private final String type;
     private final String email;

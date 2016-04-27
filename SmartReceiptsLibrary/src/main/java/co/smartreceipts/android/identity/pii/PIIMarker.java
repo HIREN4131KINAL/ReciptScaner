@@ -1,4 +1,4 @@
-package co.smartreceipts.android.identity;
+package co.smartreceipts.android.identity.pii;
 
 import android.support.annotation.NonNull;
 

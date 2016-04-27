@@ -1,11 +1,11 @@
-package co.smartreceipts.android.identity;
+package co.smartreceipts.android.identity.pii;
 
 import android.support.annotation.NonNull;
 
 /**
  * Allows us to manage a PII string in a safe manner
  */
-class PIIString implements PIIMarker<String> {
+public class PIIString implements PIIMarker<String> {
 
     private final String mPiiString;
 

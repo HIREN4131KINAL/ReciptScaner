@@ -2,7 +2,6 @@ package co.smartreceipts.android.apis.login;
 
 import android.support.annotation.NonNull;
 
-import co.smartreceipts.android.cognito.UserIdResponse;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;

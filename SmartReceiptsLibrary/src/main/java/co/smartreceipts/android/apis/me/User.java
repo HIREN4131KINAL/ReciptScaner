@@ -10,11 +10,11 @@ public class User {
     private final String name;
     private final String display_name;
     private final String cognito_token;
-    private final String cognito_token_expires_at;
+    private final long cognito_token_expires_at;
     private final String identity_id;
 
     public User(@Nullable String id, @Nullable String email, long created_at, @Nullable String name, @Nullable String display_name,
-                @Nullable String cognito_token, @Nullable String cognito_token_expires_at, @Nullable String identity_id) {
+                @Nullable String cognito_token, @Nullable long cognito_token_expires_at, @Nullable String identity_id) {
         this.id = id;
         this.email = email;
         this.created_at = created_at;
@@ -31,7 +31,7 @@ public class User {
     }
 
     @Nullable
-    public String getCognitoTokenExpiresAt() {
+    public long getCognitoTokenExpiresAt() {
         return cognito_token_expires_at;
     }
 }

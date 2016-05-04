@@ -1,7 +1,5 @@
 package co.smartreceipts.android.identity.pii;
 
-import android.support.annotation.NonNull;
-
 /**
  * Allows us to manage a PII string in a safe manner
  */
@@ -9,12 +7,11 @@ public class PIIString implements PIIMarker<String> {
 
     private final String mPiiString;
 
-    public PIIString(@NonNull String piiString) {
+    public PIIString(String piiString) {
         this.mPiiString = piiString;
     }
 
     @Override
-    @NonNull
     public String get() {
         return mPiiString;
     }
@@ -26,13 +23,13 @@ public class PIIString implements PIIMarker<String> {
 
         PIIString piiString = (PIIString) o;
 
-        return mPiiString.equals(piiString.mPiiString);
+        return mPiiString != null ? mPiiString.equals(piiString.mPiiString) : piiString.mPiiString == null;
 
     }
 
     @Override
     public int hashCode() {
-        return mPiiString.hashCode();
+        return mPiiString != null ? mPiiString.hashCode() : 0;
     }
 
     @Override

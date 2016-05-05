@@ -1,5 +1,7 @@
 package co.smartreceipts.android.cognito;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.amazonaws.auth.AWSAbstractCognitoDeveloperIdentityProvider;
@@ -16,9 +18,14 @@ import retrofit2.Callback;
 
 public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDeveloperIdentityProvider {
 
+    private final LocalCognitoTokenStore mLocalCognitoTokenStore;
+    private final ServiceManager mServiceManager;
 
-    public SmartReceiptsAuthenticationProvider() {
+    public SmartReceiptsAuthenticationProvider(@NonNull Context context, @NonNull ServiceManager serviceManager) {
         super(null, "us-east-1:cdcc971a-b67f-4bc0-9a12-291b5d416518", Regions.US_EAST_1);
+
+        mLocalCognitoTokenStore = new LocalCognitoTokenStore(context);
+        mServiceManager = serviceManager;
     }
 
     @Override
@@ -28,7 +35,6 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
 
     @Override
     public String refresh() {
-
 
         setToken(null);
 

@@ -31,6 +31,10 @@ public class User {
     }
 
     @Nullable
+    public String getIdentityId() {
+        return this.identity_id;
+    }
+
     public long getCognitoTokenExpiresAt() {
         return cognito_token_expires_at;
     }

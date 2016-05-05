@@ -9,15 +9,23 @@ import co.smartreceipts.android.identity.pii.PIIString;
 public class CognitoToken extends PIIString {
 
     private final long mExpirationTimestamp;
+    private final String mIdentityId;
 
     public CognitoToken(@NonNull User user) {
         super(user.getCognitoToken());
         mExpirationTimestamp = user.getCognitoTokenExpiresAt();
+        mIdentityId = user.getIdentityId();
     }
 
-    public CognitoToken(@Nullable String token, long expirationTimestamp) {
+    public CognitoToken(@Nullable String token, @Nullable String identityId, long expirationTimestamp) {
         super(token);
+        mIdentityId = identityId;
         mExpirationTimestamp = expirationTimestamp;
+    }
+
+    @Nullable
+    public String getIdentityId() {
+        return mIdentityId;
     }
 
     public long getExpirationTimestamp() {
@@ -25,7 +33,7 @@ public class CognitoToken extends PIIString {
     }
 
     public boolean isExpired() {
-        return get() == null || mExpirationTimestamp < System.currentTimeMillis();
+        return get() == null || mIdentityId == null || mExpirationTimestamp < System.currentTimeMillis();
     }
 
 }

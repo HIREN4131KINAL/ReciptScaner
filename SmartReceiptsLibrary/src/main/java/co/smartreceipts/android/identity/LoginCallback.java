@@ -5,10 +5,10 @@ public interface LoginCallback {
     /**
      * Called when a login request completes successfully
      */
-    void onSuccess();
+    void onLoginSuccess();
 
     /**
      * Called when a login request fails
      */
-    void onFailure();
+    void onLoginFailure();
 }

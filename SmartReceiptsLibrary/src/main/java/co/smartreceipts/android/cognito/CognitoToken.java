@@ -3,24 +3,27 @@ package co.smartreceipts.android.cognito;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import co.smartreceipts.android.apis.me.User;
-import co.smartreceipts.android.identity.pii.PIIString;
+import co.smartreceipts.android.apis.me.Cognito;
 
-public class CognitoToken extends PIIString {
+public class CognitoToken {
 
+    private final String mCognitoToken;
     private final long mExpirationTimestamp;
     private final String mIdentityId;
 
-    public CognitoToken(@NonNull User user) {
-        super(user.getCognitoToken());
-        mExpirationTimestamp = user.getCognitoTokenExpiresAt();
-        mIdentityId = user.getIdentityId();
+    public CognitoToken(@NonNull Cognito cognito) {
+        this(cognito.getCognitoToken(), cognito.getIdentityId(), cognito.getCognitoTokenExpiresAt());
     }
 
-    public CognitoToken(@Nullable String token, @Nullable String identityId, long expirationTimestamp) {
-        super(token);
+    public CognitoToken(@Nullable String cognitoToken, @Nullable String identityId, long expirationTimestamp) {
+        mCognitoToken = cognitoToken;
         mIdentityId = identityId;
         mExpirationTimestamp = expirationTimestamp;
+    }
+
+    @Nullable
+    public String getCognitoToken() {
+        return mCognitoToken;
     }
 
     @Nullable
@@ -33,7 +36,7 @@ public class CognitoToken extends PIIString {
     }
 
     public boolean isExpired() {
-        return get() == null || mIdentityId == null || mExpirationTimestamp < System.currentTimeMillis();
+        return mCognitoToken == null || mIdentityId == null || mExpirationTimestamp < System.currentTimeMillis();
     }
 
 }

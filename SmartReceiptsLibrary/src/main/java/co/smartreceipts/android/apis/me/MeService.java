@@ -12,5 +12,5 @@ import retrofit2.http.Query;
 public interface MeService {
 
     @GET("api/users/me")
-    Call<UserResponse> me(@NonNull @Query("auth_params[email]") String email, @NonNull @Query("auth_params[token]") String token);
+    Call<MeResponse> me(@NonNull @Query("auth_params[email]") String email, @NonNull @Query("auth_params[token]") String token);
 }

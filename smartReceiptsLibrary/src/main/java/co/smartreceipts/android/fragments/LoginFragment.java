@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,11 +17,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.apis.me.MeService;
+import co.smartreceipts.android.apis.me.MeResponse;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.LoginCallback;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginFragment extends WBFragment implements LoginCallback {
 
@@ -49,6 +56,7 @@ public class LoginFragment extends WBFragment implements LoginCallback {
         setHasOptionsMenu(true);
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mIdentityManager = getSmartReceiptsApplication().getIdentityManager();
+        mIdentityManager.registerLoginCallback(this);
     }
 
 
@@ -69,7 +77,7 @@ public class LoginFragment extends WBFragment implements LoginCallback {
             public void onClick(View view) {
                 final String email = mEmailInput.getText().toString();
                 final String password = mPasswordInput.getText().toString();
-                mIdentityManager.logIn(new SmartReceiptsUserLogin(email, password), LoginFragment.this);
+                mIdentityManager.logIn(new SmartReceiptsUserLogin(email, password));
             }
         });
 
@@ -112,7 +120,13 @@ public class LoginFragment extends WBFragment implements LoginCallback {
     }
 
     @Override
-    public void onSuccess() {
+    public void onDestroy() {
+        mIdentityManager.unregisterLoginCallback(this);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLoginSuccess() {
         mEmailInput.getHandler().post(new Runnable() {
             @Override
             public void run() {
@@ -123,7 +137,7 @@ public class LoginFragment extends WBFragment implements LoginCallback {
     }
 
     @Override
-    public void onFailure() {
+    public void onLoginFailure() {
         mEmailInput.getHandler().post(new Runnable() {
             @Override
             public void run() {

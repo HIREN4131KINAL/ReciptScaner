@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.apis.login.LoginPayload;
 import co.smartreceipts.android.apis.login.LoginResponse;
@@ -18,6 +20,7 @@ public class IdentityManager {
     private final Context mContext;
     private final ServiceManager mServiceManager;
     private final IdentityStore mIdentityStore;
+    private final CopyOnWriteArrayList<LoginCallback> mCallbacksList;
 
     public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager) {
         this(context, serviceManager, new IdentityStore(context));
@@ -27,6 +30,7 @@ public class IdentityManager {
         mContext = context.getApplicationContext();
         mServiceManager = serviceManager;
         mIdentityStore = identityStore;
+        mCallbacksList = new CopyOnWriteArrayList<>();
     }
 
     public boolean isLoggedIn() {
@@ -43,7 +47,15 @@ public class IdentityManager {
         return mIdentityStore.getToken();
     }
 
-    public void logIn(@NonNull final SmartReceiptsUserLogin login, @NonNull final LoginCallback loginCallback) {
+    public void registerLoginCallback(@NonNull LoginCallback loginCallback) {
+        mCallbacksList.add(loginCallback);
+    }
+
+    public void unregisterLoginCallback(@NonNull LoginCallback loginCallback) {
+        mCallbacksList.remove(loginCallback);
+    }
+
+    public void logIn(@NonNull final SmartReceiptsUserLogin login) {
         final LoginService loginService = mServiceManager.getService(LoginService.class);
         final LoginPayload request = new LoginPayload(login);
 
@@ -55,18 +67,26 @@ public class IdentityManager {
                     if (body.getToken() != null && login.getEmail() != null) {
                         mIdentityStore.setEmailAddress(login.getEmail());
                         mIdentityStore.setToken(body.getToken());
-                        loginCallback.onSuccess();
+                        for (LoginCallback callback : mCallbacksList) {
+                            callback.onLoginSuccess();
+                        }
                     } else {
-                        loginCallback.onFailure();
+                        for (LoginCallback callback : mCallbacksList) {
+                            callback.onLoginFailure();
+                        }
                     }
                 } else {
-                    loginCallback.onFailure();
+                    for (LoginCallback callback : mCallbacksList) {
+                        callback.onLoginFailure();
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                loginCallback.onFailure();
+                for (LoginCallback callback : mCallbacksList) {
+                    callback.onLoginFailure();
+                }
             }
         });
     }

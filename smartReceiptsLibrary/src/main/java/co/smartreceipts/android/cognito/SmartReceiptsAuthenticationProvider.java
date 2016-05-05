@@ -64,6 +64,7 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
                 final MeResponse meResponse = response.body();
                 if (meResponse.getUser() != null && meResponse.getUser().getCognito() != null) {
                     final CognitoToken cognitoToken = new CognitoToken(meResponse.getUser().getCognito());
+                    mLocalCognitoTokenStore.persist(cognitoToken);
                     // TODO: Add defensive logic here for split cases (e.g. id == null && token != null)
                     update(cognitoToken.getIdentityId(), cognitoToken.getCognitoToken());
                     return cognitoToken.getCognitoToken();
@@ -91,6 +92,7 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
                     final MeResponse meResponse = response.body();
                     if (meResponse.getUser() != null && meResponse.getUser().getCognito() != null) {
                         final CognitoToken cognitoToken = new CognitoToken(meResponse.getUser().getCognito());
+                        mLocalCognitoTokenStore.persist(cognitoToken);
                         return cognitoToken.getIdentityId();
                     } else {
                         return null;

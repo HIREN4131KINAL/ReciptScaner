@@ -31,7 +31,7 @@ public class LocalCognitoTokenStore {
 
     public void persist(@NonNull CognitoToken cognitoToken) {
         final SharedPreferences.Editor editor = mSharedPreferences.edit();
-        editor.putString(KEY_COGNITO_TOKEN, cognitoToken.get());
+        editor.putString(KEY_COGNITO_TOKEN, cognitoToken.getCognitoToken());
         editor.putString(KEY_COGNITO_IDENTITY_ID, cognitoToken.getIdentityId());
         editor.putLong(KEY_COGNITO_TOKEN_EXPIRATION, cognitoToken.getExpirationTimestamp());
         editor.apply();

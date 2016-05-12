@@ -107,8 +107,8 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onClick(View view) {
                 getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Retake_Photo");
-                final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
-                final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+                final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+                final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
                     final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));

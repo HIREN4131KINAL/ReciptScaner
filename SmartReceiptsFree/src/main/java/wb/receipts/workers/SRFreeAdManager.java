@@ -11,10 +11,13 @@ import wb.receipts.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
 import com.google.android.gms.ads.AdListener;
@@ -22,8 +25,12 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.lang.ref.WeakReference;
+import java.util.Random;
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
+
+    private static final int RANDOM_MAX = 100;
+    private static final int UPSELL_FREQUENCY = 1; // Out of 100
 
     private static final String TAG = SRFreeAdManager.class.getSimpleName();
 
@@ -32,32 +39,59 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     private static final String SHOW_AD = "pref1";
 
     private WeakReference<AdView> mAdViewReference;
+    private WeakReference<Button> mUpsellReference;
 
     public SRFreeAdManager(@NonNull WorkerManager manager) {
         super(manager);
     }
 
-    public synchronized void onActivityCreated(@NonNull Activity activity, @Nullable SubscriptionManager subscriptionManager) {
+    public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable SubscriptionManager subscriptionManager) {
         super.onActivityCreated(activity, subscriptionManager);
         final AdView adView = (AdView) activity.findViewById(R.id.adView);
+        final Button upsell = (Button) activity.findViewById(R.id.adView_upsell);
         mAdViewReference = new WeakReference<>(adView);
+        mUpsellReference = new WeakReference<>(upsell);
+
         if (adView != null) {
             if (shouldShowAds(adView)) {
-                adView.loadAd(getAdRequest());
-                adView.setAdListener(new AdListener() {
-                    @Override
-                    public void onAdFailedToLoad(int errorCode) {
-                        // If we fail to load the ad, just hide it
-                        adView.setVisibility(View.GONE);
-                    }
-                });
+                if (showUpsell()) {
+                    mWorkerManager.getLogger().logEvent(activity, "AdUpsellShown");
+                    adView.setVisibility(View.GONE);
+                    upsell.setVisibility(View.VISIBLE);
+                } else {
+                    adView.loadAd(getAdRequest());
+                    adView.setAdListener(new AdListener() {
+                        @Override
+                        public void onAdFailedToLoad(int errorCode) {
+                            // If we fail to load the ad, just hide it
+                            mWorkerManager.getLogger().logEvent(activity, "AdUpsellShownOnFailure");
+                            adView.setVisibility(View.GONE);
+                            upsell.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAdLoaded() {
+                            upsell.setVisibility(View.GONE);
+                        }
+                    });
+                }
             } else {
-                adView.setVisibility(View.GONE);
+                hideAdAndUpsell();
             }
         }
         if (getSubscriptionManager() != null) {
             getSubscriptionManager().addEventListener(this);
         }
+
+        upsell.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (getSubscriptionManager() != null) {
+                    mWorkerManager.getLogger().logEvent(activity, "AdUpsellTapped");
+                    getSubscriptionManager().queryBuyIntent(Subscription.SmartReceiptsPlus);
+                }
+            }
+        });
     }
 
     public synchronized void onResume() {
@@ -67,7 +101,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
             if (shouldShowAds(adView)) {
                 adView.resume();
             } else {
-                adView.setVisibility(View.GONE);
+                hideAdAndUpsell();
             }
         }
     }
@@ -78,7 +112,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
             if (shouldShowAds(adView)) {
                 adView.pause();
             } else {
-                adView.setVisibility(View.GONE);
+                hideAdAndUpsell();
             }
         }
         super.onPause();
@@ -90,7 +124,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
             if (shouldShowAds(adView)) {
                 adView.destroy();
             } else {
-                adView.setVisibility(View.GONE);
+                hideAdAndUpsell();
             }
         }
         if (getSubscriptionManager() != null) {
@@ -170,5 +204,21 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     @Override
     public synchronized void onPurchaseFailed() {
         // Intentional Stub. Handled with parent activity
+    }
+
+    private void hideAdAndUpsell() {
+        final AdView adView = mAdViewReference.get();
+        final Button upsell = mUpsellReference.get();
+        if (adView != null) {
+            adView.setVisibility(View.GONE);
+        }
+        if (upsell != null) {
+            upsell.setVisibility(View.GONE);
+        }
+    }
+
+    private boolean showUpsell() {
+        final Random random = new Random(SystemClock.uptimeMillis());
+        return UPSELL_FREQUENCY >= random.nextInt(RANDOM_MAX + 1);
     }
 }

@@ -149,11 +149,12 @@
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
-    <style name="Widget.SmartReceipts.TextView.Button">
+    <style name="Widget.SmartReceipts.Button" parent="@style/Widget.AppCompat.Button.Colored">
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textAllCaps">true</item>
+        <item name="android:background">@drawable/button_background</item>
     </style>
 
     <style name="Widget.SmartReceipts.FloatingActionButton">

@@ -27,6 +27,10 @@ public class Logger extends WorkerChild {
 
 	}
 
+	public void logEvent(String category, String action) {
+
+	}
+
 	public void logEvent(Activity activity, String action) {
 
 	}

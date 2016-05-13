@@ -60,4 +60,7 @@
     <!-- Toolbar -->
     <dimen name="title_paging_layout_separator">16dp</dimen>
 
+    <!-- Ads -->
+    <dimen name="remove_ad_hint_height">50dp</dimen>
+
 </resources>

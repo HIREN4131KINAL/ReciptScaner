@@ -456,8 +456,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     private String getDebugScreen() {
-        String debug = "Debug-information: \n" + "Smart Receipts Version: " + getAppVersion() + "\n" + "Brand: " + android.os.Build.BRAND + "\n" + "CPU: " + android.os.Build.CPU_ABI + "\n" + "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" + "Device: " + android.os.Build.DEVICE + "\n" + "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" + "Two-Paned: " + mIsUsingHeaders;
-        return debug;
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        return "Debug-information: \n" +
+                "Smart Receipts Version: " + getAppVersion() + "\n" +
+                "Plus: " + hasProSubscription + "\n" +
+                "Brand: " + android.os.Build.BRAND + "\n" +
+                "CPU: " + android.os.Build.CPU_ABI + "\n" +
+                "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" +
+                "Device: " + android.os.Build.DEVICE + "\n" +
+                "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" +
+                "Two-Paned: " + mIsUsingHeaders;
     }
 
     private static class CopySignatureImageClass extends AsyncTask<Void, Void, Boolean> {

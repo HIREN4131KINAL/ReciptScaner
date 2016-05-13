@@ -11,7 +11,6 @@ import wb.receipts.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -23,7 +22,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import java.lang.ref.WeakReference;
-import java.util.logging.Handler;
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
 
@@ -102,7 +100,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     private boolean shouldShowAds(@NonNull AdView adView) {
-        final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
     }
@@ -150,7 +148,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     @Override
     public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
         Log.i(TAG, "Received purchase success in our ad manager for: " + subscription);
-        if (Subscription.SmartReceiptsPro == subscription) {
+        if (Subscription.SmartReceiptsPlus == subscription) {
             final AdView adView = mAdViewReference.get();
             if (adView != null) {
                 adView.post(new Runnable() {

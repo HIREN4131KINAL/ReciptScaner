@@ -64,6 +64,16 @@
     <!-- =============== Subscriptions ================ -->
     <string name="pro_subscription">Smart Receipts Plus</string>
 
+    <!-- ============= Subscription Info ============== -->
+    <string name="plus_subscription_info_dialog_title">@string/pro_subscription</string>
+    <string name="plus_subscription_info_dialog_message">Help support us! Upgrade to:\n\n
+                                                         &#160;&#8226; Remove Ads\n
+                                                         &#160;&#8226; Process Exchange Rates Automatically\n
+                                                         &#160;&#8226; Customize PDF Footer Text\n
+    </string>
+    <string name="plus_subscription_info_dialog_positive_button">Start my Free Trial</string>
+    <string name="plus_subscription_info_dialog_negative_button">No Thanks</string>
+
     <!-- ============= Report Navigation ============== -->
     <string name="report_info_receipts">Receipts</string>
     <string name="report_info_distance">Distance</string>

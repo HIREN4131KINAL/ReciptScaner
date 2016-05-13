@@ -31,7 +31,6 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.sql.Date;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -551,7 +550,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onUserRetry() {
-        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
             Log.i(TAG, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
@@ -561,7 +560,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
                 final SubscriptionManager subscriptionManager = smartReceiptsActivity.getSubscriptionManager();
                 if (subscriptionManager != null) {
-                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
                 }
             }
         }
@@ -585,7 +584,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
-        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro)) {
+        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
             Log.i(TAG, "Submitting exchange rate request");
             getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Submit_Exchange_Rate_Request");
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();

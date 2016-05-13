@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -329,7 +328,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configureProPreferences(UniversalPreferences universal) {
-        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
         pdfFooterPreference.setAppearsEnabled(hasProSubscription);
         pdfFooterPreference.setOnPreferenceClickListener(this);
@@ -376,12 +375,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             return true;
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
-            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
-                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }

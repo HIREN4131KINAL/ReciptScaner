@@ -13,20 +13,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.purchases.PurchaseableSubscription;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionInformationDialogFragment;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import wb.android.dialog.BetterDialogBuilder;
@@ -128,8 +123,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
         if (!proSubscriptionIsAvailable || haveProSubscription) {
@@ -156,8 +151,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Pro_Purchase_Menu");
+            final SubscriptionInformationDialogFragment dialogFragment = new SubscriptionInformationDialogFragment();
+            dialogFragment.show(getSupportFragmentManager(), SubscriptionInformationDialogFragment.TAG);
+            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Plus_Sub_Info_Menu");
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -212,7 +208,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
 
-        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPro)) {
+        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
             getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Has_Pro_Sub");
         } else {
             getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Without_Pro_Sub");

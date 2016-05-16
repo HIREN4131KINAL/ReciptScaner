@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -161,6 +162,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         super.onSaveInstanceState(outState);
     }
 
+    @SuppressWarnings("WrongConstant")
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         Log.d(TAG, "Result Code: " + resultCode);
@@ -169,6 +171,14 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (resultCode == Activity.RESULT_OK) { // -1
             if (requestCode == ImportTask.TASK_ID) {
                 if (data != null) {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            getContext().getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
+                        }
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "Swalling security exception", e);
+                    }
                     performImport(data.getData());
                 }
             }

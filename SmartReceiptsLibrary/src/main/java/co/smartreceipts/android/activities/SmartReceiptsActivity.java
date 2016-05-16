@@ -1,13 +1,17 @@
 package co.smartreceipts.android.activities;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +40,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public static final String STRING_DATA = "strData";
     public static final int DIR = 0;
     public static final int NAME = 1;
+
+    private static final int STORAGE_PERMISSION_REQUEST = 33;
+    private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     // AppRating (Use a combination of launches and a timer for the app rating
     // to ensure that we aren't prompting new users too soon
@@ -87,26 +94,32 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         // Present dialog for viewing an attachment
         final Attachment attachment = new Attachment(getIntent(), getContentResolver());
         setAttachment(attachment);
-        if (attachment.isValid() && attachment.isDirectlyAttachable()) {
-            final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
-            final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
-            if (preferences.showActionSendHelpDialog()) {
-                BetterDialogBuilder builder = new BetterDialogBuilder(this);
-                builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        preferences.setShowActionSendHelpDialog(false);
-                        preferences.commit();
-                        dialog.cancel();
-                    }
-                }).show();
-            } else {
-                Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
+        if (attachment.isValid()) {
+            final boolean hasStoragePermission = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            if (attachment.isActionView() && !hasStoragePermission) {
+                ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
+            }
+            else if (attachment.isDirectlyAttachable()) {
+                final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
+                final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
+                if (preferences.showActionSendHelpDialog()) {
+                    BetterDialogBuilder builder = new BetterDialogBuilder(this);
+                    builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            preferences.setShowActionSendHelpDialog(false);
+                            preferences.commit();
+                            dialog.cancel();
+                        }
+                    }).show();
+                } else {
+                    Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
+                }
             }
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();

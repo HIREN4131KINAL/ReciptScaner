@@ -435,7 +435,7 @@ public class EmailAssistant {
                         try {
                             Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
                             if (b != null) {
-                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
+                                mStorageManager.writeBitmap(dir, b, receipts.get(i).getImage().getName(), CompressFormat.JPEG, 85);
                                 b.recycle();
                                 b = null;
                             }
@@ -444,7 +444,7 @@ public class EmailAssistant {
                             try {
                                 Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
                                 if (b != null) {
-                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
+                                    mStorageManager.writeBitmap(dir, b, receipts.get(i).getImage().getName(), CompressFormat.JPEG, 85);
                                     b.recycle();
                                 }
                             } catch (OutOfMemoryError e2) {

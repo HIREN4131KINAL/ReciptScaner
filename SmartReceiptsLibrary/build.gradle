@@ -8,6 +8,8 @@ dependencies {
     compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:multidex:$MULTIDEX_VERSION"
 
+    compile "com.google.android.gms:play-services-drive:$GOOGLE_PLAY_SERVICES_VERSION"
+    
     compile "com.squareup.picasso:picasso:$PICASSO_VERSION"
     compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"

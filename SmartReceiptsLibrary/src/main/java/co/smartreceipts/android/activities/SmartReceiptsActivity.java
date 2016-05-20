@@ -21,6 +21,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.backup.drive.GoogleDriveBackupManager;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
@@ -50,6 +51,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
+    private GoogleDriveBackupManager mGoogleDriveBackupManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
+        mGoogleDriveBackupManager = new GoogleDriveBackupManager(this);
 
         setContentView(R.layout.activity_main);
 
@@ -125,7 +128,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
+            if (!mGoogleDriveBackupManager.onActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 

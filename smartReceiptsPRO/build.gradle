@@ -19,14 +19,6 @@ android {
     }
 
     sourceSets {
-        // Move the tests to src/test/java, src/test/res, etc...
-
-        /* TODO: Commenting out until I fix Robolectric
-        androidTest {
-            setRoot('src/test')
-        }
-        */
-
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
         // This moves them out of them default location under src/<type>/... which would

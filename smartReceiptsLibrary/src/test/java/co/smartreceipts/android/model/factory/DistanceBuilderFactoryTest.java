@@ -3,6 +3,7 @@ package co.smartreceipts.android.model.factory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -13,8 +14,7 @@ import co.smartreceipts.android.utils.TestUtils;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
-@Config(emulateSdk = 18)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class DistanceBuilderFactoryTest {
 
     DistanceBuilderFactory distanceBuilderFactory;

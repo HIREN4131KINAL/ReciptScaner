@@ -6,7 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
@@ -16,6 +18,7 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TestUtils;
@@ -28,8 +31,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class DefaultReceiptImplTest {
 
     Trip parent;
@@ -40,8 +42,8 @@ public class DefaultReceiptImplTest {
     public void setUp() throws Exception {
         parent = TripUtils.newDefaultTrip();
         final File img = ReceiptUtils.createRoboElectricStubFile(ReceiptUtils.Constants.IMAGE_FILE_NAME);
-        price = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.PRICE), ReceiptUtils.Constants.CURRENCY);
-        tax = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.TAX), ReceiptUtils.Constants.CURRENCY);
+        price = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.PRICE), ReceiptUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(ReceiptUtils.Constants.CURRENCY).build());
+        tax = new ImmutablePriceImpl(new BigDecimal(ReceiptUtils.Constants.TAX), ReceiptUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(ReceiptUtils.Constants.CURRENCY).build());
         receipt1 = new DefaultReceiptImpl(ReceiptUtils.Constants.ID,
                 ReceiptUtils.Constants.INDEX,
                 parent,
@@ -173,8 +175,8 @@ public class DefaultReceiptImplTest {
         assertEquals(ReceiptUtils.Constants.DATE_MILLIS, receipt1.getDate().getTime());
         assertEquals(ReceiptUtils.Constants.TIMEZONE, receipt1.getTimeZone());
         assertEquals(ReceiptUtils.Constants.TIMEZONE_CODE, receipt1.getTimeZone().getID());
-        assertEquals(ReceiptUtils.Constants.SLASH_FORMATTED_DATE, receipt1.getFormattedDate(Robolectric.application, "/"));
-        assertEquals(ReceiptUtils.Constants.DASH_FORMATTED_DATE, receipt1.getFormattedDate(Robolectric.application, "-"));
+        assertEquals(ReceiptUtils.Constants.SLASH_FORMATTED_DATE, receipt1.getFormattedDate(RuntimeEnvironment.application, "/"));
+        assertEquals(ReceiptUtils.Constants.DASH_FORMATTED_DATE, receipt1.getFormattedDate(RuntimeEnvironment.application, "-"));
     }
 
     @Test

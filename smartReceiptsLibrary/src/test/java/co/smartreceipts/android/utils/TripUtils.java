@@ -9,6 +9,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
 
@@ -60,8 +61,8 @@ public class TripUtils {
 
     public static Trip newDefaultTrip() {
         final Trip trip = newDefaultTripBuilderFactory().build();
-        trip.setPrice(new ImmutablePriceImpl(new BigDecimal(TripUtils.Constants.PRICE), Constants.CURRENCY));
-        trip.setDailySubTotal(new ImmutablePriceImpl(new BigDecimal(Constants.DAILY_SUBTOTAL), Constants.CURRENCY));
+        trip.setPrice(new ImmutablePriceImpl(new BigDecimal(TripUtils.Constants.PRICE), Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(Constants.CURRENCY).build()));
+        trip.setDailySubTotal(new ImmutablePriceImpl(new BigDecimal(Constants.DAILY_SUBTOTAL), Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(Constants.CURRENCY).build()));
         return trip;
     }
 

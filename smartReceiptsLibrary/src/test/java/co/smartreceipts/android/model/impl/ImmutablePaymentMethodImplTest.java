@@ -14,7 +14,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
-@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class ImmutablePaymentMethodImplTest {
 

@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
@@ -25,7 +26,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class ReceiptsDBTest {
 
@@ -35,7 +35,7 @@ public class ReceiptsDBTest {
 
     @Before
     public void setup() {
-        mApp = (SmartReceiptsApplication) Robolectric.application;
+        mApp = (SmartReceiptsApplication) RuntimeEnvironment.application;
         mDB = mApp.getPersistenceManager().getDatabase();
         mTrip = mDB.insertTripSerial(mApp.getPersistenceManager().getStorageManager().mkdir(TripUtils.Constants.DIRECTORY_NAME),
                 TripUtils.Constants.START_DATE,
@@ -71,6 +71,8 @@ public class ReceiptsDBTest {
     }
 
     private Receipt insertDefaultReceipt(File file) {
+        return null;
+        /* TODO: FIX ME
         return mDB.insertReceiptSerial(mTrip,
                 file,
                 ReceiptUtils.Constants.NAME,
@@ -86,9 +88,12 @@ public class ReceiptsDBTest {
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
                 ReceiptUtils.Constants.EXTRA3);
+         */
     }
 
     private Receipt insertDefaultReceipt(File file, PaymentMethod method) {
+        return null;
+        /* TODO: FIX ME
         return mDB.insertReceiptSerial(mTrip,
                 file,
                 ReceiptUtils.Constants.NAME,
@@ -104,6 +109,7 @@ public class ReceiptsDBTest {
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
                 ReceiptUtils.Constants.EXTRA3);
+               */
     }
 
     @Test
@@ -169,6 +175,8 @@ public class ReceiptsDBTest {
 
     @Test
     public void updateWithNullPaymentMethod() {
+        assertTrue(false);
+        /*
         final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
         Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
@@ -193,10 +201,13 @@ public class ReceiptsDBTest {
         assertEquals(updateReceipt, insertReceipt);
         assertEquals(updateReceipt, receipts.get(0));
         ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
+        */
     }
 
     @Test
     public void updateWithNonNullPaymentMethod() {
+        assertTrue(false);
+        /*
         final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
         final PaymentMethod nullPaymentMethod = null;
         Receipt insertReceipt = insertDefaultReceipt(nullPaymentMethod);
@@ -222,6 +233,7 @@ public class ReceiptsDBTest {
         assertEquals(updateReceipt, insertReceipt);
         assertEquals(updateReceipt, receipts.get(0));
         ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
+        */
     }
 
     @Test

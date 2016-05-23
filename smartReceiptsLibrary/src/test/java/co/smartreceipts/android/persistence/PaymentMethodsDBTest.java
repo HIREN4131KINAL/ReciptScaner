@@ -5,7 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.List;
@@ -19,8 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class PaymentMethodsDBTest {
 
     private static final String METHOD = "method";
@@ -31,7 +32,7 @@ public class PaymentMethodsDBTest {
 
     @Before
     public void setup() {
-        mApp = (SmartReceiptsApplication) Robolectric.application;
+        mApp = (SmartReceiptsApplication) RuntimeEnvironment.application;
         mDB = mApp.getPersistenceManager().getDatabase();
     }
 

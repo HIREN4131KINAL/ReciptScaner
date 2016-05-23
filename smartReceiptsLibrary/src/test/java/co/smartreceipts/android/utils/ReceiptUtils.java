@@ -1,6 +1,7 @@
 package co.smartreceipts.android.utils;
 
 import org.robolectric.Robolectric;
+import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,7 @@ public class ReceiptUtils {
     }
 
     public static File createRoboElectricStubFile(String filename) {
-        final File root = Robolectric.application.getExternalFilesDir(null);
+        final File root = RuntimeEnvironment.application.getExternalFilesDir(null);
         final File newFile = new File(root, filename);
         try {
             if (!newFile.exists()) {

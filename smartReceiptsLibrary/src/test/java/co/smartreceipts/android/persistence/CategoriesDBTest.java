@@ -5,7 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
@@ -19,8 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class CategoriesDBTest {
 
     private SmartReceiptsApplication mApp;
@@ -28,7 +29,7 @@ public class CategoriesDBTest {
 
     @Before
     public void setup() {
-        mApp = (SmartReceiptsApplication) Robolectric.application;
+        mApp = (SmartReceiptsApplication) RuntimeEnvironment.application;
         mDB = mApp.getPersistenceManager().getDatabase();
     }
 

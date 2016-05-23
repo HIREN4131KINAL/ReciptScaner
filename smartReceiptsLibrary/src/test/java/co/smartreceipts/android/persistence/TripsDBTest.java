@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
@@ -20,7 +21,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class TripsDBTest {
 
@@ -29,7 +29,7 @@ public class TripsDBTest {
 
     @Before
     public void setup() {
-        mApp = (SmartReceiptsApplication) Robolectric.application;
+        mApp = (SmartReceiptsApplication) RuntimeEnvironment.application;
         mDB = mApp.getPersistenceManager().getDatabase();
     }
 

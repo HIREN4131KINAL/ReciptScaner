@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -16,6 +17,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
 import co.smartreceipts.android.utils.TripUtils;
 
@@ -23,14 +25,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18, manifest = "../SmartReceiptsPRO/AndroidManifest.xml")
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class TripFilterTest {
 
     // Test constants for Price checking
-    private static final Price PRICE_NORMAL = new ImmutablePriceImpl(new BigDecimal(100.00d), TripUtils.Constants.CURRENCY);
-    private static final Price PRICE_HIGH = new ImmutablePriceImpl(new BigDecimal(150.00d), TripUtils.Constants.CURRENCY);
-    private static final Price PRICE_LOW = new ImmutablePriceImpl(new BigDecimal(50.00d), TripUtils.Constants.CURRENCY);
+    private static final Price PRICE_NORMAL = new ImmutablePriceImpl(new BigDecimal(100.00d), TripUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(TripUtils.Constants.CURRENCY).build());
+    private static final Price PRICE_HIGH = new ImmutablePriceImpl(new BigDecimal(150.00d), TripUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(TripUtils.Constants.CURRENCY).build());
+    private static final Price PRICE_LOW = new ImmutablePriceImpl(new BigDecimal(50.00d), TripUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(TripUtils.Constants.CURRENCY).build());
 
     // Test constants for Date checking
     private static final TimeZone TZ = TimeZone.getDefault();

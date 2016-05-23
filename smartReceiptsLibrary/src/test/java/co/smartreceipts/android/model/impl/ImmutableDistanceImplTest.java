@@ -6,7 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.model.Distance;
@@ -18,8 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
-@Config(emulateSdk = 18)
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class ImmutableDistanceImplTest {
 
     Trip trip;
@@ -74,8 +75,8 @@ public class ImmutableDistanceImplTest {
         assertEquals(DistanceUtils.Constants.DATE_MILLIS, distance1.getDate().getTime());
         assertEquals(DistanceUtils.Constants.TIMEZONE, distance1.getTimeZone());
         assertEquals(DistanceUtils.Constants.TIMEZONE_CODE, distance1.getTimeZone().getID());
-        assertEquals(DistanceUtils.Constants.SLASH_FORMATTED_DATE, distance1.getFormattedDate(Robolectric.application, "/"));
-        assertEquals(DistanceUtils.Constants.DASH_FORMATTED_DATE, distance1.getFormattedDate(Robolectric.application, "-"));
+        assertEquals(DistanceUtils.Constants.SLASH_FORMATTED_DATE, distance1.getFormattedDate(RuntimeEnvironment.application, "/"));
+        assertEquals(DistanceUtils.Constants.DASH_FORMATTED_DATE, distance1.getFormattedDate(RuntimeEnvironment.application, "-"));
     }
 
     @Test

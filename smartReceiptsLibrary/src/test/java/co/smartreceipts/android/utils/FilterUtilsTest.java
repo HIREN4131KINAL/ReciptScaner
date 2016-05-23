@@ -14,7 +14,6 @@ import co.smartreceipts.android.filters.FilterUtils;
 
 import static org.junit.Assert.assertTrue;
 
-@Config(emulateSdk = 18, manifest = "../SmartReceiptsPRO/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
 public class FilterUtilsTest {
 

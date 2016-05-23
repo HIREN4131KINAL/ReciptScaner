@@ -5,26 +5,26 @@ import android.support.annotation.NonNull;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
+import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
 
-public class CSVTable extends AbstractColumnTable {
+public class PDFTable extends AbstractColumnTable {
 
-    public CSVTable(@NonNull DatabaseHelper databaseHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+    public PDFTable(@NonNull DatabaseHelper databaseHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         super(databaseHelper, receiptColumnDefinitions);
     }
 
     @Override
     public String getTableName() {
-        return "csvcolumns";
+        return "pdfcolumns";
     }
 
     @Override
     public String getIdColumn() {
-        return CSVTableColumns.COLUMN_ID;
+        return PDFTableColumns.COLUMN_ID;
     }
 
     @Override
     public String getTypeColumn() {
-        return CSVTableColumns.COLUMN_TYPE;
+        return PDFTableColumns.COLUMN_TYPE;
     }
 }

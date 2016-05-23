@@ -15,7 +15,7 @@ public class CSVTable extends AbstractColumnTable {
 
     @Override
     public String getTableName() {
-        return "csvcolumns";
+        return CSVTableColumns.TABLE_NAME;
     }
 
     @Override
@@ -26,5 +26,15 @@ public class CSVTable extends AbstractColumnTable {
     @Override
     public String getTypeColumn() {
         return CSVTableColumns.COLUMN_TYPE;
+    }
+
+    @Override
+    public int getTableExistsSinceDatabaseVersion() {
+        return 2;
+    }
+
+    @Override
+    protected void insertDefaults(@NonNull TableDefaultsCustomizer customizer) {
+        customizer.insertCSVDefaults(this);
     }
 }

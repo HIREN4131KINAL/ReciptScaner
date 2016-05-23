@@ -15,7 +15,7 @@ public class PDFTable extends AbstractColumnTable {
 
     @Override
     public String getTableName() {
-        return "pdfcolumns";
+        return PDFTableColumns.TABLE_NAME;
     }
 
     @Override
@@ -26,5 +26,15 @@ public class PDFTable extends AbstractColumnTable {
     @Override
     public String getTypeColumn() {
         return PDFTableColumns.COLUMN_TYPE;
+    }
+
+    @Override
+    public int getTableExistsSinceDatabaseVersion() {
+        return 9;
+    }
+
+    @Override
+    protected void insertDefaults(@NonNull TableDefaultsCustomizer customizer) {
+        customizer.insertPDFDefaults(this);
     }
 }

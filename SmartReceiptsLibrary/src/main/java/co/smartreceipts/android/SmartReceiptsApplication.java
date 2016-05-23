@@ -40,7 +40,7 @@ import co.smartreceipts.android.workers.WorkerManager;
  */
 public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener, DatabaseHelper.TableDefaultsCustomizer {
 
-	public static final String TAG = "SmartReceiptsApplication";
+	public static final String TAG = "SmartReceiptsApp";
 
 	private WorkerManager mWorkerManager;
 	private PersistenceManager mPersistenceManager;
@@ -271,7 +271,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         final List<Column<Receipt>> columns = receiptColumnDefinitions.getCsvDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            db.insertCSVColumnNoCache(columns.get(i).getName());
+            db.getCSVTable().insertColumnNoCache(columns.get(i).getName());
         }
 	}
 
@@ -281,7 +281,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         final List<Column<Receipt>> columns = receiptColumnDefinitions.getPdfDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            db.insertPDFColumnNoCache(columns.get(i).getName());
+            db.getPDFTable().insertColumnNoCache(columns.get(i).getName());
         }
 	}
 

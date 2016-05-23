@@ -48,6 +48,11 @@ import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.persistence.database.tables.CSVTable;
+import co.smartreceipts.android.persistence.database.tables.PDFTable;
+import co.smartreceipts.android.persistence.database.tables.Table;
+import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
+import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
@@ -110,6 +115,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     private final Object mDatabaseLock = new Object();
     private final Object mReceiptCacheLock = new Object();
     private final Object mTripCacheLock = new Object();
+
+    // Tables
+    private final List<Table> mTables;
+    private final CSVTable mCSVTable;
+    private final PDFTable mPDFTable;
 
     // Misc Vars
     private boolean mIsDBOpen = false;
@@ -273,24 +283,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_RATE_CURRENCY = "rate_currency";
     }
 
-    public static final class CSVTable {
-        private CSVTable() {
-        }
-
-        public static final String TABLE_NAME = "csvcolumns";
-        public static final String COLUMN_ID = "id";
-        public static final String COLUMN_TYPE = "type";
-    }
-
-    public static final class PDFTable {
-        private PDFTable() {
-        }
-
-        public static final String TABLE_NAME = "pdfcolumns";
-        public static final String COLUMN_ID = "id";
-        public static final String COLUMN_TYPE = "type";
-    }
-
     public static final class PaymentMethodsTable {
         private PaymentMethodsTable() {
         }
@@ -310,6 +302,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         mPersistenceManager = persistenceManager;
         mCustomizations = application;
         mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
+
+        // Tables:
+        mTables = new ArrayList<>();
+        mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
+        mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
+        mTables.add(mCSVTable);
+        mTables.add(mPDFTable);
+
         this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
     }
 
@@ -349,6 +349,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public void onCreate(final SQLiteDatabase db) {
+        for (final Table table : mTables) {
+            table.onCreate(db, null);
+        }
+
         synchronized (mDatabaseLock) {
             _initDB = db;
             //N.B. This only gets called if you actually request the database using the getDatabase method
@@ -405,18 +409,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             db.execSQL(trips);
             db.execSQL(receipts);
             db.execSQL(categories);
-            this.createCSVTable(db);
-            this.createPDFTable(db);
             this.createPaymentMethodsTable(db);
             this.createDistanceTable(db);
             mCustomizations.insertCategoryDefaults(this);
             mCustomizations.onFirstRun();
             _initDB = null;
         }
+
+        for (final Table table : mTables) {
+            table.onPostCreateUpgrade();
+        }
+
     }
 
     @Override
     public final void onUpgrade(final SQLiteDatabase db, int oldVersion, final int newVersion) {
+
+        for (final Table table : mTables) {
+            table.onUpgrade(db, oldVersion, newVersion, null);
+        }
+
         synchronized (mDatabaseLock) {
 
             if (D) {
@@ -450,7 +462,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     Log.d(TAG, alterCategories);
                 }
                 db.execSQL(alterCategories);
-                this.createCSVTable(db);
             }
             if (oldVersion <= 3) { // Add extra_edittext columns
                 final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
@@ -561,9 +572,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db.execSQL(alterTrips1);
                 db.execSQL(alterTrips2);
             }
-            if (oldVersion <= 9) { // Added a PDF table
-                this.createPDFTable(db);
-            }
             if (oldVersion <= 10) {
                 final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
                 final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
@@ -618,6 +626,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
             _initDB = null;
         }
+
+        for (final Table table : mTables) {
+            table.onPostCreateUpgrade();
+        }
     }
 
     @Override
@@ -651,49 +663,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         super.finalize();
     }
 
-	/*
-	 * public final void testPrintDBValues() { final SQLiteDatabase db = this.getReadableDatabase(); final Cursor
-	 * tripsCursor = db.query(TripsTable.TABLE_NAME, new String[] {TripsTable.COLUMN_NAME}, null, null, null, null,
-	 * null); String data = ""; if (BuildConfig.DEBUG) Log.d(TAG,
-	 * "=================== Printing Trips ==================="); if (BuildConfig.DEBUG) data +=
-	 * "=================== Printing Trips ===================" + "\n"; if (tripsCursor != null &&
-	 * tripsCursor.moveToFirst()) { final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME); do { if
-	 * (BuildConfig.DEBUG) Log.d(TAG, tripsCursor.getString(nameIndex)); if (BuildConfig.DEBUG) data += "\"" +
-	 * tripsCursor.getString(nameIndex) + "\"";
-	 * 
-	 * } while (tripsCursor.moveToNext()); }
-	 * 
-	 * final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[] {ReceiptsTable.COLUMN_ID,
-	 * ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH}, null, null, null, null, null); if (BuildConfig.DEBUG)
-	 * Log.d(TAG, "=================== Printing Receipts ==================="); if (BuildConfig.DEBUG) data +=
-	 * "=================== Printing Receipts ===================" + "\n"; if (receiptsCursor != null &&
-	 * receiptsCursor.moveToFirst()) { final int idIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_ID); final
-	 * int parentIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT); final int imgIdx =
-	 * receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PATH); do { if (BuildConfig.DEBUG) Log.d(TAG, "(" +
-	 * receiptsCursor.getInt(idIdx) + ", " + receiptsCursor.getString(parentIdx) + ", " +
-	 * receiptsCursor.getString(imgIdx) + ")"); if (BuildConfig.DEBUG) data += "(" + receiptsCursor.getInt(idIdx) + ", "
-	 * + receiptsCursor.getString(parentIdx) + ", " + receiptsCursor.getString(imgIdx) + ")" + "\n"; } while
-	 * (receiptsCursor.moveToNext()); } mContext.getStorageManager().write("db.txt", data); }
-	 */
-
-    private final void createCSVTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
-        final String csv = "CREATE TABLE " + CSVTable.TABLE_NAME + " (" + CSVTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + CSVTable.COLUMN_TYPE + " TEXT" + ");";
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, csv);
-        }
-        db.execSQL(csv);
-        mCustomizations.insertCSVDefaults(this);
-    }
-
-    private final void createPDFTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
-        final String pdf = "CREATE TABLE " + PDFTable.TABLE_NAME + " (" + PDFTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PDFTable.COLUMN_TYPE + " TEXT" + ");";
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, pdf);
-        }
-        db.execSQL(pdf);
-        mCustomizations.insertPDFDefaults(this);
-    }
-
     private final void createDistanceTable(final SQLiteDatabase db) {
         final String distance = "CREATE TABLE " + DistanceTable.TABLE_NAME + " ("
                 + DistanceTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -713,7 +682,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     private final void createPaymentMethodsTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
-        final String sql = "CREATE TABLE " + PaymentMethodsTable.TABLE_NAME + " (" + PDFTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PaymentMethodsTable.COLUMN_METHOD + " TEXT" + ");";
+        final String sql = "CREATE TABLE " + PaymentMethodsTable.TABLE_NAME + " (" + PDFTableColumns.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PaymentMethodsTable.COLUMN_METHOD + " TEXT" + ");";
         if (BuildConfig.DEBUG) {
             Log.d(TAG, sql);
         }
@@ -2868,245 +2837,16 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // CSV Columns Methods
+    // Columns Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public final List<Column<Receipt>> getCSVColumns() {
-        if (mCSVColumns != null) {
-            return mCSVColumns;
-        }
-        mCSVColumns = new ArrayList<Column<Receipt>>();
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
-                if (c != null && c.moveToFirst()) {
-                    final int idIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
-                    final int typeIndex = c.getColumnIndex(CSVTable.COLUMN_TYPE);
-                    do {
-                        final int id = c.getInt(idIndex);
-                        final String type = c.getString(typeIndex);
-                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
-                        mCSVColumns.add(column);
-                    }
-                    while (c.moveToNext());
-                }
-                return mCSVColumns;
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
+    @NonNull
+    public final CSVTable getCSVTable() {
+        return mCSVTable;
     }
 
-    public final boolean insertCSVColumn() {
-        final ContentValues values = new ContentValues(1);
-        final Column<Receipt> defaultColumn = mReceiptColumnDefinitions.getDefaultInsertColumn();
-        values.put(CSVTable.COLUMN_TYPE, defaultColumn.getName());
-        if (mCSVColumns == null) {
-            getCSVColumns();
-        }
-        synchronized (mDatabaseLock) {
-            Cursor c = null;
-            try {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
-                    return false;
-                } else {
-                    c = db.rawQuery("SELECT last_insert_rowid()", null);
-                    if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int id = c.getInt(0);
-                        final Column<Receipt> column = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
-                        mCSVColumns.add(column);
-                    } else {
-                        return false;
-                    }
-                    return true;
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
-    public final boolean insertCSVColumnNoCache(String column) {
-        final ContentValues values = new ContentValues(1);
-        values.put(CSVTable.COLUMN_TYPE, column);
-        if (_initDB != null) {
-            if (_initDB.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            synchronized (mDatabaseLock) {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.insertOrThrow(CSVTable.TABLE_NAME, null, values) == -1) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-
-    public final boolean deleteCSVColumn() {
-        synchronized (mDatabaseLock) {
-            final SQLiteDatabase db = this.getWritableDatabase();
-            final Column<Receipt> column = ListUtils.removeLast(mCSVColumns);
-            if (column != null) {
-                return db.delete(CSVTable.TABLE_NAME, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getId())}) > 0;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    public final boolean updateCSVColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) { // Note index here refers to the actual
-        if (oldColumn.getName().equals(newColumn.getName())) {
-            // Don't bother updating, since we've already set this column type
-            return true;
-        }
-        final ContentValues values = new ContentValues(1);
-        values.put(CSVTable.COLUMN_TYPE, newColumn.getName());
-        synchronized (mDatabaseLock) {
-            try {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.update(CSVTable.TABLE_NAME, values, CSVTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
-                    return false;
-                } else {
-                    ListUtils.replace(mCSVColumns, oldColumn, new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build());
-                    return true;
-                }
-            } catch (SQLException e) {
-                return false;
-            }
-        }
-    }
-
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // PDF Columns Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public final List<Column<Receipt>> getPDFColumns() {
-        if (mPDFColumns != null) {
-            return mPDFColumns;
-        }
-        mPDFColumns = new ArrayList<Column<Receipt>>();
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
-                if (c != null && c.moveToFirst()) {
-                    final int idIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
-                    final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
-                    do {
-                        final int id = c.getInt(idIndex);
-                        final String type = c.getString(typeIndex);
-                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
-                        mPDFColumns.add(column);
-                    }
-                    while (c.moveToNext());
-                }
-                return mPDFColumns;
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
-    public final boolean insertPDFColumn() {
-        final ContentValues values = new ContentValues(1);
-        final Column<Receipt> defaultColumn = mReceiptColumnDefinitions.getDefaultInsertColumn();
-        values.put(PDFTable.COLUMN_TYPE, defaultColumn.getName());
-        if (mPDFColumns == null) {
-            getPDFColumns();
-        }
-        synchronized (mDatabaseLock) {
-            Cursor c = null;
-            try {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
-                    return false;
-                } else {
-                    c = db.rawQuery("SELECT last_insert_rowid()", null);
-                    if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int id = c.getInt(0);
-                        final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
-                        mPDFColumns.add(column);
-                    } else {
-                        return false;
-                    }
-                    return true;
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
-    public final boolean insertPDFColumnNoCache(String column) {
-        final ContentValues values = new ContentValues(1);
-        values.put(PDFTable.COLUMN_TYPE, column);
-        if (_initDB != null) {
-            if (_initDB.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            synchronized (mDatabaseLock) {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.insertOrThrow(PDFTable.TABLE_NAME, null, values) == -1) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-
-    public final boolean deletePDFColumn() {
-        synchronized (mDatabaseLock) {
-            final SQLiteDatabase db = this.getWritableDatabase();
-            final Column<Receipt> column = ListUtils.removeLast(mPDFColumns);
-            if (column != null) {
-                return db.delete(PDFTable.TABLE_NAME, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(column.getId())}) > 0;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    public final boolean updatePDFColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) { // Note index here refers to the actual
-        if (oldColumn.getName().equals(newColumn.getName())) {
-            // Don't bother updating, since we've already set this column type
-            return true;
-        }
-        final ContentValues values = new ContentValues(1);
-        values.put(PDFTable.COLUMN_TYPE, newColumn.getName());
-        synchronized (mDatabaseLock) {
-            try {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.update(PDFTable.TABLE_NAME, values, PDFTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
-                    return false;
-                } else {
-                    ListUtils.replace(mPDFColumns, oldColumn, new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build());
-                    return true;
-                }
-            } catch (SQLException e) {
-                return false;
-            }
-        }
+    @NonNull
+    public final PDFTable getPDFTable() {
+        return mPDFTable;
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3568,18 +3308,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging CSV");
                 try {
-                    c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(CSVTableColumns.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(CSVTable.TABLE_NAME, null, null); // DELETE * FROM CSVTable
-                        final int idxIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(CSVTable.COLUMN_TYPE);
+                        currDB.delete(CSVTableColumns.TABLE_NAME, null, null); // DELETE * FROM CSVTable
+                        final int idxIndex = c.getColumnIndex(CSVTableColumns.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(CSVTableColumns.COLUMN_TYPE);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(CSVTable.COLUMN_ID, index);
-                            values.put(CSVTable.COLUMN_TYPE, type);
-                            currDB.insert(CSVTable.TABLE_NAME, null, values);
+                            values.put(CSVTableColumns.COLUMN_ID, index);
+                            values.put(CSVTableColumns.COLUMN_TYPE, type);
+                            currDB.insert(CSVTableColumns.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }
@@ -3603,18 +3343,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging PDF");
                 try {
-                    c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(PDFTableColumns.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(PDFTable.TABLE_NAME, null, null); // DELETE * FROM PDFTable
-                        final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
+                        currDB.delete(PDFTableColumns.TABLE_NAME, null, null); // DELETE * FROM PDFTable
+                        final int idxIndex = c.getColumnIndex(PDFTableColumns.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(PDFTableColumns.COLUMN_TYPE);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(PDFTable.COLUMN_ID, index);
-                            values.put(PDFTable.COLUMN_TYPE, type);
-                            currDB.insert(PDFTable.TABLE_NAME, null, values);
+                            values.put(PDFTableColumns.COLUMN_ID, index);
+                            values.put(PDFTableColumns.COLUMN_TYPE, type);
+                            currDB.insert(PDFTableColumns.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }

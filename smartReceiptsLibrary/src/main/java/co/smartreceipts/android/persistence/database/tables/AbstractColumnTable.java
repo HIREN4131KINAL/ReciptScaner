@@ -35,14 +35,14 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
 
     @Override
     public void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
-        this.createCSVTableColumns(db, customizer);
+        this.createColumnsTable(db, customizer);
         initialNonRecursivelyCalledDatabase = db;
     }
 
     @Override
     public void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
-        if (oldVersion <= 2) {
-            this.createCSVTableColumns(db, customizer);
+        if (oldVersion <= getTableExistsSinceDatabaseVersion()) {
+            this.createColumnsTable(db, customizer);
         }
         initialNonRecursivelyCalledDatabase = db;
     }
@@ -53,14 +53,14 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         initialNonRecursivelyCalledDatabase = null;
     }
 
-    private void createCSVTableColumns(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
-        final String csv = "CREATE TABLE " + getTableName() + " (" +
-                           getIdColumn() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                           getTypeColumn() + " TEXT" + ");";
-        Log.d(TAG, csv);
+    private void createColumnsTable(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
+        final String columnsTable = "CREATE TABLE " + getTableName() + " (" +
+                                    getIdColumn() + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                    getTypeColumn() + " TEXT" + ");";
+        Log.d(TAG, columnsTable);
 
-        db.execSQL(csv);
-        customizer.insertCSVDefaults(this);
+        db.execSQL(columnsTable);
+        insertDefaults(customizer);
     }
 
     public synchronized List<Column<Receipt>> getColumns() {
@@ -165,5 +165,17 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
      * @return the column name for the "type" column (e.g. {@link CSVTableColumns#COLUMN_TYPE} or {@link PDFTableColumns#COLUMN_TYPE})
      */
     public abstract String getTypeColumn();
+
+    /**
+     * @return the database version since which this table exists
+     */
+    public abstract int getTableExistsSinceDatabaseVersion();
+
+    /**
+     * Passes alongs a call to insert our "table" defaults to the appropriate sub implementation
+     *
+     * @param customizer the {@link co.smartreceipts.android.persistence.DatabaseHelper.TableDefaultsCustomizer} implementation
+     */
+    protected abstract void insertDefaults(@NonNull TableDefaultsCustomizer customizer);
 
 }

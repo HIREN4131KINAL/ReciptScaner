@@ -27,22 +27,22 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 
 	@Override
 	public List<Column<Receipt>> getColumns() {
-		return getPersistenceManager().getDatabase().getCSVColumns();
+		return getPersistenceManager().getDatabase().getCSVTable().getColumns();
 	}
 
 	@Override
 	public void addColumn() {
-		getPersistenceManager().getDatabase().insertCSVColumn();
+		getPersistenceManager().getDatabase().getCSVTable().insertDefaultColumn();
 	}
 
 	@Override
 	public void deleteLastColumn() {
-		getPersistenceManager().getDatabase().deleteCSVColumn();
+		getPersistenceManager().getDatabase().getCSVTable().deleteColumn();
 	}
 
 	@Override
 	public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
-		getPersistenceManager().getDatabase().updateCSVColumn(oldColumn, newColumn);
+		getPersistenceManager().getDatabase().getCSVTable().updateColumn(oldColumn, newColumn);
 	}
 
 }

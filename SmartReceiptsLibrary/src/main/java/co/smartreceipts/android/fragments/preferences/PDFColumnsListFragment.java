@@ -27,22 +27,22 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
 
     @Override
     public List<Column<Receipt>> getColumns() {
-        return getPersistenceManager().getDatabase().getPDFColumns();
+        return getPersistenceManager().getDatabase().getPDFTable().getColumns();
     }
 
     @Override
     public void addColumn() {
-        getPersistenceManager().getDatabase().insertPDFColumn();
+        getPersistenceManager().getDatabase().getPDFTable().insertDefaultColumn();
     }
 
     @Override
     public void deleteLastColumn() {
-        getPersistenceManager().getDatabase().deletePDFColumn();
+        getPersistenceManager().getDatabase().getPDFTable().deleteColumn();
     }
 
     @Override
     public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
-        getPersistenceManager().getDatabase().updatePDFColumn(oldColumn, newColumn);
+        getPersistenceManager().getDatabase().getPDFTable().updateColumn(oldColumn, newColumn);
     }
 
 }

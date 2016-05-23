@@ -402,7 +402,7 @@ public class EmailAssistant {
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
-                final List<Column<Receipt>> csvColumns = mDB.getCSVColumns();
+                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().getColumns();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
@@ -414,7 +414,7 @@ public class EmailAssistant {
                         final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
                         final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         data += "\n\n";
-                        data += new CsvTableGenerator<Distance>(distanceColumns, true, true).generate(distances);
+                        data += new CsvTableGenerator<>(distanceColumns, true, true).generate(distances);
                     }
                 }
                 String filename = dir.getName() + ".csv";

@@ -5,34 +5,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Priceable;
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.Source;
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TestUtils;
-import co.smartreceipts.android.utils.TripUtils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class PriceBuilderFactoryTest {
 
     private static final BigDecimal ONE_DOLLAR = new BigDecimal(1);

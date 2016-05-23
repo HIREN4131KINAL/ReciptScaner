@@ -5,9 +5,7 @@ import android.os.Parcel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.math.BigDecimal;
 
@@ -20,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ImmutableLegacyNetPriceImplTest {
 
     private static final WBCurrency BASE_CURRENCY = WBCurrency.getInstance("EUR");

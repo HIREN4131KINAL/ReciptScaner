@@ -1,12 +1,9 @@
 package co.smartreceipts.android.model.factory;
 
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.TripUtils;
@@ -14,7 +11,7 @@ import co.smartreceipts.android.utils.TripUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class TripBuilderFactoryTest {
 
     TripBuilderFactory tripBuilderFactory;

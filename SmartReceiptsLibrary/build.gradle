@@ -45,4 +45,8 @@ android {
             setRoot('build-types/release')
         }
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }

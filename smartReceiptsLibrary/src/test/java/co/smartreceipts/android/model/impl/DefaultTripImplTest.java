@@ -5,11 +5,8 @@ import android.os.Parcel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.math.BigDecimal;
 
@@ -17,15 +14,13 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
-import co.smartreceipts.android.utils.ReceiptUtils;
-import co.smartreceipts.android.utils.TestUtils;
 import co.smartreceipts.android.utils.TripUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class DefaultTripImplTest {
 
     DefaultTripImpl trip;

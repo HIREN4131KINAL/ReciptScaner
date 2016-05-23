@@ -2,9 +2,7 @@ package co.smartreceipts.android.model;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import java.math.BigDecimal;
 
@@ -12,7 +10,7 @@ import co.smartreceipts.android.utils.TestUtils;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class TaxItemTest {
 
     @Test

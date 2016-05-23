@@ -1,11 +1,7 @@
 apply plugin: 'com.android.application'
-// apply plugin: 'robolectric'
 
 dependencies {
     compile project(':smartReceiptsLibrary')
-    androidTestCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
-    androidTestCompile "junit:junit:$JUNIT_VERSION"
-    androidTestCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
 }
 
 android {

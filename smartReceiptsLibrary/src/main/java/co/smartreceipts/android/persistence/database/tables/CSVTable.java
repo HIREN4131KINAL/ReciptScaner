@@ -8,7 +8,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 
-public class CSVTable extends AbstractColumnTable {
+public final class CSVTable extends AbstractColumnTable {
 
     public CSVTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         super(sqLiteOpenHelper, receiptColumnDefinitions);

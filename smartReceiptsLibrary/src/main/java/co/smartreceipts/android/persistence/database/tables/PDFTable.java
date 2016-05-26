@@ -8,7 +8,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
 
-public class PDFTable extends AbstractColumnTable {
+public final class PDFTable extends AbstractColumnTable {
 
     public PDFTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         super(sqLiteOpenHelper, receiptColumnDefinitions);

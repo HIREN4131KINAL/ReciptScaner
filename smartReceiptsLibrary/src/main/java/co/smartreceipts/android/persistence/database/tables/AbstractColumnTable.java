@@ -26,7 +26,6 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
 
     private final List<Column<Receipt>> mCachedColumns;
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
-    private SQLiteDatabase initialNonRecursivelyCalledDatabase;
 
     public AbstractColumnTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         super(sqLiteOpenHelper);
@@ -36,22 +35,16 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
 
     @Override
     public void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
+        super.onCreate(db, customizer);
         this.createColumnsTable(db, customizer);
-        initialNonRecursivelyCalledDatabase = db;
     }
 
     @Override
     public void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
+        super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= getTableExistsSinceDatabaseVersion()) {
             this.createColumnsTable(db, customizer);
         }
-        initialNonRecursivelyCalledDatabase = db;
-    }
-
-    @Override
-    public void onPostCreateUpgrade() {
-        // We no longer need to worry about recursive database calls
-        initialNonRecursivelyCalledDatabase = null;
     }
 
     private void createColumnsTable(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
@@ -119,12 +112,8 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
     public synchronized boolean insertColumnNoCache(String column) {
         final ContentValues values = new ContentValues(1);
         values.put(getTypeColumn(), column);
-        if (initialNonRecursivelyCalledDatabase != null) {
-            return initialNonRecursivelyCalledDatabase.insertOrThrow(getTableName(), null, values) != -1;
-        } else {
-            final SQLiteDatabase db = this.getWritableDatabase();
-            return db.insertOrThrow(getTableName(), null, values) != -1;
-        }
+        final SQLiteDatabase db = this.getWritableDatabase();
+        return db.insertOrThrow(getTableName(), null, values) != -1;
     }
 
     public synchronized boolean deleteColumn() {

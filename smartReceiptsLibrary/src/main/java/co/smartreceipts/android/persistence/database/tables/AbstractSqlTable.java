@@ -1,24 +1,25 @@
 package co.smartreceipts.android.persistence.database.tables;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
 
 abstract class AbstractSqlTable<T> implements Table<T> {
 
-    private final DatabaseHelper mDatabaseHelper;
+    private final SQLiteOpenHelper mSQLiteOpenHelper;
 
-    public AbstractSqlTable(@NonNull DatabaseHelper databaseHelper) {
-        mDatabaseHelper = databaseHelper;
+    public AbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
+        mSQLiteOpenHelper = sqLiteOpenHelper;
     }
 
     public final SQLiteDatabase getReadableDatabase() {
-        return mDatabaseHelper.getReadableDatabase();
+        return mSQLiteOpenHelper.getReadableDatabase();
     }
 
     public final SQLiteDatabase getWritableDatabase() {
-        return mDatabaseHelper.getWritableDatabase();
+        return mSQLiteOpenHelper.getWritableDatabase();
     }
 
 }

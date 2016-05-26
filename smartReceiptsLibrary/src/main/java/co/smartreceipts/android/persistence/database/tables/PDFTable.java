@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.tables;
 
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -9,8 +10,8 @@ import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColu
 
 public class PDFTable extends AbstractColumnTable {
 
-    public PDFTable(@NonNull DatabaseHelper databaseHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        super(databaseHelper, receiptColumnDefinitions);
+    public PDFTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+        super(sqLiteOpenHelper, receiptColumnDefinitions);
     }
 
     @Override

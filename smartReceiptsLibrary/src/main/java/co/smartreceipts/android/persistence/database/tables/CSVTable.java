@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.tables;
 
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -9,8 +10,8 @@ import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColu
 
 public class CSVTable extends AbstractColumnTable {
 
-    public CSVTable(@NonNull DatabaseHelper databaseHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        super(databaseHelper, receiptColumnDefinitions);
+    public CSVTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+        super(sqLiteOpenHelper, receiptColumnDefinitions);
     }
 
     @Override

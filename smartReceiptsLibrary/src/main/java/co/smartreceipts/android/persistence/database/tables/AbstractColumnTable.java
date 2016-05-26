@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -27,8 +28,8 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
     private SQLiteDatabase initialNonRecursivelyCalledDatabase;
 
-    public AbstractColumnTable(@NonNull DatabaseHelper databaseHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        super(databaseHelper);
+    public AbstractColumnTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+        super(sqLiteOpenHelper);
         mReceiptColumnDefinitions = receiptColumnDefinitions;
         mCachedColumns = new ArrayList<>();
     }
@@ -75,7 +76,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
                 do {
                     final int id = c.getInt(idIndex);
                     final String type = c.getString(typeIndex);
-                    final Column<Receipt> column = new ColumnBuilderFactory<Receipt>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
+                    final Column<Receipt> column = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
                     mCachedColumns.add(column);
                 }
                 while (c.moveToNext());

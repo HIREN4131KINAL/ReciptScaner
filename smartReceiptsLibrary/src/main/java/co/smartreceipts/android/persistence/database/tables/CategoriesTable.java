@@ -12,9 +12,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
+import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 
-public final class CategoriesTable extends AbstractSqlTable<String> {
+public final class CategoriesTable extends AbstractSqlTable<Category> {
 
     private HashMap<String, String> mCategories;
     private ArrayList<CharSequence> mCategoryList;
@@ -49,14 +51,11 @@ public final class CategoriesTable extends AbstractSqlTable<String> {
     }
 
     public synchronized ArrayList<CharSequence> getCategoriesList() {
-        if (mCategoryList != null) {
-            return mCategoryList;
-        }
         if (mCategories == null) {
             buildCategories();
+            mCategoryList = new ArrayList<CharSequence>(mCategories.keySet());
+            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
         }
-        mCategoryList = new ArrayList<CharSequence>(mCategories.keySet());
-        Collections.sort(mCategoryList, _charSequenceComparator);
         return mCategoryList;
     }
 
@@ -77,7 +76,7 @@ public final class CategoriesTable extends AbstractSqlTable<String> {
         } else {
             mCategories.put(name, code);
             mCategoryList.add(name);
-            Collections.sort(mCategoryList, _charSequenceComparator);
+            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
             return true;
         }
     }
@@ -106,7 +105,7 @@ public final class CategoriesTable extends AbstractSqlTable<String> {
             mCategoryList.remove(oldName);
             mCategories.put(newName, newCode);
             mCategoryList.add(newName);
-            Collections.sort(mCategoryList, _charSequenceComparator);
+            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
             return true;
         }
     }
@@ -120,15 +119,6 @@ public final class CategoriesTable extends AbstractSqlTable<String> {
             mCategoryList.remove(name);
         }
         return success;
-    }
-
-    private final CharSequenceComparator _charSequenceComparator = new CharSequenceComparator();
-
-    private final class CharSequenceComparator implements Comparator<CharSequence> {
-        @Override
-        public int compare(CharSequence str1, CharSequence str2) {
-            return str1.toString().compareToIgnoreCase(str2.toString());
-        }
     }
 
     private void buildCategories() {

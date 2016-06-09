@@ -9,17 +9,18 @@ import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
-import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
+import co.smartreceipts.android.utils.sorting.CategoryNameComparator;
 
 public final class CategoriesTable extends AbstractSqlTable<Category> {
 
-    private HashMap<String, String> mCategories;
-    private ArrayList<CharSequence> mCategoryList;
+    private HashMap<String, Category> mCategories;
+    private ArrayList<Category> mCategoryList;
 
     public CategoriesTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
         super(sqLiteOpenHelper);
@@ -39,6 +40,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
                 + CategoriesTableColumns.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
                 + ");";
         db.execSQL(categories);
+        customizer.insertCategoryDefaults(this);
     }
 
     @Override
@@ -50,20 +52,23 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         }
     }
 
-    public synchronized ArrayList<CharSequence> getCategoriesList() {
+    public synchronized ArrayList<Category> getCategoriesList() {
         if (mCategories == null) {
             buildCategories();
-            mCategoryList = new ArrayList<CharSequence>(mCategories.keySet());
-            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
+            mCategoryList = new ArrayList<>();
+            for (final Map.Entry<String, Category> entry : mCategories.entrySet()) {
+                mCategoryList.add(entry.getValue());
+            }
+            Collections.sort(mCategoryList, new CategoryNameComparator());
         }
-        return mCategoryList;
+        return new ArrayList<>(mCategoryList);
     }
 
     public synchronized String getCategoryCode(@NonNull CharSequence categoryName) {
-        if (mCategories == null || mCategories.size() == 0) {
+        if (mCategories == null) {
             buildCategories();
         }
-        return mCategories.get(categoryName);
+        return mCategories.get(categoryName).getCode();
     }
 
     public synchronized boolean insertCategory(final String name, final String code) throws SQLException {
@@ -74,9 +79,10 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         if (db.insertOrThrow(getTableName(), null, values) == -1) {
             return false;
         } else {
-            mCategories.put(name, code);
-            mCategoryList.add(name);
-            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
+            final Category category = new CategoryBuilderFactory().setName(name).setCode(code).build();
+            mCategories.put(name, category);
+            mCategoryList.add(category);
+            Collections.sort(mCategoryList, new CategoryNameComparator());
             return true;
         }
     }
@@ -101,32 +107,30 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         if (getWritableDatabase().update(getTableName(), values, CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{oldName}) == 0) {
             return false;
         } else {
-            mCategories.remove(oldName);
-            mCategoryList.remove(oldName);
-            mCategories.put(newName, newCode);
-            mCategoryList.add(newName);
-            Collections.sort(mCategoryList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
+            final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
+            final Category oldCategory = mCategories.remove(oldName);
+            mCategoryList.remove(oldCategory);
+            mCategories.put(newName, newCategory);
+            mCategoryList.add(newCategory);
+            Collections.sort(mCategoryList, new CategoryNameComparator());
             return true;
         }
     }
 
     public synchronized boolean deleteCategory(final String name) {
-        SQLiteDatabase db = null;
-        db = this.getWritableDatabase();
-        final boolean success = (db.delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{name}) > 0);
+        final boolean success = (getWritableDatabase().delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{name}) > 0);
         if (success) {
-            mCategories.remove(name);
-            mCategoryList.remove(name);
+            final Category oldCategory = mCategories.remove(name);
+            mCategoryList.remove(oldCategory);
         }
         return success;
     }
 
     private void buildCategories() {
         mCategories = new HashMap<>();
-        SQLiteDatabase db = null;
         Cursor c = null;
         try {
-            db = this.getReadableDatabase();
+            final SQLiteDatabase db = this.getReadableDatabase();
             c = db.query(getTableName(), null, null, null, null, null, null);
             if (c != null && c.moveToFirst()) {
                 final int nameIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_NAME);
@@ -134,7 +138,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
                 do {
                     final String name = c.getString(nameIndex);
                     final String code = c.getString(codeIndex);
-                    mCategories.put(name, code);
+                    mCategories.put(name, new CategoryBuilderFactory().setName(name).setCode(code).build());
                 }
                 while (c.moveToNext());
             }

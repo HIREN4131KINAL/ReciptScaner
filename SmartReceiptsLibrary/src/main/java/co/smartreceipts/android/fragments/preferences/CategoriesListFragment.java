@@ -2,6 +2,8 @@ package co.smartreceipts.android.fragments.preferences;
 
 import java.util.List;
 
+import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import wb.android.dialog.BetterDialogBuilder;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -33,7 +35,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	private BaseAdapter mAdapter;
     private Toolbar mToolbar;
 	private ListView mListView;
-	private List<CharSequence> mCategories;
+	private List<Category> mCategories;
 
 	public static CategoriesListFragment newInstance() {
 		return new CategoriesListFragment();
@@ -42,7 +44,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mCategories = getPersistenceManager().getDatabase().getCategoriesList();
+		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().getCategoriesList();
 		setHasOptionsMenu(true);
 	}
 
@@ -136,7 +138,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
 							try {
-								if (getPersistenceManager().getDatabase().insertCategory(name, code)) {
+								if (getPersistenceManager().getDatabase().getCategoriesTable().insertCategory(new CategoryBuilderFactory().setCode(name).setCode(code).build())) {
 									mAdapter.notifyDataSetChanged();
 									mListView.smoothScrollToPosition(mCategories.indexOf(name));
 								}
@@ -159,8 +161,9 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	}
 
 	private void editCategory(int position) {
-		final String oldName = mCategories.get(position).toString();
-		final String oldCode = getPersistenceManager().getDatabase().getCategoryCode(oldName);
+		final Category editCategory = mCategories.get(position);
+		final String oldName = editCategory.getName();
+		final String oldCode = editCategory.getCode();
 
 		final BetterDialogBuilder innerBuilder = new BetterDialogBuilder(getActivity());
 		final LinearLayout layout = new LinearLayout(getActivity());
@@ -187,10 +190,11 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 						public void onClick(DialogInterface dialog, int which) {
 							final String newName = nameBox.getText().toString();
 							final String newCode = codeBox.getText().toString();
+							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
 							try {
-								if (getPersistenceManager().getDatabase().updateCategory(oldName, newName, newCode)) {
+								if (getPersistenceManager().getDatabase().getCategoriesTable().updateCategory(editCategory, newCategory)) {
 									mAdapter.notifyDataSetChanged();
-									mListView.smoothScrollToPosition(mCategories.indexOf(newName));
+									mListView.smoothScrollToPosition(mCategories.indexOf(newCategory));
 								}
 								else {
 									Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
@@ -211,15 +215,15 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	}
 
 	private void deleteCategory(int position) {
-		final String name = mCategories.get(position).toString();
+		final Category category = mCategories.get(position);
 
 		final AlertDialog.Builder innerBuilder = new AlertDialog.Builder(getActivity());
-		innerBuilder.setTitle(getString(R.string.delete_item, name))
+		innerBuilder.setTitle(getString(R.string.delete_item, category.getName()))
 					.setCancelable(true)
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							if (getPersistenceManager().getDatabase().deleteCategory(name)) {
+							if (getPersistenceManager().getDatabase().getCategoriesTable().deleteCategory(category)) {
 								mAdapter.notifyDataSetChanged();
 							}
 							else {
@@ -257,7 +261,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 		}
 
 		@Override
-		public CharSequence getItem(int i) {
+		public Category getItem(int i) {
 			return mCategories.get(i);
 		}
 
@@ -283,8 +287,8 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 			else {
 				holder = (MyViewHolder) convertView.getTag();
 			}
-			holder.category.setText(getItem(i));
-			holder.code.setText(getPersistenceManager().getDatabase().getCategoryCode(mCategories.get(i)));
+			holder.category.setText(getItem(i).getName());
+			holder.code.setText(getItem(i).getCode());
 			holder.edit.setTag(i);
 			holder.delete.setTag(i);
 			return convertView;

@@ -47,6 +47,6 @@ public class ImmutableCategoryImpl implements Category {
 
     @Override
     public String toString() {
-        return "Category{" + mName + ", " + mCode + "}";
+        return mName;
     }
 }

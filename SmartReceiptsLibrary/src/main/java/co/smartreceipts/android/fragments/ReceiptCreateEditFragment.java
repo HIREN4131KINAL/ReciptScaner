@@ -42,6 +42,7 @@ import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
 import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -98,7 +99,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private ReceiptInputCache mReceiptInputCache;
     private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
     private ArrayAdapter<CharSequence> mCurrenciesAdapter;
-    private ArrayAdapter<CharSequence> mCategoriesAdpater;
+    private ArrayAdapter<Category> mCategoriesAdpater;
     private ArrayAdapter<PaymentMethod> mPaymentMethodsAdapter;
     private ExecutorService mExecutorService;
 
@@ -144,7 +145,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
-        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesList());
+        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesTable().getCategoriesList());
         mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethods());
         setHasOptionsMenu(true);
 
@@ -685,16 +686,16 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mNavigationHandler.navigateToReportInfoFragment(mTrip);
     }
 
-    private AdapterView.OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
+    private AdapterView.OnItemSelectedListener getSpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<Category> categories) {
         return new SpinnerSelectionListener(nameBox, commentBox, categories);
     }
 
     private final class SpinnerSelectionListener implements AdapterView.OnItemSelectedListener {
 
         private final TextView sNameBox, sCommentBox;
-        private final ArrayAdapter<CharSequence> sCategories;
+        private final ArrayAdapter<Category> sCategories;
 
-        public SpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<CharSequence> categories) {
+        public SpinnerSelectionListener(TextView nameBox, TextView commentBox, ArrayAdapter<Category> categories) {
             sNameBox = nameBox;
             sCommentBox = commentBox;
             sCategories = categories;
@@ -703,10 +704,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         @Override
         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
             if (sNameBox != null) {
-                sNameBox.setText(sCategories.getItem(position));
+                sNameBox.setText(sCategories.getItem(position).getName());
             }
             if (sCommentBox != null) {
-                sCommentBox.setText(sCategories.getItem(position));
+                sCommentBox.setText(sCategories.getItem(position).getCode());
             }
         }
 

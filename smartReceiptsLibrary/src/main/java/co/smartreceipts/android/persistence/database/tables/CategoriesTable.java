@@ -87,10 +87,10 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
     }
 
     @Deprecated
-    public synchronized boolean insertCategoryNoCache(@NonNull Category category) throws SQLException {
+    public synchronized boolean insertCategoryNoCache(@NonNull String name, @NonNull String code) throws SQLException {
         final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
-        values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
+        values.put(CategoriesTableColumns.COLUMN_NAME, name);
+        values.put(CategoriesTableColumns.COLUMN_CODE, code);
 
         if (getWritableDatabase().insertOrThrow(getTableName(), null, values) == -1) {
             return false;

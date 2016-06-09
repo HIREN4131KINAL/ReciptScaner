@@ -49,13 +49,16 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
+import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
+import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
 import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import co.smartreceipts.android.workers.ImportTask;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
@@ -118,6 +121,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     // Tables
     private final List<Table> mTables;
+    private final CategoriesTable mCategoriesTable;
     private final CSVTable mCSVTable;
     private final PDFTable mPDFTable;
 
@@ -257,16 +261,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
     }
 
-    private static final class CategoriesTable {
-        private CategoriesTable() {
-        }
-
-        public static final String TABLE_NAME = "categories";
-        public static final String COLUMN_NAME = "name";
-        public static final String COLUMN_CODE = "code";
-        public static final String COLUMN_BREAKDOWN = "breakdown";
-    }
-
     private static final class DistanceTable {
         private DistanceTable() {
         }
@@ -305,8 +299,10 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         // Tables:
         mTables = new ArrayList<>();
+        mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
+        mTables.add(mCategoriesTable);
         mTables.add(mCSVTable);
         mTables.add(mPDFTable);
 
@@ -391,11 +387,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
                     + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
                     + ");";
-            final String categories = "CREATE TABLE " + CategoriesTable.TABLE_NAME + " ("
-                    + CategoriesTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
-                    + CategoriesTable.COLUMN_CODE + " TEXT, "
-                    + CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
-                    + ");";
 
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, trips);
@@ -403,12 +394,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, receipts);
             }
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, categories);
-            }
             db.execSQL(trips);
             db.execSQL(receipts);
-            db.execSQL(categories);
             this.createPaymentMethodsTable(db);
             this.createDistanceTable(db);
             mCustomizations.insertCategoryDefaults(this);
@@ -455,14 +442,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 db.execSQL(alterReceipts);
             }
-            if (oldVersion <= 2) { // Add the mileage field to trips, add the breakdown boolean to categories, and
-                // create the CSV table
-                final String alterCategories = "ALTER TABLE " + CategoriesTable.TABLE_NAME + " ADD " + CategoriesTable.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
-                if (D) {
-                    Log.d(TAG, alterCategories);
-                }
-                db.execSQL(alterCategories);
-            }
+
             if (oldVersion <= 3) { // Add extra_edittext columns
                 final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
                 final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
@@ -2679,59 +2659,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Categories Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public final ArrayList<CharSequence> getCategoriesList() {
-        if (mCategoryList != null) {
-            return mCategoryList;
-        }
-        if (mCategories == null) {
-            buildCategories();
-        }
-        mCategoryList = new ArrayList<CharSequence>(mCategories.keySet());
-        Collections.sort(mCategoryList, _charSequenceComparator);
-        return mCategoryList;
-    }
-
-    private final CharSequenceComparator _charSequenceComparator = new CharSequenceComparator();
-
-    private final class CharSequenceComparator implements Comparator<CharSequence> {
-        @Override
-        public int compare(CharSequence str1, CharSequence str2) {
-            return str1.toString().compareToIgnoreCase(str2.toString());
-        }
-    }
-
-    public final String getCategoryCode(CharSequence categoryName) {
-        if (mCategories == null || mCategories.size() == 0) {
-            buildCategories();
-        }
-        return mCategories.get(categoryName);
-    }
-
-    private final void buildCategories() {
-        mCategories = new HashMap<String, String>();
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
-                if (c != null && c.moveToFirst()) {
-                    final int nameIndex = c.getColumnIndex(CategoriesTable.COLUMN_NAME);
-                    final int codeIndex = c.getColumnIndex(CategoriesTable.COLUMN_CODE);
-                    do {
-                        final String name = c.getString(nameIndex);
-                        final String code = c.getString(codeIndex);
-                        mCategories.put(name, code);
-                    }
-                    while (c.moveToNext());
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
 
     public final ArrayList<CharSequence> getCurrenciesList() {
         if (mFullCurrencyList != null) {
@@ -2740,7 +2667,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         mFullCurrencyList = new ArrayList<>();
         mFullCurrencyList.addAll(WBCurrency.getIso4217CurrencyCodes());
         mFullCurrencyList.addAll(WBCurrency.getNonIso4217CurrencyCodes());
-        Collections.sort(mFullCurrencyList, _charSequenceComparator);
+        Collections.sort(mFullCurrencyList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
         mFullCurrencyList.addAll(0, getMostRecentlyUsedCurrencies());
         return mFullCurrencyList;
     }
@@ -2768,77 +2695,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
             }
         }
-        Collections.sort(mMostRecentlyUsedCurrencyList, _charSequenceComparator);
+        Collections.sort(mMostRecentlyUsedCurrencyList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
         return mMostRecentlyUsedCurrencyList;
     }
 
-    public final boolean insertCategory(final String name, final String code) throws SQLException {
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = this.getWritableDatabase();
-            ContentValues values = new ContentValues(2);
-            values.put(CategoriesTable.COLUMN_NAME, name);
-            values.put(CategoriesTable.COLUMN_CODE, code);
-            if (db.insertOrThrow(CategoriesTable.TABLE_NAME, null, values) == -1) {
-                return false;
-            } else {
-                mCategories.put(name, code);
-                mCategoryList.add(name);
-                Collections.sort(mCategoryList, _charSequenceComparator);
-                return true;
-            }
-        }
+    public final ArrayList<CharSequence> getCategoriesList() {
+        return new ArrayList<>();
     }
 
-    @SuppressWarnings("resource")
-    public final boolean insertCategoryNoCache(final String name, final String code) throws SQLException {
-        final SQLiteDatabase db = (_initDB != null) ? _initDB : this.getReadableDatabase();
-        ContentValues values = new ContentValues(2);
-        values.put(CategoriesTable.COLUMN_NAME, name);
-        values.put(CategoriesTable.COLUMN_CODE, code);
-        if (db.insertOrThrow(CategoriesTable.TABLE_NAME, null, values) == -1) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public final boolean updateCategory(final String oldName, final String newName, final String newCode) {
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            ContentValues values = new ContentValues(2);
-            values.put(CategoriesTable.COLUMN_NAME, newName);
-            values.put(CategoriesTable.COLUMN_CODE, newCode);
-            if (db.update(CategoriesTable.TABLE_NAME, values, CategoriesTable.COLUMN_NAME + " = ?", new String[]{oldName}) == 0) {
-                return false;
-            } else {
-                mCategories.remove(oldName);
-                mCategoryList.remove(oldName);
-                mCategories.put(newName, newCode);
-                mCategoryList.add(newName);
-                Collections.sort(mCategoryList, _charSequenceComparator);
-                return true;
-            }
-
-        }
-    }
-
-    public final boolean deleteCategory(final String name) {
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            final boolean success = (db.delete(CategoriesTable.TABLE_NAME, CategoriesTable.COLUMN_NAME + " = ?", new String[]{name}) > 0);
-            if (success) {
-                mCategories.remove(name);
-                mCategoryList.remove(name);
-            }
-            return success;
-        }
+    public final String getCategoryCode(CharSequence categoryName) {
+        return "";
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Columns Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
+    @NonNull
+    public final CategoriesTable getCategoriesTable() {
+        return mCategoriesTable;
+    }
+
     @NonNull
     public final CSVTable getCSVTable() {
         return mCSVTable;
@@ -3270,21 +3146,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Categories");
                 try {
-                    c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(CategoriesTableColumns.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(CategoriesTable.TABLE_NAME, null, null); // DELETE FROM Categories
-                        final int nameIndex = c.getColumnIndex(CategoriesTable.COLUMN_NAME);
-                        final int codeIndex = c.getColumnIndex(CategoriesTable.COLUMN_CODE);
-                        final int breakdownIndex = c.getColumnIndex(CategoriesTable.COLUMN_BREAKDOWN);
+                        currDB.delete(CategoriesTableColumns.TABLE_NAME, null, null); // DELETE FROM Categories
+                        final int nameIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_NAME);
+                        final int codeIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_CODE);
+                        final int breakdownIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_BREAKDOWN);
                         do {
                             final String name = getString(c, nameIndex, "");
                             final String code = getString(c, codeIndex, "");
                             final boolean breakdown = getBoolean(c, breakdownIndex, true);
                             ContentValues values = new ContentValues(3);
-                            values.put(CategoriesTable.COLUMN_NAME, name);
-                            values.put(CategoriesTable.COLUMN_CODE, code);
-                            values.put(CategoriesTable.COLUMN_BREAKDOWN, breakdown);
-                            currDB.insert(CategoriesTable.TABLE_NAME, null, values);
+                            values.put(CategoriesTableColumns.COLUMN_NAME, name);
+                            values.put(CategoriesTableColumns.COLUMN_CODE, code);
+                            values.put(CategoriesTableColumns.COLUMN_BREAKDOWN, breakdown);
+                            currDB.insert(CategoriesTableColumns.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }

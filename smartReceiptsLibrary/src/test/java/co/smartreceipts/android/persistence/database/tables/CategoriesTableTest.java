@@ -57,10 +57,10 @@ public class CategoriesTableTest {
     @Mock
     TableDefaultsCustomizer mTableDefaultsCustomizer;
 
-    SQLiteOpenHelper mSQLiteOpenHelper;
-
     @Captor
     ArgumentCaptor<String> mSqlCaptor;
+
+    SQLiteOpenHelper mSQLiteOpenHelper;
 
     Category mCategory1;
 
@@ -79,8 +79,8 @@ public class CategoriesTableTest {
 
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategoriesTable.insertCategoryNoCache(NAME1, CODE1);
-        mCategoriesTable.insertCategoryNoCache(NAME2, CODE2);
+        mCategoriesTable.insertCategoryNoCache(mCategory1);
+        mCategoriesTable.insertCategoryNoCache(mCategory2);
     }
 
     @After
@@ -147,7 +147,7 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.insertCategory(name, code));
+        assertTrue(mCategoriesTable.insertCategory(insertCategory));
 
         final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
         assertEquals(oldSize + 1, newCategories.size());
@@ -159,7 +159,8 @@ public class CategoriesTableTest {
     public void insertNoCache() {
         final String name = "NewName";
         final String code = "NewCode";
-        assertTrue(mCategoriesTable.insertCategoryNoCache(name, code));
+        final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
+        assertTrue(mCategoriesTable.insertCategoryNoCache(insertCategory));
     }
 
     @Test
@@ -171,7 +172,7 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.updateCategory(mCategory1.getName(), name, code));
+        assertTrue(mCategoriesTable.updateCategory(mCategory1, updateCategory));
 
         final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
         assertEquals(oldSize, newCategories.size());
@@ -186,8 +187,8 @@ public class CategoriesTableTest {
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertTrue(mCategoriesTable.deleteCategory(mCategory1.getName()));
-        assertTrue(mCategoriesTable.deleteCategory(mCategory2.getName()));
+        assertTrue(mCategoriesTable.deleteCategory(mCategory1));
+        assertTrue(mCategoriesTable.deleteCategory(mCategory2));
 
         final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
         assertTrue(newCategories.isEmpty());

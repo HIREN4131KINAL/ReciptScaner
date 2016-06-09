@@ -71,26 +71,26 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         return mCategories.get(categoryName).getCode();
     }
 
-    public synchronized boolean insertCategory(final String name, final String code) throws SQLException {
+    public synchronized boolean insertCategory(@NonNull Category category) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, name);
-        values.put(CategoriesTableColumns.COLUMN_CODE, code);
+        values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
+        values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
         if (db.insertOrThrow(getTableName(), null, values) == -1) {
             return false;
         } else {
-            final Category category = new CategoryBuilderFactory().setName(name).setCode(code).build();
-            mCategories.put(name, category);
+            mCategories.put(category.getName(), category);
             mCategoryList.add(category);
             Collections.sort(mCategoryList, new CategoryNameComparator());
             return true;
         }
     }
 
-    public synchronized boolean insertCategoryNoCache(final String name, final String code) throws SQLException {
+    @Deprecated
+    public synchronized boolean insertCategoryNoCache(@NonNull Category category) throws SQLException {
         final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, name);
-        values.put(CategoriesTableColumns.COLUMN_CODE, code);
+        values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
+        values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
 
         if (getWritableDatabase().insertOrThrow(getTableName(), null, values) == -1) {
             return false;
@@ -99,28 +99,26 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         }
     }
 
-    public synchronized boolean updateCategory(final String oldName, final String newName, final String newCode) {
+    public synchronized boolean updateCategory(@NonNull Category oldCategory, @NonNull Category newCategory) {
         final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, newName);
-        values.put(CategoriesTableColumns.COLUMN_CODE, newCode);
+        values.put(CategoriesTableColumns.COLUMN_NAME, newCategory.getName());
+        values.put(CategoriesTableColumns.COLUMN_CODE, newCategory.getCode());
 
-        if (getWritableDatabase().update(getTableName(), values, CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{oldName}) == 0) {
+        if (getWritableDatabase().update(getTableName(), values, CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{oldCategory.getName()}) == 0) {
             return false;
         } else {
-            final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
-            final Category oldCategory = mCategories.remove(oldName);
             mCategoryList.remove(oldCategory);
-            mCategories.put(newName, newCategory);
+            mCategories.put(newCategory.getName(), newCategory);
             mCategoryList.add(newCategory);
             Collections.sort(mCategoryList, new CategoryNameComparator());
             return true;
         }
     }
 
-    public synchronized boolean deleteCategory(final String name) {
-        final boolean success = (getWritableDatabase().delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{name}) > 0);
+    public synchronized boolean deleteCategory(@NonNull Category category) {
+        final boolean success = (getWritableDatabase().delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{category.getName()}) > 0);
         if (success) {
-            final Category oldCategory = mCategories.remove(name);
+            final Category oldCategory = mCategories.remove(category.getName());
             mCategoryList.remove(oldCategory);
         }
         return success;

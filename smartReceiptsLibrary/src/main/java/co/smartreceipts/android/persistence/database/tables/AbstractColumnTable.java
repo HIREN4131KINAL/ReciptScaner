@@ -109,6 +109,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         }
     }
 
+    @Deprecated
     public synchronized boolean insertColumnNoCache(String column) {
         final ContentValues values = new ContentValues(1);
         values.put(getTypeColumn(), column);

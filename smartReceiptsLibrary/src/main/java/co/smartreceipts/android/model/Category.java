@@ -1,8 +1,12 @@
 package co.smartreceipts.android.model;
 
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-public interface Category {
+/**
+ * A contract definition by which we can track receipt categories
+ */
+public interface Category extends Parcelable {
 
     /**
      * @return the full-name representation of this category

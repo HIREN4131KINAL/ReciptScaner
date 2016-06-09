@@ -316,20 +316,20 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                 if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
                     if (mReceiptInputCache.getCachedCategory() == null) {
+                        String nameToIndex = null;
                         if (now.hour >= 4 && now.hour < 11) { // Breakfast hours
-                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_breakfast));
-                            if (idx > 0) {
-                                categoriesSpinner.setSelection(idx);
-                            }
+                            nameToIndex = getString(R.string.category_breakfast);
                         } else if (now.hour >= 11 && now.hour < 16) { // Lunch hours
-                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_lunch));
-                            if (idx > 0) {
-                                categoriesSpinner.setSelection(idx);
-                            }
+                            nameToIndex = getString(R.string.category_lunch);
                         } else if (now.hour >= 16 && now.hour < 23) { // Dinner hours
-                            int idx = mCategoriesAdpater.getPosition(getString(R.string.category_dinner));
-                            if (idx > 0) {
-                                categoriesSpinner.setSelection(idx);
+                            nameToIndex = getString(R.string.category_dinner);
+                        }
+                        if (nameToIndex != null) {
+                            for (int i = 0; i < mCategoriesAdpater.getCount(); i++) {
+                                if (nameToIndex.equals(mCategoriesAdpater.getItem(i).getName())) {
+                                    categoriesSpinner.setSelection(i);
+                                    break; // Exit loop now
+                                }
                             }
                         }
                     } else {
@@ -628,7 +628,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private void saveReceipt() {
         final String name = nameBox.getText().toString();
-        final String category = categoriesSpinner.getSelectedItem().toString();
+        final Category category = mCategoriesAdpater.getItem(categoriesSpinner.getSelectedItemPosition());
         final String currency = currencySpinner.getSelectedItem().toString();
 
         if (name.length() == 0) {

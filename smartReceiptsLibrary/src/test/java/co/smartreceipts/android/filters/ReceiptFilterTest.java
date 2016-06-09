@@ -35,7 +35,7 @@ public class ReceiptFilterTest {
     public void receiptCategoryFilterTest() throws JSONException {
         final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
         final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory("BAD Category").build();
-        final ReceiptCategoryFilter filter = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY);
+        final ReceiptCategoryFilter filter = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         assertTrue(filter.accept(receipt1));
         assertFalse(filter.accept(receipt2));
         assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation())); // Confirm we can properly recreate
@@ -139,7 +139,7 @@ public class ReceiptFilterTest {
         final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
         final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory(category2).build();
         final Receipt receipt3 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory("BAD Category").build();
-        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY);
+        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter(category2);
         final ReceiptOrFilter orFilter = new ReceiptOrFilter();
         orFilter.or(filter1);
@@ -157,7 +157,7 @@ public class ReceiptFilterTest {
         final Receipt receipt = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
 
         final ReceiptIsExpensableFilter trueFilter1 = new ReceiptIsExpensableFilter();
-        final ReceiptCategoryFilter trueFilter2 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY);
+        final ReceiptCategoryFilter trueFilter2 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter falseFilter = new ReceiptCategoryFilter("BAD Category");
 
         final ReceiptAndFilter andFilterGood = new ReceiptAndFilter();
@@ -200,7 +200,7 @@ public class ReceiptFilterTest {
         // in this test scenario,
         // filters constructed with same data but different method should be equal
 
-        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY);
+        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)
@@ -224,7 +224,7 @@ public class ReceiptFilterTest {
         // in this test scenario,
         // filters constructed with same data but different method should be equal
 
-        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY);
+        final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)

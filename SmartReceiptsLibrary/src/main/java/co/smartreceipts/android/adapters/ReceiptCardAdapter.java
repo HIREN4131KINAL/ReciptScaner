@@ -42,7 +42,7 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	protected void setCategory(TextView textView, Receipt data) {
 		if (getPreferences().isShowCategory()) {
 			textView.setVisibility(View.VISIBLE);
-			textView.setText(data.getCategory());
+			textView.setText(data.getCategory().getName());
 		}
 		else {
 			textView.setVisibility(View.GONE);

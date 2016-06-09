@@ -6,12 +6,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
@@ -32,46 +35,54 @@ public final class DefaultReceiptImpl implements Receipt {
     private final Trip mTrip;
     private final PaymentMethod mPaymentMethod;
     private final int mIndex; // Tracks the index in the list (if specified)
-    private final String mName, mCategory, mComment;
+    private final String mName;
+    private final String mComment;
+    private final Category mCategory;
     private final Price mPrice, mTax;
     private final Date mDate;
     private final TimeZone mTimeZone;
-    private final boolean mIsExpensable, mIsFullPage;
+    private final boolean mIsExpensable;
+    private final boolean mIsFullPage;
     private final Source mSource;
-    private final String mExtraEditText1, mExtraEditText2, mExtraEditText3;
+    private final String mExtraEditText1;
+    private final String mExtraEditText2;
+    private final String mExtraEditText3;
     private boolean mIsSelected;
     private File mFile;
 
-    public DefaultReceiptImpl(int id, int index, Trip trip, File file, PaymentMethod paymentMethod, String name, String category, String comment,
-                              Price price, Price tax, Date date, TimeZone timeZone, boolean isExpensable,
-                              boolean isFullPage, boolean isSelected, Source source, String extraEditText1, String extraEditText2, String extraEditText3) {
+    public DefaultReceiptImpl(int id, int index, @NonNull Trip trip, @Nullable File file, @Nullable PaymentMethod paymentMethod, @NonNull String name,
+                              @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
+                              @NonNull TimeZone timeZone, boolean isExpensable, boolean isFullPage, boolean isSelected,
+                              @NonNull Source source, @Nullable String extraEditText1, @Nullable String extraEditText2, @Nullable String extraEditText3) {
+
+        mTrip = Preconditions.checkNotNull(trip);
+        mName = Preconditions.checkNotNull(name);
+        mCategory = Preconditions.checkNotNull(category);
+        mComment = Preconditions.checkNotNull(comment);
+        mSource = Preconditions.checkNotNull(source);
+        mPrice = Preconditions.checkNotNull(price);
+        mTax = Preconditions.checkNotNull(tax);
+        mDate = Preconditions.checkNotNull(date);
+        mTimeZone = Preconditions.checkNotNull(timeZone);
+
         mId = id;
         mIndex = index;
-        mTrip = trip;
         mFile = file;
         mPaymentMethod = paymentMethod;
-        mName = name;
-        mCategory = category;
-        mComment = comment;
-        mPrice = price;
-        mTax = tax;
-        mDate = date;
-        mTimeZone = timeZone;
         mIsExpensable = isExpensable;
         mIsFullPage = isFullPage;
-        mSource = source;
         mExtraEditText1 = extraEditText1;
         mExtraEditText2 = extraEditText2;
         mExtraEditText3 = extraEditText3;
         mIsSelected = isSelected;
     }
 
-    private DefaultReceiptImpl(Parcel in) {
+    private DefaultReceiptImpl(@NonNull Parcel in) {
         mTrip = in.readParcelable(Trip.class.getClassLoader());
         mPaymentMethod = in.readParcelable(PaymentMethod.class.getClassLoader());
         mId = in.readInt();
         mName = in.readString();
-        mCategory = in.readString();
+        mCategory = in.readParcelable(Category.class.getClassLoader());
         mComment = in.readString();
         mPrice = in.readParcelable(Price.class.getClassLoader());
         mTax = in.readParcelable(Price.class.getClassLoader());
@@ -155,9 +166,7 @@ public final class DefaultReceiptImpl implements Receipt {
     @NonNull
     @Override
     public String getMarkerAsString(@NonNull Context context) {
-        if (context == null) {
-            return "";
-        } else if (hasImage()) {
+        if (hasImage()) {
             return context.getString(R.string.image);
         } else if (hasPDF()) {
             return context.getString(R.string.pdf);
@@ -217,22 +226,14 @@ public final class DefaultReceiptImpl implements Receipt {
 
     @NonNull
     @Override
-    public String getCategory() {
-        if (mCategory != null) {
-            return mCategory;
-        } else {
-            return "";
-        }
+    public Category getCategory() {
+        return mCategory;
     }
 
     @NonNull
     @Override
     public String getComment() {
-        if (mComment != null) {
-            return mComment;
-        } else {
-            return "";
-        }
+        return mComment;
     }
 
     @NonNull
@@ -379,7 +380,7 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeParcelable(getPaymentMethod(), flags);
         dest.writeInt(getId());
         dest.writeString(getName());
-        dest.writeString(getCategory());
+        dest.writeParcelable(getCategory(), flags);
         dest.writeString(getComment());
         dest.writeParcelable(getPrice(), flags);
         dest.writeParcelable(getTax(), flags);

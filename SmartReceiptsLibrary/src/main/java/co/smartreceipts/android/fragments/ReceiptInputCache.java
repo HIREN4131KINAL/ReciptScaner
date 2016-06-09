@@ -8,6 +8,8 @@ import android.support.v4.app.FragmentManager;
 
 import java.sql.Date;
 
+import co.smartreceipts.android.model.Category;
+
 public class ReceiptInputCache {
 
     private final InputCacheHeadlessFragment mHeadlessFragment;
@@ -21,6 +23,7 @@ public class ReceiptInputCache {
         mHeadlessFragment = headlessFragment;
     }
 
+    @Nullable
     public Date getCachedDate() {
         return mHeadlessFragment.mCachedDate;
     }
@@ -29,11 +32,12 @@ public class ReceiptInputCache {
         mHeadlessFragment.mCachedDate = cachedDate;
     }
 
-    public String getCachedCategory() {
+    @Nullable
+    public Category getCachedCategory() {
         return mHeadlessFragment.mCachedCategory;
     }
 
-    public void setCachedCategory(@Nullable String cachedCategory) {
+    public void setCachedCategory(@Nullable Category cachedCategory) {
         mHeadlessFragment.mCachedCategory = cachedCategory;
     }
 
@@ -50,7 +54,8 @@ public class ReceiptInputCache {
         private static final String TAG = InputCacheHeadlessFragment.class.getName();
 
         private Date mCachedDate;
-        private String mCachedCategory, mCachedCurrency;
+        private Category mCachedCategory;
+        private String mCachedCurrency;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {

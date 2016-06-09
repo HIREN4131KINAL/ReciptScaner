@@ -165,7 +165,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
             case BLANK:
                 return new BlankColumn<>(id, definitionName);
             case CATEGORY_CODE:
-                return new ReceiptCategoryCodeColumn(id, definitionName, mDB);
+                return new ReceiptCategoryCodeColumn(id, definitionName);
             case CATEGORY_NAME:
                 return new ReceiptCategoryNameColumn(id, definitionName);
             case USER_ID:

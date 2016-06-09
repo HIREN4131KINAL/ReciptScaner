@@ -11,7 +11,7 @@ import java.util.TimeZone;
 
 public interface Receipt extends Parcelable, Priceable {
 
-    public static final String PARCEL_KEY = Receipt.class.getName();
+    String PARCEL_KEY = Receipt.class.getName();
 
     /**
      * Gets the primary key id for this receipt
@@ -143,10 +143,10 @@ public interface Receipt extends Parcelable, Priceable {
     /**
      * Gets the category to which this receipt is attached
      *
-     * @return the {@link java.lang.String} representation of the category
+     * @return the {@link Category} this receipt uses
      */
     @NonNull
-    String getCategory();
+    Category getCategory();
 
     /**
      * Gets the user defined comment for this receipt

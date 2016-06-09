@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(RobolectricGradleTestRunner.class)
 public class CategoriesTableTest {
 
     private static final String NAME1 = "name1";
@@ -79,8 +80,8 @@ public class CategoriesTableTest {
 
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategoriesTable.insertCategoryNoCache(mCategory1);
-        mCategoriesTable.insertCategoryNoCache(mCategory2);
+        mCategoriesTable.insertCategoryNoCache(mCategory1.getName(), mCategory1.getCode());
+        mCategoriesTable.insertCategoryNoCache(mCategory2.getName(), mCategory2.getCode());
     }
 
     @After
@@ -160,7 +161,7 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.insertCategoryNoCache(insertCategory));
+        assertTrue(mCategoriesTable.insertCategoryNoCache(insertCategory.getName(), insertCategory.getCode()));
     }
 
     @Test

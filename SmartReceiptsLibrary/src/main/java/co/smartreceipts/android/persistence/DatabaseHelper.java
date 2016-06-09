@@ -2001,7 +2001,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
             values.put(ReceiptsTable.COLUMN_NAME, receipt.getName().trim());
         }
-        values.put(ReceiptsTable.COLUMN_CATEGORY, receipt.getCategory());
+        values.put(ReceiptsTable.COLUMN_CATEGORY, receipt.getCategory().getName());
 
         // In theory, this hack may cause issue if there are > 1000 receipts. I imagine other bugs will arise before this point
         values.put(ReceiptsTable.COLUMN_DATE, receipt.getDate().getTime() + rcptNum);
@@ -2143,7 +2143,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             values.put(ReceiptsTable.COLUMN_TAX, updatedReceipt.getTax().getDecimalFormattedPrice().replace(",", "."));
         }
 
-        values.put(ReceiptsTable.COLUMN_CATEGORY, updatedReceipt.getCategory());
+        values.put(ReceiptsTable.COLUMN_CATEGORY, updatedReceipt.getCategory().getName());
         values.put(ReceiptsTable.COLUMN_COMMENT, updatedReceipt.getComment());
         values.put(ReceiptsTable.COLUMN_ISO4217, updatedReceipt.getPrice().getCurrencyCode());
         values.put(ReceiptsTable.COLUMN_EXPENSEABLE, updatedReceipt.isExpensable());
@@ -2536,124 +2536,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 c.close();
             }
         }
-    }
-
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // ReceiptRow Graph Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public void registerReceiptRowGraphListener(ReceiptRowGraphListener listener) {
-        mReceiptRowGraphListener = listener;
-    }
-
-    public void unregisterReceiptRowGraphListener() {
-        mReceiptRowGraphListener = null;
-    }
-
-    /**
-     * This basic internal delegate is used to prevent code reptition since all the queries will be the same. We only
-     * have to swap out column names and how the receipts are built
-     */
-    private interface GraphProcessorDelegate {
-        public String getXAxisColumn(); // refers to the field without aggregation
-
-        public String getSumColumn(); // refers to the SUM() field in SQL
-
-        public Receipt getReceipt(String xaxis, String sum);
-    }
-
-    private List<Receipt> getGraphColumnsSerial(Trip trip, GraphProcessorDelegate delegate) {
-        return getGraphColumnsHelper(trip, delegate);
-    }
-
-    private void getGraphColumnsParallel(Trip trip, GraphProcessorDelegate delegate) {
-        if (mReceiptRowGraphListener == null) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "No ReceiptRowGraphListener was registered.");
-            }
-        }
-        (new GetGraphColumnsWorker(delegate)).execute(trip);
-    }
-
-    private class GetGraphColumnsWorker extends AsyncTask<Trip, Void, List<Receipt>> {
-
-        private final GraphProcessorDelegate mDelegate;
-
-        public GetGraphColumnsWorker(GraphProcessorDelegate delegate) {
-            mDelegate = delegate;
-        }
-
-        @Override
-        protected List<Receipt> doInBackground(Trip... params) {
-            if (params == null || params.length == 0) {
-                return new ArrayList<Receipt>();
-            }
-            Trip trip = params[0];
-            return getGraphColumnsHelper(trip, mDelegate);
-        }
-
-        @Override
-        protected void onPostExecute(List<Receipt> result) {
-            if (mReceiptRowGraphListener != null) {
-                mReceiptRowGraphListener.onGraphQuerySuccess(result);
-            }
-        }
-
-    }
-
-    private final List<Receipt> getGraphColumnsHelper(Trip trip, GraphProcessorDelegate delegate) {
-        List<Receipt> receipts;
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getReadableDatabase();
-                final String[] columns = new String[]{delegate.getXAxisColumn(), "SUM(" + delegate.getSumColumn() + ") AS " + delegate.getSumColumn()};
-                c = db.query(ReceiptsTable.TABLE_NAME, columns, ReceiptsTable.COLUMN_PARENT + "= ?", new String[]{trip.getName()}, delegate.getXAxisColumn(), null, null);
-                if (c != null && c.moveToFirst()) {
-                    receipts = new ArrayList<Receipt>(c.getCount());
-                    final int xIndex = c.getColumnIndex(delegate.getXAxisColumn());
-                    final int sumIndex = c.getColumnIndex(delegate.getSumColumn());
-                    do {
-                        final String xaxis = c.getString(xIndex);
-                        final String sum = c.getString(sumIndex);
-                        receipts.add(delegate.getReceipt(xaxis, sum));
-                    }
-                    while (c.moveToNext());
-                } else {
-                    receipts = new ArrayList<Receipt>();
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-        return receipts;
-    }
-
-    private static class CostPerCategoryDelegate implements GraphProcessorDelegate {
-        @Override
-        public String getXAxisColumn() {
-            return ReceiptsTable.COLUMN_CATEGORY;
-        }
-
-        @Override
-        public String getSumColumn() {
-            return ReceiptsTable.COLUMN_PRICE;
-        }
-
-        @Override
-        public Receipt getReceipt(String xaxis, String sum) {
-            return (new ReceiptBuilderFactory(-1)).setCategory(xaxis).setPrice(sum).build();
-        }
-    }
-
-    public List<Receipt> getCostPerCategorySerial(final Trip trip) {
-        return getGraphColumnsSerial(trip, new CostPerCategoryDelegate());
-    }
-
-    public void getCostPerCategoryParallel(final Trip trip) {
-        getGraphColumnsParallel(trip, new CostPerCategoryDelegate());
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////

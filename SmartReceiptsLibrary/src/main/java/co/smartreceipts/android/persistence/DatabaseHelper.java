@@ -396,7 +396,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
             db.execSQL(trips);
             db.execSQL(receipts);
-            this.createPaymentMethodsTable(db);
             this.createDistanceTable(db);
             mCustomizations.insertCategoryDefaults(this);
             mCustomizations.onFirstRun();
@@ -565,7 +564,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db.execSQL(alterTrips2);
             }
             if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
-                this.createPaymentMethodsTable(db);
                 final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
                 final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
                 if (BuildConfig.DEBUG) {
@@ -659,15 +657,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             Log.d(TAG, distance);
         }
         db.execSQL(distance);
-    }
-
-    private final void createPaymentMethodsTable(final SQLiteDatabase db) { // Called in onCreate and onUpgrade
-        final String sql = "CREATE TABLE " + PaymentMethodsTable.TABLE_NAME + " (" + PDFTableColumns.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + PaymentMethodsTable.COLUMN_METHOD + " TEXT" + ");";
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, sql);
-        }
-        db.execSQL(sql);
-        mCustomizations.insertPaymentMethodDefaults(this);
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////

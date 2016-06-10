@@ -34,7 +34,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
     @Override
     public void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
         super.onCreate(db, customizer);
-        final String categories = "CREATE TABLE " + CategoriesTableColumns.TABLE_NAME + " ("
+        final String categories = "CREATE TABLE " + getTableName() + " ("
                 + CategoriesTableColumns.COLUMN_NAME + " TEXT PRIMARY KEY, "
                 + CategoriesTableColumns.COLUMN_CODE + " TEXT, "
                 + CategoriesTableColumns.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
@@ -47,7 +47,8 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
     public void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
         super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= 2) { 
-            final String alterCategories = "ALTER TABLE " + CategoriesTableColumns.TABLE_NAME + " ADD " + CategoriesTableColumns.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
+            final String alterCategories = "ALTER TABLE " + getTableName() +
+                                           " ADD " + CategoriesTableColumns.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
             db.execSQL(alterCategories);
         }
     }

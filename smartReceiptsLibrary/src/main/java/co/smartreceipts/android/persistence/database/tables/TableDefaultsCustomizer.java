@@ -9,4 +9,6 @@ public interface TableDefaultsCustomizer {
     void insertPDFDefaults(@NonNull PDFTable table);
 
     void insertCategoryDefaults(@NonNull CategoriesTable table);
+
+    void insertPaymentMethodDefaults(@NonNull PaymentMethodsTable table);
 }

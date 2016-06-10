@@ -12,22 +12,13 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.ColumnDefinitions;
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import co.smartreceipts.android.model.impl.columns.BlankColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPaymentMethodColumn;
-import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
 
 import static org.junit.Assert.assertEquals;
@@ -39,7 +30,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
 public class CategoriesTableTest {
@@ -80,8 +70,8 @@ public class CategoriesTableTest {
 
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategoriesTable.insertCategoryNoCache(mCategory1.getName(), mCategory1.getCode());
-        mCategoriesTable.insertCategoryNoCache(mCategory2.getName(), mCategory2.getCode());
+        mCategoriesTable.insert(mCategory1);
+        mCategoriesTable.insert(mCategory2);
     }
 
     @After
@@ -135,47 +125,39 @@ public class CategoriesTableTest {
 
     @Test
     public void getCategories() {
-        final ArrayList<Category> categories = mCategoriesTable.getCategoriesList();
+        final List<Category> categories = mCategoriesTable.get();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2));
         
     }
 
     @Test
     public void insert() {
-        final ArrayList<Category> oldCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> oldCategories = mCategoriesTable.get();
         final int oldSize = oldCategories.size();
 
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.insertCategory(insertCategory));
+        assertTrue(mCategoriesTable.insert(insertCategory));
 
-        final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> newCategories = mCategoriesTable.get();
         assertEquals(oldSize + 1, newCategories.size());
         assertTrue(newCategories.contains(insertCategory));
         assertEquals(mCategoriesTable.getCategoryCode(name), code);
     }
-
-    @Test
-    public void insertNoCache() {
-        final String name = "NewName";
-        final String code = "NewCode";
-        final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.insertCategoryNoCache(insertCategory.getName(), insertCategory.getCode()));
-    }
-
+    
     @Test
     public void update() {
-        final ArrayList<Category> oldCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> oldCategories = mCategoriesTable.get();
         final int oldSize = oldCategories.size();
         assertTrue(oldCategories.contains(mCategory1));
 
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.updateCategory(mCategory1, updateCategory));
+        assertTrue(mCategoriesTable.update(mCategory1, updateCategory));
 
-        final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> newCategories = mCategoriesTable.get();
         assertEquals(oldSize, newCategories.size());
         assertTrue(newCategories.contains(updateCategory));
         assertFalse(newCategories.contains(mCategory1));
@@ -184,14 +166,14 @@ public class CategoriesTableTest {
 
     @Test
     public void delete() {
-        final ArrayList<Category> oldCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> oldCategories = mCategoriesTable.get();
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertTrue(mCategoriesTable.deleteCategory(mCategory1));
-        assertTrue(mCategoriesTable.deleteCategory(mCategory2));
+        assertTrue(mCategoriesTable.delete(mCategory1));
+        assertTrue(mCategoriesTable.delete(mCategory2));
 
-        final ArrayList<Category> newCategories = mCategoriesTable.getCategoriesList();
+        final List<Category> newCategories = mCategoriesTable.get();
         assertTrue(newCategories.isEmpty());
     }
 

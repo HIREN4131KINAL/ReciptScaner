@@ -27,7 +27,7 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 
 	@Override
 	public List<Column<Receipt>> getColumns() {
-		return getPersistenceManager().getDatabase().getCSVTable().getColumns();
+		return getPersistenceManager().getDatabase().getCSVTable().get();
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 
 	@Override
 	public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
-		getPersistenceManager().getDatabase().getCSVTable().updateColumn(oldColumn, newColumn);
+		getPersistenceManager().getDatabase().getCSVTable().update(oldColumn, newColumn);
 	}
 
 }

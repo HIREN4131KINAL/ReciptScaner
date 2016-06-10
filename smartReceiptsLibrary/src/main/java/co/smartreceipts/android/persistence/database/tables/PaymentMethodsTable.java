@@ -57,7 +57,7 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod> {
      *
      * @return the {@link List} of {@link PaymentMethod} objects that we've saved
      */
-    public synchronized List<PaymentMethod> getPaymentMethods() {
+    public synchronized List<PaymentMethod> get() {
         if (mPaymentMethods != null) {
             return mPaymentMethods;
         }
@@ -92,7 +92,7 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod> {
      * @return a {@link PaymentMethod} if the id matches or {@code null} if none is found
      */
     public synchronized PaymentMethod findPaymentMethodById(final int id) {
-        final List<PaymentMethod> methodsSnapshot = new ArrayList<>(getPaymentMethods());
+        final List<PaymentMethod> methodsSnapshot = new ArrayList<>(get());
         final int size = methodsSnapshot.size();
         for (int i = 0; i < size; i++) {
             final PaymentMethod method = methodsSnapshot.get(i);
@@ -105,13 +105,13 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod> {
 
     /**
      * Inserts a new {@link PaymentMethod} into our database. This method also automatically updates the underlying list
-     * that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+     * that is returned from {@link #get()}. This is done on the calling thread.
      *
      * @param method - a {@link String} representing the current method
      * @return a new {@link PaymentMethod} if it was successfully inserted, {@code null} if not
      */
     @Nullable
-    public synchronized PaymentMethod insertPaymentMethod(final String method) {
+    public synchronized PaymentMethod insert(final String method) {
         ContentValues values = new ContentValues(1);
         values.put(PaymentMethodsTableColumns.COLUMN_METHOD, method);
 
@@ -144,14 +144,14 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod> {
 
     /**
      * Updates a Payment method with a new method type. This method also automatically updates the underlying list that
-     * is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+     * is returned from {@link #get()}. This is done on the calling thread.
      *
      * @param oldPaymentMethod - the old method to update
      * @param newMethod        - the new string to use as the method
      * @return the new {@link PaymentMethod}
      */
     @Nullable
-    public synchronized PaymentMethod updatePaymentMethod(final PaymentMethod oldPaymentMethod, final String newMethod) {
+    public synchronized PaymentMethod update(final PaymentMethod oldPaymentMethod, final String newMethod) {
         if (oldPaymentMethod == null) {
             Log.e("TAG", "The oldPaymentMethod is null. No update can be performed");
             return null;
@@ -190,12 +190,12 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod> {
 
     /**
      * Deletes a {@link PaymentMethod} from our database. This method also automatically updates the underlying list
-     * that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
+     * that is returned from {@link #get()}. This is done on the calling thread.
      *
      * @param paymentMethod - the {@link PaymentMethod} to delete
      * @return {@code true} if is was successfully remove. {@code false} otherwise
      */
-    public synchronized boolean deletePaymenthMethod(final PaymentMethod paymentMethod) {
+    public synchronized boolean delete(@NonNull PaymentMethod paymentMethod) {
         if (getWritableDatabase().delete(getTableName(), PaymentMethodsTableColumns.COLUMN_ID + " = ?", new String[]{Integer.toString(paymentMethod.getId())}) > 0) {
             if (mPaymentMethods != null) {
                 mPaymentMethods.remove(paymentMethod);

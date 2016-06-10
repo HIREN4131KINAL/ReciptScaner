@@ -44,7 +44,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().getCategoriesList();
+		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().get();
 		setHasOptionsMenu(true);
 	}
 
@@ -138,7 +138,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
 							try {
-								if (getPersistenceManager().getDatabase().getCategoriesTable().insertCategory(new CategoryBuilderFactory().setCode(name).setCode(code).build())) {
+								if (getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build())) {
 									mAdapter.notifyDataSetChanged();
 									mListView.smoothScrollToPosition(mCategories.indexOf(name));
 								}
@@ -192,7 +192,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
 							try {
-								if (getPersistenceManager().getDatabase().getCategoriesTable().updateCategory(editCategory, newCategory)) {
+								if (getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory)) {
 									mAdapter.notifyDataSetChanged();
 									mListView.smoothScrollToPosition(mCategories.indexOf(newCategory));
 								}
@@ -223,7 +223,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							if (getPersistenceManager().getDatabase().getCategoriesTable().deleteCategory(category)) {
+							if (getPersistenceManager().getDatabase().getCategoriesTable().delete(category)) {
 								mAdapter.notifyDataSetChanged();
 							}
 							else {

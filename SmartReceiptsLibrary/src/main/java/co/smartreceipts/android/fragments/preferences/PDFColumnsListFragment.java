@@ -27,7 +27,7 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
 
     @Override
     public List<Column<Receipt>> getColumns() {
-        return getPersistenceManager().getDatabase().getPDFTable().getColumns();
+        return getPersistenceManager().getDatabase().getPDFTable().get();
     }
 
     @Override
@@ -42,7 +42,7 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
 
     @Override
     public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
-        getPersistenceManager().getDatabase().getPDFTable().updateColumn(oldColumn, newColumn);
+        getPersistenceManager().getDatabase().getPDFTable().update(oldColumn, newColumn);
     }
 
 }

@@ -119,17 +119,17 @@ public class CSVTableTest {
 
     @Test
     public void getCSV() {
-        final List<Column<Receipt>> columns = mCSVTable.getColumns();
+        final List<Column<Receipt>> columns = mCSVTable.get();
         assertNotNull(columns);
         assertTrue(columns.size() > 0);
     }
 
     @Test
     public void insertCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> oldColumns = mCSVTable.get();
         final int oldSize = oldColumns.size();
         assertTrue(mCSVTable.insertDefaultColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> newColumns = mCSVTable.get();
         assertEquals(oldSize + 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         final int lastIdx = newColumns.size() - 1;
@@ -139,7 +139,7 @@ public class CSVTableTest {
 
     @Test
     public void insertCSVNoCache() {
-        final List<Column<Receipt>> columns = mCSVTable.getColumns();
+        final List<Column<Receipt>> columns = mCSVTable.get();
         final String name = "CategoryCode";
         assertTrue(mCSVTable.insertColumnNoCache(name));
         final int lastIdx = columns.size() - 1;
@@ -150,7 +150,7 @@ public class CSVTableTest {
     @Test
     public void insertCSVFirst() {
         assertTrue(mCSVTable.insertDefaultColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> newColumns = mCSVTable.get();
         final int lastIdx = newColumns.size() - 1;
         final Column<Receipt> lastCol = newColumns.get(lastIdx);
         assertEquals(lastCol.getId(), lastIdx + 1);
@@ -158,14 +158,14 @@ public class CSVTableTest {
 
     @Test
     public void updateCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> oldColumns = mCSVTable.get();
         final int lastIdx = oldColumns.size() - 1;
         final int oldSize = oldColumns.size();
         final Column<Receipt> oldColumn = oldColumns.get(lastIdx);
         final String newName = "Payment Method";
         final Column<Receipt> newColumn = new ReceiptPaymentMethodColumn(-1, newName);
-        assertTrue(mCSVTable.updateColumn(oldColumn, newColumn));
-        final List<Column<Receipt>> newColumns = mCSVTable.getColumns();
+        assertTrue(mCSVTable.update(oldColumn, newColumn));
+        final List<Column<Receipt>> newColumns = mCSVTable.get();
         assertEquals(oldSize, newColumns.size());
         assertEquals(oldColumns, newColumns);
         final Column<Receipt> lastCol = newColumns.get(lastIdx);
@@ -174,14 +174,14 @@ public class CSVTableTest {
 
     @Test
     public void deleteCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> oldColumns = mCSVTable.get();
         final int oldSize = oldColumns.size();
         final List<Column> columnsList = new ArrayList<Column>(oldSize - 1);
         for (int i = 0; i < oldSize - 1; i++) {
             columnsList.add(oldColumns.get(i));
         }
         assertTrue(mCSVTable.deleteColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.getColumns();
+        final List<Column<Receipt>> newColumns = mCSVTable.get();
         assertEquals(oldSize - 1, newColumns.size());
         assertEquals(oldColumns, newColumns);
         for (int i = 0; i < newColumns.size(); i++) {

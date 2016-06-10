@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
@@ -65,7 +64,6 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
@@ -402,7 +400,7 @@ public class EmailAssistant {
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
-                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().getColumns();
+                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {

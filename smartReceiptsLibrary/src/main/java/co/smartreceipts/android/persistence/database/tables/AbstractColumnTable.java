@@ -57,7 +57,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         insertDefaults(customizer);
     }
 
-    public synchronized List<Column<Receipt>> getColumns() {
+    public synchronized List<Column<Receipt>> get() {
         Cursor c = null;
         mCachedColumns.clear();
         try {
@@ -83,9 +83,12 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
     }
 
     public synchronized boolean insertDefaultColumn() {
+        return insert(mReceiptColumnDefinitions.getDefaultInsertColumn());
+    }
+
+    public synchronized boolean insert(@NonNull Column<Receipt> column) {
         final ContentValues values = new ContentValues(1);
-        final Column<Receipt> defaultColumn = mReceiptColumnDefinitions.getDefaultInsertColumn();
-        values.put(getTypeColumn(), defaultColumn.getName());
+        values.put(getTypeColumn(), column.getName());
         Cursor c = null;
         try {
             final SQLiteDatabase db = this.getWritableDatabase();
@@ -95,8 +98,10 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
                 c = db.rawQuery("SELECT last_insert_rowid()", null);
                 if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
                     final int id = c.getInt(0);
-                    final Column<Receipt> column = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(defaultColumn).build();
-                    mCachedColumns.add(column);
+                    final Column<Receipt> newColumn = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(column).build();
+                    if (mCachedColumns != null) {
+                        mCachedColumns.add(newColumn);
+                    }
                 } else {
                     return false;
                 }
@@ -127,7 +132,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         }
     }
 
-    public synchronized boolean updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
+    public synchronized boolean update(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
         if (oldColumn.getName().equals(newColumn.getName())) {
             // Don't bother updating, since we've already set this column type
             return true;
@@ -150,17 +155,17 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
     /**
      * @return the primary key "id" column name (e.g. {@link CSVTableColumns#COLUMN_ID} or {@link PDFTableColumns#COLUMN_ID})
      */
-    public abstract String getIdColumn();
+    protected abstract String getIdColumn();
 
     /**
      * @return the column name for the "type" column (e.g. {@link CSVTableColumns#COLUMN_TYPE} or {@link PDFTableColumns#COLUMN_TYPE})
      */
-    public abstract String getTypeColumn();
+    protected abstract String getTypeColumn();
 
     /**
      * @return the database version since which this table exists
      */
-    public abstract int getTableExistsSinceDatabaseVersion();
+    protected abstract int getTableExistsSinceDatabaseVersion();
 
     /**
      * Passes alongs a call to insert our "table" defaults to the appropriate sub implementation

@@ -9,6 +9,7 @@ import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
@@ -24,7 +25,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
-import co.smartreceipts.android.activities.SmartReceiptsActivity;
+
 import co.smartreceipts.android.fragments.Settings;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -241,30 +242,30 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	public void insertCategoryDefaults(final DatabaseHelper db) {
 		final Resources resources = getResources();
 		final CategoriesTable categoriesTable = db.getCategoriesTable();
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_null), resources.getString(R.string.category_null_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_airfare), resources.getString(R.string.category_airfare_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_breakfast), resources.getString(R.string.category_breakfast_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_dinner), resources.getString(R.string.category_dinner_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_entertainment), resources.getString(R.string.category_entertainment_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_gasoline), resources.getString(R.string.category_gasoline_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_gift), resources.getString(R.string.category_gift_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_hotel), resources.getString(R.string.category_hotel_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_laundry), resources.getString(R.string.category_laundry_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_lunch), resources.getString(R.string.category_lunch_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_other), resources.getString(R.string.category_other_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_parking_tolls), resources.getString(R.string.category_parking_tolls_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_postage_shipping), resources.getString(R.string.category_postage_shipping_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_car_rental), resources.getString(R.string.category_car_rental_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_taxi_bus), resources.getString(R.string.category_taxi_bus_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_telephone_fax), resources.getString(R.string.category_telephone_fax_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_tip), resources.getString(R.string.category_tip_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_train), resources.getString(R.string.category_train_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_books_periodicals), resources.getString(R.string.category_books_periodicals_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_cell_phone), resources.getString(R.string.category_cell_phone_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_dues_subscriptions), resources.getString(R.string.category_dues_subscriptions_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_meals_justified), resources.getString(R.string.category_meals_justified_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_stationery_stations), resources.getString(R.string.category_stationery_stations_code));
-		categoriesTable.insertCategoryNoCache(resources.getString(R.string.category_training_fees), resources.getString(R.string.category_training_fees_code));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_null), resources.getString(R.string.category_null_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_airfare), resources.getString(R.string.category_airfare_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_breakfast), resources.getString(R.string.category_breakfast_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_dinner), resources.getString(R.string.category_dinner_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_entertainment), resources.getString(R.string.category_entertainment_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_gasoline), resources.getString(R.string.category_gasoline_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_gift), resources.getString(R.string.category_gift_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_hotel), resources.getString(R.string.category_hotel_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_laundry), resources.getString(R.string.category_laundry_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_lunch), resources.getString(R.string.category_lunch_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_other), resources.getString(R.string.category_other_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_parking_tolls), resources.getString(R.string.category_parking_tolls_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_postage_shipping), resources.getString(R.string.category_postage_shipping_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_car_rental), resources.getString(R.string.category_car_rental_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_taxi_bus), resources.getString(R.string.category_taxi_bus_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_telephone_fax), resources.getString(R.string.category_telephone_fax_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_tip), resources.getString(R.string.category_tip_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_train), resources.getString(R.string.category_train_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_books_periodicals), resources.getString(R.string.category_books_periodicals_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_cell_phone), resources.getString(R.string.category_cell_phone_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_dues_subscriptions), resources.getString(R.string.category_dues_subscriptions_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_meals_justified), resources.getString(R.string.category_meals_justified_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_stationery_stations), resources.getString(R.string.category_stationery_stations_code)));
+		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_training_fees), resources.getString(R.string.category_training_fees_code)));
 	}
 
 	@Override
@@ -343,11 +344,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	@Override
 	public void insertPaymentMethodDefaults(DatabaseHelper db) {
-		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_unspecified));
-		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_corporate_card));
-		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_personal_card));
-		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_cash));
-		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_check));
+		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_unspecified));
+		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_corporate_card));
+		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_personal_card));
+		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_cash));
+		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_check));
 
 	}
 

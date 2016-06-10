@@ -66,8 +66,8 @@ public class PaymentMethodsTableTest {
 
         // Now create the table and insert some defaults
         mPaymentMethodsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mPaymentMethod1 = mPaymentMethodsTable.insertPaymentMethod(METHOD1);
-        mPaymentMethod2 = mPaymentMethodsTable.insertPaymentMethod(METHOD2);
+        mPaymentMethod1 = mPaymentMethodsTable.insert(METHOD1);
+        mPaymentMethod2 = mPaymentMethodsTable.insert(METHOD2);
     }
 
     @After
@@ -120,24 +120,24 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void getMethodsList() {
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.getPaymentMethods();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
         assertNotNull(paymentMethods);
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2));
     }
 
     @Test
     public void insertPaymentMethodThenGet() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insertPaymentMethod(METHOD3);
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(METHOD3);
         assertNotNull(paymentMethod);
         assertEquals(METHOD3, paymentMethod.getMethod());
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.getPaymentMethods();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2, paymentMethod));
     }
 
     @Test
     public void findPaymentMethodById() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insertPaymentMethod(METHOD1);
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(METHOD1);
         assertNotNull(paymentMethod);
 
         final PaymentMethod foundMethod = mPaymentMethodsTable.findPaymentMethodById(paymentMethod.getId());
@@ -154,20 +154,20 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void updatePaymentMethodThenGet() {
-        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.updatePaymentMethod(mPaymentMethod1, METHOD3);
+        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, METHOD3);
         assertNotNull(updatedPaymentMethod);
         assertEquals(METHOD3, updatedPaymentMethod.getMethod());
         assertFalse(mPaymentMethod1.equals(updatedPaymentMethod));
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.getPaymentMethods();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
         assertEquals(paymentMethods, Arrays.asList(updatedPaymentMethod, mPaymentMethod2));
     }
 
     @Test
     public void deletePaymentMethodThenGet() {
-        assertTrue(mPaymentMethodsTable.deletePaymenthMethod(mPaymentMethod1));
+        assertTrue(mPaymentMethodsTable.delete(mPaymentMethod1));
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.getPaymentMethods();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
         assertEquals(paymentMethods, Collections.singletonList(mPaymentMethod2));
     }
 

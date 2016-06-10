@@ -151,7 +151,7 @@ public class ReceiptsDBTest {
 
     @Test
     public void insertNonNullPaymentMethod() {
-        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insertPaymentMethod("method");
+        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert("method");
         final Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
         assertNotNull(insertReceipt);
@@ -175,7 +175,7 @@ public class ReceiptsDBTest {
     public void updateWithNullPaymentMethod() {
         assertTrue(false);
         /*
-        final PaymentMethod paymentMethod = mDB.insertPaymentMethod("method");
+        final PaymentMethod paymentMethod = mDB.insert("method");
         Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,
                 mTrip,
@@ -206,7 +206,7 @@ public class ReceiptsDBTest {
     public void updateWithNonNullPaymentMethod() {
         assertTrue(false);
         /*
-        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insertPaymentMethod("method");
+        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert("method");
         final PaymentMethod nullPaymentMethod = null;
         Receipt insertReceipt = insertDefaultReceipt(nullPaymentMethod);
         Receipt updateReceipt = mDB.updateReceiptSerial(insertReceipt,

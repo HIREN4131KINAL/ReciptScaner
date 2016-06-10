@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import co.smartreceipts.android.model.Category;
@@ -53,7 +54,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         }
     }
 
-    public synchronized ArrayList<Category> getCategoriesList() {
+    public synchronized List<Category> get() {
         if (mCategories == null) {
             buildCategories();
             mCategoryList = new ArrayList<>();
@@ -72,7 +73,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         return mCategories.get(categoryName).getCode();
     }
 
-    public synchronized boolean insertCategory(@NonNull Category category) throws SQLException {
+    public synchronized boolean insert(@NonNull Category category) throws SQLException {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues(2);
         values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
@@ -80,27 +81,16 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         if (db.insertOrThrow(getTableName(), null, values) == -1) {
             return false;
         } else {
-            mCategories.put(category.getName(), category);
-            mCategoryList.add(category);
-            Collections.sort(mCategoryList, new CategoryNameComparator());
+            if (mCategoryList != null && mCategories != null) {
+                mCategories.put(category.getName(), category);
+                mCategoryList.add(category);
+                Collections.sort(mCategoryList, new CategoryNameComparator());
+            }
             return true;
         }
     }
 
-    @Deprecated
-    public synchronized boolean insertCategoryNoCache(@NonNull String name, @NonNull String code) throws SQLException {
-        final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, name);
-        values.put(CategoriesTableColumns.COLUMN_CODE, code);
-
-        if (getWritableDatabase().insertOrThrow(getTableName(), null, values) == -1) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public synchronized boolean updateCategory(@NonNull Category oldCategory, @NonNull Category newCategory) {
+    public synchronized boolean update(@NonNull Category oldCategory, @NonNull Category newCategory) {
         final ContentValues values = new ContentValues(2);
         values.put(CategoriesTableColumns.COLUMN_NAME, newCategory.getName());
         values.put(CategoriesTableColumns.COLUMN_CODE, newCategory.getCode());
@@ -116,7 +106,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         }
     }
 
-    public synchronized boolean deleteCategory(@NonNull Category category) {
+    public synchronized boolean delete(@NonNull Category category) {
         final boolean success = (getWritableDatabase().delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{category.getName()}) > 0);
         if (success) {
             final Category oldCategory = mCategories.remove(category.getName());

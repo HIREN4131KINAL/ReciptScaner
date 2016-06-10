@@ -343,11 +343,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	@Override
 	public void insertPaymentMethodDefaults(DatabaseHelper db) {
-		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_unspecified));
-		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_corporate_card));
-		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_personal_card));
-		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_cash));
-		db.insertPaymentMethodNoCache(getString(R.string.payment_method_default_check));
+		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_unspecified));
+		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_corporate_card));
+		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_personal_card));
+		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_cash));
+		db.getPaymentMethodsTable().insertPaymentMethod(getString(R.string.payment_method_default_check));
 
 	}
 

@@ -51,10 +51,12 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinit
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
+import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
 import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
+import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
@@ -124,6 +126,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     private final CategoriesTable mCategoriesTable;
     private final CSVTable mCSVTable;
     private final PDFTable mPDFTable;
+    private final PaymentMethodsTable mPaymentMethodsTable;
 
     // Misc Vars
     private boolean mIsDBOpen = false;
@@ -277,15 +280,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_RATE_CURRENCY = "rate_currency";
     }
 
-    public static final class PaymentMethodsTable {
-        private PaymentMethodsTable() {
-        }
-
-        public static final String TABLE_NAME = "paymentmethods";
-        public static final String COLUMN_ID = "id";
-        public static final String COLUMN_METHOD = "method";
-    }
-
     private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
         super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
         // factory
@@ -302,9 +296,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
+        mPaymentMethodsTable = new PaymentMethodsTable(this);
         mTables.add(mCategoriesTable);
         mTables.add(mCSVTable);
         mTables.add(mPDFTable);
+        mTables.add(mPaymentMethodsTable);
 
         this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
     }
@@ -379,7 +375,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
                     + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
                     + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
-                    + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
+                    + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTableColumns.TABLE_NAME + " ON DELETE NO ACTION, "
                     + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
                     + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
                     + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
@@ -565,7 +561,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
             if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
                 final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
+                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTableColumns.TABLE_NAME + " ON DELETE NO ACTION";
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, alterTrips);
                     Log.d(TAG, alterReceipts);
@@ -1796,7 +1792,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
                         }
                         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
-                        builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+                        builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(getPaymentMethodsTable().findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
                         /**
                          * Please note that a very frustrating bug exists here. Android cursors only return the first 6
                          * characters of a price string if that string contains a '.' character. It returns all of them
@@ -1929,7 +1925,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
                         img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
                     }
-                    builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+                    builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(getPaymentMethodsTable().findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
                     /**
                      * Please note that a very frustrating bug exists here. Android cursors only return the first 6
                      * characters of a price string if that string contains a '.' character. It returns all of them
@@ -2596,201 +2592,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         return mPDFTable;
     }
 
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // PaymentMethod Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Fetches the list of all {@link PaymentMethod}. This is done on the calling thread.
-     *
-     * @return the {@link List} of {@link PaymentMethod} objects that we've saved
-     */
-    public final List<PaymentMethod> getPaymentMethods() {
-        if (mPaymentMethods != null) {
-            return mPaymentMethods;
-        }
-        mPaymentMethods = new ArrayList<PaymentMethod>();
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
-                if (c != null && c.moveToFirst()) {
-                    final int idIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_ID);
-                    final int methodIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_METHOD);
-                    do {
-                        final int id = c.getInt(idIndex);
-                        final String method = c.getString(methodIndex);
-                        final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
-                        mPaymentMethods.add(builder.setId(id).setMethod(method).build());
-                    }
-                    while (c.moveToNext());
-                }
-                return mPaymentMethods;
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
-    /**
-     * Attempts to fetch a payment method for a given primary key id
-     *
-     * @param id - the id of the desired {@link PaymentMethod}
-     * @return a {@link PaymentMethod} if the id matches or {@code null} if none is found
-     */
-    public final PaymentMethod findPaymentMethodById(final int id) {
-        final List<PaymentMethod> methodsSnapshot = new ArrayList<PaymentMethod>(getPaymentMethods());
-        final int size = methodsSnapshot.size();
-        for (int i = 0; i < size; i++) {
-            final PaymentMethod method = methodsSnapshot.get(i);
-            if (method.getId() == id) {
-                return method;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Inserts a new {@link PaymentMethod} into our database. This method also automatically updates the underlying list
-     * that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
-     *
-     * @param method - a {@link String} representing the current method
-     * @return a new {@link PaymentMethod} if it was successfully inserted, {@code null} if not
-     */
-    public final PaymentMethod insertPaymentMethod(final String method) {
-        ContentValues values = new ContentValues(1);
-        values.put(PaymentMethodsTable.COLUMN_METHOD, method);
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            Cursor c = null;
-            try {
-                db = this.getWritableDatabase();
-                if (db.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
-                    return null;
-                } else {
-                    final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
-                    final PaymentMethod paymentMethod;
-                    c = db.rawQuery("SELECT last_insert_rowid()", null);
-                    if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int id = c.getInt(0);
-                        paymentMethod = builder.setId(id).setMethod(method).build();
-                    } else {
-                        paymentMethod = builder.setId(-1).setMethod(method).build();
-                    }
-                    if (mPaymentMethods != null) {
-                        mPaymentMethods.add(paymentMethod);
-                    }
-                    return paymentMethod;
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
-    /**
-     * Inserts a new {@link PaymentMethod} into our database. This method does not update the underlying list that is
-     * returned via {{@link #getPaymentMethods()}
-     *
-     * @param method - a {@link String} representing the current method
-     * @return {@code true} if it was properly inserted. {@code false} if not
-     */
-    public final boolean insertPaymentMethodNoCache(final String method) {
-        ContentValues values = new ContentValues(1);
-        values.put(PaymentMethodsTable.COLUMN_METHOD, method);
-        if (_initDB != null) {
-            if (_initDB.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            synchronized (mDatabaseLock) {
-                SQLiteDatabase db = null;
-                db = this.getWritableDatabase();
-                if (db.insertOrThrow(PaymentMethodsTable.TABLE_NAME, null, values) == -1) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-
-    /**
-     * Updates a Payment method with a new method type. This method also automatically updates the underlying list that
-     * is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
-     *
-     * @param oldPaymentMethod - the old method to update
-     * @param newMethod        - the new string to use as the method
-     * @return the new {@link PaymentMethod}
-     */
-    public final PaymentMethod updatePaymentMethod(final PaymentMethod oldPaymentMethod, final String newMethod) {
-        if (oldPaymentMethod == null) {
-            Log.e(TAG, "The oldPaymentMethod is null. No update can be performed");
-            return null;
-        }
-        if (oldPaymentMethod.getMethod() == null && newMethod == null) {
-            return oldPaymentMethod;
-        } else if (newMethod != null && newMethod.equals(oldPaymentMethod.getMethod())) {
-            return oldPaymentMethod;
-        }
-
-        ContentValues values = new ContentValues(1);
-        values.put(PaymentMethodsTable.COLUMN_METHOD, newMethod);
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            try {
-                db = this.getWritableDatabase();
-                if (db.update(PaymentMethodsTable.TABLE_NAME, values, PaymentMethodsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldPaymentMethod.getId())}) > 0) {
-                    final PaymentMethodBuilderFactory builder = new PaymentMethodBuilderFactory();
-                    final PaymentMethod upddatePaymentMethod = builder.setId(oldPaymentMethod.getId()).setMethod(newMethod).build();
-                    if (mPaymentMethods != null) {
-                        final int oldListIndex = mPaymentMethods.indexOf(oldPaymentMethod);
-                        if (oldListIndex >= 0) {
-                            mPaymentMethods.remove(oldPaymentMethod);
-                            mPaymentMethods.add(oldListIndex, upddatePaymentMethod);
-                        } else {
-                            mPaymentMethods.add(upddatePaymentMethod);
-                        }
-                    }
-                    return upddatePaymentMethod;
-                } else {
-                    return null;
-                }
-            } catch (SQLException e) {
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Deletes a {@link PaymentMethod} from our database. This method also automatically updates the underlying list
-     * that is returned from {@link #getPaymentMethods()}. This is done on the calling thread.
-     *
-     * @param paymentMethod - the {@link PaymentMethod} to delete
-     * @return {@code true} if is was successfully remove. {@code false} otherwise
-     */
-    public final boolean deletePaymenthMethod(final PaymentMethod paymentMethod) {
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            if (db.delete(PaymentMethodsTable.TABLE_NAME, PaymentMethodsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(paymentMethod.getId())}) > 0) {
-                if (mPaymentMethods != null) {
-                    mPaymentMethods.remove(paymentMethod);
-                }
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+    @NonNull
+    public final PaymentMethodsTable getPaymentMethodsTable() { return mPaymentMethodsTable; }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Utilities
@@ -3125,18 +2928,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Payment Methods");
                 try {
-                    c = importDB.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(PaymentMethodsTableColumns.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(PaymentMethodsTable.TABLE_NAME, null, null); // DELETE * FROM PaymentMethodsTable
-                        final int idxIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_METHOD);
+                        currDB.delete(PaymentMethodsTableColumns.TABLE_NAME, null, null); // DELETE * FROM PaymentMethodsTable
+                        final int idxIndex = c.getColumnIndex(PaymentMethodsTableColumns.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(PaymentMethodsTableColumns.COLUMN_METHOD);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(PaymentMethodsTable.COLUMN_ID, index);
-                            values.put(PaymentMethodsTable.COLUMN_METHOD, type);
-                            currDB.insert(PaymentMethodsTable.TABLE_NAME, null, values);
+                            values.put(PaymentMethodsTableColumns.COLUMN_ID, index);
+                            values.put(PaymentMethodsTableColumns.COLUMN_METHOD, type);
+                            currDB.insert(PaymentMethodsTableColumns.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }
@@ -3298,7 +3101,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @param cursor - the current {@link android.database.Cursor}
      * @param index  - the index of the column
      * @return a {@link java.math.BigDecimal} value of the decimal
-     * @see https://code.google.com/p/android/issues/detail?id=22219.
+     * @see "https://code.google.com/p/android/issues/detail?id=22219."
      */
     private BigDecimal getDecimal(@NonNull Cursor cursor, int index) {
         return getDecimal(cursor, index, new BigDecimal(0));

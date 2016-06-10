@@ -44,7 +44,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 
 	@Override
 	protected List<PaymentMethod> getData() {
-		return getPersistenceManager().getDatabase().getPaymentMethods();
+		return getPersistenceManager().getDatabase().getPaymentMethodsTable().getPaymentMethods();
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().insertPaymentMethod(text);
+					getPersistenceManager().getDatabase().getPaymentMethodsTable().insertPaymentMethod(text);
 					getAdapter().notifyDataSetChanged();
 				}
 			}
@@ -68,7 +68,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().updatePaymentMethod(oldPaymentMethod, text);
+					getPersistenceManager().getDatabase().getPaymentMethodsTable().updatePaymentMethod(oldPaymentMethod, text);
 					getAdapter().notifyDataSetChanged();
 				}
 			}
@@ -92,7 +92,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().deletePaymenthMethod(item);
+					getPersistenceManager().getDatabase().getPaymentMethodsTable().deletePaymenthMethod(item);
 					getAdapter().notifyDataSetChanged();
 				}
 			}

@@ -119,14 +119,13 @@ public class PaymentMethodsTableTest {
     }
 
     @Test
-    public void getMethodsList() {
+    public void get() {
         final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
-        assertNotNull(paymentMethods);
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2));
     }
 
     @Test
-    public void insertPaymentMethodThenGet() {
+    public void insert() {
         final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(METHOD3);
         assertNotNull(paymentMethod);
         assertEquals(METHOD3, paymentMethod.getMethod());
@@ -153,7 +152,7 @@ public class PaymentMethodsTableTest {
     }
 
     @Test
-    public void updatePaymentMethodThenGet() {
+    public void update() {
         final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, METHOD3);
         assertNotNull(updatedPaymentMethod);
         assertEquals(METHOD3, updatedPaymentMethod.getMethod());
@@ -164,7 +163,7 @@ public class PaymentMethodsTableTest {
     }
 
     @Test
-    public void deletePaymentMethodThenGet() {
+    public void delete() {
         assertTrue(mPaymentMethodsTable.delete(mPaymentMethod1));
 
         final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();

@@ -37,7 +37,7 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 
 	@Override
 	public void deleteLastColumn() {
-		getPersistenceManager().getDatabase().getCSVTable().deleteColumn();
+		getPersistenceManager().getDatabase().getCSVTable().deleteLast();
 	}
 
 	@Override

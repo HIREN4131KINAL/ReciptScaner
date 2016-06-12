@@ -124,7 +124,7 @@ public class CategoriesTableTest {
     }
 
     @Test
-    public void getCategories() {
+    public void get() {
         final List<Category> categories = mCategoriesTable.get();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2));
         

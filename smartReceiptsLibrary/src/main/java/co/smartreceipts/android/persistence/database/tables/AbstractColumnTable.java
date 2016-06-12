@@ -6,11 +6,13 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
@@ -57,6 +59,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         insertDefaults(customizer);
     }
 
+    @NonNull
     public synchronized List<Column<Receipt>> get() {
         Cursor c = null;
         mCachedColumns.clear();
@@ -74,7 +77,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
                 }
                 while (c.moveToNext());
             }
-            return mCachedColumns;
+            return new ArrayList<>(mCachedColumns);
         } finally { // Close the cursor and db to avoid memory leaks
             if (c != null) {
                 c.close();
@@ -82,18 +85,20 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         }
     }
 
-    public synchronized boolean insertDefaultColumn() {
+    @Nullable
+    public synchronized Column<Receipt> insertDefaultColumn() {
         return insert(mReceiptColumnDefinitions.getDefaultInsertColumn());
     }
 
-    public synchronized boolean insert(@NonNull Column<Receipt> column) {
+    @Nullable
+    public synchronized Column<Receipt> insert(@NonNull Column<Receipt> column) {
         final ContentValues values = new ContentValues(1);
         values.put(getTypeColumn(), column.getName());
         Cursor c = null;
         try {
             final SQLiteDatabase db = this.getWritableDatabase();
             if (db.insertOrThrow(getTableName(), null, values) == -1) {
-                return false;
+                return null;
             } else {
                 c = db.rawQuery("SELECT last_insert_rowid()", null);
                 if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
@@ -102,10 +107,10 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
                     if (mCachedColumns != null) {
                         mCachedColumns.add(newColumn);
                     }
+                    return newColumn; //TODO: Update UTs to confirm this
                 } else {
-                    return false;
+                    return null;
                 }
-                return true;
             }
         } finally { // Close the cursor and db to avoid memory leaks
             if (c != null) {
@@ -114,41 +119,44 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>> {
         }
     }
 
-    @Deprecated
-    public synchronized boolean insertColumnNoCache(String column) {
-        final ContentValues values = new ContentValues(1);
-        values.put(getTypeColumn(), column);
-        final SQLiteDatabase db = this.getWritableDatabase();
-        return db.insertOrThrow(getTableName(), null, values) != -1;
-    }
-
-    public synchronized boolean deleteColumn() {
-        final SQLiteDatabase db = this.getWritableDatabase();
-        final Column<Receipt> column = ListUtils.removeLast(mCachedColumns);
-        if (column != null) {
-            return db.delete(getTableName(), getIdColumn() + " = ?", new String[]{Integer.toString(column.getId())}) > 0;
+    public synchronized boolean deleteLast() {
+        final List<Column<Receipt>> columns = get();
+        final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
+        if (lastColumn != null) {
+            return delete(lastColumn);
         } else {
             return false;
         }
     }
 
-    public synchronized boolean update(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
+    public synchronized boolean delete(@NonNull Column<Receipt> column) {
+        if (getWritableDatabase().delete(getTableName(), getIdColumn() + " = ?", new String[]{Integer.toString(column.getId())}) > 0) {
+            mCachedColumns.remove(column);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Nullable
+    public synchronized Column<Receipt> update(@NonNull Column<Receipt> oldColumn, @NonNull Column<Receipt> newColumn) {
         if (oldColumn.getName().equals(newColumn.getName())) {
             // Don't bother updating, since we've already set this column type
-            return true;
+            return oldColumn;
         }
         final ContentValues values = new ContentValues(1);
         values.put(getTypeColumn(), newColumn.getName());
         try {
             final SQLiteDatabase db = this.getWritableDatabase();
             if (db.update(getTableName(), values, getIdColumn() + " = ?", new String[]{Integer.toString(oldColumn.getId())}) == 0) {
-                return false;
+                return null;
             } else {
-                ListUtils.replace(mCachedColumns, oldColumn, new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build());
-                return true;
+                final Column<Receipt> newColumnWithId = new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(oldColumn.getId()).setColumnName(newColumn).build();
+                ListUtils.replace(mCachedColumns, oldColumn, newColumnWithId);
+                return newColumnWithId;
             }
         } catch (SQLException e) {
-            return false;
+            return null;
         }
     }
 

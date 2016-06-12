@@ -274,7 +274,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         final List<Column<Receipt>> columns = receiptColumnDefinitions.getCsvDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            db.getCSVTable().insertColumnNoCache(columns.get(i).getName());
+            db.getCSVTable().insert(columns.get(i));
         }
 	}
 
@@ -284,7 +284,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         final List<Column<Receipt>> columns = receiptColumnDefinitions.getPdfDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            db.getPDFTable().insertColumnNoCache(columns.get(i).getName());
+            db.getPDFTable().insert(columns.get(i));
         }
 	}
 

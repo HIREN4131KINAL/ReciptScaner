@@ -15,19 +15,31 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPaymentMethodColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -53,20 +65,29 @@ public class CSVTableTest {
     @Captor
     ArgumentCaptor<String> mSqlCaptor;
 
+    Column<Receipt> mColumn1;
+
+    Column<Receipt> mColumn2;
+
+    Column<Receipt> mDefaultColumn;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         mCSVTable = new CSVTable(mSQLiteOpenHelper, mReceiptColumnDefinitions);
+        mDefaultColumn = new BlankColumn<>(-1, "");
 
-        when(mReceiptColumnDefinitions.getDefaultInsertColumn()).thenReturn(new BlankColumn<Receipt>(-1, ""));
+        when(mReceiptColumnDefinitions.getDefaultInsertColumn()).thenReturn(mDefaultColumn);
+        when(mReceiptColumnDefinitions.getColumn(anyInt(), eq(""))).thenReturn(mDefaultColumn);
 
         // Now create the table and insert some defaults
         mCSVTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCSVTable.insertColumnNoCache("Name");
-        mCSVTable.insertColumnNoCache("Date");
-        mCSVTable.insertColumnNoCache("Price");
+        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name"));
+        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price"));
+        assertNotNull(mColumn1);
+        assertNotNull(mColumn2);
     }
 
     @After
@@ -118,76 +139,53 @@ public class CSVTableTest {
     }
 
     @Test
-    public void getCSV() {
+    public void get() {
         final List<Column<Receipt>> columns = mCSVTable.get();
-        assertNotNull(columns);
-        assertTrue(columns.size() > 0);
+        assertEquals(columns, Arrays.asList(mColumn1, mColumn2));
     }
 
     @Test
-    public void insertCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.get();
-        final int oldSize = oldColumns.size();
-        assertTrue(mCSVTable.insertDefaultColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.get();
-        assertEquals(oldSize + 1, newColumns.size());
-        assertEquals(oldColumns, newColumns);
-        final int lastIdx = newColumns.size() - 1;
-        final Column<Receipt> lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getId(), lastIdx + 1); //1-th indexed (not 0)
-    }
+    public void insert() {
+        final String name = "Code";
+        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name));
+        assertNotNull(column);
+        assertEquals(name, column.getName());
 
-    @Test
-    public void insertCSVNoCache() {
         final List<Column<Receipt>> columns = mCSVTable.get();
-        final String name = "CategoryCode";
-        assertTrue(mCSVTable.insertColumnNoCache(name));
-        final int lastIdx = columns.size() - 1;
-        final Column<Receipt> lastCol = columns.get(lastIdx);
-        assertNotSame(lastCol.getName(), name);
+        assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
     }
 
     @Test
-    public void insertCSVFirst() {
-        assertTrue(mCSVTable.insertDefaultColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.get();
-        final int lastIdx = newColumns.size() - 1;
-        final Column<Receipt> lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getId(), lastIdx + 1);
+    public void insertDefaultColumn() {
+        final Column<Receipt> column = mCSVTable.insertDefaultColumn();
+        assertNotNull(column);
+        assertEquals(column, mDefaultColumn);
+
+        final List<Column<Receipt>> columns = mCSVTable.get();
+        assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
     }
 
     @Test
-    public void updateCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.get();
-        final int lastIdx = oldColumns.size() - 1;
-        final int oldSize = oldColumns.size();
-        final Column<Receipt> oldColumn = oldColumns.get(lastIdx);
-        final String newName = "Payment Method";
-        final Column<Receipt> newColumn = new ReceiptPaymentMethodColumn(-1, newName);
-        assertTrue(mCSVTable.update(oldColumn, newColumn));
-        final List<Column<Receipt>> newColumns = mCSVTable.get();
-        assertEquals(oldSize, newColumns.size());
-        assertEquals(oldColumns, newColumns);
-        final Column<Receipt> lastCol = newColumns.get(lastIdx);
-        assertEquals(lastCol.getName(), newName);
+    public void update() {
+        final String name = "Code";
+        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name));
+        assertNotNull(column);
+        assertEquals(name, column.getName());
+
+        final List<Column<Receipt>> columns = mCSVTable.get();
+        assertEquals(columns, Arrays.asList(column, mColumn2));
     }
 
     @Test
-    public void deleteCSV() {
-        final List<Column<Receipt>> oldColumns = mCSVTable.get();
-        final int oldSize = oldColumns.size();
-        final List<Column> columnsList = new ArrayList<Column>(oldSize - 1);
-        for (int i = 0; i < oldSize - 1; i++) {
-            columnsList.add(oldColumns.get(i));
-        }
-        assertTrue(mCSVTable.deleteColumn());
-        final List<Column<Receipt>> newColumns = mCSVTable.get();
-        assertEquals(oldSize - 1, newColumns.size());
-        assertEquals(oldColumns, newColumns);
-        for (int i = 0; i < newColumns.size(); i++) {
-            assertEquals(columnsList.get(i).getName(), newColumns.get(i).getName());
-            assertEquals(columnsList.get(i).getId(), newColumns.get(i).getId());
-        }
+    public void delete() {
+        assertTrue(mCSVTable.delete(mColumn1));
+        assertEquals(mCSVTable.get(), Collections.singletonList(mColumn2));
+    }
+
+    @Test
+    public void deleteLast() {
+        assertTrue(mCSVTable.deleteLast());
+        assertEquals(mCSVTable.get(), Collections.singletonList(mColumn1));
     }
 
 }

@@ -30,7 +30,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     private static final String TAG = ReceiptColumnDefinitions.class.getSimpleName();
 
-    private static enum ActualDefinition {
+    private enum ActualDefinition {
         BLANK(R.string.column_item_blank),
         CATEGORY_CODE(R.string.column_item_category_code),
         CATEGORY_NAME(R.string.column_item_category_name),

@@ -37,7 +37,7 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
 
     @Override
     public void deleteLastColumn() {
-        getPersistenceManager().getDatabase().getPDFTable().deleteColumn();
+        getPersistenceManager().getDatabase().getPDFTable().deleteLast();
     }
 
     @Override

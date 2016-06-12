@@ -138,9 +138,10 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
 							try {
-								if (getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build())) {
+								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build());
+								if (category != null) {
 									mAdapter.notifyDataSetChanged();
-									mListView.smoothScrollToPosition(mCategories.indexOf(name));
+									mListView.smoothScrollToPosition(mCategories.indexOf(category));
 								}
 								else {
 									Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
@@ -192,11 +193,11 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
 							try {
-								if (getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory)) {
+								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory);
+								if (category != null) {
 									mAdapter.notifyDataSetChanged();
-									mListView.smoothScrollToPosition(mCategories.indexOf(newCategory));
-								}
-								else {
+									mListView.smoothScrollToPosition(mCategories.indexOf(category));
+								} else {
 									Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
 								}
 							}

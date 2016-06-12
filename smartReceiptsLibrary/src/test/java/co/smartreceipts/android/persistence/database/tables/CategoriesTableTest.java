@@ -132,35 +132,26 @@ public class CategoriesTableTest {
 
     @Test
     public void insert() {
-        final List<Category> oldCategories = mCategoriesTable.get();
-        final int oldSize = oldCategories.size();
-
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.insert(insertCategory));
+        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory));
 
-        final List<Category> newCategories = mCategoriesTable.get();
-        assertEquals(oldSize + 1, newCategories.size());
-        assertTrue(newCategories.contains(insertCategory));
+        final List<Category> categories = mCategoriesTable.get();
+        assertEquals(categories, Arrays.asList(mCategory1, mCategory2, insertCategory));
         assertEquals(mCategoriesTable.getCategoryCode(name), code);
     }
     
     @Test
     public void update() {
-        final List<Category> oldCategories = mCategoriesTable.get();
-        final int oldSize = oldCategories.size();
-        assertTrue(oldCategories.contains(mCategory1));
-
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertTrue(mCategoriesTable.update(mCategory1, updateCategory));
+        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory));
 
-        final List<Category> newCategories = mCategoriesTable.get();
-        assertEquals(oldSize, newCategories.size());
-        assertTrue(newCategories.contains(updateCategory));
-        assertFalse(newCategories.contains(mCategory1));
+        final List<Category> categories = mCategoriesTable.get();
+        assertTrue(categories.contains(updateCategory));
+        assertTrue(categories.contains(mCategory2));
         assertEquals(mCategoriesTable.getCategoryCode(name), code);
     }
 

@@ -6,6 +6,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,36 +74,40 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         return mCategories.get(categoryName).getCode();
     }
 
-    public synchronized boolean insert(@NonNull Category category) throws SQLException {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues(2);
+    @Nullable
+    public synchronized Category insert(@NonNull Category category) throws SQLException {
+        final SQLiteDatabase db = this.getWritableDatabase();
+        final ContentValues values = new ContentValues(2);
         values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
         values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
         if (db.insertOrThrow(getTableName(), null, values) == -1) {
-            return false;
+            return null;
         } else {
             if (mCategoryList != null && mCategories != null) {
                 mCategories.put(category.getName(), category);
                 mCategoryList.add(category);
                 Collections.sort(mCategoryList, new CategoryNameComparator());
             }
-            return true;
+            return category;
         }
     }
 
-    public synchronized boolean update(@NonNull Category oldCategory, @NonNull Category newCategory) {
+    @Nullable
+    public synchronized Category update(@NonNull Category oldCategory, @NonNull Category newCategory) {
         final ContentValues values = new ContentValues(2);
         values.put(CategoriesTableColumns.COLUMN_NAME, newCategory.getName());
         values.put(CategoriesTableColumns.COLUMN_CODE, newCategory.getCode());
 
         if (getWritableDatabase().update(getTableName(), values, CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{oldCategory.getName()}) == 0) {
-            return false;
+            return null;
         } else {
-            mCategoryList.remove(oldCategory);
-            mCategories.put(newCategory.getName(), newCategory);
-            mCategoryList.add(newCategory);
-            Collections.sort(mCategoryList, new CategoryNameComparator());
-            return true;
+            if (mCategoryList != null && mCategories != null) {
+                mCategoryList.remove(oldCategory);
+                mCategories.put(newCategory.getName(), newCategory);
+                mCategoryList.add(newCategory);
+                Collections.sort(mCategoryList, new CategoryNameComparator());
+            }
+            return newCategory;
         }
     }
 

@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
-@Deprecated
 public class TestSQLiteOpenHelper extends SQLiteOpenHelper {
 
     private static final String NAME = "temporary.db";

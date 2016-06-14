@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments.preferences;
 
 import java.util.List;
 
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import wb.android.dialog.fragments.EditTextDialogFragment;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -53,7 +54,8 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().getPaymentMethodsTable().insert(text);
+					final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
+					getPersistenceManager().getDatabase().getPaymentMethodsTable().insert(paymentMethod);
 					getAdapter().notifyDataSetChanged();
 				}
 			}
@@ -68,7 +70,8 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().getPaymentMethodsTable().update(oldPaymentMethod, text);
+					final PaymentMethod newPaymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
+					getPersistenceManager().getDatabase().getPaymentMethodsTable().update(oldPaymentMethod, newPaymentMethod);
 					getAdapter().notifyDataSetChanged();
 				}
 			}

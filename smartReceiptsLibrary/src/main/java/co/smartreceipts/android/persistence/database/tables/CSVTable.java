@@ -3,35 +3,20 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 
+/**
+ * Stores all database operations related to the {@link Column} model object for CSV Tables
+ */
 public final class CSVTable extends AbstractColumnTable {
 
+    private static final int TABLE_EXISTS_SINCE = 2;
+
     public CSVTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        super(sqLiteOpenHelper, receiptColumnDefinitions);
-    }
-
-    @Override
-    public String getTableName() {
-        return CSVTableColumns.TABLE_NAME;
-    }
-
-    @Override
-    public String getIdColumn() {
-        return CSVTableColumns.COLUMN_ID;
-    }
-
-    @Override
-    public String getTypeColumn() {
-        return CSVTableColumns.COLUMN_TYPE;
-    }
-
-    @Override
-    public int getTableExistsSinceDatabaseVersion() {
-        return 2;
+        super(sqLiteOpenHelper, CSVTableColumns.TABLE_NAME, TABLE_EXISTS_SINCE, receiptColumnDefinitions, CSVTableColumns.COLUMN_ID, CSVTableColumns.COLUMN_TYPE);
     }
 
     @Override

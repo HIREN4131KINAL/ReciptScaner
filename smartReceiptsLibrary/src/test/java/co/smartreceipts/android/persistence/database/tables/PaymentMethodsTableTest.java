@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 
 import static org.junit.Assert.assertEquals;
@@ -66,8 +67,8 @@ public class PaymentMethodsTableTest {
 
         // Now create the table and insert some defaults
         mPaymentMethodsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mPaymentMethod1 = mPaymentMethodsTable.insert(METHOD1);
-        mPaymentMethod2 = mPaymentMethodsTable.insert(METHOD2);
+        mPaymentMethod1 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD1).build());
+        mPaymentMethod2 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD2).build());
     }
 
     @After
@@ -77,7 +78,7 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void getTableName() {
-        assertEquals(PaymentMethodsTableColumns.TABLE_NAME, mPaymentMethodsTable.getTableName());
+        assertEquals("paymentmethods", mPaymentMethodsTable.getTableName());
     }
 
     @Test
@@ -126,7 +127,7 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void insert() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(METHOD3);
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
         assertNotNull(paymentMethod);
         assertEquals(METHOD3, paymentMethod.getMethod());
 
@@ -136,7 +137,7 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void findPaymentMethodById() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(METHOD1);
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
         assertNotNull(paymentMethod);
 
         final PaymentMethod foundMethod = mPaymentMethodsTable.findPaymentMethodById(paymentMethod.getId());
@@ -153,7 +154,7 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void update() {
-        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, METHOD3);
+        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
         assertNotNull(updatedPaymentMethod);
         assertEquals(METHOD3, updatedPaymentMethod.getMethod());
         assertFalse(mPaymentMethod1.equals(updatedPaymentMethod));

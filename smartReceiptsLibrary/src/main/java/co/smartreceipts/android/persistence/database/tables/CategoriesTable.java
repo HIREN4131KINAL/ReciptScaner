@@ -1,52 +1,47 @@
 package co.smartreceipts.android.persistence.database.tables;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.tables.adapters.CategoryDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
-import co.smartreceipts.android.utils.sorting.CategoryNameComparator;
+import co.smartreceipts.android.persistence.database.tables.keys.CategoryPrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 
-public final class CategoriesTable extends AbstractSqlTable<Category> {
+/**
+ * Stores all database operations related to the {@link Category} model object
+ */
+public final class CategoriesTable extends AbstractSqlTable<Category, String> {
 
-    private HashMap<String, Category> mCategories;
-    private ArrayList<Category> mCategoryList;
+    private static final String TAG = CategoriesTable.class.getSimpleName();
 
     public CategoriesTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
-        super(sqLiteOpenHelper);
+        super(sqLiteOpenHelper, CategoriesTableColumns.TABLE_NAME, new CategoryDatabaseAdapter(), new CategoryPrimaryKey());
     }
 
     @Override
-    public String getTableName() {
-        return CategoriesTableColumns.TABLE_NAME;
-    }
-
-    @Override
-    public void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
+    public synchronized void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
         super.onCreate(db, customizer);
         final String categories = "CREATE TABLE " + getTableName() + " ("
                 + CategoriesTableColumns.COLUMN_NAME + " TEXT PRIMARY KEY, "
                 + CategoriesTableColumns.COLUMN_CODE + " TEXT, "
                 + CategoriesTableColumns.COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
                 + ");";
+
+        Log.d(TAG, categories);
         db.execSQL(categories);
         customizer.insertCategoryDefaults(this);
     }
 
     @Override
-    public void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
+    public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
         super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= 2) { 
             final String alterCategories = "ALTER TABLE " + getTableName() +
@@ -55,92 +50,23 @@ public final class CategoriesTable extends AbstractSqlTable<Category> {
         }
     }
 
-    public synchronized List<Category> get() {
-        if (mCategories == null) {
-            buildCategories();
-            mCategoryList = new ArrayList<>();
-            for (final Map.Entry<String, Category> entry : mCategories.entrySet()) {
-                mCategoryList.add(entry.getValue());
-            }
-            Collections.sort(mCategoryList, new CategoryNameComparator());
-        }
-        return new ArrayList<>(mCategoryList);
-    }
-
+    /**
+     * Attempts to get a category code for a known category name
+     *
+     * @param categoryName - the name of the desired {@link Category}
+     * @return a category code {@link String} if the name matches a known category or {@code null} if none is found
+     */
+    @Nullable
     public synchronized String getCategoryCode(@NonNull CharSequence categoryName) {
-        if (mCategories == null) {
-            buildCategories();
-        }
-        return mCategories.get(categoryName).getCode();
-    }
-
-    @Nullable
-    public synchronized Category insert(@NonNull Category category) throws SQLException {
-        final SQLiteDatabase db = this.getWritableDatabase();
-        final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
-        values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
-        if (db.insertOrThrow(getTableName(), null, values) == -1) {
-            return null;
-        } else {
-            if (mCategoryList != null && mCategories != null) {
-                mCategories.put(category.getName(), category);
-                mCategoryList.add(category);
-                Collections.sort(mCategoryList, new CategoryNameComparator());
-            }
-            return category;
-        }
-    }
-
-    @Nullable
-    public synchronized Category update(@NonNull Category oldCategory, @NonNull Category newCategory) {
-        final ContentValues values = new ContentValues(2);
-        values.put(CategoriesTableColumns.COLUMN_NAME, newCategory.getName());
-        values.put(CategoriesTableColumns.COLUMN_CODE, newCategory.getCode());
-
-        if (getWritableDatabase().update(getTableName(), values, CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{oldCategory.getName()}) == 0) {
-            return null;
-        } else {
-            if (mCategoryList != null && mCategories != null) {
-                mCategoryList.remove(oldCategory);
-                mCategories.put(newCategory.getName(), newCategory);
-                mCategoryList.add(newCategory);
-                Collections.sort(mCategoryList, new CategoryNameComparator());
-            }
-            return newCategory;
-        }
-    }
-
-    public synchronized boolean delete(@NonNull Category category) {
-        final boolean success = (getWritableDatabase().delete(getTableName(), CategoriesTableColumns.COLUMN_NAME + " = ?", new String[]{category.getName()}) > 0);
-        if (success) {
-            final Category oldCategory = mCategories.remove(category.getName());
-            mCategoryList.remove(oldCategory);
-        }
-        return success;
-    }
-
-    private void buildCategories() {
-        mCategories = new HashMap<>();
-        Cursor c = null;
-        try {
-            final SQLiteDatabase db = this.getReadableDatabase();
-            c = db.query(getTableName(), null, null, null, null, null, null);
-            if (c != null && c.moveToFirst()) {
-                final int nameIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_NAME);
-                final int codeIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_CODE);
-                do {
-                    final String name = c.getString(nameIndex);
-                    final String code = c.getString(codeIndex);
-                    mCategories.put(name, new CategoryBuilderFactory().setName(name).setCode(code).build());
-                }
-                while (c.moveToNext());
-            }
-        } finally { // Close the cursor and db to avoid memory leaks
-            if (c != null) {
-                c.close();
+        final List<Category> categories = new ArrayList<>(get());
+        final int size = categories.size();
+        for (int i = 0; i < size; i++) {
+            final Category category = categories.get(i);
+            if (categoryName.equals(category.getName())) {
+                return category.getCode();
             }
         }
+        return null;
     }
 
 }

@@ -9,7 +9,9 @@ import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
+import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
@@ -344,11 +346,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	@Override
 	public void insertPaymentMethodDefaults(DatabaseHelper db) {
-		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_unspecified));
-		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_corporate_card));
-		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_personal_card));
-		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_cash));
-		db.getPaymentMethodsTable().insert(getString(R.string.payment_method_default_check));
+		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_unspecified)).build());
+		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_corporate_card)).build());
+		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_personal_card)).build());
+		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_cash)).build());
+		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_check)).build());
 
 	}
 

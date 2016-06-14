@@ -92,7 +92,7 @@ public class PDFTableTest {
 
     @Test
     public void getTableName() {
-        assertEquals(PDFTableColumns.TABLE_NAME, mPDFTable.getTableName());
+        assertEquals("pdfcolumns", mPDFTable.getTableName());
     }
 
     @Test

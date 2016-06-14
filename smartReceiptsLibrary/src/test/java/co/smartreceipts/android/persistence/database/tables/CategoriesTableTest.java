@@ -81,7 +81,7 @@ public class CategoriesTableTest {
 
     @Test
     public void getTableName() {
-        assertEquals(CategoriesTableColumns.TABLE_NAME, mCategoriesTable.getTableName());
+        assertEquals("categories", mCategoriesTable.getTableName());
     }
 
     @Test

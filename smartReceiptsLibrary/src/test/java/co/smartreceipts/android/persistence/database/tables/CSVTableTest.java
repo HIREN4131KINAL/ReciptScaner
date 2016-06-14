@@ -97,7 +97,7 @@ public class CSVTableTest {
 
     @Test
     public void getTableName() {
-        assertEquals(CSVTableColumns.TABLE_NAME, mCSVTable.getTableName());
+        assertEquals("csvcolumns", mCSVTable.getTableName());
     }
 
     @Test

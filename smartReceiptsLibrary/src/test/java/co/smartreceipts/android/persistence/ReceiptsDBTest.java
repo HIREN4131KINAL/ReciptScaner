@@ -15,6 +15,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
 
@@ -151,7 +152,7 @@ public class ReceiptsDBTest {
 
     @Test
     public void insertNonNullPaymentMethod() {
-        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert("method");
+        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod("method").build());
         final Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
         assertNotNull(insertReceipt);

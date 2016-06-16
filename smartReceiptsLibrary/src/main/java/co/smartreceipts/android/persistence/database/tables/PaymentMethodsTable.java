@@ -11,8 +11,6 @@ import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.persistence.database.tables.adapters.PaymentMethodDatabaseAdapter;
-import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
-import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 import co.smartreceipts.android.persistence.database.tables.keys.PaymentMethodPrimaryKey;
 
 /**
@@ -20,10 +18,16 @@ import co.smartreceipts.android.persistence.database.tables.keys.PaymentMethodPr
  */
 public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, Integer> {
 
+    // SQL Definitions:
+    public static final String TABLE_NAME = "paymentmethods";
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_METHOD = "method";
+
+
     private static final String TAG = CategoriesTable.class.getSimpleName();
 
     public PaymentMethodsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
-        super(sqLiteOpenHelper, PaymentMethodsTableColumns.TABLE_NAME, new PaymentMethodDatabaseAdapter(), new PaymentMethodPrimaryKey());
+        super(sqLiteOpenHelper, TABLE_NAME, new PaymentMethodDatabaseAdapter(), new PaymentMethodPrimaryKey());
     }
 
     @Override
@@ -42,8 +46,8 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
 
     private void createPaymentMethodsTable(final SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
         final String sql = "CREATE TABLE " + getTableName() + " (" +
-                           PDFTableColumns.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                           PaymentMethodsTableColumns.COLUMN_METHOD + " TEXT" + ");";
+                           COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                           COLUMN_METHOD + " TEXT" + ");";
 
         Log.d(TAG, sql);
         db.execSQL(sql);

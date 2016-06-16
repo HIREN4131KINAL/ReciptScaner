@@ -14,7 +14,6 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,13 +24,10 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPaymentMethodColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
-import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
@@ -102,9 +98,9 @@ public class PDFTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPDFDefaults(mPDFTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_TYPE));
     }
 
     @Test
@@ -117,9 +113,9 @@ public class PDFTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPDFDefaults(mPDFTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTableColumns.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_TYPE));
     }
 
     @Test

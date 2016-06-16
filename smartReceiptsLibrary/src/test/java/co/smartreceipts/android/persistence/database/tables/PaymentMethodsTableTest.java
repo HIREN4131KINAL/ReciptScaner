@@ -20,14 +20,11 @@ import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
-import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -88,9 +85,9 @@ public class PaymentMethodsTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPaymentMethodDefaults(mPaymentMethodsTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.COLUMN_METHOD));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_METHOD));
     }
 
     @Test
@@ -103,9 +100,9 @@ public class PaymentMethodsTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPaymentMethodDefaults(mPaymentMethodsTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTableColumns.COLUMN_METHOD));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_METHOD));
     }
 
     @Test

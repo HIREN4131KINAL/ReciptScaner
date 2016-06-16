@@ -8,11 +8,8 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
-import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
-import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 
 /**

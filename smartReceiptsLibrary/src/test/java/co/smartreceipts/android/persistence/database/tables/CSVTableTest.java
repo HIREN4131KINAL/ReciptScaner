@@ -14,29 +14,20 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPaymentMethodColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
-import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
@@ -107,9 +98,9 @@ public class CSVTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCSVDefaults(mCSVTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_TYPE));
     }
 
     @Test
@@ -122,9 +113,9 @@ public class CSVTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCSVDefaults(mCSVTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTableColumns.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_TYPE));
     }
 
     @Test

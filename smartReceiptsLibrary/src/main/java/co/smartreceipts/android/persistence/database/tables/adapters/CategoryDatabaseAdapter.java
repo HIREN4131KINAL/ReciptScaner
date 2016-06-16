@@ -6,8 +6,7 @@ import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
-import co.smartreceipts.android.persistence.database.tables.keys.CategoryPrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 
 /**
@@ -18,8 +17,8 @@ public final class CategoryDatabaseAdapter implements DatabaseAdapter<Category, 
     @Override
     @NonNull
     public Category read(@NonNull Cursor cursor) {
-        final int nameIndex = cursor.getColumnIndex(CategoriesTableColumns.COLUMN_NAME);
-        final int codeIndex = cursor.getColumnIndex(CategoriesTableColumns.COLUMN_CODE);
+        final int nameIndex = cursor.getColumnIndex(CategoriesTable.COLUMN_NAME);
+        final int codeIndex = cursor.getColumnIndex(CategoriesTable.COLUMN_CODE);
 
         final String name = cursor.getString(nameIndex);
         final String code = cursor.getString(codeIndex);
@@ -30,8 +29,8 @@ public final class CategoryDatabaseAdapter implements DatabaseAdapter<Category, 
     @NonNull
     public ContentValues write(@NonNull Category category) {
         final ContentValues values = new ContentValues();
-        values.put(CategoriesTableColumns.COLUMN_NAME, category.getName());
-        values.put(CategoriesTableColumns.COLUMN_CODE, category.getCode());
+        values.put(CategoriesTable.COLUMN_NAME, category.getName());
+        values.put(CategoriesTable.COLUMN_CODE, category.getCode());
         return values;
     }
 

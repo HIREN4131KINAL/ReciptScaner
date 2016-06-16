@@ -23,7 +23,6 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
@@ -40,10 +39,8 @@ import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
-import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
@@ -53,12 +50,7 @@ import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.persistence.database.tables.columns.CSVTableColumns;
-import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
-import co.smartreceipts.android.persistence.database.tables.columns.PDFTableColumns;
-import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
 import co.smartreceipts.android.utils.FileUtils;
-import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import co.smartreceipts.android.workers.ImportTask;
@@ -375,7 +367,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
                     + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
                     + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
-                    + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTableColumns.TABLE_NAME + " ON DELETE NO ACTION, "
+                    + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
                     + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
                     + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
                     + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
@@ -561,7 +553,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
             if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
                 final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTableColumns.TABLE_NAME + " ON DELETE NO ACTION";
+                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, alterTrips);
                     Log.d(TAG, alterReceipts);
@@ -2820,21 +2812,21 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Categories");
                 try {
-                    c = importDB.query(CategoriesTableColumns.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(CategoriesTableColumns.TABLE_NAME, null, null); // DELETE FROM Categories
-                        final int nameIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_NAME);
-                        final int codeIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_CODE);
-                        final int breakdownIndex = c.getColumnIndex(CategoriesTableColumns.COLUMN_BREAKDOWN);
+                        currDB.delete(CategoriesTable.TABLE_NAME, null, null); // DELETE FROM Categories
+                        final int nameIndex = c.getColumnIndex(CategoriesTable.COLUMN_NAME);
+                        final int codeIndex = c.getColumnIndex(CategoriesTable.COLUMN_CODE);
+                        final int breakdownIndex = c.getColumnIndex(CategoriesTable.COLUMN_BREAKDOWN);
                         do {
                             final String name = getString(c, nameIndex, "");
                             final String code = getString(c, codeIndex, "");
                             final boolean breakdown = getBoolean(c, breakdownIndex, true);
                             ContentValues values = new ContentValues(3);
-                            values.put(CategoriesTableColumns.COLUMN_NAME, name);
-                            values.put(CategoriesTableColumns.COLUMN_CODE, code);
-                            values.put(CategoriesTableColumns.COLUMN_BREAKDOWN, breakdown);
-                            currDB.insert(CategoriesTableColumns.TABLE_NAME, null, values);
+                            values.put(CategoriesTable.COLUMN_NAME, name);
+                            values.put(CategoriesTable.COLUMN_CODE, code);
+                            values.put(CategoriesTable.COLUMN_BREAKDOWN, breakdown);
+                            currDB.insert(CategoriesTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }
@@ -2858,18 +2850,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging CSV");
                 try {
-                    c = importDB.query(CSVTableColumns.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(CSVTableColumns.TABLE_NAME, null, null); // DELETE * FROM CSVTable
-                        final int idxIndex = c.getColumnIndex(CSVTableColumns.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(CSVTableColumns.COLUMN_TYPE);
+                        currDB.delete(CSVTable.TABLE_NAME, null, null); // DELETE * FROM CSVTable
+                        final int idxIndex = c.getColumnIndex(CSVTable.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(CSVTable.COLUMN_TYPE);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(CSVTableColumns.COLUMN_ID, index);
-                            values.put(CSVTableColumns.COLUMN_TYPE, type);
-                            currDB.insert(CSVTableColumns.TABLE_NAME, null, values);
+                            values.put(CSVTable.COLUMN_ID, index);
+                            values.put(CSVTable.COLUMN_TYPE, type);
+                            currDB.insert(CSVTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }
@@ -2893,18 +2885,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging PDF");
                 try {
-                    c = importDB.query(PDFTableColumns.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(PDFTableColumns.TABLE_NAME, null, null); // DELETE * FROM PDFTable
-                        final int idxIndex = c.getColumnIndex(PDFTableColumns.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(PDFTableColumns.COLUMN_TYPE);
+                        currDB.delete(PDFTable.TABLE_NAME, null, null); // DELETE * FROM PDFTable
+                        final int idxIndex = c.getColumnIndex(PDFTable.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(PDFTable.COLUMN_TYPE);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(PDFTableColumns.COLUMN_ID, index);
-                            values.put(PDFTableColumns.COLUMN_TYPE, type);
-                            currDB.insert(PDFTableColumns.TABLE_NAME, null, values);
+                            values.put(PDFTable.COLUMN_ID, index);
+                            values.put(PDFTable.COLUMN_TYPE, type);
+                            currDB.insert(PDFTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }
@@ -2928,18 +2920,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 }
                 mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Payment Methods");
                 try {
-                    c = importDB.query(PaymentMethodsTableColumns.TABLE_NAME, null, null, null, null, null, null);
+                    c = importDB.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
-                        currDB.delete(PaymentMethodsTableColumns.TABLE_NAME, null, null); // DELETE * FROM PaymentMethodsTable
-                        final int idxIndex = c.getColumnIndex(PaymentMethodsTableColumns.COLUMN_ID);
-                        final int typeIndex = c.getColumnIndex(PaymentMethodsTableColumns.COLUMN_METHOD);
+                        currDB.delete(PaymentMethodsTable.TABLE_NAME, null, null); // DELETE * FROM PaymentMethodsTable
+                        final int idxIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_ID);
+                        final int typeIndex = c.getColumnIndex(PaymentMethodsTable.COLUMN_METHOD);
                         do {
                             final int index = getInt(c, idxIndex, 0);
                             final String type = getString(c, typeIndex, "");
                             ContentValues values = new ContentValues(2);
-                            values.put(PaymentMethodsTableColumns.COLUMN_ID, index);
-                            values.put(PaymentMethodsTableColumns.COLUMN_METHOD, type);
-                            currDB.insert(PaymentMethodsTableColumns.TABLE_NAME, null, values);
+                            values.put(PaymentMethodsTable.COLUMN_ID, index);
+                            values.put(PaymentMethodsTable.COLUMN_METHOD, type);
+                            currDB.insert(PaymentMethodsTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
                     }

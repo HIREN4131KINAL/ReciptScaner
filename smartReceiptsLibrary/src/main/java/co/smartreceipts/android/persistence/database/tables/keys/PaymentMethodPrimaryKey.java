@@ -1,10 +1,9 @@
 package co.smartreceipts.android.persistence.database.tables.keys;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.persistence.database.tables.columns.PaymentMethodsTableColumns;
+import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 
 /**
  * Defines the primary key for the {@link co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable}
@@ -14,7 +13,7 @@ public final class PaymentMethodPrimaryKey implements PrimaryKey<PaymentMethod, 
     @Override
     @NonNull
     public String getPrimaryKeyColumn() {
-        return PaymentMethodsTableColumns.COLUMN_ID;
+        return PaymentMethodsTable.COLUMN_ID;
     }
 
     @Override

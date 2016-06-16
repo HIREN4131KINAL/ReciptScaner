@@ -19,13 +19,8 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import co.smartreceipts.android.persistence.database.tables.columns.CategoriesTableColumns;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -91,10 +86,10 @@ public class CategoriesTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCategoryDefaults(mCategoriesTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.COLUMN_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.COLUMN_CODE));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.COLUMN_BREAKDOWN));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_CODE));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_BREAKDOWN));
     }
 
     @Test
@@ -108,8 +103,8 @@ public class CategoriesTableTest {
         verify(customizer, never()).insertCategoryDefaults(mCategoriesTable);
 
         assertTrue(mSqlCaptor.getValue().contains("ALTER"));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTableColumns.COLUMN_BREAKDOWN));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_BREAKDOWN));
     }
 
     @Test

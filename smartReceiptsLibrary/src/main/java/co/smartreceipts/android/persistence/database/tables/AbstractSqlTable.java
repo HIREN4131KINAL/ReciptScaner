@@ -27,8 +27,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyColumnType> implements Tabl
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;
     private final String mTableName;
-    private final DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyColumnType>> mDatabaseAdapter;
-    private final PrimaryKey<ModelType, PrimaryKeyColumnType> mPrimaryKey;
+
+    protected final DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyColumnType>> mDatabaseAdapter;
+    protected final PrimaryKey<ModelType, PrimaryKeyColumnType> mPrimaryKey;
 
     private SQLiteDatabase initialNonRecursivelyCalledDatabase;
     private List<ModelType> mCachedResults;

@@ -18,7 +18,7 @@ public class PaymentMethodBuilderFactory implements BuilderFactory<PaymentMethod
      * Default constructor for this class
      */
     public PaymentMethodBuilderFactory() {
-        _id = -1;
+        _id = MISSING_ID;
         _method = "";
     }
 

@@ -1,11 +1,18 @@
 package co.smartreceipts.android.persistence.database.tables;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.google.common.base.Preconditions;
+
+import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
+import co.smartreceipts.android.persistence.database.tables.adapters.DistanceDatabaseAdapter;
+import co.smartreceipts.android.persistence.database.tables.keys.DistancePrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 
 /**
@@ -25,14 +32,62 @@ public final class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance
     public static final String COLUMN_RATE = "rate";
     public static final String COLUMN_RATE_CURRENCY = "rate_currency";
 
-    public DistanceTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull DatabaseAdapter<Distance, PrimaryKey<Distance, Integer>> databaseAdapter,
-                         @NonNull PrimaryKey<Distance, Integer> primaryKey) {
-        super(sqLiteOpenHelper, TABLE_NAME, databaseAdapter, primaryKey, COLUMN_PARENT, COLUMN_DATE);
+
+    private static final String TAG = DistanceTable.class.getSimpleName();
+
+
+    private final String mDefaultCurrencyCode;
+
+    public DistanceTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull String defaultCurrencyCode) {
+        super(sqLiteOpenHelper, TABLE_NAME, new DistanceDatabaseAdapter(tripsTable), new DistancePrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
+        mDefaultCurrencyCode = Preconditions.checkNotNull(defaultCurrencyCode);
+    }
+
+    @Override
+    public synchronized void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
+        super.onCreate(db, customizer);
+        createDistanceTable(db);
+    }
+
+    @Override
+    public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
+        super.onUpgrade(db, oldVersion, newVersion, customizer);
+        if (oldVersion <= 12) {
+            createDistanceTable(db);
+
+            // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
+            final String distanceMigrateBase = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
+                    + " SELECT " + TripsTable.COLUMN_NAME + ", " + TripsTable.COLUMN_MILEAGE + " , \"\" as " + DistanceTable.COLUMN_LOCATION + ", " + TripsTable.COLUMN_FROM + ", " + TripsTable.COLUMN_FROM_TIMEZONE + " , \"\" as " + DistanceTable.COLUMN_COMMENT + ", ";
+            final String distanceMigrateNotNullCurrency = distanceMigrateBase + TripsTable.COLUMN_DEFAULT_CURRENCY + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NOT NULL AND " + TripsTable.COLUMN_MILEAGE + " > 0;";
+            final String distanceMigrateNullCurrency = distanceMigrateBase + "\"" + mDefaultCurrencyCode + "\" as " + DistanceTable.COLUMN_RATE_CURRENCY + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NULL AND " + TripsTable.COLUMN_MILEAGE + " > 0;";
+
+            Log.d(TAG, distanceMigrateNotNullCurrency);
+            Log.d(TAG, distanceMigrateNullCurrency);
+            db.execSQL(distanceMigrateNotNullCurrency);
+            db.execSQL(distanceMigrateNullCurrency);
+        }
     }
 
     @NonNull
     @Override
     protected Trip getTripFor(@NonNull Distance distance) {
         return distance.getTrip();
+    }
+
+    private void createDistanceTable(@NonNull SQLiteDatabase db) {
+        final String sql = "CREATE TABLE " + TABLE_NAME + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
+                + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
+                + COLUMN_LOCATION + " TEXT,"
+                + COLUMN_DATE + " DATE,"
+                + COLUMN_TIMEZONE + " TEXT,"
+                + COLUMN_COMMENT + " TEXT,"
+                + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
+                + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00 );";
+
+
+        Log.d(TAG, sql);
+        db.execSQL(sql);
     }
 }

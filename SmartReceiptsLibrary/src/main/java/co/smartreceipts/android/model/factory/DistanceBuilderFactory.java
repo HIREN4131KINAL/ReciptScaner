@@ -30,6 +30,10 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private WBCurrency _currency;
     private String _comment;
 
+    public DistanceBuilderFactory() {
+        this(MISSING_ID);
+    }
+
     public DistanceBuilderFactory(int id) {
         _id = id;
         _location = "";

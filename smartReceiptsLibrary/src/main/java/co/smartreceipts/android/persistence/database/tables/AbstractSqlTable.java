@@ -21,21 +21,21 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
  * operate in a standard manner.
  *
  * @param <ModelType> the model object that CRUD operations here should return
- * @param <PrimaryKeyColumnType> the primary key type (e.g. Integer, String) that will be used
+ * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that is used by the primary key column
  */
-abstract class AbstractSqlTable<ModelType, PrimaryKeyColumnType> implements Table<ModelType> {
+abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;
     private final String mTableName;
 
-    protected final DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyColumnType>> mDatabaseAdapter;
-    protected final PrimaryKey<ModelType, PrimaryKeyColumnType> mPrimaryKey;
+    protected final DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> mDatabaseAdapter;
+    protected final PrimaryKey<ModelType, PrimaryKeyType> mPrimaryKey;
 
     private SQLiteDatabase initialNonRecursivelyCalledDatabase;
     private List<ModelType> mCachedResults;
 
-    public AbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyColumnType>> databaseAdapter,
-                            @NonNull PrimaryKey<ModelType, PrimaryKeyColumnType> primaryKey) {
+    public AbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> databaseAdapter,
+                            @NonNull PrimaryKey<ModelType, PrimaryKeyType> primaryKey) {
         mSQLiteOpenHelper = Preconditions.checkNotNull(sqLiteOpenHelper);
         mTableName = Preconditions.checkNotNull(tableName);
         mDatabaseAdapter = Preconditions.checkNotNull(databaseAdapter);
@@ -105,6 +105,21 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyColumnType> implements Tabl
         }
     }
 
+    @Nullable
+    @Override
+    public ModelType findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType) {
+        // TODO: Consider using a Map/Cache/"SELECT" here to improve performance. The #get() call belong is overkill for a single item
+        final List<ModelType> entries = new ArrayList<>(get());
+        final int size = entries.size();
+        for (int i = 0; i < size; i++) {
+            final ModelType modelType = entries.get(i);
+            if (mPrimaryKey.getPrimaryKeyValue(modelType).equals(primaryKeyType)) {
+                return modelType;
+            }
+        }
+        return null;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     @Nullable
@@ -124,7 +139,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyColumnType> implements Tabl
                     }
 
                     // Note: We do some quick hacks around generics here to ensure the types are consistent
-                    final PrimaryKey<ModelType, PrimaryKeyColumnType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyColumnType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, id);
+                    final PrimaryKey<ModelType, PrimaryKeyType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, id);
 
                     final ModelType insertedItem = mDatabaseAdapter.build(modelType, autoIncrementPrimaryKey);
                     if (mCachedResults != null) {
@@ -164,7 +179,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyColumnType> implements Tabl
             final ModelType updatedItem;
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
                 // If it's an auto-increment key, ensure we're re-using the same id as the old key
-                final PrimaryKey<ModelType, PrimaryKeyColumnType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyColumnType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, (Integer) mPrimaryKey.getPrimaryKeyValue(oldModelType));
+                final PrimaryKey<ModelType, PrimaryKeyType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, (Integer) mPrimaryKey.getPrimaryKeyValue(oldModelType));
                 updatedItem = mDatabaseAdapter.build(newModelType, autoIncrementPrimaryKey);
             } else {
                 // Otherwise, we'll use whatever the user defined...

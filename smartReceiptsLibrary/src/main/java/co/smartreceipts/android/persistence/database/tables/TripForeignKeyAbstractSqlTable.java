@@ -77,4 +77,6 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyColumnType> e
             }
         }
     }
+
+    // TODO: Update cache after other calls...
 }

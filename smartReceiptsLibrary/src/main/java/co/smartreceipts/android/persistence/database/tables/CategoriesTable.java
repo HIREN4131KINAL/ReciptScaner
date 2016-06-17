@@ -3,11 +3,7 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.persistence.database.tables.adapters.CategoryDatabaseAdapter;
@@ -53,25 +49,6 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
                                            " ADD " + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
             db.execSQL(alterCategories);
         }
-    }
-
-    /**
-     * Attempts to get a category code for a known category name
-     *
-     * @param categoryName - the name of the desired {@link Category}
-     * @return a category code {@link String} if the name matches a known category or {@code null} if none is found
-     */
-    @Nullable
-    public synchronized String getCategoryCode(@NonNull CharSequence categoryName) {
-        final List<Category> categories = new ArrayList<>(get());
-        final int size = categories.size();
-        for (int i = 0; i < size; i++) {
-            final Category category = categories.get(i);
-            if (categoryName.equals(category.getName())) {
-                return category.getCode();
-            }
-        }
-        return null;
     }
 
 }

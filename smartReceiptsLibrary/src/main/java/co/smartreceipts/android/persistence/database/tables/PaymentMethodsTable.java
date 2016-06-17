@@ -3,11 +3,7 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.persistence.database.tables.adapters.PaymentMethodDatabaseAdapter;
@@ -52,25 +48,6 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
         Log.d(TAG, sql);
         db.execSQL(sql);
         customizer.insertPaymentMethodDefaults(this);
-    }
-
-    /**
-     * Attempts to fetch a payment method for a given primary key id
-     *
-     * @param id - the id of the desired {@link PaymentMethod}
-     * @return a {@link PaymentMethod} if the id matches or {@code null} if none is found
-     */
-    @Nullable
-    public synchronized PaymentMethod findPaymentMethodById(final int id) {
-        final List<PaymentMethod> methodsSnapshot = new ArrayList<>(get());
-        final int size = methodsSnapshot.size();
-        for (int i = 0; i < size; i++) {
-            final PaymentMethod method = methodsSnapshot.get(i);
-            if (method.getId() == id) {
-                return method;
-            }
-        }
-        return null;
     }
 
 }

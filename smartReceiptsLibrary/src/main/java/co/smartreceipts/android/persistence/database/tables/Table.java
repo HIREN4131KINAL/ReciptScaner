@@ -6,16 +6,14 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
-import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-
 /**
  * Acts as a standard contract for the methods that all database tables should support, such as CRUD operations
  * and create/upgrade scripts
  *
- * @param <T> the model object that this table will interact with
+ * @param <ModelType> the model object that this table will interact with
+ * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that is used by the primary key column
  */
-public interface Table<T> {
+public interface Table<ModelType, PrimaryKeyType> {
 
     /**
      * @return the table name for SQL operations
@@ -50,34 +48,43 @@ public interface Table<T> {
     /**
      * Retrieves list of all objects that are stored within this table. Please note that this is a blocking operation
      *
-     * @return a {@link List} of all objects of type {@link T} that are stored within this table
+     * @return a {@link List} of all objects of type {@link ModelType} that are stored within this table
      */
     @NonNull
-    List<T> get();
+    List<ModelType> get();
 
     /**
-     * Inserts a new object of type {@link T} into this table. Please note that this is a blocking operation
+     * Attempts to look up an object based on it's {@link PrimaryKeyType} value for it's primary key column
      *
-     * @param t the object to insert
-     * @return the inserted object of type {@link T} or {@code null} if the insert failed
+     * @param primaryKeyType the primary key for this object
+     * @return the {@link ModelType} object or {@code null} if none was found
      */
     @Nullable
-    T insert(@NonNull T t);
+    ModelType findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType);
 
     /**
-     * Updates an existing object of type {@link T} in this table. Please note that this is a blocking operation
+     * Inserts a new object of type {@link ModelType} into this table. Please note that this is a blocking operation
      *
-     * @param oldT the old object that will be replaced
-     * @param newT the new object that will take the place of the old one
-     * @return the updated object of type {@link T} or {@code null} if the update failed
+     * @param modelType the object to insert
+     * @return the inserted object of type {@link ModelType} or {@code null} if the insert failed
      */
     @Nullable
-    T update(@NonNull T oldT, @NonNull T newT);
+    ModelType insert(@NonNull ModelType modelType);
 
     /**
-     * Removes an existing object of type {@link T} from this table. Please note that this is a blocking operation
-     * @param t the object to remove
+     * Updates an existing object of type {@link ModelType} in this table. Please note that this is a blocking operation
+     *
+     * @param oldModelType the old object that will be replaced
+     * @param newModelType the new object that will take the place of the old one
+     * @return the updated object of type {@link ModelType} or {@code null} if the update failed
+     */
+    @Nullable
+    ModelType update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType);
+
+    /**
+     * Removes an existing object of type {@link ModelType} from this table. Please note that this is a blocking operation
+     * @param modelType the object to remove
      * @return {@code true} if we successfully deleted this item. {@code false} otherwise
      */
-    boolean delete(@NonNull T t);
+    boolean delete(@NonNull ModelType modelType);
 }

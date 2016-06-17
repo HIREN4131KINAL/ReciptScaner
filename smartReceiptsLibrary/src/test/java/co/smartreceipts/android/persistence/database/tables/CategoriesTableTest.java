@@ -21,6 +21,8 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -122,7 +124,19 @@ public class CategoriesTableTest {
     public void get() {
         final List<Category> categories = mCategoriesTable.get();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2));
-        
+    }
+
+    @Test
+    public void findByPrimaryKey() {
+        final Category foundCategory = mCategoriesTable.findByPrimaryKey(mCategory1.getName());
+        assertNotNull(foundCategory);
+        assertEquals(mCategory1, foundCategory);
+    }
+
+    @Test
+    public void findByPrimaryMissingKey() {
+        final Category foundCategory = mCategoriesTable.findByPrimaryKey("xxx");
+        assertNull(foundCategory);
     }
 
     @Test
@@ -134,7 +148,6 @@ public class CategoriesTableTest {
 
         final List<Category> categories = mCategoriesTable.get();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2, insertCategory));
-        assertEquals(mCategoriesTable.getCategoryCode(name), code);
     }
     
     @Test
@@ -147,7 +160,6 @@ public class CategoriesTableTest {
         final List<Category> categories = mCategoriesTable.get();
         assertTrue(categories.contains(updateCategory));
         assertTrue(categories.contains(mCategory2));
-        assertEquals(mCategoriesTable.getCategoryCode(name), code);
     }
 
     @Test

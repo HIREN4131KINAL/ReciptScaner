@@ -133,19 +133,15 @@ public class PaymentMethodsTableTest {
     }
 
     @Test
-    public void findPaymentMethodById() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
-        assertNotNull(paymentMethod);
-
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findPaymentMethodById(paymentMethod.getId());
+    public void findByPrimaryKey() {
+        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(mPaymentMethod1.getId());
         assertNotNull(foundMethod);
-        assertEquals(paymentMethod, foundMethod);
+        assertEquals(mPaymentMethod1, foundMethod);
     }
 
     @Test
-    public void findPaymentMethodByMissingId() {
-        final int missingId = -1;
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findPaymentMethodById(missingId);
+    public void findByPrimaryMissingKey() {
+        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(-1);
         assertNull(foundMethod);
     }
 

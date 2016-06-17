@@ -28,6 +28,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
@@ -133,6 +134,19 @@ public class CSVTableTest {
     public void get() {
         final List<Column<Receipt>> columns = mCSVTable.get();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2));
+    }
+
+    @Test
+    public void findByPrimaryKey() {
+        final Column<Receipt> foundColumn = mCSVTable.findByPrimaryKey(mColumn1.getId());
+        assertNotNull(foundColumn);
+        assertEquals(mColumn1, foundColumn);
+    }
+
+    @Test
+    public void findByPrimaryMissingKey() {
+        final Column<Receipt> foundColumn = mCSVTable.findByPrimaryKey(-1);
+        assertNull(foundColumn);
     }
 
     @Test

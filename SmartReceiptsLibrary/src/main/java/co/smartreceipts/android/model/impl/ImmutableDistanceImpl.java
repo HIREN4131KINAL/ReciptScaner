@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.support.annotation.NonNull;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -20,6 +21,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public final class ImmutableDistanceImpl implements Distance {
 
+    private static final int ROUNDING_PRECISION = RATE_PRECISION + 2;
+
     private final int mId;
     private final Trip mTrip;
     private final String mLocation;
@@ -34,8 +37,8 @@ public final class ImmutableDistanceImpl implements Distance {
         mId = id;
         mTrip = trip;
         mLocation = location;
-        mDistance = distance;
-        mRate = rate;
+        mDistance = distance.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
+        mRate = rate.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mPrice = new PriceBuilderFactory().setCurrency(currency).setPrice(distance.multiply(rate)).build();
         mDate = date;
         mTimezone = timeZone;
@@ -201,7 +204,7 @@ public final class ImmutableDistanceImpl implements Distance {
         if (mDistance == null) {
             if (other.mDistance != null)
                 return false;
-        } else if (!mDistance.equals(other.mDistance))
+        } else if (mDistance.compareTo(other.mDistance) != 0)
             return false;
 
         if (mLocation == null) {
@@ -213,7 +216,7 @@ public final class ImmutableDistanceImpl implements Distance {
         if (mRate == null) {
             if (other.mRate != null)
                 return false;
-        } else if (!mRate.equals(other.mRate))
+        } else if (mRate.compareTo(other.mRate) != 0)
             return false;
 
         if (mPrice == null) {

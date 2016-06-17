@@ -1784,7 +1784,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
                         }
                         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
-                        builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(getPaymentMethodsTable().findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+                        builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setIndex(c.getPosition() + 1).setPaymentMethod(getPaymentMethodsTable().findByPrimaryKey(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
                         /**
                          * Please note that a very frustrating bug exists here. Android cursors only return the first 6
                          * characters of a price string if that string contains a '.' character. It returns all of them
@@ -1917,7 +1917,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                     if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
                         img = mPersistenceManager.getStorageManager().getFile(trip.getDirectory(), path);
                     }
-                    builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(getPaymentMethodsTable().findPaymentMethodById(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
+                    builder.setTrip(trip).setName(name).setCategory(category).setImage(img).setDate(date).setTimeZone(timezone).setComment(comment).setIsExpenseable(expensable).setCurrency(currency).setIsFullPage(fullpage).setPaymentMethod(getPaymentMethodsTable().findByPrimaryKey(paymentMethodId)).setExtraEditText1(extra_edittext_1).setExtraEditText2(extra_edittext_2).setExtraEditText3(extra_edittext_3);
                     /**
                      * Please note that a very frustrating bug exists here. Android cursors only return the first 6
                      * characters of a price string if that string contains a '.' character. It returns all of them

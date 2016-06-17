@@ -40,6 +40,18 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         _comment = "";
     }
 
+    public DistanceBuilderFactory(int id, @NonNull Distance distance) {
+        _id = id;
+        _trip = distance.getTrip();
+        _location = distance.getLocation();
+        _distance = distance.getDistance();
+        _date = distance.getDate();
+        _timezone = distance.getTimeZone();
+        _rate = distance.getRate();
+        _currency = distance.getPrice().getCurrency();
+        _comment = distance.getComment();
+    }
+
     public DistanceBuilderFactory setTrip(final Trip trip) {
         _trip = trip;
         return this;

@@ -3,8 +3,6 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,10 +20,8 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
-import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;

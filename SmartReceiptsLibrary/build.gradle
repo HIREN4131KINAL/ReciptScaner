@@ -6,7 +6,11 @@ dependencies {
     compile project(':androidCamera')
     compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
+
     compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
+    compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
+    compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
+
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"
     compile "com.joanzapata.pdfview:android-pdfview:$PDF_VIEWER_VERSION@aar"

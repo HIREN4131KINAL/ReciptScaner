@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -108,8 +109,7 @@ public class DistanceDatabaseAdapterTest {
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
         when(mPrice.getCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
 
-        // TODO: Fix me
-        //when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(mTrip);
+        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);
 
         mDistanceDatabaseAdapter = new DistanceDatabaseAdapter(mTripsTable);

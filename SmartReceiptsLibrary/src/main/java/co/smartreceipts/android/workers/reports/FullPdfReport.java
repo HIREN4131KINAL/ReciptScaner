@@ -135,7 +135,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
             document.add(new Paragraph("\n\n")); // Add the line break before our table
 
             // Now build the table
-            final List<Column<Receipt>> columns = getDatabase().getPDFTable().get();
+            final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
             final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
             if (getPreferences().getPrintDistanceAsDailyReceipt()) {
                 receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceSerial(trip)));

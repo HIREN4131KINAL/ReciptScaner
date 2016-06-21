@@ -27,17 +27,17 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
 
     @Override
     public List<Column<Receipt>> getColumns() {
-        return getPersistenceManager().getDatabase().getPDFTable().get();
+        return getPersistenceManager().getDatabase().getPDFTable().get().toBlocking().first();
     }
 
     @Override
     public void addColumn() {
-        getPersistenceManager().getDatabase().getPDFTable().insertDefaultColumn();
+        getPersistenceManager().getDatabase().getPDFTable().insertDefaultColumn().toBlocking().first();
     }
 
     @Override
     public void deleteLastColumn() {
-        getPersistenceManager().getDatabase().getPDFTable().deleteLast();
+        getPersistenceManager().getDatabase().getPDFTable().deleteLast().toBlocking().first();
     }
 
     @Override

@@ -17,6 +17,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
+import rx.Observable;
 
 /**
  * Since our CSV and PDF tables share almost all of the same logic, this class purely acts as a wrapper around
@@ -69,8 +70,8 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Int
      *
      * @return the inserted {@link Column} or {@code null} if the insert failed
      */
-    @Nullable
-    public synchronized Column<Receipt> insertDefaultColumn() {
+    @NonNull
+    public final Observable<Column<Receipt>> insertDefaultColumn() {
         return insert(mReceiptColumnDefinitions.getDefaultInsertColumn());
     }
 
@@ -79,14 +80,9 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Int
      *
      * @return {@code true} if it could be delete. {@code false} otherwise (e.g. there are no more columns)
      */
-    public synchronized boolean deleteLast() {
-        final List<Column<Receipt>> columns = new ArrayList<>(get());
-        final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
-        if (lastColumn != null) {
-            return delete(lastColumn);
-        } else {
-            return false;
-        }
+    @NonNull
+    public final Observable<Boolean> deleteLast() {
+        return get().flatMap(columns -> removeLastColumnIfPresent(columns));
     }
 
     /**
@@ -95,5 +91,15 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Int
      * @param customizer the {@link co.smartreceipts.android.persistence.DatabaseHelper.TableDefaultsCustomizer} implementation
      */
     protected abstract void insertDefaults(@NonNull TableDefaultsCustomizer customizer);
+
+    @NonNull
+    private Observable<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns) {
+        final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
+        if (lastColumn != null) {
+            return delete(lastColumn);
+        } else {
+            return Observable.just(false);
+        }
+    }
 
 }

@@ -400,7 +400,7 @@ public class EmailAssistant {
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
-                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get();
+                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().toBlocking().first();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {

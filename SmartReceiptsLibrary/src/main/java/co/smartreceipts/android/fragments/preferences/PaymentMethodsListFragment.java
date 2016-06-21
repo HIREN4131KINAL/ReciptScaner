@@ -45,7 +45,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 
 	@Override
 	protected List<PaymentMethod> getData() {
-		return getPersistenceManager().getDatabase().getPaymentMethodsTable().get();
+		return getPersistenceManager().getDatabase().getPaymentMethodsTable().get().toBlocking().first();
 	}
 
 	@Override

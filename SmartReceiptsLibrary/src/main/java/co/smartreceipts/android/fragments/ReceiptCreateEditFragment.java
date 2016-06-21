@@ -145,8 +145,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
-        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesTable().get());
-        mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethodsTable().get());
+        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCategoriesTable().get().toBlocking().first());
+        mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getPaymentMethodsTable().get().toBlocking().first());
         setHasOptionsMenu(true);
 
         if (getPersistenceManager().getPreferences().isShowReceiptID()) {

@@ -107,7 +107,9 @@ public class DistanceDatabaseAdapterTest {
         when(mTrip.getName()).thenReturn(PARENT);
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
         when(mPrice.getCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
-        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(mTrip);
+
+        // TODO: Fix me
+        //when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(mTrip);
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);
 
         mDistanceDatabaseAdapter = new DistanceDatabaseAdapter(mTripsTable);

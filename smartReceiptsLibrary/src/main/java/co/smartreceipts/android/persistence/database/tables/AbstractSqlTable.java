@@ -15,6 +15,7 @@ import java.util.List;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import rx.Observable;
 
 /**
  * Abstracts out the core CRUD database operations in order to ensure that each of our core table instances
@@ -80,9 +81,37 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
         initialNonRecursivelyCalledDatabase = null;
     }
 
-    @Override
     @NonNull
-    public synchronized List<ModelType> get() {
+    public final Observable<List<ModelType>> get() {
+        return Observable.defer(() -> Observable.just(getBlocking()));
+    }
+
+    @NonNull
+    @Override
+    public final Observable<ModelType> findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType) {
+        return Observable.defer(() -> Observable.just(findByPrimaryKeyBlocking(primaryKeyType)));
+    }
+
+    @NonNull
+    @Override
+    public final Observable<ModelType> insert(@NonNull ModelType modelType) {
+        return Observable.defer(() -> Observable.just(insertBlocking(modelType)));
+    }
+
+    @NonNull
+    @Override
+    public final Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+        return Observable.defer(() -> Observable.just(updateBlocking(oldModelType, newModelType)));
+    }
+
+    @NonNull
+    @Override
+    public final Observable<Boolean> delete(@NonNull ModelType modelType) {
+        return Observable.defer(() -> Observable.just(deleteBlocking(modelType)));
+    }
+
+    @NonNull
+    protected synchronized List<ModelType> getBlocking() {
         if (mCachedResults != null) {
             return mCachedResults;
         }
@@ -106,10 +135,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
     }
 
     @Nullable
-    @Override
-    public ModelType findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType) {
+    protected ModelType findByPrimaryKeyBlocking(@NonNull PrimaryKeyType primaryKeyType) {
         // TODO: Consider using a Map/Cache/"SELECT" here to improve performance. The #get() call belong is overkill for a single item
-        final List<ModelType> entries = new ArrayList<>(get());
+        final List<ModelType> entries = new ArrayList<>(getBlocking());
         final int size = entries.size();
         for (int i = 0; i < size; i++) {
             final ModelType modelType = entries.get(i);
@@ -120,10 +148,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
         return null;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     @Nullable
-    public synchronized ModelType insert(@NonNull ModelType modelType) {
+    protected synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
         final ContentValues values = mDatabaseAdapter.write(modelType);
         if (getWritableDatabase().insertOrThrow(getTableName(), null, values) != -1) {
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
@@ -165,10 +192,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     }
 
-    @Override
     @SuppressWarnings("unchecked")
     @Nullable
-    public synchronized ModelType update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+    protected synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
         if (oldModelType.equals(newModelType)) {
             return oldModelType;
         }
@@ -196,8 +222,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     }
 
-    @Override
-    public synchronized boolean delete(@NonNull ModelType modelType) {
+    protected synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
         final String primaryKeyValue = mPrimaryKey.getPrimaryKeyValue(modelType).toString();
         if (getWritableDatabase().delete(getTableName(), mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ primaryKeyValue }) > 0) {
             if (mCachedResults != null) {

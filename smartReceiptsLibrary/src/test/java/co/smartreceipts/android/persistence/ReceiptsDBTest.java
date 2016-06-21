@@ -152,7 +152,7 @@ public class ReceiptsDBTest {
 
     @Test
     public void insertNonNullPaymentMethod() {
-        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod("method").build());
+        final PaymentMethod paymentMethod = mDB.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod("method").build()).toBlocking().first();
         final Receipt insertReceipt = insertDefaultReceipt(paymentMethod);
         Receipt findReceipt = mDB.getReceiptByID(insertReceipt.getId());
         assertNotNull(insertReceipt);

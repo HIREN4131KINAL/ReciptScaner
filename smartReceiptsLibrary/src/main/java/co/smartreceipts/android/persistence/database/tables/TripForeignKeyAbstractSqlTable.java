@@ -15,6 +15,7 @@ import java.util.List;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import rx.Observable;
 
 /**
  * Extends the {@link AbstractColumnTable} class to provide support for an extra method, {@link #get(Trip)}. We may
@@ -41,10 +42,10 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
      * Fetches all model objects with a foreign key reference to the parameter object
      *
      * @param trip the {@link Trip} parameter that should be treated as a foreign key
-     * @return all objects assigned to this foreign key in descending order
+     * @return an {@link Observable} with: all objects assigned to this foreign key in descending order
      */
     @NonNull
-    public synchronized List<ModelType> get(@NonNull Trip trip) {
+    protected final Observable<List<ModelType>> get(@NonNull Trip trip) {
         return get(trip, true);
     }
 
@@ -53,10 +54,15 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
      *
      * @param trip the {@link Trip} parameter that should be treated as a foreign key
      * @param isDescending {@code true} for descending order, {@code false} for ascending
-     * @return all objects assigned to this foreign key in the desired order
+     * @return an {@link Observable} with: all objects assigned to this foreign key in the desired order
      */
     @NonNull
-    public synchronized List<ModelType> get(@NonNull Trip trip, boolean isDescending) {
+    protected synchronized Observable<List<ModelType>> get(@NonNull Trip trip, boolean isDescending) {
+        return Observable.defer(() -> Observable.just(getBlocking(trip, isDescending)));
+    }
+
+    @NonNull
+    protected final synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
         if (mPerTripCache.containsKey(trip)) {
             return new ArrayList<>(mPerTripCache.get(trip));
         }
@@ -82,8 +88,8 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
 
     @NonNull
     @Override
-    public synchronized List<ModelType> get() {
-        final List<ModelType> results = super.get();
+    protected final synchronized List<ModelType> getBlocking() {
+        final List<ModelType> results = super.getBlocking();
         final HashMap<Trip, List<ModelType>> localCache = new HashMap<>();
         for (int i = 0; i < results.size(); i++) {
             final ModelType modelType = results.get(i);
@@ -104,8 +110,8 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
 
     @Nullable
     @Override
-    public synchronized ModelType insert(@NonNull ModelType modelType) {
-        final ModelType insertedItem = super.insert(modelType);
+    protected final synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
+        final ModelType insertedItem = super.insertBlocking(modelType);
         if (insertedItem != null) {
             final Trip trip = getTripFor(insertedItem);
             if (mPerTripCache.containsKey(trip)) {
@@ -118,8 +124,8 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
 
     @Nullable
     @Override
-    public synchronized ModelType update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
-        final ModelType updatedItem = super.update(oldModelType, newModelType);
+    protected final synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+        final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType);
         if (updatedItem != null) {
             final Trip oldTrip = getTripFor(oldModelType);
             if (mPerTripCache.containsKey(oldTrip)) {
@@ -137,8 +143,8 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
     }
 
     @Override
-    public synchronized boolean delete(@NonNull ModelType modelType) {
-        final boolean deleteResult = super.delete(modelType);
+    protected final synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
+        final boolean deleteResult = super.deleteBlocking(modelType);
         if (deleteResult) {
             final Trip trip = getTripFor(modelType);
             if (mPerTripCache.containsKey(trip)) {

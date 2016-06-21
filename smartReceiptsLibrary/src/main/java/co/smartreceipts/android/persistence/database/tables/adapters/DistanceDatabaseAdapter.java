@@ -43,7 +43,7 @@ public final class DistanceDatabaseAdapter implements DatabaseAdapter<Distance, 
         final int commentIndex = cursor.getColumnIndex(DistanceTable.COLUMN_COMMENT);
 
         final int id = cursor.getInt(idIndex);
-        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex));
+        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
         final String location = cursor.getString(locationIndex);
         final BigDecimal distance = BigDecimal.valueOf(cursor.getDouble(distanceIndex));
         final long date = cursor.getLong(dateIndex);

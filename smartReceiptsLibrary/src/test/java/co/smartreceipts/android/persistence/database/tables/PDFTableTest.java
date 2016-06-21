@@ -27,6 +27,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -76,8 +77,8 @@ public class PDFTableTest {
 
         // Now create the table and insert some defaults
         mPDFTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mColumn1 = mPDFTable.insert(new ReceiptNameColumn(-1, "Name"));
-        mColumn2 = mPDFTable.insert(new ReceiptPriceColumn(-1, "Price"));
+        mColumn1 = mPDFTable.insert(new ReceiptNameColumn(-1, "Name")).toBlocking().first();
+        mColumn2 = mPDFTable.insert(new ReceiptPriceColumn(-1, "Price")).toBlocking().first();
         assertNotNull(mColumn1);
         assertNotNull(mColumn2);
     }
@@ -132,65 +133,68 @@ public class PDFTableTest {
 
     @Test
     public void get() {
-        final List<Column<Receipt>> columns = mPDFTable.get();
+        final List<Column<Receipt>> columns = mPDFTable.get().toBlocking().first();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Column<Receipt> foundColumn = mPDFTable.findByPrimaryKey(mColumn1.getId());
+        final Column<Receipt> foundColumn = mPDFTable.findByPrimaryKey(mColumn1.getId()).toBlocking().first();
         assertNotNull(foundColumn);
         assertEquals(mColumn1, foundColumn);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Column<Receipt> foundColumn = mPDFTable.findByPrimaryKey(-1);
+        final Column<Receipt> foundColumn = mPDFTable.findByPrimaryKey(-1).toBlocking().first();
         assertNull(foundColumn);
     }
 
     @Test
     public void insert() {
         final String name = "Code";
-        final Column<Receipt> column = mPDFTable.insert(new ReceiptCategoryNameColumn(-1, name));
+        final Column<Receipt> column = mPDFTable.insert(new ReceiptCategoryNameColumn(-1, name)).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
-        final List<Column<Receipt>> columns = mPDFTable.get();
+        final List<Column<Receipt>> columns = mPDFTable.get().toBlocking().first();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
     }
 
     @Test
-    public void insertDefaultColumn() {
-        final Column<Receipt> column = mPDFTable.insertDefaultColumn();
+    public void insertDefaultColumn() throws Exception {
+        final Column<Receipt> column = mPDFTable.insertDefaultColumn().toBlocking().first();
         assertNotNull(column);
         assertEquals(column, mDefaultColumn);
 
-        final List<Column<Receipt>> columns = mPDFTable.get();
+        final List<Column<Receipt>> columns = mPDFTable.get().toBlocking().first();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
     }
 
     @Test
     public void update() {
         final String name = "Code";
-        final Column<Receipt> column = mPDFTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name));
+        final Column<Receipt> column = mPDFTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name)).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
-        final List<Column<Receipt>> columns = mPDFTable.get();
+        final List<Column<Receipt>> columns = mPDFTable.get().toBlocking().first();
         assertEquals(columns, Arrays.asList(column, mColumn2));
     }
 
     @Test
     public void delete() {
-        assertTrue(mPDFTable.delete(mColumn1));
-        assertEquals(mPDFTable.get(), Collections.singletonList(mColumn2));
+        assertTrue(mPDFTable.delete(mColumn1).toBlocking().first());
+        assertEquals(mPDFTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
     }
 
     @Test
     public void deleteLast() {
-        assertTrue(mPDFTable.deleteLast());
-        assertEquals(mPDFTable.get(), Collections.singletonList(mColumn1));
+        assertTrue(mPDFTable.deleteLast().toBlocking().first());
+        assertEquals(mPDFTable.get().toBlocking().first(), Collections.singletonList(mColumn1));
+        assertTrue(mPDFTable.deleteLast().toBlocking().first());
+        assertEquals(mPDFTable.get().toBlocking().first(), Collections.emptyList());
+        assertFalse(mPDFTable.deleteLast().toBlocking().first());
     }
 
 }

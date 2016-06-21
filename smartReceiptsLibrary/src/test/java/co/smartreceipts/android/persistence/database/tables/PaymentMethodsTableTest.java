@@ -64,8 +64,8 @@ public class PaymentMethodsTableTest {
 
         // Now create the table and insert some defaults
         mPaymentMethodsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mPaymentMethod1 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD1).build());
-        mPaymentMethod2 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD2).build());
+        mPaymentMethod1 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD1).build()).toBlocking().first();
+        mPaymentMethod2 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD2).build()).toBlocking().first();
     }
 
     @After
@@ -118,49 +118,49 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void get() {
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2));
     }
 
     @Test
     public void insert() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build()).toBlocking().first();
         assertNotNull(paymentMethod);
         assertEquals(METHOD3, paymentMethod.getMethod());
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2, paymentMethod));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(mPaymentMethod1.getId());
+        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(mPaymentMethod1.getId()).toBlocking().first();
         assertNotNull(foundMethod);
         assertEquals(mPaymentMethod1, foundMethod);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(-1);
+        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(-1).toBlocking().first();
         assertNull(foundMethod);
     }
 
     @Test
     public void update() {
-        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, new PaymentMethodBuilderFactory().setMethod(METHOD3).build());
+        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, new PaymentMethodBuilderFactory().setMethod(METHOD3).build()).toBlocking().first();
         assertNotNull(updatedPaymentMethod);
         assertEquals(METHOD3, updatedPaymentMethod.getMethod());
         assertFalse(mPaymentMethod1.equals(updatedPaymentMethod));
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
         assertEquals(paymentMethods, Arrays.asList(updatedPaymentMethod, mPaymentMethod2));
     }
 
     @Test
     public void delete() {
-        assertTrue(mPaymentMethodsTable.delete(mPaymentMethod1));
+        assertTrue(mPaymentMethodsTable.delete(mPaymentMethod1).toBlocking().first());
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
         assertEquals(paymentMethods, Collections.singletonList(mPaymentMethod2));
     }
 

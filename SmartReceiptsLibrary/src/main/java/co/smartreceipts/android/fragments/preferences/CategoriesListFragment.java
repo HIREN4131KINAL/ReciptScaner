@@ -44,7 +44,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().get();
+		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().get().toBlocking().first();
 		setHasOptionsMenu(true);
 	}
 
@@ -138,7 +138,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
 							try {
-								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build());
+								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build()).toBlocking().first();
 								if (category != null) {
 									mAdapter.notifyDataSetChanged();
 									mListView.smoothScrollToPosition(mCategories.indexOf(category));
@@ -193,7 +193,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
 							try {
-								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory);
+								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory).toBlocking().first();
 								if (category != null) {
 									mAdapter.notifyDataSetChanged();
 									mListView.smoothScrollToPosition(mCategories.indexOf(category));
@@ -224,7 +224,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							if (getPersistenceManager().getDatabase().getCategoriesTable().delete(category)) {
+							if (getPersistenceManager().getDatabase().getCategoriesTable().delete(category).toBlocking().first()) {
 								mAdapter.notifyDataSetChanged();
 							}
 							else {

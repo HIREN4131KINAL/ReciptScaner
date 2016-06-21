@@ -19,6 +19,8 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import rx.Observable;
+import rx.observers.TestSubscriber;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -61,14 +63,12 @@ public class CategoriesTableTest {
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         mCategoriesTable = new CategoriesTable(mSQLiteOpenHelper);
 
-        // Pre-cache some utilities
-        mCategory1 = new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build();
-        mCategory2 = new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build();
-
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategoriesTable.insert(mCategory1);
-        mCategoriesTable.insert(mCategory2);
+        mCategory1 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build()).toBlocking().first();
+        mCategory2 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build()).toBlocking().first();
+        assertNotNull(mCategory1);
+        assertNotNull(mCategory2);
     }
 
     @After
@@ -122,20 +122,20 @@ public class CategoriesTableTest {
 
     @Test
     public void get() {
-        final List<Category> categories = mCategoriesTable.get();
+        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Category foundCategory = mCategoriesTable.findByPrimaryKey(mCategory1.getName());
+        final Category foundCategory = mCategoriesTable.findByPrimaryKey(mCategory1.getName()).toBlocking().first();
         assertNotNull(foundCategory);
         assertEquals(mCategory1, foundCategory);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Category foundCategory = mCategoriesTable.findByPrimaryKey("xxx");
+        final Category foundCategory = mCategoriesTable.findByPrimaryKey("xxx").toBlocking().first();
         assertNull(foundCategory);
     }
 
@@ -144,9 +144,9 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory));
+        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory).toBlocking().first());
 
-        final List<Category> categories = mCategoriesTable.get();
+        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2, insertCategory));
     }
     
@@ -155,23 +155,23 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory));
+        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory).toBlocking().first());
 
-        final List<Category> categories = mCategoriesTable.get();
+        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
         assertTrue(categories.contains(updateCategory));
         assertTrue(categories.contains(mCategory2));
     }
 
     @Test
     public void delete() {
-        final List<Category> oldCategories = mCategoriesTable.get();
+        final List<Category> oldCategories = mCategoriesTable.get().toBlocking().first();
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertTrue(mCategoriesTable.delete(mCategory1));
-        assertTrue(mCategoriesTable.delete(mCategory2));
+        assertTrue(mCategoriesTable.delete(mCategory1).toBlocking().first());
+        assertTrue(mCategoriesTable.delete(mCategory2).toBlocking().first());
 
-        final List<Category> newCategories = mCategoriesTable.get();
+        final List<Category> newCategories = mCategoriesTable.get().toBlocking().first();
         assertTrue(newCategories.isEmpty());
     }
 

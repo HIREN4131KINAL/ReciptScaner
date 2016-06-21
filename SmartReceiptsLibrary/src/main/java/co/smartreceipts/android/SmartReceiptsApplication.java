@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import co.smartreceipts.android.fragments.Settings;
@@ -59,7 +60,13 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	 */
 	private static SmartReceiptsApplication sApplication;
 
-	@Override
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+
+    @Override
 	public void onCreate() {
 		super.onCreate();
 		preloadSharedPreferences();

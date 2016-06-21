@@ -353,7 +353,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
             }
             db.execSQL(trips);
             db.execSQL(receipts);
-            this.createDistanceTable(db);
             mCustomizations.insertCategoryDefaults(this);
             mCustomizations.onFirstRun();
             _initDB = null;
@@ -531,7 +530,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                 db.execSQL(alterReceipts);
             }
             if (oldVersion <= 12) { //Added better distance tracking, cost center to the trips, and status to trips/receipts
-                this.createDistanceTable(db);
 
 
                 final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
@@ -589,24 +587,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     protected void finalize() throws Throwable {
         onDestroy(); // Close our resources if we still need
         super.finalize();
-    }
-
-    private final void createDistanceTable(final SQLiteDatabase db) {
-        final String distance = "CREATE TABLE " + DistanceTable.TABLE_NAME + " ("
-                + DistanceTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + DistanceTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
-                + DistanceTable.COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
-                + DistanceTable.COLUMN_LOCATION + " TEXT,"
-                + DistanceTable.COLUMN_DATE + " DATE,"
-                + DistanceTable.COLUMN_TIMEZONE + " TEXT,"
-                + DistanceTable.COLUMN_COMMENT + " TEXT,"
-                + DistanceTable.COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
-                + DistanceTable.COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00 );";
-
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, distance);
-        }
-        db.execSQL(distance);
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////

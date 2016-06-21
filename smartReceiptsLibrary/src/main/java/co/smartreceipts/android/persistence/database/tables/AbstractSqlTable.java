@@ -16,6 +16,7 @@ import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAda
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import rx.Observable;
+import rx.functions.Func0;
 
 /**
  * Abstracts out the core CRUD database operations in order to ensure that each of our core table instances
@@ -83,31 +84,56 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     @NonNull
     public final Observable<List<ModelType>> get() {
-        return Observable.defer(() -> Observable.just(getBlocking()));
+        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
+            @Override
+            public Observable<List<ModelType>> call() {
+                return Observable.just(AbstractSqlTable.this.getBlocking());
+            }
+        });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType) {
-        return Observable.defer(() -> Observable.just(findByPrimaryKeyBlocking(primaryKeyType)));
+    public final Observable<ModelType> findByPrimaryKey(@NonNull final PrimaryKeyType primaryKeyType) {
+        return Observable.defer(new Func0<Observable<ModelType>>() {
+            @Override
+            public Observable<ModelType> call() {
+                return Observable.just(AbstractSqlTable.this.findByPrimaryKeyBlocking(primaryKeyType));
+            }
+        });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> insert(@NonNull ModelType modelType) {
-        return Observable.defer(() -> Observable.just(insertBlocking(modelType)));
+    public final Observable<ModelType> insert(@NonNull final ModelType modelType) {
+        return Observable.defer(new Func0<Observable<ModelType>>() {
+            @Override
+            public Observable<ModelType> call() {
+                return Observable.just(AbstractSqlTable.this.insertBlocking(modelType));
+            }
+        });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
-        return Observable.defer(() -> Observable.just(updateBlocking(oldModelType, newModelType)));
+    public final Observable<ModelType> update(@NonNull final ModelType oldModelType, @NonNull final ModelType newModelType) {
+        return Observable.defer(new Func0<Observable<ModelType>>() {
+            @Override
+            public Observable<ModelType> call() {
+                return Observable.just(AbstractSqlTable.this.updateBlocking(oldModelType, newModelType));
+            }
+        });
     }
 
     @NonNull
     @Override
-    public final Observable<Boolean> delete(@NonNull ModelType modelType) {
-        return Observable.defer(() -> Observable.just(deleteBlocking(modelType)));
+    public final Observable<Boolean> delete(@NonNull final ModelType modelType) {
+        return Observable.defer(new Func0<Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call() {
+                return Observable.just(AbstractSqlTable.this.deleteBlocking(modelType));
+            }
+        });
     }
 
     @NonNull

@@ -16,6 +16,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import rx.Observable;
+import rx.functions.Func0;
 
 /**
  * Extends the {@link AbstractColumnTable} class to provide support for an extra method, {@link #get(Trip)}. We may
@@ -57,8 +58,13 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
      * @return an {@link Observable} with: all objects assigned to this foreign key in the desired order
      */
     @NonNull
-    protected synchronized Observable<List<ModelType>> get(@NonNull Trip trip, boolean isDescending) {
-        return Observable.defer(() -> Observable.just(getBlocking(trip, isDescending)));
+    protected synchronized Observable<List<ModelType>> get(@NonNull final Trip trip, final  boolean isDescending) {
+        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
+            @Override
+            public Observable<List<ModelType>> call() {
+                return Observable.just(TripForeignKeyAbstractSqlTable.this.getBlocking(trip, isDescending));
+            }
+        });
     }
 
     @NonNull

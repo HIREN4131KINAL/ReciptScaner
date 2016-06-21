@@ -18,6 +18,7 @@ import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatab
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Since our CSV and PDF tables share almost all of the same logic, this class purely acts as a wrapper around
@@ -82,7 +83,12 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Int
      */
     @NonNull
     public final Observable<Boolean> deleteLast() {
-        return get().flatMap(columns -> removeLastColumnIfPresent(columns));
+        return get().flatMap(new Func1<List<Column<Receipt>>, Observable<? extends Boolean>>() {
+            @Override
+            public Observable<? extends Boolean> call(List<Column<Receipt>> columns) {
+                return AbstractColumnTable.this.removeLastColumnIfPresent(columns);
+            }
+        });
     }
 
     /**

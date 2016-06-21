@@ -47,9 +47,11 @@ import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
+import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
+import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
@@ -115,6 +117,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
     // Tables
     private final List<Table> mTables;
+    private final TripsTable mTripsTable;
+    private final DistanceTable mDistanceTable;
     private final CategoriesTable mCategoriesTable;
     private final CSVTable mCSVTable;
     private final PDFTable mPDFTable;
@@ -206,29 +210,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public void insertPaymentMethodDefaults(DatabaseHelper db);
     }
 
-    // Tables Declarations
-    // Remember to update the merge() command below when adding columns
-    private static final class TripsTable {
-        private TripsTable() {
-        }
-
-        public static final String TABLE_NAME = "trips";
-        public static final String COLUMN_NAME = "name";
-        public static final String COLUMN_FROM = "from_date";
-        public static final String COLUMN_TO = "to_date";
-        public static final String COLUMN_FROM_TIMEZONE = "from_timezone";
-        public static final String COLUMN_TO_TIMEZONE = "to_timezone";
-        @SuppressWarnings("unused")
-        @Deprecated
-        public static final String COLUMN_PRICE = "price"; // Deprecated, since this is receipt info
-        public static final String COLUMN_MILEAGE = "miles_new";
-        public static final String COLUMN_COMMENT = "trips_comment";
-        public static final String COLUMN_COST_CENTER = "trips_cost_center";
-        public static final String COLUMN_DEFAULT_CURRENCY = "trips_default_currency";
-        public static final String COLUMN_FILTERS = "trips_filters";
-        public static final String COLUMN_PROCESSING_STATUS = "trip_processing_status";
-    }
-
     private static final class ReceiptsTable {
 
         private ReceiptsTable() {
@@ -256,22 +237,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
         public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
     }
 
-    private static final class DistanceTable {
-        private DistanceTable() {
-        }
-
-        public static final String TABLE_NAME = "distance";
-        public static final String COLUMN_ID = "id";
-        public static final String COLUMN_PARENT = "parent";
-        public static final String COLUMN_DISTANCE = "distance";
-        public static final String COLUMN_LOCATION = "location";
-        public static final String COLUMN_DATE = "date";
-        public static final String COLUMN_TIMEZONE = "timezone";
-        public static final String COLUMN_COMMENT = "comment";
-        public static final String COLUMN_RATE = "rate";
-        public static final String COLUMN_RATE_CURRENCY = "rate_currency";
-    }
-
     private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
         super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
         // factory
@@ -285,10 +250,14 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         // Tables:
         mTables = new ArrayList<>();
+        mTripsTable = new TripsTable(this, null, null);
+        mDistanceTable = new DistanceTable(this, mTripsTable, mPersistenceManager.getPreferences().getDefaultCurreny());
         mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
         mPaymentMethodsTable = new PaymentMethodsTable(this);
+        mTables.add(mTripsTable);
+        mTables.add(mDistanceTable);
         mTables.add(mCategoriesTable);
         mTables.add(mCSVTable);
         mTables.add(mPDFTable);

@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'me.tatarka.retrolambda'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
@@ -38,11 +37,6 @@ android {
         disable 'InvalidPackage'
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
     sourceSets {
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
@@ -61,11 +55,9 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
-}
 
-retrolambda {
-    // To configure for OSX, refer to: http://stackoverflow.com/questions/135688/setting-environment-variables-in-os-x
-    jdk = System.getenv('JAVA8_HOME') // e.g. -- /Library/Java/JavaVirtualMachines/jdk1.8.0_91.jdk/Contents/Home
-    oldJdk System.getenv('JAVA7_HOME') // e.g. --/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home
-    javaVersion JavaVersion.VERSION_1_7
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
 }

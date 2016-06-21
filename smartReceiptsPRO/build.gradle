@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
 
 dependencies {
     compile project(':smartReceiptsLibrary')
@@ -14,6 +13,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
         multiDexEnabled true
+        jackOptions {
+            enabled true
+        }
     }
 
     lintOptions {

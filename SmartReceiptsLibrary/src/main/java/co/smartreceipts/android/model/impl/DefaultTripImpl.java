@@ -31,7 +31,7 @@ public class DefaultTripImpl implements Trip {
     private Source mSource;
     private Filter<Receipt> mFilter;
 
-    public DefaultTripImpl(File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, @NonNull WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
+    public DefaultTripImpl(@NonNull File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, @NonNull WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
         mReportDirectory = directory;
         mStartDate = startDate;
         mStartTimeZone = startTimeZone;
@@ -62,11 +62,13 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
+    @NonNull
     public String getName() {
         return mReportDirectory.getName();
     }
 
     @Override
+    @NonNull
     public File getDirectory() {
         return mReportDirectory;
     }
@@ -230,6 +232,63 @@ public class DefaultTripImpl implements Trip {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DefaultTripImpl)) return false;
+
+        DefaultTripImpl that = (DefaultTripImpl) o;
+
+        if (!mReportDirectory.equals(that.mReportDirectory)) return false;
+        if (mComment != null ? !mComment.equals(that.mComment) : that.mComment != null)
+            return false;
+        if (mCostCenter != null ? !mCostCenter.equals(that.mCostCenter) : that.mCostCenter != null)
+            return false;
+        if (mStartDate != null ? !mStartDate.equals(that.mStartDate) : that.mStartDate != null)
+            return false;
+        if (mEndDate != null ? !mEndDate.equals(that.mEndDate) : that.mEndDate != null)
+            return false;
+        if (mStartTimeZone != null ? !mStartTimeZone.equals(that.mStartTimeZone) : that.mStartTimeZone != null)
+            return false;
+        if (mEndTimeZone != null ? !mEndTimeZone.equals(that.mEndTimeZone) : that.mEndTimeZone != null)
+            return false;
+        if (!mDefaultCurrency.equals(that.mDefaultCurrency)) return false;
+        return mFilter != null ? mFilter.equals(that.mFilter) : that.mFilter == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mReportDirectory.hashCode();
+        result = 31 * result + (mComment != null ? mComment.hashCode() : 0);
+        result = 31 * result + (mCostCenter != null ? mCostCenter.hashCode() : 0);
+        result = 31 * result + (mStartDate != null ? mStartDate.hashCode() : 0);
+        result = 31 * result + (mEndDate != null ? mEndDate.hashCode() : 0);
+        result = 31 * result + (mStartTimeZone != null ? mStartTimeZone.hashCode() : 0);
+        result = 31 * result + (mEndTimeZone != null ? mEndTimeZone.hashCode() : 0);
+        result = 31 * result + mDefaultCurrency.hashCode();
+        result = 31 * result + (mFilter != null ? mFilter.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultTripImpl{" +
+                "mReportDirectory=" + mReportDirectory +
+                ", mComment='" + mComment + '\'' +
+                ", mCostCenter='" + mCostCenter + '\'' +
+                ", mPrice=" + mPrice +
+                ", mDailySubTotal=" + mDailySubTotal +
+                ", mStartDate=" + mStartDate +
+                ", mEndDate=" + mEndDate +
+                ", mStartTimeZone=" + mStartTimeZone +
+                ", mEndTimeZone=" + mEndTimeZone +
+                ", mDefaultCurrency=" + mDefaultCurrency +
+                ", mSource=" + mSource +
+                ", mFilter=" + mFilter +
+                '}';
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -246,40 +305,6 @@ public class DefaultTripImpl implements Trip {
         dest.writeString(getComment());
         dest.writeString(getCostCenter());
         dest.writeString(getDefaultCurrencyCode());
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public String toString() {
-        return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "name => "
-                + getName() + "; \n" + "directory =>" + getDirectory().getAbsolutePath() + "; \n" + "startDate =>"
-                + getStartDate().toGMTString() + "; \n" + "endDate => " + getEndDate().toGMTString() + "; \n"
-                + "price =>" + getPrice() + "; \n" + "miles => " + getMilesAsString() + "]";
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((mReportDirectory == null) ? 0 : mReportDirectory.getAbsolutePath().hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        DefaultTripImpl other = (DefaultTripImpl) obj;
-        if (mReportDirectory == null) {
-            if (other.mReportDirectory != null)
-                return false;
-        } else if (!mReportDirectory.equals(other.mReportDirectory))
-            return false;
-        return true;
     }
 
     public static final Creator<DefaultTripImpl> CREATOR = new Creator<DefaultTripImpl>() {

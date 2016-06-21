@@ -250,7 +250,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
 
         // Tables:
         mTables = new ArrayList<>();
-        mTripsTable = new TripsTable(this, null, null);
+        mTripsTable = new TripsTable(this, mPersistenceManager);
         mDistanceTable = new DistanceTable(this, mTripsTable, mPersistenceManager.getPreferences().getDefaultCurreny());
         mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);

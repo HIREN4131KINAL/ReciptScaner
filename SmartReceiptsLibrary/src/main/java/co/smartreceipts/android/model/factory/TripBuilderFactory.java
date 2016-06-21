@@ -45,6 +45,18 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _endTimeZone = TimeZone.getDefault();
     }
 
+    public TripBuilderFactory(@NonNull Trip trip) {
+        _dir = trip.getDirectory();
+        _comment = trip.getComment();
+        _costCenter = trip.getCostCenter();
+        _defaultCurrency = WBCurrency.getInstance(trip.getDefaultCurrencyCode());
+        _startDate = trip.getStartDate();
+        _endDate = trip.getEndDate();
+        _source = trip.getSource();
+        _startTimeZone = trip.getStartTimeZone();
+        _endTimeZone = trip.getEndTimeZone();
+    }
+
     public TripBuilderFactory setDirectory(@NonNull File directory) {
         _dir = directory;
         return this;

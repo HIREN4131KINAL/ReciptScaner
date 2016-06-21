@@ -12,13 +12,14 @@ import co.smartreceipts.android.filters.Filter;
 
 public interface Trip extends Parcelable, Priceable {
 
-    public static final String PARCEL_KEY = Trip.class.getName();
+    String PARCEL_KEY = Trip.class.getName();
 
     /**
      * Gets the name of this trip
      *
      * @return the {@link String} object, contain the name of this trip (this will be the name of {@link #getDirectory()}
      */
+    @NonNull
     String getName();
 
     /**
@@ -26,6 +27,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the {@link java.io.File} directory containing this trips images
      */
+    @NonNull
     File getDirectory();
 
     /**

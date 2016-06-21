@@ -4,8 +4,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
+import co.smartreceipts.android.persistence.database.tables.adapters.TripDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.keys.TripPrimaryKey;
 
 public final class TripsTable extends AbstractSqlTable<Trip, String> {
 
@@ -26,8 +29,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
     @Deprecated
     private static final String COLUMN_PRICE = "price"; // Once used but keeping to avoid future name conflicts
 
-    public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull DatabaseAdapter<Trip, PrimaryKey<Trip, String>> databaseAdapter, @NonNull PrimaryKey<Trip, String> primaryKey) {
-        super(sqLiteOpenHelper, TABLE_NAME, databaseAdapter, primaryKey);
+    public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull PersistenceManager persistenceManager) {
+        super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey());
     }
 
 }

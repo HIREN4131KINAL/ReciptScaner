@@ -2558,8 +2558,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                         final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
                         final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
                         final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-                        // final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
-                        final int mileageIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
                         final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
                         final int filtersIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
                         final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
@@ -2578,7 +2576,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             }
                             final long from = getLong(c, fromIndex, 0L);
                             final long to = getLong(c, toIndex, 0L);
-                            final int mileage = getInt(c, mileageIndex, 0);
                             final String comment = getString(c, commentIndex, "");
                             final String filters = getString(c, filtersIndex, "");
                             final String costCenter = getString(c, costCenterIndex, "");
@@ -2591,7 +2588,6 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
                             values.put(TripsTable.COLUMN_COMMENT, comment);
                             values.put(TripsTable.COLUMN_FILTERS, filters);
                             values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
-                            values.put(TripsTable.COLUMN_MILEAGE, mileage);
                             values.put(TripsTable.COLUMN_PROCESSING_STATUS, processingStatus);
                             values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrency);
                             if (fromTimeZoneIndex > 0) {

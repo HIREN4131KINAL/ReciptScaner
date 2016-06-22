@@ -1,8 +1,15 @@
 package co.smartreceipts.android.persistence.database.tables;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import java.io.File;
+
+import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
@@ -29,8 +36,107 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
     @Deprecated
     private static final String COLUMN_PRICE = "price"; // Once used but keeping to avoid future name conflicts
 
+    private static final String TAG = TripsTable.class.getSimpleName();
+
     public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull PersistenceManager persistenceManager) {
         super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey());
+    }
+
+    @Override
+    public synchronized void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
+        super.onCreate(db, customizer);
+        final String trips = "CREATE TABLE " + getTableName() + " ("
+                + COLUMN_NAME + " TEXT PRIMARY KEY, "
+                + COLUMN_FROM + " DATE, "
+                + COLUMN_TO + " DATE, "
+                + COLUMN_FROM_TIMEZONE + " TEXT, "
+                + COLUMN_TO_TIMEZONE + " TEXT, "
+                + COLUMN_COMMENT + " TEXT, "
+                + COLUMN_COST_CENTER + " TEXT, "
+                + COLUMN_DEFAULT_CURRENCY + " TEXT, "
+                + COLUMN_PROCESSING_STATUS + " TEXT, "
+                + COLUMN_FILTERS + " TEXT"
+                + ");";
+        Log.d(TAG, trips);
+        db.execSQL(trips);
+    }
+
+    @Override
+    public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
+        super.onUpgrade(db, oldVersion, newVersion, customizer);
+
+        if (oldVersion <= 6) { // Fix the database to replace absolute paths with relative ones
+            Cursor tripsCursor = null;
+            try {
+                tripsCursor = db.query(TripsTable.TABLE_NAME, new String[]{ TripsTable.COLUMN_NAME }, null, null, null, null, null);
+                if (tripsCursor != null && tripsCursor.moveToFirst()) {
+                    final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME);
+                    do {
+                        String absPath = tripsCursor.getString(nameIndex);
+                        if (absPath.endsWith(File.separator)) {
+                            absPath = absPath.substring(0, absPath.length() - 1);
+                        }
+
+                        final String relPath = absPath.substring(absPath.lastIndexOf(File.separatorChar) + 1, absPath.length());
+                        Log.d(TAG, "Updating Abs. Trip Path: " + absPath + " => " + relPath);
+
+                        final ContentValues tripValues = new ContentValues(1);
+                        tripValues.put(TripsTable.COLUMN_NAME, relPath);
+                        if (db.update(TripsTable.TABLE_NAME, tripValues, TripsTable.COLUMN_NAME + " = ?", new String[]{absPath}) == 0) {
+                            Log.e(TAG, "Trip Update Error Occured");
+                        }
+                    }
+                    while (tripsCursor.moveToNext());
+                }
+            } finally {
+                if (tripsCursor != null) {
+                    tripsCursor.close();
+                }
+            }
+        }
+
+        if (oldVersion <= 8) { // Added a timezone column to the trips table
+            final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
+            final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
+
+            Log.d(TAG, alterTrips1);
+            Log.d(TAG, alterTrips2);
+
+            db.execSQL(alterTrips1);
+            db.execSQL(alterTrips2);
+        }
+
+        if (oldVersion <= 10) {
+            final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
+            final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
+
+            Log.d(TAG, alterTrips1);
+            Log.d(TAG, alterTrips2);
+
+            db.execSQL(alterTrips1);
+            db.execSQL(alterTrips2);
+        }
+
+        if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
+            final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
+
+            Log.d(TAG, alterTrips);
+
+            db.execSQL(alterTrips);
+        }
+
+        if (oldVersion <= 12) { //Added better distance tracking, cost center to the trips, and status to trips/receipts
+            final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
+            final String alterTripsWithProcessingStatus = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT";
+
+            Log.d(TAG, alterTripsWithCostCenter);
+            Log.d(TAG, alterTripsWithProcessingStatus);
+
+            db.execSQL(alterTripsWithCostCenter);
+            db.execSQL(alterTripsWithProcessingStatus);
+
+        }
+
     }
 
 }

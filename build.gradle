@@ -3,10 +3,10 @@ buildscript {
     repositories {
         mavenCentral()
         mavenLocal()
+	jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0'
-        classpath "me.tatarka:gradle-retrolambda:$RETROLAMBDA_VERSION"
+        classpath 'com.android.tools.build:gradle:2.2.0-alpha3'
     }
 }
 
@@ -14,6 +14,7 @@ allprojects {
     repositories {
         mavenCentral()
         mavenLocal()
+	jcenter()
     }
 }
 

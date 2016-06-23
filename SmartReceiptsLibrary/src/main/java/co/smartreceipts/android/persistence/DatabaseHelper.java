@@ -592,6 +592,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Trip Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
+    @NonNull
+    public final TripsTable getTripsTable() {
+        return mTripsTable;
+    }
+
     public void registerTripRowListener(TripRowListener listener) {
         mTripRowListener = listener;
     }

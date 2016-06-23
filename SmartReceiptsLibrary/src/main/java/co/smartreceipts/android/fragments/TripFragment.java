@@ -8,6 +8,7 @@ import android.database.SQLException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
@@ -50,6 +52,9 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
@@ -129,7 +134,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         super.onResume();
         Log.d(TAG, "onResume");
         getPersistenceManager().getDatabase().registerTripRowListener(this);
-        getPersistenceManager().getDatabase().getTripsParallel();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -140,6 +144,16 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (attachment != null && attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
             performImport(attachment.getUri());
         }
+
+        getPersistenceManager().getDatabase().getTripsTable().get()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<List<Trip>>() {
+                    @Override
+                    public void call(List<Trip> trips) {
+                        onTripsReceived(trips);
+                    }
+                });
     }
 
     @Override
@@ -406,26 +420,25 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         return true;
     }
 
-    @Override
-    public void onTripRowsQuerySuccess(Trip[] trips) {
+    private void onTripsReceived(@NonNull List<Trip> trips) {
         if (isResumed()) {
             mProgressDialog.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
-            if (trips == null || trips.length == 0) {
+            if (trips.isEmpty()) {
                 mNoDataAlert.setVisibility(View.VISIBLE);
             } else {
                 mNoDataAlert.setVisibility(View.INVISIBLE);
             }
-            mAdapter.notifyDataSetChanged(Arrays.asList(trips));
+            mAdapter.notifyDataSetChanged(trips);
             if (mIsFirstPass) { // Pre-Cache the receipts for the top two trips
                 mIsFirstPass = false;
-                if (trips.length > 0) {
-                    getPersistenceManager().getDatabase().getReceiptsParallel(trips[0], true);
+                if (trips.size() > 0) {
+                    getPersistenceManager().getDatabase().getReceiptsParallel(trips.get(0), true);
                 }
-                if (trips.length > 1) {
-                    getPersistenceManager().getDatabase().getReceiptsParallel(trips[1], true);
+                if (trips.size() > 1) {
+                    getPersistenceManager().getDatabase().getReceiptsParallel(trips.get(1), true);
                 }
-                if (trips.length > 0) {
+                if (trips.size() > 0 && false) {
                     // If we have trips, open up whatever one was last
                     final LastTripController lastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
                     // TODO: Move this request off the UI thread
@@ -435,6 +448,13 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void onTripRowsQuerySuccess(Trip[] trips) {
+        if (trips != null) {
+            onTripsReceived(Arrays.asList(trips));
         }
     }
 

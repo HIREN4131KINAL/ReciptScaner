@@ -122,6 +122,12 @@ public class DistanceDatabaseAdapterTest {
     }
 
     @Test
+    public void readForSelection() throws Exception {
+        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).build();
+        assertEquals(distance, mDistanceDatabaseAdapter.readForSelection(mCursor, mTrip));
+    }
+
+    @Test
     public void write() throws Exception {
         final ContentValues contentValues = mDistanceDatabaseAdapter.write(mDistance);
         assertEquals(PARENT, contentValues.getAsString("parent"));

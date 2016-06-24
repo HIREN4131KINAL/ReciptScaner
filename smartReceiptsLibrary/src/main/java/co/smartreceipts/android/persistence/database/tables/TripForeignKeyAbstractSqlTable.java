@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
+import co.smartreceipts.android.persistence.database.tables.adapters.SelectionBackedDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import rx.Observable;
 import rx.functions.Func0;
@@ -26,15 +26,17 @@ import rx.functions.Func0;
  * @param <ModelType> the model object that CRUD operations here should return
  * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that will be used
  */
-abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType>{
+abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType> {
 
     private final HashMap<Trip, List<ModelType>> mPerTripCache = new HashMap<>();
+    private final SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> mSelectionBackedDatabaseAdapter;
     private final String mTripForeignKeyReferenceColumnName;
     private final String mSortingOrderColumn;
 
-    public TripForeignKeyAbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> databaseAdapter,
+    public TripForeignKeyAbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> databaseAdapter,
                                           @NonNull PrimaryKey<ModelType, PrimaryKeyType> primaryKey, @NonNull String tripForeignKeyReferenceColumnName, @NonNull String sortingOrderColumn) {
         super(sqLiteOpenHelper, tableName, databaseAdapter, primaryKey);
+        mSelectionBackedDatabaseAdapter = databaseAdapter;
         mTripForeignKeyReferenceColumnName = Preconditions.checkNotNull(tripForeignKeyReferenceColumnName);
         mSortingOrderColumn = Preconditions.checkNotNull(sortingOrderColumn);
     }
@@ -79,7 +81,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
             cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ?", new String[]{ trip.getName() }, null, null, mSortingOrderColumn + ((isDescending) ? " DESC" : " ASC"));
             if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    results.add(mDatabaseAdapter.read(cursor));
+                    results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip));
                 }
                 while (cursor.moveToNext());
             }
@@ -106,7 +108,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
                     final List<ModelType> perTripResults = localCache.get(trip);
                     perTripResults.add(modelType);
                 } else {
-                    localCache.put(trip, new ArrayList<ModelType>(Collections.singletonList(modelType)));
+                    localCache.put(trip, new ArrayList<>(Collections.singletonList(modelType)));
                 }
             }
         }

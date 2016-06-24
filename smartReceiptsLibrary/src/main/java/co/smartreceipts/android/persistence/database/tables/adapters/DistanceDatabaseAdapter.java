@@ -12,16 +12,18 @@ import java.util.concurrent.TimeUnit;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
+import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 
 /**
  * Implements the {@link DatabaseAdapter} contract for the {@link DistanceTable}
  */
-public final class DistanceDatabaseAdapter implements DatabaseAdapter<Distance, PrimaryKey<Distance, Integer>> {
+public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAdapter<Distance, PrimaryKey<Distance, Integer>, Trip> {
 
     private final Table<Trip, String> mTripsTable;
 
@@ -32,8 +34,16 @@ public final class DistanceDatabaseAdapter implements DatabaseAdapter<Distance, 
     @NonNull
     @Override
     public Distance read(@NonNull Cursor cursor) {
+        final int parentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
+        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
+        return readForSelection(cursor, trip);
+    }
+
+
+    @NonNull
+    @Override
+    public Distance readForSelection(@NonNull Cursor cursor, @NonNull Trip trip) {
         final int idIndex = cursor.getColumnIndex(DistanceTable.COLUMN_ID);
-        final int parentIndex = cursor.getColumnIndex(DistanceTable.COLUMN_PARENT);
         final int locationIndex = cursor.getColumnIndex(DistanceTable.COLUMN_LOCATION);
         final int distanceIndex = cursor.getColumnIndex(DistanceTable.COLUMN_DISTANCE);
         final int dateIndex = cursor.getColumnIndex(DistanceTable.COLUMN_DATE);
@@ -43,7 +53,6 @@ public final class DistanceDatabaseAdapter implements DatabaseAdapter<Distance, 
         final int commentIndex = cursor.getColumnIndex(DistanceTable.COLUMN_COMMENT);
 
         final int id = cursor.getInt(idIndex);
-        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
         final String location = cursor.getString(locationIndex);
         final BigDecimal distance = BigDecimal.valueOf(cursor.getDouble(distanceIndex));
         final long date = cursor.getLong(dateIndex);

@@ -15,6 +15,7 @@ import java.util.List;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.tables.adapters.SelectionBackedDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import rx.Observable;
 import rx.functions.Func0;
 
@@ -35,7 +36,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
 
     public TripForeignKeyAbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> databaseAdapter,
                                           @NonNull PrimaryKey<ModelType, PrimaryKeyType> primaryKey, @NonNull String tripForeignKeyReferenceColumnName, @NonNull String sortingOrderColumn) {
-        super(sqLiteOpenHelper, tableName, databaseAdapter, primaryKey);
+        super(sqLiteOpenHelper, tableName, databaseAdapter, primaryKey, new OrderBy(sortingOrderColumn, true));
         mSelectionBackedDatabaseAdapter = databaseAdapter;
         mTripForeignKeyReferenceColumnName = Preconditions.checkNotNull(tripForeignKeyReferenceColumnName);
         mSortingOrderColumn = Preconditions.checkNotNull(sortingOrderColumn);
@@ -78,7 +79,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
         Cursor cursor = null;
         try {
             final List<ModelType> results = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ?", new String[]{ trip.getName() }, null, null, mSortingOrderColumn + ((isDescending) ? " DESC" : " ASC"));
+            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ?", new String[]{ trip.getName() }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip));

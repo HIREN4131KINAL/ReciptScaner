@@ -52,7 +52,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
         final String costCenter = cursor.getString(costCenterIndex);
         final String defaultCurrency = cursor.getString(defaultCurrencyIndex);
 
-        return new TripBuilderFactory().setDirectory(mStorageManager.getFile(name))
+        return new TripBuilderFactory().setDirectory(mStorageManager.mkdir(name))
                 .setStartDate(from)
                 .setEndDate(to)
                 .setStartTimeZone(fromTimeZone)

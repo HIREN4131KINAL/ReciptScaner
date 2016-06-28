@@ -1120,7 +1120,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper implements AutoComple
      * @param trip
      * @return
      */
-    private void getTripPriceAndDailyPrice(final Trip trip) {
+    public void getTripPriceAndDailyPrice(final Trip trip) {
         queryTripPrice(trip);
         queryTripDailyPrice(trip);
     }

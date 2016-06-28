@@ -49,9 +49,15 @@ public class TripTableTest {
     private static final String NAME_1 = "Trip1";
     private static final String NAME_2 = "Trip2";
     private static final String NAME_3 = "Trip3";
-    
-    private static final long START_DATE = 1409703721000L;
-    private static final long END_DATE = 1409703794000L;
+
+    // Use the to verify that sort ordering is on the End Date (i.e. End3 > End1 > End2)
+    private static final long START_DATE_2 = 1409703721000L;
+    private static final long START_DATE_1 = 1409703722000L;
+    private static final long END_DATE_2   = 1409703793000L;
+    private static final long END_DATE_1   = 1409703794000L;
+    private static final long START_DATE_3 = 1409703891000L;
+    private static final long END_DATE_3   = 1409703893000L;
+
     private static final String START_TIMEZONE = TimeZone.getAvailableIDs()[0];
     private static final String END_TIMEZONE = TimeZone.getAvailableIDs()[1];
     private static final String COMMENT = "Comment";
@@ -99,6 +105,9 @@ public class TripTableTest {
         when(mStorageManager.getFile(NAME_1)).thenReturn(new File(NAME_1));
         when(mStorageManager.getFile(NAME_2)).thenReturn(new File(NAME_2));
         when(mStorageManager.getFile(NAME_3)).thenReturn(new File(NAME_3));
+        when(mStorageManager.mkdir(NAME_1)).thenReturn(new File(NAME_1));
+        when(mStorageManager.mkdir(NAME_2)).thenReturn(new File(NAME_2));
+        when(mStorageManager.mkdir(NAME_3)).thenReturn(new File(NAME_3));
         when(mPreferences.getDefaultCurreny()).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
         
         mTripsTable = new TripsTable(mSQLiteOpenHelper, mPersistenceManager);
@@ -106,9 +115,9 @@ public class TripTableTest {
         // Now create the table and insert some defaults
         mTripsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
         mBuilder = new TripBuilderFactory();
-        mBuilder.setStartDate(START_DATE).setEndDate(END_DATE).setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny());
-        mTrip1 = mTripsTable.insert(mBuilder.setDirectory(mStorageManager.getFile(NAME_1)).build()).toBlocking().first();
-        mTrip2 = mTripsTable.insert(mBuilder.setDirectory(mStorageManager.getFile(NAME_2)).build()).toBlocking().first();
+        mBuilder.setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny());
+        mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build()).toBlocking().first();
+        mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build()).toBlocking().first();
     }
 
     @After
@@ -236,11 +245,12 @@ public class TripTableTest {
 
     @Test
     public void insert() {
-        final Trip trip = mTripsTable.insert(mBuilder.setDirectory(mStorageManager.getFile(NAME_3)).build()).toBlocking().first();
+        final Trip trip = mTripsTable.insert(mBuilder.setStartDate(START_DATE_3).setEndDate(END_DATE_3).setDirectory(mStorageManager.getFile(NAME_3)).build()).toBlocking().first();
         assertNotNull(trip);
 
         final List<Trip> trips = mTripsTable.get().toBlocking().first();
-        assertEquals(trips, Arrays.asList(mTrip1, mTrip2, trip));
+        // Also confirm the new one is first b/c of date ordering
+        assertEquals(trips, Arrays.asList(trip, mTrip1, mTrip2));
     }
 
     @Test

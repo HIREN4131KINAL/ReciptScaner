@@ -15,6 +15,8 @@ import java.util.List;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.ordering.DefaultOrderBy;
+import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import rx.Observable;
 import rx.functions.Func0;
 
@@ -32,17 +34,26 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     protected final DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> mDatabaseAdapter;
     protected final PrimaryKey<ModelType, PrimaryKeyType> mPrimaryKey;
+    private final OrderBy mOrderBy;
 
     private SQLiteDatabase initialNonRecursivelyCalledDatabase;
     private List<ModelType> mCachedResults;
 
     public AbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> databaseAdapter,
                             @NonNull PrimaryKey<ModelType, PrimaryKeyType> primaryKey) {
+        this(sqLiteOpenHelper, tableName, databaseAdapter, primaryKey, new DefaultOrderBy());
+    }
+
+    public AbstractSqlTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull String tableName, @NonNull DatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>> databaseAdapter,
+                            @NonNull PrimaryKey<ModelType, PrimaryKeyType> primaryKey, @NonNull OrderBy orderBy) {
         mSQLiteOpenHelper = Preconditions.checkNotNull(sqLiteOpenHelper);
         mTableName = Preconditions.checkNotNull(tableName);
         mDatabaseAdapter = Preconditions.checkNotNull(databaseAdapter);
         mPrimaryKey = Preconditions.checkNotNull(primaryKey);
+        mOrderBy = Preconditions.checkNotNull(orderBy);
     }
+
+    // TripsTable.COLUMN_TO + " DESC"
 
     public final SQLiteDatabase getReadableDatabase() {
         if (initialNonRecursivelyCalledDatabase == null) {
@@ -145,7 +156,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
         Cursor cursor = null;
         try {
             mCachedResults = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, null, null, null, null, null);
+            cursor = getReadableDatabase().query(getTableName(), null, null, null, null, null, mOrderBy.getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     mCachedResults.add(mDatabaseAdapter.read(cursor));

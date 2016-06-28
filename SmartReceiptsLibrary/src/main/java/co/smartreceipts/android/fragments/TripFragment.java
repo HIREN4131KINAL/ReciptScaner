@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.SQLException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,9 +17,6 @@ import android.text.TextUtils;
 import android.text.method.TextKeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -33,46 +30,41 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.tables.controllers.TripTableController;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
 
-public class TripFragment extends WBListFragment implements BooleanTaskCompleteDelegate, DatabaseHelper.TripRowListener, AdapterView.OnItemLongClickListener {
+public class TripFragment extends WBListFragment implements BooleanTaskCompleteDelegate, TableEventsListener<Trip>, AdapterView.OnItemLongClickListener {
 
     public static final String TAG = "TripFragment";
-
-    private static final String KEY_BOOL_FIRST_PASS = "key_first_pass";
 
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
     private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
-    private boolean mIsFirstPass; // Tracks that this is the first time we're using this
     private Attachable mAttachable;
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
+    private TripTableController mRxTripTableController;
 
     public static TripFragment newInstance() {
         return new TripFragment();
@@ -94,7 +86,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
-        mIsFirstPass = savedInstanceState == null || savedInstanceState.getBoolean(KEY_BOOL_FIRST_PASS, true);
+        mRxTripTableController = new TripTableController(getPersistenceManager());
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
     }
 
@@ -133,7 +125,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        getPersistenceManager().getDatabase().registerTripRowListener(this);
+        mRxTripTableController.registerListener(this);
+        mRxTripTableController.get();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -144,16 +137,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (attachment != null && attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
             performImport(attachment.getUri());
         }
-
-        getPersistenceManager().getDatabase().getTripsTable().get()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<Trip>>() {
-                    @Override
-                    public void call(List<Trip> trips) {
-                        onTripsReceived(trips);
-                    }
-                });
     }
 
     @Override
@@ -165,15 +148,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
-        getPersistenceManager().getDatabase().unregisterTripRowListener(this);
+        mRxTripTableController.unregisterListener(this);
         super.onPause();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "onSaveInstanceState");
-        outState.putBoolean(KEY_BOOL_FIRST_PASS, mIsFirstPass);
-        super.onSaveInstanceState(outState);
     }
 
     @SuppressWarnings("WrongConstant")
@@ -330,35 +306,34 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
                 if (newTrip) { // Insert
                     getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
-                    File dir = persistenceManager.getStorageManager().mkdir(name);
-                    if (dir != null) {
-                        persistenceManager.getDatabase().insertTripParallel(dir, startBox.date, endBox.date, comment, costCenter, defaultCurrencyCode);
-                    } else {
-                        Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-                    }
+                    final Trip insertTrip = new TripBuilderFactory()
+                            .setDirectory(persistenceManager.getStorageManager().getFile(name))
+                            .setStartDate(startBox.date)
+                            .setEndDate(endBox.date)
+                            .setComment(comment)
+                            .setCostCenter(costCenter)
+                            .setDefaultCurrency(defaultCurrencyCode)
+                            .build();
+                    mRxTripTableController.insert(insertTrip);
                     dialog.cancel();
                 } else { // Update
                     getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
-                    final File dir = persistenceManager.getStorageManager().rename(trip.getDirectory(), name);
-                    if (dir == trip.getDirectory()) {
-                        Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    persistenceManager.getDatabase().updateTripParallel(trip, dir, (startBox.date != null) ? startBox.date : trip.getStartDate(), (endBox.date != null) ? endBox.date : trip.getStartDate(), comment, costCenter, defaultCurrencyCode);
+                    final Trip updateTrip = new TripBuilderFactory(trip)
+                            .setDirectory(persistenceManager.getStorageManager().getFile(name))
+                            .setStartDate(startBox.date)
+                            .setEndDate(endBox.date)
+                            // TODO: Update trip timezones iff date was changed
+                            .setComment(comment)
+                            .setCostCenter(costCenter)
+                            .setDefaultCurrency(defaultCurrencyCode)
+                            .build();
+                    mRxTripTableController.update(trip, updateTrip);
                     dialog.cancel();
                 }
             }
         }).setNegativeButton(getFlexString(R.string.DIALOG_TRIPMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String name = nameBox.getText().toString().trim();
-                if (name != null && name.equalsIgnoreCase("_import_")) {
-                    File smr = persistenceManager.getStorageManager().getFile("SmartReceipts.smr");
-                    if (smr != null && smr.exists()) {
-                        final Uri uri = Uri.fromFile(smr);
-                        performImport(uri);
-                    }
-                }
                 dialog.cancel();
             }
         }).show();
@@ -398,7 +373,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                getPersistenceManager().getDatabase().deleteTripParallel(trip);
+                mRxTripTableController.delete(trip);
             }
         }).setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
             @Override
@@ -420,7 +395,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         return true;
     }
 
-    private void onTripsReceived(@NonNull List<Trip> trips) {
+    @Override
+    public void onGet(@NonNull List<Trip> trips) {
         if (isResumed()) {
             mProgressDialog.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
@@ -430,44 +406,28 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 mNoDataAlert.setVisibility(View.INVISIBLE);
             }
             mAdapter.notifyDataSetChanged(trips);
-            if (mIsFirstPass) { // Pre-Cache the receipts for the top two trips
-                mIsFirstPass = false;
-                if (trips.size() > 0) {
-                    getPersistenceManager().getDatabase().getReceiptsParallel(trips.get(0), true);
-                }
-                if (trips.size() > 1) {
-                    getPersistenceManager().getDatabase().getReceiptsParallel(trips.get(1), true);
-                }
-                if (trips.size() > 0 && false) {
-                    // If we have trips, open up whatever one was last
-                    final LastTripController lastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
-                    // TODO: Move this request off the UI thread
-                    final Trip lastTrip = lastTripController.getLastTrip();
-                    if (lastTrip != null) {
-                        viewReceipts(lastTrip);
-                    }
+
+            if (trips.size() > 0 && false) {
+                // If we have trips, open up whatever one was last
+                final LastTripController lastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
+                // TODO: Move this request off the UI thread
+                final Trip lastTrip = lastTripController.getLastTrip();
+                if (lastTrip != null) {
+                    viewReceipts(lastTrip);
                 }
             }
         }
     }
 
     @Override
-    public void onTripRowsQuerySuccess(Trip[] trips) {
-        if (trips != null) {
-            onTripsReceived(Arrays.asList(trips));
-        }
-    }
-
-    @Override
-    public void onTripRowInsertSuccess(Trip trip) {
+    public void onInsertSuccess(@NonNull Trip trip) {
         if (isResumed()) {
             viewReceipts(trip);
         }
-        getPersistenceManager().getDatabase().getTripsParallel();
     }
 
     @Override
-    public void onTripRowInsertFailure(SQLException ex, File directory) {
+    public void onInsertFailure(@NonNull Trip trip, @Nullable Throwable ex) {
         if (ex != null) {
             if (isAdded()) {
                 Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
@@ -476,39 +436,26 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             if (isAdded()) {
                 Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
             }
-            getPersistenceManager().getStorageManager().delete(directory);
         }
 
     }
 
     @Override
-    public void onTripRowUpdateSuccess(Trip trip) {
-        getPersistenceManager().getDatabase().getTripsParallel();
-        if (isResumed()) {
-            viewReceipts(trip);
-        }
-    }
-
-    @Override
-    public void onTripRowUpdateFailure(Trip newTrip, Trip oldTrip, File directory) {
-        getPersistenceManager().getStorageManager().rename(directory, oldTrip.getName());
-        if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
-        }
+    public void onUpdateSuccess(@NonNull Trip oldTip, @NonNull Trip newTrip) {
         if (isResumed()) {
             viewReceipts(newTrip);
         }
     }
 
     @Override
-    public void onTripDeleteSuccess(Trip oldTrip) {
-        if (oldTrip != null) {
-            if (!getPersistenceManager().getStorageManager().deleteRecursively(oldTrip.getDirectory())) {
-                if (isAdded()) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-                }
-            }
+    public void onUpdateFailure(@NonNull Trip oldTrip, @Nullable Throwable ex) {
+        if (isAdded()) {
+            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public void onDeleteSuccess(@NonNull Trip oldTrip) {
         if (isAdded()) {
             final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
             if (detailsFragment != null) {
@@ -519,11 +466,11 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 }
             }
         }
-        getPersistenceManager().getDatabase().getTripsParallel();
+        mRxTripTableController.get();
     }
 
     @Override
-    public void onTripDeleteFailure() {
+    public void onDeleteFailure(@NonNull Trip oldTrip, @Nullable Throwable e) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
         }
@@ -567,7 +514,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         }
     }
 
-    @Override
     public void onSQLCorruptionException() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.dialog_sql_corrupt_title).setMessage(R.string.dialog_sql_corrupt_message).setPositiveButton(R.string.dialog_sql_corrupt_positive, new DialogInterface.OnClickListener() {

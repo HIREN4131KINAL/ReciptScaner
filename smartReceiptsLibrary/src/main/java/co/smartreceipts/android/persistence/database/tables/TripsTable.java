@@ -16,6 +16,7 @@ import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAda
 import co.smartreceipts.android.persistence.database.tables.adapters.TripDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.TripPrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 
 public final class TripsTable extends AbstractSqlTable<Trip, String> {
 
@@ -39,7 +40,7 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
     private static final String TAG = TripsTable.class.getSimpleName();
 
     public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull PersistenceManager persistenceManager) {
-        super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey());
+        super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey(), new OrderBy(TripsTable.COLUMN_TO, true));
     }
 
     @Override

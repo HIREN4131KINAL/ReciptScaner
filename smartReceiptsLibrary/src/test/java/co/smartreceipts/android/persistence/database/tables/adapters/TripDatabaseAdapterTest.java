@@ -103,6 +103,8 @@ public class TripDatabaseAdapterTest {
         when(mPreferences.getDefaultCurreny()).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
         when(mStorageManager.getFile(NAME)).thenReturn(new File(NAME));
         when(mStorageManager.getFile(PRIMARY_KEY_NAME)).thenReturn(new File(PRIMARY_KEY_NAME));
+        when(mStorageManager.mkdir(NAME)).thenReturn(new File(NAME));
+        when(mStorageManager.mkdir(PRIMARY_KEY_NAME)).thenReturn(new File(PRIMARY_KEY_NAME));
 
         mTripDatabaseAdapter = new TripDatabaseAdapter(mStorageManager, mPreferences);
     }

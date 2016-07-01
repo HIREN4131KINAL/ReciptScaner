@@ -1,4 +1,4 @@
-package co.smartreceipts.android.persistence.database.tables.controllers;
+package co.smartreceipts.android.persistence.database.tables.controllers.impl;
 
 import android.support.annotation.NonNull;
 
@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import co.smartreceipts.android.persistence.database.tables.Table;
+import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
+import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.tables.controllers.alterations.TableActionAlterations;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.exceptions.Exceptions;
@@ -21,19 +25,29 @@ import rx.schedulers.Schedulers;
  * Provides a top-level implementation of the {@link TableController} contract
  *
  * @param <ModelType> the model object type that this will be used to create
- * @param <KeyType> he class type that represents the primary key (e.g. {@link Integer}, {@link String}).
  */
-abstract class AbstractTableController<ModelType, KeyType> implements TableController<ModelType> {
+abstract class AbstractTableController<ModelType> implements TableController<ModelType> {
 
-    private final Table<ModelType, KeyType> mTripsTable;
+    private final Table<ModelType, ?> mTable;
     private final TableActionAlterations<ModelType> mTableActionAlterations;
+    private final Scheduler mSubscribeOnScheduler;
+    private final Scheduler mObserveOnScheduler;
     private final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
 
-    public AbstractTableController(@NonNull Table<ModelType, KeyType> tripsTable, @NonNull TableActionAlterations<ModelType> tableActionAlterations) {
-        mTripsTable = Preconditions.checkNotNull(tripsTable);
+    public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations) {
+        this(table, tableActionAlterations, Schedulers.io(), AndroidSchedulers.mainThread());
+    }
+
+    AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations,
+                            @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+        mTable = Preconditions.checkNotNull(table);
         mTableActionAlterations = Preconditions.checkNotNull(tableActionAlterations);
+        mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
+        mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         mTableEventsListeners = new CopyOnWriteArrayList<>();
     }
+
+
 
     @Override
     public void registerListener(@NonNull TableEventsListener<ModelType> tableEventsListener) {
@@ -52,11 +66,11 @@ abstract class AbstractTableController<ModelType, KeyType> implements TableContr
                 .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
                     @Override
                     public Observable<List<ModelType>> call(Void oVoid) {
-                        return mTripsTable.get();
+                        return mTable.get();
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
@@ -91,11 +105,11 @@ abstract class AbstractTableController<ModelType, KeyType> implements TableContr
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
-                        return mTripsTable.insert(insertModelType);
+                        return mTable.insert(insertModelType);
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -137,11 +151,11 @@ abstract class AbstractTableController<ModelType, KeyType> implements TableContr
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
-                        return mTripsTable.update(oldModelType, modelType);
+                        return mTable.update(oldModelType, modelType);
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -183,11 +197,11 @@ abstract class AbstractTableController<ModelType, KeyType> implements TableContr
                 .flatMap(new Func1<ModelType, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(ModelType modelType) {
-                        return mTripsTable.delete(modelType);
+                        return mTable.delete(modelType);
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean success) {

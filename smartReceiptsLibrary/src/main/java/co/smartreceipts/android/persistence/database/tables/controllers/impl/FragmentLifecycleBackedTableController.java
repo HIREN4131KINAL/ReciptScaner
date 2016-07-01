@@ -1,9 +1,11 @@
-package co.smartreceipts.android.persistence.database.tables.controllers;
+package co.smartreceipts.android.persistence.database.tables.controllers.impl;
 
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
+import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 

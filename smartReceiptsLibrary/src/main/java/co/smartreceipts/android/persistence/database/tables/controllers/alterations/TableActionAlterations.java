@@ -1,4 +1,4 @@
-package co.smartreceipts.android.persistence.database.tables.controllers;
+package co.smartreceipts.android.persistence.database.tables.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

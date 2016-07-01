@@ -1,4 +1,4 @@
-package co.smartreceipts.android.persistence.database.tables.controllers;
+package co.smartreceipts.android.persistence.database.tables.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,7 +12,7 @@ import rx.Observable;
  *
  * @param <T> the type of object we will be interacting with
  */
-public class StubTableActionAlterations<T> implements TableActionAlterations<T> {
+class StubTableActionAlterations<T> implements TableActionAlterations<T> {
 
     @NonNull
     @Override

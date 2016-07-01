@@ -60,7 +60,7 @@ import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
-public final class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {
+public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {
 
     // Logging Vars
     private static final boolean D = true;

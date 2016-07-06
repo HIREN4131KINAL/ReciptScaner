@@ -12,7 +12,7 @@ import rx.Observable;
  *
  * @param <T> the type of object we will be interacting with
  */
-class StubTableActionAlterations<T> implements TableActionAlterations<T> {
+public class StubTableActionAlterations<T> implements TableActionAlterations<T> {
 
     @NonNull
     @Override

@@ -11,6 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.tables.controllers.alterations.StubTableActionAlterations;
 import co.smartreceipts.android.persistence.database.tables.controllers.alterations.TableActionAlterations;
 import rx.Observable;
 import rx.Scheduler;
@@ -33,6 +34,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     private final Scheduler mSubscribeOnScheduler;
     private final Scheduler mObserveOnScheduler;
     private final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
+
+    public AbstractTableController(@NonNull Table<ModelType, ?> table) {
+        this(table, new StubTableActionAlterations<ModelType>());
+    }
 
     public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations) {
         this(table, tableActionAlterations, Schedulers.io(), AndroidSchedulers.mainThread());

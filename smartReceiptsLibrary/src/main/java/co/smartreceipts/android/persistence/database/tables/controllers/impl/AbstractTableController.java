@@ -84,15 +84,22 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 .subscribe(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
-                        for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onGet(modelTypes);
+                        if (modelTypes != null) {
+                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
+                                tableEventsListener.onGetSuccess(modelTypes);
+                            }
+                        }
+                        else {
+                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
+                                tableEventsListener.onGetFailure(null);
+                            }
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
                         for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onGet(new ArrayList<ModelType>());
+                            tableEventsListener.onGetFailure(throwable);
                         }
                     }
                 });

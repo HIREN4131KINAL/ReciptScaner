@@ -9,27 +9,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.tables.controllers.alterations.TableActionAlterations;
 import rx.Observable;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
-import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -84,36 +78,38 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unregisterListener(mListener2);
         assertNotNull(mAbstractTableController.get());
 
-        verify(mListener1).onGet(objects);
-        verify(mListener3).onGet(objects);
+        verify(mListener1).onGetSuccess(objects);
+        verify(mListener3).onGetSuccess(objects);
         verifyZeroInteractions(mListener2);
     }
 
     @Test
     public void onPreGetException() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>error(new Exception()));
+        final Exception e = new Exception();
+        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>error(e));
         when(mTable.get()).thenReturn(Observable.just(objects));
 
         mAbstractTableController.unregisterListener(mListener2);
         assertNotNull(mAbstractTableController.get());
 
-        verify(mListener1).onGet(new ArrayList<>());
-        verify(mListener3).onGet(new ArrayList<>());
+        verify(mListener1).onGetFailure(e);
+        verify(mListener3).onGetFailure(e);
         verifyZeroInteractions(mListener2);
     }
 
     @Test
     public void onGetException() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
+        final Exception e = new Exception();
         when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
-        when(mTable.get()).thenReturn(Observable.<List<Object>>error(null));
+        when(mTable.get()).thenReturn(Observable.<List<Object>>error(e));
 
         mAbstractTableController.unregisterListener(mListener2);
         assertNotNull(mAbstractTableController.get());
 
-        verify(mListener1).onGet(new ArrayList<>());
-        verify(mListener3).onGet(new ArrayList<>());
+        verify(mListener1).onGetFailure(e);
+        verify(mListener3).onGetFailure(e);
         verifyZeroInteractions(mListener2);
     }
 
@@ -127,8 +123,9 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unregisterListener(mListener2);
         assertNotNull(mAbstractTableController.get());
 
-        verify(mListener1).onGet(new ArrayList<>());
-        verify(mListener3).onGet(new ArrayList<>());
+        verify(mListener1).onGetFailure(any(Exception.class
+        ));
+        verify(mListener3).onGetFailure(any(Exception.class));
         verifyZeroInteractions(mListener2);
     }
 

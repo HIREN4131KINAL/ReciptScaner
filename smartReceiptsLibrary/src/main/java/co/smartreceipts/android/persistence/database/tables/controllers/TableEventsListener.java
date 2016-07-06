@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface TableEventsListener<T> {
 
-    void onGet(@NonNull List<T> list);
+    void onGetSuccess(@NonNull List<T> list);
+
+    void onGetFailure(@Nullable Throwable e);
 
     void onInsertSuccess(@NonNull T t);
 

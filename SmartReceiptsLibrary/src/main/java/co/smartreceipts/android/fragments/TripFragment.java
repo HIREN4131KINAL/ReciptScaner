@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -396,7 +397,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onGet(@NonNull List<Trip> trips) {
+    public void onGetSuccess(@NonNull List<Trip> trips) {
         if (isResumed()) {
             mProgressDialog.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
@@ -415,6 +416,25 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 if (lastTrip != null) {
                     viewReceipts(lastTrip);
                 }
+            }
+        }
+    }
+
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+        if (isResumed()) {
+            if (e instanceof SQLiteDatabaseCorruptException) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.dialog_sql_corrupt_title).setMessage(R.string.dialog_sql_corrupt_message).setPositiveButton(R.string.dialog_sql_corrupt_positive, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int position) {
+                        Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.dialog_sql_corrupt_intent_subject), getString(R.string.dialog_sql_corrupt_intent_text));
+                        getActivity().startActivity(Intent.createChooser(intent, getResources().getString(R.string.dialog_sql_corrupt_chooser)));
+                        dialog.dismiss();
+                            }
+                }).show();
+            } else {
+                // TODO: Error message
             }
         }
     }
@@ -512,18 +532,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             }
             getPersistenceManager().getDatabase().getTripsParallel();
         }
-    }
-
-    public void onSQLCorruptionException() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.dialog_sql_corrupt_title).setMessage(R.string.dialog_sql_corrupt_message).setPositiveButton(R.string.dialog_sql_corrupt_positive, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int position) {
-                Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.dialog_sql_corrupt_intent_subject), getString(R.string.dialog_sql_corrupt_intent_text));
-                getActivity().startActivity(Intent.createChooser(intent, getResources().getString(R.string.dialog_sql_corrupt_chooser)));
-                dialog.dismiss();
-            }
-        }).show();
     }
 
 }

@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.DistanceDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.DistancePrimaryKey;
 

@@ -43,7 +43,7 @@ import co.smartreceipts.android.workers.WorkerManager;
  * @author WRB
  * 
  */
-public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener, DatabaseHelper.TableDefaultsCustomizer {
+public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener {
 
 	public static final String TAG = "SmartReceiptsApp";
 
@@ -215,7 +215,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		}
 	}
 
-	@Override
+    // TODO: Update/fix
 	public final void onFirstRun() {
 		if (mCurrentActivity != null) {
 			if (BuildConfig.DEBUG) {
@@ -233,68 +233,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	}
 
 	protected void showFirstRunDialog() {
-		/*
-		 * final BetterDialogBuilder builder = new BetterDialogBuilder(mCurrentActivity);
-		 * builder.setTitle(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_TITLE))
-		 * .setMessage(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_MESSAGE))
-		 * .setPositiveButton(mFlex.getString(mCurrentActivity, R.string.DIALOG_WELCOME_POSITIVE_BUTTON), new
-		 * DialogInterface.OnClickListener() {
-		 * 
-		 * @Override public void onClick(DialogInterface dialog, int which) { dialog.cancel(); } });
-		 * mCurrentActivity.runOnUiThread(new Runnable() {
-		 * 
-		 * @Override public void run() { builder.show(); } });
-		 */
-	}
 
-	@Override
-	public void insertCategoryDefaults(final DatabaseHelper db) {
-		final Resources resources = getResources();
-		final CategoriesTable categoriesTable = db.getCategoriesTable();
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_null), resources.getString(R.string.category_null_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_airfare), resources.getString(R.string.category_airfare_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_breakfast), resources.getString(R.string.category_breakfast_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_dinner), resources.getString(R.string.category_dinner_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_entertainment), resources.getString(R.string.category_entertainment_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_gasoline), resources.getString(R.string.category_gasoline_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_gift), resources.getString(R.string.category_gift_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_hotel), resources.getString(R.string.category_hotel_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_laundry), resources.getString(R.string.category_laundry_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_lunch), resources.getString(R.string.category_lunch_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_other), resources.getString(R.string.category_other_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_parking_tolls), resources.getString(R.string.category_parking_tolls_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_postage_shipping), resources.getString(R.string.category_postage_shipping_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_car_rental), resources.getString(R.string.category_car_rental_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_taxi_bus), resources.getString(R.string.category_taxi_bus_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_telephone_fax), resources.getString(R.string.category_telephone_fax_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_tip), resources.getString(R.string.category_tip_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_train), resources.getString(R.string.category_train_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_books_periodicals), resources.getString(R.string.category_books_periodicals_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_cell_phone), resources.getString(R.string.category_cell_phone_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_dues_subscriptions), resources.getString(R.string.category_dues_subscriptions_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_meals_justified), resources.getString(R.string.category_meals_justified_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_stationery_stations), resources.getString(R.string.category_stationery_stations_code)));
-		categoriesTable.insert(new ImmutableCategoryImpl(resources.getString(R.string.category_training_fees), resources.getString(R.string.category_training_fees_code)));
-	}
-
-	@Override
-	public void insertCSVDefaults(final DatabaseHelper db) { // Called in onCreate and onUpgrade
-        final ReceiptColumnDefinitions receiptColumnDefinitions = new ReceiptColumnDefinitions(this, db, getPersistenceManager().getPreferences(), getFlex());
-        final List<Column<Receipt>> columns = receiptColumnDefinitions.getCsvDefaults();
-        final int size = columns.size();
-        for (int i = 0; i < size; i++) {
-            db.getCSVTable().insert(columns.get(i));
-        }
-	}
-
-	@Override
-	public void insertPDFDefaults(DatabaseHelper db) {
-        final ReceiptColumnDefinitions receiptColumnDefinitions = new ReceiptColumnDefinitions(this, db, getPersistenceManager().getPreferences(), getFlex());
-        final List<Column<Receipt>> columns = receiptColumnDefinitions.getPdfDefaults();
-        final int size = columns.size();
-        for (int i = 0; i < size; i++) {
-            db.getPDFTable().insert(columns.get(i));
-        }
 	}
 
 	/**
@@ -349,16 +288,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	 */
 	protected ConfigurationManager instantiateConfigurationManager() {
 		return new DefaultConfigurationManager(this);
-	}
-
-	@Override
-	public void insertPaymentMethodDefaults(DatabaseHelper db) {
-		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_unspecified)).build());
-		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_corporate_card)).build());
-		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_personal_card)).build());
-		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_cash)).build());
-		db.getPaymentMethodsTable().insert(new PaymentMethodBuilderFactory().setMethod(getString(R.string.payment_method_default_check)).build());
-
 	}
 
 }

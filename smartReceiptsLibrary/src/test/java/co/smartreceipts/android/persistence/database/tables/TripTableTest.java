@@ -23,12 +23,10 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import rx.Observable;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertNull;

@@ -22,6 +22,7 @@ import java.util.TimeZone;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import rx.Observable;
 
 import static junit.framework.Assert.assertNull;

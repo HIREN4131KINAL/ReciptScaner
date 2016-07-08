@@ -9,16 +9,13 @@ import android.util.Log;
 
 import java.io.File;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.ReceiptDatabaseAdapter;
-import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryKey;
 
 /**

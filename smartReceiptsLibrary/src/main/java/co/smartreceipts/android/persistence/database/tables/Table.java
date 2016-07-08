@@ -2,10 +2,10 @@ package co.smartreceipts.android.persistence.database.tables;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.util.List;
 
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import rx.Observable;
 
 /**

@@ -3,17 +3,16 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
@@ -94,7 +93,7 @@ abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Int
     /**
      * Passes alongs a call to insert our "table" defaults to the appropriate sub implementation
      *
-     * @param customizer the {@link co.smartreceipts.android.persistence.DatabaseHelper.TableDefaultsCustomizer} implementation
+     * @param customizer the {@link TableDefaultsCustomizer} implementation
      */
     protected abstract void insertDefaults(@NonNull TableDefaultsCustomizer customizer);
 

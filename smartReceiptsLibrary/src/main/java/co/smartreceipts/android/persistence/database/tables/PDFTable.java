@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 /**
  * Stores all database operations related to the {@link Column} model object for PDF Tables

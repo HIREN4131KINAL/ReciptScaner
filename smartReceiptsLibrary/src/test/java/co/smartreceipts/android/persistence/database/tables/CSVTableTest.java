@@ -25,6 +25,7 @@ import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

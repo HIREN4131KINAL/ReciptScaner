@@ -63,7 +63,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
         private final int mStringResId;
 
-        private ActualDefinition(@StringRes int stringResId) {
+        ActualDefinition(@StringRes int stringResId) {
             mStringResId = stringResId;
         }
 

@@ -20,6 +20,7 @@ import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;

@@ -19,8 +19,7 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

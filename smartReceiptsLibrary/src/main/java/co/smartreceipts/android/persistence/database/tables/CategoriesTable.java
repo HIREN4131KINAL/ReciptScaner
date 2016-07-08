@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.CategoryDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.CategoryPrimaryKey;
 

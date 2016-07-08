@@ -12,6 +12,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;

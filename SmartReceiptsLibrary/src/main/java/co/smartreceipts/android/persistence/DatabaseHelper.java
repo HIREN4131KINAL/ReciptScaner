@@ -45,11 +45,14 @@ import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
+import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
+import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.utils.FileUtils;
@@ -93,7 +96,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     private ArrayList<CharSequence> mCategoryList;
     private ArrayList<CharSequence> mFullCurrencyList;
     private ArrayList<CharSequence> mMostRecentlyUsedCurrencyList;
-    private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
+    private final ReceiptColumnDefinitions mReceiptColumnDefinitions;
     private List<Column<Receipt>> mCSVColumns;
     private List<Column<Receipt>> mPDFColumns;
     private List<PaymentMethod> mPaymentMethods;
@@ -120,6 +123,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     // Tables
     private final List<Table> mTables;
     private final TripsTable mTripsTable;
+    private final ReceiptsTable mReceiptsTable;
     private final DistanceTable mDistanceTable;
     private final CategoriesTable mCategoriesTable;
     private final CSVTable mCSVTable;
@@ -200,45 +204,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         public void onGraphQuerySuccess(List<Receipt> receipts);
     }
 
-    public interface TableDefaultsCustomizer {
-        public void onFirstRun();
-
-        public void insertCategoryDefaults(DatabaseHelper db);
-
-        public void insertCSVDefaults(DatabaseHelper db);
-
-        public void insertPDFDefaults(DatabaseHelper db);
-
-        public void insertPaymentMethodDefaults(DatabaseHelper db);
-    }
-
-    private static final class ReceiptsTable {
-
-        private ReceiptsTable() {
-        }
-
-        public static final String TABLE_NAME = "receipts";
-        public static final String COLUMN_ID = "id";
-        public static final String COLUMN_PATH = "path";
-        public static final String COLUMN_NAME = "name";
-        public static final String COLUMN_PARENT = "parent";
-        public static final String COLUMN_CATEGORY = "category";
-        public static final String COLUMN_PRICE = "price";
-        public static final String COLUMN_TAX = "tax";
-        public static final String COLUMN_EXCHANGE_RATE = "exchange_rate";
-        public static final String COLUMN_DATE = "rcpt_date";
-        public static final String COLUMN_TIMEZONE = "timezone";
-        public static final String COLUMN_COMMENT = "comment";
-        public static final String COLUMN_EXPENSEABLE = "expenseable";
-        public static final String COLUMN_ISO4217 = "isocode";
-        public static final String COLUMN_PAYMENT_METHOD_ID = "paymentMethodKey";
-        public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
-        public static final String COLUMN_PROCESSING_STATUS = "receipt_processing_status";
-        public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
-        public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
-        public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
-    }
-
     private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
         super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
         // factory
@@ -247,8 +212,8 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         mContext = application.getApplicationContext();
         mFlex = application.getFlex();
         mPersistenceManager = persistenceManager;
-        mCustomizations = application;
         mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
+        mCustomizations = new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions);
 
         // Tables:
         mTables = new ArrayList<>();
@@ -258,12 +223,14 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
         mPaymentMethodsTable = new PaymentMethodsTable(this);
+        mReceiptsTable = new ReceiptsTable(this, mTripsTable, mPaymentMethodsTable, mPersistenceManager);
         mTables.add(mTripsTable);
         mTables.add(mDistanceTable);
         mTables.add(mCategoriesTable);
         mTables.add(mCSVTable);
         mTables.add(mPDFTable);
         mTables.add(mPaymentMethodsTable);
+        mTables.add(mReceiptsTable);
 
         this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
     }
@@ -285,19 +252,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return INSTANCE;
     }
 
-    public static final DatabaseHelper getNewInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
-        String databasePath = StorageManager.GetRootPath();
-        if (BuildConfig.DEBUG) {
-            if (databasePath.equals("")) {
-                throw new RuntimeException("The SDCard must be created beforoe GetRootPath is called in DBHelper");
-            }
-        }
-        if (!databasePath.endsWith(File.separator)) {
-            databasePath = databasePath + File.separator;
-        }
-        databasePath = databasePath + DATABASE_NAME;
-        return new DatabaseHelper(application, persistenceManager, databasePath);
-    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Begin Abstract Method Overrides
@@ -305,59 +259,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     @Override
     public void onCreate(final SQLiteDatabase db) {
         for (final Table table : mTables) {
-            table.onCreate(db, null);
-        }
-
-        synchronized (mDatabaseLock) {
-            _initDB = db;
-            //N.B. This only gets called if you actually request the database using the getDatabase method
-            final String trips = "CREATE TABLE " + TripsTable.TABLE_NAME + " ("
-                    + TripsTable.COLUMN_NAME + " TEXT PRIMARY KEY, "
-                    + TripsTable.COLUMN_FROM + " DATE, "
-                    + TripsTable.COLUMN_TO + " DATE, "
-                    + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT, "
-                    + TripsTable.COLUMN_TO_TIMEZONE + " TEXT, "
-                    /*+ TripsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "*/
-                    + TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00, "
-                    + TripsTable.COLUMN_COMMENT + " TEXT, "
-                    + TripsTable.COLUMN_COST_CENTER + " TEXT, "
-                    + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT, "
-                    + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
-                    + TripsTable.COLUMN_FILTERS + " TEXT"
-                    + ");";
-            final String receipts = "CREATE TABLE " + ReceiptsTable.TABLE_NAME + " ("
-                    + ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + ReceiptsTable.COLUMN_PATH + " TEXT, "
-                    + ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME + " ON DELETE CASCADE, "
-                    + ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", "
-                    + ReceiptsTable.COLUMN_CATEGORY + " TEXT, "
-                    + ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), "
-                    + ReceiptsTable.COLUMN_TIMEZONE + " TEXT, "
-                    + ReceiptsTable.COLUMN_COMMENT + " TEXT, "
-                    + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
-                    + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
-                    + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
-                    + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
-                    + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
-                    + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
-                    + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
-                    + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
-                    + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
-                    + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
-                    + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
-                    + ");";
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, trips);
-            }
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, receipts);
-            }
-            db.execSQL(trips);
-            db.execSQL(receipts);
-            mCustomizations.insertCategoryDefaults(this);
-            mCustomizations.onFirstRun();
-            _initDB = null;
+            table.onCreate(db, mCustomizations);
         }
 
         for (final Table table : mTables) {
@@ -370,189 +272,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     public final void onUpgrade(final SQLiteDatabase db, int oldVersion, final int newVersion) {
 
         for (final Table table : mTables) {
-            table.onUpgrade(db, oldVersion, newVersion, null);
-        }
-
-        synchronized (mDatabaseLock) {
-
-            if (D) {
-                Log.d(TAG, "Upgrading the database from version " + oldVersion + " to " + newVersion);
-            }
-
-            // Try to backup the database to the SD Card for support reasons
-            final StorageManager storageManager = mPersistenceManager.getStorageManager();
-            File sdDB = storageManager.getFile(DATABASE_NAME + "." + oldVersion + ".bak");
-            try {
-                storageManager.copy(new File(db.getPath()), sdDB, true);
-                if (D) {
-                    Log.d(TAG, "Backed up database file to: " + sdDB.getName());
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Failed to back up database: " + e.toString());
-            }
-
-            _initDB = db;
-            if (oldVersion <= 1) { // Add mCurrency column to receipts table
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL " + "DEFAULT " + mPersistenceManager.getPreferences().getDefaultCurreny();
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterReceipts);
-                }
-                db.execSQL(alterReceipts);
-            }
-
-            if (oldVersion <= 3) { // Add extra_edittext columns
-                final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT";
-                final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
-                final String alterReceipts3 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterReceipts1);
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterReceipts2);
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterReceipts3);
-                }
-                db.execSQL(alterReceipts1);
-                db.execSQL(alterReceipts2);
-                db.execSQL(alterReceipts3);
-            }
-            if (oldVersion <= 4) { // Change Mileage to Decimal instead of Integer
-                final String alterMiles = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_MILEAGE + " DECIMAL(10, 2) DEFAULT 0.00";
-                final String alterReceipts1 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterMiles);
-                    Log.d(TAG, alterReceipts1);
-                }
-            }
-            if (oldVersion <= 5) {
-                // Skipped b/c I forgot to include the update stuff
-            }
-            if (oldVersion <= 6) { // Fix the database to replace absolute paths with relative ones
-                final Cursor tripsCursor = db.query(TripsTable.TABLE_NAME, new String[]{TripsTable.COLUMN_NAME}, null, null, null, null, null);
-                if (tripsCursor != null && tripsCursor.moveToFirst()) {
-                    final int nameIndex = tripsCursor.getColumnIndex(TripsTable.COLUMN_NAME);
-                    do {
-                        String absPath = tripsCursor.getString(nameIndex);
-                        if (absPath.endsWith(File.separator)) {
-                            absPath = absPath.substring(0, absPath.length() - 1);
-                        }
-                        final String relPath = absPath.substring(absPath.lastIndexOf(File.separatorChar) + 1, absPath.length());
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "Updating Abs. Trip Path: " + absPath + " => " + relPath);
-                        }
-                        final ContentValues tripValues = new ContentValues(1);
-                        tripValues.put(TripsTable.COLUMN_NAME, relPath);
-                        if (db.update(TripsTable.TABLE_NAME, tripValues, TripsTable.COLUMN_NAME + " = ?", new String[]{absPath}) == 0) {
-                            if (BuildConfig.DEBUG) {
-                                Log.e(TAG, "Trip Update Error Occured");
-                            }
-                        }
-                    }
-                    while (tripsCursor.moveToNext());
-                }
-                // TODO: Finally close here
-                tripsCursor.close();
-
-                final Cursor receiptsCursor = db.query(ReceiptsTable.TABLE_NAME, new String[]{ReceiptsTable.COLUMN_ID, ReceiptsTable.COLUMN_PARENT, ReceiptsTable.COLUMN_PATH}, null, null, null, null, null);
-                if (receiptsCursor != null && receiptsCursor.moveToFirst()) {
-                    final int idIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_ID);
-                    final int parentIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
-                    final int imgIdx = receiptsCursor.getColumnIndex(ReceiptsTable.COLUMN_PATH);
-                    do {
-                        final int id = receiptsCursor.getInt(idIdx);
-                        String absParentPath = receiptsCursor.getString(parentIdx);
-                        if (absParentPath.endsWith(File.separator)) {
-                            absParentPath = absParentPath.substring(0, absParentPath.length() - 1);
-                        }
-                        final String absImgPath = receiptsCursor.getString(imgIdx);
-                        final ContentValues receiptValues = new ContentValues(2);
-                        final String relParentPath = absParentPath.substring(absParentPath.lastIndexOf(File.separatorChar) + 1, absParentPath.length());
-                        receiptValues.put(ReceiptsTable.COLUMN_PARENT, relParentPath);
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "Updating Abs. Parent Path for Receipt" + id + ": " + absParentPath + " => " + relParentPath);
-                        }
-                        ;
-                        if (!absImgPath.equalsIgnoreCase(NO_DATA)) { // This can be either a path or NO_DATA
-                            final String relImgPath = absImgPath.substring(absImgPath.lastIndexOf(File.separatorChar) + 1, absImgPath.length());
-                            receiptValues.put(ReceiptsTable.COLUMN_PATH, relImgPath);
-                            if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "Updating Abs. Img Path for Receipt" + id + ": " + absImgPath + " => " + relImgPath);
-                            }
-                        }
-                        if (db.update(ReceiptsTable.TABLE_NAME, receiptValues, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(id)}) == 0) {
-                            if (BuildConfig.DEBUG) {
-                                Log.e(TAG, "Receipt Update Error Occured");
-                            }
-                        }
-                    }
-                    while (receiptsCursor.moveToNext());
-                }
-                receiptsCursor.close();
-            }
-            if (oldVersion <= 7) { // Added a timezone column to the receipts table
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterReceipts);
-                }
-                db.execSQL(alterReceipts);
-            }
-            if (oldVersion <= 8) { // Added a timezone column to the trips table
-                final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
-                final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTrips1);
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTrips2);
-                }
-                db.execSQL(alterTrips1);
-                db.execSQL(alterTrips2);
-            }
-            if (oldVersion <= 10) {
-                final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
-                final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTrips1);
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTrips2);
-                }
-                db.execSQL(alterTrips1);
-                db.execSQL(alterTrips2);
-            }
-            if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
-                final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTrips);
-                    Log.d(TAG, alterReceipts);
-                }
-                db.execSQL(alterTrips);
-                db.execSQL(alterReceipts);
-            }
-            if (oldVersion <= 12) { //Added better distance tracking, cost center to the trips, and status to trips/receipts
-
-
-                final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
-                final String alterTripsWithProcessingStatus = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT";
-                final String alterReceiptsWithProcessingStatus = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT";
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, alterTripsWithCostCenter);
-                    Log.d(TAG, alterTripsWithProcessingStatus);
-                    Log.d(TAG, alterReceiptsWithProcessingStatus);
-                }
-
-                db.execSQL(alterTripsWithCostCenter);
-                db.execSQL(alterTripsWithProcessingStatus);
-                db.execSQL(alterReceiptsWithProcessingStatus);
-            }
-            if (oldVersion <= 13) {
-                final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00";
-                Log.d(TAG, alterReceipts);
-                db.execSQL(alterReceipts);
-            }
-            _initDB = null;
+            table.onUpgrade(db, oldVersion, newVersion, mCustomizations);
         }
 
         for (final Table table : mTables) {
@@ -597,14 +317,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     @NonNull
     public final TripsTable getTripsTable() {
         return mTripsTable;
-    }
-
-    public void registerTripRowListener(TripRowListener listener) {
-        mTripRowListener = listener;
-    }
-
-    public void unregisterTripRowListener(TripRowListener listener) {
-        mTripRowListener = null;
     }
 
     public Trip[] getTripsSerial() throws SQLiteDatabaseCorruptException {

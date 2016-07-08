@@ -1,19 +1,18 @@
-package co.smartreceipts.android.persistence.database.tables.controllers.impl;
+package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.tables.TripForeignKeyAbstractSqlTable;
-import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.tables.controllers.TripForeignKeyTableEventsListener;
-import co.smartreceipts.android.persistence.database.tables.controllers.alterations.TableActionAlterations;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;

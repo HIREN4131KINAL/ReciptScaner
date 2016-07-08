@@ -1,4 +1,4 @@
-package co.smartreceipts.android.persistence.database.tables.controllers.impl;
+package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
 
@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
-import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.tables.controllers.alterations.StubTableActionAlterations;
-import co.smartreceipts.android.persistence.database.tables.controllers.alterations.TableActionAlterations;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.alterations.StubTableActionAlterations;
+import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;

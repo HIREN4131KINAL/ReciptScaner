@@ -33,8 +33,7 @@ import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.persistence.database.tables.controllers.impl.DistanceTableController;
-import rx.subscriptions.CompositeSubscription;
+import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {

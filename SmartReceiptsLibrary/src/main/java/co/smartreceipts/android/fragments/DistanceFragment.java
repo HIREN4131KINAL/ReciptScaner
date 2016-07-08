@@ -22,8 +22,8 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
-import co.smartreceipts.android.persistence.database.tables.controllers.TripForeignKeyTableEventsListener;
-import co.smartreceipts.android.persistence.database.tables.controllers.impl.DistanceTableController;
+import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 
 public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
 

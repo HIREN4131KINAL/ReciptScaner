@@ -1,4 +1,4 @@
-package co.smartreceipts.android.persistence.database.tables.controllers.alterations;
+package co.smartreceipts.android.persistence.database.controllers.alterations;
 
 import org.junit.Before;
 import org.junit.Test;

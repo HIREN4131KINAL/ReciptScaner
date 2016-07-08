@@ -46,7 +46,6 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.tables.controllers.impl.FragmentLifecycleBackedTableController;
 import co.smartreceipts.android.persistence.database.tables.controllers.impl.TripTableController;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -127,7 +126,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        mRxTripTableController.registerListener(this);
+        mRxTripTableController.subscribe(this);
         mRxTripTableController.get();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
@@ -150,7 +149,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
-        mRxTripTableController.unregisterListener(this);
+        mRxTripTableController.unsubscribe();
         super.onPause();
     }
 

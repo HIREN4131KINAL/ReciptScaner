@@ -86,7 +86,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        mRxDistanceTableController.registerListener(this);
+        mRxDistanceTableController.subscribe(this);
         mRxDistanceTableController.get(mTrip);
     }
 
@@ -103,7 +103,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        mRxDistanceTableController.unregisterListener(this);
+        mRxDistanceTableController.unsubscribe();
     }
 
     @Override

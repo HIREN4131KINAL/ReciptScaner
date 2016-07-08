@@ -4,9 +4,8 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableController;
@@ -18,9 +17,11 @@ import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.exceptions.Exceptions;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * Provides a top-level implementation of the {@link TableController} contract
@@ -30,10 +31,12 @@ import rx.schedulers.Schedulers;
 abstract class AbstractTableController<ModelType> implements TableController<ModelType> {
 
     private final Table<ModelType, ?> mTable;
-    private final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
     protected final Scheduler mSubscribeOnScheduler;
     protected final Scheduler mObserveOnScheduler;
+
+    private TableEventsListener<ModelType> mTableEventsListener;
+    protected CompositeSubscription mCompositeSubscription;
 
     public AbstractTableController(@NonNull Table<ModelType, ?> table) {
         this(table, new StubTableActionAlterations<ModelType>());
@@ -49,25 +52,29 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
         mTableActionAlterations = Preconditions.checkNotNull(tableActionAlterations);
         mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
-        mTableEventsListeners = new CopyOnWriteArrayList<>();
-    }
-
-
-
-    @Override
-    public void registerListener(@NonNull TableEventsListener<ModelType> tableEventsListener) {
-        mTableEventsListeners.add(tableEventsListener);
+        mCompositeSubscription = new CompositeSubscription();
     }
 
     @Override
-    public void unregisterListener(@NonNull TableEventsListener<ModelType> tableEventsListener) {
-        mTableEventsListeners.remove(tableEventsListener);
+    public synchronized void subscribe(@NonNull TableEventsListener<ModelType> tableEventsListener) {
+        Preconditions.checkState(mTableEventsListener == null, "You must unsubscribe any existing listeners");
+        mCompositeSubscription = new CompositeSubscription();
+        mTableEventsListener = tableEventsListener;
     }
 
     @Override
-    @NonNull
-    public Subscription get() {
-        return mTableActionAlterations.preGet()
+    public synchronized void unsubscribe() {
+        mTableEventsListener = null;
+        mCompositeSubscription.unsubscribe();
+    }
+
+    @Override
+    public synchronized void get() {
+        final TableEventsListener<ModelType> tableEventsListener = mTableEventsListener;
+        Preconditions.checkNotNull(tableEventsListener, "You must subscribe a table events listener");
+
+        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+        final Subscription subscription = mTableActionAlterations.preGet()
                 .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
                     @Override
                     public Observable<List<ModelType>> call(Void oVoid) {
@@ -90,30 +97,34 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     @Override
                     public void call(List<ModelType> modelTypes) {
                         if (modelTypes != null) {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onGetSuccess(modelTypes);
-                            }
-                        }
-                        else {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onGetFailure(null);
-                            }
+                            tableEventsListener.onGetSuccess(modelTypes);
+                        } else {
+                            tableEventsListener.onGetFailure(null);
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onGetFailure(throwable);
-                        }
+                        tableEventsListener.onGetFailure(throwable);
+                        unsubscribeReference(subscriptionRef);
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        unsubscribeReference(subscriptionRef);
                     }
                 });
+        subscriptionRef.set(subscription);
+        mCompositeSubscription.add(subscription);
     }
 
     @Override
-    @NonNull
-    public Subscription insert(@NonNull final ModelType insertModelType) {
-        return mTableActionAlterations.preInsert(insertModelType)
+    public synchronized void insert(@NonNull final ModelType insertModelType) {
+        final TableEventsListener<ModelType> tableEventsListener = mTableEventsListener;
+        Preconditions.checkNotNull(tableEventsListener, "You must subscribe a table events listener");
+
+        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+        final Subscription subscription = mTableActionAlterations.preInsert(insertModelType)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
@@ -136,30 +147,34 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     @Override
                     public void call(ModelType modelType) {
                         if (modelType != null) {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertSuccess(modelType);
-                            }
-                            // TODO: Call get() again
+                            tableEventsListener.onInsertSuccess(modelType);
                         } else {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertFailure(insertModelType, null);
-                            }
+                            tableEventsListener.onInsertFailure(insertModelType, null);
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onInsertFailure(insertModelType, throwable);
-                        }
+                        tableEventsListener.onInsertFailure(insertModelType, throwable);
+                        unsubscribeReference(subscriptionRef);
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        unsubscribeReference(subscriptionRef);
                     }
                 });
+        subscriptionRef.set(subscription);
+        mCompositeSubscription.add(subscription);
     }
 
     @Override
-    @NonNull
-    public Subscription update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType) {
-        return mTableActionAlterations.preUpdate(oldModelType, newModelType)
+    public synchronized void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType) {
+        final TableEventsListener<ModelType> tableEventsListener = mTableEventsListener;
+        Preconditions.checkNotNull(tableEventsListener, "You must subscribe a table events listener");
+
+        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+        final Subscription subscription = mTableActionAlterations.preUpdate(oldModelType, newModelType)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
@@ -182,30 +197,34 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     @Override
                     public void call(ModelType modelType) {
                         if (modelType != null) {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateSuccess(oldModelType, modelType);
-                            }
-                            // TODO: Call get() again
+                            tableEventsListener.onUpdateSuccess(oldModelType, modelType);
                         } else {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateFailure(oldModelType, null);
-                            }
+                            tableEventsListener.onUpdateFailure(oldModelType, null);
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onUpdateFailure(oldModelType, throwable);
-                        }
+                        tableEventsListener.onUpdateFailure(oldModelType, throwable);
+                        unsubscribeReference(subscriptionRef);
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        unsubscribeReference(subscriptionRef);
                     }
                 });
+        subscriptionRef.set(subscription);
+        mCompositeSubscription.add(subscription);
     }
 
     @Override
-    @NonNull
-    public Subscription delete(@NonNull final ModelType modelType) {
-        return mTableActionAlterations.preDelete(modelType)
+    public synchronized void delete(@NonNull final ModelType modelType) {
+        final TableEventsListener<ModelType> tableEventsListener = mTableEventsListener;
+        Preconditions.checkNotNull(tableEventsListener, "You must subscribe a table events listener");
+
+        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
+        final Subscription subscription = mTableActionAlterations.preDelete(modelType)
                 .flatMap(new Func1<ModelType, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(ModelType modelType) {
@@ -228,24 +247,32 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     @Override
                     public void call(Boolean success) {
                         if (success) {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteSuccess(modelType);
-                            }
-                            // TODO: Call get() again
+                            tableEventsListener.onDeleteSuccess(modelType);
                         } else {
-                            for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteFailure(modelType, null);
-                            }
+                            tableEventsListener.onDeleteFailure(modelType, null);
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        for (TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onDeleteFailure(modelType, throwable);
-                        }
+                        tableEventsListener.onDeleteFailure(modelType, throwable);
+                        unsubscribeReference(subscriptionRef);
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        unsubscribeReference(subscriptionRef);
                     }
                 });
+        subscriptionRef.set(subscription);
+        mCompositeSubscription.add(subscription);
+    }
+
+    protected void unsubscribeReference(@NonNull AtomicReference<Subscription> subscriptionReference) {
+        final Subscription subscription = subscriptionReference.get();
+        if (subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+        }
     }
 
 }

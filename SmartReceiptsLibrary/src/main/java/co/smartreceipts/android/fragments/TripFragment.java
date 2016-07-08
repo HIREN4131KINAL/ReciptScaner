@@ -46,6 +46,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.tables.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.tables.controllers.impl.FragmentLifecycleBackedTableController;
 import co.smartreceipts.android.persistence.database.tables.controllers.impl.TripTableController;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;

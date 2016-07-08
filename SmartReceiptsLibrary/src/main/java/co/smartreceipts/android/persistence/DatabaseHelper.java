@@ -2519,6 +2519,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     // Columns Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     @NonNull
+    public final DistanceTable getDistanceTable() {
+        return mDistanceTable;
+    }
+
+    @NonNull
     public final CategoriesTable getCategoriesTable() {
         return mCategoriesTable;
     }

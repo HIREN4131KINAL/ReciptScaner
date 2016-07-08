@@ -44,6 +44,10 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         _comment = "";
     }
 
+    public DistanceBuilderFactory(@NonNull Distance distance) {
+        this(distance.getId(), distance);
+    }
+
     public DistanceBuilderFactory(int id, @NonNull Distance distance) {
         _id = id;
         _trip = distance.getTrip();

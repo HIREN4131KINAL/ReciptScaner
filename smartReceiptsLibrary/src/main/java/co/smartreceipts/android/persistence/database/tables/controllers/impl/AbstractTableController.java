@@ -30,10 +30,10 @@ import rx.schedulers.Schedulers;
 abstract class AbstractTableController<ModelType> implements TableController<ModelType> {
 
     private final Table<ModelType, ?> mTable;
-    private final TableActionAlterations<ModelType> mTableActionAlterations;
-    private final Scheduler mSubscribeOnScheduler;
-    private final Scheduler mObserveOnScheduler;
     private final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
+    protected final TableActionAlterations<ModelType> mTableActionAlterations;
+    protected final Scheduler mSubscribeOnScheduler;
+    protected final Scheduler mObserveOnScheduler;
 
     public AbstractTableController(@NonNull Table<ModelType, ?> table) {
         this(table, new StubTableActionAlterations<ModelType>());

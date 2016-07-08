@@ -27,7 +27,7 @@ import rx.functions.Func0;
  * @param <ModelType> the model object that CRUD operations here should return
  * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that will be used
  */
-abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType> {
+public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType> {
 
     private final HashMap<Trip, List<ModelType>> mPerTripCache = new HashMap<>();
     private final SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> mSelectionBackedDatabaseAdapter;
@@ -49,7 +49,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
      * @return an {@link Observable} with: all objects assigned to this foreign key in descending order
      */
     @NonNull
-    protected final Observable<List<ModelType>> get(@NonNull Trip trip) {
+    public final Observable<List<ModelType>> get(@NonNull Trip trip) {
         return get(trip, true);
     }
 
@@ -61,7 +61,7 @@ abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends
      * @return an {@link Observable} with: all objects assigned to this foreign key in the desired order
      */
     @NonNull
-    protected synchronized Observable<List<ModelType>> get(@NonNull final Trip trip, final  boolean isDescending) {
+    public synchronized Observable<List<ModelType>> get(@NonNull final Trip trip, final  boolean isDescending) {
         return Observable.defer(new Func0<Observable<List<ModelType>>>() {
             @Override
             public Observable<List<ModelType>> call() {

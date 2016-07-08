@@ -26,13 +26,13 @@ public interface TableController<ModelType> {
     void unregisterListener(@NonNull TableEventsListener<ModelType> tableEventsListener);
 
     /**
-     * Retrieves list of all objects that are stored within this table. Please note that this is a blocking operation
+     * Retrieves list of all objects that are stored within this table.
      */
     @NonNull
     Subscription get();
 
     /**
-     * Inserts a new object of type {@link ModelType} into this table. Please note that this is a blocking operation
+     * Inserts a new object of type {@link ModelType} into this table.
      *
      * @param modelType the object to insert
      */
@@ -40,7 +40,7 @@ public interface TableController<ModelType> {
     Subscription insert(@NonNull ModelType modelType);
 
     /**
-     * Updates an existing object of type {@link ModelType} in this table. Please note that this is a blocking operation
+     * Updates an existing object of type {@link ModelType} in this table.
      *
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
@@ -49,7 +49,8 @@ public interface TableController<ModelType> {
     Subscription update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType);
 
     /**
-     * Removes an existing object of type {@link ModelType} from this table. Please note that this is a blocking operation
+     * Removes an existing object of type {@link ModelType} from this table.
+     *
      * @param modelType the object to remove
      */
     @NonNull

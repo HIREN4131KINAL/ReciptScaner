@@ -52,7 +52,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private DateManager mDateManager;
     private AutoCompleteAdapter mLocationAutoCompleteAdapter;
     private Date mSuggestedDate;
-    private DistanceTableController mRxDistanceTableController;
+    private DistanceTableController mDistanceTableController;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -111,7 +111,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
         mDB = app.getPersistenceManager().getDatabase();
-        mRxDistanceTableController = new DistanceTableController(app.getPersistenceManager());
+        mDistanceTableController = app.getTableControllerManager().getDistanceTableController();
         mPrefs = app.getPersistenceManager().getPreferences();
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mUpdateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
@@ -226,7 +226,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
-                mRxDistanceTableController.insert(builder.build());
+                mDistanceTableController.insert(builder.build());
             } else {
                 // We're updating
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), mUpdateableDistance.getDistance());
@@ -238,7 +238,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
-                mRxDistanceTableController.update(mUpdateableDistance, builder.build());
+                mDistanceTableController.update(mUpdateableDistance, builder.build());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {
             // Delete
@@ -248,7 +248,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             builder.setPositiveButton(R.string.delete, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    mRxDistanceTableController.delete(mUpdateableDistance);
+                    mDistanceTableController.delete(mUpdateableDistance);
                     dialog.dismiss();
                 }
             });

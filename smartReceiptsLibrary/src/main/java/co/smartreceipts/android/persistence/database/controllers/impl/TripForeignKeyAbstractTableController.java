@@ -56,9 +56,9 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
     }
 
     @Override
-    public synchronized void unsubscribe() {
+    public synchronized void unsubscribe(TableEventsListener<ModelType> tableEventsListener) {
         mForeignTableEventsListener = null;
-        super.unsubscribe();
+        super.unsubscribe(tableEventsListener);
     }
 
     /**

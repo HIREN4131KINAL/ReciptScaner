@@ -16,8 +16,8 @@ public interface TableController<ModelType> {
 
     /**
      * Removes a listener that was previously registered, so it will no longer receive events
-     **/
-    void unsubscribe();
+     */
+    void unsubscribe(@NonNull TableEventsListener<ModelType> tableEventsListener);
 
     /**
      * Retrieves list of all objects that are stored within this table.

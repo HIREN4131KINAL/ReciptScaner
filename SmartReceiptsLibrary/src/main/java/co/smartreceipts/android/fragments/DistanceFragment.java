@@ -103,7 +103,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        mRxDistanceTableController.unsubscribe();
+        mRxDistanceTableController.unsubscribe(this);
     }
 
     @Override

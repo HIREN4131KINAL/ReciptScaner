@@ -24,6 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -52,11 +53,19 @@ public class AbstractTableControllerTest {
     @Mock
     TableEventsListener<Object> mListener1;
 
+    @Mock
+    TableEventsListener<Object> mListener2;
+
+    @Mock
+    TableEventsListener<Object> mListener3;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mAbstractTableController = new AbstractTableControllerTestImpl(mTable, mTableActionAlterations, Schedulers.immediate(), Schedulers.immediate());
         mAbstractTableController.subscribe(mListener1);
+        mAbstractTableController.subscribe(mListener2);
+        mAbstractTableController.subscribe(mListener3);
     }
 
     @Test
@@ -65,22 +74,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
         when(mTable.get()).thenReturn(Observable.just(objects));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
         verify(mListener1).onGetSuccess(objects);
-    }
-
-    @Test
-    public void onGetSuccessAfterUnsubscribeAndResubscribe() throws Exception {
-        final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
-        when(mTable.get()).thenReturn(Observable.just(objects));
-
-        mAbstractTableController.unsubscribe();
-        mAbstractTableController.subscribe(mListener1);
-        mAbstractTableController.get();
-
-        verify(mListener1).onGetSuccess(objects);
+        verify(mListener3).onGetSuccess(objects);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -90,9 +89,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>error(e));
         when(mTable.get()).thenReturn(Observable.just(objects));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
         verify(mListener1).onGetFailure(e);
+        verify(mListener3).onGetFailure(e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -102,9 +104,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
         when(mTable.get()).thenReturn(Observable.<List<Object>>error(e));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
         verify(mListener1).onGetFailure(e);
+        verify(mListener3).onGetFailure(e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -114,9 +119,13 @@ public class AbstractTableControllerTest {
         when(mTable.get()).thenReturn(Observable.just(objects));
         doThrow(new Exception()).when(mTableActionAlterations).postGet(objects);
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
-        verify(mListener1).onGetFailure(any(Exception.class));
+        verify(mListener1).onGetFailure(any(Exception.class
+        ));
+        verify(mListener3).onGetFailure(any(Exception.class));
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -125,9 +134,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.just(insertItem));
         when(mTable.insert(insertItem)).thenReturn(Observable.just(insertItem));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem);
 
         verify(mListener1).onInsertSuccess(insertItem);
+        verify(mListener3).onInsertSuccess(insertItem);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -137,9 +149,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.error(e));
         when(mTable.insert(insertItem)).thenReturn(Observable.just(insertItem));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem);
 
         verify(mListener1).onInsertFailure(insertItem, e);
+        verify(mListener3).onInsertFailure(insertItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -149,9 +164,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.just(insertItem));
         when(mTable.insert(insertItem)).thenReturn(Observable.error(e));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem);
 
         verify(mListener1).onInsertFailure(insertItem, e);
+        verify(mListener3).onInsertFailure(insertItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -162,10 +180,13 @@ public class AbstractTableControllerTest {
         when(mTable.insert(insertItem)).thenReturn(Observable.just(insertItem));
         doThrow(e).when(mTableActionAlterations).postInsert(insertItem);
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
         verify(mListener1).onInsertFailure(eq(insertItem), any(Exception.class));
+        verify(mListener3).onInsertFailure(eq(insertItem), any(Exception.class));
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -175,9 +196,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
         when(mTable.update(oldItem, newItem)).thenReturn(Observable.just(newItem));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem);
 
         verify(mListener1).onUpdateSuccess(oldItem, newItem);
+        verify(mListener3).onUpdateSuccess(oldItem, newItem);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -188,9 +212,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.error(e));
         when(mTable.update(oldItem, newItem)).thenReturn(Observable.just(newItem));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem);
 
         verify(mListener1).onUpdateFailure(oldItem, e);
+        verify(mListener3).onUpdateFailure(oldItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -201,9 +228,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
         when(mTable.update(oldItem, newItem)).thenReturn(Observable.error(e));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem);
 
         verify(mListener1).onUpdateFailure(oldItem, e);
+        verify(mListener3).onUpdateFailure(oldItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -215,10 +245,13 @@ public class AbstractTableControllerTest {
         when(mTable.update(oldItem, newItem)).thenReturn(Observable.just(newItem));
         doThrow(e).when(mTableActionAlterations).postUpdate(oldItem, newItem);
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
         verify(mListener1).onUpdateFailure(eq(oldItem), any(Exception.class));
+        verify(mListener3).onUpdateFailure(eq(oldItem), any(Exception.class));
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -227,9 +260,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.just(deleteItem));
         when(mTable.delete(deleteItem)).thenReturn(Observable.just(true));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteItem);
 
         verify(mListener1).onDeleteSuccess(deleteItem);
+        verify(mListener3).onDeleteSuccess(deleteItem);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -239,9 +275,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.error(e));
         when(mTable.delete(deleteItem)).thenReturn(Observable.just(false));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteItem);
 
         verify(mListener1).onDeleteFailure(deleteItem, e);
+        verify(mListener3).onDeleteFailure(deleteItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -251,9 +290,12 @@ public class AbstractTableControllerTest {
         when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.just(deleteItem));
         when(mTable.delete(deleteItem)).thenReturn(Observable.<Boolean>error(e));
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteItem);
 
         verify(mListener1).onDeleteFailure(deleteItem, e);
+        verify(mListener3).onDeleteFailure(deleteItem, e);
+        verifyZeroInteractions(mListener2);
     }
 
     @Test
@@ -264,10 +306,13 @@ public class AbstractTableControllerTest {
         when(mTable.delete(deleteItem)).thenReturn(Observable.just(true));
         doThrow(e).when(mTableActionAlterations).postDelete(true, deleteItem);
 
+        mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteItem);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
         verify(mListener1).onDeleteFailure(eq(deleteItem), any(Exception.class));
+        verify(mListener3).onDeleteFailure(eq(deleteItem), any(Exception.class));
+        verifyZeroInteractions(mListener2);
     }
 
 }

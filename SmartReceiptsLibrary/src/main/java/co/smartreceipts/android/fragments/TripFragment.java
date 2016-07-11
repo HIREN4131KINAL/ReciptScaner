@@ -149,7 +149,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
-        mRxTripTableController.unsubscribe();
+        mRxTripTableController.unsubscribe(this);
         super.onPause();
     }
 

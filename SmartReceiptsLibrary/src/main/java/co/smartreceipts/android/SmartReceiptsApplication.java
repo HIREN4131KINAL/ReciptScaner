@@ -13,6 +13,7 @@ import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
@@ -26,6 +27,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
@@ -53,6 +55,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	private Activity mCurrentActivity;
 	private Settings mSettings;
 	private ConfigurationManager mConfigurationManager;
+    private TableControllerManager mTableControllerManager;
 	private boolean mDeferFirstRunDialog;
 
 	/**
@@ -80,6 +83,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mPersistenceManager.initDatabase(); // TODO: Fix anti-pattern
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
 																				// in onVersionUpgrade
+        mTableControllerManager = new TableControllerManager(mPersistenceManager);
 	}
 
     @Deprecated
@@ -150,14 +154,17 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return mCurrentActivity;
 	}
 
+    @NonNull
 	public WorkerManager getWorkerManager() {
 		return mWorkerManager;
 	}
 
+    @NonNull
 	public PersistenceManager getPersistenceManager() {
 		return mPersistenceManager;
 	}
 
+    @NonNull
 	public Flex getFlex() {
 		return mFlex;
 	}
@@ -170,9 +177,15 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return mSettings;
 	}
 
+    @NonNull
 	public ConfigurationManager getConfigurationManager() {
 		return mConfigurationManager;
 	}
+
+    @NonNull
+    public TableControllerManager getTableControllerManager() {
+        return mTableControllerManager;
+    }
 
 	@Override
 	public int getFleXML() {

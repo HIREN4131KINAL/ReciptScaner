@@ -65,7 +65,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     private Attachable mAttachable;
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
-    private TripTableController mRxTripTableController;
+    private TripTableController mTripTableController;
 
     public static TripFragment newInstance() {
         return new TripFragment();
@@ -87,7 +87,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
-        mRxTripTableController = new TripTableController(getPersistenceManager());
+        mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
     }
 
@@ -126,8 +126,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        mRxTripTableController.subscribe(this);
-        mRxTripTableController.get();
+        mTripTableController.subscribe(this);
+        mTripTableController.get();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -149,7 +149,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (mCostCenterAutoCompleteAdapter != null) {
             mCostCenterAutoCompleteAdapter.onPause();
         }
-        mRxTripTableController.unsubscribe(this);
+        mTripTableController.unsubscribe(this);
         super.onPause();
     }
 
@@ -315,7 +315,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                             .setCostCenter(costCenter)
                             .setDefaultCurrency(defaultCurrencyCode)
                             .build();
-                    mRxTripTableController.insert(insertTrip);
+                    mTripTableController.insert(insertTrip);
                     dialog.cancel();
                 } else { // Update
                     getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
@@ -328,7 +328,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                             .setCostCenter(costCenter)
                             .setDefaultCurrency(defaultCurrencyCode)
                             .build();
-                    mRxTripTableController.update(trip, updateTrip);
+                    mTripTableController.update(trip, updateTrip);
                     dialog.cancel();
                 }
             }
@@ -374,7 +374,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                mRxTripTableController.delete(trip);
+                mTripTableController.delete(trip);
             }
         }).setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
             @Override
@@ -486,7 +486,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 }
             }
         }
-        mRxTripTableController.get();
+        mTripTableController.get();
     }
 
     @Override

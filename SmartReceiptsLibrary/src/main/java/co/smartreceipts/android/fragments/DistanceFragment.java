@@ -34,7 +34,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     private View mProgressDialog;
     private TextView mNoDataAlert;
     private Distance mLastInsertedDistance;
-    private DistanceTableController mRxDistanceTableController;
+    private DistanceTableController mDistanceTableController;
 
     public static DistanceFragment newInstance(final Trip trip) {
         final DistanceFragment fragment = new DistanceFragment();
@@ -50,7 +50,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         Log.d(TAG, "onCreate");
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mRxDistanceTableController = new DistanceTableController(getPersistenceManager());
+        mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
         if (savedInstanceState ==  null) {
             getWorkerManager().getLogger().logEvent(this, "Edit_Mileage");
         }
@@ -86,8 +86,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        mRxDistanceTableController.subscribe(this);
-        mRxDistanceTableController.get(mTrip);
+        mDistanceTableController.subscribe(this);
+        mDistanceTableController.get(mTrip);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             // Refresh as soon as we're visible
-            mRxDistanceTableController.get(mTrip);
+            mDistanceTableController.get(mTrip);
         }
     }
 
@@ -103,7 +103,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        mRxDistanceTableController.unsubscribe(this);
+        mDistanceTableController.unsubscribe(this);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
                 }
             }
             // Fetch trips in the background to ensure this info is up to date
-            mRxDistanceTableController.get(mTrip);
+            mDistanceTableController.get(mTrip);
         }
     }
 
@@ -163,7 +163,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onInsertSuccess(@NonNull Distance distance) {
         if (isAdded()) {
-            mRxDistanceTableController.get(mTrip);
+            mDistanceTableController.get(mTrip);
         }
         mLastInsertedDistance = distance;
     }
@@ -176,7 +176,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance) {
         if (isAdded()) {
-            mRxDistanceTableController.get(mTrip);
+            mDistanceTableController.get(mTrip);
         }
     }
 
@@ -188,7 +188,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onDeleteSuccess(@NonNull Distance distance) {
         if (isAdded()) {
-            mRxDistanceTableController.get(mTrip);
+            mDistanceTableController.get(mTrip);
         }
     }
 

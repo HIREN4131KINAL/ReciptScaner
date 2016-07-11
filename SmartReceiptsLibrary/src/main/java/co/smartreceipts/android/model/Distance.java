@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Distance extends Parcelable, Priceable {
+public interface Distance extends Parcelable, Priceable, Comparable<Distance> {
 
     String PARCEL_KEY = Distance.class.getName();
     int RATE_PRECISION = 3;

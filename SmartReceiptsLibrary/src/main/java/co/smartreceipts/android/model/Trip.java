@@ -10,7 +10,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
 
-public interface Trip extends Parcelable, Priceable {
+public interface Trip extends Parcelable, Priceable, Comparable<Trip> {
 
     String PARCEL_KEY = Trip.class.getName();
 

@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
@@ -53,8 +54,6 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
         mPrimaryKey = Preconditions.checkNotNull(primaryKey);
         mOrderBy = Preconditions.checkNotNull(orderBy);
     }
-
-    // TripsTable.COLUMN_TO + " DESC"
 
     public final SQLiteDatabase getReadableDatabase() {
         if (initialNonRecursivelyCalledDatabase == null) {
@@ -209,6 +208,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
                     final ModelType insertedItem = mDatabaseAdapter.build(modelType, autoIncrementPrimaryKey);
                     if (mCachedResults != null) {
                         mCachedResults.add(insertedItem);
+                        if (insertedItem instanceof Comparable<?>) {
+                            Collections.sort((List<? extends Comparable>)mCachedResults);
+                        }
                     }
                     return insertedItem;
                 } finally { // Close the cursor and db to avoid memory leaks
@@ -221,6 +223,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
                 final ModelType insertedItem = mDatabaseAdapter.build(modelType, mPrimaryKey);
                 if (mCachedResults != null) {
                     mCachedResults.add(insertedItem);
+                    if (insertedItem instanceof Comparable<?>) {
+                        Collections.sort((List<? extends Comparable>)mCachedResults);
+                    }
                 }
                 return insertedItem;
             }
@@ -252,6 +257,9 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
             if (mCachedResults != null) {
                 mCachedResults.remove(oldModelType);
                 mCachedResults.add(updatedItem);
+                if (updatedItem instanceof Comparable<?>) {
+                    Collections.sort((List<? extends Comparable>)mCachedResults);
+                }
             }
             return updatedItem;
         } else {

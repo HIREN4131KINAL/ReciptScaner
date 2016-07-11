@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
@@ -320,5 +321,18 @@ public class DefaultTripImpl implements Trip {
         }
 
     };
+
+    @Override
+    public int compareTo(@NonNull Trip trip) {
+        if (trip.getEndDate() != null) {
+            return trip.getEndDate().compareTo(mEndDate);
+        } else {
+            if (mEndDate != null) {
+                return mEndDate.compareTo(null);
+            } else {
+                return 0;
+            }
+        }
+    }
 
 }

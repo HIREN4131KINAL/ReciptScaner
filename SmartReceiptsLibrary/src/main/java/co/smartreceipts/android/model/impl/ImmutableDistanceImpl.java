@@ -233,4 +233,17 @@ public final class ImmutableDistanceImpl implements Distance {
 
         return true;
     }
+
+    @Override
+    public int compareTo(@NonNull Distance distance) {
+        if (distance.getDate() != null) {
+            return distance.getDate().compareTo(mDate);
+        } else {
+            if (mDate != null) {
+                return mDate.compareTo(null);
+            } else {
+                return 0;
+            }
+        }
+    }
 }

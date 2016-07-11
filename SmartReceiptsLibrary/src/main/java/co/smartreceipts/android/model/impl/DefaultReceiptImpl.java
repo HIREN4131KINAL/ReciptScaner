@@ -15,6 +15,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
@@ -410,4 +411,8 @@ public final class DefaultReceiptImpl implements Receipt {
 
     };
 
+    @Override
+    public int compareTo(@NonNull Receipt receipt) {
+        return receipt.getDate().compareTo(mDate);
+    }
 }

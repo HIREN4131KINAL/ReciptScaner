@@ -9,7 +9,7 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Receipt extends Parcelable, Priceable {
+public interface Receipt extends Parcelable, Priceable, Comparable<Receipt> {
 
     String PARCEL_KEY = Receipt.class.getName();
 

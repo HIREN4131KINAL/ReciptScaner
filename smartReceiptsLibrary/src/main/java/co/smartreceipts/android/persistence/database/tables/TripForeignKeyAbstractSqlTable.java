@@ -117,6 +117,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         return results;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     protected final synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
@@ -126,11 +127,15 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             if (mPerTripCache.containsKey(trip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(trip);
                 perTripResults.add(insertedItem);
+                if (insertedItem instanceof Comparable<?>) {
+                    Collections.sort((List<? extends Comparable>)perTripResults);
+                }
             }
         }
         return insertedItem;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     protected final synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
@@ -146,6 +151,9 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             if (mPerTripCache.containsKey(newTrip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(newTrip);
                 perTripResults.add(updatedItem);
+                if (updatedItem instanceof Comparable<?>) {
+                    Collections.sort((List<? extends Comparable>)perTripResults);
+                }
             }
         }
         return updatedItem;

@@ -40,7 +40,6 @@ public class ReceiptsFragment extends WBListFragment {
 
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null && getUserVisibleHint()) {
-            actionBar.setTitle(mCurrentTrip.getPrice().getCurrencyFormattedPrice() + " - " + mCurrentTrip.getName());
             if (updateSubtitle) {
                 if (getPersistenceManager().getPreferences().isShowReceiptID()) {
                     actionBar.setSubtitle(getString(R.string.next_id, getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdSerial()));

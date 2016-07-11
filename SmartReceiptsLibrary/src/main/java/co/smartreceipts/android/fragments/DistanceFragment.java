@@ -140,9 +140,6 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
                     getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, ModelUtils.getDecimalFormattedValue(distanceTotal)));
                 }
             }
-            // Fetch trips in the background to ensure this info is up to date
-            // TODO: Move this call upstream
-            getSmartReceiptsApplication().getTableControllerManager().getTripTableController().get();
         }
     }
 
@@ -163,7 +160,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
     @Override
     public void onInsertSuccess(@NonNull Distance distance) {
-        if (isAdded()) {
+        if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
         mLastInsertedDistance = distance;
@@ -176,7 +173,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
     @Override
     public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance) {
-        if (isAdded()) {
+        if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
     }
@@ -188,7 +185,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
     @Override
     public void onDeleteSuccess(@NonNull Distance distance) {
-        if (isAdded()) {
+        if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
     }

@@ -24,7 +24,7 @@ public class TableControllerManager {
     public TableControllerManager(@NonNull PersistenceManager persistenceManager) {
         Preconditions.checkNotNull(persistenceManager);
         mTripTableController = new TripTableController(persistenceManager);
-        mDistanceTableController = new DistanceTableController(persistenceManager);
+        mDistanceTableController = new DistanceTableController(persistenceManager, mTripTableController);
         mCategoriesTableController = new CategoriesTableController(persistenceManager);
         mCSVTableController = new CSVTableController(persistenceManager);
         mPDFTableController = new PDFTableController(persistenceManager);

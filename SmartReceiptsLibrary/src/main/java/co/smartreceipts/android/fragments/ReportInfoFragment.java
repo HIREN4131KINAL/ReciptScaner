@@ -1,34 +1,30 @@
 package co.smartreceipts.android.fragments;
 
 import android.content.Intent;
-import android.database.SQLException;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.astuetz.PagerSlidingTabStrip;
 
-import java.io.File;
+import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.LastTripController;
+import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 
 public class ReportInfoFragment extends WBFragment {
 
@@ -36,8 +32,9 @@ public class ReportInfoFragment extends WBFragment {
 
     private NavigationHandler mNavigationHandler;
     private LastTripController mLastTripController;
-    private FragmentPagerAdapter mFragmentPagerAdapter;
+    private TripFragmentPagerAdapter mFragmentPagerAdapter;
     private Trip mTrip;
+    private ActionBarTitleUpdatesListener mActionBarTitleUpdatesListener;
 
     private ViewPager mViewPager;
     private PagerSlidingTabStrip mPagerSlidingTabStrip;
@@ -67,6 +64,7 @@ public class ReportInfoFragment extends WBFragment {
             }
         }
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), mTrip, getConfigurationManager());
+        mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
     }
 
 
@@ -137,12 +135,44 @@ public class ReportInfoFragment extends WBFragment {
                 actionBar.setDisplayHomeAsUpEnabled(false);
             }
         }
+        updateActionBarTitlePrice();
+        getSmartReceiptsApplication().getTableControllerManager().getTripTableController().subscribe(mActionBarTitleUpdatesListener);
     }
 
     @Override
     public void onPause() {
+        getSmartReceiptsApplication().getTableControllerManager().getTripTableController().unsubscribe(mActionBarTitleUpdatesListener);
         mLastTripController.setLastTrip(mTrip);
         super.onPause();
+    }
+
+    private class ActionBarTitleUpdatesListener extends StubTableEventsListener<Trip> {
+
+        @Override
+        public void onGetSuccess(@NonNull List<Trip> list) {
+            if (isAdded()) {
+                if (list.contains(mTrip)) {
+                    updateActionBarTitlePrice();
+                }
+            }
+        }
+
+        @Override
+        public void onUpdateSuccess(@NonNull Trip oldTrip, @NonNull Trip newTrip) {
+            if (isAdded()) {
+                if (mTrip.equals(oldTrip)) {
+                    mTrip = newTrip;
+                    mFragmentPagerAdapter.notifyDataSetChanged(mTrip);
+                }
+            }
+        }
+    }
+
+    private void updateActionBarTitlePrice() {
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(mTrip.getPrice().getCurrencyFormattedPrice() + " - " + mTrip.getName());
+        }
     }
 
 }

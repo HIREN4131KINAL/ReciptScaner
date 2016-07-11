@@ -141,7 +141,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
                 }
             }
             // Fetch trips in the background to ensure this info is up to date
-            mDistanceTableController.get(mTrip);
+            // TODO: Move this call upstream
+            getSmartReceiptsApplication().getTableControllerManager().getTripTableController().get();
         }
     }
 

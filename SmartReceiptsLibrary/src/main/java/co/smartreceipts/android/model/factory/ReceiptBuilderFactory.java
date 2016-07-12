@@ -24,7 +24,7 @@ import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Receipt} objects
  */
-public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
+public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
 
     private static final int UNKNOWN_ID = -1;
 

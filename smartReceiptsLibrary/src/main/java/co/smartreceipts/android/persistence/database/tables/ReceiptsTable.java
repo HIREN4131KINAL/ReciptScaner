@@ -22,7 +22,7 @@ import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryK
 /**
  * Stores all database operations related to the {@link Receipt} model objects
  */
-public final class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integer> {
+public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integer> {
 
     // SQL Definitions:
     public static final String TABLE_NAME = "receipts";

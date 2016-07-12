@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 /**
  * A contract definition by which we can track receipt categories
  */
-public interface Category extends Parcelable {
+public interface Category extends Parcelable, Comparable<Category> {
 
     /**
      * @return the full-name representation of this category

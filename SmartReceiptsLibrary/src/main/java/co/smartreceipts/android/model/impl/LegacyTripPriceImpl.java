@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 
 import co.smartreceipts.android.model.WBCurrency;
@@ -22,6 +23,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
+    private static final int ROUNDING_PRECISION = PRECISION + 2;
+
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
@@ -33,7 +36,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
      * @param currency the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
      */
     public LegacyTripPriceImpl(@NonNull BigDecimal price, @Nullable WBCurrency currency) {
-        mPrice = price;
+        mPrice = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mCurrency = currency;
         mExchangeRate = new ExchangeRateBuilderFactory().build();
     }

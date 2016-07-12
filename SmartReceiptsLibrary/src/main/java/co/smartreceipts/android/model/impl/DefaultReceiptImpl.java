@@ -341,33 +341,65 @@ public final class DefaultReceiptImpl implements Receipt {
         return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "id => "
                 + getId() + "; \n" + "name => " + getName() + "; \n" + "category =>" + getCategory() + "; \n"
                 + "comment =>" + getComment() + "; \n" + "price =>" + getPrice() + "; \n" + "tax =>" + getTax()
-                + "; \n" + "filePath =>" + getFilePath() + "; \n" + "; \n"
+                + "; \n" + "filePath =>" + getFilePath() + "; \n"
                 + "date =>" + getDate().toGMTString() + "; \n" + "isExpensable =>" + isExpensable() + "; \n"
                 + "isFullPage =>" + isFullPage() + "; \n" + "extraEditText1 =>" + getExtraEditText1() + "; \n"
                 + "extraEditText2 =>" + getExtraEditText2() + "; \n" + "extraEditText3 =>" + getExtraEditText3() + "]";
     }
 
     @Override
-    public int hashCode() {
-        return 31 * mId;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DefaultReceiptImpl)) return false;
+
+        DefaultReceiptImpl that = (DefaultReceiptImpl) o;
+
+        if (mId != that.mId) return false;
+        if (mIndex != that.mIndex) return false;
+        if (mIsExpensable != that.mIsExpensable) return false;
+        if (mIsFullPage != that.mIsFullPage) return false;
+        if (!mTrip.equals(that.mTrip)) return false;
+        if (mPaymentMethod != null ? !mPaymentMethod.equals(that.mPaymentMethod) : that.mPaymentMethod != null)
+            return false;
+        if (!mName.equals(that.mName)) return false;
+        if (!mComment.equals(that.mComment)) return false;
+        if (!mCategory.equals(that.mCategory)) return false;
+        if (!mPrice.equals(that.mPrice)) return false;
+        if (!mTax.equals(that.mTax)) return false;
+        if (!mDate.equals(that.mDate)) return false;
+        if (!mTimeZone.equals(that.mTimeZone)) return false;
+        if (mSource != that.mSource) return false;
+        if (mExtraEditText1 != null ? !mExtraEditText1.equals(that.mExtraEditText1) : that.mExtraEditText1 != null)
+            return false;
+        if (mExtraEditText2 != null ? !mExtraEditText2.equals(that.mExtraEditText2) : that.mExtraEditText2 != null)
+            return false;
+        if (mExtraEditText3 != null ? !mExtraEditText3.equals(that.mExtraEditText3) : that.mExtraEditText3 != null)
+            return false;
+        return mFile != null ? mFile.equals(that.mFile) : that.mFile == null;
+
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultReceiptImpl other = (DefaultReceiptImpl) obj;
-        if (mId != other.mId) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        int result = mId;
+        result = 31 * result + mTrip.hashCode();
+        result = 31 * result + (mPaymentMethod != null ? mPaymentMethod.hashCode() : 0);
+        result = 31 * result + mIndex;
+        result = 31 * result + mName.hashCode();
+        result = 31 * result + mComment.hashCode();
+        result = 31 * result + mCategory.hashCode();
+        result = 31 * result + mPrice.hashCode();
+        result = 31 * result + mTax.hashCode();
+        result = 31 * result + mDate.hashCode();
+        result = 31 * result + mTimeZone.hashCode();
+        result = 31 * result + (mIsExpensable ? 1 : 0);
+        result = 31 * result + (mIsFullPage ? 1 : 0);
+        result = 31 * result + mSource.hashCode();
+        result = 31 * result + (mExtraEditText1 != null ? mExtraEditText1.hashCode() : 0);
+        result = 31 * result + (mExtraEditText2 != null ? mExtraEditText2.hashCode() : 0);
+        result = 31 * result + (mExtraEditText3 != null ? mExtraEditText3.hashCode() : 0);
+        result = 31 * result + (mFile != null ? mFile.hashCode() : 0);
+        return result;
     }
 
     @Override

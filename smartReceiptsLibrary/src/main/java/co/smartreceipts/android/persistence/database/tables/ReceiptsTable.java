@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.io.File;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -49,8 +50,8 @@ public final class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt,
 
     private final String mDefaultCurrencyCode;
 
-    public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull PersistenceManager persistenceManager) {
-        super(sqLiteOpenHelper, TABLE_NAME, new ReceiptDatabaseAdapter(tripsTable, paymentMethodTable, persistenceManager), new ReceiptPrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
+    public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull Table<Category, String> categoryTable, @NonNull PersistenceManager persistenceManager) {
+        super(sqLiteOpenHelper, TABLE_NAME, new ReceiptDatabaseAdapter(tripsTable, paymentMethodTable, categoryTable, persistenceManager), new ReceiptPrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
         mDefaultCurrencyCode = persistenceManager.getPreferences().getDefaultCurreny();
     }
 

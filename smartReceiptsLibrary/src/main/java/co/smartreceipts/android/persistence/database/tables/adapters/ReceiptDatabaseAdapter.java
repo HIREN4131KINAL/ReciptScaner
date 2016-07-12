@@ -12,6 +12,7 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.math.BigDecimal;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
@@ -19,6 +20,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
@@ -35,15 +37,19 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
 
     private final Table<Trip, String> mTripsTable;
     private final Table<PaymentMethod, Integer> mPaymentMethodTable;
+    private final Table<Category, String> mCategoriesTable;
     private final StorageManager mStorageManager;
 
-    public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull PersistenceManager persistenceManager) {
-        this(tripsTable, paymentMethodTable, Preconditions.checkNotNull(persistenceManager).getStorageManager());
+    public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
+                                  @NonNull Table<Category, String> categoriesTable, @NonNull PersistenceManager persistenceManager) {
+        this(tripsTable, paymentMethodTable, categoriesTable, Preconditions.checkNotNull(persistenceManager).getStorageManager());
     }
 
-    public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull StorageManager storageManager) {
+    public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
+                                  @NonNull Table<Category, String> categoriesTable, @NonNull StorageManager storageManager) {
         mTripsTable = Preconditions.checkNotNull(tripsTable);
         mPaymentMethodTable = Preconditions.checkNotNull(paymentMethodTable);
+        mCategoriesTable = Preconditions.checkNotNull(categoriesTable);
         mStorageManager = Preconditions.checkNotNull(storageManager);
     }
 
@@ -96,19 +102,19 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final boolean expensable = cursor.getInt(expenseableIndex) > 0;
         final String currency = cursor.getString(currencyIndex);
         final boolean fullpage = !(cursor.getInt(fullpageIndex) > 0);
-        final int paymentMethodId = cursor.getInt(paymentMethodIdIndex); // Not using a join, since we need
+        final int paymentMethodId = cursor.getInt(paymentMethodIdIndex); // TODO: How to use JOINs w/o blocking
         final String extra_edittext_1 = cursor.getString(extra_edittext_1_Index);
         final String extra_edittext_2 = cursor.getString(extra_edittext_2_Index);
         final String extra_edittext_3 = cursor.getString(extra_edittext_3_Index);
-        File img = null;
+        File file = null;
         if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
-            img = mStorageManager.getFile(trip.getDirectory(), path);
+            file = mStorageManager.getFile(trip.getDirectory(), path);
         }
         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
         builder.setTrip(trip)
                 .setName(name)
-                .setCategory(category)
-                .setImage(img)
+                .setCategory(mCategoriesTable.findByPrimaryKey(category).toBlocking().first())
+                .setFile(file)
                 .setDate(date)
                 .setTimeZone(timezone)
                 .setComment(comment)
@@ -169,9 +175,11 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !receipt.isFullPage());
 
         // Add file
-        File file = renameFile(receipt.getFile());
+        final File file = receipt.getFile();
         if (file != null) {
             values.put(ReceiptsTable.COLUMN_PATH, file.getName());
+        } else {
+            values.put(ReceiptsTable.COLUMN_PATH, (String) null);
         }
 
         // Add payment method if one exists
@@ -181,10 +189,12 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
 
         // Note: We replace the commas here with decimals to avoid database bugs around parsing decimal values
         // TODO: Ensure this logic works for prices like "1,234.56"
-        // TODO: Check if we can use doubleValue going forward like distance does here
-        values.put(ReceiptsTable.COLUMN_PRICE, receipt.getPrice().getDecimalFormattedPrice().replace(",", "."));
-        values.put(ReceiptsTable.COLUMN_TAX, receipt.getTax().getDecimalFormattedPrice().replace(",", "."));
-        values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, receipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(receipt.getTrip().getDefaultCurrencyCode()).replace(",", "."));
+        values.put(ReceiptsTable.COLUMN_PRICE, receipt.getPrice().getPrice().doubleValue());
+        values.put(ReceiptsTable.COLUMN_TAX, receipt.getTax().getPrice().doubleValue());
+        final BigDecimal exchangeRate = receipt.getPrice().getExchangeRate().getExchangeRate(receipt.getTrip().getDefaultCurrencyCode());
+        if (exchangeRate != null) {
+            values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, exchangeRate.doubleValue());
+        }
 
         // Add extras
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
@@ -200,29 +210,5 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         return new ReceiptBuilderFactory(primaryKey.getPrimaryKeyValue(receipt), receipt).build();
     }
 
-    @Nullable
-    private File renameFile(@Nullable File file) {
-        /**
-         *         final int rcptNum = this.getReceiptsSerial(receipt.getTrip()).size() + 1; // Use this to order things more properly
-
-         * final StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
-         * stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
-        File file = receipt.getFile();
-        if (file != null) {
-            stringBuilder.append('.').append(StorageManager.getExtension(receipt.getFile()));
-            final String newName = stringBuilder.toString();
-            File renamedFile = mPersistenceManager.getStorageManager().getFile(receipt.getTrip().getDirectory(), newName);
-            if (!renamedFile.exists()) { // If this file doesn't exist, let's rename our current one
-                Log.e(TAG, "Changing image name from: " + receipt.getFile().getName() + " to: " + newName);
-                file = mPersistenceManager.getStorageManager().rename(file, newName); // Returns oldFile on failure
-            }
-            values.put(ReceiptsTable.COLUMN_PATH, file.getName());
-        }
-         */
-        if (file == null) {
-            return null;
-        }
-        throw new UnsupportedOperationException("Todo: Determine where the file renaming should take place...");
-    }
 
 }

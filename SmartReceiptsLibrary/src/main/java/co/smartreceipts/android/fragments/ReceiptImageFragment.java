@@ -37,7 +37,6 @@ import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.legacycamera.MyCameraActivity;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.workers.ImageGalleryWorker;
 import wb.android.google.camera.Util;
@@ -181,24 +180,6 @@ public class ReceiptImageFragment extends WBFragment {
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, "Unrecognized Request Code: " + requestCode);
                     }
-                    super.onActivityResult(requestCode, resultCode, data);
-                    break;
-            }
-        } else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) { // 51
-            switch (requestCode) {
-                case RETAKE_PHOTO_CAMERA_REQUEST:
-                    File retakeImg = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-                    final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mReceipt, retakeImg);
-                    if (retakeReceipt != null) {
-                        mImageView.setImageBitmap(BitmapFactory.decodeFile(mReceipt.getImage().getAbsolutePath()));
-                    } else {
-                        Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-                        // Add overwrite rollback here
-                        return;
-                    }
-                    break;
-                default:
-                    Log.e(TAG, "Unrecognized Request Code: " + requestCode);
                     super.onActivityResult(requestCode, resultCode, data);
                     break;
             }

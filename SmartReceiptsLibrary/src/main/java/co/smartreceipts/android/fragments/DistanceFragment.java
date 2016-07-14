@@ -93,7 +93,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
+        if (getView() != null && isVisibleToUser) {
             // Refresh as soon as we're visible
             mDistanceTableController.get(mTrip);
         }

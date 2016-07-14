@@ -115,17 +115,10 @@ public class ReceiptImageFragment extends WBFragment {
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
                     startActivityForResult(intent, NATIVE_RETAKE_PHOTO_CAMERA_REQUEST);
                 } else {
-                    if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                        final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                        mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                        startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
-                    } else {
-                        final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                        String[] strings = new String[]{mReceiptPath, mReceipt.getImage().getName()};
-                        intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                        startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
-                    }
+                    final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
+                    mImageUri = Uri.fromFile(new File(mReceiptPath, mReceipt.getImage().getName()));
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+                    startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
                 }
             }
         });

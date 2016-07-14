@@ -675,11 +675,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             builderFactory.setFile(mFile);
             getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Insert_Receipt");
-            getPersistenceManager().getDatabase().insertReceiptParallel(builderFactory.build());
+            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build());
             getDateManager().setDateEditTextListenerDialogHolder(null);
         } else {
             getWorkerManager().getLogger().logEvent(ReceiptCreateEditFragment.this, "Update_Receipt");
-            getPersistenceManager().getDatabase().updateReceiptParallel(mReceipt, builderFactory.build());
+            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, builderFactory.build());
             getDateManager().setDateEditTextListenerDialogHolder(null);
         }
 

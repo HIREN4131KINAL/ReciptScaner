@@ -31,23 +31,25 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     private final ReceiptTableActionAlterations mReceiptTableActionAlterations;
     private final CopyOnWriteArrayList<ReceiptTableEventsListener> mReceiptTableEventsListeners = new CopyOnWriteArrayList<>();
 
-    public ReceiptTableController(@NonNull PersistenceManager persistenceManager) {
-        this(Preconditions.checkNotNull(persistenceManager.getDatabase().getReceiptsTable()), Preconditions.checkNotNull(persistenceManager.getStorageManager()));
+    public ReceiptTableController(@NonNull PersistenceManager persistenceManager, @NonNull TripTableController tripTableController) {
+        this(Preconditions.checkNotNull(persistenceManager.getDatabase().getReceiptsTable()), Preconditions.checkNotNull(persistenceManager.getStorageManager()), tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager) {
-        this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager));
+    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull TripTableController tripTableController) {
+        this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager), tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations) {
+    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull TripTableController tripTableController) {
         super(receiptsTable, receiptTableActionAlterations);
-        mReceiptTableActionAlterations = receiptTableActionAlterations;
+        mReceiptTableActionAlterations = Preconditions.checkNotNull(receiptTableActionAlterations);
+        subscribe(new ReceiptRefreshTripPricesListener(Preconditions.checkNotNull(tripTableController)));
     }
 
-    ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations,
+    ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull TripTableController tripTableController,
                            @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
         super(receiptsTable, receiptTableActionAlterations, subscribeOnScheduler, observeOnScheduler);
-        mReceiptTableActionAlterations = receiptTableActionAlterations;
+        mReceiptTableActionAlterations = Preconditions.checkNotNull(receiptTableActionAlterations);
+        subscribe(new ReceiptRefreshTripPricesListener(Preconditions.checkNotNull(tripTableController)));
     }
 
     @Override

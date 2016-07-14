@@ -19,7 +19,7 @@ import co.smartreceipts.android.persistence.database.controllers.TableEventsList
  */
 class RefreshTripPricesListener<ModelType> implements TableEventsListener<ModelType> {
 
-    private final TableController<Trip> mTripTableController;
+    protected final TableController<Trip> mTripTableController;
 
     public RefreshTripPricesListener(@NonNull TableController<Trip> tripTableController) {
         mTripTableController = Preconditions.checkNotNull(tripTableController);

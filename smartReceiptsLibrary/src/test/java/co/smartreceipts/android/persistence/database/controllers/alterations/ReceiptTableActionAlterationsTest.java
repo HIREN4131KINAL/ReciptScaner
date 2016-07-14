@@ -29,10 +29,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
-
 
 @RunWith(RobolectricGradleTestRunner.class)
 public class ReceiptTableActionAlterationsTest {
@@ -144,11 +144,27 @@ public class ReceiptTableActionAlterationsTest {
     }
 
     @Test
-    public void postUpdateSuccessWithFile() throws Exception {
+    public void postUpdateSuccessWithSameFile() throws Exception {
+        final Receipt updatedReceipt = mock(Receipt.class);
         final File file = new File("abc");
         when(mReceipt.hasFile()).thenReturn(true);
+        when(updatedReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getFile()).thenReturn(file);
-        mReceiptTableActionAlterations.postUpdate(mReceipt, mock(Receipt.class));
+        when(updatedReceipt.getFile()).thenReturn(file);
+        mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt);
+        verify(mStorageManager, never()).delete(file);
+    }
+
+    @Test
+    public void postUpdateSuccessWithNewFile() throws Exception {
+        final Receipt updatedReceipt = mock(Receipt.class);
+        final File file = new File("abc");
+        final File newFile = new File("efg");
+        when(mReceipt.hasFile()).thenReturn(true);
+        when(updatedReceipt.hasFile()).thenReturn(true);
+        when(mReceipt.getFile()).thenReturn(file);
+        when(updatedReceipt.getFile()).thenReturn(newFile);
+        mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt);
         verify(mStorageManager).delete(file);
     }
 

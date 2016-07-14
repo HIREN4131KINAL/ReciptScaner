@@ -86,8 +86,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.get();
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
@@ -98,6 +96,8 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
@@ -144,8 +144,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.insert(insertModelType);
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -156,6 +154,8 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -202,8 +202,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.update(oldModelType, modelType);
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -214,6 +212,8 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<ModelType>() {
                     @Override
                     public void call(ModelType modelType) {
@@ -260,8 +260,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.delete(modelType);
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean success) {
@@ -272,6 +270,8 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean success) {

@@ -31,8 +31,8 @@ import rx.functions.Func1;
  */
 public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTableController<ModelType> {
 
-    private final TripForeignKeyAbstractSqlTable<ModelType, ?> mTripForeignKeyTable;
     private final CopyOnWriteArrayList<TripForeignKeyTableEventsListener<ModelType>> mForeignTableEventsListeners = new CopyOnWriteArrayList<>();
+    protected final TripForeignKeyAbstractSqlTable<ModelType, ?> mTripForeignKeyTable;
 
     public TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table) {
         super(table);
@@ -91,8 +91,6 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                         return mTripForeignKeyTable.get(trip, isDescending);
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
                 .doOnNext(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
@@ -103,6 +101,8 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                         }
                     }
                 })
+                .subscribeOn(mSubscribeOnScheduler)
+                .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {

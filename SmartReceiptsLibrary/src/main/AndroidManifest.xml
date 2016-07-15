@@ -43,14 +43,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/smr" android:pathPattern=".*\\.smr"  android:host="*" />
+                <data android:mimeType="application/smr" android:pathPattern=".*\\.smr"  android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError" />
             </intent-filter>
 
             <!-- This seems to be the "key" one for SMRs -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/octet-stream" android:pathPattern=".*\\.smr" android:host="*" />
+                <data android:mimeType="application/octet-stream" android:pathPattern=".*\\.smr" android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError"/>
             </intent-filter>
 
             <!-- Filter to open with file browser -->
@@ -60,43 +62,25 @@
                 <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.smr" android:host="*" />
             </intent-filter>
 
-            <!-- Filter to open with file browser (when filename contains period) -->
-            <!-- http://stackoverflow.com/questions/3400072/pathpattern-to-match-file-extension-does-not-work-if-a-period-exists-elsewhere-i/8599921#8599921 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\..*\\.smr" android:host="*" />
-            </intent-filter>
-
-            <!-- Filter to open with file browser (when filename contains two periods) -->
-            <!-- http://stackoverflow.com/questions/3400072/pathpattern-to-match-file-extension-does-not-work-if-a-period-exists-elsewhere-i/8599921#8599921 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\..*\\..*\\.smr" android:host="*" />
-            </intent-filter>
-
             <!-- PDF Filters are all listed below -->
             <!-- http://stackoverflow.com/questions/3760276/android-intent-filter-associate-app-with-file-extension  -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/pdf" android:pathPattern=".*\\.pdf"  android:host="*" />
+                <data android:mimeType="application/pdf" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" android:pathPattern=".*\\.pdf" android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError" />
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.pdf" android:host="*" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\..*\\.pdf" android:host="*" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\..*\\..*\\.pdf" android:host="*" />
             </intent-filter>
 
         </activity>

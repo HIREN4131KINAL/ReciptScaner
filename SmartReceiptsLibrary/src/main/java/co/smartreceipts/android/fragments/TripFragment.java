@@ -173,7 +173,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 if (data != null) {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
                             getContext().getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
                         }
                     } catch (SecurityException e) {

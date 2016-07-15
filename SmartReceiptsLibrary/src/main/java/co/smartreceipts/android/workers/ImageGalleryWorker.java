@@ -230,10 +230,11 @@ public class ImageGalleryWorker extends WorkerChild {
         if (data != null) {
             // Check for the freshest data for KK
             try {
-                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 mWorkerManager.getApplication().getContentResolver().takePersistableUriPermission(photoUri, takeFlags);
             } catch (SecurityException e) {
                 Log.e(TAG, "Caught import security exception. Swallowing", e);
+                return null;
             }
         }
 

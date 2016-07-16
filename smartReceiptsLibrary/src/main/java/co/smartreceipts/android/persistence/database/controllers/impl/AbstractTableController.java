@@ -35,7 +35,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     protected final String TAG = getClass().getSimpleName();
 
     private final Table<ModelType, ?> mTable;
-    private final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
+    protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
     protected final Scheduler mSubscribeOnScheduler;
     protected final Scheduler mObserveOnScheduler;

@@ -14,6 +14,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.comparators.ColumnNameComparator;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.SettingUserIdColumn;
@@ -117,7 +118,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
                 columns.add(column);
             }
         }
-        Collections.sort(columns);
+        Collections.sort(columns, new ColumnNameComparator<AbstractColumnImpl<Receipt>>());
         return new ArrayList<Column<Receipt>>(columns);
     }
 

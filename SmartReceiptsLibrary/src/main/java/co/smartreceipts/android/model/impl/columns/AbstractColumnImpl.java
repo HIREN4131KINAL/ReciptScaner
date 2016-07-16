@@ -44,7 +44,7 @@ public abstract class AbstractColumnImpl<T> implements Column<T>, Comparable<Abs
 
     @Override
     public int compareTo(@NonNull AbstractColumnImpl<T> otherColumn) {
-        return getName().compareTo(otherColumn.getName());
+        return getId() - otherColumn.getId();
     }
 
     @Override

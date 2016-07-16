@@ -83,7 +83,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mPersistenceManager.initDatabase(); // TODO: Fix anti-pattern
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
 																				// in onVersionUpgrade
-        mTableControllerManager = new TableControllerManager(mPersistenceManager);
+        mTableControllerManager = new TableControllerManager(mPersistenceManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
 	}
 
     @Deprecated

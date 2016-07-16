@@ -23,7 +23,7 @@ import rx.functions.Func1;
  * Since our CSV and PDF tables share almost all of the same logic, this class purely acts as a wrapper around
  * each to centralize where all logic is managed
  */
-abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Integer> {
+public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Integer> {
 
     private static final String TAG = AbstractColumnTable.class.getSimpleName();
 

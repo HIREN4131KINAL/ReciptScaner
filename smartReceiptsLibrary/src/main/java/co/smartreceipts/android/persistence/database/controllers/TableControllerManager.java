@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.model.ColumnDefinitions;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.CSVTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
@@ -23,14 +25,16 @@ public class TableControllerManager {
     private final PDFTableController mPDFTableController;
     private final PaymentMethodsTableController mPaymentMethodsTableController;
 
-    public TableControllerManager(@NonNull PersistenceManager persistenceManager) {
+    public TableControllerManager(@NonNull PersistenceManager persistenceManager, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         Preconditions.checkNotNull(persistenceManager);
+        Preconditions.checkNotNull(receiptColumnDefinitions);
+
         mTripTableController = new TripTableController(persistenceManager);
         mReceiptTableController = new ReceiptTableController(persistenceManager, mTripTableController);
         mDistanceTableController = new DistanceTableController(persistenceManager, mTripTableController);
         mCategoriesTableController = new CategoriesTableController(persistenceManager);
-        mCSVTableController = new CSVTableController(persistenceManager);
-        mPDFTableController = new PDFTableController(persistenceManager);
+        mCSVTableController = new CSVTableController(persistenceManager, receiptColumnDefinitions);
+        mPDFTableController = new PDFTableController(persistenceManager, receiptColumnDefinitions);
         mPaymentMethodsTableController = new PaymentMethodsTableController(persistenceManager);
     }
 

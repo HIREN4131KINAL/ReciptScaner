@@ -71,8 +71,10 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
             Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
             return;
         }
-        if (getPersistenceManager().getDatabase().getReceiptsSerial(mTrip).isEmpty()) {
-            if (getPersistenceManager().getDatabase().getDistanceSerial(mTrip).isEmpty() || !mPdfFullCheckbox.isChecked()) {
+
+        // TODO: Off the UI thread :/
+        if (getPersistenceManager().getDatabase().getReceiptsTable().getBlocking(mTrip, true).isEmpty()) {
+            if (getPersistenceManager().getDatabase().getDistanceTable().getBlocking(mTrip, true).isEmpty() || !mPdfFullCheckbox.isChecked()) {
                 // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
                 Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
                 return;

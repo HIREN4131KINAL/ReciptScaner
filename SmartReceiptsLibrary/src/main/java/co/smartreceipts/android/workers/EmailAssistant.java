@@ -103,11 +103,6 @@ public class EmailAssistant {
     private final PersistenceManager mPersistenceManager;
     private final Trip mTrip;
 
-    public static final void email(SmartReceiptsApplication app, Context context, Trip trip) {
-        EmailAssistant assistant = new EmailAssistant(context, app.getFlex(), app.getPersistenceManager(), trip);
-        assistant.emailTrip();
-    }
-
     public static final Intent getEmailDeveloperIntent() {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setType("text/plain");
@@ -132,72 +127,6 @@ public class EmailAssistant {
         mFlex = flex;
         mPersistenceManager = persistenceManager;
         mTrip = trip;
-    }
-
-    public final void emailTrip() {
-        if (!mPersistenceManager.getStorageManager().isExternal()) {
-            Toast.makeText(mContext, mFlex.getString(mContext, R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-            return;
-        }
-        View scrollView = mFlex.getView(mContext, R.layout.dialog_email);
-        final CheckBox pdfFull = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
-        final CheckBox pdfImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
-        final CheckBox csv = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
-        final CheckBox zipStampedImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
-        final BetterDialogBuilder builder = new BetterDialogBuilder(mContext);
-        String msg = mFlex.getString(mContext, R.string.DIALOG_EMAIL_MESSAGE);
-        if (msg.length() > 0) {
-            builder.setMessage(msg);
-        }
-        builder.setTitle(mFlex.getString(mContext, R.string.DIALOG_EMAIL_TITLE))
-                .setCancelable(true)
-                .setView(scrollView)
-                .setPositiveButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
-                            Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
-                            dialog.cancel();
-                            return;
-                        }
-                        if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).isEmpty()) {
-                            if (mPersistenceManager.getDatabase().getDistanceSerial(mTrip).isEmpty() || !pdfFull.isChecked()) {
-                                // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
-                                Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
-                                dialog.cancel();
-                                return;
-                            } else {
-                                // Uncheck "Illegal" Items
-                                pdfImages.setChecked(false);
-                                csv.setChecked(false);
-                                zipStampedImages.setChecked(false);
-                            }
-                        }
-                        ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
-                        EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);
-                        if (pdfFull.isChecked()) {
-                            options.add(EmailOptions.PDF_FULL);
-                        }
-                        if (pdfImages.isChecked()) {
-                            options.add(EmailOptions.PDF_IMAGES_ONLY);
-                        }
-                        if (csv.isChecked()) {
-                            options.add(EmailOptions.CSV);
-                        }
-                        if (zipStampedImages.isChecked()) {
-                            options.add(EmailOptions.ZIP_IMAGES_STAMPED);
-                        }
-                        EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
-                        attachmentWriter.execute(mTrip);
-                    }
-                })
-                .setNegativeButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                })
-                .show();
     }
 
     public void emailTrip(@NonNull EnumSet<EmailOptions> options) {
@@ -404,7 +333,7 @@ public class EmailAssistant {
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
-                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
+                    final List<Distance> distances = new ArrayList<>(mDB.getDistanceTable().getBlocking(trip, true));
                     if (!distances.isEmpty()) {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
 

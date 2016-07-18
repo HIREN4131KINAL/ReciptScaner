@@ -358,7 +358,6 @@
 
     <!-- ============== Start String Arrays ================== -->
     <string-array name="EDIT_TRIP_ITEMS">
-        <item>Email Report</item>
         <item>Edit Report</item>
         <item>Delete Report</item>
     </string-array>

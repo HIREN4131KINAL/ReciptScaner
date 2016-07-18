@@ -55,8 +55,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
 
     @Override
     protected void generateInitialPages(@NonNull Document document, @NonNull List<Receipt> receipts, @NonNull Trip trip) throws ReportGenerationException {
-        final List<Distance> distances = new ArrayList<Distance>(getDatabase().getDistanceSerial(trip));
-        Collections.reverse(distances); // Reverse the list, so we start with the earliest one
+        final List<Distance> distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
 
         // Pre-tax => receipt total does not include price
         final boolean usePrexTaxPrice = getPreferences().getUsesPreTaxPrice();
@@ -138,7 +137,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
             final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
             final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
             if (getPreferences().getPrintDistanceAsDailyReceipt()) {
-                receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceSerial(trip)));
+                receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceTable().getBlocking(trip, true)));
                 Collections.sort(receiptsTableList, new ReceiptDateComparator());
             }
             final PdfTableGenerator<Receipt> pdfTableGenerator = new PdfTableGenerator<Receipt>(columns, new LegacyReceiptFilter(getPreferences()), true, false);

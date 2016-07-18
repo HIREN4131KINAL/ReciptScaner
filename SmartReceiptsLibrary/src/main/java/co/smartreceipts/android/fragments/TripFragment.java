@@ -351,22 +351,16 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         }).setItems(editTripItems, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                final String selection = editTripItems[item].toString();
-                if (selection == editTripItems[0]) { // Email Trip
-                    TripFragment.this.emailTrip(trip);
-                } else if (selection == editTripItems[1]) {
+                final String selection = editTripItems[item];
+                if (selection == editTripItems[0]) {
                     TripFragment.this.tripMenu(trip);
-                } else if (selection == editTripItems[2]) {
+                } else if (selection == editTripItems[1]) {
                     TripFragment.this.deleteTrip(trip);
                 }
                 dialog.cancel();
             }
         }).show();
         return true;
-    }
-
-    public void emailTrip(Trip trip) {
-        EmailAssistant.email(getSmartReceiptsApplication(), getActivity(), trip);
     }
 
     public final void deleteTrip(final Trip trip) {

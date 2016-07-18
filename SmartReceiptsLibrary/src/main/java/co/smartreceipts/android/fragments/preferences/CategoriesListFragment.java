@@ -1,14 +1,18 @@
 package co.smartreceipts.android.fragments.preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
 import wb.android.dialog.BetterDialogBuilder;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.database.SQLException;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
@@ -28,7 +32,7 @@ import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 
-public class CategoriesListFragment extends WBFragment implements View.OnClickListener {
+public class CategoriesListFragment extends WBFragment implements View.OnClickListener, TableEventsListener<Category> {
 
 	public static String TAG = "CategoriesListFragment";
 
@@ -36,6 +40,8 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
     private Toolbar mToolbar;
 	private ListView mListView;
 	private List<Category> mCategories;
+    private CategoriesTableController mTableController;
+    private Category mScrollToCategory;
 
 	public static CategoriesListFragment newInstance() {
 		return new CategoriesListFragment();
@@ -44,7 +50,9 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mCategories = getPersistenceManager().getDatabase().getCategoriesTable().get().toBlocking().first();
+        mTableController = getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController();
+        mAdapter = getAdapter();
+		mCategories = new ArrayList<>();
 		setHasOptionsMenu(true);
 	}
 
@@ -53,7 +61,6 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 		View rootView = inflater.inflate(R.layout.simple_list, container, false);
         mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
-		mAdapter = getAdapter();
 		mListView.setAdapter(mAdapter);
 		return rootView;
 	}
@@ -73,9 +80,17 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
             actionBar.setTitle(R.string.menu_main_categories);
             actionBar.setSubtitle(null);
         }
+        mTableController.subscribe(this);
+        mTableController.get();
 	}
 
-	@Override
+    @Override
+    public void onPause() {
+        mTableController.unsubscribe(this);
+        super.onPause();
+    }
+
+    @Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.menu_settings_categories, menu);
 	}
@@ -137,19 +152,8 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 						public void onClick(DialogInterface dialog, int which) {
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
-							try {
-								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().insert(new CategoryBuilderFactory().setCode(name).setCode(code).build()).toBlocking().first();
-								if (category != null) {
-									mAdapter.notifyDataSetChanged();
-									mListView.smoothScrollToPosition(mCategories.indexOf(category));
-								}
-								else {
-									Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-								}
-							}
-							catch (SQLException e) {
-								 Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
-							}
+                            mTableController.insert(new CategoryBuilderFactory().setCode(name).setCode(code).build());
+
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -192,18 +196,8 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newName = nameBox.getText().toString();
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
-							try {
-								final Category category = getPersistenceManager().getDatabase().getCategoriesTable().update(editCategory, newCategory).toBlocking().first();
-								if (category != null) {
-									mAdapter.notifyDataSetChanged();
-									mListView.smoothScrollToPosition(mCategories.indexOf(category));
-								} else {
-									Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-								}
-							}
-							catch (SQLException e) {
-								 Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
-							}
+							mTableController.update(editCategory, newCategory);
+
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -224,12 +218,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							if (getPersistenceManager().getDatabase().getCategoriesTable().delete(category).toBlocking().first()) {
-								mAdapter.notifyDataSetChanged();
-							}
-							else {
-								Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-							}
+							mTableController.delete(category);
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -241,7 +230,64 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.show();
 	}
 
-	private static final class MyViewHolder {
+    @Override
+    public void onGetSuccess(@NonNull List<Category> list) {
+        mCategories = list;
+        mAdapter.notifyDataSetChanged();
+        if (mScrollToCategory != null) {
+            mListView.smoothScrollToPosition(mCategories.indexOf(mScrollToCategory));
+            mScrollToCategory = null;
+        }
+    }
+
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+
+    }
+
+    @Override
+    public void onInsertSuccess(@NonNull Category category) {
+        mTableController.get();
+        mScrollToCategory = category;
+    }
+
+    @Override
+    public void onInsertFailure(@NonNull Category category, @Nullable Throwable e) {
+        if (e instanceof SQLException) {
+            Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onUpdateSuccess(@NonNull Category oldCategory, @NonNull Category newCategory) {
+        mTableController.get();
+        mScrollToCategory = newCategory;
+    }
+
+    @Override
+    public void onUpdateFailure(@NonNull Category oldT, @Nullable Throwable e) {
+        if (e instanceof SQLException) {
+            Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onDeleteSuccess(@NonNull Category category) {
+        mTableController.get();
+    }
+
+    @Override
+    public void onDeleteFailure(@NonNull Category category, @Nullable Throwable e) {
+        Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+    }
+
+    private static final class MyViewHolder {
 		public TextView category;
 		public TextView code;
 		public View edit;

@@ -40,7 +40,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     protected final Scheduler mSubscribeOnScheduler;
     protected final Scheduler mObserveOnScheduler;
 
-    protected CompositeSubscription mCompositeSubscription;
+    protected CompositeSubscription mCompositeSubscription = new CompositeSubscription();
 
     public AbstractTableController(@NonNull Table<ModelType, ?> table) {
         this(table, new StubTableActionAlterations<ModelType>());

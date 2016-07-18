@@ -230,61 +230,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return mTripsTable;
     }
 
-    public final Trip getTripByName(final String name) {
-        if (name == null || name.length() == 0) {
-            return null;
-        }
-        synchronized (mTripCacheLock) {
-            if (mAreTripsValid) {
-                for (int i = 0; i < mTripsCache.length; i++) {
-                    if (mTripsCache[i].getName().equals(name)) {
-                        return mTripsCache[i];
-                    }
-                }
-            }
-        }
-        SQLiteDatabase db = null;
-        Cursor c = null;
-        synchronized (mDatabaseLock) {
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(TripsTable.TABLE_NAME, null, TripsTable.COLUMN_NAME + " = ?", new String[]{name}, null, null, null);
-                if (c != null && c.moveToFirst()) {
-                    final int fromIndex = c.getColumnIndex(TripsTable.COLUMN_FROM);
-                    final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
-                    final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
-                    final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-                    // final int priceIndex = c.getColumnIndex(TripsTable.COLUMN_PRICE);
-                    final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
-                    final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
-                    final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
-                    final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
-                    final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
-                    final long from = c.getLong(fromIndex);
-                    final long to = c.getLong(toIndex);
-                    final String fromTimeZone = c.getString(fromTimeZoneIndex);
-                    final String toTimeZone = c.getString(toTimeZoneIndex);
-                    final float miles = c.getFloat(milesIndex);
-                    // final String price = c.getString(priceIndex);
-                    final String comment = c.getString(commentIndex);
-                    final String costCenter = c.getString(costCenterIndex);
-                    final String defaultCurrency = c.getString(defaultCurrencyIndex);
-                    final String filterJson = c.getString(filterIndex);
-                    final TripBuilderFactory builder = new TripBuilderFactory();
-                    final Trip trip = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setComment(comment).setCostCenter(costCenter).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
-                    getTripPriceAndDailyPrice(trip);
-                    return trip;
-                } else {
-                    return null;
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-        }
-    }
-
     /**
      * This class is not synchronized! Sync outside of it
      *

@@ -408,11 +408,10 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             }
             mAdapter.notifyDataSetChanged(trips);
 
-            if (trips.size() > 0 && false) {
-                // If we have trips, open up whatever one was last
-                final LastTripController lastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
-                // TODO: Move this request off the UI thread
-                final Trip lastTrip = lastTripController.getLastTrip();
+            if (!trips.isEmpty()) {
+                // If we have trips, open up whatever one was last used
+                final LastTripController lastTripController = new LastTripController(getActivity());
+                final Trip lastTrip = lastTripController.getLastTrip(trips);
                 if (lastTrip != null) {
                     viewReceipts(lastTrip);
                 }

@@ -55,14 +55,7 @@ public class ReportInfoFragment extends WBFragment {
         setHasOptionsMenu(true);
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mLastTripController = new LastTripController(getActivity(), getPersistenceManager().getDatabase());
-        if (mTrip == null) {
-            mTrip = mLastTripController.getLastTrip();
-            if (mTrip == null) {
-                // If it's still null, let's just go back
-                mNavigationHandler.navigateToTripsFragment();
-            }
-        }
+        mLastTripController = new LastTripController(getActivity());
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), mTrip, getConfigurationManager());
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
     }

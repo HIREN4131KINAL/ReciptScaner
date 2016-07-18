@@ -5,36 +5,25 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDatabaseCorruptException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.text.format.Time;
 import android.util.Log;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -55,7 +44,6 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
-import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import co.smartreceipts.android.workers.ImportTask;
@@ -242,85 +230,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return mTripsTable;
     }
 
-    public Trip[] getTripsSerial() throws SQLiteDatabaseCorruptException {
-        synchronized (mTripCacheLock) {
-            if (mAreTripsValid) {
-                return mTripsCache;
-            }
-        }
-        Trip[] trips = getTripsHelper();
-        synchronized (mTripCacheLock) {
-            if (!mAreTripsValid) {
-                mAreTripsValid = true;
-                mTripsCache = trips;
-            }
-            return mTripsCache;
-        }
-    }
-
-    private Trip[] getTripsHelper() throws SQLiteDatabaseCorruptException {
-        SQLiteDatabase db;
-        Cursor c = null;
-        synchronized (mDatabaseLock) {
-            Trip[] trips;
-            try {
-                db = this.getReadableDatabase();
-                c = db.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
-                if (c != null && c.moveToFirst()) {
-                    trips = new Trip[c.getCount()];
-                    final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
-                    final int fromIndex = c.getColumnIndex(TripsTable.COLUMN_FROM);
-                    final int toIndex = c.getColumnIndex(TripsTable.COLUMN_TO);
-                    final int fromTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_FROM_TIMEZONE);
-                    final int toTimeZoneIndex = c.getColumnIndex(TripsTable.COLUMN_TO_TIMEZONE);
-                    final int milesIndex = c.getColumnIndex(TripsTable.COLUMN_MILEAGE);
-                    final int commentIndex = c.getColumnIndex(TripsTable.COLUMN_COMMENT);
-                    final int costCenterIndex = c.getColumnIndex(TripsTable.COLUMN_COST_CENTER);
-                    final int defaultCurrencyIndex = c.getColumnIndex(TripsTable.COLUMN_DEFAULT_CURRENCY);
-                    final int filterIndex = c.getColumnIndex(TripsTable.COLUMN_FILTERS);
-                    do {
-                        final String name = c.getString(nameIndex);
-                        final long from = c.getLong(fromIndex);
-                        final long to = c.getLong(toIndex);
-                        final String fromTimeZone = c.getString(fromTimeZoneIndex);
-                        final String toTimeZone = c.getString(toTimeZoneIndex);
-                        final float miles = c.getFloat(milesIndex);
-                        final String comment = c.getString(commentIndex);
-                        final String costCenter = c.getString(costCenterIndex);
-                        final String defaultCurrency = c.getString(defaultCurrencyIndex);
-                        final String filterJson = c.getString(filterIndex);
-                        final TripBuilderFactory builder = new TripBuilderFactory();
-                        trips[c.getPosition()] = builder.setDirectory(mPersistenceManager.getStorageManager().getFile(name)).setStartDate(from).setEndDate(to).setStartTimeZone(fromTimeZone).setEndTimeZone(toTimeZone).setComment(comment).setCostCenter(costCenter).setFilter(filterJson).setDefaultCurrency(defaultCurrency, mPersistenceManager.getPreferences().getDefaultCurreny()).setSourceAsCache().build();
-                        getTripPriceAndDailyPrice(trips[c.getPosition()]);
-                    }
-                    while (c.moveToNext());
-                    return trips;
-                } else {
-                    trips = new Trip[0];
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-            }
-            // Pre-fetch currencies in background here too
-            getMostRecentlyUsedCurrencies();
-            return trips;
-        }
-    }
-
-    public List<CharSequence> getTripNames(Trip tripToExclude) {
-        Trip[] trips = getTripsSerial();
-        final ArrayList<CharSequence> tripNames = new ArrayList<CharSequence>(trips.length - 1);
-        for (int i = 0; i < trips.length; i++) {
-            Trip trip = trips[i];
-            if (!trip.equals(tripToExclude)) {
-                tripNames.add(trip.getName());
-            }
-        }
-        return tripNames;
-    }
-
     public final Trip getTripByName(final String name) {
         if (name == null || name.length() == 0) {
             return null;
@@ -394,7 +303,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      */
     private void queryTripPrice(final Trip trip) {
         final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
-        final List<Receipt> receipts = getReceiptsSerial(trip);
+        final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
             if (!onlyUseExpensable || receipt.isExpensable()) {
@@ -403,7 +312,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         }
 
         if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
-            final List<Distance> distances = getDistanceSerial(trip);
+            final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 prices.add(distance);
             }
@@ -419,7 +328,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      */
     private void queryTripDailyPrice(final Trip trip) {
         final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
-        final List<Receipt> receipts = getReceiptsSerial(trip);
+        final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
             if (!onlyUseExpensable || receipt.isExpensable()) {
@@ -430,7 +339,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         }
 
         if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
-            final List<Distance> distances = getDistanceSerial(trip);
+            final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 if(DateUtils.isToday(distance.getDate())) {
                     prices.add(distance);
@@ -439,14 +348,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         }
 
         trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
-    }
-
-    private void updateTripPrice(final Trip trip) {
-        synchronized (mDatabaseLock) {
-            mAreTripsValid = false;
-            queryTripPrice(trip);
-            queryTripDailyPrice(trip);
-        }
     }
 
     public List<Distance> getDistanceSerial(final Trip trip) {
@@ -628,98 +529,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return receipts;
     }
 
-    public Receipt insertReceiptSerial(Receipt receipt) throws SQLException {
-        return insertReceiptHelper(receipt);
-    }
-
-    private Receipt insertReceiptHelper(@NonNull Receipt receipt) throws SQLException {
-
-        final int rcptNum = this.getReceiptsSerial(receipt.getTrip()).size() + 1; // Use this to order things more properly
-        final StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
-        final ContentValues values = new ContentValues(20);
-
-        values.put(ReceiptsTable.COLUMN_PARENT, receipt.getTrip().getName());
-        if (receipt.getName().length() > 0) {
-            stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
-            values.put(ReceiptsTable.COLUMN_NAME, receipt.getName().trim());
-        }
-        values.put(ReceiptsTable.COLUMN_CATEGORY, receipt.getCategory().getName());
-
-        // In theory, this hack may cause issue if there are > 1000 receipts. I imagine other bugs will arise before this point
-        values.put(ReceiptsTable.COLUMN_DATE, receipt.getDate().getTime() + rcptNum);
-
-        values.put(ReceiptsTable.COLUMN_TIMEZONE, receipt.getTimeZone().getID());
-        values.put(ReceiptsTable.COLUMN_COMMENT, receipt.getComment());
-        values.put(ReceiptsTable.COLUMN_ISO4217, receipt.getPrice().getCurrencyCode());
-        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, receipt.isExpensable());
-        values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !receipt.isFullPage());
-        if (receipt.getPrice().getDecimalFormattedPrice().length() > 0) {
-            values.put(ReceiptsTable.COLUMN_PRICE, receipt.getPrice().getDecimalFormattedPrice().replace(",", "."));
-        }
-        if (receipt.getTax().getDecimalFormattedPrice().length() > 0) {
-            values.put(ReceiptsTable.COLUMN_TAX, receipt.getTax().getDecimalFormattedPrice().replace(",", "."));
-        }
-
-        File file = receipt.getFile();
-        if (file != null) {
-            stringBuilder.append('.').append(StorageManager.getExtension(receipt.getFile()));
-            final String newName = stringBuilder.toString();
-            File renamedFile = mPersistenceManager.getStorageManager().getFile(receipt.getTrip().getDirectory(), newName);
-            if (!renamedFile.exists()) { // If this file doesn't exist, let's rename our current one
-                Log.e(TAG, "Changing image name from: " + receipt.getFile().getName() + " to: " + newName);
-                file = mPersistenceManager.getStorageManager().rename(file, newName); // Returns oldFile on failure
-            }
-            values.put(ReceiptsTable.COLUMN_PATH, file.getName());
-        }
-
-        if (receipt.getPaymentMethod() != null) {
-            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, receipt.getPaymentMethod().getId());
-        } else {
-            final Integer integer = null;
-            values.put(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID, integer);
-        }
-        values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, receipt.getPrice().getExchangeRate().getDecimalFormattedExchangeRate(receipt.getTrip().getDefaultCurrencyCode()).replace(",", "."));
-
-        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
-        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
-        values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, receipt.getExtraEditText3());
-
-        Receipt insertReceipt = null;
-        synchronized (mDatabaseLock) {
-            Cursor c = null;
-            try {
-                final SQLiteDatabase db = this.getWritableDatabase();
-                if (db.insertOrThrow(ReceiptsTable.TABLE_NAME, null, values) == -1) {
-                    insertReceipt = null;
-                } else {
-                    c = db.rawQuery("SELECT last_insert_rowid()", null);
-                    if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                        final int id = c.getInt(0);
-                        final Date newDate = new Date(values.getAsLong(ReceiptsTable.COLUMN_DATE));
-                        final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id, receipt);
-                        insertReceipt = builder.setDate(newDate).setFile(file).build();
-                    } else {
-                        insertReceipt = null;
-                    }
-                }
-            } finally { // Close the cursor and db to avoid memory leaks
-                if (c != null) {
-                    c.close();
-                }
-                if (insertReceipt != null) {
-                    synchronized (mReceiptCacheLock) {
-                        if (mReceiptCache.containsKey(receipt.getTrip())) {
-                            mReceiptCache.remove(receipt.getTrip());
-                        }
-                        mNextReceiptAutoIncrementId = -1;
-                    }
-                }
-                this.updateTripPrice(receipt.getTrip());
-            }
-        }
-        return insertReceipt;
-    }
-
     public final Receipt updateReceiptFile(final Receipt oldReceipt, final File file) {
         synchronized (mDatabaseLock) {
             SQLiteDatabase db = null;
@@ -745,77 +554,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 return null;
             }
         }
-    }
-
-    public boolean copyReceiptSerial(Receipt receipt, Trip newTrip) {
-        return copyReceiptHelper(receipt, newTrip);
-    }
-
-    private boolean copyReceiptHelper(Receipt receipt, Trip newTrip) {
-        File newFile = null;
-        final StorageManager storageManager = mPersistenceManager.getStorageManager();
-        if (receipt.hasFile()) {
-            try {
-                // TODO: Check that this file doesn't exist first
-                newFile = storageManager.getFile(newTrip.getDirectory(), receipt.getFileName());
-                if (!storageManager.copy(receipt.getFile(), newFile, true)) {
-                    newFile = null; // Unset on failed copy
-                    return false;
-                } else {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Successfully created a copy of " + receipt.getFileName() + " for " + receipt.getName() + " at " + newFile.getAbsolutePath());
-                    }
-                }
-            } catch (IOException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString());
-                }
-                return false;
-            }
-        }
-
-        final Receipt newReceipt = new ReceiptBuilderFactory(receipt).setTrip(newTrip).setFile(newFile).build();
-        if (insertReceiptSerial(newReceipt) != null) { // i.e. successfully inserted
-            return true;
-        } else {
-            if (newFile != null) { // roll back
-                storageManager.delete(newFile);
-            }
-            return false;
-        }
-    }
-
-    private boolean moveReceiptHelper(Receipt receipt, Trip currentTrip, Trip newTrip) {
-        if (copyReceiptSerial(receipt, newTrip)) {
-            // TODO: Undo Copy here
-            return deleteReceiptSerial(receipt, currentTrip);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean deleteReceiptSerial(Receipt receipt, Trip currentTrip) {
-        return deleteReceiptHelper(receipt, currentTrip);
-    }
-
-    private boolean deleteReceiptHelper(Receipt receipt, Trip currentTrip) {
-        boolean success = false;
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            db = this.getWritableDatabase();
-            success = (db.delete(ReceiptsTable.TABLE_NAME, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(receipt.getId())}) > 0);
-        }
-        if (success) {
-            if (receipt.hasFile()) {
-                success = mPersistenceManager.getStorageManager().delete(receipt.getFile());
-            }
-            synchronized (mReceiptCacheLock) {
-                mNextReceiptAutoIncrementId = -1;
-                mReceiptCache.remove(currentTrip);
-            }
-            this.updateTripPrice(currentTrip);
-        }
-        return success;
     }
 
     public int getNextReceiptAutoIncremenetIdSerial() {
@@ -1530,29 +1268,4 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         }
     }
 
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // Support Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    public void backUpDatabase(final String databasePath) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final StorageManager storageManager = mPersistenceManager.getStorageManager();
-                File sdDB = storageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DATABASE_NAME + ".bak");
-                try {
-                    synchronized (mDatabaseLock) {
-                        storageManager.copy(new File(databasePath), sdDB, true);
-                    }
-                    if (D) {
-                        Log.d(TAG, "Backed up database file to: " + sdDB.getName());
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "Failed to back up database: " + e.toString());
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to back up database: " + e.toString());
-                    // Avoid crashing on an exception here... Just a backup utility anyway
-                }
-            }
-        }).start();
-    }
 }

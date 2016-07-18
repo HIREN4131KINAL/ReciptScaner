@@ -71,7 +71,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @NonNull
-    protected final synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
+    public final synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
         if (mPerTripCache.containsKey(trip)) {
             return new ArrayList<>(mPerTripCache.get(trip));
         }

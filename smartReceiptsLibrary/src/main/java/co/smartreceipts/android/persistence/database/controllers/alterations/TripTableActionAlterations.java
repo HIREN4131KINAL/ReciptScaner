@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -53,6 +54,8 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
                 Log.e(TAG, "Failed to create a trip directory... Rolling back and throwing an exception");
                 mTripsTable.delete(trip).toBlocking().first();
                 throw new IOException("Failed to create trip directory");
+            } else {
+                backUpDatabase();
             }
         }
     }
@@ -78,6 +81,20 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
                 // TODO: Create clean up script
                 Log.e(TAG, "Failed to fully delete the underlying data. Create a clean up script to fix this later");
             }
+        }
+    }
+
+    /**
+     * Simple utility method that takes a snapshot backup of our database after all trip "insert'
+     */
+    @Deprecated
+    public void backUpDatabase() {
+        File sdDB = mStorageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DatabaseHelper.DATABASE_NAME + ".bak");
+        try {
+            mStorageManager.copy(new File(DatabaseHelper.DATABASE_NAME), sdDB, true);
+            Log.i(TAG, "Backed up database file to: " + sdDB.getName());
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to back up database: " + e.toString());
         }
     }
 }

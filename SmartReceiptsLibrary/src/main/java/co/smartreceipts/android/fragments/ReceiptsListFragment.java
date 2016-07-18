@@ -6,9 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.SQLException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,14 +15,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -437,13 +432,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             ReceiptsListFragment.this.deleteReceipt(receipt);
                         } else if (selection.equals(receiptActionMoveCopy)) {// Move-Copy
                             getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Move_Copy_Receipt");
-                            ReceiptsListFragment.this.moveOrCopy(receipt);
+                            ReceiptMoveCopyDialogFragment.newInstance(receipt).show(getFragmentManager(), ReceiptMoveCopyDialogFragment.TAG);
                         } else if (selection.equals(receiptActionSwapUp)) { // Swap Up
                             getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Up");
-                            ReceiptsListFragment.this.moveReceiptUp(receipt);
+                            mReceiptTableController.swapUp(receipt);
                         } else if (selection.equals(receiptActionSwapDown)) { // Swap Down
                             getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Down");
-                            ReceiptsListFragment.this.moveReceiptDown(receipt);
+                            mReceiptTableController.swapDown(receipt);
                         }
                     }
                     dialog.cancel();
@@ -522,43 +517,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                 dialog.cancel();
             }
         }).show();
-    }
-
-    public void moveOrCopy(final Receipt receipt) {
-        final DatabaseHelper db = getPersistenceManager().getDatabase();
-        final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        final View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.move_copy_dialog, null);
-        final Spinner tripsSpinner = (Spinner) dialogView.findViewById(R.id.move_copy_spinner);
-        List<CharSequence> trips = db.getTripNames(mCurrentTrip);
-        final ArrayAdapter<CharSequence> tripNames = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, trips);
-        tripNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        tripsSpinner.setAdapter(tripNames);
-        tripsSpinner.setPrompt(getString(R.string.report));
-        builder.setTitle(getString(R.string.move_copy_item, receipt.getName())).setView(dialogView).setCancelable(true).setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                if (tripsSpinner.getSelectedItem() != null) {
-                    mReceiptTableController.move(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-                    dialog.cancel();
-                }
-            }
-        }).setNegativeButton(R.string.copy, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                if (tripsSpinner.getSelectedItem() != null) {
-                    mReceiptTableController.copy(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-                    dialog.cancel();
-                }
-            }
-        }).show();
-    }
-
-    final void moveReceiptUp(final Receipt receipt) {
-        mReceiptTableController.swapUp(receipt);
-    }
-
-    final void moveReceiptDown(final Receipt receipt) {
-        mReceiptTableController.swapDown(receipt);
     }
 
     @Override

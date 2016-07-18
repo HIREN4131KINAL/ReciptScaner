@@ -249,19 +249,18 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     mDistanceTableController.delete(mUpdateableDistance);
-                    dialog.dismiss();
+                    dismiss();
                 }
             });
             builder.setNegativeButton(android.R.string.cancel, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
+                    dismiss();
                 }
             });
             builder.show();
         }
-        dialog.dismiss();
-
+        dismiss();
     }
 
     /**

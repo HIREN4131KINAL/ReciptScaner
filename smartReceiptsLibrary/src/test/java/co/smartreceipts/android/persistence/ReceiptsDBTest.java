@@ -28,6 +28,8 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 public class ReceiptsDBTest {
 
+    /**
+
     private SmartReceiptsApplication mApp;
     private DatabaseHelper mDB;
     private Trip mTrip, mTrip2;
@@ -71,7 +73,6 @@ public class ReceiptsDBTest {
 
     private Receipt insertDefaultReceipt(File file) {
         return null;
-        /* TODO: FIX ME
         return mDB.insertReceiptSerial(mTrip,
                 file,
                 ReceiptUtils.Constants.NAME,
@@ -87,12 +88,11 @@ public class ReceiptsDBTest {
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
                 ReceiptUtils.Constants.EXTRA3);
-         */
+
     }
 
     private Receipt insertDefaultReceipt(File file, PaymentMethod method) {
         return null;
-        /* TODO: FIX ME
         return mDB.insertReceiptSerial(mTrip,
                 file,
                 ReceiptUtils.Constants.NAME,
@@ -108,7 +108,7 @@ public class ReceiptsDBTest {
                 ReceiptUtils.Constants.EXTRA1,
                 ReceiptUtils.Constants.EXTRA2,
                 ReceiptUtils.Constants.EXTRA3);
-               */
+
     }
 
     @Test
@@ -200,7 +200,7 @@ public class ReceiptsDBTest {
         assertEquals(updateReceipt, insertReceipt);
         assertEquals(updateReceipt, receipts.get(0));
         ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
-        */
+
     }
 
     @Test
@@ -232,7 +232,7 @@ public class ReceiptsDBTest {
         assertEquals(updateReceipt, insertReceipt);
         assertEquals(updateReceipt, receipts.get(0));
         ReceiptUtils.assertFieldEqualityPlusIdAndIndex(updateReceipt, receipts.get(0));
-        */
+
     }
 
     @Test
@@ -400,4 +400,5 @@ public class ReceiptsDBTest {
         ReceiptUtils.assertFieldEqualityWithDateFuzzing(receipt1, receipts.get(0));
     }
 
+    */
 }

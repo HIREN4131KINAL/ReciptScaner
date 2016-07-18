@@ -530,7 +530,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             } else {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
             }
-            getPersistenceManager().getDatabase().getTripsParallel();
+            mTripTableController.get();
         }
     }
 

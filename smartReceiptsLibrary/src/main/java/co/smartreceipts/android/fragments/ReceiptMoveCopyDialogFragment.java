@@ -66,9 +66,11 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
         builder.setTitle(getString(R.string.move_copy_item, mReceipt.getName()));
         builder.setView(dialogView);
         builder.setCancelable(true);
+
+        // Note: we change this order from standard Android, so move appears next to copy
         builder.setPositiveButton(R.string.move, this);
-        builder.setNeutralButton(R.string.copy, this);
-        builder.setNegativeButton(android.R.string.cancel, this);
+        builder.setNeutralButton(android.R.string.cancel, this);
+        builder.setNegativeButton(R.string.copy, this);
 
         return builder.show();
     }
@@ -94,7 +96,7 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
                 mReceiptTableController.move(mReceipt, wrapper.mTrip);
                 dismiss();
             }
-        } else if (which == DialogInterface.BUTTON_NEUTRAL) {
+        } else if (which == DialogInterface.BUTTON_NEGATIVE) {
             if (wrapper != null) {
                 mReceiptTableController.copy(mReceipt, wrapper.mTrip);
                 dismiss();

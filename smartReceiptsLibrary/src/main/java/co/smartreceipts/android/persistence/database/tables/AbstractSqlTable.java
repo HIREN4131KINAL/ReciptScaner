@@ -148,7 +148,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
     }
 
     @NonNull
-    protected synchronized List<ModelType> getBlocking() {
+    public synchronized List<ModelType> getBlocking() {
         if (mCachedResults != null) {
             return mCachedResults;
         }
@@ -172,7 +172,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
     }
 
     @Nullable
-    protected ModelType findByPrimaryKeyBlocking(@NonNull PrimaryKeyType primaryKeyType) {
+    public ModelType findByPrimaryKeyBlocking(@NonNull PrimaryKeyType primaryKeyType) {
         // TODO: Consider using a Map/Cache/"SELECT" here to improve performance. The #get() call belong is overkill for a single item
         final List<ModelType> entries = new ArrayList<>(getBlocking());
         final int size = entries.size();
@@ -187,7 +187,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     @SuppressWarnings("unchecked")
     @Nullable
-    protected synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
+    public synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
         final ContentValues values = mDatabaseAdapter.write(modelType);
         if (getWritableDatabase().insertOrThrow(getTableName(), null, values) != -1) {
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
@@ -237,7 +237,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     @SuppressWarnings("unchecked")
     @Nullable
-    protected synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
         if (oldModelType.equals(newModelType)) {
             return oldModelType;
         }
@@ -268,7 +268,7 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
 
     }
 
-    protected synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
+    public synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
         final String primaryKeyValue = mPrimaryKey.getPrimaryKeyValue(modelType).toString();
         if (getWritableDatabase().delete(getTableName(), mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ primaryKeyValue }) > 0) {
             if (mCachedResults != null) {

@@ -141,7 +141,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.insert(insertModelType);
+                        return mTable.insert(modelType);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {

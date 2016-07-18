@@ -97,7 +97,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
 
     @NonNull
     @Override
-    protected final synchronized List<ModelType> getBlocking() {
+    public final synchronized List<ModelType> getBlocking() {
         final List<ModelType> results = super.getBlocking();
         final HashMap<Trip, List<ModelType>> localCache = new HashMap<>();
         for (int i = 0; i < results.size(); i++) {
@@ -120,7 +120,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    protected final synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
+    public final synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
         final ModelType insertedItem = super.insertBlocking(modelType);
         if (insertedItem != null) {
             final Trip trip = getTripFor(insertedItem);
@@ -138,7 +138,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    protected final synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+    public final synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
         final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType);
         if (updatedItem != null) {
             final Trip oldTrip = getTripFor(oldModelType);
@@ -160,7 +160,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @Override
-    protected final synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
+    public final synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
         final boolean deleteResult = super.deleteBlocking(modelType);
         if (deleteResult) {
             final Trip trip = getTripFor(modelType);

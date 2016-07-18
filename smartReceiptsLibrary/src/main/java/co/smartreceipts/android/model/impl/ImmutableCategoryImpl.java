@@ -86,6 +86,6 @@ public class ImmutableCategoryImpl implements Category {
 
     @Override
     public int compareTo(@NonNull Category category) {
-        return category.getName().compareTo(mName);
+        return mName.compareTo(category.getName());
     }
 }

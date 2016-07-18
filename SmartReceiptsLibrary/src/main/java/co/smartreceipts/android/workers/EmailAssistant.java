@@ -297,7 +297,7 @@ public class EmailAssistant {
 
             // Set up our initial variables
             final Trip trip = trips[0];
-            final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
+            final List<Receipt> receipts = mDB.getReceiptsTable().getBlocking(trip, false);
             final int len = receipts.size();
             final WriterResults results = new WriterResults();
 

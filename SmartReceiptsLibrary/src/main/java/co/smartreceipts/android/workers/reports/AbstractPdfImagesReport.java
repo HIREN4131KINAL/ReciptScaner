@@ -96,7 +96,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
             // Open the document
             document.open();
 
-            final List<Receipt> receipts = new ArrayList<Receipt>(getDatabase().getReceiptsSerial(trip, false));
+            final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
 
             // Allow subclasses to add their own behavior to the header pages
             generateInitialPages(document, receipts, trip);

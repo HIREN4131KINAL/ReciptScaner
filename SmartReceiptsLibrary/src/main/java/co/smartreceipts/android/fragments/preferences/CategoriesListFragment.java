@@ -152,7 +152,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 						public void onClick(DialogInterface dialog, int which) {
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
-                            mTableController.insert(new CategoryBuilderFactory().setCode(name).setCode(code).build());
+                            mTableController.insert(new CategoryBuilderFactory().setName(name).setCode(code).build());
 
 						}
 					})

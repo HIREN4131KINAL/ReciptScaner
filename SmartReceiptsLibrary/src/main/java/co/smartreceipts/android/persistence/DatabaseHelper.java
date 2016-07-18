@@ -294,33 +294,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
 
         trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
-    
-    public final Receipt updateReceiptFile(final Receipt oldReceipt, final File file) {
-        synchronized (mDatabaseLock) {
-            SQLiteDatabase db = null;
-            try {
-                db = this.getReadableDatabase();
-                ContentValues values = new ContentValues(1);
-                if (file == null) {
-                    values.put(ReceiptsTable.COLUMN_PATH, NO_DATA);
-                } else {
-                    values.put(ReceiptsTable.COLUMN_PATH, file.getName());
-                }
-                if (values == null || (db.update(ReceiptsTable.TABLE_NAME, values, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(oldReceipt.getId())}) == 0)) {
-                    return null;
-                } else {
-                    synchronized (mReceiptCacheLock) {
-                        mNextReceiptAutoIncrementId = -1;
-                        mReceiptCache.remove(oldReceipt.getTrip());
-                    }
-                    oldReceipt.setFile(file);
-                    return oldReceipt;
-                }
-            } catch (SQLException e) {
-                return null;
-            }
-        }
-    }
 
     public int getNextReceiptAutoIncremenetIdSerial() {
         return getNextReceiptAutoIncremenetIdHelper();

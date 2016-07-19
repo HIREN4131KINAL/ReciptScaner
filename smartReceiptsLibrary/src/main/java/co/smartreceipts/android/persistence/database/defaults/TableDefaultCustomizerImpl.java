@@ -33,7 +33,6 @@ public class TableDefaultCustomizerImpl implements TableDefaultsCustomizer {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mReceiptColumnDefinitions = Preconditions.checkNotNull(receiptColumnDefinitions);
         mExecutor = Executors.newCachedThreadPool();
-        
     }
 
     @Override

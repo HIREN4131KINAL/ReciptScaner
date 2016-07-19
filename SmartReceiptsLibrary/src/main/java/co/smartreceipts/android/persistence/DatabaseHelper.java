@@ -36,6 +36,7 @@ import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
@@ -75,9 +76,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     private static DatabaseHelper INSTANCE = null;
 
     // Caching Vars
-    private Trip[] mTripsCache;
-    private boolean mAreTripsValid;
-    private final HashMap<Trip, List<Receipt>> mReceiptCache;
     private int mNextReceiptAutoIncrementId = -1;
     private ArrayList<CharSequence> mFullCurrencyList;
     private ArrayList<CharSequence> mMostRecentlyUsedCurrencyList;
@@ -94,8 +92,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
 
     // Locks
     private final Object mDatabaseLock = new Object();
-    private final Object mReceiptCacheLock = new Object();
-    private final Object mTripCacheLock = new Object();
 
     // Tables
     private final List<Table> mTables;
@@ -115,16 +111,15 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         void onReceiptRowAutoCompleteQueryResult(@Nullable String name, @Nullable String price, @Nullable String category);
     }
 
-    private DatabaseHelper(SmartReceiptsApplication application, PersistenceManager persistenceManager, String databasePath) {
+    private DatabaseHelper(@NonNull SmartReceiptsApplication application, @NonNull PersistenceManager persistenceManager,
+                           @NonNull String databasePath) {
         super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
         // factory
-        mAreTripsValid = false;
-        mReceiptCache = new HashMap<>();
         mContext = application.getApplicationContext();
         mFlex = application.getFlex();
         mPersistenceManager = persistenceManager;
         mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
-        mCustomizations = new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions);
+        mCustomizations = new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
 
         // Tables:
         mTables = new ArrayList<>();
@@ -405,8 +400,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     // Utilities
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     public final synchronized boolean merge(String dbPath, String packageName, boolean overwrite) {
-        mAreTripsValid = false;
-        mReceiptCache.clear();
         synchronized (mDatabaseLock) {
             SQLiteDatabase importDB = null, currDB = null;
             Cursor c = null, countCursor = null;

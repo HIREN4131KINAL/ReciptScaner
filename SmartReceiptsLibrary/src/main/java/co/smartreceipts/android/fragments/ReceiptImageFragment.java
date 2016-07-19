@@ -31,6 +31,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
 import java.io.File;
 
 import co.smartreceipts.android.BuildConfig;
@@ -53,9 +56,6 @@ public class ReceiptImageFragment extends WBFragment {
     // Activity Request ints
     private static final int RETAKE_PHOTO_CAMERA_REQUEST = 1;
     private static final int NATIVE_RETAKE_PHOTO_CAMERA_REQUEST = 2;
-
-    // Settings
-    private static final int FADE_IN_TIME = 75;
 
     // Save state
     private static final String KEY_OUT_RECEIPT = "key_out_receipt";
@@ -143,7 +143,19 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        new ImageLoader().execute(new File(mReceipt.getTrip().getDirectoryPath(), mReceipt.getImage().getName()).getAbsolutePath());
+        Picasso.with(getContext()).load(mReceipt.getImage()).fit().into(mImageView, new Callback() {
+            @Override
+            public void onSuccess() {
+                mProgress.setVisibility(View.GONE);
+                mImageView.setVisibility(View.VISIBLE);
+                mFooter.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError() {
+                Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 
@@ -238,37 +250,6 @@ public class ReceiptImageFragment extends WBFragment {
         }
         mIsRotateOngoing = false;
         mProgress.setVisibility(View.GONE);
-    }
-
-    private class ImageLoader extends AsyncTask<String, Void, Bitmap> {
-
-        @Override
-        protected Bitmap doInBackground(String... args) {
-            if (args != null && args.length > 0 && !TextUtils.isEmpty(args[0])) {
-                return BitmapFactory.decodeFile(args[0]);
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap result) {
-            if (isAdded()) {
-                mProgress.setVisibility(View.GONE);
-                if (result != null) {
-                    mImageView.setVisibility(View.VISIBLE);
-                    mFooter.setVisibility(View.VISIBLE);
-                    final TransitionDrawable td = new TransitionDrawable(new Drawable[]{new ColorDrawable(android.R.color.transparent), new BitmapDrawable(getResources(), result)});
-                    mImageView.setImageDrawable(td);
-                    td.startTransition(FADE_IN_TIME);
-                } else {
-                    Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Log.e(TAG, "User has already left the activity. Ignoring result");
-            }
-        }
-
     }
 
     private class ImageUpdatedListener extends StubTableEventsListener<Receipt> {

@@ -32,7 +32,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.plus_subscription_info_dialog_title);
         builder.setMessage(R.string.plus_subscription_info_dialog_message);
         builder.setPositiveButton(R.string.plus_subscription_info_dialog_positive_button, this);

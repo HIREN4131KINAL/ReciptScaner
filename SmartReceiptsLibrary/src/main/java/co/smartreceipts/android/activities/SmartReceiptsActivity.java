@@ -36,11 +36,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     // logging variables
     static final String TAG = "SmartReceiptsActivity";
 
-    // Camera Request Extras
-    public static final String STRING_DATA = "strData";
-    public static final int DIR = 0;
-    public static final int NAME = 1;
-
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
@@ -164,8 +159,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            final SubscriptionInformationDialogFragment dialogFragment = new SubscriptionInformationDialogFragment();
-            dialogFragment.show(getSupportFragmentManager(), SubscriptionInformationDialogFragment.TAG);
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
             getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Plus_Sub_Info_Menu");
             return true;
         } else {

@@ -1,6 +1,5 @@
 package co.smartreceipts.android.activities;
 
-import android.Manifest;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,13 +18,16 @@ import android.widget.Toast;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
-import co.smartreceipts.android.purchases.SubscriptionInformationDialogFragment;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import wb.android.dialog.BetterDialogBuilder;
@@ -55,7 +57,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Log.d(TAG, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
-        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
@@ -151,16 +153,16 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
             SRNavUtils.showSettings(this);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Settings_Menu");
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
             final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
             getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Plus_Sub_Info_Menu");
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -214,12 +216,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
-
-        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Has_Pro_Sub");
-        } else {
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Without_Pro_Sub");
-        }
     }
 
     @Override
@@ -253,11 +249,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Success_" + subscription.getSku());
                 invalidateOptionsMenu(); // To hide the subscription option
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
             }
@@ -265,11 +261,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseFailed() {
+    public void onPurchaseFailed(@NonNull final PurchaseSource purchaseSource) {
+        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Failed");
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
             }
         });

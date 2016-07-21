@@ -38,6 +38,7 @@ import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Trip;
@@ -306,7 +307,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                 }
 
                 if (newTrip) { // Insert
-                    getWorkerManager().getLogger().logEvent(TripFragment.this, "New_Trip");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistNewReport);
                     final Trip insertTrip = new TripBuilderFactory()
                             .setDirectory(persistenceManager.getStorageManager().getFile(name))
                             .setStartDate(startBox.date)
@@ -318,7 +319,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                     mTripTableController.insert(insertTrip);
                     dialog.cancel();
                 } else { // Update
-                    getWorkerManager().getLogger().logEvent(TripFragment.this, "Update_Trip");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistUpdateReport);
                     final Trip updateTrip = new TripBuilderFactory(trip)
                             .setDirectory(persistenceManager.getStorageManager().getFile(name))
                             .setStartDate(startBox.date)

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
+import co.smartreceipts.android.analytics.AnalyticsLogger;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.model.Column;
@@ -56,6 +58,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	private Settings mSettings;
 	private ConfigurationManager mConfigurationManager;
     private TableControllerManager mTableControllerManager;
+    private AnalyticsManager mAnalyticsManager;
 	private boolean mDeferFirstRunDialog;
 
 	/**
@@ -84,6 +87,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
 																				// in onVersionUpgrade
         mTableControllerManager = new TableControllerManager(mPersistenceManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
+        mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
 	}
 
     @Deprecated
@@ -185,6 +189,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     @NonNull
     public TableControllerManager getTableControllerManager() {
         return mTableControllerManager;
+    }
+
+    @NonNull
+    public AnalyticsManager getAnalyticsManager() {
+        return mAnalyticsManager;
     }
 
 	@Override

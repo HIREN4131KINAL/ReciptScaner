@@ -39,6 +39,7 @@ import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -117,13 +118,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             public void onClick(View v) {
                 final int id = v.getId();
                 if (id == R.id.receipt_action_camera) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Picture_Receipt");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddPictureReceipt);
                     addPictureReceipt();
                 } else if (id == R.id.receipt_action_text) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Text_Receipt");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddTextReceipt);
                     addTextReceipt();
                 } else if (id == R.id.receipt_action_import) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Import from gallery");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ImportPictureReceipt);
                     importReceipt();
                 }
             }
@@ -260,12 +261,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
         } else {
             Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            List<String> errors = ((GalleryApp) getActivity().getApplication()).getErrorList();
-            final int size = errors.size();
-            for (int i = 0; i < size; i++) {
-                getWorkerManager().getLogger().logError(errors.get(i));
-            }
-            errors.clear();
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
@@ -402,11 +397,11 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     final String selection = receiptActions[item];
                     if (selection != null) {
                         if (selection.equals(receiptActionEdit)) { // Edit Receipt
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuEdit);
                             // ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
                             mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Take_Photo_For_Existing_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
                             final File dir = mCurrentTrip.getDirectory();
                             if (getPersistenceManager().getPreferences().useNativeCamera()) {
                                 final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -421,23 +416,23 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             }
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
-                                getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_PDF");
+                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);
                                 ReceiptsListFragment.this.showPDF(receipt);
                             } else {
-                                getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_Image");
+                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewPdf);
                                 ReceiptsListFragment.this.showImage(receipt);
                             }
                         } else if (selection.equals(receiptActionDelete)) { // Delete Receipt
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Delete_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuDelete);
                             ReceiptsListFragment.this.deleteReceipt(receipt);
                         } else if (selection.equals(receiptActionMoveCopy)) {// Move-Copy
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Move_Copy_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuMoveCopy);
                             ReceiptMoveCopyDialogFragment.newInstance(receipt).show(getFragmentManager(), ReceiptMoveCopyDialogFragment.TAG);
                         } else if (selection.equals(receiptActionSwapUp)) { // Swap Up
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Up");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapUp);
                             mReceiptTableController.swapUp(receipt);
                         } else if (selection.equals(receiptActionSwapDown)) { // Swap Down
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Down");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapDown);
                             mReceiptTableController.swapDown(receipt);
                         }
                     }

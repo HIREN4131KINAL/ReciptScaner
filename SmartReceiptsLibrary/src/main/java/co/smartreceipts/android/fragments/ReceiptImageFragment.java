@@ -40,6 +40,7 @@ import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
@@ -107,14 +108,14 @@ public class ReceiptImageFragment extends WBFragment {
         rotateCCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Rotate_CCW");
+                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCcw);
                 rotate(-90);
             }
         });
         retakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Retake_Photo");
+                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRetakePhoto);
                 final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
                 final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
@@ -133,7 +134,7 @@ public class ReceiptImageFragment extends WBFragment {
         rotateCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getWorkerManager().getLogger().logEvent(ReceiptImageFragment.this, "Rotate_CW");
+                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCw);
                 rotate(90);
             }
         });

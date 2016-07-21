@@ -1,5 +1,9 @@
 package wb.receipts.workers;
 
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
@@ -52,10 +56,11 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         mAdViewReference = new WeakReference<>(adView);
         mUpsellReference = new WeakReference<>(upsell);
 
+        final AnalyticsManager analyticsManager = ((SmartReceiptsApplication)activity.getApplication()).getAnalyticsManager();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 if (showUpsell()) {
-                    mWorkerManager.getLogger().logEvent(activity, "AdUpsellShown");
+                    analyticsManager.record(Events.Purchases.AdUpsellShown);
                     adView.setVisibility(View.GONE);
                     upsell.setVisibility(View.VISIBLE);
                 } else {
@@ -64,7 +69,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                         @Override
                         public void onAdFailedToLoad(int errorCode) {
                             // If we fail to load the ad, just hide it
-                            mWorkerManager.getLogger().logEvent(activity, "AdUpsellShownOnFailure");
+                            analyticsManager.record(Events.Purchases.AdUpsellShownOnFailure);
                             adView.setVisibility(View.GONE);
                             upsell.setVisibility(View.VISIBLE);
                         }
@@ -87,8 +92,8 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
             @Override
             public void onClick(View view) {
                 if (getSubscriptionManager() != null) {
-                    mWorkerManager.getLogger().logEvent(activity, "AdUpsellTapped");
-                    getSubscriptionManager().queryBuyIntent(Subscription.SmartReceiptsPlus);
+                    analyticsManager.record(Events.Purchases.AdUpsellTapped);
+                    getSubscriptionManager().queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AdBanner);
                 }
             }
         });
@@ -180,7 +185,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     @Override
-    public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
         Log.i(TAG, "Received purchase success in our ad manager for: " + subscription);
         if (Subscription.SmartReceiptsPlus == subscription) {
             final AdView adView = mAdViewReference.get();
@@ -202,7 +207,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     @Override
-    public synchronized void onPurchaseFailed() {
+    public synchronized void onPurchaseFailed(@NonNull PurchaseSource purchaseSource) {
         // Intentional Stub. Handled with parent activity
     }
 

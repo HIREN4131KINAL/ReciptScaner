@@ -23,8 +23,6 @@ public class WBFragment extends Fragment {
 	private SmartReceiptsApplication mApplication;
 	private DateManager mDateManager;
 
-	private boolean mDisableScreenLoggingOnStart = false;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -34,9 +32,6 @@ public class WBFragment extends Fragment {
     @Override
 	public void onStart() {
 		super.onStart();
-		if (!mDisableScreenLoggingOnStart) {
-			getWorkerManager().getLogger().logScreen(this);
-		}
 	}
 
     @Override
@@ -121,10 +116,6 @@ public class WBFragment extends Fragment {
 			}
 		}
 		return mApplication;
-	}
-
-	public void disableScreenLoggingOnStart() {
-		mDisableScreenLoggingOnStart = true;
 	}
 
 }

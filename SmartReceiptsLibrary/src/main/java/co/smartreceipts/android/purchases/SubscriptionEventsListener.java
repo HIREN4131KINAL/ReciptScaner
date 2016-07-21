@@ -40,12 +40,15 @@ public interface SubscriptionEventsListener {
      * Called if we successfully completed a purchase
      *
      * @param subscription the new subscription that we purchased
-     * @param updateSubscriptionWallet the updated subscription wallet
+     * @param purchaseSource where the purchase flow was initiated
+     * @param updatedSubscriptionWallet the updated subscription wallet
      */
-    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet);
+    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet);
 
     /**
      * Called if we failed to complete a purchase
+     *
+     * @param purchaseSource where the purchase flow was initiated
      */
-    void onPurchaseFailed();
+    void onPurchaseFailed(@NonNull PurchaseSource purchaseSource);
 }

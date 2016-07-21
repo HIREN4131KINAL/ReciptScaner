@@ -49,8 +49,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == AlertDialog.BUTTON_POSITIVE && mSubscriptionManager != null) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
-            ((SmartReceiptsApplication) getActivity().getApplication()).getWorkerManager().getLogger().logEvent(this, "Show_Pro_Purchase_Menu");
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
         }
         dismiss();
     }

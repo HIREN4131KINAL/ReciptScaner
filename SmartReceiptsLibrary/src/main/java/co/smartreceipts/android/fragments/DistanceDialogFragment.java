@@ -1,6 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -25,6 +24,7 @@ import java.sql.Date;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.model.Distance;
@@ -165,8 +165,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             mDistance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
-                    final Activity activity = getActivity();
-                    final Dialog dialog = getDialog();
                     if (hasFocus && getActivity() != null && getDialog() != null) {
                         if (getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
                             getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -226,6 +224,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
+                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistNewDistance);
                 mDistanceTableController.insert(builder.build());
             } else {
                 // We're updating
@@ -238,6 +237,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
+                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistUpdateDistance);
                 mDistanceTableController.update(mUpdateableDistance, builder.build());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {

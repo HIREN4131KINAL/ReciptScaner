@@ -60,6 +60,9 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     public static final String TAG = "TripFragment";
 
+    private static final String ARG_NAVIGATE_TO_VIEW_LAST_TRIP = "arg_nav_to_last_trip";
+    private static final String OUT_NAV_TO_LAST_TRIP = "out_nav_to_last_trip";
+
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
     private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
@@ -67,9 +70,18 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
     private TripTableController mTripTableController;
+    private boolean mNavigateToLastTrip;
 
     public static TripFragment newInstance() {
-        return new TripFragment();
+        return newInstance(false);
+    }
+
+    public static TripFragment newInstance(boolean navigateToViewLastTrip) {
+        final TripFragment tripFragment = new TripFragment();
+        final Bundle args = new Bundle();
+        args.putBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP, navigateToViewLastTrip);
+        tripFragment.setArguments(args);
+        return tripFragment;
     }
 
     @Override
@@ -90,6 +102,11 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences());
+        if (savedInstanceState == null) {
+            mNavigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);
+        } else {
+            mNavigateToLastTrip = savedInstanceState.getBoolean(OUT_NAV_TO_LAST_TRIP);
+        }
     }
 
     @Override
@@ -152,6 +169,12 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         }
         mTripTableController.unsubscribe(this);
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
+        super.onSaveInstanceState(outState);
     }
 
     @SuppressWarnings("WrongConstant")
@@ -403,7 +426,8 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             }
             mAdapter.notifyDataSetChanged(trips);
 
-            if (!trips.isEmpty()) {
+            if (!trips.isEmpty() && mNavigateToLastTrip) {
+                mNavigateToLastTrip = false;
                 // If we have trips, open up whatever one was last used
                 final LastTripController lastTripController = new LastTripController(getActivity());
                 final Trip lastTrip = lastTripController.getLastTrip(trips);

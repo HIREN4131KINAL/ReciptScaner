@@ -39,8 +39,12 @@ public class NavigationHandler {
         mIsDualPane = isDualPane;
     }
 
-    public void navigateToTripsFragment() {
-        replaceFragment(mFragmentProvider.newTripFragmentInstance(), R.id.content_list);
+    public void navigateToHomeTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(true), R.id.content_list);
+    }
+
+    public void navigateUpToTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(false), R.id.content_list);
     }
 
     public void navigateToReportInfoFragment(@NonNull Trip trip) {

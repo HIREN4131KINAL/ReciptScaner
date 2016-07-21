@@ -66,7 +66,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
         if (savedInstanceState == null) {
             Log.d(TAG, "savedInstanceState == null");
-            mNavigationHandler.navigateToTripsFragment();
+            mNavigationHandler.navigateToHomeTripsFragment();
             AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);

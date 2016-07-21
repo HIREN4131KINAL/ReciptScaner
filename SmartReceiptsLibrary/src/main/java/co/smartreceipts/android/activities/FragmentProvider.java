@@ -1,6 +1,5 @@
 package co.smartreceipts.android.activities;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -9,7 +8,6 @@ import java.io.File;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptPDFFragment;
-import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Receipt;
@@ -23,7 +21,7 @@ public interface FragmentProvider {
      * @return a new trip fragment
      */
     @NonNull
-    TripFragment newTripFragmentInstance();
+    TripFragment newTripFragmentInstance(boolean navigateToViewLastTrip);
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReportInfoFragment} instance

@@ -83,7 +83,11 @@ public class WBFragment extends Fragment {
 
     @Nullable
 	public final ActionBar getSupportActionBar() {
-		return ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if (getActivity() != null) {
+            return ((AppCompatActivity) getActivity()).getSupportActionBar();
+        } else {
+            return null;
+        }
 	}
 
 	protected PersistenceManager getPersistenceManager() {

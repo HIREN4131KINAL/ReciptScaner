@@ -108,7 +108,7 @@ public class ReportInfoFragment extends WBFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            mNavigationHandler.navigateToTripsFragment();
+            mNavigationHandler.navigateUpToTripsFragment();
             return true;
         } else {
             return super.onOptionsItemSelected(item);

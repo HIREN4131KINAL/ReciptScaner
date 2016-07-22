@@ -109,7 +109,7 @@
 	        android:key="@string/pref_receipt_use_payment_methods_key"
 	        android:title="@string/pref_receipt_use_payment_methods_title"
 	        android:summary="@string/pref_receipt_use_payment_methods_summary"
-	        android:defaultValue="false"/>
+	        android:defaultValue="@bool/pref_receipt_use_payment_methods_defaultValue"/>
      	<Preference 
 		    android:key="@string/pref_receipt_payment_methods_key" 
 			android:title="@string/pref_receipt_payment_methods_title"

@@ -16,7 +16,7 @@ import co.smartreceipts.android.persistence.database.tables.keys.DistancePrimary
 /**
  * Stores all database operations related to the {@link Distance} model objects
  */
-public final class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Integer> {
+public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Integer> {
 
     // SQL Definitions:
     public static final String TABLE_NAME = "distance";

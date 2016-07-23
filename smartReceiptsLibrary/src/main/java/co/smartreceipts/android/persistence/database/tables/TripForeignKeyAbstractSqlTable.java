@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.tables;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
@@ -49,7 +50,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
      * @return an {@link Observable} with: all objects assigned to this foreign key in descending order
      */
     @NonNull
-    public final Observable<List<ModelType>> get(@NonNull Trip trip) {
+    public Observable<List<ModelType>> get(@NonNull Trip trip) {
         return get(trip, true);
     }
 
@@ -71,7 +72,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @NonNull
-    public final synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
+    public synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
         if (mPerTripCache.containsKey(trip)) {
             return new ArrayList<>(mPerTripCache.get(trip));
         }
@@ -97,7 +98,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
 
     @NonNull
     @Override
-    public final synchronized List<ModelType> getBlocking() {
+    public synchronized List<ModelType> getBlocking() {
         final List<ModelType> results = super.getBlocking();
         final HashMap<Trip, List<ModelType>> localCache = new HashMap<>();
         for (int i = 0; i < results.size(); i++) {
@@ -120,7 +121,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public final synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
+    public synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
         final ModelType insertedItem = super.insertBlocking(modelType);
         if (insertedItem != null) {
             final Trip trip = getTripFor(insertedItem);
@@ -138,7 +139,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public final synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
+    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
         final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType);
         if (updatedItem != null) {
             final Trip oldTrip = getTripFor(oldModelType);
@@ -159,8 +160,15 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         return updatedItem;
     }
 
+    public synchronized void updateParentBlocking(@NonNull Trip oldTrip, @NonNull Trip newTrip) {
+        final ContentValues contentValues = new ContentValues();
+        contentValues.put(mTripForeignKeyReferenceColumnName, newTrip.getName());
+        getWritableDatabase().update(getTableName(), contentValues, mTripForeignKeyReferenceColumnName + "= ?", new String[]{ oldTrip.getName() });
+        mPerTripCache.remove(oldTrip);
+    }
+
     @Override
-    public final synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
+    public synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
         final boolean deleteResult = super.deleteBlocking(modelType);
         if (deleteResult) {
             final Trip trip = getTripFor(modelType);
@@ -170,6 +178,11 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             }
         }
         return deleteResult;
+    }
+
+    public synchronized void deleteParentBlocking(@NonNull Trip trip) {
+        getWritableDatabase().delete(getTableName(), mTripForeignKeyReferenceColumnName + "= ?", new String[]{ trip.getName() });
+        mPerTripCache.remove(trip);
     }
 
     /**

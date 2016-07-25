@@ -560,7 +560,7 @@ public class StorageManager {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(destination);
-			byte[] buffer = new byte[2048];
+			byte[] buffer = new byte[1024];
 			int read;
 			while ((read = is.read(buffer)) != -1) {
 				fos.write(buffer, 0, read);

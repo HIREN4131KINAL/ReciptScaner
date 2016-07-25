@@ -62,27 +62,6 @@
                 <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.smr" android:host="*" />
             </intent-filter>
 
-            <!-- PDF Filters are all listed below -->
-            <!-- http://stackoverflow.com/questions/3760276/android-intent-filter-associate-app-with-file-extension  -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/pdf" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/pdf" android:pathPattern=".*\\.pdf" android:host="*"
-                      tools:ignore="GoogleAppIndexingUrlError" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.pdf" android:host="*" />
-            </intent-filter>
-
         </activity>
 
         <activity

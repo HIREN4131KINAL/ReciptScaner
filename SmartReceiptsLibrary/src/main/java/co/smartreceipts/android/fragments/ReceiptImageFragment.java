@@ -1,16 +1,11 @@
 package co.smartreceipts.android.fragments;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,7 +16,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -41,11 +35,11 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
-import co.smartreceipts.android.workers.ImageGalleryWorker;
 import wb.android.google.camera.Util;
 import wb.android.storage.StorageManager;
 import wb.android.ui.PinchToZoomImageView;
@@ -144,19 +138,7 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Picasso.with(getContext()).load(mReceipt.getImage()).fit().into(mImageView, new Callback() {
-            @Override
-            public void onSuccess() {
-                mProgress.setVisibility(View.GONE);
-                mImageView.setVisibility(View.VISIBLE);
-                mFooter.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onError() {
-                Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
-            }
-        });
+        loadImage();
     }
 
 
@@ -173,32 +155,27 @@ public class ReceiptImageFragment extends WBFragment {
             mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         }
 
-        if (resultCode == Activity.RESULT_OK) { // -1
-            final ImageGalleryWorker worker = getWorkerManager().getImageGalleryWorker();
-            File imgFile = worker.transformNativeCameraBitmap(mImageUri, data, null);
-            if (imgFile == null) {
+        // Show the progress bar
+        mProgress.setVisibility(View.VISIBLE);
+
+        // Null out the last request
+        final Uri cachedImageSaveLocation = mImageUri;
+        mImageUri = null;
+
+        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mReceipt.getTrip(), getPersistenceManager());
+        importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
+            @Override
+            public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
+                final Receipt retakeReceipt = new ReceiptBuilderFactory(mReceipt).setFile(file).build();
+                getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt);
+            }
+
+            @Override
+            public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
+                mProgress.setVisibility(View.GONE);
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-                return;
             }
-            switch (requestCode) {
-                case NATIVE_RETAKE_PHOTO_CAMERA_REQUEST:
-                case RETAKE_PHOTO_CAMERA_REQUEST:
-                    final Receipt retakeReceipt = new ReceiptBuilderFactory(mReceipt).setFile(imgFile).build();
-                    getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt);
-                    break;
-                default:
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Unrecognized Request Code: " + requestCode);
-                    }
-                    super.onActivityResult(requestCode, resultCode, data);
-                    break;
-            }
-        } else {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            }
-            super.onActivityResult(requestCode, resultCode, data);
-        }
+        });
     }
 
     @Override
@@ -236,6 +213,23 @@ public class ReceiptImageFragment extends WBFragment {
         }
     }
 
+    private void loadImage() {
+        Picasso.with(getContext()).load(mReceipt.getImage()).fit().centerInside().into(mImageView, new Callback() {
+            @Override
+            public void onSuccess() {
+                mProgress.setVisibility(View.GONE);
+                mImageView.setVisibility(View.VISIBLE);
+                mFooter.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError() {
+                mProgress.setVisibility(View.GONE);
+                Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void rotate(int orientation) {
         if (mIsRotateOngoing) {
             return;
@@ -259,12 +253,13 @@ public class ReceiptImageFragment extends WBFragment {
         public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
             if (oldReceipt.equals(mReceipt)) {
                 mReceipt = newReceipt;
-                mImageView.setImageBitmap(BitmapFactory.decodeFile(mReceipt.getImage().getAbsolutePath()));
+                loadImage();
             }
         }
 
         @Override
         public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
+            mProgress.setVisibility(View.GONE);
             Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
         }
     }

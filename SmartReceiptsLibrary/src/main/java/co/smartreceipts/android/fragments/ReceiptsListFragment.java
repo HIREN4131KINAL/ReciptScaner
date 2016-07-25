@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -19,10 +18,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,27 +37,20 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.FileImportListener;
+import co.smartreceipts.android.imports.RequestCodes;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import wb.android.dialog.BetterDialogBuilder;
-import wb.android.google.camera.PhotoModule;
-import wb.android.google.camera.app.GalleryApp;
 
 public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
 
     public static final String TAG = "ReceiptsListFragment";
-
-    // Activity Request ints
-    private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
-    private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
-    private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
-    private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
-    private static final int IMPORT_GALLERY_IMAGE = 5;
 
     // Permissions Request Ints
     private static final int PERMISSION_CAMERA_REQUEST = 21;
@@ -81,8 +71,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     private View mFloatingActionMenuActiveMaskView;
 
     private NavigationHandler mNavigationHandler;
-    private boolean mShowDialogOnResume = false;
-    private File mImageFile;
 
 
     @Override
@@ -175,11 +163,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         Log.d(TAG, "onResume");
         mReceiptTableController.subscribe(this);
         mReceiptTableController.get(mCurrentTrip);
-        if (mShowDialogOnResume) {
-            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, mImageFile);
-            // receiptMenu(mCurrentTrip, null, mImageFile);
-            mShowDialogOnResume = false;
-        }
     }
 
     @Override
@@ -218,51 +201,38 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         }
 
-        // Let's cache the image uri and then null it out to not impact future requests
-        final Uri cachedImageUriForRequest = mImageUri;
+        // Null out the last request
+        final Uri cachedImageSaveLocation = mImageUri;
         mImageUri = null;
 
-        if (resultCode == Activity.RESULT_OK) { // -1
-            File imgFile = (cachedImageUriForRequest != null) ? new File(cachedImageUriForRequest.getPath()) : null;
-            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, null);
-            } else if (requestCode == IMPORT_GALLERY_IMAGE) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, Uri.fromFile(new File(mCurrentTrip.getDirectory(), System.currentTimeMillis() + ".jpg")));
+        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager());
+        importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
+            @Override
+            public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
+                switch (requestCode) {
+                    case RequestCodes.IMPORT_GALLERY_IMAGE:
+                    case RequestCodes.IMPORT_GALLERY_PDF:
+                    case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
+                    case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
+                        if (isResumed()) {
+                            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, file);
+                        } else {
+                            // TODO: How do we handle this? Via replay?
+                        }
+                        break;
+                    case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
+                    case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
+                        final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(file).build();
+                        mReceiptTableController.update(mHighlightedReceipt, updatedReceipt);
+                        break;
+                }
             }
-            if (imgFile == null) {
+
+            @Override
+            public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-                return;
             }
-            switch (requestCode) {
-                case IMPORT_GALLERY_IMAGE:
-                case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                case NEW_RECEIPT_CAMERA_REQUEST:
-                    if (this.isResumed()) {
-                        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, imgFile);
-                        // receiptMenu(mCurrentTrip, null, imgFile);
-                    } else {
-                        mShowDialogOnResume = true;
-                        mImageFile = imgFile;
-                    }
-                    break;
-                case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
-                case ADD_PHOTO_CAMERA_REQUEST:
-                    final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(imgFile).build();
-                    mReceiptTableController.update(mHighlightedReceipt, updatedReceipt);
-                    break;
-                default:
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Unrecognized Request Code: " + requestCode);
-                    }
-                    super.onActivityResult(requestCode, resultCode, data);
-                    break;
-            }
-        } else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-            Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-        } else {
-            Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            super.onActivityResult(requestCode, resultCode, data);
-        }
+        });
     }
 
     public final void addPictureReceipt() {
@@ -273,12 +243,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             mImageUri = Uri.fromFile(new File(dir, System.currentTimeMillis() + "x.jpg"));
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
+            startActivityForResult(intent, RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
         } else {
             final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
             mImageUri = Uri.fromFile(new File(dir, System.currentTimeMillis() + "x.jpg"));
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
+            startActivityForResult(intent, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
         }
     }
 
@@ -317,15 +287,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     private void importReceipt() {
-        final Intent intent;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        } else {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-        }
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(intent, IMPORT_GALLERY_IMAGE);
+        final ImportPhotoPdfDialogFragment fragment = new ImportPhotoPdfDialogFragment();
+        fragment.show(getFragmentManager(), ImportPhotoPdfDialogFragment.TAG);
     }
 
     public final boolean showReceiptMenu(final Receipt receipt) {
@@ -407,12 +370,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                                 final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                 mImageUri = Uri.fromFile(new File(dir, receipt.getId() + "x.jpg"));
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                startActivityForResult(intent, NATIVE_ADD_PHOTO_CAMERA_REQUEST);
+                                startActivityForResult(intent, RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST);
                             } else {
                                 final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
                                 mImageUri = Uri.fromFile(new File(dir, receipt.getId() + "x.jpg"));
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
+                                startActivityForResult(intent, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
                             }
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {

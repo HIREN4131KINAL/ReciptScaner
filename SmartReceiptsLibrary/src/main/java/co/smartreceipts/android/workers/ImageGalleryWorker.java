@@ -31,6 +31,7 @@ import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
 
+@Deprecated
 public class ImageGalleryWorker extends WorkerChild {
 
     private static final String TAG = ImageGalleryWorker.class.getSimpleName();
@@ -105,6 +106,7 @@ public class ImageGalleryWorker extends WorkerChild {
      * @param imageDestination - The default save location. If this is null, imageUri will be used
      * @return
      */
+    @Deprecated
     public File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
         // TODO: Move this all to a separate thread
         Log.d(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");

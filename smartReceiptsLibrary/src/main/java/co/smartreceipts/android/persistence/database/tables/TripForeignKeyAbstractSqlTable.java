@@ -145,7 +145,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             final Trip oldTrip = getTripFor(oldModelType);
             if (mPerTripCache.containsKey(oldTrip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(oldTrip);
-                perTripResults.remove(updatedItem);
+                perTripResults.remove(oldModelType);
             }
 
             final Trip newTrip = getTripFor(updatedItem);

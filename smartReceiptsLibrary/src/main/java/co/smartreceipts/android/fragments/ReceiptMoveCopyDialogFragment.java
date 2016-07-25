@@ -62,7 +62,7 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
         mTripSpinner = (Spinner) dialogView.findViewById(R.id.move_copy_spinner);
         mTripSpinner.setPrompt(getString(R.string.report));
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(getString(R.string.move_copy_item, mReceipt.getName()));
         builder.setView(dialogView);
         builder.setCancelable(true);

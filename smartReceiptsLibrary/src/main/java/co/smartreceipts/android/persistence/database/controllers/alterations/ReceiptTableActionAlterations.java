@@ -55,6 +55,22 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         });
     }
 
+    @NonNull
+    @Override
+    public Observable<Receipt> preUpdate(@NonNull Receipt oldReceipt, @NonNull final Receipt newReceipt) {
+        if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+            // If we changed the receipt file, rename it to our naming schema
+            return Observable.defer(new Func0<Observable<Receipt>>() {
+                @Override
+                public Observable<Receipt> call() {
+                    return Observable.just(updateReceiptFileNameBlocking(newReceipt));
+                }
+            });
+        } else {
+            return super.preUpdate(oldReceipt, newReceipt);
+        }
+    }
+
     @Override
     public void postUpdate(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
         if (newReceipt != null) { // i.e. - the update succeeded

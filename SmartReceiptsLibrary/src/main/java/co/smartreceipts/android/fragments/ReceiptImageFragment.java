@@ -35,6 +35,7 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
@@ -46,10 +47,6 @@ import wb.android.ui.PinchToZoomImageView;
 public class ReceiptImageFragment extends WBFragment {
 
     public static final String TAG = "ReceiptImageFragment";
-
-    // Activity Request ints
-    private static final int RETAKE_PHOTO_CAMERA_REQUEST = 1;
-    private static final int NATIVE_RETAKE_PHOTO_CAMERA_REQUEST = 2;
 
     // Save state
     private static final String KEY_OUT_RECEIPT = "key_out_receipt";
@@ -109,19 +106,7 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onClick(View view) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRetakePhoto);
-                final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-                final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-                if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
-                    final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    mImageUri = Uri.fromFile(new File(mReceipt.getTrip().getDirectoryPath(), mReceipt.getImage().getName()));
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                    startActivityForResult(intent, NATIVE_RETAKE_PHOTO_CAMERA_REQUEST);
-                } else {
-                    final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                    mImageUri = Uri.fromFile(new File(mReceipt.getTrip().getDirectoryPath(), mReceipt.getImage().getName()));
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                    startActivityForResult(intent, RETAKE_PHOTO_CAMERA_REQUEST);
-                }
+                mImageUri = new CameraInteractionController(ReceiptImageFragment.this, getPersistenceManager()).retakePhoto(mReceipt);
             }
         });
         rotateCW.setOnClickListener(new View.OnClickListener() {

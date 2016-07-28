@@ -1,6 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -9,10 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +35,7 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.imports.RequestCodes;
 import co.smartreceipts.android.model.Attachment;
@@ -236,20 +234,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addPictureReceipt() {
-        final File dir = mCurrentTrip.getDirectory();
-        final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
-            final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            mImageUri = Uri.fromFile(new File(dir, System.currentTimeMillis() + "x.jpg"));
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            startActivityForResult(intent, RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
-        } else {
-            final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-            mImageUri = Uri.fromFile(new File(dir, System.currentTimeMillis() + "x.jpg"));
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            startActivityForResult(intent, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
-        }
+        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto(mCurrentTrip);
     }
 
     @Override
@@ -365,18 +350,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
-                            final File dir = mCurrentTrip.getDirectory();
-                            if (getPersistenceManager().getPreferences().useNativeCamera()) {
-                                final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                mImageUri = Uri.fromFile(new File(dir, receipt.getId() + "x.jpg"));
-                                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                startActivityForResult(intent, RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST);
-                            } else {
-                                final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                                mImageUri = Uri.fromFile(new File(dir, receipt.getId() + "x.jpg"));
-                                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                startActivityForResult(intent, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
-                            }
+                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto(receipt);
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
                                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);
@@ -499,7 +473,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public void onGetFailure(@Nullable Throwable e, @NonNull Trip trip) {
-        // TODO: Respond?
+        Toast.makeText(getActivity(), R.string.database_get_error, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -509,7 +483,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public void onGetFailure(@Nullable Throwable e) {
-        // TODO: Intentional no-op?
+        Toast.makeText(getActivity(), R.string.database_get_error, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -529,12 +503,11 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
         if (isAdded()) {
-            // TODO: Toast message
-            // Toast.makeText(getActivity(), "Receipt Image Successfully Added to " + mHighlightedReceipt.getName(), Toast.LENGTH_SHORT).show();
-            /*
-            int stringId = replace ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
-                Toast.makeText(getActivity(), getString(stringId, receipt.getName()), Toast.LENGTH_SHORT).show();
-             */
+            if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+                int stringId = oldReceipt.getFile() != null ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
+                Toast.makeText(getActivity(), getString(stringId, newReceipt.getName()), Toast.LENGTH_SHORT).show();
+            }
+
             mReceiptTableController.get(mCurrentTrip);
             ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }

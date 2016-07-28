@@ -257,7 +257,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
             Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
         }
         else {
-            Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -273,7 +273,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
             Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
         }
         else {
-            Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -284,7 +284,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onDeleteFailure(@NonNull Category category, @Nullable Throwable e) {
-        Toast.makeText(getActivity(), getString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), getString(R.string.database_error), Toast.LENGTH_SHORT).show();
     }
 
     private static final class MyViewHolder {

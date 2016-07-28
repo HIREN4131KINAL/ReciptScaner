@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -260,7 +259,7 @@ public class ReceiptImageFragment extends WBFragment {
         @Override
         public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
             mProgress.setVisibility(View.GONE);
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 

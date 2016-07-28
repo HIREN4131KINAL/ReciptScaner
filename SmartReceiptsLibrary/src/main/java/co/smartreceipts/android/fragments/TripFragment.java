@@ -472,7 +472,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
             }
         } else {
             if (isAdded()) {
-                Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
             }
         }
 
@@ -488,7 +488,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     @Override
     public void onUpdateFailure(@NonNull Trip oldTrip, @Nullable Throwable ex) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -510,7 +510,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     @Override
     public void onDeleteFailure(@NonNull Trip oldTrip, @Nullable Throwable e) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
         }
     }
 

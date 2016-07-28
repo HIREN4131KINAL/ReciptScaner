@@ -522,7 +522,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onInsertFailure(@NonNull Receipt receipt, @Nullable Throwable e) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -543,7 +543,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -558,7 +558,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onDeleteFailure(@NonNull Receipt receipt, @Nullable Throwable e) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 

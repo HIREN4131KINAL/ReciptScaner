@@ -71,7 +71,7 @@ public class CameraInteractionController {
     @NonNull
     private Uri startPhotoIntent(@NonNull Uri saveLocation, int nativeCameraRequestCode, int localCameraRequestCode) {
         final Fragment fragment = mFragmentReference.get();
-        if (fragment != null && fragment.isResumed()) {
+        if (fragment == null || !fragment.isResumed()) {
             return Uri.EMPTY;
         }
 

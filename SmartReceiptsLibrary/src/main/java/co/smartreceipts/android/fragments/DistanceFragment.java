@@ -115,14 +115,14 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         if (isAdded()) {
             mAdapter.notifyDataSetChanged(distances);
             mProgressDialog.setVisibility(View.GONE);
-            if (distances.size() == 0) {
+            if (distances.isEmpty()) {
                 getListView().setVisibility(View.GONE);
                 mNoDataAlert.setVisibility(View.VISIBLE);
-                return;
             } else {
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
+            
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
                 if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {

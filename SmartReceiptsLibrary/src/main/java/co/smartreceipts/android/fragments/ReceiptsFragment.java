@@ -60,8 +60,7 @@ public class ReceiptsFragment extends WBListFragment {
                                     if (isResumed()) {
                                         final ActionBar actionBar = getSupportActionBar();
                                         if (actionBar != null) {
-                                            final String titleWithId = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), integer);
-                                            actionBar.setTitle(titleWithId);
+                                            actionBar.setSubtitle(getString(R.string.next_id, integer));
                                         }
                                     }
                                 }

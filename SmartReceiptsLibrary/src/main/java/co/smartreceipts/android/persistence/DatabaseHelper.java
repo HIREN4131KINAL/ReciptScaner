@@ -304,7 +304,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 try {
                     cursor = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[]{ReceiptsTable.TABLE_NAME});
                     if (cursor != null && cursor.moveToFirst() && cursor.getColumnCount() > 0) {
-                        subscriber.onNext(cursor.getInt(0) + 1;
+                        subscriber.onNext(cursor.getInt(0) + 1);
                     } else {
                         subscriber.onNext(0);
                     }

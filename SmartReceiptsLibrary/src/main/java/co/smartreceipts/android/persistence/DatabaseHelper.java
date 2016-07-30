@@ -13,6 +13,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,9 +48,12 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
+import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import co.smartreceipts.android.workers.ImportTask;
+import rx.Observable;
+import rx.Subscriber;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -76,7 +82,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     private static DatabaseHelper INSTANCE = null;
 
     // Caching Vars
-    private int mNextReceiptAutoIncrementId = -1;
     private ArrayList<CharSequence> mFullCurrencyList;
     private ArrayList<CharSequence> mMostRecentlyUsedCurrencyList;
     private final ReceiptColumnDefinitions mReceiptColumnDefinitions;
@@ -294,28 +299,29 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return getNextReceiptAutoIncremenetIdHelper();
     }
 
-    private int getNextReceiptAutoIncremenetIdHelper() {
-        if (mNextReceiptAutoIncrementId > 0) {
-            return mNextReceiptAutoIncrementId;
-        }
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = null;
-        try {
-            synchronized (mDatabaseLock) {
-
-                c = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[]{ReceiptsTable.TABLE_NAME});
-                if (c != null && c.moveToFirst() && c.getColumnCount() > 0) {
-                    mNextReceiptAutoIncrementId = c.getInt(0) + 1;
-                } else {
-                    mNextReceiptAutoIncrementId = 1;
+    public Observable<Integer> getNextReceiptAutoIncremenetIdHelper() {
+        return Observable.create(new Observable.OnSubscribe<Integer>() {
+            @Override
+            public void call(Subscriber<? super Integer> subscriber) {
+                SQLiteDatabase db = getReadableDatabase();
+                Cursor cursor = null;
+                try {
+                    cursor = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[]{ReceiptsTable.TABLE_NAME});
+                    if (cursor != null && cursor.moveToFirst() && cursor.getColumnCount() > 0) {
+                        subscriber.onNext(cursor.getInt(0) + 1;
+                    } else {
+                        subscriber.onNext(0);
+                    }
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
-                return mNextReceiptAutoIncrementId;
             }
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-        }
+        });
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////

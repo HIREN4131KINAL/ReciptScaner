@@ -295,10 +295,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
 
-    public int getNextReceiptAutoIncremenetIdSerial() {
-        return getNextReceiptAutoIncremenetIdHelper();
-    }
-
     public Observable<Integer> getNextReceiptAutoIncremenetIdHelper() {
         return Observable.create(new Observable.OnSubscribe<Integer>() {
             @Override

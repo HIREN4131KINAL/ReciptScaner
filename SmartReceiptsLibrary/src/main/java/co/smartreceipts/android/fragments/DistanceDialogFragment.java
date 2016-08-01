@@ -100,7 +100,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             args.putParcelable(Distance.PARCEL_KEY, distance);
         }
         if (suggestedDate != null) {
-            args.putLong(ARG_SUGGESTED_DATE, suggestedDate.getTime());
+            args.putLong(ARG_SUGGESTED_DATE, suggestedDate.getTime() + 1);
         }
         dialog.setArguments(args);
         return dialog;

@@ -2,6 +2,7 @@ package co.smartreceipts.android.imports;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +10,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.google.common.base.Preconditions;
@@ -30,6 +32,7 @@ import wb.android.storage.StorageManager;
 public class ImageImportProcessor implements FileImportProcessor {
 
     private static final String TAG = ImageImportProcessor.class.getSimpleName();
+    private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     private final Trip mTrip;
     private final StorageManager mStorageManner;
@@ -133,6 +136,11 @@ public class ImageImportProcessor implements FileImportProcessor {
     }
 
     private int getOrientation(@NonNull Uri externalUri) {
+        final boolean hasStoragePermission = ContextCompat.checkSelfPermission(mContext, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        if (!hasStoragePermission) {
+            return ExifInterface.ORIENTATION_UNDEFINED;
+        }
+
         Cursor c = null;
         try {
             final String[] imageColumns = { MediaStore.Images.Media.ORIENTATION };

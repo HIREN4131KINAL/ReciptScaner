@@ -25,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -198,7 +199,7 @@ public class ReceiptImageFragment extends WBFragment {
     }
 
     private void loadImage() {
-        Picasso.with(getContext()).load(mReceipt.getImage()).fit().centerInside().into(mImageView, new Callback() {
+        Picasso.with(getContext()).load(mReceipt.getImage()).memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).fit().centerInside().into(mImageView, new Callback() {
             @Override
             public void onSuccess() {
                 mProgress.setVisibility(View.GONE);

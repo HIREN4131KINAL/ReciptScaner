@@ -46,7 +46,7 @@ public class ActivityFileResultImporter {
         mPreferences = Preconditions.checkNotNull(preferences);
     }
 
-    public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable Uri proposedImageSaveLocation, @NonNull final FileImportListener listener) {
+    public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable final Uri proposedImageSaveLocation, @NonNull final FileImportListener listener) {
         if (resultCode == Activity.RESULT_OK) {
             if ((data == null || data.getData() == null) && proposedImageSaveLocation == null) {
                 listener.onImportFailed(null, requestCode, resultCode);
@@ -70,6 +70,18 @@ public class ActivityFileResultImporter {
                 subscriptionReference.set(importProcessor.process(uri)
                                      .subscribeOn(Schedulers.io())
                                      .observeOn(AndroidSchedulers.mainThread())
+                                     .doOnNext(new Action1<File>() {
+                                         @Override
+                                         @SuppressWarnings("ResultOfMethodCallIgnored")
+                                         public void call(File file) {
+                                             if (file != null) {
+                                                 final File uriLocation = new File(uri.getPath());
+                                                 if (!file.equals(uriLocation)) {
+                                                     uriLocation.delete(); // Clean up
+                                                 }
+                                             }
+                                         }
+                                     })
                                      .subscribe(new Action1<File>() {
                                          @Override
                                          public void call(File file) {

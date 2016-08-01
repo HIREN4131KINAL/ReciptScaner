@@ -122,7 +122,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
-            
+
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
                 if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {

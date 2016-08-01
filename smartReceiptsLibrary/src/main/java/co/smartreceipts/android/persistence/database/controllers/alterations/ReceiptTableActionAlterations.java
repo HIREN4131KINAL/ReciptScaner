@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import rx.Observable;
+import rx.Subscriber;
 import rx.functions.Func0;
 import wb.android.storage.StorageManager;
 
@@ -50,25 +51,38 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         return Observable.defer(new Func0<Observable<Receipt>>() {
             @Override
             public Observable<Receipt> call() {
-                return Observable.just(updateReceiptFileNameBlocking(receipt));
+                return Observable.just(updateReceiptFileNameBlocking(receipt, getNextReceiptIndex(receipt)));
             }
         });
     }
 
     @NonNull
     @Override
-    public Observable<Receipt> preUpdate(@NonNull Receipt oldReceipt, @NonNull final Receipt newReceipt) {
-        if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
-            // If we changed the receipt file, rename it to our naming schema
-            return Observable.defer(new Func0<Observable<Receipt>>() {
-                @Override
-                public Observable<Receipt> call() {
-                    return Observable.just(updateReceiptFileNameBlocking(newReceipt));
+    public Observable<Receipt> preUpdate(@NonNull final Receipt oldReceipt, @NonNull final Receipt newReceipt) {
+        return Observable.create(new Observable.OnSubscribe<Receipt>() {
+            @Override
+            public void call(Subscriber<? super Receipt> subscriber) {
+                if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+                    // If we changed the receipt file, rename it to our naming schema
+                    if (oldReceipt.getFile() != null) {
+                        final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(newReceipt);
+                        if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
+                            factory.setFile(oldReceipt.getFile());
+                        }
+                        subscriber.onNext(factory.build());
+                        subscriber.onCompleted();
+                    } else {
+                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt, newReceipt.getIndex()));
+                        subscriber.onCompleted();
+                    }
+                } else {
+                    subscriber.onNext(newReceipt);
+                    subscriber.onCompleted();
                 }
-            });
-        } else {
-            return super.preUpdate(oldReceipt, newReceipt);
-        }
+                newReceipt.getFile();
+            }
+        });
+
     }
 
     @Override
@@ -150,11 +164,10 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     @NonNull
-    private Receipt updateReceiptFileNameBlocking(@NonNull Receipt receipt) {
+    private Receipt updateReceiptFileNameBlocking(@NonNull Receipt receipt, int index) {
         final ReceiptBuilderFactory builder = mReceiptBuilderFactoryFactory.build(receipt);
 
-        final int rcptNum = mReceiptsTable.get(receipt.getTrip()).toBlocking().first().size() + 1;
-        final StringBuilder stringBuilder = new StringBuilder(rcptNum + "_");
+        final StringBuilder stringBuilder = new StringBuilder(index + "_");
         stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
         final File file = receipt.getFile();
         if (file != null) {
@@ -183,7 +196,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                 throw new IOException("Failed to copy the receipt file to the new trip: " + toTrip.getName());
             }
         }
-        return updateReceiptFileNameBlocking(builder.build());
+        return updateReceiptFileNameBlocking(builder.build(), getNextReceiptIndex(builder.build()));
     }
 
     @NonNull
@@ -193,5 +206,9 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         builder1.setDate(receipt2.getDate());
         builder2.setDate(receipt1.getDate());
         return Arrays.asList(new AbstractMap.SimpleImmutableEntry<>(receipt1, builder1.build()), new AbstractMap.SimpleImmutableEntry<>(receipt2, builder2.build()));
+    }
+
+    private int getNextReceiptIndex(@NonNull Receipt receipt) {
+        return mReceiptsTable.get(receipt.getTrip()).toBlocking().first().size() + 1;
     }
 }

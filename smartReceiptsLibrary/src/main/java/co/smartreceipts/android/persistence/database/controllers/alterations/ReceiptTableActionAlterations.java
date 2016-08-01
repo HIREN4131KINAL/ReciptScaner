@@ -51,7 +51,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         return Observable.defer(new Func0<Observable<Receipt>>() {
             @Override
             public Observable<Receipt> call() {
-                return Observable.just(updateReceiptFileNameBlocking(receipt, getNextReceiptIndex(receipt)));
+                return Observable.just(updateReceiptFileNameBlocking(new ReceiptBuilderFactory(receipt).setIndex(getNextReceiptIndex(receipt)).build()));
             }
         });
     }
@@ -72,7 +72,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                         subscriber.onNext(factory.build());
                         subscriber.onCompleted();
                     } else {
-                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt, newReceipt.getIndex()));
+                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
                         subscriber.onCompleted();
                     }
                 } else {
@@ -164,10 +164,10 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     @NonNull
-    private Receipt updateReceiptFileNameBlocking(@NonNull Receipt receipt, int index) {
+    private Receipt updateReceiptFileNameBlocking(@NonNull Receipt receipt) {
         final ReceiptBuilderFactory builder = mReceiptBuilderFactoryFactory.build(receipt);
 
-        final StringBuilder stringBuilder = new StringBuilder(index + "_");
+        final StringBuilder stringBuilder = new StringBuilder(receipt.getIndex() + "_");
         stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
         final File file = receipt.getFile();
         if (file != null) {
@@ -196,7 +196,8 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                 throw new IOException("Failed to copy the receipt file to the new trip: " + toTrip.getName());
             }
         }
-        return updateReceiptFileNameBlocking(builder.build(), getNextReceiptIndex(builder.build()));
+        builder.setIndex(getNextReceiptIndex(receipt));
+        return updateReceiptFileNameBlocking(builder.build());
     }
 
     @NonNull

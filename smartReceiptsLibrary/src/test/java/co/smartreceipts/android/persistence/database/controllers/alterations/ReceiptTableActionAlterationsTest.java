@@ -11,6 +11,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.model.Price;
@@ -26,6 +27,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -64,6 +66,7 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getTrip()).thenReturn(mTrip);
         when(mReceiptBuilderFactory.build()).thenReturn(mReceipt);
         when(mReceiptBuilderFactoryFactory.build(mReceipt)).thenReturn(mReceiptBuilderFactory);
+        when(mReceiptBuilderFactory.setIndex(anyInt())).thenReturn(mReceiptBuilderFactory);
 
         doAnswer(new Answer() {
             @Override
@@ -79,11 +82,18 @@ public class ReceiptTableActionAlterationsTest {
         }).when(mStorageManager).rename(any(File.class), anyString());
         doAnswer(new Answer() {
             @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
+            public ReceiptBuilderFactory answer(InvocationOnMock invocation) throws Throwable {
                 when(mReceipt.getFile()).thenReturn((File)invocation.getArguments()[0]);
-                return null;
+                return mReceiptBuilderFactory;
             }
         }).when(mReceiptBuilderFactory).setFile(any(File.class));
+        doAnswer(new Answer() {
+            @Override
+            public ReceiptBuilderFactory answer(InvocationOnMock invocation) throws Throwable {
+                when(mReceipt.getIndex()).thenReturn((Integer) invocation.getArguments()[0]);
+                return mReceiptBuilderFactory;
+            }
+        }).when(mReceiptBuilderFactory).setIndex(anyInt());
 
         mReceiptTableActionAlterations = new ReceiptTableActionAlterations(mReceiptsTable, mStorageManager, mReceiptBuilderFactoryFactory);
     }
@@ -96,6 +106,7 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.hasFile()).thenReturn(false);
         when(mReceipt.getName()).thenReturn(name);
         assertEquals(mReceipt, mReceiptTableActionAlterations.preInsert(mReceipt).toBlocking().first());
+        verify(mReceiptBuilderFactory).setIndex(4);
         assertNull(mReceipt.getFile());
     }
 
@@ -108,6 +119,7 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
         assertEquals(new File("4_name.jpg"), mReceiptTableActionAlterations.preInsert(mReceipt).toBlocking().first().getFile());
+        verify(mReceiptBuilderFactory).setIndex(4);
     }
 
     @Test
@@ -119,6 +131,7 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
         assertEquals(new File("4_before__after.jpg"), mReceiptTableActionAlterations.preInsert(mReceipt).toBlocking().first().getFile());
+        verify(mReceiptBuilderFactory).setIndex(4);
     }
 
     @Test

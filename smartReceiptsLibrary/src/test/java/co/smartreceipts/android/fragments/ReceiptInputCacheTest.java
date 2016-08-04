@@ -15,6 +15,7 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(RobolectricGradleTestRunner.class)
 public class ReceiptInputCacheTest {
@@ -28,14 +29,17 @@ public class ReceiptInputCacheTest {
 
     @Test
     public void getCachedDate() {
-        final Date date = new Date(1);
+        final Date date = new Date(1000000000L);
         final ReceiptInputCache preConfigurationChangeCache = new ReceiptInputCache(mActivityController.get().getSupportFragmentManager());
         preConfigurationChangeCache.setCachedDate(date);
 
         mActivityController.restart();
 
         final ReceiptInputCache postConfigurationChangeCache = new ReceiptInputCache(mActivityController.get().getSupportFragmentManager());
-        assertEquals(date, postConfigurationChangeCache.getCachedDate());
+        assertNotNull(postConfigurationChangeCache.getCachedDate());
+
+        // Confirm we bump the time by one for ordering
+        assertEquals(new Date(date.getTime() + 1), postConfigurationChangeCache.getCachedDate());
     }
 
     @Test

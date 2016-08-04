@@ -29,7 +29,7 @@ public class TripFilterTest {
     private static final Price PRICE_LOW = new ImmutablePriceImpl(new BigDecimal(50.00d), TripUtils.Constants.CURRENCY, new ExchangeRateBuilderFactory().setBaseCurrency(TripUtils.Constants.CURRENCY).build());
 
     // Test constants for Date checking
-    private static final TimeZone TZ = TimeZone.getDefault();
+    private static final TimeZone TZ = TimeZone.getTimeZone("America/New_York");
     private static final long MILLIS = System.currentTimeMillis();
     private static final Date NOW = new Date(MILLIS);
     private static final Date FUTURE = new Date(MILLIS + 1000);

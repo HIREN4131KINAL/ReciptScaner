@@ -51,7 +51,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         return Observable.defer(new Func0<Observable<Receipt>>() {
             @Override
             public Observable<Receipt> call() {
-                return Observable.just(updateReceiptFileNameBlocking(new ReceiptBuilderFactory(receipt).setIndex(getNextReceiptIndex(receipt)).build()));
+                return Observable.just(updateReceiptFileNameBlocking(mReceiptBuilderFactoryFactory.build(receipt).setIndex(getNextReceiptIndex(receipt)).build()));
             }
         });
     }
@@ -65,7 +65,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                 if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
                     // If we changed the receipt file, rename it to our naming schema
                     if (oldReceipt.getFile() != null) {
-                        final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(newReceipt);
+                        final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
                         if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
                             factory.setFile(oldReceipt.getFile());
                         }

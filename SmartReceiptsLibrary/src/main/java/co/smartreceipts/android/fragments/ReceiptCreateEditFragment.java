@@ -113,6 +113,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private ReceiptInputCache mReceiptInputCache;
     private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
     private ArrayAdapter<CharSequence> mCurrenciesAdapter;
+    private List<Category> mCategoriesList;
     private ArrayAdapter<Category> mCategoriesAdpater;
     private ArrayAdapter<PaymentMethod> mPaymentMethodsAdapter;
 
@@ -158,6 +159,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
+        mCategoriesList = Collections.emptyList();
         mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
         mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
         setHasOptionsMenu(true);
@@ -363,6 +365,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             @Override
             public void onGetSuccess(@NonNull List<Category> list) {
                 if (isAdded()) {
+                    mCategoriesList = list;
                     mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
                     mCategoriesAdpater.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     categoriesSpinner.setAdapter(mCategoriesAdpater);
@@ -560,7 +563,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 priceBox.setText(price);
             }
             if (categoriesSpinner != null && category != null) {
-                categoriesSpinner.setSelection(getPersistenceManager().getDatabase().getCategoriesList().indexOf(category));
+                for (int i = 0; i < mCategoriesList.size(); i++) {
+                    if (category.equals(mCategoriesList.get(i).getName())) {
+                        categoriesSpinner.setSelection(mCategoriesList.indexOf(mCategoriesList.get(i)));
+                        break;
+                    }
+                }
             }
         }
     }

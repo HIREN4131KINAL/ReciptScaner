@@ -223,12 +223,8 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // Trip Methods
+    // Utility Methods
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    @NonNull
-    public final TripsTable getTripsTable() {
-        return mTripsTable;
-    }
 
     /**
      * This class is not synchronized! Sync outside of it
@@ -320,10 +316,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         });
     }
 
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // Categories Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-
     public final ArrayList<CharSequence> getCurrenciesList() {
         if (mFullCurrencyList != null) {
             return mFullCurrencyList;
@@ -363,13 +355,14 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         return mMostRecentlyUsedCurrencyList;
     }
 
-    public final ArrayList<CharSequence> getCategoriesList() {
-        return new ArrayList<>();
+    // //////////////////////////////////////////////////////////////////////////////////////////////////
+    // Tables Methods
+    // //////////////////////////////////////////////////////////////////////////////////////////////////
+    @NonNull
+    public final TripsTable getTripsTable() {
+        return mTripsTable;
     }
 
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // Columns Methods
-    // //////////////////////////////////////////////////////////////////////////////////////////////////
     @NonNull
     public final ReceiptsTable getReceiptsTable() {
         return mReceiptsTable;
@@ -399,7 +392,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     public final PaymentMethodsTable getPaymentMethodsTable() { return mPaymentMethodsTable; }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////
-    // Utilities
+    // Merge
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     public final synchronized boolean merge(String dbPath, String packageName, boolean overwrite) {
         synchronized (mDatabaseLock) {

@@ -30,6 +30,8 @@ public class ReportInfoFragment extends WBFragment {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
+    private static final String KEY_OUT_TRIP = "key_out_trip";
+
     private NavigationHandler mNavigationHandler;
     private LastTripController mLastTripController;
     private TripFragmentPagerAdapter mFragmentPagerAdapter;
@@ -54,7 +56,11 @@ public class ReportInfoFragment extends WBFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        if (savedInstanceState == null) {
+            mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        } else {
+            mTrip = savedInstanceState.getParcelable(KEY_OUT_TRIP);
+        }
         mLastTripController = new LastTripController(getActivity());
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), mTrip, getConfigurationManager());
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
@@ -137,6 +143,12 @@ public class ReportInfoFragment extends WBFragment {
         getSmartReceiptsApplication().getTableControllerManager().getTripTableController().unsubscribe(mActionBarTitleUpdatesListener);
         mLastTripController.setLastTrip(mTrip);
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(KEY_OUT_TRIP, mTrip);
+        super.onSaveInstanceState(outState);
     }
 
     private class ActionBarTitleUpdatesListener extends StubTableEventsListener<Trip> {

@@ -64,7 +64,6 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                     adView.setVisibility(View.GONE);
                     upsell.setVisibility(View.VISIBLE);
                 } else {
-                    adView.loadAd(getAdRequest());
                     adView.setAdListener(new AdListener() {
                         @Override
                         public void onAdFailedToLoad(int errorCode) {
@@ -79,11 +78,13 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                             upsell.setVisibility(View.GONE);
                         }
                     });
+                    loadAdDelayed(adView);
                 }
             } else {
                 hideAdAndUpsell();
             }
         }
+
         if (getSubscriptionManager() != null) {
             getSubscriptionManager().addEventListener(this);
         }
@@ -220,6 +221,27 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         if (upsell != null) {
             upsell.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * The {@link AdView#loadAd(AdRequest)} is really slow and cannot be moved off the main thread (ugh).
+     * We use this method to slightly defer the ad loading process until the core UI of the app loads, so
+     * users can see data immediately
+     *
+     * @param adView
+     */
+    private void loadAdDelayed(@NonNull final AdView adView) {
+        adView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    adView.loadAd(getAdRequest());
+                } catch (Exception e) {
+                    Log.e(TAG, "Swallowing ad load exception... " + e);
+                    // Swallowing all exception b/c I'm lazy and don't want to handle activity finishing states
+                }
+            }
+        }, 1500);
     }
 
     private boolean showUpsell() {

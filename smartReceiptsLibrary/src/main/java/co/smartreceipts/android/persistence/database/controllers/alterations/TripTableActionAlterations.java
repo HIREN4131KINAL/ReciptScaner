@@ -9,6 +9,8 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Trip;
@@ -30,28 +32,37 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
     private final DistanceTable mDistanceTable;
     private final DatabaseHelper mDatabaseHelper;
     private final StorageManager mStorageManager;
+    private final Executor mExecutor;
 
     public TripTableActionAlterations(@NonNull PersistenceManager persistenceManager) {
         this(Preconditions.checkNotNull(persistenceManager).getDatabase(), Preconditions.checkNotNull(persistenceManager).getStorageManager());
     }
 
     public TripTableActionAlterations(@NonNull DatabaseHelper databaseHelper, @NonNull StorageManager storageManager) {
-        this(Preconditions.checkNotNull(databaseHelper).getTripsTable(), databaseHelper.getReceiptsTable(), databaseHelper.getDistanceTable(), databaseHelper, storageManager);
+        this(Preconditions.checkNotNull(databaseHelper).getTripsTable(), databaseHelper.getReceiptsTable(), databaseHelper.getDistanceTable(), databaseHelper, storageManager, Executors.newSingleThreadExecutor());
     }
 
     public TripTableActionAlterations(@NonNull Table<Trip, String> tripsTable, @NonNull ReceiptsTable receiptsTable, @NonNull DistanceTable distanceTable,
-                                      @NonNull DatabaseHelper databaseHelper, @NonNull StorageManager storageManager) {
+                                      @NonNull DatabaseHelper databaseHelper, @NonNull StorageManager storageManager, @NonNull Executor executor) {
         mTripsTable = Preconditions.checkNotNull(tripsTable);
         mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mDistanceTable = Preconditions.checkNotNull(distanceTable);
         mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
         mStorageManager = Preconditions.checkNotNull(storageManager);
+        mExecutor = executor;
     }
 
     @Override
     public void postGet(@NonNull List<Trip> trips) {
         for (final Trip trip : trips) {
-            mDatabaseHelper.getTripPriceAndDailyPrice(trip);
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: Rethink this pricing flow, since it requires querying (and caching!) all receipts...
+                    // TODO: But we need it right now to help with buggy receipt processing
+                    mDatabaseHelper.getTripPriceAndDailyPrice(trip);
+                }
+            });
         }
     }
 
@@ -104,7 +115,6 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
     /**
      * Simple utility method that takes a snapshot backup of our database after all trip "insert'
      */
-    @Deprecated
     public void backUpDatabase() {
         File sdDB = mStorageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DatabaseHelper.DATABASE_NAME + ".bak");
         try {

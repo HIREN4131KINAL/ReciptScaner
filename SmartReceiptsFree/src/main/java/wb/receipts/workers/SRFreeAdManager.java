@@ -241,7 +241,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                     // Swallowing all exception b/c I'm lazy and don't want to handle activity finishing states
                 }
             }
-        }, 1500);
+        }, 50);
     }
 
     private boolean showUpsell() {

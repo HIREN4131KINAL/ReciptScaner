@@ -11,16 +11,13 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
  */
 public final class ReceiptCategoryCodeColumn extends AbstractColumnImpl<Receipt> {
 
-    private final DatabaseHelper mDB;
-
-    public ReceiptCategoryCodeColumn(int id, @NonNull String name, @NonNull DatabaseHelper db) {
+    public ReceiptCategoryCodeColumn(int id, @NonNull String name) {
         super(id, name);
-        mDB = db;
     }
 
     @Override
     public String getValue(@NonNull Receipt receipt) {
-        return mDB.getCategoryCode(receipt.getCategory());
+        return receipt.getCategory().getCode();
     }
 
 }

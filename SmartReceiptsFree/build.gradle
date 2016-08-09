@@ -15,6 +15,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
+        multiDexEnabled true
     }
 
     lintOptions {
@@ -22,11 +23,6 @@ android {
     }
 
     sourceSets {
-        // Move the tests to src/test/java, src/test/res, etc...
-        androidTest {
-            setRoot('src/test')
-        }
-
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
         // This moves them out of them default location under src/<type>/... which would

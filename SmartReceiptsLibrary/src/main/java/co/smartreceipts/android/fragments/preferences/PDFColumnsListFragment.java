@@ -7,6 +7,7 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.persistence.database.controllers.impl.ColumnTableController;
 
 public class PDFColumnsListFragment extends ColumnsListFragment {
 
@@ -17,32 +18,17 @@ public class PDFColumnsListFragment extends ColumnsListFragment {
     }
 
     @Override
+    public ColumnTableController getColumnTableController() {
+        return getSmartReceiptsApplication().getTableControllerManager().getPDFTableController();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             getSupportActionBar().setTitle(R.string.menu_main_pdf);
         }
-    }
-
-    @Override
-    public List<Column<Receipt>> getColumns() {
-        return getPersistenceManager().getDatabase().getPDFColumns();
-    }
-
-    @Override
-    public void addColumn() {
-        getPersistenceManager().getDatabase().insertPDFColumn();
-    }
-
-    @Override
-    public void deleteLastColumn() {
-        getPersistenceManager().getDatabase().deletePDFColumn();
-    }
-
-    @Override
-    public void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn) {
-        getPersistenceManager().getDatabase().updatePDFColumn(oldColumn, newColumn);
     }
 
 }

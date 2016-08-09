@@ -6,7 +6,6 @@ import android.content.Context;
 public class WorkerManager {
 
 	private SmartReceiptsApplication mApplication;
-	private Logger mLogger;
 	private ImageGalleryWorker mImageGalleryWorker;
 	private AdManager mAdManager;
 	
@@ -16,16 +15,8 @@ public class WorkerManager {
 	
 	public void onDestroy() {
 		mApplication = null;
-		mLogger = null;
 		mImageGalleryWorker = null;
 		mAdManager = null;
-	}
-	
-	public final Logger getLogger() {
-		if (mLogger == null) {
-			mLogger = instantiateLogger();
-		}
-		return mLogger;
 	}
 	
 	public final ImageGalleryWorker getImageGalleryWorker() {
@@ -44,14 +35,6 @@ public class WorkerManager {
 	
 	public final SmartReceiptsApplication getApplication() {
 		return mApplication;
-	}
-	
-	/**
-	 * Protected method to enable subclasses to create custom instances
-	 * @return a Logger Instance
-	 */
-	protected Logger instantiateLogger() {
-		return new Logger(this);
 	}
 	
 	/**

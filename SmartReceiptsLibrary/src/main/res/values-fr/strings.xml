@@ -13,7 +13,7 @@
     <!-- ============== Start Error Messages ================= -->
     <string name="SD_ERROR">Erreur: Vérifier que votre carte SD est présente et pas utilisée par votre ordinateur.</string>
     <string name="SD_WARNING">Attention: Votre carte SD n\'est pas disponible ou est utilisée par votre ordinateur. Certaines photos ne seront pas accessible. Utilisation de la mémoire interne&#8230;</string>
-    <string name="DB_ERROR">Erreur: Une autre application utilise la base SQLite.</string>
+    <string name="database_error">Erreur: Une autre application utilise la base SQLite.</string>
     <string name="IMG_OPEN_ERROR">Erreur: La photo n\'est pas accesible ou corronpue. Votre carte SD est indisponible ou toujours utilisée par votre ordinateur. Dans le cas contraire, presser le bouton menu pour prendre à nouveau une photo.</string>
     <string name="toast_pdf_open_error">Erreur: Le fichier PDF n\'est pas accesible ou corrompu. Votre carte SD ests indisponible ou toujours utilisée par votre ordinateur.</string>
     <string name="IMG_SAVE_ERROR">Erreur: Impossible d\'enregistrer la photo.</string>

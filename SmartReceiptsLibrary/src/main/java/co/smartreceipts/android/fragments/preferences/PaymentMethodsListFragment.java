@@ -1,8 +1,5 @@
 package co.smartreceipts.android.fragments.preferences;
 
-import java.util.List;
-
-import wb.android.dialog.fragments.EditTextDialogFragment;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v7.app.ActionBar;
@@ -10,8 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
+import wb.android.dialog.fragments.EditTextDialogFragment;
 
 public class PaymentMethodsListFragment extends SimpleInsertableListFragment<PaymentMethod> implements View.OnClickListener {
 
@@ -38,23 +39,22 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 		}
 		else if (view.getId() == R.id.delete) {
 			deleteItem((PaymentMethod)view.getTag());
-
 		}
 	}
 
-	@Override
-	protected List<PaymentMethod> getData() {
-		return getPersistenceManager().getDatabase().getPaymentMethods();
-	}
+    @Override
+    protected TableController<PaymentMethod> getTableController() {
+        return getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController();
+    }
 
-	@Override
+    @Override
 	protected void addItem() {
 		final EditTextDialogFragment.OnClickListener onClickListener = new EditTextDialogFragment.OnClickListener() {
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().insertPaymentMethod(text);
-					getAdapter().notifyDataSetChanged();
+					final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
+					getTableController().insert(paymentMethod);
 				}
 			}
 		};
@@ -68,8 +68,8 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().updatePaymentMethod(oldPaymentMethod, text);
-					getAdapter().notifyDataSetChanged();
+					final PaymentMethod newPaymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
+                    getTableController().update(oldPaymentMethod, newPaymentMethod);
 				}
 			}
 		};
@@ -92,8 +92,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-					getPersistenceManager().getDatabase().deletePaymenthMethod(item);
-					getAdapter().notifyDataSetChanged();
+                    getTableController().delete(item);
 				}
 			}
 		};

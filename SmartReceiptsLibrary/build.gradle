@@ -6,10 +6,21 @@ dependencies {
     compile project(':androidCamera')
     compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
+    compile "com.android.support:multidex:$MULTIDEX_VERSION"
+
+    compile "com.squareup.picasso:picasso:$PICASSO_VERSION"
     compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
+    compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
+    compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
+
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"
     compile "com.joanzapata.pdfview:android-pdfview:$PDF_VIEWER_VERSION@aar"
+
+    // Unit Tests
+    testCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
+    testCompile "junit:junit:$JUNIT_VERSION"
+    testCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
 }
 
 android {
@@ -19,6 +30,7 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        multiDexEnabled true
     }
 
     lintOptions {
@@ -27,11 +39,6 @@ android {
     }
 
     sourceSets {
-        // Move the tests to src/test/java, src/test/res, etc...
-        androidTest {
-            setRoot('src/test')
-        }
-
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
         // This moves them out of them default location under src/<type>/... which would
@@ -45,4 +52,9 @@ android {
             setRoot('build-types/release')
         }
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
 }

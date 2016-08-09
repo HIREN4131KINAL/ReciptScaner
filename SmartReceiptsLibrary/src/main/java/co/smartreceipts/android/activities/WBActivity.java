@@ -32,7 +32,6 @@ public class WBActivity extends AppCompatActivity {
 
 	@Override
 	protected void onStart() {
-		getSmartReceiptsApplication().getWorkerManager().getLogger().logScreen(this);
 		super.onStart();
 	}
 

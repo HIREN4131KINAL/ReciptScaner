@@ -14,6 +14,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.comparators.ColumnNameComparator;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.SettingUserIdColumn;
@@ -30,7 +31,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     private static final String TAG = ReceiptColumnDefinitions.class.getSimpleName();
 
-    private static enum ActualDefinition {
+    private enum ActualDefinition {
         BLANK(R.string.column_item_blank),
         CATEGORY_CODE(R.string.column_item_category_code),
         CATEGORY_NAME(R.string.column_item_category_name),
@@ -63,7 +64,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
         private final int mStringResId;
 
-        private ActualDefinition(@StringRes int stringResId) {
+        ActualDefinition(@StringRes int stringResId) {
             mStringResId = stringResId;
         }
 
@@ -117,7 +118,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
                 columns.add(column);
             }
         }
-        Collections.sort(columns);
+        Collections.sort(columns, new ColumnNameComparator<AbstractColumnImpl<Receipt>>());
         return new ArrayList<Column<Receipt>>(columns);
     }
 
@@ -165,7 +166,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
             case BLANK:
                 return new BlankColumn<>(id, definitionName);
             case CATEGORY_CODE:
-                return new ReceiptCategoryCodeColumn(id, definitionName, mDB);
+                return new ReceiptCategoryCodeColumn(id, definitionName);
             case CATEGORY_NAME:
                 return new ReceiptCategoryNameColumn(id, definitionName);
             case USER_ID:

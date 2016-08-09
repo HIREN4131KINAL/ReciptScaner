@@ -38,9 +38,6 @@ public class ApiHelper {
         public static final int JELLY_BEAN = 16;
         public static final int JELLY_BEAN_MR1 = 17;
     }
-
-    public static final boolean NEW_SR_CAMERA_IS_SUPPORTED =
-    		Build.VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB;
     		
     public static final boolean HAS_ACTION_BAR_HOME_BUTTON =
     		Build.VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH;

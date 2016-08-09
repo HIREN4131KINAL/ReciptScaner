@@ -1,6 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -25,13 +24,16 @@ import java.sql.Date;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {
@@ -50,6 +52,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private DateManager mDateManager;
     private AutoCompleteAdapter mLocationAutoCompleteAdapter;
     private Date mSuggestedDate;
+    private DistanceTableController mDistanceTableController;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -97,7 +100,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             args.putParcelable(Distance.PARCEL_KEY, distance);
         }
         if (suggestedDate != null) {
-            args.putLong(ARG_SUGGESTED_DATE, suggestedDate.getTime());
+            args.putLong(ARG_SUGGESTED_DATE, suggestedDate.getTime() + 1);
         }
         dialog.setArguments(args);
         return dialog;
@@ -108,6 +111,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
         mDB = app.getPersistenceManager().getDatabase();
+        mDistanceTableController = app.getTableControllerManager().getDistanceTableController();
         mPrefs = app.getPersistenceManager().getPreferences();
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mUpdateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
@@ -161,8 +165,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             mDistance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
-                    final Activity activity = getActivity();
-                    final Dialog dialog = getDialog();
                     if (hasFocus && getActivity() != null && getDialog() != null) {
                         if (getActivity().getResources().getConfiguration().hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
                             getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -195,10 +197,10 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
 
     @Override
     public void onPause() {
-        super.onPause();
         if (mLocationAutoCompleteAdapter != null) {
             mLocationAutoCompleteAdapter.onPause();
         }
+        super.onPause();
     }
 
     @Override
@@ -214,12 +216,29 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 // We're inserting a new one
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), new BigDecimal(0));
                 final BigDecimal rate = getBigDecimalFromString(mRate.getText().toString(), new BigDecimal(0));
-                mDB.insertDistanceParallel(mTrip, location, distance, date, rate, currency, comment);
+                final DistanceBuilderFactory builder = new DistanceBuilderFactory();
+                builder.setTrip(mTrip);
+                builder.setLocation(location);
+                builder.setDistance(distance);
+                builder.setDate(date);
+                builder.setRate(rate);
+                builder.setCurrency(currency);
+                builder.setComment(comment);
+                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistNewDistance);
+                mDistanceTableController.insert(builder.build());
             } else {
                 // We're updating
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), mUpdateableDistance.getDistance());
                 final BigDecimal rate = getBigDecimalFromString(mRate.getText().toString(), mUpdateableDistance.getRate());
-                mDB.updateDistanceParallel(mUpdateableDistance, location, distance, date, rate, currency, comment);
+                final DistanceBuilderFactory builder = new DistanceBuilderFactory(mUpdateableDistance);
+                builder.setLocation(location);
+                builder.setDistance(distance);
+                builder.setDate(date);
+                builder.setRate(rate);
+                builder.setCurrency(currency);
+                builder.setComment(comment);
+                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistUpdateDistance);
+                mDistanceTableController.update(mUpdateableDistance, builder.build());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {
             // Delete
@@ -229,20 +248,19 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             builder.setPositiveButton(R.string.delete, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    mDB.deleteDistanceParallel(mUpdateableDistance);
-                    dialog.dismiss();
+                    mDistanceTableController.delete(mUpdateableDistance);
+                    dismiss();
                 }
             });
             builder.setNegativeButton(android.R.string.cancel, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
+                    dismiss();
                 }
             });
             builder.show();
         }
-        dialog.dismiss();
-
+        dismiss();
     }
 
     /**

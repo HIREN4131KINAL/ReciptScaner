@@ -30,6 +30,10 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private WBCurrency _currency;
     private String _comment;
 
+    public DistanceBuilderFactory() {
+        this(MISSING_ID);
+    }
+
     public DistanceBuilderFactory(int id) {
         _id = id;
         _location = "";
@@ -38,6 +42,22 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         _timezone = TimeZone.getDefault();
         _rate = new BigDecimal(0);
         _comment = "";
+    }
+
+    public DistanceBuilderFactory(@NonNull Distance distance) {
+        this(distance.getId(), distance);
+    }
+
+    public DistanceBuilderFactory(int id, @NonNull Distance distance) {
+        _id = id;
+        _trip = distance.getTrip();
+        _location = distance.getLocation();
+        _distance = distance.getDistance();
+        _date = distance.getDate();
+        _timezone = distance.getTimeZone();
+        _rate = distance.getRate();
+        _currency = distance.getPrice().getCurrency();
+        _comment = distance.getComment();
     }
 
     public DistanceBuilderFactory setTrip(final Trip trip) {

@@ -11,8 +11,7 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
 	    android:scaleType="fitCenter"
-        android:layout_below="@+id/toolbar"
-	    android:visibility="gone" />
+        android:layout_below="@+id/toolbar" />
 	
 	<LinearLayout
 	    android:id="@+id/footer"

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
@@ -17,20 +18,25 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
+import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 
 /**
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Receipt} objects
  */
-public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
+public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
 
     private static final int UNKNOWN_ID = -1;
 
     private Trip _trip;
     private PaymentMethod _paymentMethod;
     private File _file;
-    private String _name, _category, _comment;
-    private String _extraEditText1, _extraEditText2, _extraEditText3;
+    private String _name;
+    private Category _category;
+    private String _comment;
+    private String _extraEditText1;
+    private String _extraEditText2;
+    private String _extraEditText3;
     private final PriceBuilderFactory _priceBuilderFactory, _taxBuilderFactory;
     private Date _date;
     private TimeZone _timezone;
@@ -46,7 +52,6 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     public ReceiptBuilderFactory(int id) {
         _id = id;
         _name = "";
-        _category = "";
         _comment = "";
         _priceBuilderFactory = new PriceBuilderFactory();
         _taxBuilderFactory = new PriceBuilderFactory();
@@ -83,7 +88,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _id = id;
     }
 
-    public ReceiptBuilderFactory setTrip(Trip trip) {
+    public ReceiptBuilderFactory setTrip(@NonNull Trip trip) {
         _trip = trip;
         return this;
     }
@@ -93,17 +98,24 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setName(String name) {
+    public ReceiptBuilderFactory setName(@NonNull String name) {
         _name = name;
         return this;
     }
 
-    public ReceiptBuilderFactory setCategory(String category) {
+    @Deprecated
+    public ReceiptBuilderFactory setCategory(@NonNull String category) {
+        // TODO: Delete me
+        _category = new ImmutableCategoryImpl(category, "");
+        return this;
+    }
+
+    public ReceiptBuilderFactory setCategory(@NonNull Category category) {
         _category = category;
         return this;
     }
 
-    public ReceiptBuilderFactory setComment(String comment) {
+    public ReceiptBuilderFactory setComment(@NonNull String comment) {
         _comment = comment;
         return this;
     }
@@ -256,14 +268,4 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
     }
 
-    private BigDecimal tryParse(String number) {
-        if (TextUtils.isEmpty(number)) {
-            return new BigDecimal(0);
-        }
-        try {
-            return new BigDecimal(number.replace(",", "."));
-        } catch (NumberFormatException e) {
-            return new BigDecimal(0);
-        }
-    }
 }

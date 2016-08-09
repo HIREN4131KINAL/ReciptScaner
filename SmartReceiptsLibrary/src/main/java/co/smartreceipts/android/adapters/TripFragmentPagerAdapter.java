@@ -6,6 +6,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.fragments.DistanceFragment;
@@ -18,8 +20,8 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
     private static final int FRAGMENT_COUNT = 3;
 
     private final Context mContext;
-    private final Trip mTrip;
     private final ConfigurationManager mConfigurationManager;
+    private Trip mTrip;
 
     public TripFragmentPagerAdapter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, @NonNull ConfigurationManager configurationManager) {
         super(fragmentManager);
@@ -69,6 +71,11 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
         } else {
             throw new IllegalArgumentException("Unexpected Fragment Position");
         }
+    }
+
+    public void notifyDataSetChanged(@NonNull Trip trip) {
+        mTrip = Preconditions.checkNotNull(trip);
+        notifyDataSetChanged();
     }
 
 

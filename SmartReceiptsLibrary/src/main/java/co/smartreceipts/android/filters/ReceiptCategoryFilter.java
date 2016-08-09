@@ -49,7 +49,7 @@ public class ReceiptCategoryFilter implements Filter<Receipt> {
 	
 	@Override
 	public boolean accept(Receipt t) {
-		return mCategory.equals(t.getCategory());
+		return mCategory.equals(t.getCategory().getName());
 	}
 
 	@Override

@@ -25,6 +25,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Events;
 import wb.android.google.camera.data.Log;
 
 public final class SubscriptionManager {
@@ -44,6 +48,7 @@ public final class SubscriptionManager {
 
     private final Context mContext;
     private final SubscriptionCache mSubscriptionCache;
+    private final AnalyticsManager mAnalyticsManager;
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
     private final CopyOnWriteArrayList<SubscriptionEventsListener> mListeners;
@@ -51,14 +56,16 @@ public final class SubscriptionManager {
     private final Queue<Runnable> mTaskQueue = new LinkedList<>();
     private final Object mQueueLock = new Object();
     private volatile IInAppBillingService mService;
+    private volatile PurchaseSource mPurchaseSource;
 
-    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache) {
-        this(context, subscriptionCache, Executors.newSingleThreadExecutor());
+    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache, @NonNull AnalyticsManager analyticsManager) {
+        this(context, subscriptionCache, analyticsManager, Executors.newSingleThreadExecutor());
     }
 
-    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache, @NonNull ExecutorService backgroundTasksExecutor) {
+    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
         mContext = context.getApplicationContext();
         mSubscriptionCache = subscriptionCache;
+        mAnalyticsManager = analyticsManager;
         mServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
@@ -120,7 +127,8 @@ public final class SubscriptionManager {
         mExecutorService.shutdown();
     }
 
-    public void queryBuyIntent(@NonNull final Subscription subscription) {
+    public void queryBuyIntent(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource) {
+        mAnalyticsManager.record(new DefaultDataPointEvent(Events.Purchases.ShowPurchaseIntent).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
@@ -137,7 +145,8 @@ public final class SubscriptionManager {
 
                     final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), subscription.getSku(), "subs", developerPayload);
                     final PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
-                    if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
+                    if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK && pendingIntent != null) {
+                        mPurchaseSource = purchaseSource;
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onPurchaseIntentAvailable(subscription, pendingIntent, developerPayload);
                         }
@@ -176,6 +185,8 @@ public final class SubscriptionManager {
      * @return {@code true} if we handled the request. {@code false} otherwise
      */
     public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        final PurchaseSource purchaseSource = mPurchaseSource != null ? mPurchaseSource : PurchaseSource.Unknown;
+        mPurchaseSource = null;
         if (data == null) {
             return false;
         }
@@ -195,11 +206,11 @@ public final class SubscriptionManager {
                         if (subscription != null) {
                             mSubscriptionCache.addSubscriptionToWallet(subscription);
                             for (final SubscriptionEventsListener listener : mListeners) {
-                                listener.onPurchaseSuccess(subscription, mSubscriptionCache.getSubscriptionWallet());
+                                listener.onPurchaseSuccess(subscription, purchaseSource, mSubscriptionCache.getSubscriptionWallet());
                             }
                         } else {
                             for (final SubscriptionEventsListener listener : mListeners) {
-                                listener.onPurchaseFailed();
+                                listener.onPurchaseFailed(mPurchaseSource);
                             }
                             Log.w(TAG, "Retrieved an unknown subscription code following a successful purchase: " + sku);
                         }
@@ -207,13 +218,13 @@ public final class SubscriptionManager {
                 } catch (JSONException e) {
                     Log.e(TAG, "Failed to find purchase information", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onPurchaseFailed();
+                        listener.onPurchaseFailed(purchaseSource);
                     }
                 }
             } else {
                 Log.w(TAG, "Unexpected {resultCode, responseCode} pair: {" + resultCode + ", " + responseCode + "}");
                 for (final SubscriptionEventsListener listener : mListeners) {
-                    listener.onPurchaseFailed();
+                    listener.onPurchaseFailed(purchaseSource);
                 }
             }
             return true;

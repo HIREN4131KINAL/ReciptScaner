@@ -32,7 +32,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.plus_subscription_info_dialog_title);
         builder.setMessage(R.string.plus_subscription_info_dialog_message);
         builder.setPositiveButton(R.string.plus_subscription_info_dialog_positive_button, this);
@@ -49,8 +49,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == AlertDialog.BUTTON_POSITIVE && mSubscriptionManager != null) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus);
-            ((SmartReceiptsApplication) getActivity().getApplication()).getWorkerManager().getLogger().logEvent(this, "Show_Pro_Purchase_Menu");
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
         }
         dismiss();
     }

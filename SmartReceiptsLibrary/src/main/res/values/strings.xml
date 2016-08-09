@@ -160,7 +160,8 @@
     <!-- ============== Start Error Messages ================= -->
     <string name="SD_ERROR">Error: Please make sure that your SD Card is available and not mounted to your computer.</string>
     <string name="SD_WARNING">Warning: Your SD Card is not available or is mounted to your computer. Some images may be inaccessible. Switching to internal storage&#8230;</string>
-    <string name="DB_ERROR">Error: Another application is using the SQLite Database.</string>
+    <string name="database_error">Error: Failed to save your receipt</string>
+    <string name="database_get_error">Error: Failed to fetch your data. Try re-launching the app.</string>
     <string name="IMG_OPEN_ERROR">Error: The image is currently inaccessible or corrupted. Your SD Card may be unavailable or mounted to your computer. If not, click the menu button to retake the photo.</string>
     <string name="toast_pdf_open_error">Error: Failed to open the PDF. PDF viewing may not be supported on your platform.</string>
     <string name="IMG_SAVE_ERROR">Error: The Image Failed to Save Properly</string>
@@ -358,7 +359,6 @@
 
     <!-- ============== Start String Arrays ================== -->
     <string-array name="EDIT_TRIP_ITEMS">
-        <item>Email Report</item>
         <item>Edit Report</item>
         <item>Delete Report</item>
     </string-array>
@@ -609,6 +609,7 @@
     <string name="pref_about_terms_dialogMessage">This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.\n\nYou can view a copy of the GNU Affero General Public License at http://www.gnu.org/licenses/.</string>
 
     <!-- ================ Error Feedback ==================== -->
+    <string name="error_no_pdf_activity_viewer">Failed to find a PDF Viewer Application</string>
     <string name="error_no_send_intent_dialog_title">No Send App Found</string>
     <string name="error_no_send_intent_dialog_message">We could not find an email application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
     <string name="error_no_file_intent_dialog_title">No File App Found</string>

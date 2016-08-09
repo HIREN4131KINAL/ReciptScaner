@@ -13,6 +13,7 @@ import android.widget.Toast;
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.workers.EmailAssistant;
 
@@ -66,13 +67,27 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        getWorkerManager().getLogger().logEvent(this, "Generate_Report");
         if (!mPdfFullCheckbox.isChecked() && !mPdfImagesCheckbox.isChecked() && !mCsvCheckbox.isChecked() && !mZipStampedImagesCheckbox.isChecked()) {
             Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
             return;
         }
-        if (getPersistenceManager().getDatabase().getReceiptsSerial(mTrip).isEmpty()) {
-            if (getPersistenceManager().getDatabase().getDistanceSerial(mTrip).isEmpty() || !mPdfFullCheckbox.isChecked()) {
+
+        if (mPdfFullCheckbox.isChecked()) {
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.FullPdfReport);
+        }
+        if (mPdfImagesCheckbox.isChecked()) {
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.ImagesPdfReport);
+        }
+        if (mCsvCheckbox.isChecked()) {
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.CsvReport);
+        }
+        if (mZipStampedImagesCheckbox.isChecked()) {
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.StampedZipReport);
+        }
+
+        // TODO: Off the UI thread :/
+        if (getPersistenceManager().getDatabase().getReceiptsTable().getBlocking(mTrip, true).isEmpty()) {
+            if (getPersistenceManager().getDatabase().getDistanceTable().getBlocking(mTrip, true).isEmpty() || !mPdfFullCheckbox.isChecked()) {
                 // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
                 Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
                 return;

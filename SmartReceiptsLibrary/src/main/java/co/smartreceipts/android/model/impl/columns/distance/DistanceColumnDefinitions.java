@@ -98,7 +98,7 @@ public final class DistanceColumnDefinitions implements ColumnDefinitions<Distan
     @Override
     public Column<Distance> getDefaultInsertColumn() {
         // Hack for the distance default until we let users dynamically set columns
-        return new BlankColumn<Distance>(Column.UNKNOWN_ID, mContext.getString(R.string.column_item_blank));
+        return new BlankColumn<>(Column.UNKNOWN_ID, mContext.getString(R.string.column_item_blank));
     }
 
 

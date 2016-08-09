@@ -1,6 +1,9 @@
 package co.smartreceipts.android.activities;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -9,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -23,24 +27,30 @@ public class NavigationHandler {
 
     private final FragmentManager mFragmentManager;
     private final FragmentProvider mFragmentProvider;
+    private final Context mContext;
     private final boolean mIsDualPane;
 
     public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentProvider fragmentProvider) {
-        this(activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
+        this(activity, activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
 
     public NavigationHandler(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider) {
-        this(fragmentManager, fragmentProvider, context.getResources().getBoolean(R.bool.isTablet));
+        this(context, fragmentManager, fragmentProvider, context.getResources().getBoolean(R.bool.isTablet));
     }
 
-    public NavigationHandler(@NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
+    public NavigationHandler(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
+        mContext = context.getApplicationContext();
         mFragmentManager = fragmentManager;
         mFragmentProvider = fragmentProvider;
         mIsDualPane = isDualPane;
     }
 
-    public void navigateToTripsFragment() {
-        replaceFragment(mFragmentProvider.newTripFragmentInstance(), R.id.content_list);
+    public void navigateToHomeTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(true), R.id.content_list);
+    }
+
+    public void navigateUpToTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(false), R.id.content_list);
     }
 
     public void navigateToReportInfoFragment(@NonNull Trip trip) {
@@ -76,10 +86,13 @@ public class NavigationHandler {
     }
 
     public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
-        if (mIsDualPane) {
-            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_details);
-        } else {
-            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_list);
+        try {
+            final Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(receipt.getPDF()), "application/pdf");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+            mContext.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(mContext, R.string.error_no_pdf_activity_viewer, Toast.LENGTH_LONG).show();
         }
     }
 

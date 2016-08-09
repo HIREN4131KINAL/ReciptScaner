@@ -169,7 +169,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initUsePaymentMethods(SharedPreferences prefs) {
-        this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), false);
+        this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), mContext.getResources().getBoolean(R.bool.pref_receipt_use_payment_methods_defaultValue));
     }
 
     private void initUserID(SharedPreferences prefs) {

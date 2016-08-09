@@ -16,7 +16,7 @@ public final class ReceiptCategoryNameColumn extends AbstractColumnImpl<Receipt>
 
     @Override
     public String getValue(@NonNull Receipt receipt) {
-        return receipt.getCategory();
+        return receipt.getCategory().getName();
     }
 
 }

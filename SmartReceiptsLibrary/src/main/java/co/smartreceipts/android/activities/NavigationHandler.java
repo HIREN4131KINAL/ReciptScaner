@@ -96,6 +96,14 @@ public class NavigationHandler {
         }
     }
 
+    public void navigateToBackupMenu() {
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_list);
+        }
+    }
+
     public boolean isDualPane() {
         return mIsDualPane;
     }

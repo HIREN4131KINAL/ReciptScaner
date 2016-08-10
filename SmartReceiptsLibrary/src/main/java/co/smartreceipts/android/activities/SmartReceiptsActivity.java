@@ -51,7 +51,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
-    private GoogleDriveBackupManager mGoogleDriveBackupManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +62,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
-        mGoogleDriveBackupManager = new GoogleDriveBackupManager(this);
 
         setContentView(R.layout.activity_main);
 
@@ -128,9 +126,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-            if (!mGoogleDriveBackupManager.onActivityResult(requestCode, resultCode, data)) {
-                super.onActivityResult(requestCode, resultCode, data);
-            }
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -161,8 +157,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
-            final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
-            getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
+            mNavigationHandler.navigateToBackupMenu();
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {

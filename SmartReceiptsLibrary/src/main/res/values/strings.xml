@@ -324,6 +324,16 @@
     <string name="distance_date_field">Date</string>
     <string name="distance_comment_field">Comment</string>
 
+    <!-- ===================== backup menu ======================== -->
+    <string name="backups">Backups</string>
+    <string name="manual_backup_title">Manual Backup</string>
+    <string name="manual_backup_description">Back up your data to keep your receipts safe! You can import your data by importing the SmartReceipts.SMR backup file, which is generated via the "Export" button below.</string>
+    <string name="manual_backup_export">Backup</string>
+    <string name="manual_backup_import">Import</string>
+    <string name="auto_backup_title">Automatic Backup</string>
+    <string name="auto_backup_warning">Warning: Automatic backups are not configured!\nYou may be at risk of losing your data.</string>
+    <string name="auto_backup_configure">Tap to Configure</string>
+
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>
     <string name="dialog_filter_title">Filter By:</string>

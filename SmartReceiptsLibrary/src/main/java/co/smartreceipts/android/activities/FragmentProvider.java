@@ -5,9 +5,9 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
+import co.smartreceipts.android.fragments.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
-import co.smartreceipts.android.fragments.ReceiptPDFFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Receipt;
@@ -62,11 +62,10 @@ public interface FragmentProvider {
     ReceiptImageFragment newReceiptImageFragment(@NonNull Receipt receipt);
 
     /**
-     * Creates a {@link co.smartreceipts.android.fragments.ReceiptPDFFragment} instance
+     * Creates a {@link co.smartreceipts.android.fragments.BackupsFragment} instance
      *
-     * @param receipt the path to the pdf to load
      * @return a new instance of this fragment
      */
     @NonNull
-    ReceiptPDFFragment newReceiptPdfFragment(@NonNull Receipt receipt);
+    BackupsFragment newBackupsFragment();
 }

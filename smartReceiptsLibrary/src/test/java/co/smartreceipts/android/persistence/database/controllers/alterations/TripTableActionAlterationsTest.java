@@ -10,6 +10,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.Executor;
 
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
@@ -46,6 +47,9 @@ public class TripTableActionAlterationsTest {
     StorageManager mStorageManager;
 
     @Mock
+    Executor mExecutor;
+
+    @Mock
     Trip mTrip1;
 
     @Mock
@@ -60,7 +64,7 @@ public class TripTableActionAlterationsTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mTripTableActionAlterations = new TripTableActionAlterations(mTripsTable, mReceiptsTable, mDistanceTable, mDatabaseHelper, mStorageManager);
+        mTripTableActionAlterations = new TripTableActionAlterations(mTripsTable, mReceiptsTable, mDistanceTable, mDatabaseHelper, mStorageManager, mExecutor);
         when(mTrip1.getPrice()).thenReturn(mPrice1);
         when(mTrip1.getDailySubTotal()).thenReturn(mPrice2);
     }

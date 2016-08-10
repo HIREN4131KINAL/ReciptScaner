@@ -5,9 +5,9 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
+import co.smartreceipts.android.fragments.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
-import co.smartreceipts.android.fragments.ReceiptPDFFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Receipt;
@@ -47,9 +47,8 @@ public class DefaultFragmentProvider implements FragmentProvider {
 
     @NonNull
     @Override
-    public ReceiptPDFFragment newReceiptPdfFragment(@NonNull Receipt receipt) {
-        return ReceiptPDFFragment.newInstance(receipt);
+    public BackupsFragment newBackupsFragment() {
+        return new BackupsFragment();
     }
-
 
 }

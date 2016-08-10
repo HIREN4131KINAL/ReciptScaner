@@ -8,8 +8,6 @@ import co.smartreceipts.android.sync.id.Identifier;
 /**
  * An implementation of the {@link co.smartreceipts.android.sync.id.Identifier} interface
  * for unique ids for sync data.
- *
- * @author williambaumann
  */
 public class UniqueId implements Identifier {
 

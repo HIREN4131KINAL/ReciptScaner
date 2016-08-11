@@ -77,7 +77,10 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                 + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
-                + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT"
+                + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT, "
+                + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Log.d(TAG, receipts);
         db.execSQL(receipts);
@@ -184,6 +187,9 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00";
             Log.d(TAG, alterReceipts);
             db.execSQL(alterReceipts);
+        }
+        if (oldVersion <= 14) {
+            onUpgradeToAddSyncInformation(db, oldVersion, newVersion);
         }
     }
 

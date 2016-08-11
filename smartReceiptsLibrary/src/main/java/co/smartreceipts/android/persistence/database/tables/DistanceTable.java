@@ -44,14 +44,41 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
     @Override
     public synchronized void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
         super.onCreate(db, customizer);
-        createDistanceTable(db);
+        final String sql = "CREATE TABLE " + TABLE_NAME + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
+                + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
+                + COLUMN_LOCATION + " TEXT,"
+                + COLUMN_DATE + " DATE,"
+                + COLUMN_TIMEZONE + " TEXT,"
+                + COLUMN_COMMENT + " TEXT,"
+                + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
+                + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00, "
+                + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE "
+                + ");";
+        Log.d(TAG, sql);
+        db.execSQL(sql);
     }
 
     @Override
     public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
         super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= 12) {
-            createDistanceTable(db);
+            final String createSqlV12 = "CREATE TABLE " + TABLE_NAME + " ("
+                    + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
+                    + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
+                    + COLUMN_LOCATION + " TEXT,"
+                    + COLUMN_DATE + " DATE,"
+                    + COLUMN_TIMEZONE + " TEXT,"
+                    + COLUMN_COMMENT + " TEXT,"
+                    + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
+                    + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00"
+                    + ");";
+            Log.d(TAG, createSqlV12);
+            db.execSQL(createSqlV12);
 
             // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
             final String distanceMigrateBase = "INSERT INTO " + DistanceTable.TABLE_NAME + "(" + DistanceTable.COLUMN_PARENT + ", " + DistanceTable.COLUMN_DISTANCE + ", " + DistanceTable.COLUMN_LOCATION + ", " + DistanceTable.COLUMN_DATE + ", " + DistanceTable.COLUMN_TIMEZONE + ", " + DistanceTable.COLUMN_COMMENT + ", " + DistanceTable.COLUMN_RATE_CURRENCY + ")"
@@ -64,6 +91,10 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
             db.execSQL(distanceMigrateNotNullCurrency);
             db.execSQL(distanceMigrateNullCurrency);
         }
+
+        if (oldVersion <= 14) {
+            onUpgradeToAddSyncInformation(db, oldVersion, newVersion);
+        }
     }
 
     @NonNull
@@ -72,20 +103,4 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
         return distance.getTrip();
     }
 
-    private void createDistanceTable(@NonNull SQLiteDatabase db) {
-        final String sql = "CREATE TABLE " + TABLE_NAME + " ("
-                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
-                + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
-                + COLUMN_LOCATION + " TEXT,"
-                + COLUMN_DATE + " DATE,"
-                + COLUMN_TIMEZONE + " TEXT,"
-                + COLUMN_COMMENT + " TEXT,"
-                + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
-                + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00 );";
-
-
-        Log.d(TAG, sql);
-        db.execSQL(sql);
-    }
 }

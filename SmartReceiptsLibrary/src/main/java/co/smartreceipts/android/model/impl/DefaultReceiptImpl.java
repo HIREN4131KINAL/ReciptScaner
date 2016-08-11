@@ -336,15 +336,28 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public String toString() {
-        return this.getClass().getSimpleName() + "::\n" + "[" + "source => " + getSource() + "; \n" + "id => "
-                + getId() + "; \n" + "name => " + getName() + "; \n" + "category =>" + getCategory() + "; \n"
-                + "comment =>" + getComment() + "; \n" + "price =>" + getPrice() + "; \n" + "tax =>" + getTax()
-                + "; \n" + "filePath =>" + getFilePath() + "; \n"
-                + "date =>" + getDate().toGMTString() + "; \n" + "isExpensable =>" + isExpensable() + "; \n"
-                + "isFullPage =>" + isFullPage() + "; \n" + "extraEditText1 =>" + getExtraEditText1() + "; \n"
-                + "extraEditText2 =>" + getExtraEditText2() + "; \n" + "extraEditText3 =>" + getExtraEditText3() + "]";
+        return "DefaultReceiptImpl{" +
+                "mId=" + mId +
+                ", mTrip=" + mTrip +
+                ", mPaymentMethod=" + mPaymentMethod +
+                ", mIndex=" + mIndex +
+                ", mName='" + mName + '\'' +
+                ", mComment='" + mComment + '\'' +
+                ", mCategory=" + mCategory +
+                ", mPrice=" + mPrice +
+                ", mTax=" + mTax +
+                ", mDate=" + mDate +
+                ", mTimeZone=" + mTimeZone +
+                ", mIsExpensable=" + mIsExpensable +
+                ", mIsFullPage=" + mIsFullPage +
+                ", mSource=" + mSource +
+                ", mExtraEditText1='" + mExtraEditText1 + '\'' +
+                ", mExtraEditText2='" + mExtraEditText2 + '\'' +
+                ", mExtraEditText3='" + mExtraEditText3 + '\'' +
+                ", mIsSelected=" + mIsSelected +
+                ", mFile=" + mFile +
+                '}';
     }
 
     @Override
@@ -355,7 +368,6 @@ public final class DefaultReceiptImpl implements Receipt {
         DefaultReceiptImpl that = (DefaultReceiptImpl) o;
 
         if (mId != that.mId) return false;
-        if (mIndex != that.mIndex) return false;
         if (mIsExpensable != that.mIsExpensable) return false;
         if (mIsFullPage != that.mIsFullPage) return false;
         if (!mTrip.equals(that.mTrip)) return false;
@@ -384,7 +396,6 @@ public final class DefaultReceiptImpl implements Receipt {
         int result = mId;
         result = 31 * result + mTrip.hashCode();
         result = 31 * result + (mPaymentMethod != null ? mPaymentMethod.hashCode() : 0);
-        result = 31 * result + mIndex;
         result = 31 * result + mName.hashCode();
         result = 31 * result + mComment.hashCode();
         result = 31 * result + mCategory.hashCode();

@@ -22,6 +22,7 @@ import java.util.TimeZone;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import rx.Observable;
 
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -138,17 +140,20 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getValue().contains("comment"));
         assertTrue(mSqlCaptor.getValue().contains("rate"));
         assertTrue(mSqlCaptor.getValue().contains("rate_currency"));
-        assertEquals(mSqlCaptor.getValue(), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00 );");
+        assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
+        assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_type"));
+        assertEquals(mSqlCaptor.getValue(), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00, remote_sync_id TEXT, marked_for_deletion TEXT, last_local_modification_type DATE );");
     }
 
     @Test
-    public void onUpgrade() {
-        final int oldVersion = 10;
-        final int newVersion = 14;
+    public void onUpgradeFromV12() {
+        final int oldVersion = 12;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mDistanceTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
-        verify(mSQLiteDatabase, times(3)).execSQL(mSqlCaptor.capture());
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verifyZeroInteractions(customizer);
 
         assertTrue(mSqlCaptor.getAllValues().get(0).contains("distance")); // Table name
@@ -163,19 +168,38 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains("rate_currency"));
 
         // Create
-        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00 );");
+        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00);");
 
         // Migrate Trip Distances to Distance WHERE the Trip Currency != NULL
         assertEquals(mSqlCaptor.getAllValues().get(1), "INSERT INTO distance(parent, distance, location, date, timezone, comment, rate_currency) SELECT name, miles_new , \"\" as location, from_date, from_timezone , \"\" as comment, trips_default_currency FROM trips WHERE trips_default_currency IS NOT NULL AND miles_new > 0;");
 
         // Migrate Trip Distances to Distance WHERE the Trip Currency == NULL
         assertEquals(mSqlCaptor.getAllValues().get(2), "INSERT INTO distance(parent, distance, location, date, timezone, comment, rate_currency) SELECT name, miles_new , \"\" as location, from_date, from_timezone , \"\" as comment, \"USD\" as rate_currency FROM trips WHERE trips_default_currency IS NULL AND miles_new > 0;");
+
+        assertTrue(mSqlCaptor.getAllValues().get(3).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD remote_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getAllValues().get(4).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD marked_for_deletion TEXT"));
+        assertTrue(mSqlCaptor.getAllValues().get(5).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_type DATE"));
+    }
+
+    @Test
+    public void onUpgradeFromV14() {
+        final int oldVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
+
+        final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
+        mDistanceTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
+        verifyZeroInteractions(customizer);
+
+        assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD remote_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD marked_for_deletion TEXT"));
+        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_type DATE"));
     }
 
     @Test
     public void onUpgradeAlreadyOccurred() {
-        final int oldVersion = 13;
-        final int newVersion = 14;
+        final int oldVersion = DatabaseHelper.DATABASE_VERSION;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mDistanceTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);

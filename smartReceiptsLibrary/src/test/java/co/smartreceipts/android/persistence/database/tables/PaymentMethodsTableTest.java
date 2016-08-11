@@ -3,6 +3,8 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +22,7 @@ import java.util.List;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static junit.framework.Assert.assertNull;
@@ -27,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -92,24 +96,43 @@ public class PaymentMethodsTableTest {
     }
 
     @Test
-    public void onUpgrade() {
-        final int oldVersion = 10;
-        final int newVersion = 14;
+    public void onUpgradeFromV11() {
+        final int oldVersion = 11;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mPaymentMethodsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
-        verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPaymentMethodDefaults(mPaymentMethodsTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_METHOD));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PaymentMethodsTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PaymentMethodsTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PaymentMethodsTable.COLUMN_METHOD));
+        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE paymentmethods (id INTEGER PRIMARY KEY AUTOINCREMENT, method TEXTremote_sync_id TEXT, marked_for_deletion TEXT, last_local_modification_type DATE);");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_type DATE");
+    }
+
+    @Test
+    public void onUpgradeFromV14() {
+        final int oldVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
+
+        final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
+        mPaymentMethodsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
+        verify(customizer, never()).insertPaymentMethodDefaults(mPaymentMethodsTable);
+
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_type DATE");
     }
 
     @Test
     public void onUpgradeAlreadyOccurred() {
-        final int oldVersion = 12;
-        final int newVersion = 14;
+        final int oldVersion = DatabaseHelper.DATABASE_VERSION;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mPaymentMethodsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);

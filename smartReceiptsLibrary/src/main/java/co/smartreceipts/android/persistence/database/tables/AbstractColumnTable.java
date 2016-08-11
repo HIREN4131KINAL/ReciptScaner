@@ -44,21 +44,43 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
     @Override
     public synchronized void onCreate(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
         super.onCreate(db, customizer);
-        this.createColumnsTable(db, customizer);
+        final String columnsTable = "CREATE TABLE " + getTableName() + " ("
+                + mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + mTypeColumnName + " TEXT, "
+                + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"+ ");";
+        Log.d(TAG, columnsTable);
+
+        db.execSQL(columnsTable);
+        insertDefaults(customizer);
     }
 
     @Override
     public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
         super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= mTableExistsSinceDatabaseVersion) {
-            this.createColumnsTable(db, customizer);
+            final String columnsTable = "CREATE TABLE " + getTableName() + " ("
+                    + mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + mTypeColumnName + " TEXT"
+                    + ");";
+            Log.d(TAG, columnsTable);
+
+            db.execSQL(columnsTable);
+            insertDefaults(customizer);
+        }
+        if (oldVersion <= 14) {
+            onUpgradeToAddSyncInformation(db, oldVersion, newVersion);
         }
     }
 
     private void createColumnsTable(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
-        final String columnsTable = "CREATE TABLE " + getTableName() + " (" +
-                                    mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                    mTypeColumnName + " TEXT" + ");";
+        final String columnsTable = "CREATE TABLE " + getTableName() + " ("
+                                    + mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                    + mTypeColumnName + " TEXT, "
+                                    + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                                    + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                                    + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"+ ");";
         Log.d(TAG, columnsTable);
 
         db.execSQL(columnsTable);

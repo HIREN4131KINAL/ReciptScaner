@@ -25,6 +25,7 @@ import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static org.junit.Assert.assertEquals;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -104,27 +106,49 @@ public class CSVTableTest {
         assertTrue(mSqlCaptor.getValue().contains(CSVTable.TABLE_NAME));
         assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_ID));
         assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_SYNC_ID));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_MARKED_FOR_DELETION));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME));
     }
 
     @Test
-    public void onUpgrade() {
+    public void onUpgradeFromV2() {
         final int oldVersion = 2;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mCSVTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
-        verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCSVDefaults(mCSVTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.COLUMN_TYPE));
+        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE csvcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_type DATE");
+    }
+
+    @Test
+    public void onUpgradeFromV14() {
+        final int oldVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
+
+        final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
+        mCSVTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
+        verify(customizer, never()).insertCSVDefaults(mCSVTable);
+
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_type DATE");
     }
 
     @Test
     public void onUpgradeAlreadyOccurred() {
-        final int oldVersion = 3;
-        final int newVersion = 14;
+        final int oldVersion = DatabaseHelper.DATABASE_VERSION;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mCSVTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);

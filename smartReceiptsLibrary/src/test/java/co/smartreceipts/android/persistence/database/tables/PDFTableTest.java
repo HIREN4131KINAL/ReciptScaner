@@ -25,6 +25,7 @@ import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 
 import static org.junit.Assert.assertEquals;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -104,27 +106,49 @@ public class PDFTableTest {
         assertTrue(mSqlCaptor.getValue().contains(PDFTable.TABLE_NAME));
         assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_ID));
         assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_SYNC_ID));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_MARKED_FOR_DELETION));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME));
     }
 
     @Test
-    public void onUpgrade() {
+    public void onUpgradeFromV9() {
         final int oldVersion = 9;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mPDFTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
-        verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPDFDefaults(mPDFTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PDFTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PDFTable.COLUMN_TYPE));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PDFTable.TABLE_NAME));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PDFTable.COLUMN_ID));
+        assertTrue(mSqlCaptor.getAllValues().get(0).contains(PDFTable.COLUMN_TYPE));
+        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE pdfcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPDFTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPDFTable.getTableName() + " ADD last_local_modification_type DATE");
+    }
+
+    @Test
+    public void onUpgradeFromV14() {
+        final int oldVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
+
+        final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
+        mPDFTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
+        verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
+        verify(customizer, never()).insertPDFDefaults(mPDFTable);
+
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mPDFTable.getTableName() + " ADD remote_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPDFTable.getTableName() + " ADD marked_for_deletion TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD last_local_modification_type DATE");
     }
 
     @Test
     public void onUpgradeAlreadyOccurred() {
-        final int oldVersion = 10;
-        final int newVersion = 14;
+        final int oldVersion = DatabaseHelper.DATABASE_VERSION;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mPDFTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);

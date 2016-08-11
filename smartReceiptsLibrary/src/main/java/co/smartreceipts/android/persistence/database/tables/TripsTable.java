@@ -54,7 +54,10 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
                 + COLUMN_COST_CENTER + " TEXT, "
                 + COLUMN_DEFAULT_CURRENCY + " TEXT, "
                 + COLUMN_PROCESSING_STATUS + " TEXT, "
-                + COLUMN_FILTERS + " TEXT"
+                + COLUMN_FILTERS + " TEXT, "
+                + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Log.d(TAG, trips);
         db.execSQL(trips);
@@ -134,6 +137,10 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
             db.execSQL(alterTripsWithCostCenter);
             db.execSQL(alterTripsWithProcessingStatus);
 
+        }
+
+        if (oldVersion <= 14) {
+            onUpgradeToAddSyncInformation(db, oldVersion, newVersion);
         }
 
     }

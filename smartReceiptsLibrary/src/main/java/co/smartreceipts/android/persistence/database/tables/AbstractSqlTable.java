@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -30,6 +31,10 @@ import rx.functions.Func0;
  * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that is used by the primary key column
  */
 abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
+
+    public static final String COLUMN_SYNC_ID = "remote_sync_id";
+    public static final String COLUMN_MARKED_FOR_DELETION = "marked_for_deletion";
+    public static final String COLUMN_LAST_LOCAL_MODIFICATION_TIME = "last_local_modification_type";
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;
     private final String mTableName;
@@ -85,6 +90,18 @@ abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<Mode
     @Override
     public synchronized void onUpgrade(@NonNull SQLiteDatabase db, int oldVersion, int newVersion, @NonNull TableDefaultsCustomizer customizer) {
         initialNonRecursivelyCalledDatabase = db;
+    }
+
+    protected synchronized void onUpgradeToAddSyncInformation(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion <= 14) { // Add syncing state information
+            final String alter1 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_SYNC_ID + " TEXT";
+            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_MARKED_FOR_DELETION + " TEXT";
+            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE";
+
+            db.execSQL(alter1);
+            db.execSQL(alter2);
+            db.execSQL(alter3);
+        }
     }
 
     @Override

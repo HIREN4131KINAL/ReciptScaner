@@ -34,7 +34,10 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
         final String categories = "CREATE TABLE " + getTableName() + " ("
                 + COLUMN_NAME + " TEXT PRIMARY KEY, "
                 + COLUMN_CODE + " TEXT, "
-                + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1"
+                + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1, "
+                + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
+                + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
+                + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
 
         Log.d(TAG, categories);
@@ -49,6 +52,9 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
             final String alterCategories = "ALTER TABLE " + getTableName() +
                                            " ADD " + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
             db.execSQL(alterCategories);
+        }
+        if (oldVersion <= 14) {
+            onUpgradeToAddSyncInformation(db, oldVersion, newVersion);
         }
     }
 

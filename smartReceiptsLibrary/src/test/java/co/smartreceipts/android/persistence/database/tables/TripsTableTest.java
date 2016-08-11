@@ -24,6 +24,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
-public class TripTableTest {
+public class TripsTableTest {
 
     private static final String NAME_1 = "Trip1";
     private static final String NAME_2 = "Trip2";
@@ -146,13 +147,15 @@ public class TripTableTest {
         assertTrue(mSqlCaptor.getValue().contains("trips_default_currency"));
         assertTrue(mSqlCaptor.getValue().contains("trips_filters"));
         assertTrue(mSqlCaptor.getValue().contains("trip_processing_status"));
-        assertEquals(mSqlCaptor.getValue(), "CREATE TABLE trips (name TEXT PRIMARY KEY, from_date DATE, to_date DATE, from_timezone TEXT, to_timezone TEXT, trips_comment TEXT, trips_cost_center TEXT, trips_default_currency TEXT, trip_processing_status TEXT, trips_filters TEXT);");
+        assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
+        assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_type"));
     }
 
     @Test
-    public void onUpgradeV8() {
+    public void onUpgradeFromV8() {
         final int oldVersion = 8;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
@@ -161,12 +164,13 @@ public class TripTableTest {
         verifyV10Upgrade(times(1));
         verifyV11Upgrade(times(1));
         verifyV12Upgrade(times(1));
+        verifyV14Upgrade(times(1));
     }
 
     @Test
-    public void onUpgradeV10() {
+    public void onUpgradeFromV10() {
         final int oldVersion = 10;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
@@ -175,12 +179,13 @@ public class TripTableTest {
         verifyV10Upgrade(times(1));
         verifyV11Upgrade(times(1));
         verifyV12Upgrade(times(1));
+        verifyV14Upgrade(times(1));
     }
 
     @Test
-    public void onUpgradeV11() {
+    public void onUpgradeFromV11() {
         final int oldVersion = 11;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
@@ -189,12 +194,13 @@ public class TripTableTest {
         verifyV10Upgrade(never());
         verifyV11Upgrade(times(1));
         verifyV12Upgrade(times(1));
+        verifyV14Upgrade(times(1));
     }
 
     @Test
-    public void onUpgradeV12() {
+    public void onUpgradeFromV12() {
         final int oldVersion = 12;
-        final int newVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
@@ -203,6 +209,22 @@ public class TripTableTest {
         verifyV10Upgrade(never());
         verifyV11Upgrade(never());
         verifyV12Upgrade(times(1));
+        verifyV14Upgrade(times(1));
+    }
+
+    @Test
+    public void onUpgradeFromV14() {
+        final int oldVersion = 14;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
+
+        final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
+        mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);
+        verifyZeroInteractions(customizer);
+        verifyV8Upgrade(never());
+        verifyV10Upgrade(never());
+        verifyV11Upgrade(never());
+        verifyV12Upgrade(never());
+        verifyV14Upgrade(times(1));
     }
 
     private void verifyV8Upgrade(@NonNull VerificationMode verificationMode) {
@@ -224,10 +246,16 @@ public class TripTableTest {
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE trips ADD trip_processing_status TEXT");
     }
 
+    private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD remote_sync_id TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD marked_for_deletion TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD last_local_modification_type DATE");
+    }
+
     @Test
     public void onUpgradeAlreadyOccurred() {
-        final int oldVersion = 13;
-        final int newVersion = 14;
+        final int oldVersion = DatabaseHelper.DATABASE_VERSION;
+        final int newVersion = DatabaseHelper.DATABASE_VERSION;
 
         final TableDefaultsCustomizer customizer = mock(TableDefaultsCustomizer.class);
         mTripsTable.onUpgrade(mSQLiteDatabase, oldVersion, newVersion, customizer);

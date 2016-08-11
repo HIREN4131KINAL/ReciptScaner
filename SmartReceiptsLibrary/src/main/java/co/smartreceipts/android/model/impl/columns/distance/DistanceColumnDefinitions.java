@@ -15,7 +15,6 @@ import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.sync.id.impl.UniqueId;
 import wb.android.flex.Flex;
 
 /**

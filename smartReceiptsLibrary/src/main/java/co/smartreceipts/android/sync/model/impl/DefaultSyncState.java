@@ -16,6 +16,10 @@ public class DefaultSyncState implements SyncState {
     private final MarkedForDeletionMap mMarkedForDeletionMap;
     private final Date mLastLocalModificationTime;
 
+    public DefaultSyncState() {
+        this(null, null, new Date(System.currentTimeMillis()));
+    }
+
     public DefaultSyncState(@Nullable IdentifierMap identifierMap, @Nullable MarkedForDeletionMap markedForDeletionMap, @Nullable Date lastLocalModificationTime) {
         mIdentifierMap = identifierMap;
         mMarkedForDeletionMap = markedForDeletionMap;

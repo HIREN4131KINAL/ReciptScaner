@@ -18,7 +18,7 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 
-public final class SyncStateAdapter {
+public class SyncStateAdapter {
 
     private final Gson mGson = new Gson();
 

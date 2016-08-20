@@ -13,6 +13,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,12 @@ public class PaymentMethodDatabaseAdapterTest {
     @Mock
     PrimaryKey<PaymentMethod, Integer> mPrimaryKey;
 
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -49,28 +56,37 @@ public class PaymentMethodDatabaseAdapterTest {
 
         when(mPaymentMethod.getId()).thenReturn(ID);
         when(mPaymentMethod.getMethod()).thenReturn(METHOD);
+        when(mPaymentMethod.getSyncState()).thenReturn(mSyncState);
 
         when(mPrimaryKey.getPrimaryKeyValue(mPaymentMethod)).thenReturn(PRIMARY_KEY_ID);
 
-        mPaymentMethodDatabaseAdapter = new PaymentMethodDatabaseAdapter();
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mPaymentMethodDatabaseAdapter = new PaymentMethodDatabaseAdapter(mSyncStateAdapter);
     }
 
     @Test
     public void read() throws Exception {
-        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(ID).setMethod(METHOD).build();
+        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(ID).setMethod(METHOD).setSyncState(mSyncState).build();
         assertEquals(paymentMethod, mPaymentMethodDatabaseAdapter.read(mCursor));
     }
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mPaymentMethodDatabaseAdapter.write(mPaymentMethod);
         assertEquals(METHOD, contentValues.getAsString("method"));
+        assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey("id"));
     }
 
     @Test
     public void build() throws Exception {
-        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(PRIMARY_KEY_ID).setMethod(METHOD).build();
+        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(PRIMARY_KEY_ID).setMethod(METHOD).setSyncState(mSyncState).build();
         assertEquals(paymentMethod, mPaymentMethodDatabaseAdapter.build(mPaymentMethod, mPrimaryKey));
     }
 }

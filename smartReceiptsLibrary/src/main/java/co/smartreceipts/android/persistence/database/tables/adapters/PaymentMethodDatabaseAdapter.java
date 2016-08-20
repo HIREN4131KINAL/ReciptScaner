@@ -4,15 +4,28 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Implements the {@link DatabaseAdapter} contract for the {@link co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable}
  */
 public final class PaymentMethodDatabaseAdapter implements DatabaseAdapter<PaymentMethod, PrimaryKey<PaymentMethod, Integer>> {
+
+    private final SyncStateAdapter mSyncStateAdapter;
+
+    public PaymentMethodDatabaseAdapter() {
+        this(new SyncStateAdapter());
+    }
+
+    public PaymentMethodDatabaseAdapter(@NonNull SyncStateAdapter syncStateAdapter) {
+        mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
+    }
 
     @NonNull
     @Override
@@ -22,7 +35,8 @@ public final class PaymentMethodDatabaseAdapter implements DatabaseAdapter<Payme
 
         final int id = cursor.getInt(idIndex);
         final String method = cursor.getString(methodIndex);
-        return new PaymentMethodBuilderFactory().setId(id).setMethod(method).build();
+        final SyncState syncState = mSyncStateAdapter.read(cursor);
+        return new PaymentMethodBuilderFactory().setId(id).setMethod(method).setSyncState(syncState).build();
     }
 
     @NonNull
@@ -30,12 +44,13 @@ public final class PaymentMethodDatabaseAdapter implements DatabaseAdapter<Payme
     public ContentValues write(@NonNull PaymentMethod paymentMethod) {
         final ContentValues values = new ContentValues();
         values.put(PaymentMethodsTable.COLUMN_METHOD, paymentMethod.getMethod());
+        values.putAll(mSyncStateAdapter.write(paymentMethod.getSyncState()));
         return values;
     }
 
     @NonNull
     @Override
     public PaymentMethod build(@NonNull PaymentMethod paymentMethod, @NonNull PrimaryKey<PaymentMethod, Integer> primaryKey) {
-        return new PaymentMethodBuilderFactory().setId(primaryKey.getPrimaryKeyValue(paymentMethod)).setMethod(paymentMethod.getMethod()).build();
+        return new PaymentMethodBuilderFactory().setId(primaryKey.getPrimaryKeyValue(paymentMethod)).setMethod(paymentMethod.getMethod()).setSyncState(paymentMethod.getSyncState()).build();
     }
 }

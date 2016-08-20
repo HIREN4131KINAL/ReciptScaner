@@ -25,30 +25,43 @@ public class DefaultSyncStateTest {
     //Class under testing
     DefaultSyncState mDefaultSyncState;
 
-    UniqueId mUniqueId;
+    Identifier mIdentifier;
 
-    MarkedForDeletionMap mDeletionInformation;
+    IdentifierMap mIdentifierMap;
+
+    MarkedForDeletionMap mMarkedForDeletionMap;
 
     Date mLastLocalModificationTime;
 
     @Before
     public void setUp() throws Exception {
-        mUniqueId = new UniqueId("abc");
-        mDeletionInformation = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true));
+        mIdentifier = new Identifier("abc");
+        mIdentifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, mIdentifier));
+        mMarkedForDeletionMap = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true));
         mLastLocalModificationTime = new Date(System.currentTimeMillis());
-        mDefaultSyncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, mUniqueId)), mDeletionInformation, mLastLocalModificationTime);
+        mDefaultSyncState = new DefaultSyncState(mIdentifierMap, mMarkedForDeletionMap, mLastLocalModificationTime);
     }
 
     @Test
     public void getSyncId() {
-        assertEquals(mUniqueId, mDefaultSyncState.getSyncId(SyncProvider.GoogleDrive));
+        assertEquals(mIdentifier, mDefaultSyncState.getSyncId(SyncProvider.GoogleDrive));
         assertNull(mDefaultSyncState.getSyncId(SyncProvider.None));
+    }
+
+    @Test
+    public void getIdentifierMap() {
+        assertEquals(mIdentifierMap, mDefaultSyncState.getIdentifierMap());
     }
 
     @Test
     public void isMarkedForDeletion() {
         assertEquals(true, mDefaultSyncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
         assertEquals(false, mDefaultSyncState.isMarkedForDeletion(SyncProvider.None));
+    }
+
+    @Test
+    public void getMarkedForDeletionMap() {
+        assertEquals(mMarkedForDeletionMap, mDefaultSyncState.getMarkedForDeletionMap());
     }
 
     @Test

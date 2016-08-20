@@ -11,14 +11,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import co.smartreceipts.android.sync.SyncProvider;
-import co.smartreceipts.android.sync.model.Identifier;
 
 public class IdentifierMap implements Serializable {
 
     @SerializedName("identifier_map")
-    private final Map<SyncProvider, ? extends Identifier> mIdentifierMap;
+    private final Map<SyncProvider, Identifier> mIdentifierMap;
 
-    public IdentifierMap(@NonNull Map<SyncProvider, ? extends Identifier> identifierMap) {
+    public IdentifierMap(@NonNull Map<SyncProvider, Identifier> identifierMap) {
         mIdentifierMap = new HashMap<>(Preconditions.checkNotNull(identifierMap));
     }
 

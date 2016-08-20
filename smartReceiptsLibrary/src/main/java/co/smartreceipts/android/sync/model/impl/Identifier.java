@@ -5,27 +5,29 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
-
-import co.smartreceipts.android.sync.model.Identifier;
 
 /**
  * An implementation of the interface for unique ids for sync data.
  */
-public class UniqueId implements Identifier {
+public class Identifier implements Parcelable, Serializable, CharSequence {
 
+    @SerializedName("id")
     private final String mId;
 
-    public UniqueId(@NonNull String id) {
+    public Identifier(@NonNull String id) {
         mId = Preconditions.checkNotNull(id);
     }
 
-    private UniqueId(Parcel in) {
+    private Identifier(Parcel in) {
         mId = in.readString();
     }
 
-    @Override
+    /**
+     * @return - the {@link java.lang.String} representation of this id
+     */
     @NonNull
     public String getId() {
         return mId;
@@ -62,13 +64,13 @@ public class UniqueId implements Identifier {
         dest.writeString(this.mId);
     }
 
-    public static final Parcelable.Creator<UniqueId> CREATOR = new Parcelable.Creator<UniqueId>() {
-        public UniqueId createFromParcel(Parcel source) {
-            return new UniqueId(source);
+    public static final Parcelable.Creator<Identifier> CREATOR = new Parcelable.Creator<Identifier>() {
+        public Identifier createFromParcel(Parcel source) {
+            return new Identifier(source);
         }
 
-        public UniqueId[] newArray(int size) {
-            return new UniqueId[size];
+        public Identifier[] newArray(int size) {
+            return new Identifier[size];
         }
     };
 
@@ -81,9 +83,9 @@ public class UniqueId implements Identifier {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UniqueId uniqueId = (UniqueId) o;
+        Identifier identifier = (Identifier) o;
 
-        return mId.equals(uniqueId.mId);
+        return mId.equals(identifier.mId);
     }
 
 }

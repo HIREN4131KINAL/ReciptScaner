@@ -30,7 +30,7 @@ import rx.functions.Func0;
  * @param <ModelType> the model object that CRUD operations here should return
  * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that is used by the primary key column
  */
-abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
+public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
 
     public static final String COLUMN_SYNC_ID = "remote_sync_id";
     public static final String COLUMN_MARKED_FOR_DELETION = "marked_for_deletion";

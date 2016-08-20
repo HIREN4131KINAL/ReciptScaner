@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import co.smartreceipts.android.sync.model.Identifier;
 
 /**

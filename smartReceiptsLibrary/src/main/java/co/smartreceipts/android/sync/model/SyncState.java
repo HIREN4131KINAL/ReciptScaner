@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.model;
 
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.sql.Date;
 
@@ -13,9 +14,9 @@ public interface SyncState extends Parcelable {
      * Gets the unique id associated with the "cloud" version of this object
      *
      * @param provider the {@link SyncProvider} for this identifier
-     * @return the {@link Identifier} instance
+     * @return the {@link Identifier} instance or {@code null} if this is an unknown provider
      */
-    @NonNull
+    @Nullable
     Identifier getSyncId(@NonNull SyncProvider provider);
 
     /**

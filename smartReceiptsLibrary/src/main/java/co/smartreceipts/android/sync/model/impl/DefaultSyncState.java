@@ -3,11 +3,10 @@ package co.smartreceipts.android.sync.model.impl;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
 
 import java.sql.Date;
 
@@ -17,26 +16,33 @@ import co.smartreceipts.android.sync.model.SyncState;
 
 public class DefaultSyncState implements SyncState {
 
-    private final Identifier mIdentifier;
-    private final DeletionMarkings mDeletionInformation;
+    private final IdentifierMap mIdentifierMap;
+    private final MarkedForDeletionMap mDeletionInformation;
     private final Date mLastLocalModificationTime;
 
-    public DefaultSyncState(@NonNull Identifier identifier, @NonNull DeletionMarkings deletionInformation, @NonNull Date lastLocalModificationTime) {
-        mIdentifier = Preconditions.checkNotNull(identifier);
+    public DefaultSyncState(@NonNull IdentifierMap identifierMap, @NonNull MarkedForDeletionMap deletionInformation, @NonNull Date lastLocalModificationTime) {
+        mIdentifierMap = Preconditions.checkNotNull(identifierMap);
         mDeletionInformation = Preconditions.checkNotNull(deletionInformation);
         mLastLocalModificationTime = Preconditions.checkNotNull(lastLocalModificationTime);
     }
 
+    public DefaultSyncState(@NonNull String identifierMapJson, @NonNull String deletionInformationJson, long lastLocalModificationTime) {
+        final Gson gson = new Gson();
+        mIdentifierMap = gson.fromJson(Preconditions.checkNotNull(identifierMapJson), IdentifierMap.class);
+        mDeletionInformation = gson.fromJson(Preconditions.checkNotNull(deletionInformationJson), MarkedForDeletionMap.class);
+        mLastLocalModificationTime = new Date(lastLocalModificationTime);
+    }
+
     private DefaultSyncState(@NonNull Parcel source) {
-        mIdentifier = source.readParcelable(getClass().getClassLoader());
-        mDeletionInformation = (DeletionMarkings) source.readSerializable();
+        mIdentifierMap = (IdentifierMap) source.readSerializable();
+        mDeletionInformation = (MarkedForDeletionMap) source.readSerializable();
         mLastLocalModificationTime = new Date(source.readLong());
     }
 
-    @NonNull
+    @Nullable
     @Override
     public Identifier getSyncId(@NonNull SyncProvider provider) {
-        return mIdentifier;
+        return mIdentifierMap.getSyncId(provider);
     }
 
     @Override
@@ -57,7 +63,7 @@ public class DefaultSyncState implements SyncState {
 
         DefaultSyncState that = (DefaultSyncState) o;
 
-        if (!mIdentifier.equals(that.mIdentifier)) return false;
+        if (!mIdentifierMap.equals(that.mIdentifierMap)) return false;
         if (!mDeletionInformation.equals(that.mDeletionInformation)) return false;
         return mLastLocalModificationTime.equals(that.mLastLocalModificationTime);
 
@@ -65,7 +71,7 @@ public class DefaultSyncState implements SyncState {
 
     @Override
     public int hashCode() {
-        int result = mIdentifier.hashCode();
+        int result = mIdentifierMap.hashCode();
         result = 31 * result + mDeletionInformation.hashCode();
         result = 31 * result + mLastLocalModificationTime.hashCode();
         return result;
@@ -74,7 +80,7 @@ public class DefaultSyncState implements SyncState {
     @Override
     public String toString() {
         return "DefaultSyncState{" +
-                "mIdentifier=" + mIdentifier +
+                "mIdentifierMap=" + mIdentifierMap +
                 ", mDeletionInformation=" + mDeletionInformation +
                 ", mLastLocalModificationTime=" + mLastLocalModificationTime +
                 '}';
@@ -87,7 +93,7 @@ public class DefaultSyncState implements SyncState {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(mIdentifier, flags);
+        dest.writeSerializable(mIdentifierMap);
         dest.writeSerializable(mDeletionInformation);
         dest.writeLong(mLastLocalModificationTime.getTime());
     }

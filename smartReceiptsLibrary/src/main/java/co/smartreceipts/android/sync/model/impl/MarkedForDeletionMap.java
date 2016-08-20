@@ -3,6 +3,7 @@ package co.smartreceipts.android.sync.model.impl;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,11 +18,12 @@ import co.smartreceipts.android.sync.SyncProvider;
  *
  * A JSON parser (e.g GSON) can be used to convert JSON data into instances of this object
  */
-public class DeletionMarkings implements Serializable {
+public class MarkedForDeletionMap implements Serializable {
 
+    @SerializedName("deletion_map")
     private final Map<SyncProvider, Boolean> markedForDeletionMap;
 
-    public DeletionMarkings(@NonNull Map<SyncProvider, Boolean> markedForDeletionMap) {
+    public MarkedForDeletionMap(@NonNull Map<SyncProvider, Boolean> markedForDeletionMap) {
         this.markedForDeletionMap = new HashMap<>(Preconditions.checkNotNull(markedForDeletionMap));
     }
 
@@ -42,9 +44,9 @@ public class DeletionMarkings implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof DeletionMarkings)) return false;
+        if (!(o instanceof MarkedForDeletionMap)) return false;
 
-        DeletionMarkings that = (DeletionMarkings) o;
+        MarkedForDeletionMap that = (MarkedForDeletionMap) o;
 
         return markedForDeletionMap.equals(that.markedForDeletionMap);
 

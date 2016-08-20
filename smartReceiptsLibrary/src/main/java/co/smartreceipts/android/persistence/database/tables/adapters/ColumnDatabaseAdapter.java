@@ -11,6 +11,7 @@ import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Implements the {@link DatabaseAdapter} contract for the {@link co.smartreceipts.android.persistence.database.tables.AbstractColumnTable}
@@ -21,11 +22,17 @@ public final class ColumnDatabaseAdapter implements DatabaseAdapter<Column<Recei
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
     private final String mIdColumnName;
     private final String mTypeColumnName;
+    private final SyncStateAdapter mSyncStateAdapter;
 
     public ColumnDatabaseAdapter(@NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions, @NonNull String idColumnName, @NonNull String typeColumnName) {
+        this(receiptColumnDefinitions, idColumnName, typeColumnName, new SyncStateAdapter());
+    }
+
+    public ColumnDatabaseAdapter(@NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions, @NonNull String idColumnName, @NonNull String typeColumnName, @NonNull SyncStateAdapter syncStateAdapter) {
         mReceiptColumnDefinitions = Preconditions.checkNotNull(receiptColumnDefinitions);
         mIdColumnName = Preconditions.checkNotNull(idColumnName);
         mTypeColumnName = Preconditions.checkNotNull(typeColumnName);
+        mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
     }
 
     @NonNull
@@ -36,7 +43,8 @@ public final class ColumnDatabaseAdapter implements DatabaseAdapter<Column<Recei
 
         final int id = cursor.getInt(idIndex);
         final String type = cursor.getString(typeIndex);
-        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).build();
+        final SyncState syncState = mSyncStateAdapter.read(cursor);
+        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(id).setColumnName(type).setSyncState(syncState).build();
     }
 
     @NonNull
@@ -44,13 +52,14 @@ public final class ColumnDatabaseAdapter implements DatabaseAdapter<Column<Recei
     public ContentValues write(@NonNull Column<Receipt> column) {
         final ContentValues values = new ContentValues();
         values.put(mTypeColumnName, column.getName());
+        values.putAll(mSyncStateAdapter.write(column.getSyncState()));
         return values;
     }
 
     @NonNull
     @Override
     public Column<Receipt> build(@NonNull Column<Receipt> column, @NonNull PrimaryKey<Column<Receipt>, Integer> primaryKey) {
-        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(primaryKey.getPrimaryKeyValue(column)).setColumnName(column.getName()).build();
+        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(primaryKey.getPrimaryKeyValue(column)).setColumnName(column.getName()).setSyncState(column.getSyncState()).build();
     }
 
 }

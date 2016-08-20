@@ -15,6 +15,7 @@ import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.ConstantColumn;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -46,6 +47,12 @@ public class ColumnDatabaseAdapterTest {
     @Mock
     ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
 
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
+
     Column<Receipt> mIdColumn;
 
     Column<Receipt> mPrimaryKeyIdColumn;
@@ -63,15 +70,18 @@ public class ColumnDatabaseAdapterTest {
 
         when(mColumn.getId()).thenReturn(ID);
         when(mColumn.getName()).thenReturn(NAME);
+        when(mColumn.getSyncState()).thenReturn(mSyncState);
 
-        mIdColumn = new ConstantColumn<>(ID, NAME);
-        mPrimaryKeyIdColumn = new ConstantColumn<>(PRIMARY_KEY_ID, NAME);
-        when(mReceiptColumnDefinitions.getColumn(ID, NAME)).thenReturn(mIdColumn);
-        when(mReceiptColumnDefinitions.getColumn(PRIMARY_KEY_ID, NAME)).thenReturn(mPrimaryKeyIdColumn);
+        mIdColumn = new ConstantColumn<>(ID, NAME, mSyncState);
+        mPrimaryKeyIdColumn = new ConstantColumn<>(PRIMARY_KEY_ID, NAME, mSyncState);
+        when(mReceiptColumnDefinitions.getColumn(ID, NAME, mSyncState)).thenReturn(mIdColumn);
+        when(mReceiptColumnDefinitions.getColumn(PRIMARY_KEY_ID, NAME, mSyncState)).thenReturn(mPrimaryKeyIdColumn);
 
         when(mPrimaryKey.getPrimaryKeyValue(mColumn)).thenReturn(PRIMARY_KEY_ID);
 
-        mColumnDatabaseAdapter = new ColumnDatabaseAdapter(mReceiptColumnDefinitions, ID_COLUMN, NAME_COLUMN);
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mColumnDatabaseAdapter = new ColumnDatabaseAdapter(mReceiptColumnDefinitions, ID_COLUMN, NAME_COLUMN, mSyncStateAdapter);
     }
 
     @Test
@@ -81,8 +91,14 @@ public class ColumnDatabaseAdapterTest {
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mColumnDatabaseAdapter.write(mColumn);
         assertEquals(NAME, contentValues.getAsString(NAME_COLUMN));
+        assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey(ID_COLUMN));
     }
 

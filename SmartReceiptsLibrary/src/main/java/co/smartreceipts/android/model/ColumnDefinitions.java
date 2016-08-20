@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
+import co.smartreceipts.android.sync.model.SyncState;
+
 /**
  * Defines a simple contract for tracking the different column types that are available to users of the app
  */
@@ -15,9 +17,10 @@ public interface ColumnDefinitions<T> {
      *
      * @param id the unique identifier for the column
      * @param definitionName the name of the new column
+     * @param syncState the current {@link SyncState} of the column
      * @return a new column instance or {@code null} if none can be found
      */
-    Column<T> getColumn(int id, @NonNull String definitionName);
+    Column<T> getColumn(int id, @NonNull String definitionName, @NonNull SyncState syncState);
 
     /**
      * Gets a list of all {@link co.smartreceipts.android.model.Column} instances that are available as part

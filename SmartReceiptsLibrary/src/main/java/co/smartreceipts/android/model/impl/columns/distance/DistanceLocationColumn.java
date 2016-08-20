@@ -8,13 +8,14 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
+import co.smartreceipts.android.sync.model.SyncState;
 
 public final class DistanceLocationColumn extends AbstractColumnImpl<Distance> {
 
     private final Context mContext;
 
-    public DistanceLocationColumn(int id, @NonNull String name, @NonNull Context context) {
-        super(id, name);
+    public DistanceLocationColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context) {
+        super(id, name, syncState);
         mContext = context;
     }
 

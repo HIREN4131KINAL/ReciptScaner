@@ -21,6 +21,8 @@ import co.smartreceipts.android.model.impl.columns.SettingUserIdColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import wb.android.flex.Flex;
 
 /**
@@ -97,11 +99,11 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     @Nullable
     @Override
-    public Column<Receipt> getColumn(int id, @NonNull String definitionName) {
+    public Column<Receipt> getColumn(int id, @NonNull String definitionName, @NonNull SyncState syncState) {
         for (int i = 0; i < mActualDefinitions.length; i++) {
             final ActualDefinition definition = mActualDefinitions[i];
             if (definitionName.equals(getColumnNameFromStringResId(definition.getStringResId()))) {
-                return getColumnFromClass(id, definition, definitionName);
+                return getColumnFromClass(id, definition, definitionName, syncState);
             }
         }
         return null;
@@ -113,7 +115,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         final ArrayList<AbstractColumnImpl<Receipt>> columns = new ArrayList<>(mActualDefinitions.length);
         for (int i = 0; i < mActualDefinitions.length; i++) {
             final ActualDefinition definition = mActualDefinitions[i];
-            final AbstractColumnImpl<Receipt> column = getColumnFromClass(Column.UNKNOWN_ID, definition, getColumnNameFromStringResId(definition.getStringResId()));
+            final AbstractColumnImpl<Receipt> column = getColumnFromClass(Column.UNKNOWN_ID, definition, getColumnNameFromStringResId(definition.getStringResId()), new DefaultSyncState());
             if (column != null) {
                 columns.add(column);
             }
@@ -125,7 +127,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     @NonNull
     @Override
     public Column<Receipt> getDefaultInsertColumn() {
-        return new BlankColumn<>(Column.UNKNOWN_ID, getColumnNameFromStringResId(ActualDefinition.BLANK.getStringResId()));
+        return new BlankColumn<>(Column.UNKNOWN_ID, getColumnNameFromStringResId(ActualDefinition.BLANK.getStringResId()), new DefaultSyncState());
     }
 
     public List<Column<Receipt>> getCsvDefaults() {
@@ -153,74 +155,74 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     }
 
     private Column<Receipt> getColumn(@NonNull ActualDefinition actualDefinition) {
-        return getColumnFromClass(Column.UNKNOWN_ID, actualDefinition, getColumnNameFromStringResId(actualDefinition.getStringResId()));
+        return getColumnFromClass(Column.UNKNOWN_ID, actualDefinition, getColumnNameFromStringResId(actualDefinition.getStringResId()), new DefaultSyncState());
     }
 
     @Nullable
-    private AbstractColumnImpl<Receipt> getColumnFromClass(int id, @NonNull ActualDefinition definition, @NonNull String definitionName) {
+    private AbstractColumnImpl<Receipt> getColumnFromClass(int id, @NonNull ActualDefinition definition, @NonNull String definitionName, @NonNull SyncState syncState) {
         if (TextUtils.isEmpty(definitionName)) {
             // Exit early if we have no name (i.e. it's an undefined extra)
             return null;
         }
         switch (definition) {
             case BLANK:
-                return new BlankColumn<>(id, definitionName);
+                return new BlankColumn<>(id, definitionName, syncState);
             case CATEGORY_CODE:
-                return new ReceiptCategoryCodeColumn(id, definitionName);
+                return new ReceiptCategoryCodeColumn(id, definitionName, syncState);
             case CATEGORY_NAME:
-                return new ReceiptCategoryNameColumn(id, definitionName);
+                return new ReceiptCategoryNameColumn(id, definitionName, syncState);
             case USER_ID:
-                return new SettingUserIdColumn<>(id, definitionName, mPreferences);
+                return new SettingUserIdColumn<>(id, definitionName, syncState, mPreferences);
             case REPORT_NAME:
-                return new ReportNameColumn(id, definitionName);
+                return new ReportNameColumn(id, definitionName, syncState);
             case REPORT_START_DATE:
-                return new ReportStartDateColumn(id, definitionName, mContext, mPreferences);
+                return new ReportStartDateColumn(id, definitionName, syncState, mContext, mPreferences);
             case REPORT_END_DATE:
-                return new ReportEndDateColumn(id, definitionName, mContext, mPreferences);
+                return new ReportEndDateColumn(id, definitionName, syncState, mContext, mPreferences);
             case REPORT_COMMENT:
-                return new ReportCommentColumn(id, definitionName);
+                return new ReportCommentColumn(id, definitionName, syncState);
             case REPORT_COST_CENTER:
-                return new ReportCostCenterColumn(id, definitionName);
+                return new ReportCostCenterColumn(id, definitionName, syncState);
             case IMAGE_FILE_NAME:
-                return new ReceiptFileNameColumn(id, definitionName);
+                return new ReceiptFileNameColumn(id, definitionName, syncState);
             case IMAGE_PATH:
-                return new ReceiptFilePathColumn(id, definitionName);
+                return new ReceiptFilePathColumn(id, definitionName, syncState);
             case COMMENT:
-                return new ReceiptCommentColumn(id, definitionName);
+                return new ReceiptCommentColumn(id, definitionName, syncState);
             case CURRENCY:
-                return new ReceiptCurrencyCodeColumn(id, definitionName);
+                return new ReceiptCurrencyCodeColumn(id, definitionName, syncState);
             case DATE:
-                return new ReceiptDateColumn(id, definitionName, mContext, mPreferences);
+                return new ReceiptDateColumn(id, definitionName, syncState, mContext, mPreferences);
             case NAME:
-                return new ReceiptNameColumn(id, definitionName);
+                return new ReceiptNameColumn(id, definitionName, syncState);
             case PRICE:
-                return new ReceiptPriceColumn(id, definitionName);
+                return new ReceiptPriceColumn(id, definitionName, syncState);
             case PRICE_EXCHANGED:
-                return new ReceiptExchangedPriceColumn(id, definitionName, mContext);
+                return new ReceiptExchangedPriceColumn(id, definitionName, syncState, mContext);
             case TAX:
-                return new ReceiptTaxColumn(id, definitionName);
+                return new ReceiptTaxColumn(id, definitionName, syncState);
             case TAX_EXCHANGED:
-                return new ReceiptExchangedTaxColumn(id, definitionName, mContext);
+                return new ReceiptExchangedTaxColumn(id, definitionName, syncState, mContext);
             case PRICE_PLUS_TAX_EXCHANGED:
-                return new ReceiptNetExchangedPricePlusTaxColumn(id, definitionName, mContext, mPreferences);
+                return new ReceiptNetExchangedPricePlusTaxColumn(id, definitionName, syncState, mContext, mPreferences);
             case EXCHANGE_RATE:
-                return new ReceiptExchangeRateColumn(id, definitionName);
+                return new ReceiptExchangeRateColumn(id, definitionName, syncState);
             case PICTURED:
-                return new ReceiptIsPicturedColumn(id, definitionName, mContext);
+                return new ReceiptIsPicturedColumn(id, definitionName, syncState, mContext);
             case EXPENSABLE:
-                return new ReceiptIsExpensableColumn(id, definitionName, mContext);
+                return new ReceiptIsExpensableColumn(id, definitionName, syncState, mContext);
             case INDEX:
-                return new ReceiptIndexColumn(id, definitionName);
+                return new ReceiptIndexColumn(id, definitionName, syncState);
             case ID:
-                return new ReceiptIdColumn(id, definitionName);
+                return new ReceiptIdColumn(id, definitionName, syncState);
             case PAYMENT_METHOD:
-                return new ReceiptPaymentMethodColumn(id, definitionName);
+                return new ReceiptPaymentMethodColumn(id, definitionName, syncState);
             case EXTRA_EDITTEXT_1:
-                return new ReceiptExtra1Column(id, definitionName);
+                return new ReceiptExtra1Column(id, definitionName, syncState);
             case EXTRA_EDITTEXT_2:
-                return new ReceiptExtra2Column(id, definitionName);
+                return new ReceiptExtra2Column(id, definitionName, syncState);
             case EXTRA_EDITTEXT_3:
-                return new ReceiptExtra3Column(id, definitionName);
+                return new ReceiptExtra3Column(id, definitionName, syncState);
             default:
                 throw new IllegalArgumentException("Unknown definition type: " + definition);
         }

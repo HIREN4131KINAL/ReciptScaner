@@ -1,11 +1,16 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.UnknownColumnResolutionStrategory;
 import co.smartreceipts.android.model.impl.columns.resolution.ConstantColumnUnknownColumnResolutionStrategory;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Column} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -17,6 +22,7 @@ public final class ColumnBuilderFactory<T> implements BuilderFactory<Column<T>> 
     private final UnknownColumnResolutionStrategory<T> mUnknownColumnResolutionStrategory;
     private int mId;
     private String mColumnName;
+    private SyncState mSyncState;
 
     public ColumnBuilderFactory(@NonNull ColumnDefinitions<T> columnDefinitions) {
         this(columnDefinitions, new ConstantColumnUnknownColumnResolutionStrategory<T>());
@@ -27,6 +33,7 @@ public final class ColumnBuilderFactory<T> implements BuilderFactory<Column<T>> 
         mUnknownColumnResolutionStrategory = unknownColumnResolutionStrategory;
         mId = Column.UNKNOWN_ID;
         mColumnName = "";
+        mSyncState = new DefaultSyncState();
     }
 
     public ColumnBuilderFactory<T> setColumnId(int id) {
@@ -34,21 +41,25 @@ public final class ColumnBuilderFactory<T> implements BuilderFactory<Column<T>> 
         return this;
     }
 
-    public ColumnBuilderFactory<T> setColumnName(Column<T> column) {
+    public ColumnBuilderFactory<T> setColumnName(@Nullable Column<T> column) {
         mColumnName = (column != null) ? column.getName() : "";
         return this;
     }
 
-    public ColumnBuilderFactory<T> setColumnName(String name) {
+    public ColumnBuilderFactory<T> setColumnName(@Nullable String name) {
         mColumnName = (name != null) ? name : "";
         return this;
     }
 
+    public ColumnBuilderFactory<T> setSyncState(@NonNull SyncState syncState) {
+        mSyncState = Preconditions.checkNotNull(syncState);
+        return this;
+    }
 
     @NonNull
     @Override
     public Column<T> build() {
-        final Column<T> column = mColumnDefinitions.getColumn(mId, mColumnName);
+        final Column<T> column = mColumnDefinitions.getColumn(mId, mColumnName, mSyncState);
         return (column != null) ? column : mUnknownColumnResolutionStrategory.resolve(mId, mColumnName);
     }
 

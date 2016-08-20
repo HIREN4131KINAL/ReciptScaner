@@ -4,13 +4,15 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
+import co.smartreceipts.android.sync.model.SyncState;
+
 /**
  * Provides a column that returns blank values for everything but the header
  */
 public final class BlankColumn<T> extends AbstractColumnImpl<T> {
 
-    public BlankColumn(int id, @NonNull String name) {
-        super(id, name);
+    public BlankColumn(int id, @NonNull String name, @NonNull SyncState syncState) {
+        super(id, name, syncState);
     }
 
     @Override

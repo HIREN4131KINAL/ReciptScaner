@@ -9,6 +9,7 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Provides a column that returns the total of the price and tax fields based on user settings
@@ -17,8 +18,8 @@ public final class ReceiptNetExchangedPricePlusTaxColumn extends AbstractExchang
 
     private final Preferences mPreferences;
 
-    public ReceiptNetExchangedPricePlusTaxColumn(int id, @NonNull String name, @NonNull Context context, @NonNull Preferences preferences) {
-        super(id, name, context);
+    public ReceiptNetExchangedPricePlusTaxColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context, @NonNull Preferences preferences) {
+        super(id, name, syncState, context);
         mPreferences = preferences;
     }
 

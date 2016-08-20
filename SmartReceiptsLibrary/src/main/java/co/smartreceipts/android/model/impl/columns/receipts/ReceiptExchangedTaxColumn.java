@@ -5,14 +5,15 @@ import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Converts the {@link co.smartreceipts.android.model.Receipt#getTax()} based on the current exchange rate
  */
 public final class ReceiptExchangedTaxColumn extends AbstractExchangedPriceColumn {
 
-    public ReceiptExchangedTaxColumn(int id, @NonNull String name, @NonNull Context context) {
-        super(id, name, context);
+    public ReceiptExchangedTaxColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context) {
+        super(id, name, syncState, context);
     }
 
     @NonNull

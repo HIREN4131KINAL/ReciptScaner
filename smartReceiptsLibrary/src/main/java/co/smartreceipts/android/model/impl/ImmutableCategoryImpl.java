@@ -6,20 +6,29 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 public class ImmutableCategoryImpl implements Category {
 
     private final String mName;
     private final String mCode;
+    private final SyncState mSyncState;
 
     public ImmutableCategoryImpl(@NonNull String name, @NonNull String code) {
+        this(name, code, new DefaultSyncState());
+    }
+
+    public ImmutableCategoryImpl(@NonNull String name, @NonNull String code, @NonNull SyncState syncState) {
         mName = Preconditions.checkNotNull(name);
         mCode = Preconditions.checkNotNull(code);
+        mSyncState = Preconditions.checkNotNull(syncState);
     }
 
     private ImmutableCategoryImpl(final Parcel in) {
         mName = in.readString();
         mCode = in.readString();
+        mSyncState = in.readParcelable(getClass().getClassLoader());
     }
 
     @NonNull
@@ -34,6 +43,12 @@ public class ImmutableCategoryImpl implements Category {
         return mCode;
     }
 
+    @NonNull
+    @Override
+    public SyncState getSyncState() {
+        return mSyncState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -42,7 +57,8 @@ public class ImmutableCategoryImpl implements Category {
         ImmutableCategoryImpl that = (ImmutableCategoryImpl) o;
 
         if (!mName.equals(that.mName)) return false;
-        return mCode.equals(that.mCode);
+        if (!mCode.equals(that.mCode)) return false;
+        return mSyncState.equals(that.mSyncState);
 
     }
 
@@ -50,6 +66,7 @@ public class ImmutableCategoryImpl implements Category {
     public int hashCode() {
         int result = mName.hashCode();
         result = 31 * result + mCode.hashCode();
+        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 
@@ -67,6 +84,7 @@ public class ImmutableCategoryImpl implements Category {
     public void writeToParcel(final Parcel out, final int flags) {
         out.writeString(mName);
         out.writeString(mCode);
+        out.writeParcelable(mSyncState, flags);
     }
 
     public static Creator<ImmutableCategoryImpl> CREATOR = new Creator<ImmutableCategoryImpl>() {

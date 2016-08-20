@@ -27,6 +27,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -73,15 +74,15 @@ public class CSVTableTest {
 
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         mCSVTable = new CSVTable(mSQLiteOpenHelper, mReceiptColumnDefinitions);
-        mDefaultColumn = new BlankColumn<>(-1, "");
+        mDefaultColumn = new BlankColumn<>(-1, "", new DefaultSyncState());
 
         when(mReceiptColumnDefinitions.getDefaultInsertColumn()).thenReturn(mDefaultColumn);
-        when(mReceiptColumnDefinitions.getColumn(anyInt(), eq(""))).thenReturn(mDefaultColumn);
+        when(mReceiptColumnDefinitions.getColumn(anyInt(), eq(""), eq(new DefaultSyncState()))).thenReturn(mDefaultColumn);
 
         // Now create the table and insert some defaults
         mCSVTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name")).toBlocking().first();
-        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price")).toBlocking().first();
+        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState())).toBlocking().first();
+        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState())).toBlocking().first();
         assertNotNull(mColumn1);
         assertNotNull(mColumn2);
     }
@@ -127,7 +128,7 @@ public class CSVTableTest {
         assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE csvcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
         assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
         assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_type DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test
@@ -142,7 +143,7 @@ public class CSVTableTest {
 
         assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
         assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_type DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test
@@ -178,7 +179,7 @@ public class CSVTableTest {
     @Test
     public void insert() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name)).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
@@ -199,7 +200,7 @@ public class CSVTableTest {
     @Test
     public void update() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name)).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 

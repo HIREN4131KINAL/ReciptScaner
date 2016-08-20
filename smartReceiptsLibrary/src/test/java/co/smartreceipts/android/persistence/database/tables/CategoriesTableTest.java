@@ -111,7 +111,7 @@ public class CategoriesTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE categories ADD breakdown BOOLEAN DEFAULT 1"));
         assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD remote_sync_id TEXT"));
         assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(3).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_type DATE"));
+        assertTrue(mSqlCaptor.getAllValues().get(3).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE"));
     }
 
     @Test
@@ -126,7 +126,7 @@ public class CategoriesTableTest {
 
         assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD remote_sync_id TEXT"));
         assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_type DATE"));
+        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE"));
     }
 
     @Test

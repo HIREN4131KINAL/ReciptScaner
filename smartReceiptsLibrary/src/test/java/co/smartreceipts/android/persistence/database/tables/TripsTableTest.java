@@ -149,7 +149,7 @@ public class TripsTableTest {
         assertTrue(mSqlCaptor.getValue().contains("trip_processing_status"));
         assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
         assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
-        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_type"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time"));
     }
 
     @Test
@@ -249,7 +249,7 @@ public class TripsTableTest {
     private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD remote_sync_id TEXT");
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD marked_for_deletion TEXT");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD last_local_modification_type DATE");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test

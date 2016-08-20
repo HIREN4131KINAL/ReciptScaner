@@ -13,6 +13,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,12 @@ public class CategoryDatabaseAdapterTest {
     @Mock
     PrimaryKey<Category, String> mPrimaryKey;
 
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -49,28 +56,37 @@ public class CategoryDatabaseAdapterTest {
 
         when(mCategory.getName()).thenReturn(NAME);
         when(mCategory.getCode()).thenReturn(CODE);
+        when(mCategory.getSyncState()).thenReturn(mSyncState);
 
         when(mPrimaryKey.getPrimaryKeyValue(mCategory)).thenReturn(PRIMARY_KEY_NAME);
 
-        mCategoryDatabaseAdapter = new CategoryDatabaseAdapter();
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mCategoryDatabaseAdapter = new CategoryDatabaseAdapter(mSyncStateAdapter);
     }
 
     @Test
     public void read() throws Exception {
-        final Category category = new CategoryBuilderFactory().setName(NAME).setCode(CODE).build();
+        final Category category = new CategoryBuilderFactory().setName(NAME).setCode(CODE).setSyncState(mSyncState).build();
         assertEquals(category, mCategoryDatabaseAdapter.read(mCursor));
     }
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mCategoryDatabaseAdapter.write(mCategory);
         assertEquals(NAME, contentValues.getAsString("name"));
         assertEquals(CODE, contentValues.getAsString("code"));
+        assertEquals(sync, contentValues.getAsString(sync));
     }
 
     @Test
     public void build() throws Exception {
-        final Category category = new CategoryBuilderFactory().setName(PRIMARY_KEY_NAME).setCode(CODE).build();
+        final Category category = new CategoryBuilderFactory().setName(PRIMARY_KEY_NAME).setCode(CODE).setSyncState(mSyncState).build();
         assertEquals(category, mCategoryDatabaseAdapter.build(mCategory, mPrimaryKey));
     }
 }

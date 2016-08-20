@@ -142,8 +142,8 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getValue().contains("rate_currency"));
         assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
         assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
-        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_type"));
-        assertEquals(mSqlCaptor.getValue(), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00, remote_sync_id TEXT, marked_for_deletion TEXT, last_local_modification_type DATE );");
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time"));
+        assertEquals(mSqlCaptor.getValue(), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00, remote_sync_id TEXT, marked_for_deletion TEXT, last_local_modification_time DATE );");
     }
 
     @Test
@@ -178,7 +178,7 @@ public class DistanceTableTest {
 
         assertTrue(mSqlCaptor.getAllValues().get(3).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD remote_sync_id TEXT"));
         assertTrue(mSqlCaptor.getAllValues().get(4).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(5).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_type DATE"));
+        assertTrue(mSqlCaptor.getAllValues().get(5).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE"));
     }
 
     @Test
@@ -193,7 +193,7 @@ public class DistanceTableTest {
 
         assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD remote_sync_id TEXT"));
         assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_type DATE"));
+        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE"));
     }
 
     @Test

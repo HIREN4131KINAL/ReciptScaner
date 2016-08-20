@@ -203,7 +203,7 @@ public class ReceiptsTableTest {
         assertTrue(mSqlCaptor.getValue().contains("extra_edittext_3"));
         assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
         assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
-        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_type"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time"));
     }
 
     @Test
@@ -401,7 +401,7 @@ public class ReceiptsTableTest {
     private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD remote_sync_id TEXT");
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD marked_for_deletion TEXT");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD last_local_modification_type DATE");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test

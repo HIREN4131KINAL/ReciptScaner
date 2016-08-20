@@ -54,7 +54,7 @@ public class SyncStateAdapterTest {
         final int lastLocalModificationTimeIndex = 3;
         when(mCursor.getColumnIndex("remote_sync_id")).thenReturn(identifierIndex);
         when(mCursor.getColumnIndex("marked_for_deletion")).thenReturn(markedForDeletionIndex);
-        when(mCursor.getColumnIndex("last_local_modification_type")).thenReturn(lastLocalModificationTimeIndex);
+        when(mCursor.getColumnIndex("last_local_modification_time")).thenReturn(lastLocalModificationTimeIndex);
 
         when(mCursor.getString(identifierIndex)).thenReturn(IDENTIFIER_MAP_JSON);
         when(mCursor.getString(markedForDeletionIndex)).thenReturn(MARKED_FOR_DELETION_MAP_JSON);
@@ -78,7 +78,7 @@ public class SyncStateAdapterTest {
         final ContentValues contentValues = mSyncStateAdapter.write(mSyncState);
         assertEquals(IDENTIFIER_MAP_JSON, contentValues.getAsString("remote_sync_id"));
         assertEquals(MARKED_FOR_DELETION_MAP_JSON, contentValues.getAsString("marked_for_deletion"));
-        assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_type"));
+        assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));
     }
 
 }

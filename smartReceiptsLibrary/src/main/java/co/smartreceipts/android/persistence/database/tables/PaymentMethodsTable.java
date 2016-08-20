@@ -32,7 +32,7 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
         super.onCreate(db, customizer);
         final String sql = "CREATE TABLE " + getTableName() + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + COLUMN_METHOD + " TEXT"
+                + COLUMN_METHOD + " TEXT, "
                 + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
                 + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
@@ -50,9 +50,6 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
             final String sql = "CREATE TABLE " + getTableName() + " ("
                     + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + COLUMN_METHOD + " TEXT"
-                    + AbstractSqlTable.COLUMN_SYNC_ID + " TEXT, "
-                    + AbstractSqlTable.COLUMN_MARKED_FOR_DELETION + " TEXT, "
-                    + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                     + ");";
 
             Log.d(TAG, sql);

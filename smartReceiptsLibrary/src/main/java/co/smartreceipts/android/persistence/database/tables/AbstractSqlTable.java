@@ -34,7 +34,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
     public static final String COLUMN_SYNC_ID = "remote_sync_id";
     public static final String COLUMN_MARKED_FOR_DELETION = "marked_for_deletion";
-    public static final String COLUMN_LAST_LOCAL_MODIFICATION_TIME = "last_local_modification_type";
+    public static final String COLUMN_LAST_LOCAL_MODIFICATION_TIME = "last_local_modification_time";
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;
     private final String mTableName;

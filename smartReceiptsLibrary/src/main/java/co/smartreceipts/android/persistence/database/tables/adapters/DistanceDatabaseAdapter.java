@@ -19,6 +19,7 @@ import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Implements the {@link DatabaseAdapter} contract for the {@link DistanceTable}
@@ -26,9 +27,15 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAdapter<Distance, PrimaryKey<Distance, Integer>, Trip> {
 
     private final Table<Trip, String> mTripsTable;
+    private final SyncStateAdapter mSyncStateAdapter;
 
     public DistanceDatabaseAdapter(@NonNull Table<Trip, String> tripsTable) {
+        this(tripsTable, new SyncStateAdapter());
+    }
+
+    public DistanceDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull SyncStateAdapter syncStateAdapter) {
         mTripsTable = Preconditions.checkNotNull(tripsTable);
+        mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
     }
 
     @NonNull
@@ -60,6 +67,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
         final BigDecimal rate = BigDecimal.valueOf(cursor.getDouble(rateIndex));
         final String rateCurrency = cursor.getString(rateCurrencyIndex);
         final String comment = cursor.getString(commentIndex);
+        final SyncState syncState = mSyncStateAdapter.read(cursor);
 
         return new DistanceBuilderFactory(id)
                 .setTrip(trip)
@@ -70,6 +78,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
                 .setRate(rate)
                 .setCurrency(rateCurrency)
                 .setComment(comment)
+                .setSyncState(syncState)
                 .build();
     }
 
@@ -86,6 +95,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
         values.put(DistanceTable.COLUMN_RATE, distance.getRate().doubleValue());
         values.put(DistanceTable.COLUMN_RATE_CURRENCY, distance.getPrice().getCurrencyCode());
         values.put(DistanceTable.COLUMN_COMMENT, distance.getComment().trim());
+        values.putAll(mSyncStateAdapter.write(distance.getSyncState()));
 
         return values;
     }

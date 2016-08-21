@@ -8,7 +8,9 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Distance extends Parcelable, Priceable, Comparable<Distance> {
+import co.smartreceipts.android.sync.model.Syncable;
+
+public interface Distance extends Parcelable, Priceable, Comparable<Distance>, Syncable {
 
     String PARCEL_KEY = Distance.class.getName();
     int RATE_PRECISION = 3;

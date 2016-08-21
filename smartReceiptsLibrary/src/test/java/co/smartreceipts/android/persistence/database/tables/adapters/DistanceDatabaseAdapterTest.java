@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
@@ -63,6 +64,12 @@ public class DistanceDatabaseAdapterTest {
     @Mock
     PrimaryKey<Distance, Integer> mPrimaryKey;
 
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -104,6 +111,7 @@ public class DistanceDatabaseAdapterTest {
         when(mDistance.getRate()).thenReturn(new BigDecimal(RATE));
         when(mDistance.getPrice()).thenReturn(mPrice);
         when(mDistance.getComment()).thenReturn(COMMENT);
+        when(mDistance.getSyncState()).thenReturn(mSyncState);
 
         when(mTrip.getName()).thenReturn(PARENT);
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
@@ -112,23 +120,30 @@ public class DistanceDatabaseAdapterTest {
         when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);
 
-        mDistanceDatabaseAdapter = new DistanceDatabaseAdapter(mTripsTable);
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mDistanceDatabaseAdapter = new DistanceDatabaseAdapter(mTripsTable, mSyncStateAdapter);
     }
 
     @Test
     public void read() throws Exception {
-        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).build();
+        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
         assertEquals(distance, mDistanceDatabaseAdapter.read(mCursor));
     }
 
     @Test
     public void readForSelection() throws Exception {
-        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).build();
+        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
         assertEquals(distance, mDistanceDatabaseAdapter.readForSelection(mCursor, mTrip));
     }
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mDistanceDatabaseAdapter.write(mDistance);
         assertEquals(PARENT, contentValues.getAsString("parent"));
         assertEquals(DISTANCE, contentValues.getAsDouble("distance"), 0.0001d);
@@ -138,12 +153,13 @@ public class DistanceDatabaseAdapterTest {
         assertEquals(COMMENT, contentValues.getAsString("comment"));
         assertEquals(RATE, contentValues.getAsDouble("rate"), 0.0001d);
         assertEquals(CURRENCY_CODE, contentValues.getAsString("rate_currency"));
+        assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey("id"));
     }
 
     @Test
     public void build() throws Exception {
-        final Distance distance = new DistanceBuilderFactory(PRIMARY_KEY_ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).build();
+        final Distance distance = new DistanceBuilderFactory(PRIMARY_KEY_ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
         assertEquals(distance, mDistanceDatabaseAdapter.build(mDistance, mPrimaryKey));
     }
 

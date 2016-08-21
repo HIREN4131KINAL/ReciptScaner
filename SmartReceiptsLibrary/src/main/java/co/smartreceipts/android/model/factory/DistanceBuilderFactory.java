@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
+
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
@@ -13,6 +15,8 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Distance} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -29,6 +33,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private BigDecimal _rate;
     private WBCurrency _currency;
     private String _comment;
+    private SyncState _syncState;
 
     public DistanceBuilderFactory() {
         this(MISSING_ID);
@@ -42,6 +47,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         _timezone = TimeZone.getDefault();
         _rate = new BigDecimal(0);
         _comment = "";
+        _syncState = new DefaultSyncState();
     }
 
     public DistanceBuilderFactory(@NonNull Distance distance) {
@@ -58,6 +64,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         _rate = distance.getRate();
         _currency = distance.getPrice().getCurrency();
         _comment = distance.getComment();
+        _syncState = distance.getSyncState();
     }
 
     public DistanceBuilderFactory setTrip(final Trip trip) {
@@ -131,9 +138,14 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         return this;
     }
 
+    public DistanceBuilderFactory setSyncState(@NonNull SyncState syncState) {
+        _syncState = Preconditions.checkNotNull(syncState);
+        return this;
+    }
+
     @Override
     @NonNull
     public Distance build() {
-        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _currency, _date, _timezone, _comment);
+        return new ImmutableDistanceImpl(_id, _trip, _location, _distance, _rate, _currency, _date, _timezone, _comment, _syncState);
     }
 }

@@ -10,6 +10,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import java.sql.Date;
 import java.util.Collections;
 
+import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -38,10 +39,7 @@ public class ImmutablePaymentMethodImplTest {
 
     @Before
     public void setUp() throws Exception {
-        mSyncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("abc"))),
-                                          new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
-                                          new Date(System.currentTimeMillis()));
-
+        mSyncState = DefaultObjects.newDefaultSyncState();
         mPaymentMethod = new ImmutablePaymentMethodImpl(ID, METHOD, mSyncState);
     }
 

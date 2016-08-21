@@ -15,11 +15,13 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 import wb.android.storage.StorageManager;
 
 import static org.junit.Assert.assertEquals;
@@ -57,6 +59,12 @@ public class TripDatabaseAdapterTest {
 
     @Mock
     Preferences mPreferences;
+
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -97,6 +105,8 @@ public class TripDatabaseAdapterTest {
         when(mTrip.getComment()).thenReturn(COMMENT);
         when(mTrip.getCostCenter()).thenReturn(COST_CENTER);
         when(mTrip.getDefaultCurrencyCode()).thenReturn(CURRENCY_CODE);
+        when(mTrip.getSource()).thenReturn(Source.Undefined);
+        when(mTrip.getSyncState()).thenReturn(mSyncState);
 
         when(mPrimaryKey.getPrimaryKeyValue(mTrip)).thenReturn(PRIMARY_KEY_NAME);
 
@@ -106,7 +116,9 @@ public class TripDatabaseAdapterTest {
         when(mStorageManager.mkdir(NAME)).thenReturn(new File(NAME));
         when(mStorageManager.mkdir(PRIMARY_KEY_NAME)).thenReturn(new File(PRIMARY_KEY_NAME));
 
-        mTripDatabaseAdapter = new TripDatabaseAdapter(mStorageManager, mPreferences);
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mTripDatabaseAdapter = new TripDatabaseAdapter(mStorageManager, mPreferences, mSyncStateAdapter);
     }
 
     @Test
@@ -120,12 +132,18 @@ public class TripDatabaseAdapterTest {
                 .setCostCenter(COST_CENTER)
                 .setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny())
                 .setSourceAsCache()
+                .setSyncState(mSyncState)
                 .build();
         assertEquals(trip, mTripDatabaseAdapter.read(mCursor));
     }
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mTripDatabaseAdapter.write(mTrip);
 
         assertEquals(NAME, contentValues.getAsString("name"));
@@ -136,6 +154,7 @@ public class TripDatabaseAdapterTest {
         assertEquals(COMMENT, contentValues.getAsString("trips_comment"));
         assertEquals(COST_CENTER, contentValues.getAsString("trips_cost_center"));
         assertEquals(CURRENCY_CODE, contentValues.getAsString("trips_default_currency"));
+        assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey("miles_new"));
         assertFalse(contentValues.containsKey("trips_filters"));
         assertFalse(contentValues.containsKey("trip_processing_status"));
@@ -153,6 +172,7 @@ public class TripDatabaseAdapterTest {
                 .setCostCenter(COST_CENTER)
                 .setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny())
                 .setSourceAsCache()
+                .setSyncState(mSyncState)
                 .build();
         assertEquals(trip, mTripDatabaseAdapter.build(mTrip, mPrimaryKey));
     }

@@ -12,6 +12,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 import wb.android.storage.StorageManager;
 
 /**
@@ -21,14 +22,16 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
 
     private final StorageManager mStorageManager;
     private final Preferences mPreferences;
+    private final SyncStateAdapter mSyncStateAdapter;
 
     public TripDatabaseAdapter(@NonNull PersistenceManager persistenceManager) {
-        this(persistenceManager.getStorageManager(), persistenceManager.getPreferences());
+        this(persistenceManager.getStorageManager(), persistenceManager.getPreferences(), new SyncStateAdapter());
     }
 
-    public TripDatabaseAdapter(@NonNull StorageManager storageManager, @NonNull Preferences preferences) {
+    public TripDatabaseAdapter(@NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull SyncStateAdapter syncStateAdapter) {
         mStorageManager = Preconditions.checkNotNull(storageManager);
         mPreferences = Preconditions.checkNotNull(preferences);
+        mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
     }
 
     @Override
@@ -51,6 +54,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
         final String comment = cursor.getString(commentIndex);
         final String costCenter = cursor.getString(costCenterIndex);
         final String defaultCurrency = cursor.getString(defaultCurrencyIndex);
+        final SyncState syncState = mSyncStateAdapter.read(cursor);
 
         return new TripBuilderFactory().setDirectory(mStorageManager.mkdir(name))
                 .setStartDate(from)
@@ -61,6 +65,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
                 .setCostCenter(costCenter)
                 .setDefaultCurrency(defaultCurrency, mPreferences.getDefaultCurreny())
                 .setSourceAsCache()
+                .setSyncState(syncState)
                 .build();
     }
 
@@ -76,6 +81,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
         values.put(TripsTable.COLUMN_COMMENT, trip.getComment());
         values.put(TripsTable.COLUMN_COST_CENTER, trip.getCostCenter());
         values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, trip.getDefaultCurrencyCode());
+        values.putAll(mSyncStateAdapter.write(trip.getSyncState()));
         return values;
     }
 

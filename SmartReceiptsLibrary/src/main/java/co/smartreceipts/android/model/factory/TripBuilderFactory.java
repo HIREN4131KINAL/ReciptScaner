@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,6 +20,8 @@ import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.impl.DefaultTripImpl;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Trip} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -30,7 +34,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     private Date _startDate, _endDate;
     private TimeZone _startTimeZone, _endTimeZone;
     private WBCurrency _defaultCurrency;
-    private Filter<Receipt> _filter;
+    private SyncState _syncState;
     private Source _source;
 
     public TripBuilderFactory() {
@@ -43,6 +47,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _source = Source.Undefined;
         _startTimeZone = TimeZone.getDefault();
         _endTimeZone = TimeZone.getDefault();
+        _syncState = new DefaultSyncState();
     }
 
     public TripBuilderFactory(@NonNull Trip trip) {
@@ -55,6 +60,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _source = trip.getSource();
         _startTimeZone = trip.getStartTimeZone();
         _endTimeZone = trip.getEndTimeZone();
+        _syncState = trip.getSyncState();
     }
 
     public TripBuilderFactory setDirectory(@NonNull File directory) {
@@ -63,7 +69,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     }
 
     public TripBuilderFactory setStartDate(@NonNull Date startDate) {
-        _startDate = startDate;
+        _startDate = Preconditions.checkNotNull(startDate);
         return this;
     }
 
@@ -73,7 +79,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     }
 
     public TripBuilderFactory setEndDate(@NonNull Date endDate) {
-        _endDate = endDate;
+        _endDate = Preconditions.checkNotNull(endDate);
         return this;
     }
 
@@ -82,8 +88,8 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setStartTimeZone(TimeZone startTimeZone) {
-        _startTimeZone = startTimeZone;
+    public TripBuilderFactory setStartTimeZone(@NonNull TimeZone startTimeZone) {
+        _startTimeZone = Preconditions.checkNotNull(startTimeZone);
         return this;
     }
 
@@ -94,24 +100,24 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setEndTimeZone(TimeZone endTimeZone) {
-        _endTimeZone = endTimeZone;
+    public TripBuilderFactory setEndTimeZone(@NonNull TimeZone endTimeZone) {
+        _endTimeZone = Preconditions.checkNotNull(endTimeZone);
         return this;
     }
 
-    public TripBuilderFactory setEndTimeZone(String timeZoneId) {
+    public TripBuilderFactory setEndTimeZone(@Nullable String timeZoneId) {
         if (timeZoneId != null) {
             _endTimeZone = TimeZone.getTimeZone(timeZoneId);
         }
         return this;
     }
 
-    public TripBuilderFactory setDefaultCurrency(WBCurrency currency) {
-        _defaultCurrency = currency;
+    public TripBuilderFactory setDefaultCurrency(@NonNull WBCurrency currency) {
+        _defaultCurrency = Preconditions.checkNotNull(currency);
         return this;
     }
 
-    public TripBuilderFactory setDefaultCurrency(String currencyCode) {
+    public TripBuilderFactory setDefaultCurrency(@NonNull String currencyCode) {
         if (TextUtils.isEmpty(currencyCode)) {
             throw new IllegalArgumentException("The currency code cannot be null or empty");
         }
@@ -119,7 +125,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setDefaultCurrency(String currencyCode, String missingCodeDefault) {
+    public TripBuilderFactory setDefaultCurrency(@Nullable String currencyCode, @NonNull String missingCodeDefault) {
         if (TextUtils.isEmpty(currencyCode)) {
             _defaultCurrency = WBCurrency.getInstance(missingCodeDefault);
         } else {
@@ -128,38 +134,13 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setComment(String comment) {
-        _comment = comment;
+    public TripBuilderFactory setComment(@Nullable String comment) {
+        _comment = comment != null ? comment : "";
         return this;
     }
 
-    public TripBuilderFactory setCostCenter(String costCenter) {
-        _costCenter = costCenter;
-        return this;
-    }
-
-    public TripBuilderFactory setFilter(Filter<Receipt> filter) {
-        _filter = filter;
-        return this;
-    }
-
-    public TripBuilderFactory setFilter(JSONObject json) {
-        if (json != null) {
-            try {
-                _filter = FilterFactory.getReceiptFilter(json);
-            } catch (JSONException e) {
-            }
-        }
-        return this;
-    }
-
-    public TripBuilderFactory setFilter(String json) {
-        if (!TextUtils.isEmpty(json)) {
-            try {
-                _filter = FilterFactory.getReceiptFilter(new JSONObject(json));
-            } catch (JSONException e) {
-            }
-        }
+    public TripBuilderFactory setCostCenter(@Nullable String costCenter) {
+        _costCenter = costCenter != null ? costCenter : "";
         return this;
     }
 
@@ -168,9 +149,14 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
+    public TripBuilderFactory setSyncState(@NonNull SyncState syncState) {
+        _syncState = Preconditions.checkNotNull(syncState);
+        return this;
+    }
+
     @Override
     @NonNull
     public Trip build() {
-        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _defaultCurrency, _comment, _costCenter, _filter, _source);
+        return new DefaultTripImpl(_dir, _startDate, _startTimeZone, _endDate, _endTimeZone, _defaultCurrency, _comment, _costCenter, _source, _syncState);
     }
 }

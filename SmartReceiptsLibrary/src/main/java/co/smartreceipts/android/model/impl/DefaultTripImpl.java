@@ -3,6 +3,9 @@ package co.smartreceipts.android.model.impl;
 import android.content.Context;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.sql.Date;
@@ -20,29 +23,41 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
+import co.smartreceipts.android.sync.model.SyncState;
 
 public class DefaultTripImpl implements Trip {
 
     private final File mReportDirectory;
-    private String mComment, mCostCenter;
-    private Price mPrice, mDailySubTotal;
-    private Date mStartDate, mEndDate;
-    private TimeZone mStartTimeZone, mEndTimeZone;
-    private WBCurrency mDefaultCurrency;
-    private Source mSource;
-    private Filter<Receipt> mFilter;
+    private final String mComment;
+    private final Date mStartDate;
+    private final TimeZone mStartTimeZone;
+    private final Date mEndDate;
+    private final TimeZone mEndTimeZone;
+    private final WBCurrency mDefaultCurrency;
+    private final String mCostCenter;
+    private final SyncState mSyncState;
 
-    public DefaultTripImpl(@NonNull File directory, Date startDate, TimeZone startTimeZone, Date endDate, TimeZone endTimeZone, @NonNull WBCurrency defaultCurrency, String comment, String costCenter, Filter<Receipt> filter, Source source) {
-        mReportDirectory = directory;
-        mStartDate = startDate;
-        mStartTimeZone = startTimeZone;
-        mEndDate = endDate;
-        mEndTimeZone = endTimeZone;
-        mDefaultCurrency = defaultCurrency;
-        mComment = comment;
-        mCostCenter = costCenter;
-        mFilter = filter;
-        mSource = source;
+    private Price mPrice;
+    private Price mDailySubTotal;
+
+
+    private final Source mSource;
+    private final Filter<Receipt> mFilter = null;
+
+
+    public DefaultTripImpl(@NonNull File directory, @NonNull Date startDate, @NonNull TimeZone startTimeZone, @NonNull Date endDate, @NonNull TimeZone endTimeZone,
+                           @NonNull WBCurrency defaultCurrency, @NonNull String comment, @NonNull String costCenter, @Nullable Source source, @NonNull SyncState syncState) {
+        mReportDirectory = Preconditions.checkNotNull(directory);
+        mStartDate = Preconditions.checkNotNull(startDate);
+        mStartTimeZone = Preconditions.checkNotNull(startTimeZone);
+        mEndDate = Preconditions.checkNotNull(endDate);
+        mEndTimeZone = Preconditions.checkNotNull(endTimeZone);
+        mDefaultCurrency = Preconditions.checkNotNull(defaultCurrency);
+        mComment = Preconditions.checkNotNull(comment);
+        mCostCenter = Preconditions.checkNotNull(costCenter);
+        mSource = source != null ? source : Source.Undefined;
+        mSyncState = Preconditions.checkNotNull(syncState);
+
         // Sets a simple default for price and daily of 0
         mPrice = new PriceBuilderFactory().setPrice(0).setCurrency(defaultCurrency).build();
         mDailySubTotal = new PriceBuilderFactory().setPrice(0).setCurrency(defaultCurrency).build();
@@ -59,6 +74,7 @@ public class DefaultTripImpl implements Trip {
         mComment = in.readString();
         mCostCenter = in.readString();
         mDefaultCurrency = WBCurrency.getInstance(in.readString());
+        mSyncState = in.readParcelable(SyncState.class.getClassLoader());
         mSource = Source.Parcel;
     }
 
@@ -74,36 +90,43 @@ public class DefaultTripImpl implements Trip {
         return mReportDirectory;
     }
 
+    @NonNull
     @Override
     public String getDirectoryPath() {
         return mReportDirectory.getAbsolutePath();
     }
 
+    @NonNull
     @Override
     public Date getStartDate() {
         return mStartDate;
     }
 
+    @NonNull
     @Override
     public String getFormattedStartDate(Context context, String separator) {
         return ModelUtils.getFormattedDate(mStartDate, getStartTimeZone(), context, separator);
     }
 
+    @NonNull
     @Override
     public TimeZone getStartTimeZone() {
         return (mStartTimeZone != null) ? mStartTimeZone : TimeZone.getDefault();
     }
 
+    @NonNull
     @Override
     public Date getEndDate() {
         return mEndDate;
     }
 
+    @NonNull
     @Override
     public String getFormattedEndDate(Context context, String separator) {
         return ModelUtils.getFormattedDate(mEndDate, getEndTimeZone(), context, separator);
     }
 
+    @NonNull
     @Override
     public TimeZone getEndTimeZone() {
         return (mEndTimeZone != null) ? mEndTimeZone : TimeZone.getDefault();
@@ -121,9 +144,10 @@ public class DefaultTripImpl implements Trip {
      * @return true if it is contained within. false otherwise
      */
     @Override
-    public boolean isDateInsideTripBounds(Date date) {
-        if (date == null)
+    public boolean isDateInsideTripBounds(@Nullable Date date) {
+        if (date == null) {
             return false;
+        }
 
         // Build a calendar for the date we intend to test
         Calendar testCalendar = Calendar.getInstance();
@@ -171,31 +195,19 @@ public class DefaultTripImpl implements Trip {
         }
     }
 
-    @Override
-    public float getMileage() {
-        return -1f;
-    }
-
-    @Override
-    public String getMilesAsString() {
-        return "0";
-    }
-
-    @Override
-    public void setMileage(float mileage) {
-        // Stub
-    }
-
+    @NonNull
     @Override
     public String getComment() {
         return mComment;
     }
 
+    @NonNull
     @Override
     public String getCostCenter() {
         return mCostCenter;
     }
 
+    @NonNull
     @Override
     public Source getSource() {
         return mSource;
@@ -212,6 +224,7 @@ public class DefaultTripImpl implements Trip {
         mPrice = price;
     }
 
+    @NonNull
     @Override
     public Price getDailySubTotal() {
         return mDailySubTotal;
@@ -222,14 +235,16 @@ public class DefaultTripImpl implements Trip {
         mDailySubTotal = dailyTotal;
     }
 
+    @Nullable
     @Override
     public Filter<Receipt> getFilter() {
         return mFilter;
     }
 
+    @NonNull
     @Override
-    public boolean hasFilter() {
-        return mFilter != null;
+    public SyncState getSyncState() {
+        return mSyncState;
     }
 
     @Override
@@ -240,34 +255,28 @@ public class DefaultTripImpl implements Trip {
         DefaultTripImpl that = (DefaultTripImpl) o;
 
         if (!mReportDirectory.equals(that.mReportDirectory)) return false;
-        if (mComment != null ? !mComment.equals(that.mComment) : that.mComment != null)
-            return false;
-        if (mCostCenter != null ? !mCostCenter.equals(that.mCostCenter) : that.mCostCenter != null)
-            return false;
-        if (mStartDate != null ? !mStartDate.equals(that.mStartDate) : that.mStartDate != null)
-            return false;
-        if (mEndDate != null ? !mEndDate.equals(that.mEndDate) : that.mEndDate != null)
-            return false;
-        if (mStartTimeZone != null ? !mStartTimeZone.equals(that.mStartTimeZone) : that.mStartTimeZone != null)
-            return false;
-        if (mEndTimeZone != null ? !mEndTimeZone.equals(that.mEndTimeZone) : that.mEndTimeZone != null)
-            return false;
+        if (!mComment.equals(that.mComment)) return false;
+        if (!mStartDate.equals(that.mStartDate)) return false;
+        if (!mStartTimeZone.equals(that.mStartTimeZone)) return false;
+        if (!mEndDate.equals(that.mEndDate)) return false;
+        if (!mEndTimeZone.equals(that.mEndTimeZone)) return false;
         if (!mDefaultCurrency.equals(that.mDefaultCurrency)) return false;
-        return mFilter != null ? mFilter.equals(that.mFilter) : that.mFilter == null;
+        if (!mCostCenter.equals(that.mCostCenter)) return false;
+        return mSyncState.equals(that.mSyncState);
 
     }
 
     @Override
     public int hashCode() {
         int result = mReportDirectory.hashCode();
-        result = 31 * result + (mComment != null ? mComment.hashCode() : 0);
-        result = 31 * result + (mCostCenter != null ? mCostCenter.hashCode() : 0);
-        result = 31 * result + (mStartDate != null ? mStartDate.hashCode() : 0);
-        result = 31 * result + (mEndDate != null ? mEndDate.hashCode() : 0);
-        result = 31 * result + (mStartTimeZone != null ? mStartTimeZone.hashCode() : 0);
-        result = 31 * result + (mEndTimeZone != null ? mEndTimeZone.hashCode() : 0);
+        result = 31 * result + mComment.hashCode();
+        result = 31 * result + mStartDate.hashCode();
+        result = 31 * result + mStartTimeZone.hashCode();
+        result = 31 * result + mEndDate.hashCode();
+        result = 31 * result + mEndTimeZone.hashCode();
         result = 31 * result + mDefaultCurrency.hashCode();
-        result = 31 * result + (mFilter != null ? mFilter.hashCode() : 0);
+        result = 31 * result + mCostCenter.hashCode();
+        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 
@@ -306,6 +315,7 @@ public class DefaultTripImpl implements Trip {
         dest.writeString(getComment());
         dest.writeString(getCostCenter());
         dest.writeString(getDefaultCurrencyCode());
+        dest.writeParcelable(getSyncState(), flags);
     }
 
     public static final Creator<DefaultTripImpl> CREATOR = new Creator<DefaultTripImpl>() {
@@ -324,15 +334,7 @@ public class DefaultTripImpl implements Trip {
 
     @Override
     public int compareTo(@NonNull Trip trip) {
-        if (trip.getEndDate() != null) {
-            return trip.getEndDate().compareTo(mEndDate);
-        } else {
-            if (mEndDate != null) {
-                return mEndDate.compareTo(null);
-            } else {
-                return 0;
-            }
-        }
+        return trip.getEndDate().compareTo(mEndDate);
     }
 
 }

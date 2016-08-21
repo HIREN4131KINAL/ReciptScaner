@@ -40,8 +40,8 @@ public class DefaultObjects {
                                   WBCurrency.getDefault(),
                                   "comment",
                                   "costCenter",
-                                  null,
-                                  Source.Undefined);
+                                  Source.Undefined,
+                                  newDefaultSyncState());
     }
 
     @NonNull

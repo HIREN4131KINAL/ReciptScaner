@@ -1,15 +1,11 @@
 package co.smartreceipts.android.model.impl;
 
-import android.content.Context;
 import android.os.Parcel;
-import android.support.annotation.NonNull;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
 
 import java.math.BigDecimal;
@@ -18,7 +14,6 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -53,12 +48,8 @@ public class ImmutableDistanceImplTest {
 
     SyncState mSyncState;
 
-    @Mock
-    Context mContext;
-
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mTrip = DefaultObjects.newDefaultTrip();
         mSyncState = DefaultObjects.newDefaultSyncState();
         mDistance = new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState);
@@ -146,7 +137,6 @@ public class ImmutableDistanceImplTest {
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, new Date(System.currentTimeMillis()), TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, "bad", mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, COMMENT, new DefaultSyncState()))));
-
     }
 
     @Test
@@ -157,7 +147,6 @@ public class ImmutableDistanceImplTest {
 
         final ImmutableDistanceImpl distance = ImmutableDistanceImpl.CREATOR.createFromParcel(parcel);
         assertNotNull(distance);
-        assertEquals(distance.getTrip(), mDistance.getTrip());
         assertEquals(distance, mDistance);
     }
 

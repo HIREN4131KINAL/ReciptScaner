@@ -3,9 +3,7 @@ package co.smartreceipts.android.persistence.database.tables.adapters;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -13,21 +11,17 @@ import java.io.File;
 import java.math.BigDecimal;
 
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
-import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.sync.model.SyncState;
 import wb.android.storage.StorageManager;
 
 /**
@@ -39,18 +33,21 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
     private final Table<PaymentMethod, Integer> mPaymentMethodTable;
     private final Table<Category, String> mCategoriesTable;
     private final StorageManager mStorageManager;
+    private final SyncStateAdapter mSyncStateAdapter;
 
     public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
                                   @NonNull Table<Category, String> categoriesTable, @NonNull PersistenceManager persistenceManager) {
-        this(tripsTable, paymentMethodTable, categoriesTable, Preconditions.checkNotNull(persistenceManager).getStorageManager());
+        this(tripsTable, paymentMethodTable, categoriesTable, Preconditions.checkNotNull(persistenceManager).getStorageManager(), new SyncStateAdapter());
     }
 
     public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
-                                  @NonNull Table<Category, String> categoriesTable, @NonNull StorageManager storageManager) {
+                                  @NonNull Table<Category, String> categoriesTable, @NonNull StorageManager storageManager,
+                                  @NonNull SyncStateAdapter syncStateAdapter) {
         mTripsTable = Preconditions.checkNotNull(tripsTable);
         mPaymentMethodTable = Preconditions.checkNotNull(paymentMethodTable);
         mCategoriesTable = Preconditions.checkNotNull(categoriesTable);
         mStorageManager = Preconditions.checkNotNull(storageManager);
+        mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
     }
 
     @NonNull
@@ -110,6 +107,8 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         if (!TextUtils.isEmpty(path) && !DatabaseHelper.NO_DATA.equals(path)) {
             file = mStorageManager.getFile(trip.getDirectory(), path);
         }
+        final SyncState syncState = mSyncStateAdapter.read(cursor);
+
         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
         builder.setTrip(trip)
                 .setName(name)
@@ -125,7 +124,8 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setPaymentMethod(mPaymentMethodTable.findByPrimaryKey(paymentMethodId).toBlocking().first())
                 .setExtraEditText1(extra_edittext_1)
                 .setExtraEditText2(extra_edittext_2)
-                .setExtraEditText3(extra_edittext_3);
+                .setExtraEditText3(extra_edittext_3)
+                .setSyncState(syncState);
 
 
         /**
@@ -200,6 +200,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, receipt.getExtraEditText3());
+        values.putAll(mSyncStateAdapter.write(receipt.getSyncState()));
 
         return values;
     }

@@ -32,6 +32,7 @@ import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.sync.model.SyncState;
 import rx.Observable;
 import wb.android.storage.StorageManager;
 
@@ -97,6 +98,12 @@ public class ReceiptDatabaseAdapterTest {
 
     @Mock
     PrimaryKey<Receipt, Integer> mPrimaryKey;
+
+    @Mock
+    SyncStateAdapter mSyncStateAdapter;
+
+    @Mock
+    SyncState mSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -178,6 +185,7 @@ public class ReceiptDatabaseAdapterTest {
         when(mReceipt.getExtraEditText3()).thenReturn(EXTRA3);
         when(mReceipt.getIndex()).thenReturn(INDEX);
         when(mReceipt.getSource()).thenReturn(Source.Undefined);
+        when(mReceipt.getSyncState()).thenReturn(mSyncState);
 
         when(mTrip.getName()).thenReturn(PARENT);
         when(mTrip.getDirectory()).thenReturn(new File(PARENT));
@@ -200,7 +208,9 @@ public class ReceiptDatabaseAdapterTest {
         when(mPrimaryKey.getPrimaryKeyValue(mReceipt)).thenReturn(PRIMARY_KEY_ID);
         when(mStorageManager.getFile(new File(PARENT), PATH)).thenReturn(new File(PATH));
 
-        mReceiptDatabaseAdapter = new ReceiptDatabaseAdapter(mTripsTable, mPaymentMethodsTable, mCategoriesTable, mStorageManager);
+        when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+
+        mReceiptDatabaseAdapter = new ReceiptDatabaseAdapter(mTripsTable, mPaymentMethodsTable, mCategoriesTable, mStorageManager, mSyncStateAdapter);
     }
 
     @Test
@@ -225,6 +235,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
                 .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
                 .build();
         assertEquals(receipt, mReceiptDatabaseAdapter.read(mCursor));
     }
@@ -251,12 +262,18 @@ public class ReceiptDatabaseAdapterTest {
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
                 .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
                 .build();
         assertEquals(receipt, mReceiptDatabaseAdapter.readForSelection(mCursor, mTrip));
     }
 
     @Test
     public void write() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
+
         final ContentValues contentValues = mReceiptDatabaseAdapter.write(mReceipt);
 
         // Note: Full page is backwards in the database
@@ -277,6 +294,7 @@ public class ReceiptDatabaseAdapterTest {
         assertEquals(EXTRA1, contentValues.getAsString("extra_edittext_1"));
         assertEquals(EXTRA2, contentValues.getAsString("extra_edittext_2"));
         assertEquals(EXTRA3, contentValues.getAsString("extra_edittext_3"));
+        assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey("id"));
     }
 
@@ -301,6 +319,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
                 .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
                 .build();
         assertEquals(receipt, mReceiptDatabaseAdapter.build(mReceipt, mPrimaryKey));
     }

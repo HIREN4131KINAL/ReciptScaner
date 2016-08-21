@@ -9,7 +9,9 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Receipt extends Parcelable, Priceable, Comparable<Receipt> {
+import co.smartreceipts.android.sync.model.Syncable;
+
+public interface Receipt extends Parcelable, Priceable, Comparable<Receipt>, Syncable {
 
     String PARCEL_KEY = Receipt.class.getName();
 
@@ -38,13 +40,6 @@ public interface Receipt extends Parcelable, Priceable, Comparable<Receipt> {
      */
     @Nullable
     PaymentMethod getPaymentMethod();
-
-    /**
-     * Checks if a payment method is attached to this receipt and can be retrieved via {@link #getPaymentMethod()}.
-     *
-     * @return {@code true} if there is a {@link co.smartreceipts.android.model.PaymentMethod}, {@code false} otherwise.
-     */
-    boolean hasPaymentMethod();
 
     /**
      * Gets the name of this receipt. This should never be {@code null}.

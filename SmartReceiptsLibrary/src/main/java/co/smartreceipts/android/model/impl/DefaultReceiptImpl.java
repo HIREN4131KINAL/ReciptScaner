@@ -9,21 +9,20 @@ import android.text.TextUtils;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import wb.android.storage.StorageManager;
 
 /**
@@ -48,6 +47,7 @@ public final class DefaultReceiptImpl implements Receipt {
     private final String mExtraEditText1;
     private final String mExtraEditText2;
     private final String mExtraEditText3;
+    private final SyncState mSyncState;
     private boolean mIsSelected;
     private File mFile;
 
@@ -55,6 +55,15 @@ public final class DefaultReceiptImpl implements Receipt {
                               @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
                               @NonNull TimeZone timeZone, boolean isExpensable, boolean isFullPage, boolean isSelected,
                               @NonNull Source source, @Nullable String extraEditText1, @Nullable String extraEditText2, @Nullable String extraEditText3) {
+        this(id, index, trip, file, paymentMethod, name, category, comment, price, tax, date, timeZone, isExpensable, isFullPage, isSelected, source, extraEditText1, extraEditText2, extraEditText3, new DefaultSyncState());
+
+    }
+
+    public DefaultReceiptImpl(int id, int index, @NonNull Trip trip, @Nullable File file, @Nullable PaymentMethod paymentMethod, @NonNull String name,
+                              @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
+                              @NonNull TimeZone timeZone, boolean isExpensable, boolean isFullPage, boolean isSelected,
+                              @NonNull Source source, @Nullable String extraEditText1, @Nullable String extraEditText2, @Nullable String extraEditText3,
+                              @NonNull SyncState syncState) {
 
         mTrip = Preconditions.checkNotNull(trip);
         mName = Preconditions.checkNotNull(name);
@@ -65,6 +74,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mTax = Preconditions.checkNotNull(tax);
         mDate = Preconditions.checkNotNull(date);
         mTimeZone = Preconditions.checkNotNull(timeZone);
+        mSyncState = Preconditions.checkNotNull(syncState);
 
         mId = id;
         mIndex = index;
@@ -98,6 +108,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mExtraEditText3 = in.readString();
         mIndex = in.readInt();
         mTimeZone = TimeZone.getTimeZone(in.readString());
+        mSyncState = in.readParcelable(SyncState.class.getClassLoader());
         mSource = Source.Parcel;
     }
 
@@ -116,11 +127,6 @@ public final class DefaultReceiptImpl implements Receipt {
     @Override
     public PaymentMethod getPaymentMethod() {
         return mPaymentMethod;
-    }
-
-    @Override
-    public boolean hasPaymentMethod() {
-        return mPaymentMethod != null;
     }
 
     @NonNull
@@ -335,6 +341,12 @@ public final class DefaultReceiptImpl implements Receipt {
         return (mExtraEditText3 != null)&& !mExtraEditText3.equals(DatabaseHelper.NO_DATA);
     }
 
+    @NonNull
+    @Override
+    public SyncState getSyncState() {
+        return mSyncState;
+    }
+
     @Override
     public String toString() {
         return "DefaultReceiptImpl{" +
@@ -380,7 +392,7 @@ public final class DefaultReceiptImpl implements Receipt {
         if (!mTax.equals(that.mTax)) return false;
         if (!mDate.equals(that.mDate)) return false;
         if (!mTimeZone.equals(that.mTimeZone)) return false;
-        if (mSource != that.mSource) return false;
+        if (!mSyncState.equals(that.mSyncState)) return false;
         if (mExtraEditText1 != null ? !mExtraEditText1.equals(that.mExtraEditText1) : that.mExtraEditText1 != null)
             return false;
         if (mExtraEditText2 != null ? !mExtraEditText2.equals(that.mExtraEditText2) : that.mExtraEditText2 != null)
@@ -403,9 +415,9 @@ public final class DefaultReceiptImpl implements Receipt {
         result = 31 * result + mTax.hashCode();
         result = 31 * result + mDate.hashCode();
         result = 31 * result + mTimeZone.hashCode();
+        result = 31 * result + mSyncState.hashCode();
         result = 31 * result + (mIsExpensable ? 1 : 0);
         result = 31 * result + (mIsFullPage ? 1 : 0);
-        result = 31 * result + mSource.hashCode();
         result = 31 * result + (mExtraEditText1 != null ? mExtraEditText1.hashCode() : 0);
         result = 31 * result + (mExtraEditText2 != null ? mExtraEditText2.hashCode() : 0);
         result = 31 * result + (mExtraEditText3 != null ? mExtraEditText3.hashCode() : 0);
@@ -438,6 +450,7 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeString(getExtraEditText3());
         dest.writeInt(getIndex());
         dest.writeString(mTimeZone.getID());
+        dest.writeParcelable(getSyncState(), flags);
     }
 
     public static Creator<DefaultReceiptImpl> CREATOR = new Creator<DefaultReceiptImpl>() {

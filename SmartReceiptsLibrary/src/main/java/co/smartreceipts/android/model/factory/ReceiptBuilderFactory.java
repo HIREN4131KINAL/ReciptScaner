@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -19,6 +21,8 @@ import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -44,6 +48,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     private int _index;
     private boolean _isExpenseable, _isFullPage, _isSelected;
     private Source _source;
+    private SyncState _syncState;
 
     public ReceiptBuilderFactory() {
         this(UNKNOWN_ID);
@@ -59,6 +64,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _timezone = TimeZone.getDefault();
         _index = -1;
         _source = Source.Undefined;
+        _syncState = new DefaultSyncState();
     }
 
     public ReceiptBuilderFactory(@NonNull Receipt receipt) {
@@ -81,6 +87,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _extraEditText3 = receipt.getExtraEditText3();
         _index = receipt.getIndex();
         _source = receipt.getSource();
+        _syncState = receipt.getSyncState();
     }
 
     public ReceiptBuilderFactory(int id, @NonNull Receipt receipt) {
@@ -257,15 +264,15 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setSourceAsCache() {
-        _source = Source.Cache;
+    public ReceiptBuilderFactory setSyncState(@NonNull SyncState syncState) {
+        _syncState = Preconditions.checkNotNull(syncState);
         return this;
     }
 
     @Override
     @NonNull
     public Receipt build() {
-        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3, _syncState);
     }
 
 }

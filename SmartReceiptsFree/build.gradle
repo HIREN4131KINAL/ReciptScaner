@@ -18,6 +18,11 @@ android {
         multiDexEnabled true
     }
 
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "2048M"
+    }
+
     lintOptions {
         abortOnError false
     }

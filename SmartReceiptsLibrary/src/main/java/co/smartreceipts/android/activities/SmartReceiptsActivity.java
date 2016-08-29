@@ -49,6 +49,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
+    private GoogleDriveBackupManager mGoogleDriveBackupManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
+        mGoogleDriveBackupManager = new GoogleDriveBackupManager(this);
+        mGoogleDriveBackupManager.initialize(this);
     }
 
     @Override
@@ -124,7 +127,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
+            if (!mGoogleDriveBackupManager.onActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 

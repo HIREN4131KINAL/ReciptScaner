@@ -1,0 +1,57 @@
+package co.smartreceipts.android.sync.drive;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.common.base.Preconditions;
+
+import java.sql.Date;
+
+import co.smartreceipts.android.sync.model.impl.Identifier;
+
+public class GoogleDriveSyncMetadata {
+
+    private static final String PREFS_GOOGLE_DRIVE = "prefs_google_drive.xml";
+    private static final String KEY_DEVICE_IDENTIFIER = "key_device_identifier";
+    private static final String KEY_DRIVE_LAST_SYNC = "key_drive_last_sync";
+
+    private final SharedPreferences mSharedPreferences;
+    private final DeviceMetadata mDeviceMetadata;
+
+    public GoogleDriveSyncMetadata(@NonNull Context context) {
+        this(context.getSharedPreferences(PREFS_GOOGLE_DRIVE, Context.MODE_PRIVATE), new DeviceMetadata(context));
+    }
+
+    public GoogleDriveSyncMetadata(@NonNull SharedPreferences sharedPreferences, @NonNull DeviceMetadata deviceMetadata) {
+        mSharedPreferences = Preconditions.checkNotNull(sharedPreferences);
+        mDeviceMetadata = Preconditions.checkNotNull(deviceMetadata);
+    }
+
+    @NonNull
+    public Identifier getDeviceIdentifier() {
+        final String id = mSharedPreferences.getString(KEY_DEVICE_IDENTIFIER, null);
+        if (id != null) {
+            return new Identifier(id);
+        } else {
+            final String uniqueDeviceId = mDeviceMetadata.getUniqueDeviceId();
+            mSharedPreferences.edit().putString(KEY_DEVICE_IDENTIFIER, uniqueDeviceId).apply();
+            return new Identifier(uniqueDeviceId);
+        }
+    }
+
+    @NonNull
+    public Date getLastSyncTime() {
+        final long syncTime = mSharedPreferences.getLong(KEY_DRIVE_LAST_SYNC, 0L);
+        return new Date(syncTime);
+    }
+
+    public void setLastSyncTimeToNow() {
+        mSharedPreferences.edit().putLong(KEY_DRIVE_LAST_SYNC, System.currentTimeMillis()).apply();
+    }
+
+    public void clear() {
+        mSharedPreferences.edit().clear().apply();
+    }
+}

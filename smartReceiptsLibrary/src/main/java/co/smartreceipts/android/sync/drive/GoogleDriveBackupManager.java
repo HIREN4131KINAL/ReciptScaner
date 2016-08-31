@@ -3,7 +3,6 @@ package co.smartreceipts.android.sync.drive;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -14,33 +13,19 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.ResultCallbacks;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.metadata.CustomPropertyKey;
 import com.google.common.base.Preconditions;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicReference;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.sync.drive.rx.SmartReceiptsDriveFolderStream;
-import co.smartreceipts.android.sync.drive.services.DriveCompletionEventService;
-import co.smartreceipts.android.sync.model.impl.Identifier;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
+import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
 
 public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "TAG";
+    private static final String TAG = GoogleDriveBackupManager.class.getSimpleName();
 
     /**
      * Request code for auto Google Play Services error resolution.
@@ -48,11 +33,12 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
     private static final int REQUEST_CODE_RESOLUTION = 1;
 
     private final GoogleApiClient mGoogleApiClient;
-    private final SmartReceiptsDriveFolderStream mSmartReceiptsDriveFolderStream;
+    private final GoogleDriveTaskManager mDriveTaskManager;
     private final AtomicReference<WeakReference<FragmentActivity>> mActivityReference;
+    private final TableControllerManager mTableControllerManager;
     private final Context mContext;
 
-    public GoogleDriveBackupManager(@NonNull Context context) {
+    public GoogleDriveBackupManager(@NonNull Context context, @NonNull TableControllerManager tableControllerManager) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -60,7 +46,8 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
                 .addScope(Drive.SCOPE_FILE)
                 .useDefaultAccount()
                 .build();
-        mSmartReceiptsDriveFolderStream = new SmartReceiptsDriveFolderStream(mGoogleApiClient, context);
+        mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
+        mDriveTaskManager = new GoogleDriveTaskManager(new RxDriveStreams(mGoogleApiClient, context));
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
     }
@@ -119,28 +106,14 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "GoogleApiClient connection succeeded.");
-
-        mSmartReceiptsDriveFolderStream.getSmartReceiptsFolder()
-                .flatMap(new Func1<DriveFolder, Observable<DriveFile>>() {
-                    @Override
-                    public Observable<DriveFile> call(DriveFolder driveFolder) {
-                        return mSmartReceiptsDriveFolderStream.createFileInFolder(driveFolder, new File(mContext.getExternalFilesDir(null), "crash_log.txt"));
-                    }
-                })
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.io())
-                .subscribe(new Action1<DriveFile>() {
-                    @Override
-                    public void call(DriveFile driveFile) {
-                        Log.i(TAG, "Created drive file: " + driveFile);
-                    }
-                });
+        final ReceiptBackupListener receiptBackupListener = new ReceiptBackupListener(mDriveTaskManager, mTableControllerManager.getReceiptTableController());
+        mTableControllerManager.getReceiptTableController().subscribe(receiptBackupListener);
+        mDriveTaskManager.onConnected(bundle);
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.i(TAG, "GoogleApiClient connection suspended with cause " + cause);
+        mDriveTaskManager.onConnectionSuspended(cause);
     }
 
     private boolean isConnectedOrConnecting() {

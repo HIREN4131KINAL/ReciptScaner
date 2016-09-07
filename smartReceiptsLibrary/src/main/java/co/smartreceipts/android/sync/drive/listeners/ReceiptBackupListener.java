@@ -1,8 +1,12 @@
 package co.smartreceipts.android.sync.drive.listeners;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
@@ -18,6 +22,7 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
 
     private final GoogleDriveTaskManager mDriveTaskManager;
     private final ReceiptTableController mReceiptTableController;
+    private final Set<Receipt> mReceiptsToIgnoreUpdates = new HashSet<>();
 
     public ReceiptBackupListener(@NonNull GoogleDriveTaskManager driveTaskManager, @NonNull ReceiptTableController receiptTableController) {
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
@@ -33,7 +38,7 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
                 .subscribe(new Action1<SyncState>() {
                     @Override
                     public void call(SyncState syncState) {
-                        // TODO: How do we handle the indefinite loop that we'll see here in the onUpdateSuccess?
+                        mReceiptsToIgnoreUpdates.add(receipt);
                         mReceiptTableController.update(receipt, new ReceiptBuilderFactory(receipt).setSyncState(syncState).build());
                     }
                 });
@@ -44,7 +49,14 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
 
     @Override
     public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
+        if (!mReceiptsToIgnoreUpdates.remove(oldReceipt)) {
+            // TODO: Something if we aren't ignoring
+        }
+    }
 
+    @Override
+    public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
+        mReceiptsToIgnoreUpdates.remove(oldReceipt);
     }
 
     @Override

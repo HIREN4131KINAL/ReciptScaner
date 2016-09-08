@@ -42,9 +42,8 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
                         mReceiptTableController.update(receipt, new ReceiptBuilderFactory(receipt).setSyncState(syncState).build());
                     }
                 });
-        } else {
-            mDriveTaskManager.updateDatabase();
         }
+        mDriveTaskManager.updateDatabase();
     }
 
     @Override
@@ -52,6 +51,7 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
         if (!mReceiptsToIgnoreUpdates.remove(oldReceipt)) {
             // TODO: Something if we aren't ignoring
         }
+        mDriveTaskManager.updateDatabase();
     }
 
     @Override
@@ -60,7 +60,19 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Receipt receipt) {
-
+    public void onDeleteSuccess(@NonNull final Receipt receipt) {
+        if (receipt.getFile() != null) {
+            mDriveTaskManager.delete(receipt.getSyncState(), receipt.getFile())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .subscribe(new Action1<SyncState>() {
+                        @Override
+                        public void call(SyncState syncState) {
+                            // TODO: Handle mark for deletion vs full delete
+                            mReceiptTableController.delete(receipt);
+                        }
+                    });
+        }
+        mDriveTaskManager.updateDatabase();
     }
 }

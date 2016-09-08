@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -32,8 +31,9 @@ import rx.functions.Func0;
  */
 public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
 
-    public static final String COLUMN_SYNC_ID = "remote_sync_id";
-    public static final String COLUMN_MARKED_FOR_DELETION = "marked_for_deletion";
+    public static final String COLUMN_DRIVE_SYNC_ID = "drive_sync_id";
+    public static final String COLUMN_DRIVE_MARKED_FOR_DELETION = "drive_marked_for_deletion";
+    public static final String COLUMN_DRIVE_IS_SYNCED = "drive_is_synced";
     public static final String COLUMN_LAST_LOCAL_MODIFICATION_TIME = "last_local_modification_time";
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;
@@ -94,13 +94,15 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
     protected synchronized void onUpgradeToAddSyncInformation(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion <= 14) { // Add syncing state information
-            final String alter1 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_SYNC_ID + " TEXT";
-            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_MARKED_FOR_DELETION + " TEXT";
-            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE";
+            final String alter1 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_SYNC_ID + " TEXT";
+            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_IS_SYNCED + " BOOLEAN";
+            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN";
+            final String alter4 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE";
 
             db.execSQL(alter1);
             db.execSQL(alter2);
             db.execSQL(alter3);
+            db.execSQL(alter4);
         }
     }
 

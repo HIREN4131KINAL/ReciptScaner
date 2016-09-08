@@ -104,12 +104,13 @@ public class CSVTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCSVDefaults(mCSVTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(CSVTable.COLUMN_TYPE));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_SYNC_ID));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_MARKED_FOR_DELETION));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME));
+        assertTrue(mSqlCaptor.getValue().contains("CREATE TABLE csvcolumns"));
+        assertTrue(mSqlCaptor.getValue().contains("id INTEGER PRIMARY KEY AUTOINCREMENT"));
+        assertTrue(mSqlCaptor.getValue().contains("type TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
     @Test
@@ -126,9 +127,10 @@ public class CSVTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.COLUMN_ID));
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.COLUMN_TYPE));
         assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE csvcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test
@@ -141,9 +143,10 @@ public class CSVTableTest {
         verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer, never()).insertCSVDefaults(mCSVTable);
 
-        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCSVTable.getTableName() + " ADD remote_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test

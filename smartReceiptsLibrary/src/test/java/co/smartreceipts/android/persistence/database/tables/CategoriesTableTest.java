@@ -93,8 +93,8 @@ public class CategoriesTableTest {
         assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_NAME));
         assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_CODE));
         assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_BREAKDOWN));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_SYNC_ID));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_MARKED_FOR_DELETION));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_DRIVE_SYNC_ID));
+        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION));
         assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME));
     }
 

@@ -90,9 +90,13 @@ public class PaymentMethodsTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertPaymentMethodDefaults(mPaymentMethodsTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_ID));
-        assertTrue(mSqlCaptor.getValue().contains(PaymentMethodsTable.COLUMN_METHOD));
+        assertTrue(mSqlCaptor.getValue().contains("CREATE TABLE paymentmethods"));
+        assertTrue(mSqlCaptor.getValue().contains("id INTEGER PRIMARY KEY AUTOINCREMENT"));
+        assertTrue(mSqlCaptor.getValue().contains("method TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
     @Test
@@ -109,9 +113,10 @@ public class PaymentMethodsTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(PaymentMethodsTable.COLUMN_ID));
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(PaymentMethodsTable.COLUMN_METHOD));
         assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE paymentmethods (id INTEGER PRIMARY KEY AUTOINCREMENT, method TEXT);");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD remote_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_time DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test
@@ -124,9 +129,10 @@ public class PaymentMethodsTableTest {
         verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer, never()).insertPaymentMethodDefaults(mPaymentMethodsTable);
 
-        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD remote_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD marked_for_deletion TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_time DATE");
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPaymentMethodsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test

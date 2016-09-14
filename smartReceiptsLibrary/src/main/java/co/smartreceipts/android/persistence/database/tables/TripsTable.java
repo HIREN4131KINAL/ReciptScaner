@@ -56,8 +56,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
                 + COLUMN_PROCESSING_STATUS + " TEXT, "
                 + COLUMN_FILTERS + " TEXT, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN, "
                 + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Log.d(TAG, trips);

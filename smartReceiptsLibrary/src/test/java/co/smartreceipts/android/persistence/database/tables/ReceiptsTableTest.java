@@ -181,29 +181,30 @@ public class ReceiptsTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verifyZeroInteractions(customizer);
 
-        assertTrue(mSqlCaptor.getValue().contains("receipts"));
-        assertTrue(mSqlCaptor.getValue().contains("id"));
-        assertTrue(mSqlCaptor.getValue().contains("path"));
-        assertTrue(mSqlCaptor.getValue().contains("name"));
-        assertTrue(mSqlCaptor.getValue().contains("parent"));
-        assertTrue(mSqlCaptor.getValue().contains("category"));
-        assertTrue(mSqlCaptor.getValue().contains("price"));
-        assertTrue(mSqlCaptor.getValue().contains("tax"));
-        assertTrue(mSqlCaptor.getValue().contains("exchange_rate"));
-        assertTrue(mSqlCaptor.getValue().contains("rcpt_date"));
-        assertTrue(mSqlCaptor.getValue().contains("timezone"));
-        assertTrue(mSqlCaptor.getValue().contains("comment"));
-        assertTrue(mSqlCaptor.getValue().contains("expenseable"));
-        assertTrue(mSqlCaptor.getValue().contains("isocode"));
-        assertTrue(mSqlCaptor.getValue().contains("paymentMethodKey"));
-        assertTrue(mSqlCaptor.getValue().contains("fullpageimage"));
-        assertTrue(mSqlCaptor.getValue().contains("receipt_processing_status"));
-        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_1"));
-        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_2"));
-        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_3"));
-        assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
-        assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
-        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time"));
+        assertTrue(mSqlCaptor.getValue().contains("CREATE TABLE receipts"));
+        assertTrue(mSqlCaptor.getValue().contains("id INTEGER PRIMARY KEY AUTOINCREMENT"));
+        assertTrue(mSqlCaptor.getValue().contains("path TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("name TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("parent TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("category TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("price DECIMAL(10, 2)"));
+        assertTrue(mSqlCaptor.getValue().contains("tax DECIMAL(10, 2)"));
+        assertTrue(mSqlCaptor.getValue().contains("exchange_rate DECIMAL(10, 10)"));
+        assertTrue(mSqlCaptor.getValue().contains("rcpt_date DATE"));
+        assertTrue(mSqlCaptor.getValue().contains("timezone TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("comment TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("expenseable BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("isocode TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("paymentMethodKey INTEGER"));
+        assertTrue(mSqlCaptor.getValue().contains("fullpageimage BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("receipt_processing_status TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_1 TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_2 TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("extra_edittext_3 TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
     @Test
@@ -399,8 +400,9 @@ public class ReceiptsTableTest {
     }
 
     private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD remote_sync_id TEXT");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD marked_for_deletion TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_sync_id TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

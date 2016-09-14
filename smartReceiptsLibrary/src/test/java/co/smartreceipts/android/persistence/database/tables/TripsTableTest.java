@@ -136,20 +136,21 @@ public class TripsTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verifyZeroInteractions(customizer);
 
-        assertTrue(mSqlCaptor.getValue().contains("trips")); // Table name
-        assertTrue(mSqlCaptor.getValue().contains("name"));
-        assertTrue(mSqlCaptor.getValue().contains("from_date"));
-        assertTrue(mSqlCaptor.getValue().contains("to_date"));
-        assertTrue(mSqlCaptor.getValue().contains("from_timezone"));
-        assertTrue(mSqlCaptor.getValue().contains("to_timezone"));
-        assertTrue(mSqlCaptor.getValue().contains("trips_comment"));
-        assertTrue(mSqlCaptor.getValue().contains("trips_cost_center"));
-        assertTrue(mSqlCaptor.getValue().contains("trips_default_currency"));
-        assertTrue(mSqlCaptor.getValue().contains("trips_filters"));
-        assertTrue(mSqlCaptor.getValue().contains("trip_processing_status"));
-        assertTrue(mSqlCaptor.getValue().contains("remote_sync_id"));
-        assertTrue(mSqlCaptor.getValue().contains("marked_for_deletion"));
-        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time"));
+        assertTrue(mSqlCaptor.getValue().contains("CREATE TABLE trips")); // Table name
+        assertTrue(mSqlCaptor.getValue().contains("name TEXT PRIMARY KEY"));
+        assertTrue(mSqlCaptor.getValue().contains("from_date DATE"));
+        assertTrue(mSqlCaptor.getValue().contains("to_date DATE"));
+        assertTrue(mSqlCaptor.getValue().contains("from_timezone TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("to_timezone TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("trips_comment TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("trips_cost_center TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("trips_default_currency TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("trips_filters TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("trip_processing_status TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
     @Test
@@ -247,8 +248,9 @@ public class TripsTableTest {
     }
 
     private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD remote_sync_id TEXT");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD marked_for_deletion TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD drive_sync_id TEXT");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mTripsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

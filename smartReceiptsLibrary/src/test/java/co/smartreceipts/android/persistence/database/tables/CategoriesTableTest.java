@@ -89,13 +89,14 @@ public class CategoriesTableTest {
         verify(mSQLiteDatabase).execSQL(mSqlCaptor.capture());
         verify(customizer).insertCategoryDefaults(mCategoriesTable);
 
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.TABLE_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_NAME));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_CODE));
-        assertTrue(mSqlCaptor.getValue().contains(CategoriesTable.COLUMN_BREAKDOWN));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_DRIVE_SYNC_ID));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION));
-        assertTrue(mSqlCaptor.getValue().contains(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME));
+        assertTrue(mSqlCaptor.getValue().contains("CREATE TABLE categories"));
+        assertTrue(mSqlCaptor.getValue().contains("name TEXT PRIMARY KEY"));
+        assertTrue(mSqlCaptor.getValue().contains("code TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("breakdown BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
     @Test
@@ -109,9 +110,10 @@ public class CategoriesTableTest {
         verify(customizer, never()).insertCategoryDefaults(mCategoriesTable);
 
         assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE categories ADD breakdown BOOLEAN DEFAULT 1"));
-        assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD remote_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(3).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE"));
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test
@@ -124,9 +126,10 @@ public class CategoriesTableTest {
         verify(mSQLiteDatabase, atLeastOnce()).execSQL(mSqlCaptor.capture());
         verify(customizer, never()).insertCategoryDefaults(mCategoriesTable);
 
-        assertTrue(mSqlCaptor.getAllValues().get(0).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD remote_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(1).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD marked_for_deletion TEXT"));
-        assertTrue(mSqlCaptor.getAllValues().get(2).equals("ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE"));
+        assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_sync_id TEXT");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_is_synced BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCategoriesTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
     @Test

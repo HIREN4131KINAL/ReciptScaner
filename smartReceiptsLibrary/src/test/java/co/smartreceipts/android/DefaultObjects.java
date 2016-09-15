@@ -25,6 +25,7 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
+import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 
 public class DefaultObjects {
 
@@ -47,6 +48,7 @@ public class DefaultObjects {
     @NonNull
     public static SyncState newDefaultSyncState() {
         return new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("abc"))),
+                                    new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
                                     new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
                                     new Date(System.currentTimeMillis()));
     }

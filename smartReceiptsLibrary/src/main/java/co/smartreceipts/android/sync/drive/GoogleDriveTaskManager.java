@@ -19,7 +19,6 @@ import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
-import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
@@ -80,7 +79,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                 .flatMap(new Func1<DriveFile, Observable<SyncState>>() {
                     @Override
                     public Observable<SyncState> call(DriveFile driveFile) {
-                        return Observable.just(mDriveStreamMappings.insertSyncState(currentSyncState, driveFile));
+                        return Observable.just(mDriveStreamMappings.postInsertSyncState(currentSyncState, driveFile));
                     }
                 });
     }
@@ -94,8 +93,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                 .flatMap(new Func1<Void, Observable<DriveFile>>() {
                     @Override
                     public Observable<DriveFile> call(Void aVoid) {
-                        final IdentifierMap identifierMap = currentSyncState.getIdentifierMap();
-                        final Identifier driveIdentifier = identifierMap != null ? identifierMap.getSyncId(SyncProvider.GoogleDrive) : null;
+                        final Identifier driveIdentifier = currentSyncState.getSyncId(SyncProvider.GoogleDrive);
                         if (driveIdentifier != null) {
                             return mRxDriveStreams.updateFile(driveIdentifier, file);
                         } else {
@@ -106,7 +104,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                 .flatMap(new Func1<DriveFile, Observable<SyncState>>() {
                     @Override
                     public Observable<SyncState> call(DriveFile driveFile) {
-                        return Observable.just(mDriveStreamMappings.updateSyncState(currentSyncState, driveFile));
+                        return Observable.just(mDriveStreamMappings.postUpdateSyncState(currentSyncState, driveFile));
                     }
                 });
     }
@@ -120,8 +118,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                 .flatMap(new Func1<Void, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(Void aVoid) {
-                        final IdentifierMap identifierMap = currentSyncState.getIdentifierMap();
-                        final Identifier driveIdentifier = identifierMap != null ? identifierMap.getSyncId(SyncProvider.GoogleDrive) : null;
+                        final Identifier driveIdentifier = currentSyncState.getSyncId(SyncProvider.GoogleDrive);
                         if (driveIdentifier != null) {
                             return mRxDriveStreams.deleteFile(driveIdentifier, file);
                         } else {
@@ -133,7 +130,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                     @Override
                     public Observable<SyncState> call(Boolean success) {
                         if (success) {
-                            return Observable.just(mDriveStreamMappings.deleteSyncState(currentSyncState));
+                            return Observable.just(mDriveStreamMappings.postDeleteSyncState(currentSyncState));
                         } else {
                             return Observable.just(currentSyncState);
                         }

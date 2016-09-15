@@ -23,10 +23,12 @@ public interface SyncState extends Parcelable {
     Identifier getSyncId(@NonNull SyncProvider provider);
 
     /**
-     * @return the {@link IdentifierMap} associated with the current sync state
+     * Checks if this item has been synced
+     *
+     * @param provider the {@link SyncProvider} for to check for
+     * @return {@code true} if this item is synced
      */
-    @Nullable
-    IdentifierMap getIdentifierMap();
+    boolean isSynced(@NonNull SyncProvider provider);
 
     /**
      * Checks if this item has been marked for deletion
@@ -35,12 +37,6 @@ public interface SyncState extends Parcelable {
      * @return {@code true} if this item is marked for remote deletion
      */
     boolean isMarkedForDeletion(@NonNull SyncProvider provider);
-
-    /**
-     * @return the {@link MarkedForDeletionMap} associated with the current sync state
-     */
-    @Nullable
-    MarkedForDeletionMap getMarkedForDeletionMap();
 
     /**
      * Gets the last time (in UTC) that this item was modified locally

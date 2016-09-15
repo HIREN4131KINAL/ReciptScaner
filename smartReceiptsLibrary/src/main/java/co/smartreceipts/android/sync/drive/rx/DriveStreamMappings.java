@@ -13,32 +13,42 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
+import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 
 public class DriveStreamMappings {
 
     @NonNull
-    public SyncState insertSyncState(@NonNull SyncState oldSyncState, @NonNull DriveFile driveFile) {
-        return new DefaultSyncState(getSyncIdentifierMap(driveFile), oldSyncState.getMarkedForDeletionMap(), new Date(System.currentTimeMillis()));
+    public SyncState postInsertSyncState(@NonNull SyncState oldSyncState, @NonNull DriveFile driveFile) {
+        return new DefaultSyncState(getSyncIdentifierMap(driveFile), newDriveSyncedStatusMap(),
+                new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)), new Date(System.currentTimeMillis()));
     }
 
     @NonNull
-    public SyncState updateSyncState(@NonNull SyncState oldSyncState, @NonNull DriveFile driveFile) {
-        return new DefaultSyncState(getSyncIdentifierMap(driveFile), oldSyncState.getMarkedForDeletionMap(), new Date(System.currentTimeMillis()));
+    public SyncState postUpdateSyncState(@NonNull SyncState oldSyncState, @NonNull DriveFile driveFile) {
+        return new DefaultSyncState(getSyncIdentifierMap(driveFile), newDriveSyncedStatusMap(),
+                new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)), new Date(System.currentTimeMillis()));
     }
 
     @NonNull
-    public SyncState deleteSyncState(@NonNull SyncState oldSyncState) {
-        return new DefaultSyncState(oldSyncState.getIdentifierMap(), new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)), new Date(System.currentTimeMillis()));
+    public SyncState postDeleteSyncState(@NonNull SyncState oldSyncState) {
+        return new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, oldSyncState.getSyncId(SyncProvider.GoogleDrive))),
+                newDriveSyncedStatusMap(), new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
+                new Date(System.currentTimeMillis()));
     }
 
     @NonNull
-    public IdentifierMap getSyncIdentifierMap(@NonNull DriveFile driveFile) {
-        return new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, getSyncIdentifier(driveFile)));
+    private IdentifierMap getSyncIdentifierMap(@NonNull DriveFile driveFile) {
+        return new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, newSyncIdentifier(driveFile)));
     }
 
     @NonNull
-    public Identifier getSyncIdentifier(@NonNull DriveFile driveFile) {
+    private Identifier newSyncIdentifier(@NonNull DriveFile driveFile) {
         return new Identifier(driveFile.getDriveId().getResourceId());
+    }
+
+    @NonNull
+    private SyncStatusMap newDriveSyncedStatusMap() {
+        return new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, true));
     }
 
 }

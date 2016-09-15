@@ -29,6 +29,8 @@ public class DefaultSyncStateTest {
 
     IdentifierMap mIdentifierMap;
 
+    SyncStatusMap mSyncStatusMap;
+
     MarkedForDeletionMap mMarkedForDeletionMap;
 
     Date mLastLocalModificationTime;
@@ -37,9 +39,10 @@ public class DefaultSyncStateTest {
     public void setUp() throws Exception {
         mIdentifier = new Identifier("abc");
         mIdentifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, mIdentifier));
+        mSyncStatusMap = new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, true));
         mMarkedForDeletionMap = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true));
         mLastLocalModificationTime = new Date(System.currentTimeMillis());
-        mDefaultSyncState = new DefaultSyncState(mIdentifierMap, mMarkedForDeletionMap, mLastLocalModificationTime);
+        mDefaultSyncState = new DefaultSyncState(mIdentifierMap, mSyncStatusMap, mMarkedForDeletionMap, mLastLocalModificationTime);
     }
 
     @Test
@@ -49,19 +52,15 @@ public class DefaultSyncStateTest {
     }
 
     @Test
-    public void getIdentifierMap() {
-        assertEquals(mIdentifierMap, mDefaultSyncState.getIdentifierMap());
+    public void isSynced() {
+        assertEquals(true, mDefaultSyncState.isSynced(SyncProvider.GoogleDrive));
+        assertEquals(false, mDefaultSyncState.isSynced(SyncProvider.None));
     }
 
     @Test
     public void isMarkedForDeletion() {
         assertEquals(true, mDefaultSyncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
         assertEquals(false, mDefaultSyncState.isMarkedForDeletion(SyncProvider.None));
-    }
-
-    @Test
-    public void getMarkedForDeletionMap() {
-        assertEquals(mMarkedForDeletionMap, mDefaultSyncState.getMarkedForDeletionMap());
     }
 
     @Test

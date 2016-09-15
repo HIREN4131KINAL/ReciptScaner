@@ -32,8 +32,8 @@ import rx.functions.Func0;
 public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
 
     public static final String COLUMN_DRIVE_SYNC_ID = "drive_sync_id";
-    public static final String COLUMN_DRIVE_MARKED_FOR_DELETION = "drive_marked_for_deletion";
     public static final String COLUMN_DRIVE_IS_SYNCED = "drive_is_synced";
+    public static final String COLUMN_DRIVE_MARKED_FOR_DELETION = "drive_marked_for_deletion";
     public static final String COLUMN_LAST_LOCAL_MODIFICATION_TIME = "last_local_modification_time";
 
     private final SQLiteOpenHelper mSQLiteOpenHelper;

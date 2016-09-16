@@ -13,7 +13,6 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.sync.drive.GoogleDriveTaskManager;
-import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
 import co.smartreceipts.android.sync.model.SyncState;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
@@ -32,7 +31,7 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
     @Override
     public void onInsertSuccess(@NonNull final Receipt receipt) {
         if (receipt.getFile() != null) {
-            mDriveTaskManager.insert(receipt.getSyncState(), receipt.getFile())
+            mDriveTaskManager.uploadFileToDrive(receipt.getSyncState(), receipt.getFile())
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .subscribe(new Action1<SyncState>() {
@@ -62,13 +61,13 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
     @Override
     public void onDeleteSuccess(@NonNull final Receipt receipt) {
         if (receipt.getFile() != null) {
-            mDriveTaskManager.delete(receipt.getSyncState(), receipt.getFile())
+            mDriveTaskManager.deleteDriveFile(receipt.getSyncState(), receipt.getFile())
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
                     .subscribe(new Action1<SyncState>() {
                         @Override
                         public void call(SyncState syncState) {
-                            // TODO: Handle mark for deletion vs full delete
+                            // TODO: Handle mark for deletion vs full deleteDriveFile
                             mReceiptTableController.delete(receipt);
                         }
                     });

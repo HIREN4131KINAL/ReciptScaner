@@ -11,9 +11,12 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
@@ -21,7 +24,9 @@ import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbacks {
 
@@ -29,14 +34,16 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
 
     private final RxDriveStreams mRxDriveStreams;
     private final DriveStreamMappings mDriveStreamMappings;
+    private final ReceiptsTable mReceiptsTable;
     private final AtomicReference<CountDownLatch> mLatchReference;
 
-    public GoogleDriveTaskManager(@NonNull RxDriveStreams rxDriveStreams) {
-        this(rxDriveStreams, new DriveStreamMappings());
+    public GoogleDriveTaskManager(@NonNull RxDriveStreams rxDriveStreams, @NonNull ReceiptsTable receiptsTable) {
+        this(rxDriveStreams, receiptsTable, new DriveStreamMappings());
     }
 
-    public GoogleDriveTaskManager(@NonNull RxDriveStreams rxDriveStreams, @NonNull DriveStreamMappings driveStreamMappings) {
+    public GoogleDriveTaskManager(@NonNull RxDriveStreams rxDriveStreams, @NonNull ReceiptsTable receiptsTable, @NonNull DriveStreamMappings driveStreamMappings) {
         mRxDriveStreams = Preconditions.checkNotNull(rxDriveStreams);
+        mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mDriveStreamMappings = Preconditions.checkNotNull(driveStreamMappings);
         mLatchReference = new AtomicReference<>(new CountDownLatch(1));
     }
@@ -44,6 +51,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(TAG, "GoogleApiClient connection succeeded.");
+        syncLocalData();
         mLatchReference.get().countDown();
     }
 
@@ -59,7 +67,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
     }
 
     @NonNull
-    public Observable<SyncState> insert(@NonNull final SyncState currentSyncState, @NonNull final File file) {
+    public Observable<SyncState> uploadFileToDrive(@NonNull final SyncState currentSyncState, @NonNull final File file) {
         Preconditions.checkNotNull(currentSyncState);
         Preconditions.checkNotNull(file);
 
@@ -85,7 +93,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
     }
 
     @NonNull
-    public Observable<SyncState> update(@NonNull final SyncState currentSyncState, @NonNull final File file) {
+    public Observable<SyncState> updateDriveFile(@NonNull final SyncState currentSyncState, @NonNull final File file) {
         Preconditions.checkNotNull(currentSyncState);
         Preconditions.checkNotNull(file);
 
@@ -110,9 +118,8 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
     }
 
     @NonNull
-    public Observable<SyncState> delete(@NonNull final SyncState currentSyncState, @NonNull final File file) {
+    public Observable<SyncState> deleteDriveFile(@NonNull final SyncState currentSyncState) {
         Preconditions.checkNotNull(currentSyncState);
-        Preconditions.checkNotNull(file);
 
         return newBlockUntilConnectedObservable()
                 .flatMap(new Func1<Void, Observable<Boolean>>() {
@@ -120,7 +127,7 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                     public Observable<Boolean> call(Void aVoid) {
                         final Identifier driveIdentifier = currentSyncState.getSyncId(SyncProvider.GoogleDrive);
                         if (driveIdentifier != null) {
-                            return mRxDriveStreams.deleteFile(driveIdentifier, file);
+                            return mRxDriveStreams.deleteFile(driveIdentifier);
                         } else {
                             return Observable.error(new Exception("This sync state doesn't include a valid Drive Identifier"));
                         }
@@ -152,5 +159,49 @@ public class GoogleDriveTaskManager implements GoogleApiClient.ConnectionCallbac
                 }
             }
         });
+    }
+
+    private void syncLocalData() {
+        mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(new Action1<List<Receipt>>() {
+                    @Override
+                    public void call(List<Receipt> receipts) {
+                        for (final Receipt receipt : receipts) {
+                            final SyncState syncState = receipt.getSyncState();
+                            final File receiptFile = receipt.getFile();
+                            final Identifier driveId = syncState.getSyncId(SyncProvider.GoogleDrive);
+                            final boolean markedForDeletion = syncState.isMarkedForDeletion(SyncProvider.GoogleDrive);
+                            if (driveId == null) {
+                                if (receiptFile != null) {
+                                    // This case is true for INSERTS or UPDATES (in which a new file was attached)
+                                    Log.i(TAG, "Found receipt " + receipt.getId() + " with a non-uploaded file. Uploading");
+                                    uploadFileToDrive(syncState, receiptFile); // TODO: Check if anything happens here...
+                                    // TODO: Set sync == true
+                                } else {
+                                    Log.i(TAG, "Found receipt " + receipt.getId() + " without a file. Marking as synced for Drive");
+                                    // TODO: Save silently with synced == true
+                                }
+                            } else {
+                                if (markedForDeletion) {
+                                    Log.i(TAG, "Found receipt " + receipt.getId() + " as marked for deletion. Removing");
+                                    deleteDriveFile(syncState); // TODO: Check if anything happens here...
+                                    // TODO: Set sync == true and full delete()
+                                } else {
+                                    if (receiptFile != null) {
+                                        Log.i(TAG, "Found receipt " + receipt.getId() + " with a new file. Updating");
+                                        updateDriveFile(syncState, receiptFile); // TODO: Check if anything happens here...
+                                        // TODO: Set sync == true
+                                    } else {
+                                        Log.i(TAG, "Found receipt " + receipt.getId() + " with a stale file reference. Removing");
+                                        deleteDriveFile(syncState); // TODO: Check if anything happens here...
+                                        // TODO: Set ID to null and sync == true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
     }
 }

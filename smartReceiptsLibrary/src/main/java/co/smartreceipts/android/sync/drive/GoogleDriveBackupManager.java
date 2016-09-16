@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
 import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
@@ -38,7 +39,7 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
     private final TableControllerManager mTableControllerManager;
     private final Context mContext;
 
-    public GoogleDriveBackupManager(@NonNull Context context, @NonNull TableControllerManager tableControllerManager) {
+    public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)

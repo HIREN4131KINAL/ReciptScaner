@@ -232,7 +232,7 @@ public class RxDriveStreams {
 
                                                 @Override
                                                 public void onFailure(@NonNull Status status) {
-                                                    Log.e(TAG, "Failed to update file with status: " + status);
+                                                    Log.e(TAG, "Failed to updateDriveFile file with status: " + status);
                                                     subscriber.onError(new IOException(status.getStatusMessage()));
                                                 }
                                             });
@@ -249,7 +249,7 @@ public class RxDriveStreams {
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to update file with status: " + status);
+                                Log.e(TAG, "Failed to updateDriveFile file with status: " + status);
                                 subscriber.onError(new IOException(status.getStatusMessage()));
                             }
                         });
@@ -257,7 +257,7 @@ public class RxDriveStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to update with status: " + status);
+                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to updateDriveFile with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -265,9 +265,8 @@ public class RxDriveStreams {
         });
     }
 
-    public Observable<Boolean> deleteFile(@NonNull final Identifier driveIdentifier, @NonNull final File file) {
+    public Observable<Boolean> deleteFile(@NonNull final Identifier driveIdentifier) {
         Preconditions.checkNotNull(driveIdentifier);
-        Preconditions.checkNotNull(file);
 
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
@@ -287,7 +286,7 @@ public class RxDriveStreams {
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to delete file with status: " + status);
+                                Log.e(TAG, "Failed to deleteDriveFile file with status: " + status);
                                 subscriber.onNext(false);
                                 subscriber.onCompleted();
                             }
@@ -296,7 +295,7 @@ public class RxDriveStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to delete with status: " + status);
+                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteDriveFile with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });

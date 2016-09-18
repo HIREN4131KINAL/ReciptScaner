@@ -15,6 +15,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.alterations.StubTableActionAlterations;
 import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.AbstractColumnTable;
 import co.smartreceipts.android.utils.ListUtils;
 import rx.Scheduler;
@@ -52,13 +53,13 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
      * Inserts the default column as defined by {@link ColumnDefinitions#getDefaultInsertColumn()}
      */
     public synchronized void insertDefaultColumn() {
-        insert(mReceiptColumnDefinitions.getDefaultInsertColumn());
+        insert(mReceiptColumnDefinitions.getDefaultInsertColumn(), new DatabaseOperationMetadata());
     }
 
     /**
      * Attempts to delete the last column in the list
      */
-    public synchronized void deleteLast() {
+    public synchronized void deleteLast(final @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         // TODO: Reduce code overflow and just chain directly with #delete observables via composition
 
         Log.i(TAG, "#deleteLast:");
@@ -76,12 +77,12 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
             public void call(Column<Receipt> column) {
                 if (column != null) {
                     for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
-                        tableEventsListener.onDeleteSuccess(column);
+                        tableEventsListener.onDeleteSuccess(column, databaseOperationMetadata);
                     }
                 } else {
                     for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
                         // TODO: Link this stuff better to fix improper null here :/
-                        tableEventsListener.onDeleteFailure(column, null);
+                        tableEventsListener.onDeleteFailure(column, null, databaseOperationMetadata);
                     }
                 }
             }
@@ -106,7 +107,7 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
     private Column<Receipt> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns) {
         final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
         if (lastColumn != null) {
-            delete(lastColumn);
+            delete(lastColumn, new DatabaseOperationMetadata());
             return lastColumn;
         } else {
             return null;

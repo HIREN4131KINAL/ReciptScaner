@@ -16,6 +16,7 @@ import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
@@ -72,7 +73,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
             final File dir = mStorageManager.mkdir(trip.getName());
             if (dir == null) {
                 Log.e(TAG, "Failed to create a trip directory... Rolling back and throwing an exception");
-                mTripsTable.delete(trip).toBlocking().first();
+                mTripsTable.delete(trip, new DatabaseOperationMetadata()).toBlocking().first();
                 throw new IOException("Failed to create trip directory");
             } else {
                 backUpDatabase();
@@ -91,7 +92,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
                 final File dir = mStorageManager.rename(oldTrip.getDirectory(), newTrip.getName());
                 if (dir.equals(oldTrip.getDirectory())) {
                     Log.e(TAG, "Failed to re-name the trip directory... Rolling back and throwing an exception");
-                    mTripsTable.update(newTrip, oldTrip).toBlocking().first();
+                    mTripsTable.update(newTrip, oldTrip, new DatabaseOperationMetadata()).toBlocking().first();
                     mReceiptsTable.updateParentBlocking(newTrip, oldTrip);
                     mDistanceTable.updateParentBlocking(newTrip, oldTrip);
                     throw new IOException("Failed to create trip directory");

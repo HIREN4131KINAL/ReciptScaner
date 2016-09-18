@@ -2,6 +2,8 @@ package co.smartreceipts.android.persistence.database.controllers;
 
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+
 /**
  * Provides an asynchronous way for us to easily interact with our database layer
  *
@@ -28,21 +30,24 @@ public interface TableController<ModelType> {
      * Inserts a new object of type {@link ModelType} into this table.
      *
      * @param modelType the object to insert
+     * @param databaseOperationMetadata metadata about this particular database operation
      */
-    void insert(@NonNull ModelType modelType);
+    void insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Updates an existing object of type {@link ModelType} in this table.
      *
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
+     * @param databaseOperationMetadata metadata about this particular database operation
      */
-    void update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType);
+    void update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Removes an existing object of type {@link ModelType} from this table.
      *
      * @param modelType the object to remove
+     * @param databaseOperationMetadata metadata about this particular database operation
      */
-    void delete(@NonNull ModelType modelType);
+    void delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 }

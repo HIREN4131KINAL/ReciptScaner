@@ -16,6 +16,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.alterations.ReceiptTableActionAlterations;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import rx.Observable;
 import rx.Scheduler;
@@ -75,7 +76,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 .flatMap(new Func1<Receipt, Observable<Receipt>>() {
                     @Override
                     public Observable<Receipt> call(Receipt receipt) {
-                        return mTripForeignKeyTable.insert(receipt);
+                        return mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata());
                     }
                 })
                 .subscribeOn(mSubscribeOnScheduler)
@@ -132,7 +133,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 .flatMap(new Func1<Receipt, Observable<Receipt>>() {
                     @Override
                     public Observable<Receipt> call(Receipt receipt) {
-                        return mTripForeignKeyTable.insert(receipt);
+                        return mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata());
                     }
                 })
                 .doOnNext(new Action1<Receipt>() {
@@ -197,7 +198,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     public Observable<Boolean> call(List<? extends Map.Entry<Receipt, Receipt>> entries) {
                         boolean success = true;
                         for (final Map.Entry<Receipt, Receipt> entry : entries) {
-                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue()).toBlocking().first() != null;
+                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata()).toBlocking().first() != null;
                         }
                         return Observable.just(success);
                     }
@@ -254,7 +255,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     public Observable<Boolean> call(List<? extends Map.Entry<Receipt, Receipt>> entries) {
                         boolean success = true;
                         for (final Map.Entry<Receipt, Receipt> entry : entries) {
-                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue()).toBlocking().first() != null;
+                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata()).toBlocking().first() != null;
                         }
                         return Observable.just(success);
                     }

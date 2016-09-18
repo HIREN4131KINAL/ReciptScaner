@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,8 +67,8 @@ public class CategoriesTableTest {
 
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategory1 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build()).toBlocking().first();
-        mCategory2 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build()).toBlocking().first();
+        mCategory1 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mCategory2 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(mCategory1);
         assertNotNull(mCategory2);
     }
@@ -167,7 +168,7 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory).toBlocking().first());
+        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Category> categories = mCategoriesTable.get().toBlocking().first();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2, insertCategory));
@@ -178,7 +179,7 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory).toBlocking().first());
+        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Category> categories = mCategoriesTable.get().toBlocking().first();
         assertTrue(categories.contains(updateCategory));
@@ -191,8 +192,8 @@ public class CategoriesTableTest {
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertTrue(mCategoriesTable.delete(mCategory1).toBlocking().first());
-        assertTrue(mCategoriesTable.delete(mCategory2).toBlocking().first());
+        assertTrue(mCategoriesTable.delete(mCategory1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertTrue(mCategoriesTable.delete(mCategory2, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Category> newCategories = mCategoriesTable.get().toBlocking().first();
         assertTrue(newCategories.isEmpty());

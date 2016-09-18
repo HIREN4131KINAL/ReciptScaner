@@ -10,6 +10,8 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -71,7 +73,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
 
     @Override
     @NonNull
-    public ContentValues write(@NonNull Trip trip) {
+    public ContentValues write(@NonNull Trip trip, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
         values.put(TripsTable.COLUMN_NAME, trip.getName());
         values.put(TripsTable.COLUMN_FROM, trip.getStartDate().getTime());
@@ -81,7 +83,11 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
         values.put(TripsTable.COLUMN_COMMENT, trip.getComment());
         values.put(TripsTable.COLUMN_COST_CENTER, trip.getCostCenter());
         values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, trip.getDefaultCurrencyCode());
-        values.putAll(mSyncStateAdapter.write(trip.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(trip.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(trip.getSyncState()));
+        }
         return values;
     }
 

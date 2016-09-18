@@ -34,6 +34,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import rx.Observable;
 import wb.android.storage.StorageManager;
 
@@ -160,8 +161,8 @@ public class ReceiptsTableTest {
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(false)
                 .setPaymentMethod(mPaymentMethod);
-        mReceipt1 = mReceiptsTable.insert(mBuilder.setName(NAME_1).setPrice(PRICE_1).setTrip(mTrip1).build()).toBlocking().first();
-        mReceipt2 = mReceiptsTable.insert(mBuilder.setName(NAME_2).setPrice(PRICE_2).setTrip(mTrip2).build()).toBlocking().first();
+        mReceipt1 = mReceiptsTable.insert(mBuilder.setName(NAME_1).setPrice(PRICE_1).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mReceipt2 = mReceiptsTable.insert(mBuilder.setName(NAME_2).setPrice(PRICE_2).setTrip(mTrip2).build(), new DatabaseOperationMetadata()).toBlocking().first();
     }
 
     @After
@@ -415,7 +416,7 @@ public class ReceiptsTableTest {
     @Test
     public void getForTrip() {
         // Note: We're adding this one to trip 1
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).build()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(receipt);
 
         final List<Receipt> list1 = mReceiptsTable.get(mTrip1).toBlocking().first();
@@ -428,7 +429,7 @@ public class ReceiptsTableTest {
 
     @Test
     public void insert() {
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(receipt);
 
         final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
@@ -450,7 +451,7 @@ public class ReceiptsTableTest {
 
     @Test
     public void update() {
-        final Receipt updatedReceipt = mReceiptsTable.update(mReceipt1, mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build()).toBlocking().first();
+        final Receipt updatedReceipt = mReceiptsTable.update(mReceipt1, mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(updatedReceipt);
         assertFalse(mReceipt1.equals(updatedReceipt));
 
@@ -460,7 +461,7 @@ public class ReceiptsTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mReceiptsTable.delete(mReceipt1).toBlocking().first());
+        assertTrue(mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
         assertEquals(receipts, Collections.singletonList(mReceipt2));

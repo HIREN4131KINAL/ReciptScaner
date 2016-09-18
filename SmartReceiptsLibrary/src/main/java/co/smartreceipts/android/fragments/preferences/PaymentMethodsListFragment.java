@@ -12,6 +12,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.dialog.fragments.EditTextDialogFragment;
 
 public class PaymentMethodsListFragment extends SimpleInsertableListFragment<PaymentMethod> implements View.OnClickListener {
@@ -54,7 +55,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
 					final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
-					getTableController().insert(paymentMethod);
+					getTableController().insert(paymentMethod, new DatabaseOperationMetadata());
 				}
 			}
 		};
@@ -69,7 +70,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			public void onClick(String text, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
 					final PaymentMethod newPaymentMethod = new PaymentMethodBuilderFactory().setMethod(text).build();
-                    getTableController().update(oldPaymentMethod, newPaymentMethod);
+                    getTableController().update(oldPaymentMethod, newPaymentMethod, new DatabaseOperationMetadata());
 				}
 			}
 		};
@@ -92,7 +93,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if (which == DialogInterface.BUTTON_POSITIVE) {
-                    getTableController().delete(item);
+                    getTableController().delete(item, new DatabaseOperationMetadata());
 				}
 			}
 		};

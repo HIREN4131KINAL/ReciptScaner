@@ -34,6 +34,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {
@@ -225,7 +226,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setCurrency(currency);
                 builder.setComment(comment);
                 ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistNewDistance);
-                mDistanceTableController.insert(builder.build());
+                mDistanceTableController.insert(builder.build(), new DatabaseOperationMetadata());
             } else {
                 // We're updating
                 final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), mUpdateableDistance.getDistance());
@@ -238,7 +239,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setCurrency(currency);
                 builder.setComment(comment);
                 ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistUpdateDistance);
-                mDistanceTableController.update(mUpdateableDistance, builder.build());
+                mDistanceTableController.update(mUpdateableDistance, builder.build(), new DatabaseOperationMetadata());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {
             // Delete
@@ -248,7 +249,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             builder.setPositiveButton(R.string.delete, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    mDistanceTableController.delete(mUpdateableDistance);
+                    mDistanceTableController.delete(mUpdateableDistance, new DatabaseOperationMetadata());
                     dismiss();
                 }
             });

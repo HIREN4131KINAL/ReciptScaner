@@ -44,6 +44,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.dialog.BetterDialogBuilder;
 
 public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
@@ -221,7 +222,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
                     case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
                         final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(file).build();
-                        mReceiptTableController.update(mHighlightedReceipt, updatedReceipt);
+                        mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
                         break;
                 }
             }
@@ -387,7 +388,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         File file = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(attachment.getUri(), null, Uri.fromFile(new File(dir, receipt.getId() + "x.jpg")));
         if (file != null) {
             final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(file).build();
-            mReceiptTableController.update(receipt, retakeReceipt);
+            mReceiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
         } else {
             Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
             getActivity().finish(); // Finish activity since we're done with the send action
@@ -403,24 +404,19 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             // TODO: Off UI Thread
             getPersistenceManager().getStorageManager().copy(is, file, true);
             final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(file).build();
-            mReceiptTableController.update(receipt, retakeReceipt);
+            mReceiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
         } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, e.toString());
-            }
+            Log.e(TAG, e.toString());
             Toast.makeText(getActivity(), getString(R.string.toast_pdf_save_error), Toast.LENGTH_SHORT).show();
             getActivity().finish();
         } catch (SecurityException e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, e.toString());
-            }
+            Log.e(TAG, e.toString());
             Toast.makeText(getActivity(), getString(R.string.toast_kitkat_security_error), Toast.LENGTH_LONG).show();
             getActivity().finish();
         } finally {
             try {
                 if (is != null) {
                     is.close();
-                    is = null;
                 }
             } catch (IOException e) {
                 Log.w(TAG, e.toString());
@@ -441,7 +437,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         builder.setTitle(getString(R.string.delete_item, receipt.getName())).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                mReceiptTableController.delete(receipt);
+                mReceiptTableController.delete(receipt, new DatabaseOperationMetadata());
             }
         }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
@@ -487,21 +483,21 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     @Override
-    public void onInsertSuccess(@NonNull Receipt receipt) {
+    public void onInsertSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             mReceiptTableController.get(mCurrentTrip);
         }
     }
 
     @Override
-    public void onInsertFailure(@NonNull Receipt receipt, @Nullable Throwable e) {
+    public void onInsertFailure(@NonNull Receipt receipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
+    public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
                 int stringId = oldReceipt.getFile() != null ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
@@ -514,14 +510,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
+    public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Receipt receipt) {
+    public void onDeleteSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             mReceiptTableController.get(mCurrentTrip);
             ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
@@ -529,7 +525,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     @Override
-    public void onDeleteFailure(@NonNull Receipt receipt, @Nullable Throwable e) {
+    public void onDeleteFailure(@NonNull Receipt receipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }

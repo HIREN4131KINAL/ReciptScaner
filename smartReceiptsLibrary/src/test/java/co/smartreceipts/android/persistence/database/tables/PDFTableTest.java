@@ -27,6 +27,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 import static org.junit.Assert.assertEquals;
@@ -81,8 +82,8 @@ public class PDFTableTest {
 
         // Now create the table and insert some defaults
         mPDFTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mColumn1 = mPDFTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState())).toBlocking().first();
-        mColumn2 = mPDFTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState())).toBlocking().first();
+        mColumn1 = mPDFTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
+        mColumn2 = mPDFTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(mColumn1);
         assertNotNull(mColumn2);
     }
@@ -182,7 +183,7 @@ public class PDFTableTest {
     @Test
     public void insert() {
         final String name = "Code";
-        final Column<Receipt> column = mPDFTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
+        final Column<Receipt> column = mPDFTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
@@ -203,7 +204,7 @@ public class PDFTableTest {
     @Test
     public void update() {
         final String name = "Code";
-        final Column<Receipt> column = mPDFTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
+        final Column<Receipt> column = mPDFTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
@@ -213,17 +214,18 @@ public class PDFTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mPDFTable.delete(mColumn1).toBlocking().first());
+        assertTrue(mPDFTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
         assertEquals(mPDFTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
     }
 
     @Test
     public void deleteLast() {
-        assertTrue(mPDFTable.deleteLast().toBlocking().first());
+        final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
+        assertTrue(mPDFTable.deleteLast(databaseOperationMetadata).toBlocking().first());
         assertEquals(mPDFTable.get().toBlocking().first(), Collections.singletonList(mColumn1));
-        assertTrue(mPDFTable.deleteLast().toBlocking().first());
+        assertTrue(mPDFTable.deleteLast(databaseOperationMetadata).toBlocking().first());
         assertEquals(mPDFTable.get().toBlocking().first(), Collections.emptyList());
-        assertFalse(mPDFTable.deleteLast().toBlocking().first());
+        assertFalse(mPDFTable.deleteLast(databaseOperationMetadata).toBlocking().first());
     }
 
 }

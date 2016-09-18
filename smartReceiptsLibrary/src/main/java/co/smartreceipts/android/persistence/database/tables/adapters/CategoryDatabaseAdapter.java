@@ -8,6 +8,8 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -41,11 +43,15 @@ public final class CategoryDatabaseAdapter implements DatabaseAdapter<Category, 
 
     @Override
     @NonNull
-    public ContentValues write(@NonNull Category category) {
+    public ContentValues write(@NonNull Category category, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
         values.put(CategoriesTable.COLUMN_NAME, category.getName());
         values.put(CategoriesTable.COLUMN_CODE, category.getCode());
-        values.putAll(mSyncStateAdapter.write(category.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(category.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(category.getSyncState()));
+        }
         return values;
     }
 

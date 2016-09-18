@@ -46,14 +46,30 @@ public class SyncStateAdapter {
     }
 
     @NonNull
+    public ContentValues writeUnsynced(@NonNull SyncState syncState) {
+        return write(syncState, true);
+    }
+
+    @NonNull
     public ContentValues write(@NonNull SyncState syncState) {
+        return write(syncState, false);
+    }
+
+    @NonNull
+    public ContentValues write(@NonNull SyncState syncState, boolean isUnsynced) {
         final ContentValues values = new ContentValues();
         final Identifier driveIdentifier = syncState.getSyncId(SyncProvider.GoogleDrive);
         if (driveIdentifier != null) {
             values.put(AbstractSqlTable.COLUMN_DRIVE_SYNC_ID, driveIdentifier.getId());
-            values.put(AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED, syncState.isSynced(SyncProvider.GoogleDrive));
-            values.put(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION, syncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
+        } else {
+            values.put(AbstractSqlTable.COLUMN_DRIVE_SYNC_ID, (String) null);
         }
+        if (isUnsynced) {
+            values.put(AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED, false);
+        } else {
+            values.put(AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED, syncState.isSynced(SyncProvider.GoogleDrive));
+        }
+        values.put(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION, syncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
         values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, syncState.getLastLocalModificationTime().getTime());
         return values;
     }

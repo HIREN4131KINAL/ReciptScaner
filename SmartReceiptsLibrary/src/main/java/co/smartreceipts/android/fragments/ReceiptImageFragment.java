@@ -37,6 +37,7 @@ import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.google.camera.Util;
 import wb.android.storage.StorageManager;
 import wb.android.ui.PinchToZoomImageView;
@@ -148,7 +149,7 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
                 final Receipt retakeReceipt = new ReceiptBuilderFactory(mReceipt).setFile(file).build();
-                getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt);
+                getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt, new DatabaseOperationMetadata());
             }
 
             @Override
@@ -231,7 +232,7 @@ public class ReceiptImageFragment extends WBFragment {
     private class ImageUpdatedListener extends StubTableEventsListener<Receipt> {
 
         @Override
-        public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
+        public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
             if (oldReceipt.equals(mReceipt)) {
                 mReceipt = newReceipt;
                 loadImage();
@@ -239,7 +240,7 @@ public class ReceiptImageFragment extends WBFragment {
         }
 
         @Override
-        public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
+        public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
             mProgress.setVisibility(View.GONE);
             Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }

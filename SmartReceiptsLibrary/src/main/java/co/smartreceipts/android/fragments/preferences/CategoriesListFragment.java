@@ -7,6 +7,7 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.dialog.BetterDialogBuilder;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -152,7 +153,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 						public void onClick(DialogInterface dialog, int which) {
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
-                            mTableController.insert(new CategoryBuilderFactory().setName(name).setCode(code).build());
+                            mTableController.insert(new CategoryBuilderFactory().setName(name).setCode(code).build(), new DatabaseOperationMetadata());
 
 						}
 					})
@@ -196,7 +197,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newName = nameBox.getText().toString();
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
-							mTableController.update(editCategory, newCategory);
+							mTableController.update(editCategory, newCategory, new DatabaseOperationMetadata());
 
 						}
 					})
@@ -218,7 +219,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							mTableController.delete(category);
+							mTableController.delete(category, new DatabaseOperationMetadata());
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -246,13 +247,13 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
     }
 
     @Override
-    public void onInsertSuccess(@NonNull Category category) {
+    public void onInsertSuccess(@NonNull Category category, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mTableController.get();
         mScrollToCategory = category;
     }
 
     @Override
-    public void onInsertFailure(@NonNull Category category, @Nullable Throwable e) {
+    public void onInsertFailure(@NonNull Category category, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (e instanceof SQLException) {
             Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
         }
@@ -262,13 +263,13 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
     }
 
     @Override
-    public void onUpdateSuccess(@NonNull Category oldCategory, @NonNull Category newCategory) {
+    public void onUpdateSuccess(@NonNull Category oldCategory, @NonNull Category newCategory, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mTableController.get();
         mScrollToCategory = newCategory;
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Category oldT, @Nullable Throwable e) {
+    public void onUpdateFailure(@NonNull Category oldT, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (e instanceof SQLException) {
             Toast.makeText(getActivity(), getString(R.string.toast_error_category_exists), Toast.LENGTH_SHORT).show();
         }
@@ -278,12 +279,12 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Category category) {
+    public void onDeleteSuccess(@NonNull Category category, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mTableController.get();
     }
 
     @Override
-    public void onDeleteFailure(@NonNull Category category, @Nullable Throwable e) {
+    public void onDeleteFailure(@NonNull Category category, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         Toast.makeText(getActivity(), getString(R.string.database_error), Toast.LENGTH_SHORT).show();
     }
 

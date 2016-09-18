@@ -14,6 +14,8 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.ConstantColumn;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
 
@@ -94,9 +96,22 @@ public class ColumnDatabaseAdapterTest {
         final String sync = "sync";
         final ContentValues syncValues = new ContentValues();
         syncValues.put(sync, sync);
+        when(mSyncStateAdapter.writeUnsynced(mSyncState)).thenReturn(syncValues);
+
+        final ContentValues contentValues = mColumnDatabaseAdapter.write(mColumn, new DatabaseOperationMetadata());
+        assertEquals(NAME, contentValues.getAsString(NAME_COLUMN));
+        assertEquals(sync, contentValues.getAsString(sync));
+        assertFalse(contentValues.containsKey(ID_COLUMN));
+    }
+
+    @Test
+    public void writeUnsycned() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
         when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
 
-        final ContentValues contentValues = mColumnDatabaseAdapter.write(mColumn);
+        final ContentValues contentValues = mColumnDatabaseAdapter.write(mColumn, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         assertEquals(NAME, contentValues.getAsString(NAME_COLUMN));
         assertEquals(sync, contentValues.getAsString(sync));
         assertFalse(contentValues.containsKey(ID_COLUMN));

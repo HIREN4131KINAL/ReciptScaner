@@ -11,6 +11,8 @@ import java.util.Collections;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -44,37 +46,58 @@ public class RefreshTripPricesListenerTest {
 
     @Test
     public void onInsertSuccess() {
-        mRefreshTripPricesListener.onInsertSuccess(new Object());
+        mRefreshTripPricesListener.onInsertSuccess(new Object(), new DatabaseOperationMetadata());
         verify(mTripTableController).get();
     }
 
     @Test
+    public void onSyncInsertSuccess() {
+        mRefreshTripPricesListener.onInsertSuccess(new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
+        verifyZeroInteractions(mTripTableController);
+    }
+
+    @Test
     public void onInsertFailure() {
-        mRefreshTripPricesListener.onInsertFailure(new Object(), null);
+        mRefreshTripPricesListener.onInsertFailure(new Object(), null, new DatabaseOperationMetadata());
+        mRefreshTripPricesListener.onInsertFailure(new Object(), null, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         verifyZeroInteractions(mTripTableController);
     }
 
     @Test
     public void onUpdateSuccess() {
-        mRefreshTripPricesListener.onUpdateSuccess(new Object(), new Object());
+        mRefreshTripPricesListener.onUpdateSuccess(new Object(), new Object(), new DatabaseOperationMetadata());
         verify(mTripTableController).get();
     }
 
     @Test
+    public void onSyncUpdateSuccess() {
+        mRefreshTripPricesListener.onUpdateSuccess(new Object(), new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
+        verifyZeroInteractions(mTripTableController);
+    }
+
+    @Test
     public void onUpdateFailure() {
-        mRefreshTripPricesListener.onUpdateFailure(new Object(), null);
+        mRefreshTripPricesListener.onUpdateFailure(new Object(), null, new DatabaseOperationMetadata());
+        mRefreshTripPricesListener.onUpdateFailure(new Object(), null, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         verifyZeroInteractions(mTripTableController);
     }
 
     @Test
     public void onDeleteSuccess() {
-        mRefreshTripPricesListener.onDeleteSuccess(new Object());
+        mRefreshTripPricesListener.onDeleteSuccess(new Object(), new DatabaseOperationMetadata());
         verify(mTripTableController).get();
     }
 
     @Test
+    public void onSyncDeleteSuccess() {
+        mRefreshTripPricesListener.onDeleteSuccess(new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
+        verifyZeroInteractions(mTripTableController);
+    }
+
+    @Test
     public void onDeleteFailure() {
-        mRefreshTripPricesListener.onDeleteFailure(new Object(), null);
+        mRefreshTripPricesListener.onDeleteFailure(new Object(), null, new DatabaseOperationMetadata());
+        mRefreshTripPricesListener.onDeleteFailure(new Object(), null, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         verifyZeroInteractions(mTripTableController);
     }
 

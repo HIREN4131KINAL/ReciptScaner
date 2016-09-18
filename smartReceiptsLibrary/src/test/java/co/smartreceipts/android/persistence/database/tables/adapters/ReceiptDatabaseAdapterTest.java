@@ -30,6 +30,8 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -268,13 +270,44 @@ public class ReceiptDatabaseAdapterTest {
     }
 
     @Test
+    public void writeUnsycned() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.writeUnsynced(mSyncState)).thenReturn(syncValues);
+
+        final ContentValues contentValues = mReceiptDatabaseAdapter.write(mReceipt, new DatabaseOperationMetadata());
+
+        // Note: Full page is backwards in the database
+        assertEquals(PATH, contentValues.getAsString("path"));
+        assertEquals(NAME, contentValues.getAsString("name"));
+        assertEquals(PARENT, contentValues.getAsString("parent"));
+        assertEquals(CATEGORY_NAME, contentValues.getAsString("category"));
+        assertEquals(PRICE, contentValues.getAsDouble("price"), 0.0001d);
+        assertEquals(TAX, contentValues.getAsDouble("tax"), 0.0001d);
+        assertEquals(EXCHANGE_RATE_FOR_USD, contentValues.getAsDouble("exchange_rate"), 0.0001d);
+        assertEquals(DATE, (long) contentValues.getAsLong("rcpt_date"));
+        assertEquals(TIMEZONE, contentValues.getAsString("timezone"));
+        assertEquals(COMMENT, contentValues.getAsString("comment"));
+        assertEquals(EXPENSABLE, contentValues.getAsBoolean("expenseable"));
+        assertEquals(CURRENCY_CODE, contentValues.getAsString("isocode"));
+        assertEquals(PAYMENT_METHOD_ID, (int) contentValues.getAsInteger("paymentMethodKey"));
+        assertEquals(!FULL_PAGE, contentValues.getAsBoolean("fullpageimage"));
+        assertEquals(EXTRA1, contentValues.getAsString("extra_edittext_1"));
+        assertEquals(EXTRA2, contentValues.getAsString("extra_edittext_2"));
+        assertEquals(EXTRA3, contentValues.getAsString("extra_edittext_3"));
+        assertEquals(sync, contentValues.getAsString(sync));
+        assertFalse(contentValues.containsKey("id"));
+    }
+
+    @Test
     public void write() throws Exception {
         final String sync = "sync";
         final ContentValues syncValues = new ContentValues();
         syncValues.put(sync, sync);
         when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
 
-        final ContentValues contentValues = mReceiptDatabaseAdapter.write(mReceipt);
+        final ContentValues contentValues = mReceiptDatabaseAdapter.write(mReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
 
         // Note: Full page is backwards in the database
         assertEquals(PATH, contentValues.getAsString("path"));

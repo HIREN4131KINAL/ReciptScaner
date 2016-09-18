@@ -28,6 +28,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertNull;
@@ -115,8 +116,8 @@ public class TripsTableTest {
         mTripsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
         mBuilder = new TripBuilderFactory();
         mBuilder.setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny());
-        mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build()).toBlocking().first();
-        mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build()).toBlocking().first();
+        mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build(), new DatabaseOperationMetadata()).toBlocking().first();
     }
 
     @After
@@ -273,7 +274,7 @@ public class TripsTableTest {
 
     @Test
     public void insert() {
-        final Trip trip = mTripsTable.insert(mBuilder.setStartDate(START_DATE_3).setEndDate(END_DATE_3).setDirectory(mStorageManager.getFile(NAME_3)).build()).toBlocking().first();
+        final Trip trip = mTripsTable.insert(mBuilder.setStartDate(START_DATE_3).setEndDate(END_DATE_3).setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(trip);
 
         final List<Trip> trips = mTripsTable.get().toBlocking().first();
@@ -296,7 +297,7 @@ public class TripsTableTest {
 
     @Test
     public void update() {
-        final Trip updatedTrip = mTripsTable.update(mTrip1, mBuilder.setDirectory(mStorageManager.getFile(NAME_3)).build()).toBlocking().first();
+        final Trip updatedTrip = mTripsTable.update(mTrip1, mBuilder.setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(updatedTrip);
         assertFalse(mTrip1.equals(updatedTrip));
 
@@ -306,7 +307,7 @@ public class TripsTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mTripsTable.delete(mTrip1).toBlocking().first());
+        assertTrue(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Trip> trips = mTripsTable.get().toBlocking().first();
         assertEquals(trips, Collections.singletonList(mTrip2));

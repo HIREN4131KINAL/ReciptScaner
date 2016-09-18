@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
@@ -134,14 +135,14 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     }
 
     @Override
-    public synchronized void insert(@NonNull final ModelType insertModelType) {
+    public synchronized void insert(@NonNull final ModelType insertModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Log.i(TAG, "#insert: " + insertModelType);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTableActionAlterations.preInsert(insertModelType)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.insert(modelType);
+                        return mTable.insert(modelType, databaseOperationMetadata);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
@@ -162,12 +163,12 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         if (modelType != null) {
                             Log.d(TAG, "#onInsertSuccess - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertSuccess(modelType);
+                                tableEventsListener.onInsertSuccess(modelType, databaseOperationMetadata);
                             }
                         } else {
                             Log.d(TAG, "#onInsertFailure - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertFailure(insertModelType, null);
+                                tableEventsListener.onInsertFailure(insertModelType, null, databaseOperationMetadata);
                             }
                         }
                     }
@@ -176,7 +177,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     public void call(Throwable throwable) {
                         Log.d(TAG, "#onInsertFailure - onError");
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onInsertFailure(insertModelType, throwable);
+                            tableEventsListener.onInsertFailure(insertModelType, throwable, databaseOperationMetadata);
                         }
                         unsubscribeReference(subscriptionRef);
                     }
@@ -192,14 +193,14 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     }
 
     @Override
-    public synchronized void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType) {
+    public synchronized void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Log.i(TAG, "#update: " + oldModelType + "; " + newModelType);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTableActionAlterations.preUpdate(oldModelType, newModelType)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
                     public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.update(oldModelType, modelType);
+                        return mTable.update(oldModelType, modelType, databaseOperationMetadata);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
@@ -220,12 +221,12 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         if (modelType != null) {
                             Log.d(TAG, "#onUpdateSuccess - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateSuccess(oldModelType, modelType);
+                                tableEventsListener.onUpdateSuccess(oldModelType, modelType, databaseOperationMetadata);
                             }
                         } else {
                             Log.d(TAG, "#onUpdateFailure - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateFailure(oldModelType, null);
+                                tableEventsListener.onUpdateFailure(oldModelType, null, databaseOperationMetadata);
                             }
                         }
                     }
@@ -234,7 +235,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     public void call(Throwable throwable) {
                         Log.d(TAG, "#onUpdateFailure - onError");
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onUpdateFailure(oldModelType, throwable);
+                            tableEventsListener.onUpdateFailure(oldModelType, throwable, databaseOperationMetadata);
                         }
                         unsubscribeReference(subscriptionRef);
                     }
@@ -250,14 +251,14 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     }
 
     @Override
-    public synchronized void delete(@NonNull final ModelType modelType) {
+    public synchronized void delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Log.i(TAG, "#delete: " + modelType);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTableActionAlterations.preDelete(modelType)
                 .flatMap(new Func1<ModelType, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(ModelType modelType) {
-                        return mTable.delete(modelType);
+                        return mTable.delete(modelType, databaseOperationMetadata);
                     }
                 })
                 .doOnNext(new Action1<Boolean>() {
@@ -278,12 +279,12 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         if (success) {
                             Log.d(TAG, "#onDeleteSuccess - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteSuccess(modelType);
+                                tableEventsListener.onDeleteSuccess(modelType, databaseOperationMetadata);
                             }
                         } else {
                             Log.d(TAG, "#onDeleteFailure - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteFailure(modelType, null);
+                                tableEventsListener.onDeleteFailure(modelType, null, databaseOperationMetadata);
                             }
                         }
                     }
@@ -292,7 +293,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                     public void call(Throwable throwable) {
                         Log.d(TAG, "#onDeleteFailure - onError");
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onDeleteFailure(modelType, throwable);
+                            tableEventsListener.onDeleteFailure(modelType, throwable, databaseOperationMetadata);
                         }
                         unsubscribeReference(subscriptionRef);
                     }

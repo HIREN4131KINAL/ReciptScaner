@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import java.util.List;
 
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import rx.Observable;
 
 /**
@@ -68,26 +69,29 @@ public interface Table<ModelType, PrimaryKeyType> {
      * Inserts a new object of type {@link ModelType} into this table. Please note that this is a blocking operation
      *
      * @param modelType the object to insert
+     * @param databaseOperationMetadata metadata about this particular database operation
      * @return an {@link Observable} with: the inserted object of type {@link ModelType} or {@code null} if the insert failed
      */
     @NonNull
-    Observable<ModelType> insert(@NonNull ModelType modelType);
+    Observable<ModelType> insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Updates an existing object of type {@link ModelType} in this table. Please note that this is a blocking operation
      *
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
+     * @param databaseOperationMetadata metadata about this particular database operation
      * @return an {@link Observable} with: the updated object of type {@link ModelType} or {@code null} if the update failed
      */
     @NonNull
-    Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType);
+    Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Removes an existing object of type {@link ModelType} from this table. Please note that this is a blocking operation
      * @param modelType the object to remove
+     * @param databaseOperationMetadata metadata about this particular database operation
      * @return an {@link Observable} with: {@code true} if we successfully deleted this item. {@code false} otherwise
      */
     @NonNull
-    Observable<Boolean> delete(@NonNull ModelType modelType);
+    Observable<Boolean> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 }

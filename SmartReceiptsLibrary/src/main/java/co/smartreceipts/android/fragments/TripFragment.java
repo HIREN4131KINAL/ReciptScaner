@@ -48,6 +48,7 @@ import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
 import co.smartreceipts.android.workers.ImportTask;
@@ -339,7 +340,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                             .setCostCenter(costCenter)
                             .setDefaultCurrency(defaultCurrencyCode)
                             .build();
-                    mTripTableController.insert(insertTrip);
+                    mTripTableController.insert(insertTrip, new DatabaseOperationMetadata());
                     dialog.cancel();
                 } else { // Update
                     getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistUpdateReport);
@@ -352,7 +353,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
                             .setCostCenter(costCenter)
                             .setDefaultCurrency(defaultCurrencyCode)
                             .build();
-                    mTripTableController.update(trip, updateTrip);
+                    mTripTableController.update(trip, updateTrip, new DatabaseOperationMetadata());
                     dialog.cancel();
                 }
             }
@@ -392,7 +393,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                mTripTableController.delete(trip);
+                mTripTableController.delete(trip, new DatabaseOperationMetadata());
             }
         }).setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
             @Override
@@ -458,14 +459,14 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onInsertSuccess(@NonNull Trip trip) {
+    public void onInsertSuccess(@NonNull Trip trip, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             viewReceipts(trip);
         }
     }
 
     @Override
-    public void onInsertFailure(@NonNull Trip trip, @Nullable Throwable ex) {
+    public void onInsertFailure(@NonNull Trip trip, @Nullable Throwable ex, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             if (ex != null) {
                 Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
@@ -477,14 +478,14 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onUpdateSuccess(@NonNull Trip oldTip, @NonNull Trip newTrip) {
+    public void onUpdateSuccess(@NonNull Trip oldTip, @NonNull Trip newTrip, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             viewReceipts(newTrip);
         }
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Trip oldTrip, @Nullable Throwable ex) {
+    public void onUpdateFailure(@NonNull Trip oldTrip, @Nullable Throwable ex, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             if (ex != null) {
                 Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
@@ -496,7 +497,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Trip oldTrip) {
+    public void onDeleteSuccess(@NonNull Trip oldTrip, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             final Fragment detailsFragment = getFragmentManager().findFragmentByTag(ReceiptsFragment.TAG);
             if (detailsFragment != null) {
@@ -511,7 +512,7 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     }
 
     @Override
-    public void onDeleteFailure(@NonNull Trip oldTrip, @Nullable Throwable e) {
+    public void onDeleteFailure(@NonNull Trip oldTrip, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
         }

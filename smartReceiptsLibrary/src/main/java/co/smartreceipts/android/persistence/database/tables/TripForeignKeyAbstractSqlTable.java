@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.SelectionBackedDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
@@ -121,8 +122,8 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public synchronized ModelType insertBlocking(@NonNull ModelType modelType) {
-        final ModelType insertedItem = super.insertBlocking(modelType);
+    public synchronized ModelType insertBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final ModelType insertedItem = super.insertBlocking(modelType, databaseOperationMetadata);
         if (insertedItem != null) {
             final Trip trip = getTripFor(insertedItem);
             if (mPerTripCache.containsKey(trip)) {
@@ -139,8 +140,8 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType) {
-        final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType);
+    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType, databaseOperationMetadata);
         if (updatedItem != null) {
             final Trip oldTrip = getTripFor(oldModelType);
             if (mPerTripCache.containsKey(oldTrip)) {
@@ -168,8 +169,8 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @Override
-    public synchronized boolean deleteBlocking(@NonNull ModelType modelType) {
-        final boolean deleteResult = super.deleteBlocking(modelType);
+    public synchronized boolean deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final boolean deleteResult = super.deleteBlocking(modelType, databaseOperationMetadata);
         if (deleteResult) {
             final Trip trip = getTripFor(modelType);
             if (mPerTripCache.containsKey(trip)) {

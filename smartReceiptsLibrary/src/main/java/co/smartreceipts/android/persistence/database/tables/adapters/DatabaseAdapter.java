@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+
 /**
  * Enables to quickly convert a model object to/from Android database objects
  *
@@ -25,10 +27,11 @@ public interface DatabaseAdapter<ModelType, KeyType> {
      * Takes a single object of type {@link ModelType} and converts it to a set of {@link ContentValues}
      *
      * @param modelType the object to write to a set of {@link ContentValues}
+     * @param databaseOperationMetadata metadata about this particular database operation
      * @return the set of {@link ContentValues}
      */
     @NonNull
-    ContentValues write(@NonNull ModelType modelType);
+    ContentValues write(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * When an auto-increment primary key is used, we may need to generate an entry with this new id

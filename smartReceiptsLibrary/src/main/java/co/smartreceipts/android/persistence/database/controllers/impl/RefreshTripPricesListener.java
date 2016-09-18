@@ -10,6 +10,8 @@ import java.util.List;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 
 /**
  * A simple implementation of the {@link TableEventsListener} contract that will call {@link TripTableController#get()}
@@ -36,32 +38,38 @@ class RefreshTripPricesListener<ModelType> implements TableEventsListener<ModelT
     }
 
     @Override
-    public void onInsertSuccess(@NonNull ModelType modelType) {
-        mTripTableController.get();
+    public void onInsertSuccess(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mTripTableController.get();
+        }
     }
 
     @Override
-    public void onInsertFailure(@NonNull ModelType modelType, @Nullable Throwable e) {
-
-    }
-
-    @Override
-    public void onUpdateSuccess(@NonNull ModelType oldT, @NonNull ModelType newT) {
-        mTripTableController.get();
-    }
-
-    @Override
-    public void onUpdateFailure(@NonNull ModelType oldT, @Nullable Throwable e) {
+    public void onInsertFailure(@NonNull ModelType modelType, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
 
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull ModelType modelType) {
-        mTripTableController.get();
+    public void onUpdateSuccess(@NonNull ModelType oldT, @NonNull ModelType newT, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mTripTableController.get();
+        }
     }
 
     @Override
-    public void onDeleteFailure(@NonNull ModelType modelType, @Nullable Throwable e) {
+    public void onUpdateFailure(@NonNull ModelType oldT, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+
+    }
+
+    @Override
+    public void onDeleteSuccess(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mTripTableController.get();
+        }
+    }
+
+    @Override
+    public void onDeleteFailure(@NonNull ModelType modelType, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
 
     }
 }

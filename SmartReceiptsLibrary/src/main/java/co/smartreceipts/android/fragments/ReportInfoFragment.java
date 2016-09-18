@@ -25,6 +25,7 @@ import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
 public class ReportInfoFragment extends WBFragment {
 
@@ -163,7 +164,7 @@ public class ReportInfoFragment extends WBFragment {
         }
 
         @Override
-        public void onUpdateSuccess(@NonNull Trip oldTrip, @NonNull Trip newTrip) {
+        public void onUpdateSuccess(@NonNull Trip oldTrip, @NonNull Trip newTrip, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
             if (isAdded()) {
                 if (mTrip.equals(oldTrip)) {
                     mTrip = newTrip;

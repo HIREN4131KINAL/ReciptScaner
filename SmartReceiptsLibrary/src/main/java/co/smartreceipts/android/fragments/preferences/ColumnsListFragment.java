@@ -28,6 +28,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ColumnTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
 
 public abstract class ColumnsListFragment extends WBFragment implements TableEventsListener<Column<Receipt>> {
@@ -110,7 +111,7 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
 		}
 		else if (item.getItemId() == R.id.menu_settings_delete) {
             mDisableInsertsAndDeletes = true;
-			mColumnTableController.deleteLast();
+			mColumnTableController.deleteLast(new DatabaseOperationMetadata());
 			return true;
 		}
 		else {
@@ -136,7 +137,7 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
     }
 
     @Override
-    public void onInsertSuccess(@NonNull Column<Receipt> column) {
+    public void onInsertSuccess(@NonNull Column<Receipt> column, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mDisableInsertsAndDeletes = false;
         if (isResumed()) {
             mColumnTableController.get();
@@ -144,24 +145,24 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
     }
 
     @Override
-    public void onInsertFailure(@NonNull Column<Receipt> column, @Nullable Throwable e) {
+    public void onInsertFailure(@NonNull Column<Receipt> column, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mDisableInsertsAndDeletes = false;
     }
 
     @Override
-    public void onUpdateSuccess(@NonNull Column<Receipt> oldT, @NonNull Column<Receipt> newT) {
+    public void onUpdateSuccess(@NonNull Column<Receipt> oldT, @NonNull Column<Receipt> newT, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             mColumnTableController.get();
         }
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Column<Receipt> oldT, @Nullable Throwable e) {
+    public void onUpdateFailure(@NonNull Column<Receipt> oldT, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         // No-op
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Column<Receipt> column) {
+    public void onDeleteSuccess(@NonNull Column<Receipt> column, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mDisableInsertsAndDeletes = false;
         if (isResumed()) {
             mColumnTableController.get();
@@ -169,7 +170,7 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
     }
 
     @Override
-    public void onDeleteFailure(@NonNull Column<Receipt> column, @Nullable Throwable e) {
+    public void onDeleteFailure(@NonNull Column<Receipt> column, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         mDisableInsertsAndDeletes = false;
     }
 
@@ -271,7 +272,7 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
             final SpinnerTag spinnerTag = (SpinnerTag) parent.getTag();
             final Column<Receipt> oldColumn = spinnerTag.column;
             final Column<Receipt> newColumn = mSpinnerAdapter.getItem(position);
-            mColumnTableController.update(oldColumn, newColumn);
+            mColumnTableController.update(oldColumn, newColumn, new DatabaseOperationMetadata());
         }
 
         @Override

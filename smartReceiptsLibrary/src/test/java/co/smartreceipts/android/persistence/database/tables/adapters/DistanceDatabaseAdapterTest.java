@@ -19,6 +19,8 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -138,13 +140,33 @@ public class DistanceDatabaseAdapterTest {
     }
 
     @Test
+    public void writeUnsycned() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.writeUnsynced(mSyncState)).thenReturn(syncValues);
+
+        final ContentValues contentValues = mDistanceDatabaseAdapter.write(mDistance, new DatabaseOperationMetadata());
+        assertEquals(PARENT, contentValues.getAsString("parent"));
+        assertEquals(DISTANCE, contentValues.getAsDouble("distance"), 0.0001d);
+        assertEquals(LOCATION, contentValues.getAsString("location"));
+        assertEquals(DATE, (long) contentValues.getAsLong("date"));
+        assertEquals(TIMEZONE, contentValues.getAsString("timezone"));
+        assertEquals(COMMENT, contentValues.getAsString("comment"));
+        assertEquals(RATE, contentValues.getAsDouble("rate"), 0.0001d);
+        assertEquals(CURRENCY_CODE, contentValues.getAsString("rate_currency"));
+        assertEquals(sync, contentValues.getAsString(sync));
+        assertFalse(contentValues.containsKey("id"));
+    }
+
+    @Test
     public void write() throws Exception {
         final String sync = "sync";
         final ContentValues syncValues = new ContentValues();
         syncValues.put(sync, sync);
         when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
 
-        final ContentValues contentValues = mDistanceDatabaseAdapter.write(mDistance);
+        final ContentValues contentValues = mDistanceDatabaseAdapter.write(mDistance, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         assertEquals(PARENT, contentValues.getAsString("parent"));
         assertEquals(DISTANCE, contentValues.getAsDouble("distance"), 0.0001d);
         assertEquals(LOCATION, contentValues.getAsString("location"));

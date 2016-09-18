@@ -56,6 +56,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
@@ -710,11 +711,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             builderFactory.setFile(mFile);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistNewReceipt);
-            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build());
+            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
             getDateManager().setDateEditTextListenerDialogHolder(null);
         } else {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistUpdateReceipt);
-            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, builderFactory.build());
+            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, builderFactory.build(), new DatabaseOperationMetadata());
             getDateManager().setDateEditTextListenerDialogHolder(null);
         }
 

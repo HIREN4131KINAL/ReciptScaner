@@ -12,6 +12,8 @@ import org.robolectric.RobolectricGradleTestRunner;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
 
@@ -72,13 +74,26 @@ public class CategoryDatabaseAdapterTest {
     }
 
     @Test
+    public void writeUnsynced() throws Exception {
+        final String sync = "sync";
+        final ContentValues syncValues = new ContentValues();
+        syncValues.put(sync, sync);
+        when(mSyncStateAdapter.writeUnsynced(mSyncState)).thenReturn(syncValues);
+
+        final ContentValues contentValues = mCategoryDatabaseAdapter.write(mCategory, new DatabaseOperationMetadata());
+        assertEquals(NAME, contentValues.getAsString("name"));
+        assertEquals(CODE, contentValues.getAsString("code"));
+        assertEquals(sync, contentValues.getAsString(sync));
+    }
+
+    @Test
     public void write() throws Exception {
         final String sync = "sync";
         final ContentValues syncValues = new ContentValues();
         syncValues.put(sync, sync);
         when(mSyncStateAdapter.write(mSyncState)).thenReturn(syncValues);
 
-        final ContentValues contentValues = mCategoryDatabaseAdapter.write(mCategory);
+        final ContentValues contentValues = mCategoryDatabaseAdapter.write(mCategory, new DatabaseOperationMetadata(OperationFamilyType.Sync));
         assertEquals(NAME, contentValues.getAsString("name"));
         assertEquals(CODE, contentValues.getAsString("code"));
         assertEquals(sync, contentValues.getAsString(sync));

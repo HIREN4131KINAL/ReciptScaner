@@ -12,6 +12,7 @@ import java.util.Collections;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -69,7 +70,7 @@ public class ReceiptRefreshTripPricesListenerTest {
 
     @Test
     public void onMoveFailure() {
-        mReceiptRefreshTripPricesListener.onUpdateFailure(mReceipt, null);
+        mReceiptRefreshTripPricesListener.onUpdateFailure(mReceipt, null, new DatabaseOperationMetadata());
         verifyZeroInteractions(mTripTableController);
     }
 

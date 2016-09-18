@@ -24,6 +24,7 @@ import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
 public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
 
@@ -155,7 +156,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     }
 
     @Override
-    public void onInsertSuccess(@NonNull Distance distance) {
+    public void onInsertSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
@@ -163,31 +164,31 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     }
 
     @Override
-    public void onInsertFailure(@NonNull Distance distance, @Nullable Throwable e) {
+    public void onInsertFailure(@NonNull Distance distance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_insert_failed);
     }
 
     @Override
-    public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance) {
+    public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Distance oldDistance, @Nullable Throwable e) {
+    public void onUpdateFailure(@NonNull Distance oldDistance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_update_failed);
     }
 
     @Override
-    public void onDeleteSuccess(@NonNull Distance distance) {
+    public void onDeleteSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
             mDistanceTableController.get(mTrip);
         }
     }
 
     @Override
-    public void onDeleteFailure(@NonNull Distance distance, @Nullable Throwable e) {
+    public void onDeleteFailure(@NonNull Distance distance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_delete_failed);
     }
 

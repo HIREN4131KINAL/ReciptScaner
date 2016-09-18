@@ -16,6 +16,7 @@ import co.smartreceipts.android.ImmediateExecutor;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
@@ -77,7 +78,7 @@ public class TripTableActionAlterationsTest {
     @Test
     public void postInsertForNullTrip() throws Exception {
         mTripTableActionAlterations.postInsert(null); // No exceptions
-        verify(mTripsTable, never()).delete(mTrip1);
+        verify(mTripsTable, never()).delete(mTrip1, new DatabaseOperationMetadata());
     }
 
     @Test
@@ -86,7 +87,7 @@ public class TripTableActionAlterationsTest {
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(new File(name));
         mTripTableActionAlterations.postInsert(mTrip1); // No exceptions
-        verify(mTripsTable, never()).delete(mTrip1);
+        verify(mTripsTable, never()).delete(mTrip1, new DatabaseOperationMetadata());
     }
 
     @Test (expected = IOException.class)
@@ -94,9 +95,9 @@ public class TripTableActionAlterationsTest {
         final String name = "name";
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(null);
-        when(mTripsTable.delete(mTrip1)).thenReturn(Observable.just(true));
+        when(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(true));
         mTripTableActionAlterations.postInsert(mTrip1);
-        verify(mTripsTable).delete(mTrip1);
+        verify(mTripsTable).delete(mTrip1, new DatabaseOperationMetadata());
     }
 
     @Test
@@ -131,7 +132,7 @@ public class TripTableActionAlterationsTest {
         verify(mTrip2).setDailySubTotal(mPrice2);
         verify(mReceiptsTable).updateParentBlocking(mTrip1, mTrip2);
         verify(mDistanceTable).updateParentBlocking(mTrip1, mTrip2);
-        verify(mTripsTable, never()).update(mTrip2, mTrip1);
+        verify(mTripsTable, never()).update(mTrip2, mTrip1, new DatabaseOperationMetadata());
         verify(mReceiptsTable, never()).updateParentBlocking(mTrip2, mTrip1);
         verify(mDistanceTable, never()).updateParentBlocking(mTrip2, mTrip1);
     }
@@ -144,7 +145,7 @@ public class TripTableActionAlterationsTest {
         when(mTrip2.getName()).thenReturn(name2);
         when(mTrip1.getDirectory()).thenReturn(new File(name1));
         when(mStorageManager.rename(new File(name1), name2)).thenReturn(new File(name1));
-        when(mTripsTable.update(mTrip2, mTrip1)).thenReturn(Observable.just(mTrip1));
+        when(mTripsTable.update(mTrip2, mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(mTrip1));
         mTripTableActionAlterations.postUpdate(mTrip1, mTrip2);
 
         verify(mTrip2).setPrice(mPrice1);
@@ -153,7 +154,7 @@ public class TripTableActionAlterationsTest {
         verify(mDistanceTable).updateParentBlocking(mTrip1, mTrip2);
         verify(mReceiptsTable).updateParentBlocking(mTrip2, mTrip1);
         verify(mDistanceTable).updateParentBlocking(mTrip2, mTrip1);
-        verify(mTripsTable).update(mTrip2, mTrip1);
+        verify(mTripsTable).update(mTrip2, mTrip1, new DatabaseOperationMetadata());
     }
 
     @Test

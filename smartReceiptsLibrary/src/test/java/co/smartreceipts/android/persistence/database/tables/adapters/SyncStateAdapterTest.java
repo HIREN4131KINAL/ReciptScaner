@@ -82,9 +82,38 @@ public class SyncStateAdapterTest {
     }
 
     @Test
+    public void writeUnsynced() throws Exception {
+        final ContentValues contentValues = mSyncStateAdapter.writeUnsynced(mSyncState);
+        assertEquals(IDENTIFIER_STRING, contentValues.getAsString("drive_sync_id"));
+        assertFalse(contentValues.getAsBoolean("drive_is_synced")); // Note: It's always false here
+        assertEquals(DRIVE_IS_MARKED, contentValues.getAsBoolean("drive_marked_for_deletion"));
+        assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));
+    }
+
+    @Test
+    public void writeUnsyncedWithNullId() throws Exception {
+        when(mSyncState.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
+        final ContentValues contentValues = mSyncStateAdapter.writeUnsynced(mSyncState);
+        assertNull(contentValues.getAsString("drive_sync_id"));
+        assertFalse(contentValues.getAsBoolean("drive_is_synced")); // Note: It's always false here
+        assertEquals(DRIVE_IS_MARKED, contentValues.getAsBoolean("drive_marked_for_deletion"));
+        assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));
+    }
+
+    @Test
     public void write() throws Exception {
         final ContentValues contentValues = mSyncStateAdapter.write(mSyncState);
         assertEquals(IDENTIFIER_STRING, contentValues.getAsString("drive_sync_id"));
+        assertEquals(DRIVE_IS_SYNCED, contentValues.getAsBoolean("drive_is_synced"));
+        assertEquals(DRIVE_IS_MARKED, contentValues.getAsBoolean("drive_marked_for_deletion"));
+        assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));
+    }
+
+    @Test
+    public void writeWithNullId() throws Exception {
+        when(mSyncState.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
+        final ContentValues contentValues = mSyncStateAdapter.write(mSyncState);
+        assertNull(contentValues.getAsString("drive_sync_id"));
         assertEquals(DRIVE_IS_SYNCED, contentValues.getAsBoolean("drive_is_synced"));
         assertEquals(DRIVE_IS_MARKED, contentValues.getAsBoolean("drive_marked_for_deletion"));
         assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));

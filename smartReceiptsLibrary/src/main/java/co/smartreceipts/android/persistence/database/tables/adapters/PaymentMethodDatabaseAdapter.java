@@ -8,6 +8,8 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -41,10 +43,14 @@ public final class PaymentMethodDatabaseAdapter implements DatabaseAdapter<Payme
 
     @NonNull
     @Override
-    public ContentValues write(@NonNull PaymentMethod paymentMethod) {
+    public ContentValues write(@NonNull PaymentMethod paymentMethod, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
         values.put(PaymentMethodsTable.COLUMN_METHOD, paymentMethod.getMethod());
-        values.putAll(mSyncStateAdapter.write(paymentMethod.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(paymentMethod.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(paymentMethod.getSyncState()));
+        }
         return values;
     }
 

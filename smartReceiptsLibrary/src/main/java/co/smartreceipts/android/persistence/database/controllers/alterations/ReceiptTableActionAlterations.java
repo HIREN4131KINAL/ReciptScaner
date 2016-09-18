@@ -18,6 +18,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.BuilderFactory1;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import rx.Observable;
@@ -129,7 +130,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     public void postMove(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
         if (newReceipt != null) { // i.e. - the move succeeded (delete the old data)
             Log.i(TAG, "Completed the move procedure");
-            if (mReceiptsTable.delete(oldReceipt).toBlocking().first()) {
+            if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).toBlocking().first()) {
                 if (oldReceipt.hasFile()) {
                     if (!mStorageManager.delete(oldReceipt.getFile())) {
                         Log.e(TAG, "Failed to delete the moved receipt's file");

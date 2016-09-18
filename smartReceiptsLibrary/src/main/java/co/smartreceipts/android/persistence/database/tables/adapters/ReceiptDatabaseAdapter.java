@@ -18,6 +18,8 @@ import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
@@ -160,7 +162,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
 
     @NonNull
     @Override
-    public ContentValues write(@NonNull Receipt receipt) {
+    public ContentValues write(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
 
         // Add core data
@@ -200,7 +202,11 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, receipt.getExtraEditText1());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2, receipt.getExtraEditText2());
         values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3, receipt.getExtraEditText3());
-        values.putAll(mSyncStateAdapter.write(receipt.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(receipt.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(receipt.getSyncState()));
+        }
 
         return values;
     }

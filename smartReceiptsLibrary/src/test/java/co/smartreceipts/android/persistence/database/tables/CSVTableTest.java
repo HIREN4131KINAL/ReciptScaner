@@ -27,6 +27,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 import static org.junit.Assert.assertEquals;
@@ -81,8 +82,8 @@ public class CSVTableTest {
 
         // Now create the table and insert some defaults
         mCSVTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState())).toBlocking().first();
-        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState())).toBlocking().first();
+        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
+        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(mColumn1);
         assertNotNull(mColumn2);
     }
@@ -182,7 +183,7 @@ public class CSVTableTest {
     @Test
     public void insert() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
@@ -203,7 +204,7 @@ public class CSVTableTest {
     @Test
     public void update() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState())).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
@@ -213,17 +214,18 @@ public class CSVTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mCSVTable.delete(mColumn1).toBlocking().first());
+        assertTrue(mCSVTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
         assertEquals(mCSVTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
     }
 
     @Test
     public void deleteLast() {
-        assertTrue(mCSVTable.deleteLast().toBlocking().first());
+        final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
+        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
         assertEquals(mCSVTable.get().toBlocking().first(), Collections.singletonList(mColumn1));
-        assertTrue(mCSVTable.deleteLast().toBlocking().first());
+        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
         assertEquals(mCSVTable.get().toBlocking().first(), Collections.emptyList());
-        assertFalse(mCSVTable.deleteLast().toBlocking().first());
+        assertFalse(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
     }
 
 }

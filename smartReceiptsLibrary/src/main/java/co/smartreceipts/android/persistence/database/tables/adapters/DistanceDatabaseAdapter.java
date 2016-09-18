@@ -15,6 +15,8 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
@@ -84,7 +86,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
 
     @NonNull
     @Override
-    public ContentValues write(@NonNull Distance distance) {
+    public ContentValues write(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
 
         values.put(DistanceTable.COLUMN_PARENT, distance.getTrip().getName());
@@ -95,7 +97,11 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
         values.put(DistanceTable.COLUMN_RATE, distance.getRate().doubleValue());
         values.put(DistanceTable.COLUMN_RATE_CURRENCY, distance.getPrice().getCurrencyCode());
         values.put(DistanceTable.COLUMN_COMMENT, distance.getComment().trim());
-        values.putAll(mSyncStateAdapter.write(distance.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(distance.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(distance.getSyncState()));
+        }
 
         return values;
     }

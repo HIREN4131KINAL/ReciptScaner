@@ -13,6 +13,7 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
@@ -95,7 +96,7 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
      */
     @NonNull
     public final Observable<Column<Receipt>> insertDefaultColumn() {
-        return insert(mReceiptColumnDefinitions.getDefaultInsertColumn());
+        return insert(mReceiptColumnDefinitions.getDefaultInsertColumn(), new DatabaseOperationMetadata());
     }
 
     /**
@@ -104,11 +105,11 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
      * @return {@code true} if it could be delete. {@code false} otherwise (e.g. there are no more columns)
      */
     @NonNull
-    public final Observable<Boolean> deleteLast() {
+    public final Observable<Boolean> deleteLast(@NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         return get().flatMap(new Func1<List<Column<Receipt>>, Observable<? extends Boolean>>() {
             @Override
             public Observable<? extends Boolean> call(List<Column<Receipt>> columns) {
-                return AbstractColumnTable.this.removeLastColumnIfPresent(columns);
+                return AbstractColumnTable.this.removeLastColumnIfPresent(columns, databaseOperationMetadata);
             }
         });
     }
@@ -121,10 +122,10 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
     protected abstract void insertDefaults(@NonNull TableDefaultsCustomizer customizer);
 
     @NonNull
-    private Observable<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns) {
+    private Observable<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
         if (lastColumn != null) {
-            return delete(lastColumn);
+            return delete(lastColumn, databaseOperationMetadata);
         } else {
             return Observable.just(false);
         }

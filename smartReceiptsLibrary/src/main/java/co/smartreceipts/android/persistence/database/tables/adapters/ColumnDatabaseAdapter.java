@@ -10,6 +10,8 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ColumnBuilderFactory;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
 
@@ -49,10 +51,14 @@ public final class ColumnDatabaseAdapter implements DatabaseAdapter<Column<Recei
 
     @NonNull
     @Override
-    public ContentValues write(@NonNull Column<Receipt> column) {
+    public ContentValues write(@NonNull Column<Receipt> column, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = new ContentValues();
         values.put(mTypeColumnName, column.getName());
-        values.putAll(mSyncStateAdapter.write(column.getSyncState()));
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            values.putAll(mSyncStateAdapter.write(column.getSyncState()));
+        } else {
+            values.putAll(mSyncStateAdapter.writeUnsynced(column.getSyncState()));
+        }
         return values;
     }
 

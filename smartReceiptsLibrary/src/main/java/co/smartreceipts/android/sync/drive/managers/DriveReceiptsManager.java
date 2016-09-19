@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.drive.handlers;
+package co.smartreceipts.android.sync.drive.managers;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.List;
 
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -19,17 +18,14 @@ import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
-import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 import rx.Scheduler;
-import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
-public class DriveReceiptHandlers {
+public class DriveReceiptsManager {
 
-    private static final String TAG = DriveReceiptHandlers.class.getSimpleName();
+    private static final String TAG = DriveReceiptsManager.class.getSimpleName();
 
     private final TableController<Receipt> mReceiptTableController;
     private final ReceiptsTable mReceiptsTable;
@@ -40,7 +36,7 @@ public class DriveReceiptHandlers {
     private final Scheduler mSubscribeOnScheduler;
 
 
-    public DriveReceiptHandlers(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
+    public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
                                 @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveStreamMappings driveStreamMappings,
                                 @NonNull ReceiptBuilderFactoryFactory receiptBuilderFactoryFactory, @NonNull Scheduler observeOnScheduler,
                                 @NonNull Scheduler subscribeOnScheduler) {

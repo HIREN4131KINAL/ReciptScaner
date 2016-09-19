@@ -59,9 +59,9 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
         mLatchReference.set(new CountDownLatch(1));
     }
 
-    @NonNull
-    public Observable<Boolean> updateDatabase() {
-        return Observable.just(true);
+
+    public void updateDatabase() {
+        Observable.just(true);
     }
 
     @NonNull

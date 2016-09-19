@@ -107,8 +107,10 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        /*
         final ReceiptBackupListener receiptBackupListener = new ReceiptBackupListener(mDriveTaskManager, mTableControllerManager.getReceiptTableController());
         mTableControllerManager.getReceiptTableController().subscribe(receiptBackupListener);
+        */
         mDriveTaskManager.onConnected(bundle);
     }
 

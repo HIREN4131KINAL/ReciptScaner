@@ -14,66 +14,42 @@ import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTab
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
+public class ReceiptBackupListener extends DatabaseBackupListener<Receipt> {
 
-    private final DriveStreamsManager mDriveTaskManager;
-    private final ReceiptTableController mReceiptTableController;
-    private final Set<Receipt> mReceiptsToIgnoreUpdates = new HashSet<>();
+    private final DriveReceiptsManager mDriveReceiptsManager;
 
-    public ReceiptBackupListener(@NonNull DriveStreamsManager driveTaskManager, @NonNull ReceiptTableController receiptTableController) {
-        mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
-        mReceiptTableController = Preconditions.checkNotNull(receiptTableController);
+    public ReceiptBackupListener(@NonNull DriveStreamsManager driveTaskManager, @NonNull DriveReceiptsManager driveReceiptsManager) {
+        super(driveTaskManager);
+        mDriveReceiptsManager = Preconditions.checkNotNull(driveReceiptsManager);
     }
 
     @Override
-    public void onInsertSuccess(@NonNull final Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        if (receipt.getFile() != null) {
-            mDriveTaskManager.uploadFileToDrive(receipt.getSyncState(), receipt.getFile())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribe(new Action1<SyncState>() {
-                    @Override
-                    public void call(SyncState syncState) {
-                        mReceiptsToIgnoreUpdates.add(receipt);
-                        mReceiptTableController.update(receipt, new ReceiptBuilderFactory(receipt).setSyncState(syncState).build(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
-                    }
-                });
+    public void onInsertSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        super.onInsertSuccess(receipt, databaseOperationMetadata);
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mDriveReceiptsManager.handleInsertOrUpdate(receipt);
         }
-        mDriveTaskManager.updateDatabase();
     }
 
     @Override
     public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        if (!mReceiptsToIgnoreUpdates.remove(oldReceipt)) {
-            // TODO: Something if we aren't ignoring
+        super.onUpdateSuccess(oldReceipt, newReceipt, databaseOperationMetadata);
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mDriveReceiptsManager.handleInsertOrUpdate(newReceipt);
         }
-        mDriveTaskManager.updateDatabase();
     }
 
     @Override
-    public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        mReceiptsToIgnoreUpdates.remove(oldReceipt);
-    }
-
-    @Override
-    public void onDeleteSuccess(@NonNull final Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        if (receipt.getFile() != null) {
-            mDriveTaskManager.deleteDriveFile(receipt.getSyncState(), true)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(Schedulers.io())
-                    .subscribe(new Action1<SyncState>() {
-                        @Override
-                        public void call(SyncState syncState) {
-                            // TODO: Handle mark for deletion vs full deleteDriveFile
-                            mReceiptTableController.delete(receipt, new DatabaseOperationMetadata());
-                        }
-                    });
+    public void onDeleteSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        super.onDeleteSuccess(receipt, databaseOperationMetadata);
+        if (databaseOperationMetadata.getOperationFamilyType() != OperationFamilyType.Sync) {
+            mDriveReceiptsManager.handleDelete(receipt);
         }
-        mDriveTaskManager.updateDatabase();
     }
 }

@@ -57,16 +57,13 @@ public class ImmutableCategoryImpl implements Category {
         ImmutableCategoryImpl that = (ImmutableCategoryImpl) o;
 
         if (!mName.equals(that.mName)) return false;
-        if (!mCode.equals(that.mCode)) return false;
-        return mSyncState.equals(that.mSyncState);
-
+        return (mCode.equals(that.mCode));
     }
 
     @Override
     public int hashCode() {
         int result = mName.hashCode();
         result = 31 * result + mCode.hashCode();
-        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 

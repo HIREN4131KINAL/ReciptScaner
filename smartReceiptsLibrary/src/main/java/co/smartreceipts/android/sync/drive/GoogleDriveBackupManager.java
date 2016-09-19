@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
-import co.smartreceipts.android.sync.drive.rx.RxDriveStreams;
+import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
 public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -34,7 +34,7 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
     private static final int REQUEST_CODE_RESOLUTION = 1;
 
     private final GoogleApiClient mGoogleApiClient;
-    private final GoogleDriveTaskManager mDriveTaskManager;
+    private final DriveStreamsManager mDriveTaskManager;
     private final AtomicReference<WeakReference<FragmentActivity>> mActivityReference;
     private final TableControllerManager mTableControllerManager;
     private final Context mContext;
@@ -48,7 +48,7 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
                 .useDefaultAccount()
                 .build();
         mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
-        mDriveTaskManager = new GoogleDriveTaskManager(new RxDriveStreams(mGoogleApiClient, context), databaseHelper.getReceiptsTable());
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, databaseHelper.getReceiptsTable());
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
     }

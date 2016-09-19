@@ -261,8 +261,7 @@ public class DefaultTripImpl implements Trip {
         if (!mEndDate.equals(that.mEndDate)) return false;
         if (!mEndTimeZone.equals(that.mEndTimeZone)) return false;
         if (!mDefaultCurrency.equals(that.mDefaultCurrency)) return false;
-        if (!mCostCenter.equals(that.mCostCenter)) return false;
-        return mSyncState.equals(that.mSyncState);
+        return (mCostCenter.equals(that.mCostCenter));
 
     }
 
@@ -276,7 +275,6 @@ public class DefaultTripImpl implements Trip {
         result = 31 * result + mEndTimeZone.hashCode();
         result = 31 * result + mDefaultCurrency.hashCode();
         result = 31 * result + mCostCenter.hashCode();
-        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 

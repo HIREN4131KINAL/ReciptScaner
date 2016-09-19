@@ -21,6 +21,7 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.DefaultOrderBy;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.model.Syncable;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func0;
@@ -98,8 +99,8 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     protected synchronized void onUpgradeToAddSyncInformation(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion <= 14) { // Add syncing state information
             final String alter1 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_SYNC_ID + " TEXT";
-            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_IS_SYNCED + " BOOLEAN";
-            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN";
+            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0";
+            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0";
             final String alter4 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE";
 
             db.execSQL(alter1);
@@ -135,7 +136,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                 final ArrayList<ModelType> results = new ArrayList<>();
                 Cursor cursor = null;
                 try {
-                    cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Boolean.FALSE.toString()}, null, null, null);
+                    cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(0) }, null, null, null);
                     if (cursor != null && cursor.moveToFirst()) {
                         do {
                             mCachedResults.add(mDatabaseAdapter.read(cursor));
@@ -206,7 +207,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
         Cursor cursor = null;
         try {
             mCachedResults = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, null, null, null, null, mOrderBy.getOrderByPredicate());
+            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[] { Integer.toString(0) }, null, null, mOrderBy.getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     mCachedResults.add(mDatabaseAdapter.read(cursor));
@@ -288,10 +289,6 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     @SuppressWarnings("unchecked")
     @Nullable
     public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        if (oldModelType.equals(newModelType)) {
-            return oldModelType;
-        }
-
         final ContentValues values = mDatabaseAdapter.write(newModelType, databaseOperationMetadata);
         final String oldPrimaryKeyValue = mPrimaryKey.getPrimaryKeyValue(oldModelType).toString();
         if (getWritableDatabase().update(getTableName(), values, mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ oldPrimaryKeyValue }) > 0) {
@@ -306,7 +303,14 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
             }
             if (mCachedResults != null) {
                 mCachedResults.remove(oldModelType);
-                mCachedResults.add(updatedItem);
+                if (newModelType instanceof Syncable) {
+                    final Syncable syncable = (Syncable) newModelType;
+                    if (!syncable.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
+                        mCachedResults.add(updatedItem);
+                    }
+                } else {
+                    mCachedResults.add(updatedItem);
+                }
                 if (updatedItem instanceof Comparable<?>) {
                     Collections.sort((List<? extends Comparable>)mCachedResults);
                 }

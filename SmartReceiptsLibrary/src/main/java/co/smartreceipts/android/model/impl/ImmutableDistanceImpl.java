@@ -196,10 +196,11 @@ public final class ImmutableDistanceImpl implements Distance {
             return false;
         if (mRate != null ? !mRate.equals(that.mRate) : that.mRate != null) return false;
         if (mPrice != null ? !mPrice.equals(that.mPrice) : that.mPrice != null) return false;
-        if (mComment != null ? !mComment.equals(that.mComment) : that.mComment != null)
+        if (mComment != null ? !mComment.equals(that.mComment) : that.mComment != null) {
             return false;
-        return mSyncState.equals(that.mSyncState);
-
+        } else {
+            return true;
+        }
     }
 
     @Override
@@ -213,7 +214,6 @@ public final class ImmutableDistanceImpl implements Distance {
         result = 31 * result + (mRate != null ? mRate.hashCode() : 0);
         result = 31 * result + (mPrice != null ? mPrice.hashCode() : 0);
         result = 31 * result + (mComment != null ? mComment.hashCode() : 0);
-        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 

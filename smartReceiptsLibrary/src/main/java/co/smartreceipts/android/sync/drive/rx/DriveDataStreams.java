@@ -39,9 +39,9 @@ import rx.Observable;
 import rx.Subscriber;
 import wb.android.storage.StorageManager;
 
-public class RxDriveStreams {
+class DriveDataStreams {
 
-    private static final String TAG = RxDriveStreams.class.getSimpleName();
+    private static final String TAG = DriveDataStreams.class.getSimpleName();
 
     private static final String SMART_RECEIPTS_FOLDER = "Smart Receipts";
     private static final CustomPropertyKey SMART_RECEIPTS_FOLDER_KEY = new CustomPropertyKey("smart_receipts_id", CustomPropertyKey.PRIVATE);
@@ -53,12 +53,12 @@ public class RxDriveStreams {
     private final DriveUploadCompleteManager mDriveUploadCompleteManager;
     private final Executor mExecutor;
 
-    public RxDriveStreams(@NonNull GoogleApiClient googleApiClient, @NonNull Context context) {
+    public DriveDataStreams(@NonNull Context context, @NonNull GoogleApiClient googleApiClient) {
         this(googleApiClient, context, new GoogleDriveSyncMetadata(context), new DeviceMetadata(context), new DriveUploadCompleteManager(), Executors.newCachedThreadPool());
     }
 
-    public RxDriveStreams(@NonNull GoogleApiClient googleApiClient, @NonNull Context context, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
-                          @NonNull DeviceMetadata deviceMetadata, @NonNull DriveUploadCompleteManager driveUploadCompleteManager, @NonNull Executor executor) {
+    public DriveDataStreams(@NonNull GoogleApiClient googleApiClient, @NonNull Context context, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
+                            @NonNull DeviceMetadata deviceMetadata, @NonNull DriveUploadCompleteManager driveUploadCompleteManager, @NonNull Executor executor) {
         mGoogleApiClient = Preconditions.checkNotNull(googleApiClient);
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mGoogleDriveSyncMetadata = Preconditions.checkNotNull(googleDriveSyncMetadata);

@@ -171,7 +171,6 @@ public class DefaultTripImplTest {
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, WBCurrency.MISSING_CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, "bad", COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, COMMENT, "bad", Source.Undefined, mSyncState))));
-        assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, COMMENT, COST_CENTER, Source.Undefined, new DefaultSyncState()))));
 
         // Special equals cases (source, price, and daily subtotal don't cound):
         final Trip tripWithPrice = new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState);

@@ -8,16 +8,26 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
+import java.sql.Date;
+import java.util.Collections;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.ReceiptDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryKey;
+import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
+import co.smartreceipts.android.sync.model.impl.IdentifierMap;
+import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
+import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 
 /**
  * Stores all database operations related to the {@link Receipt} model objects
@@ -79,8 +89,8 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN, "
+                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Log.d(TAG, receipts);
@@ -198,5 +208,21 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
     @Override
     protected Trip getTripFor(@NonNull Receipt receipt) {
         return receipt.getTrip();
+    }
+
+    @Override
+    public synchronized boolean deleteBlocking(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
+            return super.deleteBlocking(receipt, databaseOperationMetadata);
+        } else {
+            // TODO: Generalize this in a more generic, less drive specific way
+            final SyncState oldSyncState = receipt.getSyncState();
+            final SyncState newSyncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, oldSyncState.getSyncId(SyncProvider.GoogleDrive))),
+                    new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
+                    new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
+                            new Date(System.currentTimeMillis()));
+            final Receipt newReceipt = new ReceiptBuilderFactory(receipt).setSyncState(newSyncState).build();
+            return super.updateBlocking(receipt, newReceipt, databaseOperationMetadata) != null;
+        }
     }
 }

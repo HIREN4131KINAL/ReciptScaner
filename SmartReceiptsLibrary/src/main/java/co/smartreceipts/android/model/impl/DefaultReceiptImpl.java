@@ -392,7 +392,6 @@ public final class DefaultReceiptImpl implements Receipt {
         if (!mTax.equals(that.mTax)) return false;
         if (!mDate.equals(that.mDate)) return false;
         if (!mTimeZone.equals(that.mTimeZone)) return false;
-        if (!mSyncState.equals(that.mSyncState)) return false;
         if (mExtraEditText1 != null ? !mExtraEditText1.equals(that.mExtraEditText1) : that.mExtraEditText1 != null)
             return false;
         if (mExtraEditText2 != null ? !mExtraEditText2.equals(that.mExtraEditText2) : that.mExtraEditText2 != null)
@@ -415,7 +414,6 @@ public final class DefaultReceiptImpl implements Receipt {
         result = 31 * result + mTax.hashCode();
         result = 31 * result + mDate.hashCode();
         result = 31 * result + mTimeZone.hashCode();
-        result = 31 * result + mSyncState.hashCode();
         result = 31 * result + (mIsExpensable ? 1 : 0);
         result = 31 * result + (mIsFullPage ? 1 : 0);
         result = 31 * result + (mExtraEditText1 != null ? mExtraEditText1.hashCode() : 0);

@@ -142,8 +142,8 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getValue().contains("rate DECIMAL(10, 2)"));
         assertTrue(mSqlCaptor.getValue().contains("rate_currency TEXT"));
         assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN DEFAULT 0"));
         assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
@@ -178,8 +178,8 @@ public class DistanceTableTest {
         assertEquals(mSqlCaptor.getAllValues().get(2), "INSERT INTO distance(parent, distance, location, date, timezone, comment, rate_currency) SELECT name, miles_new , \"\" as location, from_date, from_timezone , \"\" as comment, \"USD\" as rate_currency FROM trips WHERE trips_default_currency IS NULL AND miles_new > 0;");
 
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN");
-        assertEquals(mSqlCaptor.getAllValues().get(5), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(5), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(6), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
@@ -194,8 +194,8 @@ public class DistanceTableTest {
         verifyZeroInteractions(customizer);
 
         assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

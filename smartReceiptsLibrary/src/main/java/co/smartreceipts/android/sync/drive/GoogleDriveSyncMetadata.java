@@ -42,12 +42,12 @@ public class GoogleDriveSyncMetadata {
     }
 
     @NonNull
-    public Date getLastSyncTime() {
+    public Date getLastDatabaseSyncTime() {
         final long syncTime = mSharedPreferences.getLong(KEY_DRIVE_LAST_SYNC, 0L);
         return new Date(syncTime);
     }
 
-    public void setLastSyncTimeToNow() {
+    public void setLastDatabaseSyncTimeToNow() {
         mSharedPreferences.edit().putLong(KEY_DRIVE_LAST_SYNC, System.currentTimeMillis()).apply();
     }
 

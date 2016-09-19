@@ -66,7 +66,6 @@ public class ImmutablePaymentMethodImplTest {
         assertThat(mPaymentMethod, not(equalTo(mock(PaymentMethod.class))));
         assertThat(mPaymentMethod, not(equalTo(new ImmutablePaymentMethodImpl(-1, METHOD, mSyncState))));
         assertThat(mPaymentMethod, not(equalTo(new ImmutablePaymentMethodImpl(ID, "abcd", mSyncState))));
-        assertThat(mPaymentMethod, not(equalTo(new ImmutablePaymentMethodImpl(ID, METHOD, new DefaultSyncState()))));
     }
 
     @Test

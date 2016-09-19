@@ -225,7 +225,6 @@ public class DefaultReceiptImplTest {
         assertThat(mReceipt, not(equalTo(new DefaultReceiptImpl(ID, INDEX, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, EXPENSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, "bad", EXTRA2, EXTRA3, mSyncState))));
         assertThat(mReceipt, not(equalTo(new DefaultReceiptImpl(ID, INDEX, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, EXPENSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, EXTRA1, "bad", EXTRA3, mSyncState))));
         assertThat(mReceipt, not(equalTo(new DefaultReceiptImpl(ID, INDEX, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, EXPENSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, EXTRA1, EXTRA2, "bad", mSyncState))));
-        assertThat(mReceipt, not(equalTo(new DefaultReceiptImpl(ID, INDEX, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, EXPENSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, EXTRA1, EXTRA2, EXTRA3, new DefaultSyncState()))));
 
         // Special equals cases (we don't check on the Index field, sources don't count, and selected doesn't count):
         Assert.assertEquals(mReceipt, new DefaultReceiptImpl(ID, INDEX + 1, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, EXPENSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, EXTRA1, EXTRA2, EXTRA3, mSyncState));

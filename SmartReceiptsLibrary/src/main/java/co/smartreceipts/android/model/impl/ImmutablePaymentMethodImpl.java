@@ -69,15 +69,13 @@ public final class ImmutablePaymentMethodImpl implements PaymentMethod {
         ImmutablePaymentMethodImpl that = (ImmutablePaymentMethodImpl) o;
 
         if (mId != that.mId) return false;
-        if (!mMethod.equals(that.mMethod)) return false;
-        return mSyncState.equals(that.mSyncState);
+        return (mMethod.equals(that.mMethod));
     }
 
     @Override
     public int hashCode() {
         int result = mId;
         result = 31 * result + mMethod.hashCode();
-        result = 31 * result + mSyncState.hashCode();
         return result;
     }
 

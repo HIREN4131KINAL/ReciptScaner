@@ -75,7 +75,6 @@ public class ImmutableCategoryImplTest {
         assertThat(mImmutableCategory, not(equalTo(mock(Category.class))));
         assertThat(mImmutableCategory, not(equalTo(new ImmutableCategoryImpl("wrong", CODE, mSyncState))));
         assertThat(mImmutableCategory, not(equalTo(new ImmutableCategoryImpl(NAME, "wrong", mSyncState))));
-        assertThat(mImmutableCategory, not(equalTo(new ImmutableCategoryImpl(NAME, CODE, new DefaultSyncState()))));
     }
 
     @Test

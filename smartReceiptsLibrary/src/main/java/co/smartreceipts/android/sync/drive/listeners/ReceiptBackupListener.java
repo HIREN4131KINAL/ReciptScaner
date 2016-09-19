@@ -14,18 +14,18 @@ import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTab
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
-import co.smartreceipts.android.sync.drive.GoogleDriveTaskManager;
+import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
 
-    private final GoogleDriveTaskManager mDriveTaskManager;
+    private final DriveStreamsManager mDriveTaskManager;
     private final ReceiptTableController mReceiptTableController;
     private final Set<Receipt> mReceiptsToIgnoreUpdates = new HashSet<>();
 
-    public ReceiptBackupListener(@NonNull GoogleDriveTaskManager driveTaskManager, @NonNull ReceiptTableController receiptTableController) {
+    public ReceiptBackupListener(@NonNull DriveStreamsManager driveTaskManager, @NonNull ReceiptTableController receiptTableController) {
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
         mReceiptTableController = Preconditions.checkNotNull(receiptTableController);
     }
@@ -63,7 +63,7 @@ public class ReceiptBackupListener extends StubTableEventsListener<Receipt> {
     @Override
     public void onDeleteSuccess(@NonNull final Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (receipt.getFile() != null) {
-            mDriveTaskManager.deleteDriveFile(receipt.getSyncState())
+            mDriveTaskManager.deleteDriveFile(receipt.getSyncState(), true)
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
                     .subscribe(new Action1<SyncState>() {

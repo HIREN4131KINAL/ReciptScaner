@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.drive.DriveFile;
 import com.google.common.base.Preconditions;
 
 import java.sql.Date;
@@ -15,6 +16,7 @@ public class GoogleDriveSyncMetadata {
 
     private static final String PREFS_GOOGLE_DRIVE = "prefs_google_drive.xml";
     private static final String KEY_DEVICE_IDENTIFIER = "key_device_identifier";
+    private static final String KEY_DRIVE_DATABASE_IDENTIFIER = "key_drive_database_identifier";
     private static final String KEY_DRIVE_LAST_SYNC = "key_drive_last_sync";
 
     private final SharedPreferences mSharedPreferences;
@@ -41,17 +43,30 @@ public class GoogleDriveSyncMetadata {
         }
     }
 
+    @Nullable
+    public Identifier getDatabaseSyncIdentifier() {
+        final String id = mSharedPreferences.getString(KEY_DRIVE_DATABASE_IDENTIFIER, null);
+        if (id != null) {
+            return new Identifier(id);
+        } else {
+            return null;
+        }
+    }
+
+    public void setDatabaseSyncIdentifier(@NonNull Identifier databaseSyncIdentifier) {
+        Preconditions.checkNotNull(databaseSyncIdentifier);
+        mSharedPreferences.edit().putString(KEY_DRIVE_DATABASE_IDENTIFIER, databaseSyncIdentifier.getId()).apply();
+        mSharedPreferences.edit().putLong(KEY_DRIVE_LAST_SYNC, System.currentTimeMillis()).apply();
+    }
+
     @NonNull
     public Date getLastDatabaseSyncTime() {
         final long syncTime = mSharedPreferences.getLong(KEY_DRIVE_LAST_SYNC, 0L);
         return new Date(syncTime);
     }
 
-    public void setLastDatabaseSyncTimeToNow() {
-        mSharedPreferences.edit().putLong(KEY_DRIVE_LAST_SYNC, System.currentTimeMillis()).apply();
-    }
-
     public void clear() {
         mSharedPreferences.edit().clear().apply();
     }
+
 }

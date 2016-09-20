@@ -23,18 +23,24 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
+import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.model.impl.IdentifierMap;
+import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
+import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 import rx.Observable;
 import wb.android.storage.StorageManager;
 
@@ -45,7 +51,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -425,6 +430,19 @@ public class ReceiptsTableTest {
         assertEquals(list1, Arrays.asList(mReceipt1, receipt));
         assertEquals(list2, Collections.singletonList(mReceipt2));
         assertEquals(list3, Collections.<Receipt>emptyList());
+    }
+
+    @Test
+    public void getUnsynced() {
+        final SyncState syncStateForSyncedReceipt = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("id"))),
+                new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
+                new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
+                new Date(System.currentTimeMillis()));
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).setSyncState(syncStateForSyncedReceipt).build(), new DatabaseOperationMetadata(OperationFamilyType.Sync)).toBlocking().first();
+        assertNotNull(receipt);
+
+        final List<Receipt> list1 = mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive).toBlocking().first();
+        assertEquals(list1, Arrays.asList(mReceipt1, mReceipt2));
     }
 
     @Test

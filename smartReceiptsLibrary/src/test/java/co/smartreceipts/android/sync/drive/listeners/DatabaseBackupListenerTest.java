@@ -9,6 +9,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
 import static org.mockito.Mockito.never;
@@ -21,48 +22,48 @@ public class DatabaseBackupListenerTest {
     DatabaseBackupListener<Object> mListener;
 
     @Mock
-    DriveStreamsManager mDriveStreamsManager;
+    DriveDatabaseManager mDriveDatabaseManager;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mListener = new DatabaseBackupListener<>(mDriveStreamsManager);
+        mListener = new DatabaseBackupListener<>(mDriveDatabaseManager);
     }
 
     @Test
     public void onInsertSuccess() {
         mListener.onInsertSuccess(new Object(), new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
     }
 
     @Test
     public void onSyncInsertSuccess() {
         mListener.onInsertSuccess(new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
     }
 
     @Test
     public void onUpdateSuccess() {
         mListener.onUpdateSuccess(new Object(), new Object(), new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
     }
 
     @Test
     public void onSyncUpdateSuccess() {
         mListener.onUpdateSuccess(new Object(), new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
     }
 
     @Test
     public void onDeleteSuccess() {
         mListener.onDeleteSuccess(new Object(), new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
     }
 
     @Test
     public void onSyncDeleteSuccess() {
         mListener.onDeleteSuccess(new Object(), new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
     }
 
 }

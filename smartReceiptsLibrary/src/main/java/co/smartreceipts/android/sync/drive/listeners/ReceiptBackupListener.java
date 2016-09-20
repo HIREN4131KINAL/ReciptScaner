@@ -14,6 +14,7 @@ import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTab
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -24,8 +25,8 @@ public class ReceiptBackupListener extends DatabaseBackupListener<Receipt> {
 
     private final DriveReceiptsManager mDriveReceiptsManager;
 
-    public ReceiptBackupListener(@NonNull DriveStreamsManager driveTaskManager, @NonNull DriveReceiptsManager driveReceiptsManager) {
-        super(driveTaskManager);
+    public ReceiptBackupListener(@NonNull DriveDatabaseManager driveDatabaseManager, @NonNull DriveReceiptsManager driveReceiptsManager) {
+        super(driveDatabaseManager);
         mDriveReceiptsManager = Preconditions.checkNotNull(driveReceiptsManager);
     }
 

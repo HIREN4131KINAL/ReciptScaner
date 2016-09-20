@@ -39,7 +39,7 @@ import rx.Observable;
 import rx.Subscriber;
 import wb.android.storage.StorageManager;
 
-class DriveDataStreams {
+public class DriveDataStreams {
 
     private static final String TAG = DriveDataStreams.class.getSimpleName();
 

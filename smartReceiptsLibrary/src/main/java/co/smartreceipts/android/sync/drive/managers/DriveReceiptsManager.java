@@ -22,6 +22,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 public class DriveReceiptsManager {
 
@@ -35,6 +36,10 @@ public class DriveReceiptsManager {
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
 
+    public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
+                                @NonNull DriveStreamsManager driveTaskManager) {
+        this(receiptsTableController, receiptsTable, driveTaskManager, new DriveStreamMappings(), new ReceiptBuilderFactoryFactory(), Schedulers.io(), Schedulers.io());
+    }
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
                                 @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveStreamMappings driveStreamMappings,

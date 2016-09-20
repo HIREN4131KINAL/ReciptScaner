@@ -49,7 +49,6 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(TAG, "GoogleApiClient connection succeeded.");
-        syncLocalData();
         mLatchReference.get().countDown();
     }
 
@@ -61,7 +60,7 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
 
 
     public void updateDatabase() {
-        Observable.just(true);
+        // TODO: Avoid letting these queue up...
     }
 
     @NonNull
@@ -91,6 +90,31 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     }
 
     @NonNull
+    public Observable<Identifier> uploadFileToDrive(@NonNull final File file) {
+        Preconditions.checkNotNull(file);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<DriveFolder>>() {
+                    @Override
+                    public Observable<DriveFolder> call(Void aVoid) {
+                        return mDriveDataStreams.getSmartReceiptsFolder();
+                    }
+                })
+                .flatMap(new Func1<DriveFolder, Observable<DriveFile>>() {
+                    @Override
+                    public Observable<DriveFile> call(DriveFolder driveFolder) {
+                        return mDriveDataStreams.createFileInFolder(driveFolder, file);
+                    }
+                })
+                .flatMap(new Func1<DriveFile, Observable<Identifier>>() {
+                    @Override
+                    public Observable<Identifier> call(DriveFile driveFile) {
+                        return Observable.just(new Identifier(driveFile.getDriveId().getResourceId()));
+                    }
+                });
+    }
+
+    @NonNull
     public Observable<SyncState> updateDriveFile(@NonNull final SyncState currentSyncState, @NonNull final File file) {
         Preconditions.checkNotNull(currentSyncState);
         Preconditions.checkNotNull(file);
@@ -111,6 +135,26 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<SyncState> call(DriveFile driveFile) {
                         return Observable.just(mDriveStreamMappings.postUpdateSyncState(currentSyncState, driveFile));
+                    }
+                });
+    }
+
+    @NonNull
+    public Observable<Identifier> updateDriveFile(@NonNull final Identifier currentIdentifier, @NonNull final File file) {
+        Preconditions.checkNotNull(currentIdentifier);
+        Preconditions.checkNotNull(file);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<DriveFile>>() {
+                    @Override
+                    public Observable<DriveFile> call(Void aVoid) {
+                        return mDriveDataStreams.updateFile(currentIdentifier, file);
+                    }
+                })
+                .flatMap(new Func1<DriveFile, Observable<Identifier>>() {
+                    @Override
+                    public Observable<Identifier> call(DriveFile driveFile) {
+                        return Observable.just(new Identifier(driveFile.getDriveId().getResourceId()));
                     }
                 });
     }
@@ -143,6 +187,7 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                 });
     }
 
+    @NonNull
     private Observable<Void> newBlockUntilConnectedObservable() {
         return Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
@@ -159,57 +204,4 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
         });
     }
 
-    private void syncLocalData() {
-        mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
-                .flatMap(new Func1<List<Receipt>, Observable<Receipt>>() {
-                    @Override
-                    public Observable<Receipt> call(List<Receipt> receipts) {
-                        return Observable.from(receipts);
-                    }
-                })
-                .flatMap(new Func1<Receipt, Observable<SyncState>>() {
-                    @Override
-                    public Observable<SyncState> call(Receipt receipt) {
-                        // TODO: JOIN RECEIPT with sync state here. zip() is no good
-                        // TODO: Create drive "receipt" stream
-                        final SyncState oldSyncState = receipt.getSyncState();
-                        final File receiptFile = receipt.getFile();
-                        final Identifier driveId = oldSyncState.getSyncId(SyncProvider.GoogleDrive);
-                        final boolean markedForDeletion = oldSyncState.isMarkedForDeletion(SyncProvider.GoogleDrive);
-                        if (driveId == null) {
-                            if (receiptFile != null) {
-                                // This case is true for INSERTS or UPDATES (in which a new file was attached)
-                                Log.i(TAG, "Found receipt " + receipt.getId() + " with a non-uploaded file. Uploading");
-                                return uploadFileToDrive(oldSyncState, receiptFile);
-                            } else {
-                                Log.i(TAG, "Found receipt " + receipt.getId() + " without a file. Marking as synced for Drive");
-                                return Observable.just(mDriveStreamMappings.postInsertSyncState(oldSyncState, null));
-                            }
-                        } else {
-                            if (markedForDeletion) {
-                                Log.i(TAG, "Found receipt " + receipt.getId() + " as marked for deletion. Removing");
-                                return deleteDriveFile(oldSyncState, true);
-                            } else {
-                                if (receiptFile != null) {
-                                    Log.i(TAG, "Found receipt " + receipt.getId() + " with a new file. Updating");
-                                    return updateDriveFile(oldSyncState, receiptFile);
-                                } else {
-                                    Log.i(TAG, "Found receipt " + receipt.getId() + " with a stale file reference. Removing");
-                                    return deleteDriveFile(oldSyncState, false);
-                                }
-                            }
-                        }
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io());
-                /*
-                .subscribe(new Action1<Receipt>() {
-                    @Override
-                    public void call(Receipt receipt) {
-                        f
-                    }
-                });
-                */
-    }
 }

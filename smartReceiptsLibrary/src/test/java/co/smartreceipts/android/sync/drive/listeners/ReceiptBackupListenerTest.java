@@ -10,6 +10,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
@@ -24,7 +25,7 @@ public class ReceiptBackupListenerTest {
     ReceiptBackupListener mListener;
 
     @Mock
-    DriveStreamsManager mDriveStreamsManager;
+    DriveDatabaseManager mDriveDatabaseManager;
     
     @Mock
     DriveReceiptsManager mDriveReceiptsManager;
@@ -38,48 +39,48 @@ public class ReceiptBackupListenerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mListener = new ReceiptBackupListener(mDriveStreamsManager, mDriveReceiptsManager);
+        mListener = new ReceiptBackupListener(mDriveDatabaseManager, mDriveReceiptsManager);
     }
 
     @Test
     public void onInsertSuccess() {
         mListener.onInsertSuccess(mReceipt, new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
         verify(mDriveReceiptsManager).handleInsertOrUpdate(mReceipt);
     }
 
     @Test
     public void onSyncInsertSuccess() {
         mListener.onInsertSuccess(mReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
         verify(mDriveReceiptsManager, never()).handleInsertOrUpdate(any(Receipt.class));
     }
 
     @Test
     public void onUpdateSuccess() {
         mListener.onUpdateSuccess(mOldReceipt, mReceipt, new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
         verify(mDriveReceiptsManager).handleInsertOrUpdate(mReceipt);
     }
 
     @Test
     public void onSyncUpdateSuccess() {
         mListener.onUpdateSuccess(mOldReceipt, mReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
         verify(mDriveReceiptsManager, never()).handleInsertOrUpdate(any(Receipt.class));
     }
 
     @Test
     public void onDeleteSuccess() {
         mListener.onDeleteSuccess(mReceipt, new DatabaseOperationMetadata());
-        verify(mDriveStreamsManager).updateDatabase();
+        verify(mDriveDatabaseManager).syncDatabase();
         verify(mDriveReceiptsManager).handleDelete(mReceipt);
     }
 
     @Test
     public void onSyncDeleteSuccess() {
         mListener.onDeleteSuccess(mReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
-        verify(mDriveStreamsManager, never()).updateDatabase();
+        verify(mDriveDatabaseManager, never()).syncDatabase();
         verify(mDriveReceiptsManager, never()).handleDelete(any(Receipt.class));
     }
 

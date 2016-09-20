@@ -139,7 +139,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                     cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(0) }, null, null, null);
                     if (cursor != null && cursor.moveToFirst()) {
                         do {
-                            mCachedResults.add(mDatabaseAdapter.read(cursor));
+                            results.add(mDatabaseAdapter.read(cursor));
                         }
                         while (cursor.moveToNext());
                     }

@@ -81,6 +81,7 @@ public class DriveReceiptsManager {
     public void handleInsertOrUpdate(@NonNull final Receipt receipt) {
         Preconditions.checkNotNull(receipt);
         Preconditions.checkArgument(!receipt.getSyncState().isSynced(SyncProvider.GoogleDrive), "Cannot sync an already synced receipt");
+        Preconditions.checkArgument(!receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive), "Cannot insert/update a receipt that is marked for deletion");
 
         onInsertOrUpdateObservable(receipt)
                 .flatMap(new Func1<SyncState, Observable<Receipt>>() {
@@ -128,7 +129,6 @@ public class DriveReceiptsManager {
 
         if (oldSyncState.getSyncId(SyncProvider.GoogleDrive) == null) {
             if (receiptFile != null) {
-                // This case is true for INSERTS or UPDATES (in which a new file was attached)
                 Log.i(TAG, "Found receipt " + receipt.getId() + " with a non-uploaded file. Uploading");
                 return mDriveTaskManager.uploadFileToDrive(oldSyncState, receiptFile);
             } else {

@@ -127,7 +127,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     }
 
     @NonNull
-    public final Observable<List<ModelType>> getUnsynced(@NonNull SyncProvider syncProvider) {
+    public Observable<List<ModelType>> getUnsynced(@NonNull SyncProvider syncProvider) {
         Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
 
         return Observable.create(new Observable.OnSubscribe<List<ModelType>>() {

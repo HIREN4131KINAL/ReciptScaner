@@ -11,25 +11,13 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.sync.drive.GoogleDriveSyncMetadata;
-import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
-import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
-import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

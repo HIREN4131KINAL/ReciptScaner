@@ -29,8 +29,8 @@ import java.io.OutputStream;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import co.smartreceipts.android.sync.drive.DeviceMetadata;
-import co.smartreceipts.android.sync.drive.GoogleDriveSyncMetadata;
+import co.smartreceipts.android.sync.drive.device.DeviceMetadata;
+import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.services.DriveIdUploadCompleteCallback;
 import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;

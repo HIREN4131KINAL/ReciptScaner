@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.drive;
+package co.smartreceipts.android.sync.drive.device;
 
 import android.content.Context;
 import android.os.Build;

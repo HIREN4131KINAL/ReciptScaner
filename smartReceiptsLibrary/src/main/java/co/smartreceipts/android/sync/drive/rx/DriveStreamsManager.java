@@ -32,16 +32,14 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
 
     private final DriveDataStreams mDriveDataStreams;
     private final DriveStreamMappings mDriveStreamMappings;
-    private final ReceiptsTable mReceiptsTable;
     private final AtomicReference<CountDownLatch> mLatchReference;
 
-    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull ReceiptsTable receiptsTable) {
-        this(new DriveDataStreams(context, googleApiClient), receiptsTable, new DriveStreamMappings());
+    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient) {
+        this(new DriveDataStreams(context, googleApiClient), new DriveStreamMappings());
     }
 
-    public DriveStreamsManager(@NonNull DriveDataStreams driveDataStreams, @NonNull ReceiptsTable receiptsTable, @NonNull DriveStreamMappings driveStreamMappings) {
+    public DriveStreamsManager(@NonNull DriveDataStreams driveDataStreams, @NonNull DriveStreamMappings driveStreamMappings) {
         mDriveDataStreams = Preconditions.checkNotNull(driveDataStreams);
-        mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mDriveStreamMappings = Preconditions.checkNotNull(driveStreamMappings);
         mLatchReference = new AtomicReference<>(new CountDownLatch(1));
     }
@@ -56,11 +54,6 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     public void onConnectionSuspended(int cause) {
         Log.i(TAG, "GoogleApiClient connection suspended with cause " + cause);
         mLatchReference.set(new CountDownLatch(1));
-    }
-
-
-    public void updateDatabase() {
-        // TODO: Avoid letting these queue up...
     }
 
     @NonNull

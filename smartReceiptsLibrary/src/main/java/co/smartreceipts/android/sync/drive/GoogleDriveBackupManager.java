@@ -48,7 +48,7 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
                 .useDefaultAccount()
                 .build();
         mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
-        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, databaseHelper.getReceiptsTable());
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient);
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
     }

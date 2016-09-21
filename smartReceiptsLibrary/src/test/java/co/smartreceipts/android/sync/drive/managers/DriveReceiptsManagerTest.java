@@ -1,6 +1,5 @@
 package co.smartreceipts.android.sync.drive.managers;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricGradleTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 import java.util.Arrays;
@@ -19,19 +17,16 @@ import java.util.Arrays;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
-import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.sync.SyncProvider;
-import co.smartreceipts.android.sync.drive.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
-import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
 import static junit.framework.Assert.assertEquals;

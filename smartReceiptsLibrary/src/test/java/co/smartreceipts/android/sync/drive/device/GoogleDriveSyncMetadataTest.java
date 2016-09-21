@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.drive;
+package co.smartreceipts.android.sync.drive.device;
 
 import org.junit.After;
 import org.junit.Before;
@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
+import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 
 import static junit.framework.Assert.assertEquals;

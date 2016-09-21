@@ -1,11 +1,10 @@
-package co.smartreceipts.android.sync.drive;
+package co.smartreceipts.android.sync.drive.device;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.android.gms.drive.DriveFile;
 import com.google.common.base.Preconditions;
 
 import java.sql.Date;

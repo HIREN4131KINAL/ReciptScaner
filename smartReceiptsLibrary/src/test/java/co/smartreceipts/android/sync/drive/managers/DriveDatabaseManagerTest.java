@@ -12,7 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 import java.io.File;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.sync.drive.GoogleDriveSyncMetadata;
+import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;

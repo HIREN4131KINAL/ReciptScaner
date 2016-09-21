@@ -19,9 +19,18 @@ import com.google.common.base.Preconditions;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Distance;
+import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.drive.listeners.DatabaseBackupListener;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
+import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
+import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
 public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -38,6 +47,14 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
     private final AtomicReference<WeakReference<FragmentActivity>> mActivityReference;
     private final TableControllerManager mTableControllerManager;
     private final Context mContext;
+    private final DriveReceiptsManager mDriveReceiptsManager;
+    private final DatabaseBackupListener<Trip> mTripDatabaseBackupListener;
+    private final ReceiptBackupListener mReceiptDatabaseBackupListener;
+    private final DatabaseBackupListener<Distance> mDistanceDatabaseBackupListener;
+    private final DatabaseBackupListener<PaymentMethod> mPaymentMethodDatabaseBackupListener;
+    private final DatabaseBackupListener<Category> mCategoryDatabaseBackupListener;
+    private final DatabaseBackupListener<Column<Receipt>> mCsvColumnDatabaseBackupListener;
+    private final DatabaseBackupListener<Column<Receipt>> mPdfColumnDatabaseBackupListener;
 
     public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
@@ -51,6 +68,16 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
         mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient);
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
+        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager);
+
+        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager);
+        mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
+        mReceiptDatabaseBackupListener = new ReceiptBackupListener(driveDatabaseManager, mDriveReceiptsManager);
+        mDistanceDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
+        mPaymentMethodDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
+        mCategoryDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
+        mCsvColumnDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
+        mPdfColumnDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
     }
 
     public void initialize(@NonNull FragmentActivity activity) {
@@ -107,15 +134,26 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        /*
-        final ReceiptBackupListener receiptBackupListener = new ReceiptBackupListener(mDriveTaskManager, mTableControllerManager.getReceiptTableController());
-        mTableControllerManager.getReceiptTableController().subscribe(receiptBackupListener);
-        */
         mDriveTaskManager.onConnected(bundle);
+        mDriveReceiptsManager.initialize();
+        mTableControllerManager.getTripTableController().subscribe(mTripDatabaseBackupListener);
+        mTableControllerManager.getReceiptTableController().subscribe(mReceiptDatabaseBackupListener);
+        mTableControllerManager.getDistanceTableController().subscribe(mDistanceDatabaseBackupListener);
+        mTableControllerManager.getPaymentMethodsTableController().subscribe(mPaymentMethodDatabaseBackupListener);
+        mTableControllerManager.getCategoriesTableController().subscribe(mCategoryDatabaseBackupListener);
+        mTableControllerManager.getCSVTableController().subscribe(mCsvColumnDatabaseBackupListener);
+        mTableControllerManager.getPDFTableController().subscribe(mPdfColumnDatabaseBackupListener);
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
+        mTableControllerManager.getTripTableController().unsubscribe(mTripDatabaseBackupListener);
+        mTableControllerManager.getReceiptTableController().unsubscribe(mReceiptDatabaseBackupListener);
+        mTableControllerManager.getDistanceTableController().unsubscribe(mDistanceDatabaseBackupListener);
+        mTableControllerManager.getPaymentMethodsTableController().unsubscribe(mPaymentMethodDatabaseBackupListener);
+        mTableControllerManager.getCategoriesTableController().unsubscribe(mCategoryDatabaseBackupListener);
+        mTableControllerManager.getCSVTableController().unsubscribe(mCsvColumnDatabaseBackupListener);
+        mTableControllerManager.getPDFTableController().unsubscribe(mPdfColumnDatabaseBackupListener);
         mDriveTaskManager.onConnectionSuspended(cause);
     }
 

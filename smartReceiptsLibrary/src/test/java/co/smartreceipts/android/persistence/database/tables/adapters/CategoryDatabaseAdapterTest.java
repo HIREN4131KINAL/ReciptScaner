@@ -18,6 +18,8 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -43,7 +45,7 @@ public class CategoryDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -63,6 +65,7 @@ public class CategoryDatabaseAdapterTest {
         when(mPrimaryKey.getPrimaryKeyValue(mCategory)).thenReturn(PRIMARY_KEY_NAME);
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mCategoryDatabaseAdapter = new CategoryDatabaseAdapter(mSyncStateAdapter);
     }
@@ -101,7 +104,8 @@ public class CategoryDatabaseAdapterTest {
 
     @Test
     public void build() throws Exception {
-        final Category category = new CategoryBuilderFactory().setName(PRIMARY_KEY_NAME).setCode(CODE).setSyncState(mSyncState).build();
-        assertEquals(category, mCategoryDatabaseAdapter.build(mCategory, mPrimaryKey));
+        final Category category = new CategoryBuilderFactory().setName(PRIMARY_KEY_NAME).setCode(CODE).setSyncState(mGetSyncState).build();
+        assertEquals(category, mCategoryDatabaseAdapter.build(mCategory, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
+        assertEquals(category.getSyncState(), mCategoryDatabaseAdapter.build(mCategory, mPrimaryKey, mock(DatabaseOperationMetadata.class)).getSyncState());
     }
 }

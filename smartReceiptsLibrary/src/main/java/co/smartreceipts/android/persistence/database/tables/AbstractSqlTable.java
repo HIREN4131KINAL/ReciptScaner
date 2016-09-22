@@ -256,7 +256,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                     // Note: We do some quick hacks around generics here to ensure the types are consistent
                     final PrimaryKey<ModelType, PrimaryKeyType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, id);
 
-                    final ModelType insertedItem = mDatabaseAdapter.build(modelType, autoIncrementPrimaryKey);
+                    final ModelType insertedItem = mDatabaseAdapter.build(modelType, autoIncrementPrimaryKey, databaseOperationMetadata);
                     if (mCachedResults != null) {
                         mCachedResults.add(insertedItem);
                         if (insertedItem instanceof Comparable<?>) {
@@ -271,7 +271,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                 }
             } else {
                 // If it's not an auto-increment id, just grab whatever the definition is...
-                final ModelType insertedItem = mDatabaseAdapter.build(modelType, mPrimaryKey);
+                final ModelType insertedItem = mDatabaseAdapter.build(modelType, mPrimaryKey, databaseOperationMetadata);
                 if (mCachedResults != null) {
                     mCachedResults.add(insertedItem);
                     if (insertedItem instanceof Comparable<?>) {
@@ -296,10 +296,10 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
                 // If it's an auto-increment key, ensure we're re-using the same id as the old key
                 final PrimaryKey<ModelType, PrimaryKeyType> autoIncrementPrimaryKey = (PrimaryKey<ModelType, PrimaryKeyType>) new AutoIncrementIdPrimaryKey<>((PrimaryKey<ModelType, Integer>) mPrimaryKey, (Integer) mPrimaryKey.getPrimaryKeyValue(oldModelType));
-                updatedItem = mDatabaseAdapter.build(newModelType, autoIncrementPrimaryKey);
+                updatedItem = mDatabaseAdapter.build(newModelType, autoIncrementPrimaryKey, databaseOperationMetadata);
             } else {
                 // Otherwise, we'll use whatever the user defined...
-                updatedItem = mDatabaseAdapter.build(newModelType, mPrimaryKey);
+                updatedItem = mDatabaseAdapter.build(newModelType, mPrimaryKey, databaseOperationMetadata);
             }
             if (mCachedResults != null) {
                 mCachedResults.remove(oldModelType);

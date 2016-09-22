@@ -21,7 +21,9 @@ import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -53,7 +55,7 @@ public class ColumnDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     Column<Receipt> mIdColumn;
 
@@ -75,13 +77,14 @@ public class ColumnDatabaseAdapterTest {
         when(mColumn.getSyncState()).thenReturn(mSyncState);
 
         mIdColumn = new ConstantColumn<>(ID, NAME, mSyncState);
-        mPrimaryKeyIdColumn = new ConstantColumn<>(PRIMARY_KEY_ID, NAME, mSyncState);
+        mPrimaryKeyIdColumn = new ConstantColumn<>(PRIMARY_KEY_ID, NAME, mGetSyncState);
         when(mReceiptColumnDefinitions.getColumn(ID, NAME, mSyncState)).thenReturn(mIdColumn);
-        when(mReceiptColumnDefinitions.getColumn(PRIMARY_KEY_ID, NAME, mSyncState)).thenReturn(mPrimaryKeyIdColumn);
+        when(mReceiptColumnDefinitions.getColumn(PRIMARY_KEY_ID, NAME, mGetSyncState)).thenReturn(mPrimaryKeyIdColumn);
 
         when(mPrimaryKey.getPrimaryKeyValue(mColumn)).thenReturn(PRIMARY_KEY_ID);
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mColumnDatabaseAdapter = new ColumnDatabaseAdapter(mReceiptColumnDefinitions, ID_COLUMN, NAME_COLUMN, mSyncStateAdapter);
     }
@@ -119,6 +122,7 @@ public class ColumnDatabaseAdapterTest {
 
     @Test
     public void build() throws Exception {
-        assertEquals(mPrimaryKeyIdColumn, mColumnDatabaseAdapter.build(mColumn, mPrimaryKey));
+        assertEquals(mPrimaryKeyIdColumn, mColumnDatabaseAdapter.build(mColumn, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
+        assertEquals(mPrimaryKeyIdColumn.getSyncState(), mColumnDatabaseAdapter.build(mColumn, mPrimaryKey, mock(DatabaseOperationMetadata.class)).getSyncState());
     }
 }

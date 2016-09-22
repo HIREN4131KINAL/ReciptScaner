@@ -18,6 +18,8 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -43,7 +45,7 @@ public class PaymentMethodDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -63,6 +65,7 @@ public class PaymentMethodDatabaseAdapterTest {
         when(mPrimaryKey.getPrimaryKeyValue(mPaymentMethod)).thenReturn(PRIMARY_KEY_ID);
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mPaymentMethodDatabaseAdapter = new PaymentMethodDatabaseAdapter(mSyncStateAdapter);
     }
@@ -101,7 +104,7 @@ public class PaymentMethodDatabaseAdapterTest {
 
     @Test
     public void build() throws Exception {
-        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(PRIMARY_KEY_ID).setMethod(METHOD).setSyncState(mSyncState).build();
-        assertEquals(paymentMethod, mPaymentMethodDatabaseAdapter.build(mPaymentMethod, mPrimaryKey));
+        final PaymentMethod paymentMethod = new PaymentMethodBuilderFactory().setId(PRIMARY_KEY_ID).setMethod(METHOD).setSyncState(mGetSyncState).build();
+        assertEquals(paymentMethod, mPaymentMethodDatabaseAdapter.build(mPaymentMethod, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
     }
 }

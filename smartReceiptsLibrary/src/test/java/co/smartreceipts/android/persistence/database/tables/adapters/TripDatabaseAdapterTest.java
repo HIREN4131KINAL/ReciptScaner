@@ -28,6 +28,8 @@ import wb.android.storage.StorageManager;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -66,7 +68,7 @@ public class TripDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -119,6 +121,7 @@ public class TripDatabaseAdapterTest {
         when(mStorageManager.mkdir(PRIMARY_KEY_NAME)).thenReturn(new File(PRIMARY_KEY_NAME));
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mTripDatabaseAdapter = new TripDatabaseAdapter(mStorageManager, mPreferences, mSyncStateAdapter);
     }
@@ -198,9 +201,10 @@ public class TripDatabaseAdapterTest {
                 .setCostCenter(COST_CENTER)
                 .setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny())
                 .setSourceAsCache()
-                .setSyncState(mSyncState)
+                .setSyncState(mGetSyncState)
                 .build();
-        assertEquals(trip, mTripDatabaseAdapter.build(mTrip, mPrimaryKey));
+        assertEquals(trip, mTripDatabaseAdapter.build(mTrip, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
+        assertEquals(trip.getSyncState(), mTripDatabaseAdapter.build(mTrip, mPrimaryKey, mock(DatabaseOperationMetadata.class)).getSyncState());
     }
 
 }

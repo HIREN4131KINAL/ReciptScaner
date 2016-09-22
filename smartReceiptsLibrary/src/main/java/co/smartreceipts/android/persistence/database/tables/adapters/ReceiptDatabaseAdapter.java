@@ -213,8 +213,8 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
 
     @NonNull
     @Override
-    public Receipt build(@NonNull Receipt receipt, @NonNull PrimaryKey<Receipt, Integer> primaryKey) {
-        return new ReceiptBuilderFactory(primaryKey.getPrimaryKeyValue(receipt), receipt).build();
+    public Receipt build(@NonNull Receipt receipt, @NonNull PrimaryKey<Receipt, Integer> primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        return new ReceiptBuilderFactory(primaryKey.getPrimaryKeyValue(receipt), receipt).setSyncState(mSyncStateAdapter.get(receipt.getSyncState(), databaseOperationMetadata)).build();
     }
 
 

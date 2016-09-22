@@ -38,9 +38,10 @@ public interface DatabaseAdapter<ModelType, KeyType> {
      * (as based off the underlying values of the original object)
      *
      * @param modelType the object to serve as the "base"
-     * @param primaryKey the primary key, auto-increment id
+     * @param primaryKey the primary key
+     * @param databaseOperationMetadata metadata about this particular database operation
      * @return the object param or a new object of type {@link ModelType} if this primary key is needed
      */
     @NonNull
-    ModelType build(@NonNull ModelType modelType, @NonNull KeyType primaryKey);
+    ModelType build(@NonNull ModelType modelType, @NonNull KeyType primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 }

@@ -28,6 +28,8 @@ import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -70,7 +72,7 @@ public class DistanceDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -123,6 +125,7 @@ public class DistanceDatabaseAdapterTest {
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mDistanceDatabaseAdapter = new DistanceDatabaseAdapter(mTripsTable, mSyncStateAdapter);
     }
@@ -181,8 +184,9 @@ public class DistanceDatabaseAdapterTest {
 
     @Test
     public void build() throws Exception {
-        final Distance distance = new DistanceBuilderFactory(PRIMARY_KEY_ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
-        assertEquals(distance, mDistanceDatabaseAdapter.build(mDistance, mPrimaryKey));
+        final Distance distance = new DistanceBuilderFactory(PRIMARY_KEY_ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mGetSyncState).build();
+        assertEquals(distance, mDistanceDatabaseAdapter.build(mDistance, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
+        assertEquals(distance.getSyncState(), mDistanceDatabaseAdapter.build(mDistance, mPrimaryKey, mock(DatabaseOperationMetadata.class)).getSyncState());
     }
 
 }

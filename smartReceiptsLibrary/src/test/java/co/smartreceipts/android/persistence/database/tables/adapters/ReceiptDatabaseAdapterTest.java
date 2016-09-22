@@ -40,6 +40,8 @@ import wb.android.storage.StorageManager;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -105,7 +107,7 @@ public class ReceiptDatabaseAdapterTest {
     SyncStateAdapter mSyncStateAdapter;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     @Before
     public void setUp() throws Exception {
@@ -211,6 +213,7 @@ public class ReceiptDatabaseAdapterTest {
         when(mStorageManager.getFile(new File(PARENT), PATH)).thenReturn(new File(PATH));
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);
+        when(mSyncStateAdapter.get(any(SyncState.class), any(DatabaseOperationMetadata.class))).thenReturn(mGetSyncState);
 
         mReceiptDatabaseAdapter = new ReceiptDatabaseAdapter(mTripsTable, mPaymentMethodsTable, mCategoriesTable, mStorageManager, mSyncStateAdapter);
     }
@@ -352,9 +355,10 @@ public class ReceiptDatabaseAdapterTest {
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
                 .setExtraEditText3(EXTRA3)
-                .setSyncState(mSyncState)
+                .setSyncState(mGetSyncState)
                 .build();
-        assertEquals(receipt, mReceiptDatabaseAdapter.build(mReceipt, mPrimaryKey));
+        assertEquals(receipt, mReceiptDatabaseAdapter.build(mReceipt, mPrimaryKey, mock(DatabaseOperationMetadata.class)));
+        assertEquals(receipt.getSyncState(), mReceiptDatabaseAdapter.build(mReceipt, mPrimaryKey, mock(DatabaseOperationMetadata.class)).getSyncState());
     }
 
 }

@@ -117,7 +117,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Log.d(TAG, "#onGetFailure - onError");
+                        Log.e(TAG, "#onGetFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onGetFailure(throwable);
                         }
@@ -175,7 +175,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Log.d(TAG, "#onInsertFailure - onError");
+                        Log.e(TAG, "#onInsertFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onInsertFailure(insertModelType, throwable, databaseOperationMetadata);
                         }
@@ -233,7 +233,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Log.d(TAG, "#onUpdateFailure - onError");
+                        Log.e(TAG, "#onUpdateFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onUpdateFailure(oldModelType, throwable, databaseOperationMetadata);
                         }
@@ -291,7 +291,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Log.d(TAG, "#onDeleteFailure - onError");
+                        Log.e(TAG, "#onDeleteFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onDeleteFailure(modelType, throwable, databaseOperationMetadata);
                         }

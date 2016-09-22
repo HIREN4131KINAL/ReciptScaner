@@ -93,8 +93,8 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
 
     @Override
     @NonNull
-    public Trip build(@NonNull Trip trip, @NonNull PrimaryKey<Trip, String> primaryKey) {
-        return new TripBuilderFactory(trip).setDirectory(mStorageManager.getFile(primaryKey.getPrimaryKeyValue(trip))).build();
+    public Trip build(@NonNull Trip trip, @NonNull PrimaryKey<Trip, String> primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        return new TripBuilderFactory(trip).setDirectory(mStorageManager.getFile(primaryKey.getPrimaryKeyValue(trip))).setSyncState(mSyncStateAdapter.get(trip.getSyncState(), databaseOperationMetadata)).build();
     }
 
 }

@@ -57,8 +57,8 @@ public final class CategoryDatabaseAdapter implements DatabaseAdapter<Category, 
 
     @Override
     @NonNull
-    public Category build(@NonNull Category category, @NonNull PrimaryKey<Category, String> primaryKey) {
-        return new CategoryBuilderFactory().setName(primaryKey.getPrimaryKeyValue(category)).setCode(category.getCode()).setSyncState(category.getSyncState()).build();
+    public Category build(@NonNull Category category, @NonNull PrimaryKey<Category, String> primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        return new CategoryBuilderFactory().setName(primaryKey.getPrimaryKeyValue(category)).setCode(category.getCode()).setSyncState(mSyncStateAdapter.get(category.getSyncState(), databaseOperationMetadata)).build();
     }
 
 }

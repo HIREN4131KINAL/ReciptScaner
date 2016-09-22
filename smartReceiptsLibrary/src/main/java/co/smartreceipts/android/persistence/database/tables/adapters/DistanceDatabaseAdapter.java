@@ -108,7 +108,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
 
     @NonNull
     @Override
-    public Distance build(@NonNull Distance distance, @NonNull PrimaryKey<Distance, Integer> primaryKey) {
-        return new DistanceBuilderFactory(primaryKey.getPrimaryKeyValue(distance), distance).build();
+    public Distance build(@NonNull Distance distance, @NonNull PrimaryKey<Distance, Integer> primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        return new DistanceBuilderFactory(primaryKey.getPrimaryKeyValue(distance), distance).setSyncState(mSyncStateAdapter.get(distance.getSyncState(), databaseOperationMetadata)).build();
     }
 }

@@ -64,8 +64,8 @@ public final class ColumnDatabaseAdapter implements DatabaseAdapter<Column<Recei
 
     @NonNull
     @Override
-    public Column<Receipt> build(@NonNull Column<Receipt> column, @NonNull PrimaryKey<Column<Receipt>, Integer> primaryKey) {
-        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(primaryKey.getPrimaryKeyValue(column)).setColumnName(column.getName()).setSyncState(column.getSyncState()).build();
+    public Column<Receipt> build(@NonNull Column<Receipt> column, @NonNull PrimaryKey<Column<Receipt>, Integer> primaryKey, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        return new ColumnBuilderFactory<>(mReceiptColumnDefinitions).setColumnId(primaryKey.getPrimaryKeyValue(column)).setColumnName(column.getName()).setSyncState(mSyncStateAdapter.get(column.getSyncState(), databaseOperationMetadata)).build();
     }
 
 }

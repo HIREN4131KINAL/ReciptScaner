@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import java.sql.Date;
 import java.util.Collections;
 
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.AbstractSqlTable;
 import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -34,15 +36,16 @@ public class SyncStateAdapter {
 
         final Date lastLocalModificationTime = new Date(lastLocalModificationTimeLong);
 
+        final IdentifierMap identifierMap;
         if (driveIdentifierString != null) {
             final Identifier driveIdentifier = new Identifier(driveIdentifierString);
-            final IdentifierMap identifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveIdentifier));
-            final SyncStatusMap syncStatusMap = new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveIsSynced));
-            final MarkedForDeletionMap markedForDeletionMap = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveMarkedForDeletion));
-            return new DefaultSyncState(identifierMap, syncStatusMap, markedForDeletionMap, lastLocalModificationTime);
+            identifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveIdentifier));
         } else {
-            return new DefaultSyncState(lastLocalModificationTime);
+            identifierMap = null;
         }
+        final SyncStatusMap syncStatusMap = new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveIsSynced));
+        final MarkedForDeletionMap markedForDeletionMap = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveMarkedForDeletion));
+        return new DefaultSyncState(identifierMap, syncStatusMap, markedForDeletionMap, lastLocalModificationTime);
     }
 
     @NonNull
@@ -72,6 +75,24 @@ public class SyncStateAdapter {
         values.put(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION, syncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
         values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, syncState.getLastLocalModificationTime().getTime());
         return values;
+    }
+
+    @NonNull
+    public SyncState get(@NonNull SyncState syncState, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync) {
+            return syncState;
+        } else {
+            final Identifier driveIdentifier = syncState.getSyncId(SyncProvider.GoogleDrive);
+            final IdentifierMap identifierMap;
+            if (driveIdentifier != null) {
+                identifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, driveIdentifier));
+            } else {
+                identifierMap = null;
+            }
+            final SyncStatusMap syncStatusMap = new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false));
+            final MarkedForDeletionMap markedForDeletionMap = new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, syncState.isMarkedForDeletion(SyncProvider.GoogleDrive)));
+            return new DefaultSyncState(identifierMap, syncStatusMap, markedForDeletionMap, syncState.getLastLocalModificationTime());
+        }
     }
 
 }

@@ -13,6 +13,8 @@ import org.robolectric.RobolectricGradleTestRunner;
 import java.sql.Date;
 import java.util.Collections;
 
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -39,7 +41,7 @@ public class SyncStateAdapterTest {
     Cursor mCursor;
 
     @Mock
-    SyncState mSyncState;
+    SyncState mSyncState, mGetSyncState;
 
     IdentifierMap mIdentifierMap = new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier(IDENTIFIER_STRING)));
 
@@ -49,14 +51,18 @@ public class SyncStateAdapterTest {
 
     Date mLastLocalModificationTime = new Date(LAST_LOCAL_MODIFICATION_TIME);
 
+    int identifierIndex = 1;
+
+    int driveIsSyncedIndex = 2;
+
+    int driveIsMarkedForDeletionIndex = 3;
+
+    int lastLocalModificationTimeIndex = 4;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        final int identifierIndex = 1;
-        final int driveIsSyncedIndex = 2;
-        final int driveIsMarkedForDeletionIndex = 3;
-        final int lastLocalModificationTimeIndex = 4;
         when(mCursor.getColumnIndex("drive_sync_id")).thenReturn(identifierIndex);
         when(mCursor.getColumnIndex("drive_is_synced")).thenReturn(driveIsSyncedIndex);
         when(mCursor.getColumnIndex("drive_marked_for_deletion")).thenReturn(driveIsMarkedForDeletionIndex);
@@ -78,6 +84,13 @@ public class SyncStateAdapterTest {
     @Test
     public void read() throws Exception {
         final DefaultSyncState syncState = new DefaultSyncState(mIdentifierMap, mSyncStatusMap, mMarkedForDeletionMap, mLastLocalModificationTime);
+        assertEquals(syncState, mSyncStateAdapter.read(mCursor));
+    }
+
+    @Test
+    public void readWithNullId() throws Exception {
+        when(mCursor.getString(identifierIndex)).thenReturn(null);
+        final DefaultSyncState syncState = new DefaultSyncState(null, mSyncStatusMap, mMarkedForDeletionMap, mLastLocalModificationTime);
         assertEquals(syncState, mSyncStateAdapter.read(mCursor));
     }
 
@@ -117,6 +130,30 @@ public class SyncStateAdapterTest {
         assertEquals(DRIVE_IS_SYNCED, contentValues.getAsBoolean("drive_is_synced"));
         assertEquals(DRIVE_IS_MARKED, contentValues.getAsBoolean("drive_marked_for_deletion"));
         assertEquals(LAST_LOCAL_MODIFICATION_TIME, (long) contentValues.getAsLong("last_local_modification_time"));
+    }
+
+    @Test
+    public void getWhenSyncing() throws Exception {
+        assertEquals(mSyncState, mSyncStateAdapter.get(mSyncState, new DatabaseOperationMetadata(OperationFamilyType.Sync)));
+    }
+
+    @Test
+    public void getWhenNotSyncing() throws Exception {
+        final SyncState nonSyncGet = mSyncStateAdapter.get(mSyncState, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+        assertEquals(nonSyncGet.getSyncId(SyncProvider.GoogleDrive), mSyncState.getSyncId(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.isSynced(SyncProvider.GoogleDrive), mSyncState.isSynced(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.isMarkedForDeletion(SyncProvider.GoogleDrive), mSyncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.getLastLocalModificationTime(), mSyncState.getLastLocalModificationTime());
+    }
+
+    @Test
+    public void getWhenNotSyncingWithNullId() throws Exception {
+        when(mSyncState.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
+        final SyncState nonSyncGet = mSyncStateAdapter.get(mSyncState, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+        assertEquals(nonSyncGet.getSyncId(SyncProvider.GoogleDrive), mSyncState.getSyncId(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.isSynced(SyncProvider.GoogleDrive), mSyncState.isSynced(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.isMarkedForDeletion(SyncProvider.GoogleDrive), mSyncState.isMarkedForDeletion(SyncProvider.GoogleDrive));
+        assertEquals(nonSyncGet.getLastLocalModificationTime(), mSyncState.getLastLocalModificationTime());
     }
 
 }

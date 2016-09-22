@@ -27,13 +27,14 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.BackupProvider;
 import co.smartreceipts.android.sync.drive.listeners.DatabaseBackupListener;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
 import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
-public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = GoogleDriveBackupManager.class.getSimpleName();
 
@@ -80,7 +81,10 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
         mPdfColumnDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
     }
 
-    public void initialize(@NonNull FragmentActivity activity) {
+    @Override
+    public void initialize(@Nullable FragmentActivity activity) {
+        Preconditions.checkNotNull(activity, "Google Drive requires a valid activity to be provided");
+
         final FragmentActivity existingActivity = mActivityReference.get().get();
         if (!activity.equals(existingActivity)) {
             mActivityReference.set(new WeakReference<>(activity));
@@ -90,12 +94,14 @@ public class GoogleDriveBackupManager implements GoogleApiClient.ConnectionCallb
         }
     }
 
+    @Override
     public void deinitialize() {
         if (isConnectedOrConnecting()) {
             mGoogleApiClient.disconnect();
         }
     }
 
+    @Override
     public boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_CODE_RESOLUTION && resultCode == Activity.RESULT_OK) {
             if (!isConnectedOrConnecting()) {

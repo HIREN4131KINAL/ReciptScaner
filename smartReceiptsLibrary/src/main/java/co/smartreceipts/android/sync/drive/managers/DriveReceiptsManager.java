@@ -75,6 +75,11 @@ public class DriveReceiptsManager {
                             handleInsertOrUpdate(receipt);
                         }
                     }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.e(TAG, "Failed to fetch our unsynced receipt data", throwable);
+                    }
                 });
     }
 
@@ -95,7 +100,13 @@ public class DriveReceiptsManager {
                 .subscribe(new Action1<Receipt>() {
                     @Override
                     public void call(Receipt newReceipt) {
+                        Log.i(TAG, "Updating receipt " + receipt.getId() + " to reflect its sync state");
                         mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.e(TAG, "Failed to handle insert/update for " + receipt.getId() + " to reflect its sync state", throwable);
                     }
                 });
     }
@@ -117,7 +128,13 @@ public class DriveReceiptsManager {
                 .subscribe(new Action1<Receipt>() {
                     @Override
                     public void call(Receipt newReceipt) {
+                        Log.i(TAG, "Deleting receipt " + newReceipt.getId() + " to reflect its sync state");
                         mReceiptTableController.delete(newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.e(TAG, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
                     }
                 });
     }
@@ -128,7 +145,7 @@ public class DriveReceiptsManager {
         final File receiptFile = receipt.getFile();
 
         if (oldSyncState.getSyncId(SyncProvider.GoogleDrive) == null) {
-            if (receiptFile != null) {
+            if (receiptFile != null && receiptFile.exists()) {
                 Log.i(TAG, "Found receipt " + receipt.getId() + " with a non-uploaded file. Uploading");
                 return mDriveTaskManager.uploadFileToDrive(oldSyncState, receiptFile);
             } else {

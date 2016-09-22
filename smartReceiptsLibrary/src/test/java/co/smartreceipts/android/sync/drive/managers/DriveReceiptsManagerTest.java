@@ -153,6 +153,25 @@ public class DriveReceiptsManagerTest {
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mReceipt1.getFile()).thenReturn(mFile);
+        when(mFile.exists()).thenReturn(true);
+
+        mDriveReceiptsManager.handleInsertOrUpdate(mReceipt1);
+
+        verify(mReceiptTableController).update(mReceiptCaptor.capture(), mUpdatedReceiptCaptor.capture(), mOperationMetadataCaptor.capture());
+        assertNotNull(mReceiptCaptor.getValue());
+        assertEquals(mReceipt1, mUpdatedReceiptCaptor.getValue());
+        assertEquals(mNewSyncState1, mUpdatedReceiptCaptor.getValue().getSyncState());
+        assertEquals(OperationFamilyType.Sync, mOperationMetadataCaptor.getValue().getOperationFamilyType());
+    }
+
+    @Test
+    public void handleInsertOrUpdateForNonExistingNewFile() {
+        when(mDriveStreamMappings.postInsertSyncState(mSyncState1, null)).thenReturn(mNewSyncState1);
+        when(mSyncState1.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
+        when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
+        when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
+        when(mReceipt1.getFile()).thenReturn(mFile);
+        when(mFile.exists()).thenReturn(false);
 
         mDriveReceiptsManager.handleInsertOrUpdate(mReceipt1);
 
@@ -188,6 +207,7 @@ public class DriveReceiptsManagerTest {
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mReceipt1.getFile()).thenReturn(mFile);
+        when(mFile.exists()).thenReturn(true);
 
         mDriveReceiptsManager.handleInsertOrUpdate(mReceipt1);
 

@@ -3,6 +3,7 @@ package co.smartreceipts.android.sync.drive.rx;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -75,34 +76,38 @@ public class DriveDataStreams {
                 Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
                     @Override
                     public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
-                        DriveId folderId = null;
-                        for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
-                            if (metadata.isFolder()) {
-                                folderId = metadata.getDriveId();
-                                break;
+                        try {
+                            DriveId folderId = null;
+                            for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                if (metadata.isFolder()) {
+                                    folderId = metadata.getDriveId();
+                                    break;
+                                }
                             }
-                        }
 
-                        if (folderId != null) {
-                            Log.i(TAG, "Found an existing Google Drive folder for Smart Receipts");
-                            subscriber.onNext(folderId.asDriveFolder());
-                            subscriber.onCompleted();
-                        } else {
-                            Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
-                            final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
-                            Drive.DriveApi.getRootFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
-                                @Override
-                                public void onSuccess(@NonNull DriveFolder.DriveFolderResult driveFolderResult) {
-                                    subscriber.onNext(driveFolderResult.getDriveFolder());
-                                    subscriber.onCompleted();
-                                }
+                            if (folderId != null) {
+                                Log.i(TAG, "Found an existing Google Drive folder for Smart Receipts");
+                                subscriber.onNext(folderId.asDriveFolder());
+                                subscriber.onCompleted();
+                            } else {
+                                Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
+                                final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
+                                Drive.DriveApi.getRootFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
+                                    @Override
+                                    public void onSuccess(@NonNull DriveFolder.DriveFolderResult driveFolderResult) {
+                                        subscriber.onNext(driveFolderResult.getDriveFolder());
+                                        subscriber.onCompleted();
+                                    }
 
-                                @Override
-                                public void onFailure(@NonNull Status status) {
-                                    Log.e(TAG, "Failed to create a home folder with status: " + status);
-                                    subscriber.onError(new IOException(status.getStatusMessage()));
-                                }
-                            });
+                                    @Override
+                                    public void onFailure(@NonNull Status status) {
+                                        Log.e(TAG, "Failed to create a home folder with status: " + status);
+                                        subscriber.onError(new IOException(status.getStatusMessage()));
+                                    }
+                                });
+                            }
+                        } finally {
+                            metadataBufferResult.getMetadataBuffer().release();
                         }
                     }
 
@@ -143,7 +148,12 @@ public class DriveDataStreams {
 
                                     final Uri uri = Uri.fromFile(file);
                                     final String mimeType = UriUtils.getMimeType(uri, mContext.getContentResolver());
-                                    final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(file.getName()).setMimeType(mimeType).build();
+                                    final MetadataChangeSet.Builder builder = new MetadataChangeSet.Builder();
+                                    builder.setTitle(file.getName());
+                                    if (!TextUtils.isEmpty(mimeType)) {
+                                        builder.setMimeType(mimeType);
+                                    }
+                                    final MetadataChangeSet changeSet = builder.build();
                                     folder.createFile(mGoogleApiClient, changeSet, driveContents, new ExecutionOptions.Builder().setNotifyOnCompletion(true).build()).setResultCallback(new ResultCallbacks<DriveFolder.DriveFileResult>() {
                                         @Override
                                         public void onSuccess(@NonNull DriveFolder.DriveFileResult driveFileResult) {

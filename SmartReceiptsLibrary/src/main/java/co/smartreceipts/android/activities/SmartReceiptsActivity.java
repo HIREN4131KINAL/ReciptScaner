@@ -20,6 +20,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.drive.GoogleDriveBackupManager;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
@@ -49,7 +50,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
-    private GoogleDriveBackupManager mGoogleDriveBackupManager;
+    private BackupProvidersManager mBackupProvidersManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +72,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
-        mGoogleDriveBackupManager = new GoogleDriveBackupManager(this, getSmartReceiptsApplication().getPersistenceManager().getDatabase(), getSmartReceiptsApplication().getTableControllerManager());
-        mGoogleDriveBackupManager.initialize(this);
+        mBackupProvidersManager = new BackupProvidersManager(new GoogleDriveBackupManager(this, getSmartReceiptsApplication().getPersistenceManager().getDatabase(), getSmartReceiptsApplication().getTableControllerManager()));
+        mBackupProvidersManager.initialize(this);
     }
 
     @Override
@@ -127,7 +128,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-            if (!mGoogleDriveBackupManager.onActivityResult(requestCode, resultCode, data)) {
+            if (!mBackupProvidersManager.onActivityResult(requestCode, resultCode, data)) {
                 super.onActivityResult(requestCode, resultCode, data);
             }
         }

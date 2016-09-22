@@ -53,7 +53,13 @@ public class DriveDatabaseManager {
                         .subscribe(new Action1<Identifier>() {
                             @Override
                             public void call(Identifier identifier) {
+                                Log.i(TAG, "Successfully synced our database");
                                 mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                Log.e(TAG, "Failed to synced our database", throwable);
                             }
                         });
             } else {

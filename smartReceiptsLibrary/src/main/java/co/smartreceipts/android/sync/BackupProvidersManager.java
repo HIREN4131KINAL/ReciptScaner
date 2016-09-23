@@ -41,6 +41,11 @@ public class BackupProvidersManager implements BackupProvider {
         mBackupProvider.initialize(fragmentActivity);
     }
 
+    @NonNull
+    public SyncProvider getSyncProvider() {
+        return mSyncProviderStore.getProvider();
+    }
+
     @Override
     public synchronized void initialize(@Nullable FragmentActivity activity) {
         mBackupProvider.initialize(activity);

@@ -14,6 +14,7 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
 
+import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,12 @@ public class BackupProvidersManagerTest {
     public void onActivityResult() {
         mBackupProvidersManager.onActivityResult(0, 0, null);
         verify(mNoneBackupProvider).onActivityResult(0, 0, null);
+    }
+
+    @Test
+    public void getSyncProvider() {
+        assertEquals(SyncProvider.None, mBackupProvidersManager.getSyncProvider());
+        verify(mSyncProviderStore, times(2)).getProvider();
     }
 
     @Test

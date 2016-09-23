@@ -73,6 +73,7 @@
             android:text="@string/auto_backup_warning" />
 
         <Button style="@style/Widget.SmartReceipts.Button.Secondary"
+            android:id="@+id/automatic_backup_config_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/default_margin_size"

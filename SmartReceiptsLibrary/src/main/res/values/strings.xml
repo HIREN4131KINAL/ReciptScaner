@@ -333,6 +333,8 @@
     <string name="auto_backup_title">Automatic Backup</string>
     <string name="auto_backup_warning">Warning: Automatic backups are not configured!\nYou may be at risk of losing your data.</string>
     <string name="auto_backup_configure">Tap to Configure</string>
+    <string name="auto_backup_source_none">None</string>
+    <string name="auto_backup_source_google_drive">Google Drive</string>
 
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>

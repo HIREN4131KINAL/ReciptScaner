@@ -18,6 +18,8 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.adapters.SelectionBackedDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
+import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.model.Syncable;
 import rx.Observable;
 import rx.functions.Func0;
 
@@ -81,7 +83,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         Cursor cursor = null;
         try {
             final List<ModelType> results = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ?", new String[]{ trip.getName() }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
+            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ? AND "+ COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ trip.getName(), Integer.toString(0) }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip));
@@ -149,8 +151,16 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
                 perTripResults.remove(oldModelType);
             }
 
+            boolean isMarkedForDeletion = false;
+            if (updatedItem instanceof Syncable) {
+                final Syncable syncable = (Syncable) newModelType;
+                if (syncable.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
+                    isMarkedForDeletion = true;
+                }
+            }
+
             final Trip newTrip = getTripFor(updatedItem);
-            if (mPerTripCache.containsKey(newTrip)) {
+            if (!isMarkedForDeletion && mPerTripCache.containsKey(newTrip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(newTrip);
                 perTripResults.add(updatedItem);
                 if (updatedItem instanceof Comparable<?>) {

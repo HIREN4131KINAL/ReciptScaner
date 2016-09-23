@@ -128,7 +128,7 @@ public class DriveReceiptsManager {
                 .subscribe(new Action1<Receipt>() {
                     @Override
                     public void call(Receipt newReceipt) {
-                        Log.i(TAG, "Deleting receipt " + newReceipt.getId() + " to reflect its sync state");
+                        Log.i(TAG, "Attempting to fully delete receipt " + newReceipt.getId() + " that is marked for deletion");
                         mReceiptTableController.delete(newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
                     }
                 }, new Action1<Throwable>() {

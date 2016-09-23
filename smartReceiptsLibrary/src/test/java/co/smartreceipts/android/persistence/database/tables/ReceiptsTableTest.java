@@ -478,11 +478,75 @@ public class ReceiptsTableTest {
     }
 
     @Test
-    public void delete() {
+    public void deleteUnmarkedReceipt() {
         assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
         assertEquals(receipts, Collections.singletonList(mReceipt2));
+
+        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        assertEquals(tripReceipts, Collections.<Receipt>emptyList());
+    }
+
+    @Test
+    public void deleteUnmarkedReceiptAfterCaching() {
+        mReceiptsTable.get(mTrip1).toBlocking().first();
+        mReceiptsTable.get(mTrip2).toBlocking().first();
+        mReceiptsTable.get(mTrip3).toBlocking().first();
+
+        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
+
+        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        assertEquals(receipts, Collections.singletonList(mReceipt2));
+
+        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        assertEquals(tripReceipts, Collections.<Receipt>emptyList());
+    }
+
+    @Test
+    public void deleteMarkedReceipt() {
+        final SyncState syncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("id"))),
+                new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
+                new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
+                new Date(System.currentTimeMillis()));
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        assertNotNull(receipt);
+
+        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).toBlocking().first());
+
+        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2));
+
+        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        assertEquals(trip1Receipts, Collections.singletonList(mReceipt1));
+
+        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).toBlocking().first();
+        assertEquals(trip3Receipts, Collections.<Receipt>emptyList());
+    }
+
+    @Test
+    public void deleteMarkedReceiptAfterCaching() {
+        mReceiptsTable.get(mTrip1).toBlocking().first();
+        mReceiptsTable.get(mTrip2).toBlocking().first();
+        mReceiptsTable.get(mTrip3).toBlocking().first();
+
+        final SyncState syncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("id"))),
+                new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
+                new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
+                new Date(System.currentTimeMillis()));
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        assertNotNull(receipt);
+
+        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).toBlocking().first());
+
+        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2));
+
+        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        assertEquals(trip1Receipts, Collections.singletonList(mReceipt1));
+
+        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).toBlocking().first();
+        assertEquals(trip3Receipts, Collections.<Receipt>emptyList());
     }
 
 }

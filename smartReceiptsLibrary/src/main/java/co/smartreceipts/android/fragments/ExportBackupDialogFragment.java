@@ -28,7 +28,8 @@ public class ExportBackupDialogFragment extends DialogFragment implements Dialog
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            // TODO: Kick off export
+            final ExportBackupWorkerProgressDialogFragment progressDialogFragment = new ExportBackupWorkerProgressDialogFragment();
+            progressDialogFragment.show(getFragmentManager(), ExportBackupWorkerProgressDialogFragment.TAG);
         }
         dismiss();
     }

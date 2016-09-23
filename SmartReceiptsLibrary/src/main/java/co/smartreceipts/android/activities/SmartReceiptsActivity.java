@@ -225,7 +225,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     public void onSubscriptionsUnavailable() {
         Log.w(TAG, "No subscriptions were found for this session");
-        // Intentional no-op
     }
 
     @Override

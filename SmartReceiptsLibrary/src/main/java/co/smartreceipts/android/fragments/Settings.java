@@ -41,7 +41,7 @@ public class Settings implements ExportTask.Listener {
             public void onClick(DialogInterface dialog, int which) {
                 (new ExportTask(mApp.getCurrentActivity(), "Exporting your receipts...", mPersistenceManager, Settings.this)).execute();
             }
-        }).setNeutralButton(R.string.dialog_export_neutral, new DialogInterface.OnClickListener() {
+        }).setNeutralButton(R.string.dialog_import_positive, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);

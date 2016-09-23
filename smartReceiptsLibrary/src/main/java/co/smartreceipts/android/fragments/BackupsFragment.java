@@ -3,7 +3,6 @@ package co.smartreceipts.android.fragments;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -41,6 +40,21 @@ public class BackupsFragment extends WBFragment {
         mImportButton = (Button) view.findViewById(R.id.manual_backup_import);
         mWarningTextView = (TextView) view.findViewById(R.id.auto_backup_warning);
         mBackupConfigButton = (Button) view.findViewById(R.id.automatic_backup_config_button);
+
+        mExportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ExportBackupDialogFragment exportBackupDialogFragment = new ExportBackupDialogFragment();
+                exportBackupDialogFragment.show(getFragmentManager(), ExportBackupDialogFragment.TAG);
+            }
+        });
+        mImportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final ImportBackupDialogFragment importBackupDialogFragment = new ImportBackupDialogFragment();
+                importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
+            }
+        });
         return view;
     }
 

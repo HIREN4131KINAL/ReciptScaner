@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -7,24 +8,37 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProviderFactory;
+import co.smartreceipts.android.sync.provider.SyncProviderStore;
+
 /**
  * A global manager for whatever our current backup provider may (or may not) be
  */
 public class BackupProvidersManager implements BackupProvider {
 
+    private final SyncProviderFactory mSyncProviderFactory;
+    private final SyncProviderStore mSyncProviderStore;
     private BackupProvider mBackupProvider;
 
-    public BackupProvidersManager() {
-        this(new NoOpBackupProvider());
+    public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
+        this(new SyncProviderFactory(context, databaseHelper, tableControllerManager), new SyncProviderStore(context));
     }
 
-    public BackupProvidersManager(@NonNull BackupProvider backupProvider) {
-        mBackupProvider = Preconditions.checkNotNull(backupProvider);
+    public BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore) {
+        mSyncProviderFactory = Preconditions.checkNotNull(syncProviderFactory);
+        mSyncProviderStore = Preconditions.checkNotNull(syncProviderStore);
+        mBackupProvider = syncProviderFactory.get(mSyncProviderStore.getProvider());
     }
 
-    public synchronized void setBackupProvider(@NonNull BackupProvider backupProvider) {
-        Preconditions.checkNotNull(backupProvider);
-        mBackupProvider = backupProvider;
+    public synchronized void setAndInitializeSyncProvider(@NonNull SyncProvider syncProvider, @Nullable FragmentActivity fragmentActivity) {
+        mSyncProviderStore.setSyncProvider(syncProvider);
+        mBackupProvider.deinitialize();
+
+        mBackupProvider = mSyncProviderFactory.get(syncProvider);
+        mBackupProvider.initialize(fragmentActivity);
     }
 
     @Override
@@ -33,7 +47,7 @@ public class BackupProvidersManager implements BackupProvider {
     }
 
     @Override
-    public synchronized  void deinitialize() {
+    public synchronized void deinitialize() {
         mBackupProvider.deinitialize();
     }
 

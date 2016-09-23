@@ -7,18 +7,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 
-import java.sql.Date;
-import java.util.Collections;
-
 import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.sync.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
-import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
-import co.smartreceipts.android.sync.model.impl.Identifier;
-import co.smartreceipts.android.sync.model.impl.IdentifierMap;
-import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.IsNot.not;

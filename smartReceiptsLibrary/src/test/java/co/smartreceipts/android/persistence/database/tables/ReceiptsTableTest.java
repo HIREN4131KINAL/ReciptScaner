@@ -34,7 +34,7 @@ import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;

@@ -20,7 +20,7 @@ import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementId
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.DefaultOrderBy;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.Syncable;
 import rx.Observable;
 import rx.Subscriber;

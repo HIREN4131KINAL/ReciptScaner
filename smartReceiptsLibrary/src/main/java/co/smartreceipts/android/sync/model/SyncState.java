@@ -6,9 +6,7 @@ import android.support.annotation.Nullable;
 
 import java.sql.Date;
 
-import co.smartreceipts.android.sync.SyncProvider;
-import co.smartreceipts.android.sync.model.impl.IdentifierMap;
-import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 
 public interface SyncState extends Parcelable {

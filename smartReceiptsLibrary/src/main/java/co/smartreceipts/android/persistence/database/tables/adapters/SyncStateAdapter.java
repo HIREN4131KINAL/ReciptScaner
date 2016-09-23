@@ -4,15 +4,13 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
-import com.google.gson.Gson;
-
 import java.sql.Date;
 import java.util.Collections;
 
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.AbstractSqlTable;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;

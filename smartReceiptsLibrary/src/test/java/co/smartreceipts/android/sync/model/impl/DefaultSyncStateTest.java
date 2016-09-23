@@ -10,7 +10,7 @@ import org.robolectric.RobolectricGradleTestRunner;
 import java.sql.Date;
 import java.util.Collections;
 
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

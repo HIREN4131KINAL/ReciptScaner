@@ -23,7 +23,7 @@ import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCusto
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.ReceiptDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryKey;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;

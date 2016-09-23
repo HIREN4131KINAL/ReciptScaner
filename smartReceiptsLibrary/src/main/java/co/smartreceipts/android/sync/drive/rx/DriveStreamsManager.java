@@ -12,19 +12,15 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks {
 

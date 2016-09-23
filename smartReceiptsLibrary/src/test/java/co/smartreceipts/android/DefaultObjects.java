@@ -19,7 +19,7 @@ import co.smartreceipts.android.model.impl.DefaultTripImpl;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;

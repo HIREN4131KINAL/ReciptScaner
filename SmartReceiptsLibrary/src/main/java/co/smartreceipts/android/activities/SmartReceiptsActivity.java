@@ -72,7 +72,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
-        mBackupProvidersManager = new BackupProvidersManager(new GoogleDriveBackupManager(this, getSmartReceiptsApplication().getPersistenceManager().getDatabase(), getSmartReceiptsApplication().getTableControllerManager()));
+        mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mBackupProvidersManager.initialize(this);
     }
 

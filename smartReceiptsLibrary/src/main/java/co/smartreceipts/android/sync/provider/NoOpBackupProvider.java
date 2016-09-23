@@ -1,8 +1,11 @@
-package co.smartreceipts.android.sync;
+package co.smartreceipts.android.sync.provider;
 
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
+
+import co.smartreceipts.android.sync.BackupProvider;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 
 /**
  * A no-op implementation of the {@link BackupProvider} contract to help us to avoid dealing with nulls

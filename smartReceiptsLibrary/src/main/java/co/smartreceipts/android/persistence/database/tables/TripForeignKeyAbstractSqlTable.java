@@ -18,7 +18,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.adapters.SelectionBackedDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.Syncable;
 import rx.Observable;
 import rx.functions.Func0;

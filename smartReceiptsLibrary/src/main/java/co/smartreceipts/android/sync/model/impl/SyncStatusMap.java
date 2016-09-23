@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import co.smartreceipts.android.sync.SyncProvider;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class SyncStatusMap implements Serializable {
 

@@ -102,8 +102,8 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
     }
 
     @Override
-    public void postDelete(boolean success, @NonNull Trip trip) {
-        if (success) {
+    public void postDelete(@Nullable Trip trip) {
+        if (trip != null) {
             mReceiptsTable.deleteParentBlocking(trip);
             mDistanceTable.deleteParentBlocking(trip);
             if (!mStorageManager.deleteRecursively(trip.getDirectory())) {

@@ -82,7 +82,7 @@ public class TripTableActionAlterationsTest {
     }
 
     @Test
-    public void postInsertForValidlTrip() throws Exception {
+    public void postInsertForValidTrip() throws Exception {
         final String name = "name";
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(new File(name));
@@ -91,11 +91,11 @@ public class TripTableActionAlterationsTest {
     }
 
     @Test (expected = IOException.class)
-    public void postInsertForValidlTripButIOFails() throws Exception {
+    public void postInsertForValidTripButIOFails() throws Exception {
         final String name = "name";
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(null);
-        when(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(true));
+        when(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(mTrip1));
         mTripTableActionAlterations.postInsert(mTrip1);
         verify(mTripsTable).delete(mTrip1, new DatabaseOperationMetadata());
     }
@@ -159,7 +159,7 @@ public class TripTableActionAlterationsTest {
 
     @Test
     public void postDeleteFailed() throws Exception {
-        mTripTableActionAlterations.postDelete(false, mTrip1);
+        mTripTableActionAlterations.postDelete(null);
         verifyZeroInteractions(mReceiptsTable, mDistanceTable);
     }
 
@@ -167,7 +167,7 @@ public class TripTableActionAlterationsTest {
     public void postDeleteSuccess() throws Exception {
         final File dir = new File("name");
         when(mTrip1.getDirectory()).thenReturn(dir);
-        mTripTableActionAlterations.postDelete(true, mTrip1);
+        mTripTableActionAlterations.postDelete(mTrip1);
         verify(mReceiptsTable).deleteParentBlocking(mTrip1);
         verify(mDistanceTable).deleteParentBlocking(mTrip1);
         verify(mStorageManager).deleteRecursively(dir);

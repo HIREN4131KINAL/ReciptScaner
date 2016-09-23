@@ -265,66 +265,70 @@ public class AbstractTableControllerTest {
 
     @Test
     public void onDeleteSuccess() throws Exception {
-        final Object deleteItem = new Object();
+        final Object deleteCandidateItem = new Object();
+        final Object deletedItem = new Object();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.just(deleteItem));
-        when(mTable.delete(deleteItem, databaseOperationMetadata)).thenReturn(Observable.just(true));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
 
         mAbstractTableController.unsubscribe(mListener2);
-        mAbstractTableController.delete(deleteItem, databaseOperationMetadata);
+        mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
-        verify(mListener1).onDeleteSuccess(deleteItem, databaseOperationMetadata);
-        verify(mListener3).onDeleteSuccess(deleteItem, databaseOperationMetadata);
+        verify(mListener1).onDeleteSuccess(deletedItem, databaseOperationMetadata);
+        verify(mListener3).onDeleteSuccess(deletedItem, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
     }
 
     @Test
     public void onPreDeleteException() throws Exception {
-        final Object deleteItem = new Object();
+        final Object deleteCandidateItem = new Object();
+        final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.error(e));
-        when(mTable.delete(deleteItem, databaseOperationMetadata)).thenReturn(Observable.just(false));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.error(e));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
 
         mAbstractTableController.unsubscribe(mListener2);
-        mAbstractTableController.delete(deleteItem, databaseOperationMetadata);
+        mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
-        verify(mListener1).onDeleteFailure(deleteItem, e, databaseOperationMetadata);
-        verify(mListener3).onDeleteFailure(deleteItem, e, databaseOperationMetadata);
+        verify(mListener1).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
+        verify(mListener3).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
     }
 
     @Test
     public void onDeleteException() throws Exception {
-        final Object deleteItem = new Object();
+        final Object deleteCandidateItem = new Object();
+        final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.just(deleteItem));
-        when(mTable.delete(deleteItem, databaseOperationMetadata)).thenReturn(Observable.<Boolean>error(e));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.error(e));
 
         mAbstractTableController.unsubscribe(mListener2);
-        mAbstractTableController.delete(deleteItem, databaseOperationMetadata);
+        mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
-        verify(mListener1).onDeleteFailure(deleteItem, e, databaseOperationMetadata);
-        verify(mListener3).onDeleteFailure(deleteItem, e, databaseOperationMetadata);
+        verify(mListener1).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
+        verify(mListener3).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
     }
 
     @Test
     public void onPostDeleteException() throws Exception {
-        final Object deleteItem = new Object();
+        final Object deleteCandidateItem = new Object();
+        final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteItem)).thenReturn(Observable.just(deleteItem));
-        when(mTable.delete(deleteItem, databaseOperationMetadata)).thenReturn(Observable.just(true));
-        doThrow(e).when(mTableActionAlterations).postDelete(true, deleteItem);
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
+        doThrow(e).when(mTableActionAlterations).postDelete(deletedItem);
 
         mAbstractTableController.unsubscribe(mListener2);
-        mAbstractTableController.delete(deleteItem, databaseOperationMetadata);
+        mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
-        verify(mListener1).onDeleteFailure(eq(deleteItem), any(Exception.class), eq(databaseOperationMetadata));
-        verify(mListener3).onDeleteFailure(eq(deleteItem), any(Exception.class), eq(databaseOperationMetadata));
+        verify(mListener1).onDeleteFailure(eq(deleteCandidateItem), any(Exception.class), eq(databaseOperationMetadata));
+        verify(mListener3).onDeleteFailure(eq(deleteCandidateItem), any(Exception.class), eq(databaseOperationMetadata));
         verifyZeroInteractions(mListener2);
     }
 

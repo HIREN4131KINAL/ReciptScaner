@@ -54,7 +54,7 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
     }
 
     @Override
-    public void postDelete(boolean success, @NonNull T t) throws Exception {
+    public void postDelete(@Nullable T t) throws Exception {
 
     }
 }

@@ -189,7 +189,7 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mPaymentMethodsTable.delete(mPaymentMethod1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mPaymentMethod1, mPaymentMethodsTable.delete(mPaymentMethod1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
         assertEquals(paymentMethods, Collections.singletonList(mPaymentMethod2));

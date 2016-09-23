@@ -97,8 +97,8 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     @Override
-    public void postDelete(boolean success, @NonNull Receipt receipt) throws Exception {
-        if (success && receipt.hasFile()) {
+    public void postDelete(@Nullable Receipt receipt) throws Exception {
+        if (receipt != null && receipt.hasFile()) {
             mStorageManager.delete(receipt.getFile());
         }
     }
@@ -130,7 +130,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     public void postMove(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
         if (newReceipt != null) { // i.e. - the move succeeded (delete the old data)
             Log.i(TAG, "Completed the move procedure");
-            if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).toBlocking().first()) {
+            if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).toBlocking().first() != null) {
                 if (oldReceipt.hasFile()) {
                     if (!mStorageManager.delete(oldReceipt.getFile())) {
                         Log.e(TAG, "Failed to delete the moved receipt's file");

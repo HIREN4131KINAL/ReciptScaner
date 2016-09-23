@@ -168,10 +168,11 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         mPerTripCache.remove(oldTrip);
     }
 
+    @Nullable
     @Override
-    public synchronized boolean deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        final boolean deleteResult = super.deleteBlocking(modelType, databaseOperationMetadata);
-        if (deleteResult) {
+    public synchronized ModelType deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final ModelType deleteResult = super.deleteBlocking(modelType, databaseOperationMetadata);
+        if (deleteResult != null) {
             final Trip trip = getTripFor(modelType);
             if (mPerTripCache.containsKey(trip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(trip);

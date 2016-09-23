@@ -216,7 +216,7 @@ public class PDFTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mPDFTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mColumn1, mPDFTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
         assertEquals(mPDFTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
     }
 

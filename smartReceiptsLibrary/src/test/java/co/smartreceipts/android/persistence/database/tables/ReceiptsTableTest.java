@@ -479,7 +479,7 @@ public class ReceiptsTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
         assertEquals(receipts, Collections.singletonList(mReceipt2));

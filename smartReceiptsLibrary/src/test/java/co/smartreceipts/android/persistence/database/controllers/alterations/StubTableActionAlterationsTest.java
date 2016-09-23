@@ -57,6 +57,6 @@ public class StubTableActionAlterationsTest {
 
     @Test
     public void postDelete() throws Exception {
-        mStubTableActionAlterations.postDelete(true, new Object());
+        mStubTableActionAlterations.postDelete(new Object());
     }
 }

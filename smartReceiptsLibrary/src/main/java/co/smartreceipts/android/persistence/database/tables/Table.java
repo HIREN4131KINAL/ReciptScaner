@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import rx.Observable;
@@ -90,8 +91,8 @@ public interface Table<ModelType, PrimaryKeyType> {
      * Removes an existing object of type {@link ModelType} from this table. Please note that this is a blocking operation
      * @param modelType the object to remove
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return an {@link Observable} with: {@code true} if we successfully deleted this item. {@code false} otherwise
+     * @return an {@link Observable} with: the deleted {@link ModelType} if successful, {@code null} otherwise
      */
     @NonNull
-    Observable<Boolean> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    Observable<ModelType> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 }

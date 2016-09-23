@@ -255,17 +255,17 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
         Log.i(TAG, "#delete: " + modelType);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTableActionAlterations.preDelete(modelType)
-                .flatMap(new Func1<ModelType, Observable<Boolean>>() {
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public Observable<Boolean> call(ModelType modelType) {
+                    public Observable<ModelType> call(ModelType modelType) {
                         return mTable.delete(modelType, databaseOperationMetadata);
                     }
                 })
-                .doOnNext(new Action1<Boolean>() {
+                .doOnNext(new Action1<ModelType>() {
                     @Override
-                    public void call(Boolean success) {
+                    public void call(ModelType deletedItem) {
                         try {
-                            mTableActionAlterations.postDelete(success, modelType);
+                            mTableActionAlterations.postDelete(deletedItem);
                         } catch (Exception e) {
                             throw Exceptions.propagate(e);
                         }
@@ -273,13 +273,13 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 })
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<Boolean>() {
+                .subscribe(new Action1<ModelType>() {
                     @Override
-                    public void call(Boolean success) {
-                        if (success) {
+                    public void call(ModelType deleteItem) {
+                        if (deleteItem != null) {
                             Log.d(TAG, "#onDeleteSuccess - onNext");
                             for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteSuccess(modelType, databaseOperationMetadata);
+                                tableEventsListener.onDeleteSuccess(deleteItem, databaseOperationMetadata);
                             }
                         } else {
                             Log.d(TAG, "#onDeleteFailure - onNext");

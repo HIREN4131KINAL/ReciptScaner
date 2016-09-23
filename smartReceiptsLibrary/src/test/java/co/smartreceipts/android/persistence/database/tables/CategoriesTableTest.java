@@ -192,8 +192,8 @@ public class CategoriesTableTest {
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertTrue(mCategoriesTable.delete(mCategory1, new DatabaseOperationMetadata()).toBlocking().first());
-        assertTrue(mCategoriesTable.delete(mCategory2, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mCategory1, mCategoriesTable.delete(mCategory1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mCategory2, mCategoriesTable.delete(mCategory2, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Category> newCategories = mCategoriesTable.get().toBlocking().first();
         assertTrue(newCategories.isEmpty());

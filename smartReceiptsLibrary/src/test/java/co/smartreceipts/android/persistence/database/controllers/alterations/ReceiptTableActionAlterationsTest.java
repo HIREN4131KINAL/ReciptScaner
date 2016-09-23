@@ -186,14 +186,14 @@ public class ReceiptTableActionAlterationsTest {
         final File file = new File("abc");
         when(mReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getFile()).thenReturn(file);
-        mReceiptTableActionAlterations.postDelete(false, mReceipt);
+        mReceiptTableActionAlterations.postDelete(null);
         verifyZeroInteractions(mStorageManager);
     }
 
     @Test
     public void postDeleteSuccessWithoutFile() throws Exception {
         when(mReceipt.hasFile()).thenReturn(false);
-        mReceiptTableActionAlterations.postDelete(true, mReceipt);
+        mReceiptTableActionAlterations.postDelete(mReceipt);
         verifyZeroInteractions(mStorageManager);
     }
 
@@ -202,7 +202,7 @@ public class ReceiptTableActionAlterationsTest {
         final File file = new File("abc");
         when(mReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getFile()).thenReturn(file);
-        mReceiptTableActionAlterations.postDelete(true, mReceipt);
+        mReceiptTableActionAlterations.postDelete(mReceipt);
         verify(mStorageManager).delete(file);
     }
 

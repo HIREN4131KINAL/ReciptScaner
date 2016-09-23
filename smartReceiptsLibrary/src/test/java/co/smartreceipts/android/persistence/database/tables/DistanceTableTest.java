@@ -3,6 +3,8 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -264,7 +266,7 @@ public class DistanceTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mDistanceTable.delete(mDistance1, new DatabaseOperationMetadata()).toBlocking().first());
+        Assert.assertEquals(mDistance1, mDistanceTable.delete(mDistance1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Distance> distances = mDistanceTable.get().toBlocking().first();
         assertEquals(distances, Collections.singletonList(mDistance2));

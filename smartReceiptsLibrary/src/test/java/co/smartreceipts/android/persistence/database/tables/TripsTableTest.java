@@ -307,7 +307,7 @@ public class TripsTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mTrip1, mTripsTable.delete(mTrip1, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Trip> trips = mTripsTable.get().toBlocking().first();
         assertEquals(trips, Collections.singletonList(mTrip2));

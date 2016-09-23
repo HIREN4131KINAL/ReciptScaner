@@ -76,19 +76,6 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
         }
     }
 
-    private void createColumnsTable(@NonNull SQLiteDatabase db, @NonNull TableDefaultsCustomizer customizer) {
-        final String columnsTable = "CREATE TABLE " + getTableName() + " ("
-                                    + mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                    + mTypeColumnName + " TEXT, "
-                                    + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                                    + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " TEXT, "
-                                    + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"+ ");";
-        Log.d(TAG, columnsTable);
-
-        db.execSQL(columnsTable);
-        insertDefaults(customizer);
-    }
-
     /**
      * Inserts the default column as defined by {@link ColumnDefinitions#getDefaultInsertColumn()}
      *
@@ -125,7 +112,7 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
     private Observable<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
         if (lastColumn != null) {
-            return delete(lastColumn, databaseOperationMetadata);
+            return Observable.just(deleteBlocking(lastColumn, databaseOperationMetadata) != null);
         } else {
             return Observable.just(false);
         }

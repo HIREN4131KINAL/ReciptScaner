@@ -189,10 +189,10 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
     @NonNull
     @Override
-    public final Observable<Boolean> delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return Observable.defer(new Func0<Observable<Boolean>>() {
+    public final Observable<ModelType> delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return Observable.defer(new Func0<Observable<ModelType>>() {
             @Override
-            public Observable<Boolean> call() {
+            public Observable<ModelType> call() {
                 return Observable.just(AbstractSqlTable.this.deleteBlocking(modelType, databaseOperationMetadata));
             }
         });
@@ -322,15 +322,16 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
     }
 
-    public synchronized boolean deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    @Nullable
+    public synchronized ModelType deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final String primaryKeyValue = mPrimaryKey.getPrimaryKeyValue(modelType).toString();
         if (getWritableDatabase().delete(getTableName(), mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ primaryKeyValue }) > 0) {
             if (mCachedResults != null) {
                 mCachedResults.remove(modelType);
             }
-            return true;
+            return modelType;
         } else {
-            return false;
+            return null;
         }
     }
 

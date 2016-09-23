@@ -216,7 +216,7 @@ public class CSVTableTest {
 
     @Test
     public void delete() {
-        assertTrue(mCSVTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mColumn1, mCSVTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
         assertEquals(mCSVTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
     }
 

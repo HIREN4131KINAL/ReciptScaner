@@ -157,7 +157,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
-            SRNavUtils.showSettings(this);
+            mNavigationHandler.navigateToSettings(this);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {

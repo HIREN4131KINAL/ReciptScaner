@@ -1,5 +1,6 @@
 package co.smartreceipts.android.activities;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -102,6 +103,11 @@ public class NavigationHandler {
         } else {
             replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_list);
         }
+    }
+
+    public void navigateToSettings(@NonNull Activity source) {
+        final Intent intent = new Intent(source, SettingsActivity.class);
+        source.startActivity(intent);
     }
 
     public boolean isDualPane() {

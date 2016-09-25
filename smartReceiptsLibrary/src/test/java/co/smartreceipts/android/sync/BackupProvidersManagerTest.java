@@ -15,8 +15,11 @@ import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
 
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
@@ -40,6 +43,9 @@ public class BackupProvidersManagerTest {
     @Mock
     FragmentActivity mFragmentActivity;
 
+    @Mock
+    BackupProviderChangeListener mBackupProviderChangeListener1, mBackupProviderChangeListener2;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -49,6 +55,9 @@ public class BackupProvidersManagerTest {
         when(mSyncProviderFactory.get(SyncProvider.GoogleDrive)).thenReturn(mDriveBackupProvider);
 
         mBackupProvidersManager = new BackupProvidersManager(mSyncProviderFactory, mSyncProviderStore);
+        mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener1);
+        mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener2);
+        mBackupProvidersManager.unregisterChangeListener(mBackupProviderChangeListener1);
     }
 
     @Test
@@ -77,6 +86,7 @@ public class BackupProvidersManagerTest {
 
     @Test
     public void setAndInitializeSyncProvider() {
+        when(mSyncProviderStore.setSyncProvider(any(SyncProvider.class))).thenReturn(true);
         mBackupProvidersManager.setAndInitializeSyncProvider(SyncProvider.GoogleDrive, mFragmentActivity);
         verify(mNoneBackupProvider).deinitialize();
         verify(mDriveBackupProvider).initialize(mFragmentActivity);
@@ -88,7 +98,18 @@ public class BackupProvidersManagerTest {
         verify(mDriveBackupProvider).deinitialize();
         mBackupProvidersManager.initialize(mFragmentActivity);
         verify(mDriveBackupProvider, times(2)).initialize(mFragmentActivity);
+        verify(mBackupProviderChangeListener1).onProviderChanged(SyncProvider.GoogleDrive);
+        verifyZeroInteractions(mBackupProviderChangeListener2);
     }
 
+    @Test
+    public void setAndInitializeTheCurrentSyncProvider() {
+        when(mSyncProviderStore.setSyncProvider(any(SyncProvider.class))).thenReturn(false);
+        mBackupProvidersManager.setAndInitializeSyncProvider(SyncProvider.GoogleDrive, mFragmentActivity);
+        verify(mNoneBackupProvider, never()).deinitialize();
+        verify(mDriveBackupProvider, never()).initialize(mFragmentActivity);
+        verifyZeroInteractions(mBackupProviderChangeListener1);
+        verifyZeroInteractions(mBackupProviderChangeListener2);
+    }
 
 }

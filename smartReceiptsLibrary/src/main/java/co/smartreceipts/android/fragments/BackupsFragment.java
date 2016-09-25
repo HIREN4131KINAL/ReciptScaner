@@ -19,12 +19,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.workers.ImportTask;
 
-public class BackupsFragment extends WBFragment {
+public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
     private static final String SMR_EXTENSION = "smr";
@@ -72,6 +73,13 @@ public class BackupsFragment extends WBFragment {
                 }
             }
         });
+        mBackupConfigButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final SelectAutomaticBackupProviderDialogFragment selectAutomaticBackupProviderDialogFragment = new SelectAutomaticBackupProviderDialogFragment();
+                selectAutomaticBackupProviderDialogFragment.show(getFragmentManager(), SelectAutomaticBackupProviderDialogFragment.TAG);
+            }
+        });
         return view;
     }
 
@@ -97,6 +105,8 @@ public class BackupsFragment extends WBFragment {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
         }
+        mBackupProvidersManager.registerChangeListener(this);
+        updateViewsForProvider(mBackupProvidersManager.getSyncProvider());
     }
 
     @Override
@@ -112,6 +122,12 @@ public class BackupsFragment extends WBFragment {
         }
     }
 
+    @Override
+    public void onPause() {
+        mBackupProvidersManager.unregisterChangeListener(this);
+        super.onPause();
+    }
+
     private void updateViewsForProvider(@NonNull SyncProvider syncProvider) {
         if (syncProvider == SyncProvider.None) {
             mWarningTextView.setVisibility(View.VISIBLE);
@@ -122,5 +138,10 @@ public class BackupsFragment extends WBFragment {
         } else {
             throw new IllegalArgumentException("Unsupported sync provider type was specified");
         }
+    }
+
+    @Override
+    public void onProviderChanged(@NonNull SyncProvider newProvider) {
+        updateViewsForProvider(newProvider);
     }
 }

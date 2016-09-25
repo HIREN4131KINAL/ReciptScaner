@@ -8,6 +8,9 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
@@ -21,6 +24,7 @@ public class BackupProvidersManager implements BackupProvider {
 
     private final SyncProviderFactory mSyncProviderFactory;
     private final SyncProviderStore mSyncProviderStore;
+    private final Set<BackupProviderChangeListener> mBackupProviderChangeListeners = new CopyOnWriteArraySet<>();
     private BackupProvider mBackupProvider;
 
     public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
@@ -33,12 +37,25 @@ public class BackupProvidersManager implements BackupProvider {
         mBackupProvider = syncProviderFactory.get(mSyncProviderStore.getProvider());
     }
 
-    public synchronized void setAndInitializeSyncProvider(@NonNull SyncProvider syncProvider, @Nullable FragmentActivity fragmentActivity) {
-        mSyncProviderStore.setSyncProvider(syncProvider);
-        mBackupProvider.deinitialize();
+    public void registerChangeListener(@NonNull BackupProviderChangeListener backupProviderChangeListener) {
+        Preconditions.checkNotNull(backupProviderChangeListener);
+        mBackupProviderChangeListeners.add(backupProviderChangeListener);
+    }
 
-        mBackupProvider = mSyncProviderFactory.get(syncProvider);
-        mBackupProvider.initialize(fragmentActivity);
+    public void unregisterChangeListener(@NonNull BackupProviderChangeListener backupProviderChangeListener) {
+        Preconditions.checkNotNull(backupProviderChangeListener);
+        mBackupProviderChangeListeners.remove(backupProviderChangeListener);
+    }
+
+    public synchronized void setAndInitializeSyncProvider(@NonNull SyncProvider syncProvider, @Nullable FragmentActivity fragmentActivity) {
+        if (mSyncProviderStore.setSyncProvider(syncProvider)) {
+            mBackupProvider.deinitialize();
+            mBackupProvider = mSyncProviderFactory.get(syncProvider);
+            mBackupProvider.initialize(fragmentActivity);
+            for (final BackupProviderChangeListener backupProviderChangeListener : mBackupProviderChangeListeners) {
+                backupProviderChangeListener.onProviderChanged(syncProvider);
+            }
+        }
     }
 
     @NonNull

@@ -22,7 +22,7 @@ public class SyncProviderStore {
     }
 
     @NonNull
-    public SyncProvider getProvider() {
+    public synchronized SyncProvider getProvider() {
         final String syncProviderName = mSharedPreferences.getString(KEY_SYNC_PROVIDER, "");
         try {
             return SyncProvider.valueOf(syncProviderName);
@@ -31,8 +31,14 @@ public class SyncProviderStore {
         }
     }
 
-    public void setSyncProvider(@NonNull SyncProvider syncProvider) {
-        mSharedPreferences.edit().putString(KEY_SYNC_PROVIDER, syncProvider.name()).apply();
+    public boolean setSyncProvider(@NonNull SyncProvider syncProvider) {
+        final SyncProvider currentValue = getProvider();
+        if (currentValue != syncProvider) {
+            mSharedPreferences.edit().putString(KEY_SYNC_PROVIDER, syncProvider.name()).apply();
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

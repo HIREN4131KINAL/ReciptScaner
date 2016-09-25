@@ -1,12 +1,9 @@
 package co.smartreceipts.android.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabaseCorruptException;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -23,7 +20,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -34,13 +30,11 @@ import android.widget.Toast;
 import java.util.List;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
-import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -51,13 +45,11 @@ import co.smartreceipts.android.persistence.database.controllers.impl.TripTableC
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.workers.EmailAssistant;
-import co.smartreceipts.android.workers.ImportTask;
-import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
 
-public class TripFragment extends WBListFragment implements BooleanTaskCompleteDelegate, TableEventsListener<Trip>, AdapterView.OnItemLongClickListener {
+public class TripFragment extends WBListFragment implements TableEventsListener<Trip>, AdapterView.OnItemLongClickListener {
 
     public static final String TAG = "TripFragment";
 
@@ -67,7 +59,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
     private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
-    private Attachable mAttachable;
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
     private TripTableController mTripTableController;
@@ -83,17 +74,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         args.putBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP, navigateToViewLastTrip);
         tripFragment.setArguments(args);
         return tripFragment;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        Log.d(TAG, "onAttach");
-        if (activity instanceof Attachable) {
-            mAttachable = (Attachable) activity;
-        } else {
-            throw new IllegalArgumentException("The TripFragment's Activity must extend the Navigable and Attachable interfaces");
-        }
     }
 
     @Override
@@ -152,11 +132,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
         if (actionBar != null) {
             getSupportActionBar().setSubtitle(null);
         }
-        // Handles SMR imports
-        final Attachment attachment = mAttachable.getAttachment();
-        if (attachment != null && attachment.isValid() && attachment.isSMR() && attachment.isActionView()) {
-            performImport(attachment.getUri());
-        }
     }
 
     @Override
@@ -176,32 +151,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
     public void onSaveInstanceState(Bundle outState) {
         outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
         super.onSaveInstanceState(outState);
-    }
-
-    @SuppressWarnings("WrongConstant")
-    @Override
-    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        Log.d(TAG, "Result Code: " + resultCode);
-        Log.d(TAG, "Request Code: " + requestCode);
-
-        if (resultCode == Activity.RESULT_OK) { // -1
-            if (requestCode == ImportTask.TASK_ID) {
-                if (data != null) {
-                    try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                            final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            getContext().getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
-                        }
-                    } catch (SecurityException e) {
-                        Log.e(TAG, "Swalling security exception", e);
-                    }
-                    performImport(data.getData());
-                }
-            }
-        } else {
-            Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            super.onActivityResult(requestCode, resultCode, data);
-        }
     }
 
     public final void tripMenu(final Trip trip) {
@@ -520,40 +469,6 @@ public class TripFragment extends WBListFragment implements BooleanTaskCompleteD
 
     private void viewReceipts(Trip trip) {
         mNavigationHandler.navigateToReportInfoFragment(trip);
-    }
-
-    private void performImport(final Uri uri) {
-        final CheckBox overwrite = new CheckBox(getActivity());
-        overwrite.setText(" Overwrite Existing Data?");
-        final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        builder.setTitle(R.string.import_string).setView(overwrite).setCancelable(true).setPositiveButton(R.string.import_string, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                (new ImportTask(getActivity(), TripFragment.this, getString(R.string.progress_import), IMPORT_TASK_ID, overwrite.isChecked(), getPersistenceManager())).execute(uri);
-                mAttachable.setAttachment(null);
-            }
-        }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mAttachable.setAttachment(null);
-            }
-        }).show();
-    }
-
-    private final int IMPORT_TASK_ID = 1;
-
-    @Override
-    public synchronized void onBooleanTaskComplete(int taskID, Boolean success) {
-        if (taskID == IMPORT_TASK_ID) {
-            if (success) {
-                Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                getActivity().finish(); // TODO: Fix this hack - finishing the activity to get rid of the old Intent so
-                // we don't reshow import dialog
-            } else {
-                Toast.makeText(getActivity(), getFlexString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
-            }
-            mTripTableController.get();
-        }
     }
 
 }

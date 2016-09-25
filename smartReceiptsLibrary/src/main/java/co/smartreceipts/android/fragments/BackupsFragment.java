@@ -1,23 +1,31 @@
 package co.smartreceipts.android.fragments;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.workers.ImportTask;
 
 public class BackupsFragment extends WBFragment {
+
+    private static final int IMPORT_SMR_REQUEST_CODE = 50;
 
     private BackupProvidersManager mBackupProvidersManager;
 
@@ -52,8 +60,14 @@ public class BackupsFragment extends WBFragment {
         mImportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(Uri.EMPTY);
-                importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
+                final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                try {
+                    startActivityForResult(Intent.createChooser(intent, getString(R.string.import_string)), IMPORT_SMR_REQUEST_CODE);
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(getContext(), getString(R.string.error_no_file_intent_dialog_title), Toast.LENGTH_SHORT).show();
+                }
             }
         });
         return view;
@@ -80,6 +94,19 @@ public class BackupsFragment extends WBFragment {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == IMPORT_SMR_REQUEST_CODE) {
+                if (data != null) {
+                    final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(data.getData());
+                    importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
+                }
+            }
         }
     }
 

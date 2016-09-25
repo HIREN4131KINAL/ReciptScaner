@@ -8,11 +8,11 @@ public interface Attachable {
 	 * Returns the attachment that is generated via the main activity
 	 * @return
 	 */
-	public Attachment getAttachment();
+	Attachment getAttachment();
 	
 	/**
 	 * Stores the main attachment details for later
 	 */
-	public void setAttachment(Attachment attachment);
+	void setAttachment(Attachment attachment);
 
 }

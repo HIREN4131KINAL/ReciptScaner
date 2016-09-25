@@ -20,6 +20,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.fragments.ImportBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.drive.GoogleDriveBackupManager;
 import co.smartreceipts.android.model.Attachment;
@@ -98,8 +99,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             final boolean hasStoragePermission = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
             if (attachment.isActionView() && !hasStoragePermission) {
                 ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
-            }
-            else if (attachment.isDirectlyAttachable()) {
+            } else if (attachment.isDirectlyAttachable()) {
                 final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
                 final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
                 if (preferences.showActionSendHelpDialog()) {
@@ -120,6 +120,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                 } else {
                     Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
                 }
+            } else if (attachment.isSMR() && attachment.isActionView()) {
+                final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(attachment.getUri());
+                importBackupDialogFragment.show(getSupportFragmentManager(), ImportBackupDialogFragment.TAG);
             }
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();

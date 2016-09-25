@@ -21,11 +21,13 @@ import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.workers.ImportTask;
 
 public class BackupsFragment extends WBFragment {
 
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
+    private static final String SMR_EXTENSION = "smr";
 
     private BackupProvidersManager mBackupProvidersManager;
 

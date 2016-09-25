@@ -21,6 +21,7 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class ImportBackupWorkerProgressDialogFragment extends DialogFragment {
 
@@ -74,7 +75,7 @@ public class ImportBackupWorkerProgressDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mManualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(mUri, mOverwrite).subscribeOn(AndroidSchedulers.mainThread())
+        mSubscription = mManualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(mUri, mOverwrite).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(@Nullable Boolean success) {

@@ -50,7 +50,7 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mManualBackupAndRestoreTaskCache.getManualBackupTask().backupData().subscribeOn(AndroidSchedulers.mainThread())
+        mSubscription = mManualBackupAndRestoreTaskCache.getManualBackupTask().backupData().observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Uri>() {
                     @Override
                     public void call(@Nullable Uri uri) {

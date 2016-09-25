@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,7 +52,7 @@ public class BackupsFragment extends WBFragment {
         mImportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final ImportBackupDialogFragment importBackupDialogFragment = new ImportBackupDialogFragment();
+                final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(Uri.EMPTY);
                 importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
             }
         });

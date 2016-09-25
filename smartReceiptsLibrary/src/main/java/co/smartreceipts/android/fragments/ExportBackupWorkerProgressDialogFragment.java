@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.sync.manual.ManualBackupTaskCache;
+import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -22,7 +22,7 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
 
     public static final String TAG = ExportBackupWorkerProgressDialogFragment.class.getName();
 
-    private ManualBackupTaskCache mManualBackupTaskCache;
+    private ManualBackupAndRestoreTaskCache mManualBackupAndRestoreTaskCache;
     private Subscription mSubscription;
 
     @Override
@@ -44,13 +44,13 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mManualBackupTaskCache = new ManualBackupTaskCache(getFragmentManager(), ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager());
+        mManualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager(), getContext());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mManualBackupTaskCache.getManualBackupTask().backupData().subscribeOn(AndroidSchedulers.mainThread())
+        mSubscription = mManualBackupAndRestoreTaskCache.getManualBackupTask().backupData().subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Uri>() {
                     @Override
                     public void call(@Nullable Uri uri) {

@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import co.smartreceipts.android.sync.manual.ManualBackupTask;
+import co.smartreceipts.android.sync.manual.ManualRestoreTask;
 import wb.android.async.BooleanProgressTask;
 import wb.android.async.BooleanTaskCompleteDelegate;
 import wb.android.storage.SDCardFileManager;
@@ -142,7 +144,7 @@ public class ImportTask extends BooleanProgressTask<Uri> {
 		}
 		DatabaseHelper db = mPersistenceManager.getDatabase();
 		mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Merging database");
-		return db.merge(external.getFile(ExportTask.DATABASE_EXPORT_NAME).getAbsolutePath(), mContext.getPackageName(), overwrite);
+		return db.merge(external.getFile(ManualBackupTask.DATABASE_EXPORT_NAME).getAbsolutePath(), mContext.getPackageName(), overwrite);
 	}
 
 }

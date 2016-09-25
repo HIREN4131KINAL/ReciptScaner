@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.manual;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,14 +11,16 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.persistence.PersistenceManager;
 
-public class ManualBackupTaskCache {
+public class ManualBackupAndRestoreTaskCache {
 
     private final BackupTaskCacheHeadlessFragment mHeadlessFragment;
     private final PersistenceManager mPersistenceManager;
+    private final Context mContext;
 
-    public ManualBackupTaskCache(@NonNull FragmentManager fragmentManager, @NonNull PersistenceManager persistenceManager) {
+    public ManualBackupAndRestoreTaskCache(@NonNull FragmentManager fragmentManager, @NonNull PersistenceManager persistenceManager, @NonNull Context context) {
         Preconditions.checkNotNull(fragmentManager);
         mPersistenceManager = Preconditions.checkNotNull(persistenceManager);
+        mContext = Preconditions.checkNotNull(context.getApplicationContext());
 
         BackupTaskCacheHeadlessFragment headlessFragment = (BackupTaskCacheHeadlessFragment) fragmentManager.findFragmentByTag(BackupTaskCacheHeadlessFragment.TAG);
         if (headlessFragment == null) {
@@ -35,11 +38,20 @@ public class ManualBackupTaskCache {
         return mHeadlessFragment.manualBackupTask;
     }
 
+    @NonNull
+    public synchronized ManualRestoreTask getManualRestoreTask() {
+        if (mHeadlessFragment.manualRestoreTask == null) {
+            mHeadlessFragment.manualRestoreTask = new ManualRestoreTask(mPersistenceManager, mContext);
+        }
+        return mHeadlessFragment.manualRestoreTask;
+    }
+
     public static final class BackupTaskCacheHeadlessFragment extends Fragment {
 
-        private static final String TAG = ManualBackupTaskCache.class.getName();
+        private static final String TAG = ManualBackupAndRestoreTaskCache.class.getName();
 
         private ManualBackupTask manualBackupTask;
+        private ManualRestoreTask manualRestoreTask;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {

@@ -3,20 +3,13 @@ package co.smartreceipts.android;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import co.smartreceipts.android.analytics.AnalyticsLogger;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
-import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
-import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
-import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -29,12 +22,10 @@ import wb.android.util.AppRating;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.content.res.Resources;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
-import co.smartreceipts.android.fragments.Settings;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -56,7 +47,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	private PersistenceManager mPersistenceManager;
 	private Flex mFlex;
 	private Activity mCurrentActivity;
-	private Settings mSettings;
 	private ConfigurationManager mConfigurationManager;
     private TableControllerManager mTableControllerManager;
     private AnalyticsManager mAnalyticsManager;
@@ -176,14 +166,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return mFlex;
 	}
 
-	@Deprecated
-	public Settings getSettings() {
-		if (mSettings == null) {
-			mSettings = instantiateSettings();
-		}
-		return mSettings;
-	}
-
     @NonNull
 	public ConfigurationManager getConfigurationManager() {
 		return mConfigurationManager;
@@ -291,15 +273,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	 */
 	protected Flex instantiateFlex() {
 		return Flex.getInstance(this, this);
-	}
-
-	/**
-	 * Protected method to enable subclasses to create custom instances
-	 * 
-	 * @return a Settings Instance
-	 */
-	protected Settings instantiateSettings() {
-		return new Settings(this);
 	}
 
     /**

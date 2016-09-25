@@ -3,7 +3,6 @@ package co.smartreceipts.android.persistence;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -13,13 +12,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -31,11 +26,7 @@ import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
-import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
-import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
@@ -48,10 +39,9 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
-import co.smartreceipts.android.utils.UriUtils;
+import co.smartreceipts.android.sync.manual.ManualRestoreTask;
 import co.smartreceipts.android.utils.Utils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
-import co.smartreceipts.android.workers.ImportTask;
 import rx.Observable;
 import rx.Subscriber;
 import wb.android.autocomplete.AutoCompleteAdapter;
@@ -400,7 +390,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             Cursor c = null, countCursor = null;
             try {
                 if (dbPath == null) {
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Null database file");
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Null database file");
                     return false;
                 }
                 currDB = this.getWritableDatabase();
@@ -410,7 +400,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.d(TAG, "Merging Trips");
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Trips");
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Trips");
                     c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
                     if (c != null && c.moveToFirst()) {
                         final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
@@ -470,7 +460,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a1]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a1]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -482,7 +472,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging Receipts");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Receipts");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Receipts");
                 try {
                     final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND " + ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
                     c = importDB.query(ReceiptsTable.TABLE_NAME, null, null, null, null, null, null);
@@ -594,7 +584,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a2]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a2]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -608,7 +598,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging Categories");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging Categories");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Categories");
                 try {
                     c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
@@ -632,7 +622,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a3]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a3]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -646,7 +636,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging CSV");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging CSV");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging CSV");
                 try {
                     c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
@@ -667,7 +657,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a4]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a4]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -681,7 +671,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging PDF");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Merging PDF");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging PDF");
                 try {
                     c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
@@ -702,7 +692,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a5]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a5]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -716,7 +706,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging Payment Methods");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Payment Methods");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Payment Methods");
                 try {
                     c = importDB.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
@@ -737,7 +727,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -748,7 +738,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "Merging Distance");
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Distance");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Distance");
                 try {
                     c = importDB.query(DistanceTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {
@@ -808,7 +798,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -816,13 +806,13 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     }
                 }
 
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Success");
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Success");
                 return true;
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, e.toString());
                 }
-                mPersistenceManager.getStorageManager().appendTo(ImportTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + Utils.getStackTrace(e));
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + Utils.getStackTrace(e));
                 return false;
             } finally {
                 if (c != null && !c.isClosed()) {

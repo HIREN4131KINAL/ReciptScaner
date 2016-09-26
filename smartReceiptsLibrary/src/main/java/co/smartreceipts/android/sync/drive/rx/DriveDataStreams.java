@@ -21,12 +21,15 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.metadata.CustomPropertyKey;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -34,13 +37,15 @@ import co.smartreceipts.android.sync.drive.device.DeviceMetadata;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.services.DriveIdUploadCompleteCallback;
 import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.model.impl.DefaultRemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
 import wb.android.storage.StorageManager;
 
-public class DriveDataStreams {
+class DriveDataStreams {
 
     private static final String TAG = DriveDataStreams.class.getSimpleName();
 
@@ -66,6 +71,45 @@ public class DriveDataStreams {
         mDeviceMetadata = Preconditions.checkNotNull(deviceMetadata);
         mDriveUploadCompleteManager = Preconditions.checkNotNull(driveUploadCompleteManager);
         mExecutor = Preconditions.checkNotNull(executor);
+    }
+
+    public Observable<RemoteBackupMetadata> getSmartReceiptsFolders() {
+        return Observable.create(new Observable.OnSubscribe<RemoteBackupMetadata>() {
+            @Override
+            public void call(final Subscriber<? super RemoteBackupMetadata> subscriber) {
+                final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, SMART_RECEIPTS_FOLDER)).build();
+                Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
+                    @Override
+                    public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                        try {
+                            for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                if (metadata.isFolder()) {
+                                    final Identifier driveFolderId = new Identifier(metadata.getDriveId().getResourceId());
+                                    final Map<CustomPropertyKey, String> customPropertyMap = metadata.getCustomProperties();
+                                    if (customPropertyMap != null && customPropertyMap.containsKey(SMART_RECEIPTS_FOLDER_KEY)) {
+                                        final Identifier syncDeviceIdentifier = new Identifier(customPropertyMap.get(SMART_RECEIPTS_FOLDER_KEY));
+                                        final Date lastModifiedDate = metadata.getModifiedDate();
+                                        final String deviceName = metadata.getDescription() != null ? metadata.getDescription() : "";
+                                        subscriber.onNext(new DefaultRemoteBackupMetadata(driveFolderId, syncDeviceIdentifier, deviceName, lastModifiedDate));
+                                    } else {
+                                        Log.e(TAG, "Found an invalid Smart Receipts folder. Skipping");
+                                    }
+                                }
+                            }
+                            subscriber.onCompleted();
+                        } finally {
+                            metadataBufferResult.getMetadataBuffer().release();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Log.e(TAG, "Failed to query a Smart Receipts folder with status: " + status);
+                        subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
     }
 
     public Observable<DriveFolder> getSmartReceiptsFolder() {

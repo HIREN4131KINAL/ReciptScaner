@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
-import co.smartreceipts.android.fragments.BackupsFragment;
+import co.smartreceipts.android.sync.widget.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
@@ -62,7 +62,7 @@ public interface FragmentProvider {
     ReceiptImageFragment newReceiptImageFragment(@NonNull Receipt receipt);
 
     /**
-     * Creates a {@link co.smartreceipts.android.fragments.BackupsFragment} instance
+     * Creates a {@link BackupsFragment} instance
      *
      * @return a new instance of this fragment
      */

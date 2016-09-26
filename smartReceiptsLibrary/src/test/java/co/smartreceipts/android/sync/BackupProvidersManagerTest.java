@@ -57,7 +57,7 @@ public class BackupProvidersManagerTest {
         mBackupProvidersManager = new BackupProvidersManager(mSyncProviderFactory, mSyncProviderStore);
         mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener1);
         mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener2);
-        mBackupProvidersManager.unregisterChangeListener(mBackupProviderChangeListener1);
+        mBackupProvidersManager.unregisterChangeListener(mBackupProviderChangeListener2);
     }
 
     @Test
@@ -76,6 +76,12 @@ public class BackupProvidersManagerTest {
     public void onActivityResult() {
         mBackupProvidersManager.onActivityResult(0, 0, null);
         verify(mNoneBackupProvider).onActivityResult(0, 0, null);
+    }
+
+    @Test
+    public void getRemoteBackups() {
+        mBackupProvidersManager.getRemoteBackups();
+        verify(mNoneBackupProvider).getRemoteBackups();
     }
 
     @Test
@@ -99,6 +105,8 @@ public class BackupProvidersManagerTest {
         mBackupProvidersManager.initialize(mFragmentActivity);
         verify(mDriveBackupProvider, times(2)).initialize(mFragmentActivity);
         verify(mBackupProviderChangeListener1).onProviderChanged(SyncProvider.GoogleDrive);
+        mBackupProvidersManager.getRemoteBackups();
+        verify(mDriveBackupProvider).getRemoteBackups();
         verifyZeroInteractions(mBackupProviderChangeListener2);
     }
 

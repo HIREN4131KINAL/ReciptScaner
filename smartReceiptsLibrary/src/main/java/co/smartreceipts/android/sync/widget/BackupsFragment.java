@@ -1,16 +1,14 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.sync.widget;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +16,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.fragments.ExportBackupDialogFragment;
+import co.smartreceipts.android.fragments.ImportBackupDialogFragment;
+import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
+import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import co.smartreceipts.android.utils.UriUtils;
-import co.smartreceipts.android.workers.ImportTask;
+import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
 
 public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
@@ -31,17 +36,21 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private static final String SMR_EXTENSION = "smr";
 
     private BackupProvidersManager mBackupProvidersManager;
+    private RemoteBackupsResultsCache mRemoteBackupsResultsCache;
+    private CompositeSubscription mCompositeSubscription;
 
     private Toolbar mToolbar;
     private Button mExportButton;
     private Button mImportButton;
     private Button mBackupConfigButton;
     private TextView mWarningTextView;
+    private RecyclerView mRecyclerView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
+        mRemoteBackupsResultsCache = new RemoteBackupsResultsCache(getFragmentManager(), mBackupProvidersManager);
     }
 
     @Nullable
@@ -52,6 +61,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mImportButton = (Button) view.findViewById(R.id.manual_backup_import);
         mWarningTextView = (TextView) view.findViewById(R.id.auto_backup_warning);
         mBackupConfigButton = (Button) view.findViewById(R.id.automatic_backup_config_button);
+        mRecyclerView = (RecyclerView) view.findViewById(android.R.id.list);
 
         mExportButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,12 +94,6 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        updateViewsForProvider(mBackupProvidersManager.getSyncProvider());
-    }
-
-    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mToolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
@@ -105,6 +109,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
         }
+        mCompositeSubscription = new CompositeSubscription();
         mBackupProvidersManager.registerChangeListener(this);
         updateViewsForProvider(mBackupProvidersManager.getSyncProvider());
     }
@@ -125,6 +130,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onPause() {
         mBackupProvidersManager.unregisterChangeListener(this);
+        mCompositeSubscription.unsubscribe();
         super.onPause();
     }
 
@@ -138,6 +144,15 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         } else {
             throw new IllegalArgumentException("Unsupported sync provider type was specified");
         }
+
+        mCompositeSubscription.add(mRemoteBackupsResultsCache.getBackups(syncProvider)
+                .subscribe(new Action1<List<RemoteBackupMetadata>>() {
+                    @Override
+                    public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(remoteBackupMetadatas);
+                        mRecyclerView.setAdapter(remoteBackupsListAdapter);
+                    }
+                }));
     }
 
     @Override

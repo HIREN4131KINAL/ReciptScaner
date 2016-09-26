@@ -12,9 +12,11 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
@@ -50,6 +52,18 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     public void onConnectionSuspended(int cause) {
         Log.i(TAG, "GoogleApiClient connection suspended with cause " + cause);
         mLatchReference.set(new CountDownLatch(1));
+    }
+
+    @NonNull
+    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<RemoteBackupMetadata>>() {
+                    @Override
+                    public Observable<RemoteBackupMetadata> call(Void aVoid) {
+                        return mDriveDataStreams.getSmartReceiptsFolders();
+                    }
+                })
+                .toList();
     }
 
     @NonNull

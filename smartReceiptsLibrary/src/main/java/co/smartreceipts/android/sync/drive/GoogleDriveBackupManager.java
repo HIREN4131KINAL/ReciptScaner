@@ -17,6 +17,7 @@ import com.google.android.gms.drive.Drive;
 import com.google.common.base.Preconditions;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.model.Category;
@@ -33,6 +34,8 @@ import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
 import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import rx.Observable;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -111,6 +114,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         } else {
             return false;
         }
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
+        return mDriveTaskManager.getRemoteBackups();
     }
 
     @Override

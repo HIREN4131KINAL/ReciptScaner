@@ -1,12 +1,14 @@
 package co.smartreceipts.android.sync;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
-import java.lang.ref.WeakReference;
+import java.util.List;
+
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import rx.Observable;
 
 /**
  * A top level interface to track the core behaviors that are shared by all automatic backup providers
@@ -34,5 +36,11 @@ public interface BackupProvider {
      * @return {@code true} if we handle the request, {@code false} otherwse
      */
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data);
+
+    /**
+     * @return an {@link Observable} containing all of our remote backups
+     */
+    @NonNull
+    Observable<List<RemoteBackupMetadata>> getRemoteBackups();
 
 }

@@ -8,14 +8,17 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
+import rx.Observable;
 
 /**
  * A global manager for whatever our current backup provider may (or may not) be
@@ -76,5 +79,11 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public synchronized boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         return mBackupProvider.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
+        return mBackupProvider.getRemoteBackups();
     }
 }

@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentActivity;
 import java.util.List;
 
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 
 /**
@@ -42,5 +43,11 @@ public interface BackupProvider {
      */
     @NonNull
     Observable<List<RemoteBackupMetadata>> getRemoteBackups();
+
+    /**
+     * @return the sync {@link Identifier} for the current device or {@code null} if none is defined
+     */
+    @Nullable
+    Identifier getDeviceSyncId();
 
 }

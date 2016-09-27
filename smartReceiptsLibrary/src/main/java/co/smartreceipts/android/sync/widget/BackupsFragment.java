@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,6 +20,8 @@ import android.widget.Toast;
 import java.util.List;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.fragments.ExportBackupDialogFragment;
 import co.smartreceipts.android.fragments.ImportBackupDialogFragment;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
@@ -38,6 +41,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private BackupProvidersManager mBackupProvidersManager;
     private RemoteBackupsResultsCache mRemoteBackupsResultsCache;
     private CompositeSubscription mCompositeSubscription;
+    private NavigationHandler mNavigationHandler;
 
     private Toolbar mToolbar;
     private Button mExportButton;
@@ -49,8 +53,10 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mRemoteBackupsResultsCache = new RemoteBackupsResultsCache(getFragmentManager(), mBackupProvidersManager);
+        mNavigationHandler = new NavigationHandler(getActivity());
     }
 
     @Nullable
@@ -124,6 +130,15 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                     importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
                 }
             }
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            return mNavigationHandler.navigateBack();
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -32,7 +33,7 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     private final DriveStreamMappings mDriveStreamMappings;
     private final AtomicReference<CountDownLatch> mLatchReference;
 
-    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient) {
+    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
         this(new DriveDataStreams(context, googleApiClient), new DriveStreamMappings());
     }
 
@@ -57,13 +58,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     @NonNull
     public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
         return newBlockUntilConnectedObservable()
-                .flatMap(new Func1<Void, Observable<RemoteBackupMetadata>>() {
+                .flatMap(new Func1<Void, Observable<List<RemoteBackupMetadata>>>() {
                     @Override
-                    public Observable<RemoteBackupMetadata> call(Void aVoid) {
+                    public Observable<List<RemoteBackupMetadata>> call(Void aVoid) {
                         return mDriveDataStreams.getSmartReceiptsFolders();
                     }
-                })
-                .toList();
+                });
     }
 
     @NonNull

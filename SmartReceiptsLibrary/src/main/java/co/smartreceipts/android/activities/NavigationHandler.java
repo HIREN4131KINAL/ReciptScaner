@@ -31,6 +31,10 @@ public class NavigationHandler {
     private final Context mContext;
     private final boolean mIsDualPane;
 
+    public NavigationHandler(@NonNull FragmentActivity activity) {
+        this(activity, new DefaultFragmentProvider());
+    }
+
     public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentProvider fragmentProvider) {
         this(activity, activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
@@ -108,6 +112,15 @@ public class NavigationHandler {
     public void navigateToSettings(@NonNull Activity source) {
         final Intent intent = new Intent(source, SettingsActivity.class);
         source.startActivity(intent);
+    }
+
+    public boolean navigateBack() {
+        try {
+            return mFragmentManager.popBackStackImmediate();
+        } catch (final IllegalStateException e) {
+            // This exception is always thrown if saveInstanceState was already been called.
+            return false;
+        }
     }
 
     public boolean isDualPane() {

@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 import java.util.Arrays;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class DriveReceiptsManagerTest {
 
     // Class under testing
@@ -52,6 +53,9 @@ public class DriveReceiptsManagerTest {
 
     @Mock
     DriveStreamsManager mDriveTaskManager;
+
+    @Mock
+    DriveDatabaseManager mDriveDatabaseManager;
 
     @Mock
     DriveStreamMappings mDriveStreamMappings;
@@ -117,7 +121,7 @@ public class DriveReceiptsManagerTest {
         }).when(mReceiptBuilderFactory2).setSyncState(any(SyncState.class));
 
         mDriveReceiptsManager = new DriveReceiptsManager(mReceiptTableController, mReceiptsTable, mDriveTaskManager,
-                mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.immediate(), Schedulers.immediate());
+                mDriveDatabaseManager, mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @Test
@@ -264,6 +268,7 @@ public class DriveReceiptsManagerTest {
 
         verify(spiedManager).handleInsertOrUpdate(mReceipt1);
         verify(spiedManager).handleDelete(mReceipt2);
+        verify(mDriveDatabaseManager).syncDatabase();
     }
 
 }

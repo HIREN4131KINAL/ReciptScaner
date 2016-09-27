@@ -27,8 +27,8 @@ public class DriveDatabaseManager {
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
 
-    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager) {
-        this(context, driveTaskManager, new GoogleDriveSyncMetadata(context), Schedulers.io(), Schedulers.io());
+    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
+        this(context, driveTaskManager, googleDriveSyncMetadata, Schedulers.io(), Schedulers.io());
     }
 
     public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,

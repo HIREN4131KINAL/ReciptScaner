@@ -29,12 +29,14 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.BackupProvider;
+import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.listeners.DatabaseBackupListener;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
 import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -51,6 +53,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final AtomicReference<WeakReference<FragmentActivity>> mActivityReference;
     private final TableControllerManager mTableControllerManager;
     private final Context mContext;
+    private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
     private final DriveReceiptsManager mDriveReceiptsManager;
     private final DatabaseBackupListener<Trip> mTripDatabaseBackupListener;
     private final ReceiptBackupListener mReceiptDatabaseBackupListener;
@@ -68,13 +71,15 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
                 .addScope(Drive.SCOPE_FILE)
                 .useDefaultAccount()
                 .build();
-        mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
-        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient);
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
+        mGoogleDriveSyncMetadata = new GoogleDriveSyncMetadata(context);
+        mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
-        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager);
 
-        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager);
+        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata);
+        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager);
+
         mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
         mReceiptDatabaseBackupListener = new ReceiptBackupListener(driveDatabaseManager, mDriveReceiptsManager);
         mDistanceDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
@@ -120,6 +125,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     @Override
     public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
         return mDriveTaskManager.getRemoteBackups();
+    }
+
+    @Nullable
+    @Override
+    public Identifier getDeviceSyncId() {
+        return mGoogleDriveSyncMetadata.getDeviceIdentifier();
     }
 
     @Override

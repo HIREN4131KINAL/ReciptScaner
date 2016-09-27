@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
@@ -85,5 +86,11 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
         return mBackupProvider.getRemoteBackups();
+    }
+
+    @Nullable
+    @Override
+    public Identifier getDeviceSyncId() {
+        return mBackupProvider.getDeviceSyncId();
     }
 }

@@ -85,6 +85,12 @@ public class BackupProvidersManagerTest {
     }
 
     @Test
+    public void getDeviceSyncId() {
+        mBackupProvidersManager.getDeviceSyncId();
+        verify(mNoneBackupProvider).getDeviceSyncId();
+    }
+
+    @Test
     public void getSyncProvider() {
         assertEquals(SyncProvider.None, mBackupProvidersManager.getSyncProvider());
         verify(mSyncProviderStore, times(2)).getProvider();
@@ -107,6 +113,8 @@ public class BackupProvidersManagerTest {
         verify(mBackupProviderChangeListener1).onProviderChanged(SyncProvider.GoogleDrive);
         mBackupProvidersManager.getRemoteBackups();
         verify(mDriveBackupProvider).getRemoteBackups();
+        mBackupProvidersManager.getDeviceSyncId();
+        verify(mDriveBackupProvider).getDeviceSyncId();
         verifyZeroInteractions(mBackupProviderChangeListener2);
     }
 

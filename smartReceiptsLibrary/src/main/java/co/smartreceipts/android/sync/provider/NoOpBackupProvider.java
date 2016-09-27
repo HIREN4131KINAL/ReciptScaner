@@ -11,6 +11,7 @@ import java.util.List;
 import co.smartreceipts.android.sync.BackupProvider;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 
 /**
@@ -38,5 +39,11 @@ class NoOpBackupProvider implements BackupProvider {
     @Override
     public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
         return Observable.just(Collections.<RemoteBackupMetadata>emptyList());
+    }
+
+    @Nullable
+    @Override
+    public Identifier getDeviceSyncId() {
+        return null;
     }
 }

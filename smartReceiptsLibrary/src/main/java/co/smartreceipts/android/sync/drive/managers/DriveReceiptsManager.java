@@ -20,6 +20,7 @@ import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import rx.Observable;
 import rx.Scheduler;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -31,23 +32,25 @@ public class DriveReceiptsManager {
     private final TableController<Receipt> mReceiptTableController;
     private final ReceiptsTable mReceiptsTable;
     private final DriveStreamsManager mDriveTaskManager;
+    private final DriveDatabaseManager mDriveDatabaseManager;
     private final DriveStreamMappings mDriveStreamMappings;
     private final ReceiptBuilderFactoryFactory mReceiptBuilderFactoryFactory;
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
-                                @NonNull DriveStreamsManager driveTaskManager) {
-        this(receiptsTableController, receiptsTable, driveTaskManager, new DriveStreamMappings(), new ReceiptBuilderFactoryFactory(), Schedulers.io(), Schedulers.io());
+                                @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveDatabaseManager driveDatabaseManager) {
+        this(receiptsTableController, receiptsTable, driveTaskManager, driveDatabaseManager, new DriveStreamMappings(), new ReceiptBuilderFactoryFactory(), Schedulers.io(), Schedulers.io());
     }
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
-                                @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveStreamMappings driveStreamMappings,
-                                @NonNull ReceiptBuilderFactoryFactory receiptBuilderFactoryFactory, @NonNull Scheduler observeOnScheduler,
-                                @NonNull Scheduler subscribeOnScheduler) {
+                                @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveDatabaseManager driveDatabaseManager,
+                                @NonNull DriveStreamMappings driveStreamMappings, @NonNull ReceiptBuilderFactoryFactory receiptBuilderFactoryFactory,
+                                @NonNull Scheduler observeOnScheduler, @NonNull Scheduler subscribeOnScheduler) {
         mReceiptTableController = Preconditions.checkNotNull(receiptsTableController);
         mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
+        mDriveDatabaseManager = Preconditions.checkNotNull(driveDatabaseManager);
         mDriveStreamMappings = Preconditions.checkNotNull(driveStreamMappings);
         mReceiptBuilderFactoryFactory = Preconditions.checkNotNull(receiptBuilderFactoryFactory);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
@@ -79,6 +82,11 @@ public class DriveReceiptsManager {
                     @Override
                     public void call(Throwable throwable) {
                         Log.e(TAG, "Failed to fetch our unsynced receipt data", throwable);
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        mDriveDatabaseManager.syncDatabase();
                     }
                 });
     }

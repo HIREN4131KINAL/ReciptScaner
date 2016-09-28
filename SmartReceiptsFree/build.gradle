@@ -16,6 +16,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
         multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
     }
 
     dexOptions {

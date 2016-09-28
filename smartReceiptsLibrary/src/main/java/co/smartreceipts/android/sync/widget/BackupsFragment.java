@@ -13,14 +13,14 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.fragments.ExportBackupDialogFragment;
 import co.smartreceipts.android.fragments.ImportBackupDialogFragment;
@@ -44,10 +44,14 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private NavigationHandler mNavigationHandler;
 
     private Toolbar mToolbar;
-    private Button mExportButton;
-    private Button mImportButton;
-    private Button mBackupConfigButton;
+    private View mExportButton;
+    private View mImportButton;
+    private View mBackupConfigButton;
+    private ImageView mBackupConfigButtonImage;
+    private TextView mBackupConfigButtonText;
     private TextView mWarningTextView;
+    private CheckBox mWifiOnlyCheckbox;
+    private View mExistingBackupsSection;
     private RecyclerView mRecyclerView;
 
     @Override
@@ -63,10 +67,14 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.backups, container, false);
-        mExportButton = (Button) view.findViewById(R.id.manual_backup_export);
-        mImportButton = (Button) view.findViewById(R.id.manual_backup_import);
+        mExportButton = view.findViewById(R.id.manual_backup_export);
+        mImportButton = view.findViewById(R.id.manual_backup_import);
         mWarningTextView = (TextView) view.findViewById(R.id.auto_backup_warning);
-        mBackupConfigButton = (Button) view.findViewById(R.id.automatic_backup_config_button);
+        mBackupConfigButton = view.findViewById(R.id.automatic_backup_config_button);
+        mBackupConfigButtonImage = (ImageView) view.findViewById(R.id.automatic_backup_config_button_image);
+        mBackupConfigButtonText = (TextView) view.findViewById(R.id.automatic_backup_config_button_text);
+        mWifiOnlyCheckbox = (CheckBox) view.findViewById(R.id.auto_backup_wifi_only);
+        mExistingBackupsSection = view.findViewById(R.id.existing_backups_section);
         mRecyclerView = (RecyclerView) view.findViewById(android.R.id.list);
 
         mExportButton.setOnClickListener(new View.OnClickListener() {
@@ -151,11 +159,15 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     private void updateViewsForProvider(@NonNull SyncProvider syncProvider) {
         if (syncProvider == SyncProvider.None) {
-            mWarningTextView.setVisibility(View.VISIBLE);
-            mBackupConfigButton.setText(R.string.auto_backup_configure);
+            mWarningTextView.setText(R.string.auto_backup_warning_none);
+            mBackupConfigButtonText.setText(R.string.auto_backup_configure);
+            mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_off_24dp);
+            mWifiOnlyCheckbox.setVisibility(View.GONE);
         } else if (syncProvider == SyncProvider.GoogleDrive) {
-            mWarningTextView.setVisibility(View.GONE);
-            mBackupConfigButton.setText(R.string.auto_backup_source_google_drive);
+            mWarningTextView.setText(R.string.auto_backup_warning_drive);
+            mBackupConfigButtonText.setText(R.string.auto_backup_source_google_drive);
+            mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_done_24dp);
+            mWifiOnlyCheckbox.setVisibility(View.VISIBLE);
         } else {
             throw new IllegalArgumentException("Unsupported sync provider type was specified");
         }
@@ -164,6 +176,11 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 .subscribe(new Action1<List<RemoteBackupMetadata>>() {
                     @Override
                     public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
+                        if (remoteBackupMetadatas.isEmpty()) {
+                            mExistingBackupsSection.setVisibility(View.GONE);
+                        } else {
+                            mExistingBackupsSection.setVisibility(View.VISIBLE);
+                        }
                         final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(remoteBackupMetadatas);
                         mRecyclerView.setAdapter(remoteBackupsListAdapter);
                     }

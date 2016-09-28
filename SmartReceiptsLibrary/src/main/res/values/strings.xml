@@ -333,10 +333,13 @@
     <string name="manual_backup_export">Backup</string>
     <string name="manual_backup_import">Import</string>
     <string name="auto_backup_title">Automatic Backup</string>
-    <string name="auto_backup_warning">Warning: Automatic backups are not configured!\nYou may be at risk of losing your data.</string>
+    <string name="auto_backup_wifi_only">Use Wi-Fi Only</string>
+    <string name="auto_backup_warning_none">Warning: Automatic backups are not configured!\nYou may be at risk of losing your data.</string>
+    <string name="auto_backup_warning_drive">Warning: Standard charges may apply for automatic backups over a mobile network.</string>
     <string name="auto_backup_configure">Tap to Configure</string>
     <string name="auto_backup_source_none">None</string>
     <string name="auto_backup_source_google_drive">Google Drive</string>
+    <string name="existing_backups_title">Existing Backups:</string>
 
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>

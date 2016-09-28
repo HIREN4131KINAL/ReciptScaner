@@ -145,19 +145,29 @@
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
-    <style name="Widget.SmartReceipts.Button" parent="@style/Widget.AppCompat.Button.Colored">
+    <style name="Widget.SmartReceipts.TextView.Button">
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Widget.SmartReceipts.Button" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="android:textAppearance">@style/Widget.SmartReceipts.TextView.Button</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/button_background</item>
     </style>
 
-    <style name="Widget.SmartReceipts.Button.Secondary" parent="@style/Widget.AppCompat.Button.Colored">
+    <style name="Widget.SmartReceipts.TextView.Button.Secondary">
         <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">?colorAccent</item>
         <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Widget.SmartReceipts.Button.Secondary" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="android:textAppearance">@style/Widget.SmartReceipts.TextView.Button.Secondary</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/button_secondary_background</item>
     </style>
 

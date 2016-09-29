@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.widget;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private NavigationHandler mNavigationHandler;
 
     private Toolbar mToolbar;
+    private View mHeaderView;
     private View mExportButton;
     private View mImportButton;
     private View mBackupConfigButton;
@@ -68,17 +70,20 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     @Nullable
     @Override
+    @SuppressLint("InflateParams")
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.backups, container, false);
-        mExportButton = view.findViewById(R.id.manual_backup_export);
-        mImportButton = view.findViewById(R.id.manual_backup_import);
-        mWarningTextView = (TextView) view.findViewById(R.id.auto_backup_warning);
-        mBackupConfigButton = view.findViewById(R.id.automatic_backup_config_button);
-        mBackupConfigButtonImage = (ImageView) view.findViewById(R.id.automatic_backup_config_button_image);
-        mBackupConfigButtonText = (TextView) view.findViewById(R.id.automatic_backup_config_button_text);
-        mWifiOnlyCheckbox = (CheckBox) view.findViewById(R.id.auto_backup_wifi_only);
-        mExistingBackupsSection = view.findViewById(R.id.existing_backups_section);
-        mRecyclerView = (RecyclerView) view.findViewById(android.R.id.list);
+        final View rootView = inflater.inflate(R.layout.backups_list, container, false);
+        mRecyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
+
+        mHeaderView = inflater.inflate(R.layout.backups_header, null);
+        mExportButton = mHeaderView.findViewById(R.id.manual_backup_export);
+        mImportButton = mHeaderView.findViewById(R.id.manual_backup_import);
+        mWarningTextView = (TextView) mHeaderView.findViewById(R.id.auto_backup_warning);
+        mBackupConfigButton = mHeaderView.findViewById(R.id.automatic_backup_config_button);
+        mBackupConfigButtonImage = (ImageView) mHeaderView.findViewById(R.id.automatic_backup_config_button_image);
+        mBackupConfigButtonText = (TextView) mHeaderView.findViewById(R.id.automatic_backup_config_button_text);
+        mWifiOnlyCheckbox = (CheckBox) mHeaderView.findViewById(R.id.auto_backup_wifi_only);
+        mExistingBackupsSection = mHeaderView.findViewById(R.id.existing_backups_section);
 
         mExportButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,7 +120,13 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 mBackupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
             }
         });
-        return view;
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView));
     }
 
     @Override
@@ -192,7 +203,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                         } else {
                             mExistingBackupsSection.setVisibility(View.VISIBLE);
                         }
-                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(remoteBackupMetadatas);
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, remoteBackupMetadatas);
                         mRecyclerView.setAdapter(remoteBackupsListAdapter);
                     }
                 }));

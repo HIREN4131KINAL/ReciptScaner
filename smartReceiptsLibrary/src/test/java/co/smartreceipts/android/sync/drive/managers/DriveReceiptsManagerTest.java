@@ -289,8 +289,8 @@ public class DriveReceiptsManagerTest {
     @Test
     public void initialize() {
         final DriveReceiptsManager spiedManager = spy(mDriveReceiptsManager);
-        doNothing().when(spiedManager).handleInsertOrUpdate(any(Receipt.class));
-        doNothing().when(spiedManager).handleDelete(any(Receipt.class));
+        doNothing().when(spiedManager).handleInsertOrUpdateInternal(any(Receipt.class));
+        doNothing().when(spiedManager).handleDeleteInternal(any(Receipt.class));
 
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -300,16 +300,16 @@ public class DriveReceiptsManagerTest {
 
         spiedManager.initialize();
 
-        verify(spiedManager).handleInsertOrUpdate(mReceipt1);
-        verify(spiedManager).handleDelete(mReceipt2);
+        verify(spiedManager).handleInsertOrUpdateInternal(mReceipt1);
+        verify(spiedManager).handleDeleteInternal(mReceipt2);
         verify(mDriveDatabaseManager).syncDatabase();
     }
 
     @Test
     public void initializeWithoutNetwork() {
         final DriveReceiptsManager spiedManager = spy(mDriveReceiptsManager);
-        doNothing().when(spiedManager).handleInsertOrUpdate(any(Receipt.class));
-        doNothing().when(spiedManager).handleDelete(any(Receipt.class));
+        doNothing().when(spiedManager).handleInsertOrUpdateInternal(any(Receipt.class));
+        doNothing().when(spiedManager).handleDeleteInternal(any(Receipt.class));
 
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -320,8 +320,8 @@ public class DriveReceiptsManagerTest {
 
         spiedManager.initialize();
 
-        verify(spiedManager, never()).handleInsertOrUpdate(mReceipt1);
-        verify(spiedManager, never()).handleDelete(mReceipt2);
+        verify(spiedManager, never()).handleInsertOrUpdateInternal(mReceipt1);
+        verify(spiedManager, never()).handleDeleteInternal(mReceipt2);
         verify(mDriveDatabaseManager, never()).syncDatabase();
     }
 

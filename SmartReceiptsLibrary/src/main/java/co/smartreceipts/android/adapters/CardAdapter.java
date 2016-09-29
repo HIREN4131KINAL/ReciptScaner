@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
@@ -85,6 +86,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		public TextView date;
 		public TextView category;
 		public TextView marker;
+        public ImageView syncState;
 	}
 
 	@Override
@@ -99,6 +101,7 @@ public class CardAdapter<T> extends BaseAdapter {
 			holder.date = (TextView) convertView.findViewById(android.R.id.summary);
 			holder.category = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.marker = (TextView) convertView.findViewById(android.R.id.text2);
+            holder.syncState = (ImageView) convertView.findViewById(R.id.card_sync_state);
 			convertView.setTag(holder);
 		}
 		else {
@@ -113,6 +116,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		setDateTextView(holder.date, data);
 		setCategory(holder.category, data);
 		setMarker(holder.marker, data);
+        setSyncStateImage(holder.syncState, data);
 		return convertView;
 	}
 	
@@ -166,6 +170,10 @@ public class CardAdapter<T> extends BaseAdapter {
 	protected void setMarker(TextView textView, T data) {
 		textView.setVisibility(View.GONE);
 	}
+
+    protected void setSyncStateImage(ImageView image, T data) {
+        image.setVisibility(View.GONE);
+    }
 	
 	protected int getCardPriceTextSizeResouce() {
 		return R.dimen.card_price_size;

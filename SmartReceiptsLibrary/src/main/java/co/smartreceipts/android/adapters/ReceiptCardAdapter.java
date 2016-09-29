@@ -1,15 +1,34 @@
 package co.smartreceipts.android.adapters;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+
+import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 
-	public ReceiptCardAdapter(Context context, Preferences preferences) {
+    private final BackupProvidersManager mBackupProvidersManager;
+    private final Drawable mCloudDisabledDrawable;
+    private final Drawable mNotSyncedDrawable;
+    private final Drawable mSyncedDrawable;
+
+	public ReceiptCardAdapter(Context context, Preferences preferences, BackupProvidersManager backupProvidersManager) {
 		super(context, preferences);
+        mBackupProvidersManager = backupProvidersManager;
+        mCloudDisabledDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_off_24dp, context.getTheme());
+        mNotSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_queue_24dp, context.getTheme());
+        mSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_done_24dp, context.getTheme());
 	}
 	
 	@Override
@@ -60,4 +79,16 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 		}
 	}
 
+    @Override
+    protected void setSyncStateImage(ImageView image, Receipt data) {
+        if (mBackupProvidersManager.getSyncProvider() == SyncProvider.GoogleDrive) {
+            if (data.getSyncState().isSynced(SyncProvider.GoogleDrive)) {
+                Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mSyncedDrawable).into(image);
+            } else {
+                Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mNotSyncedDrawable).into(image);
+            }
+        } else {
+            Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mCloudDisabledDrawable).into(image);
+        }
+    }
 }

@@ -125,6 +125,8 @@ public class DriveReceiptsManager {
                             Log.e(TAG, "Failed to handle insert/update for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });
+        } else {
+            Log.w(TAG, "No network. Skipping insert/update");
         }
     }
 
@@ -155,6 +157,8 @@ public class DriveReceiptsManager {
                             Log.e(TAG, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });
+        } else {
+            Log.w(TAG, "No network. Skipping delete");
         }
     }
 

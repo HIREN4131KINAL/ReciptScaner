@@ -87,7 +87,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         mReceiptTableController = getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController();
-        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
+        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);

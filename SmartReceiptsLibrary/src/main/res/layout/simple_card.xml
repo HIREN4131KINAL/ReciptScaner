@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@android:id/content"
     style="@style/Widget.SmartReceipts.RelativeLayout.Card" 
     android:layout_width="match_parent"
@@ -51,13 +52,25 @@
             android:textSize="@dimen/card_date_size" />
     </LinearLayout>
 
+
     <TextView
         android:id="@android:id/text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/data_layout"
         android:layout_alignParentRight="true"
+        android:layout_marginRight="@dimen/card_thumbnail_margins"
+        android:layout_marginTop="@dimen/card_thumbnail_margins"
         android:textSize="@dimen/card_date_size"
-        android:textStyle="italic" />
+        android:textStyle="italic"/>
+
+    <ImageView
+        android:id="@+id/card_sync_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/data_layout"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="@dimen/card_thumbnail_margins"
+        android:tint="@color/text_secondary"/>
 
 </RelativeLayout>

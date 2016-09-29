@@ -19,6 +19,7 @@ public class NetworkManager extends AbstractNetworkProvider implements NetworkSt
     public NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull Preferences preferences) {
         mNetworkProviderFactory = Preconditions.checkNotNull(networkProviderFactory);
         mNetworkProvider = mNetworkProviderFactory.get(preferences.getAutoBackupOnWifiOnly() ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
+        mNetworkProvider.initialize();
     }
 
     public synchronized void setAndInitializeNetworkProviderType(@NonNull SupportedNetworkType supportedNetworkType) {

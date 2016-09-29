@@ -13,9 +13,13 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.network.NetworkProvider;
+import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
@@ -28,16 +32,18 @@ public class BackupProvidersManager implements BackupProvider {
 
     private final SyncProviderFactory mSyncProviderFactory;
     private final SyncProviderStore mSyncProviderStore;
+    private final NetworkManager mNetworkManager;
     private final Set<BackupProviderChangeListener> mBackupProviderChangeListeners = new CopyOnWriteArraySet<>();
     private BackupProvider mBackupProvider;
 
-    public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
-        this(new SyncProviderFactory(context, databaseHelper, tableControllerManager), new SyncProviderStore(context));
+    public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager, @NonNull NetworkManager networkManager) {
+        this(new SyncProviderFactory(context, databaseHelper, tableControllerManager, networkManager), new SyncProviderStore(context), networkManager);
     }
 
-    public BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore) {
+    public BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore, @NonNull NetworkManager networkManager) {
         mSyncProviderFactory = Preconditions.checkNotNull(syncProviderFactory);
         mSyncProviderStore = Preconditions.checkNotNull(syncProviderStore);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mBackupProvider = syncProviderFactory.get(mSyncProviderStore.getProvider());
     }
 
@@ -60,6 +66,10 @@ public class BackupProvidersManager implements BackupProvider {
                 backupProviderChangeListener.onProviderChanged(syncProvider);
             }
         }
+    }
+
+    public synchronized void setAndInitializeNetworkProviderType(@NonNull SupportedNetworkType supportedNetworkType) {
+        mNetworkManager.setAndInitializeNetworkProviderType(supportedNetworkType);
     }
 
     @NonNull

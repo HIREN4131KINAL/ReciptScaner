@@ -13,6 +13,7 @@ import co.smartreceipts.android.persistence.database.controllers.TableController
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
@@ -80,7 +81,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 																				// in onVersionUpgrade
         mTableControllerManager = new TableControllerManager(mPersistenceManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
-        mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager());
+        final NetworkManager networkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
+        mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), networkManager);
 	}
 
     @Deprecated

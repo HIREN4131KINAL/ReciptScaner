@@ -37,9 +37,11 @@ import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import rx.Observable;
 
-public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
 
     private static final String TAG = GoogleDriveBackupManager.class.getSimpleName();
 
@@ -52,6 +54,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final DriveStreamsManager mDriveTaskManager;
     private final AtomicReference<WeakReference<FragmentActivity>> mActivityReference;
     private final TableControllerManager mTableControllerManager;
+    private final NetworkManager mNetworkManager;
     private final Context mContext;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
     private final DriveReceiptsManager mDriveReceiptsManager;
@@ -63,7 +66,8 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final DatabaseBackupListener<Column<Receipt>> mCsvColumnDatabaseBackupListener;
     private final DatabaseBackupListener<Column<Receipt>> mPdfColumnDatabaseBackupListener;
 
-    public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager) {
+    public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager,
+                                    @NonNull NetworkManager networkManager) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -74,11 +78,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mGoogleDriveSyncMetadata = new GoogleDriveSyncMetadata(context);
         mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
 
-        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata);
-        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager);
+        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager);
+        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager, mNetworkManager);
 
         mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
         mReceiptDatabaseBackupListener = new ReceiptBackupListener(driveDatabaseManager, mDriveReceiptsManager);
@@ -100,10 +105,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         if (!isConnectedOrConnecting()) {
             mGoogleApiClient.connect();
         }
+        mNetworkManager.registerListener(this);
     }
 
     @Override
     public void deinitialize() {
+        mNetworkManager.unregisterListener(this);
         if (isConnectedOrConnecting()) {
             mGoogleApiClient.disconnect();
         }
@@ -181,6 +188,23 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mTableControllerManager.getCSVTableController().unsubscribe(mCsvColumnDatabaseBackupListener);
         mTableControllerManager.getPDFTableController().unsubscribe(mPdfColumnDatabaseBackupListener);
         mDriveTaskManager.onConnectionSuspended(cause);
+    }
+
+    @Override
+    public void onNetworkConnectivityLost() {
+
+    }
+
+    @Override
+    public void onNetworkConnectivityGained() {
+        if (!isConnectedOrConnecting()) {
+            final FragmentActivity existingActivity = mActivityReference.get().get();
+            if (existingActivity != null) {
+                initialize(existingActivity);
+            }
+        } else {
+            mDriveReceiptsManager.initialize();
+        }
     }
 
     private boolean isConnectedOrConnecting() {

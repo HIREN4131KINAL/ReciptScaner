@@ -16,9 +16,11 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +38,9 @@ public class DriveDatabaseManagerTest {
     @Mock
     GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
 
+    @Mock
+    NetworkManager mNetworkManager;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -45,13 +50,25 @@ public class DriveDatabaseManagerTest {
             throw new RuntimeException("Failed to create database file... Failing this test");
         }
 
-        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, Schedulers.immediate(), Schedulers.immediate());
+        when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
+
+        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, mNetworkManager, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @After
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void tearDown() throws Exception {
         mDatabaseFile.delete();
+    }
+
+    @Test
+    public void syncDatabaseWithoutNetwork() {
+        when(mNetworkManager.isNetworkAvailable()).thenReturn(false);
+        final Identifier identifier = new Identifier("newId");
+        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Observable.just(identifier));
+
+        mDriveDatabaseManager.syncDatabase();
+        verify(mGoogleDriveSyncMetadata, never()).setDatabaseSyncIdentifier(identifier);
     }
 
     @Test

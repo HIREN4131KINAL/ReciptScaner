@@ -1,6 +1,9 @@
 package co.smartreceipts.android.sync.network;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+
+import com.google.common.base.Preconditions;
 
 /**
  * This class provides a simple mechanism to determine whether or not we're currently connected to a mobile or wifi
@@ -8,25 +11,48 @@ import android.content.Context;
  * 
  * @author Will Baumann
  */
-public class AnyNetworkProviderImpl implements NetworkProvider {
+public class AnyNetworkProviderImpl extends AbstractNetworkProvider implements NetworkStateChangeListener {
 
 	private final WifiNetworkProviderImpl mWifiNetworkProviderImpl;
 	private final MobileNetworkProviderImpl mMobileNetworkProviderImpl;
 
-	/**
-	 * This operates as the default constructor for this class.
-	 * 
-	 * @param context
-	 *            - a {@link Context} is required to track this information
-	 */
-	public AnyNetworkProviderImpl(Context context) {
-		mWifiNetworkProviderImpl = new WifiNetworkProviderImpl(context);
-		mMobileNetworkProviderImpl = new MobileNetworkProviderImpl(context);
+	public AnyNetworkProviderImpl(@NonNull Context context) {
+		this(new WifiNetworkProviderImpl(context), new MobileNetworkProviderImpl(context));
 	}
 
-	@Override
+    public AnyNetworkProviderImpl(@NonNull WifiNetworkProviderImpl wifiNetworkProvider, @NonNull MobileNetworkProviderImpl mobileNetworkProvider) {
+        mWifiNetworkProviderImpl = Preconditions.checkNotNull(wifiNetworkProvider);
+        mMobileNetworkProviderImpl = Preconditions.checkNotNull(mobileNetworkProvider);
+    }
+
+    @Override
+    public void initialize() {
+        mWifiNetworkProviderImpl.initialize();
+        mMobileNetworkProviderImpl.initialize();
+        mWifiNetworkProviderImpl.registerListener(this);
+        mMobileNetworkProviderImpl.registerListener(this);
+    }
+
+    @Override
+    public void deinitialize() {
+        mWifiNetworkProviderImpl.unregisterListener(this);
+        mMobileNetworkProviderImpl.unregisterListener(this);
+        mWifiNetworkProviderImpl.deinitialize();
+        mMobileNetworkProviderImpl.deinitialize();
+    }
+
+    @Override
 	public boolean isNetworkAvailable() {
 		return mWifiNetworkProviderImpl.isNetworkAvailable() || mMobileNetworkProviderImpl.isNetworkAvailable();
 	}
 
+    @Override
+    public void onNetworkConnectivityLost() {
+        notifyStateChange();
+    }
+
+    @Override
+    public void onNetworkConnectivityGained() {
+        notifyStateChange();
+    }
 }

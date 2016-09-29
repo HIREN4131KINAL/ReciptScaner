@@ -5,7 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.wifi.WifiManager;
+import android.support.annotation.NonNull;
+import android.support.v4.net.ConnectivityManagerCompat;
+
+import com.google.common.base.Preconditions;
 
 /**
  * This class provides a simple mechanism to determine whether or not we're currently connected to a wifi network. It
@@ -13,53 +18,47 @@ import android.net.wifi.WifiManager;
  * a wifi login page that is blocking actual network access. This can be done by implementing the solution described in
  * the "Handling Network Sign-On" section of this site:
  * http://developer.android.com/reference/java/net/HttpURLConnection.html.
- * 
- * @author Will Baumann
  */
-public class WifiNetworkProviderImpl implements NetworkProvider {
+public class WifiNetworkProviderImpl extends AbstractNetworkProvider {
 
 	private final Context mContext;
 	private final ConnectivityManager mConnectivityManager;
 	private final WifiStateChangeBroadcastReceiver mWifiStateChangeBroadcastReceiver;
 
-	/**
-	 * This operates as the default constructor for this class.
-	 * 
-	 * @param context
-	 *            - a {@link Context} is required to track this information
-	 */
-	public WifiNetworkProviderImpl(Context context) {
-		mContext = context.getApplicationContext();
-		mConnectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-		mWifiStateChangeBroadcastReceiver = new WifiStateChangeBroadcastReceiver();
-		final IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-		mContext.registerReceiver(mWifiStateChangeBroadcastReceiver, intentFilter);
+	public WifiNetworkProviderImpl(@NonNull Context context) {
+		this(context, (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
 	}
 
-	@Override
+    public WifiNetworkProviderImpl(@NonNull Context context, @NonNull ConnectivityManager connectivityManager) {
+        mContext = Preconditions.checkNotNull(context.getApplicationContext());
+        mConnectivityManager = Preconditions.checkNotNull(connectivityManager);
+        mWifiStateChangeBroadcastReceiver = new WifiStateChangeBroadcastReceiver();
+    }
+
+    @Override
+    public void initialize() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        mContext.registerReceiver(mWifiStateChangeBroadcastReceiver, intentFilter);
+    }
+
+    @Override
+    public void deinitialize() {
+        mContext.unregisterReceiver(mWifiStateChangeBroadcastReceiver);
+        super.deinitialize();
+    }
+
+    @Override
 	public boolean isNetworkAvailable() {
 		return mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected();
 	}
 
-	/**
-	 * A nested broadcast receiver, which listens for wifi state change events
-	 * 
-	 * @author Will Baumann
-	 */
-	static final class WifiStateChangeBroadcastReceiver extends BroadcastReceiver {
+	final class WifiStateChangeBroadcastReceiver extends BroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION.equals(intent.getAction())) {
-				final Intent stateChangedIntent = new Intent(NetworkProvider.ACTION_NETWORK_STATE_CHANGED);
-				if (intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false)) {
-					stateChangedIntent.putExtra(EXTRA_NETWORK_STATE_CONNECTED, true); // Connected
-				}
-				else {
-					stateChangedIntent.putExtra(EXTRA_NETWORK_STATE_CONNECTED, false); // Disconnected
-				}
-				context.sendBroadcast(stateChangedIntent);
+                notifyStateChange();
 			}
 		}
 

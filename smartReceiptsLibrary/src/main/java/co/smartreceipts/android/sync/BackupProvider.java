@@ -9,6 +9,7 @@ import java.util.List;
 
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import rx.Observable;
 
 /**

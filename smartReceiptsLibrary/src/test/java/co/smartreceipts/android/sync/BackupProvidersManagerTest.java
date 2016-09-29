@@ -10,6 +10,8 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 
+import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
@@ -41,6 +43,9 @@ public class BackupProvidersManagerTest {
     SyncProviderStore mSyncProviderStore;
 
     @Mock
+    NetworkManager mNetworkManager;
+
+    @Mock
     FragmentActivity mFragmentActivity;
 
     @Mock
@@ -54,7 +59,7 @@ public class BackupProvidersManagerTest {
         when(mSyncProviderFactory.get(SyncProvider.None)).thenReturn(mNoneBackupProvider);
         when(mSyncProviderFactory.get(SyncProvider.GoogleDrive)).thenReturn(mDriveBackupProvider);
 
-        mBackupProvidersManager = new BackupProvidersManager(mSyncProviderFactory, mSyncProviderStore);
+        mBackupProvidersManager = new BackupProvidersManager(mSyncProviderFactory, mSyncProviderStore, mNetworkManager);
         mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener1);
         mBackupProvidersManager.registerChangeListener(mBackupProviderChangeListener2);
         mBackupProvidersManager.unregisterChangeListener(mBackupProviderChangeListener2);
@@ -94,6 +99,12 @@ public class BackupProvidersManagerTest {
     public void getSyncProvider() {
         assertEquals(SyncProvider.None, mBackupProvidersManager.getSyncProvider());
         verify(mSyncProviderStore, times(2)).getProvider();
+    }
+
+    @Test
+    public void setAndInitializeNetworkProviderType() {
+        mBackupProvidersManager.setAndInitializeNetworkProviderType(SupportedNetworkType.WifiOnly);
+        verify(mNetworkManager).setAndInitializeNetworkProviderType(SupportedNetworkType.WifiOnly);
     }
 
     @Test

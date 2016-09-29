@@ -67,6 +67,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Pro Preferences
     private String mPdfFooterText;
 
+    // No Category
+    private boolean mAutoBackupOnWifiOnly;
+
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
     private boolean mShowActionSendHelpDialog;
@@ -276,6 +279,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
     }
 
+    private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
+        this.mAutoBackupOnWifiOnly = prefs.getBoolean(mContext.getString(R.string.pref_no_category_auto_backup_wifi_only_key), mContext.getResources().getBoolean(R.bool.pref_no_category_auto_backup_wifi_only_defaultValue));
+    }
+
     Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
@@ -347,6 +354,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
         // Pro Preferences
         this.initPdfFooterText(prefs);
+
+        // No Category
+        this.initAutoBackupOnWifiOnly(prefs);
 
         // Misc (i.e. inaccessible preferences) for app use only
         this.mShowActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
@@ -613,6 +623,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public String getPdfFooterText() {
         return mPdfFooterText;
+    }
+
+    public boolean getAutoBackupOnWifiOnly() {
+        return mAutoBackupOnWifiOnly;
     }
 
 }

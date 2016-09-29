@@ -12,6 +12,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action1;
@@ -24,49 +25,56 @@ public class DriveDatabaseManager {
     private final Context mContext;
     private final DriveStreamsManager mDriveTaskManager;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
+    private final NetworkManager mNetworkManager;
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
 
-    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
-        this(context, driveTaskManager, googleDriveSyncMetadata, Schedulers.io(), Schedulers.io());
+    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
+                                @NonNull NetworkManager networkManager) {
+        this(context, driveTaskManager, googleDriveSyncMetadata, networkManager, Schedulers.io(), Schedulers.io());
     }
 
     public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
-                                @NonNull Scheduler observeOnScheduler, @NonNull Scheduler subscribeOnScheduler) {
+                                @NonNull NetworkManager networkManager, @NonNull Scheduler observeOnScheduler, @NonNull Scheduler subscribeOnScheduler) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
         mGoogleDriveSyncMetadata = Preconditions.checkNotNull(googleDriveSyncMetadata);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
     }
 
     public void syncDatabase() {
-        // TODO: Make sure the database is closed or inactive before performing this
-        // TODO: We can trigger this off of our #close() method in DB helper
-        final File filesDir = mContext.getExternalFilesDir(null);
-        if (filesDir != null) {
-            final File dbFile = new File(filesDir, DatabaseHelper.DATABASE_NAME);
-            if (dbFile.exists()) {
-                getSyncDatabaseObservable(dbFile)
-                        .observeOn(mObserveOnScheduler)
-                        .subscribeOn(mSubscribeOnScheduler)
-                        .subscribe(new Action1<Identifier>() {
-                            @Override
-                            public void call(Identifier identifier) {
-                                Log.i(TAG, "Successfully synced our database");
-                                mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                Log.e(TAG, "Failed to synced our database", throwable);
-                            }
-                        });
+        if (mNetworkManager.isNetworkAvailable()) {
+            // TODO: Make sure the database is closed or inactive before performing this
+            // TODO: We can trigger this off of our #close() method in DB helper
+            final File filesDir = mContext.getExternalFilesDir(null);
+            if (filesDir != null) {
+                final File dbFile = new File(filesDir, DatabaseHelper.DATABASE_NAME);
+                if (dbFile.exists()) {
+                    getSyncDatabaseObservable(dbFile)
+                            .observeOn(mObserveOnScheduler)
+                            .subscribeOn(mSubscribeOnScheduler)
+                            .subscribe(new Action1<Identifier>() {
+                                @Override
+                                public void call(Identifier identifier) {
+                                    Log.i(TAG, "Successfully synced our database");
+                                    mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
+                                }
+                            }, new Action1<Throwable>() {
+                                @Override
+                                public void call(Throwable throwable) {
+                                    Log.e(TAG, "Failed to synced our database", throwable);
+                                }
+                            });
+                } else {
+                    Log.e(TAG, "Failed to find our main database");
+                }
             } else {
-                Log.e(TAG, "Failed to find our main database");
+                Log.e(TAG, "Failed to find our main database storage directory");
             }
         } else {
-            Log.e(TAG, "Failed to find our main database storage directory");
+            Log.e(TAG, "Network not available to sync our database");
         }
     }
 

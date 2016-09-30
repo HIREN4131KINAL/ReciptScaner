@@ -174,7 +174,7 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                         if (driveIdentifier != null) {
                             return mDriveDataStreams.deleteFile(driveIdentifier);
                         } else {
-                            return Observable.error(new Exception("This sync state doesn't include a valid Drive Identifier"));
+                            return Observable.just(true);
                         }
                     }
                 })

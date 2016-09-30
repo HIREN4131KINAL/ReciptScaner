@@ -116,7 +116,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mWifiOnlyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                PreferenceManager.getDefaultSharedPreferences(getContext()).edit().putBoolean(getString(R.string.pref_no_category_auto_backup_wifi_only_key), checked).apply();
+                getPersistenceManager().getPreferences().getSharedPreferences().edit().putBoolean(getString(R.string.pref_no_category_auto_backup_wifi_only_key), checked).apply();
                 mBackupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
             }
         });

@@ -392,6 +392,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         }
     }
 
+    public SharedPreferences getSharedPreferences() {
+        return mContext.getSharedPreferences(SMART_PREFS, 0);
+    }
+
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public void commit() {
         /**

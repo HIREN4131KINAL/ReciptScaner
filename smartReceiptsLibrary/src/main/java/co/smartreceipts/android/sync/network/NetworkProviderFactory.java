@@ -18,7 +18,7 @@ public class NetworkProviderFactory {
         if (supportedNetworkType == SupportedNetworkType.WifiOnly) {
             return new WifiNetworkProviderImpl(mContext);
         } else {
-            return new AnyNetworkProviderImpl(mContext);
+            return new CompositeNetworkProviderImpl(new WifiNetworkProviderImpl(mContext), new MobileNetworkProviderImpl(mContext));
         }
     }
 }

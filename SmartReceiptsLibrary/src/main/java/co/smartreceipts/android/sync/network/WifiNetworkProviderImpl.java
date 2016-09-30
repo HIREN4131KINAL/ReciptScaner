@@ -1,14 +1,9 @@
 package co.smartreceipts.android.sync.network;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
-import android.support.v4.net.ConnectivityManagerCompat;
 
 import com.google.common.base.Preconditions;
 
@@ -21,47 +16,20 @@ import com.google.common.base.Preconditions;
  */
 public class WifiNetworkProviderImpl extends AbstractNetworkProvider {
 
-	private final Context mContext;
-	private final ConnectivityManager mConnectivityManager;
-	private final WifiStateChangeBroadcastReceiver mWifiStateChangeBroadcastReceiver;
+    private final ConnectivityManager mConnectivityManager;
 
-	public WifiNetworkProviderImpl(@NonNull Context context) {
-		this(context, (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-	}
+    public WifiNetworkProviderImpl(@NonNull Context context) {
+        this(context, (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+    }
 
     public WifiNetworkProviderImpl(@NonNull Context context, @NonNull ConnectivityManager connectivityManager) {
-        mContext = Preconditions.checkNotNull(context.getApplicationContext());
+        super(context, ConnectivityManager.CONNECTIVITY_ACTION, WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         mConnectivityManager = Preconditions.checkNotNull(connectivityManager);
-        mWifiStateChangeBroadcastReceiver = new WifiStateChangeBroadcastReceiver();
     }
 
     @Override
-    public void initialize() {
-        final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-        mContext.registerReceiver(mWifiStateChangeBroadcastReceiver, intentFilter);
-    }
-
-    @Override
-    public void deinitialize() {
-        mContext.unregisterReceiver(mWifiStateChangeBroadcastReceiver);
-        super.deinitialize();
-    }
-
-    @Override
-	public boolean isNetworkAvailable() {
+	public synchronized boolean isNetworkAvailable() {
 		return mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected();
-	}
-
-	final class WifiStateChangeBroadcastReceiver extends BroadcastReceiver {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION.equals(intent.getAction())) {
-                notifyStateChange();
-			}
-		}
-
 	}
 
 }

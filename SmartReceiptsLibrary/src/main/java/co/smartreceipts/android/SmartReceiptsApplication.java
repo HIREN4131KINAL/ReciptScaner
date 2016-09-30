@@ -82,6 +82,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mTableControllerManager = new TableControllerManager(mPersistenceManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
         final NetworkManager networkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
+        networkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), networkManager);
 	}
 

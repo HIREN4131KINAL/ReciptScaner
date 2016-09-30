@@ -197,6 +197,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
     @Override
     public void onNetworkConnectivityGained() {
+        Log.i(TAG, "Handling a NetworkConnectivityGained event for drive");
         if (!isConnectedOrConnecting()) {
             final FragmentActivity existingActivity = mActivityReference.get().get();
             if (existingActivity != null) {

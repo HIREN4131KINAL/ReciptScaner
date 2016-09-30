@@ -1,39 +1,80 @@
 package co.smartreceipts.android.sync.network;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class AbstractNetworkProvider implements NetworkProvider {
 
-    private final CopyOnWriteArraySet<NetworkStateChangeListener> mListeners = new CopyOnWriteArraySet<>();
+    private final String TAG = getClass().getSimpleName();
 
-    @Override
-    public final void registerListener(@NonNull NetworkStateChangeListener listener) {
-        mListeners.add(Preconditions.checkNotNull(listener));
+    private final Context mContext;
+    private final List<String> mConnectionChangeIntentActions;
+    private final ConnectivityChangeBroadcastReceiver mConnectionChangeReceiver;
+    private final NetworkStateChangeListenerTracker mNetworkStateChangeListenerTracker = new NetworkStateChangeListenerTracker();
+    private final AtomicBoolean mIsConnected = new AtomicBoolean(false);
+
+    public AbstractNetworkProvider(@NonNull Context context, @NonNull String... connectionChangeIntentAction) {
+        mContext = Preconditions.checkNotNull(context.getApplicationContext());
+        mConnectionChangeIntentActions = Arrays.asList(Preconditions.checkNotNull(connectionChangeIntentAction));
+        mConnectionChangeReceiver = new ConnectivityChangeBroadcastReceiver();
     }
 
     @Override
-    public final void unregisterListener(@NonNull NetworkStateChangeListener listener) {
-        mListeners.remove(Preconditions.checkNotNull(listener));
+    public final synchronized void initialize() {
+        mIsConnected.set(isNetworkAvailable());
+        final IntentFilter intentFilter = new IntentFilter();
+        for (final String connectionChangeIntentAction : mConnectionChangeIntentActions) {
+            intentFilter.addAction(connectionChangeIntentAction);
+        }
+        mContext.registerReceiver(mConnectionChangeReceiver, new IntentFilter(intentFilter));
     }
 
     @Override
-    public void deinitialize() {
-        mListeners.clear();
+    public final synchronized void deinitialize() {
+        mContext.unregisterReceiver(mConnectionChangeReceiver);
+        mIsConnected.set(false);
+        mNetworkStateChangeListenerTracker.clear();
     }
 
-    final void notifyStateChange() {
-        if (isNetworkAvailable()) {
-            for (final NetworkStateChangeListener listener : mListeners) {
-                listener.onNetworkConnectivityGained();
-            }
-        } else {
-            for (final NetworkStateChangeListener listener : mListeners) {
-                listener.onNetworkConnectivityLost();
+    @Override
+    public final synchronized void registerListener(@NonNull NetworkStateChangeListener listener) {
+        mNetworkStateChangeListenerTracker.registerListener(listener);
+    }
+
+    @Override
+    public final synchronized void unregisterListener(@NonNull NetworkStateChangeListener listener) {
+        mNetworkStateChangeListenerTracker.unregisterListener(listener);
+    }
+
+    final class ConnectivityChangeBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public synchronized void onReceive(Context context, Intent intent) {
+            if (mConnectionChangeIntentActions.contains(intent.getAction())) {
+                final boolean hasConnection = isNetworkAvailable();
+                if (mIsConnected.compareAndSet(!hasConnection, hasConnection)) {
+                    Log.d(TAG, "Network connection changed: " + hasConnection);
+                    if (hasConnection) {
+                        mNetworkStateChangeListenerTracker.notifyNetworkConnectivityGained();
+                    } else {
+                        mNetworkStateChangeListenerTracker.notifyNetworkConnectivityLost();
+                    }
+                }
             }
         }
+
     }
+
 }

@@ -22,6 +22,7 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.Syncable;
 import rx.Observable;
 import rx.functions.Func0;
+import wb.android.google.camera.data.Log;
 
 /**
  * Extends the {@link AbstractColumnTable} class to provide support for an extra method, {@link #get(Trip)}. We may
@@ -33,6 +34,7 @@ import rx.functions.Func0;
  */
 public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType> {
 
+    private final String TAG = getClass().getSimpleName();
     private final HashMap<Trip, List<ModelType>> mPerTripCache = new HashMap<>();
     private final SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> mSelectionBackedDatabaseAdapter;
     private final String mTripForeignKeyReferenceColumnName;
@@ -145,10 +147,12 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType, databaseOperationMetadata);
         if (updatedItem != null) {
+            Log.d(TAG, "Successfully updated this item in our table");
             final Trip oldTrip = getTripFor(oldModelType);
             if (mPerTripCache.containsKey(oldTrip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(oldTrip);
                 perTripResults.remove(oldModelType);
+                Log.d(TAG, "Found this item in our cache. Removing it");
             }
 
             boolean isMarkedForDeletion = false;
@@ -161,6 +165,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
 
             final Trip newTrip = getTripFor(updatedItem);
             if (!isMarkedForDeletion && mPerTripCache.containsKey(newTrip)) {
+                Log.d(TAG, "This item is not marked for deletion. Adding it to our cache");
                 final List<ModelType> perTripResults = mPerTripCache.get(newTrip);
                 perTripResults.add(updatedItem);
                 if (updatedItem instanceof Comparable<?>) {

@@ -340,6 +340,7 @@
     <string name="auto_backup_source_none">None</string>
     <string name="auto_backup_source_google_drive">Google Drive</string>
     <string name="existing_backups_title">Existing Backups:</string>
+    <string name="existing_remote_backup_current_device">%s (Your Current Device)</string>
 
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>

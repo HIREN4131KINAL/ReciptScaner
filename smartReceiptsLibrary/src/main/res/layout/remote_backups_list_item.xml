@@ -5,12 +5,18 @@
     android:layout_height="match_parent"
     android:padding="@dimen/default_margin_size" >
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
         android:id="@+id/remote_backup_device_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold" />
+
+    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+        android:id="@+id/remote_backup_provider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
+    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
         android:id="@+id/remote_backup_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

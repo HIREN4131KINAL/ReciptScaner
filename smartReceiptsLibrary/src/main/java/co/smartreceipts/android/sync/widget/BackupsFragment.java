@@ -126,7 +126,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mBackupProvidersManager, mHeaderView));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, mBackupProvidersManager, getPersistenceManager().getPreferences()));
     }
 
     @Override
@@ -203,7 +203,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                         } else {
                             mExistingBackupsSection.setVisibility(View.VISIBLE);
                         }
-                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mBackupProvidersManager, mHeaderView, remoteBackupMetadatas);
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
                         mRecyclerView.setAdapter(remoteBackupsListAdapter);
                     }
                 }));

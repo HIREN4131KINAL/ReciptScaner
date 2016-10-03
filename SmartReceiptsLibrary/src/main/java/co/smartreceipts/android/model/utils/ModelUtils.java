@@ -23,6 +23,9 @@ public class ModelUtils {
         throw new RuntimeException("This class uses static calls only. It cannot be instantiated");
     }
 
+    public static String getFormattedDate(@NonNull java.util.Date date, @NonNull TimeZone timeZone, @NonNull Context context, @NonNull String separator) {
+        return getFormattedDate(new Date(date.getTime()), timeZone, context, separator);
+    }
 
     /**
      * Gets a formatted version of a date based on the timezone and locale for a given separator. In the US,

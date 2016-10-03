@@ -111,6 +111,12 @@ public class BackupProvidersManager implements BackupProvider {
 
     @NonNull
     @Override
+    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+        return mBackupProvider.restoreBackup(remoteBackupMetadata, overwriteExistingData);
+    }
+
+    @NonNull
+    @Override
     public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         return mBackupProvider.deleteBackup(remoteBackupMetadata);
     }

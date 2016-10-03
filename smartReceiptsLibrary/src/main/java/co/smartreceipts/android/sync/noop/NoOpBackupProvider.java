@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.provider;
+package co.smartreceipts.android.sync.noop;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -19,7 +19,7 @@ import rx.Observable;
  * A no-op implementation of the {@link BackupProvider} contract to help us to avoid dealing with nulls
  * in our {@link BackupProvidersManager} class
  */
-class NoOpBackupProvider implements BackupProvider {
+public class NoOpBackupProvider implements BackupProvider {
 
     @Override
     public void initialize(@Nullable FragmentActivity activity) {
@@ -52,6 +52,12 @@ class NoOpBackupProvider implements BackupProvider {
     @Override
     public Date getLastDatabaseSyncTime() {
         return new Date(0L);
+    }
+
+    @NonNull
+    @Override
+    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+        return Observable.just(false);
     }
 
     @NonNull

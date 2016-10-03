@@ -59,6 +59,16 @@ public interface BackupProvider {
     Date getLastDatabaseSyncTime();
 
     /**
+     * Restores an existing backup
+     *
+     * @param remoteBackupMetadata the metadata to restore
+     * @param overwriteExistingData if we should overwrite the existing data
+     * @return an {@link Observable} for the restore operation with a success boolean
+     */
+    @NonNull
+    Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData);
+
+    /**
      * Deletes an existing backup
      *
      * @param remoteBackupMetadata the metadata to delete

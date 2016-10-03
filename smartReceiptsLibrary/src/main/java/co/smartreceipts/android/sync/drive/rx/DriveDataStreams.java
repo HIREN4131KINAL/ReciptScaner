@@ -27,7 +27,9 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -209,6 +211,66 @@ class DriveDataStreams {
         return mSmartReceiptsFolderSubject;
     }
 
+    @NonNull
+    public synchronized Observable<DriveId> getDriveId(@NonNull final Identifier identifier) {
+        Preconditions.checkNotNull(identifier);
+
+        return Observable.create(new Observable.OnSubscribe<DriveId>() {
+                @Override
+                public void call(final Subscriber<? super DriveId> subscriber) {
+                    Drive.DriveApi.fetchDriveId(mGoogleApiClient, identifier.getId()).setResultCallback(new ResultCallbacks<DriveApi.DriveIdResult>() {
+                        @Override
+                        public void onSuccess(@NonNull DriveApi.DriveIdResult driveIdResult) {
+                            final DriveId driveId = driveIdResult.getDriveId();
+                            Log.d(TAG, "Successfully fetch file with id: " + driveId);
+                            subscriber.onNext(driveId);
+                            subscriber.onCompleted();
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Status status) {
+                            Log.e(TAG, "Failed to fetch file with status: " + status);
+                            subscriber.onError(new IOException(status.getStatusMessage()));
+                        }
+                    });
+                }
+            });
+    }
+
+    @NonNull
+    public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder, @NonNull final String fileName) {
+        Preconditions.checkNotNull(driveFolder);
+        Preconditions.checkNotNull(fileName);
+
+        return Observable.create(new Observable.OnSubscribe<DriveId>() {
+            @Override
+            public void call(final Subscriber<? super DriveId> subscriber) {
+                final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, SMART_RECEIPTS_FOLDER)).build();
+                Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
+                    @Override
+                    public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                        try {
+                            for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                if (!metadata.isTrashed()) {
+                                    subscriber.onNext(metadata.getDriveId());
+                                }
+                            }
+                            subscriber.onCompleted();
+                        } finally {
+                            metadataBufferResult.getMetadataBuffer().release();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Log.e(TAG, "Failed to query files in folder with status: " + status);
+                        subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
+    }
+
     public synchronized Observable<DriveFile> createFileInFolder(@NonNull final DriveFolder folder, @NonNull final File file) {
         Preconditions.checkNotNull(folder);
         Preconditions.checkNotNull(file);
@@ -271,6 +333,7 @@ class DriveDataStreams {
                                     });
                                 } catch (IOException e) {
                                     Log.e(TAG, "Failed write file with exception: ", e);
+                                    driveContents.discard(mGoogleApiClient);
                                     subscriber.onError(e);
                                 } finally {
                                     StorageManager.closeQuietly(fileInputStream);
@@ -320,7 +383,6 @@ class DriveDataStreams {
                                                 outputStream.write(buffer, 0, read);
                                             }
 
-                                            // TODO: Does the ID stay the same? Or do I need to monitor
                                             driveContents.commit(mGoogleApiClient, null).setResultCallback(new ResultCallbacks<Status>() {
                                                 @Override
                                                 public void onSuccess(@NonNull Status status) {
@@ -336,6 +398,7 @@ class DriveDataStreams {
                                             });
                                         } catch (IOException e) {
                                             Log.e(TAG, "Failed write file with exception: ", e);
+                                            driveContents.discard(mGoogleApiClient);
                                             subscriber.onError(e);
                                         } finally {
                                             StorageManager.closeQuietly(fileInputStream);
@@ -406,6 +469,55 @@ class DriveDataStreams {
                     public void onFailure(@NonNull Status status) {
                         Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteFolder with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
+    }
+
+    public synchronized Observable<File> download(@NonNull final DriveFile driveFile, @NonNull final File downloadLocationFile) {
+        Preconditions.checkNotNull(driveFile);
+        Preconditions.checkNotNull(downloadLocationFile);
+
+        return Observable.create(new Observable.OnSubscribe<File>() {
+            @Override
+            public void call(final Subscriber<? super File> subscriber) {
+                driveFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(new ResultCallbacks<DriveApi.DriveContentsResult>() {
+                    @Override
+                    public void onSuccess(@NonNull final DriveApi.DriveContentsResult driveContentsResult) {
+                        mExecutor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.i(TAG, "Successfully connected to the drive contents");
+                                final DriveContents driveContents = driveContentsResult.getDriveContents();
+                                InputStream inputStream = null;
+                                FileOutputStream fileOutputStream = null;
+                                try {
+                                    inputStream = driveContents.getInputStream();
+                                    fileOutputStream = new FileOutputStream(downloadLocationFile);
+                                    byte[] buffer = new byte[8192];
+                                    int read;
+                                    while ((read = inputStream.read(buffer)) != -1) {
+                                        fileOutputStream.write(buffer, 0, read);
+                                    }
+                                    driveContents.discard(mGoogleApiClient);
+                                    subscriber.onNext(downloadLocationFile);
+                                    subscriber.onCompleted();
+                                } catch (IOException e) {
+                                    Log.e(TAG, "Failed write file with exception: ", e);
+                                    driveContents.discard(mGoogleApiClient);
+                                    subscriber.onError(e);
+                                } finally {
+                                    StorageManager.closeQuietly(inputStream);
+                                    StorageManager.closeQuietly(fileOutputStream);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Log.e(TAG, "Failed to downloaded the drive resource with status: " + status);
                     }
                 });
             }

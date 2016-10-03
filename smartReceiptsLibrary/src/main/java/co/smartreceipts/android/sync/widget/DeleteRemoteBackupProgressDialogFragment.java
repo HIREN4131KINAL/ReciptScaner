@@ -78,7 +78,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                             Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
 
                             // Note: this is kind of hacky but should work
-                            mRemoteBackupsDataCache.clearGetBackupsResults();
+
                             final Fragment uncastedBackupsFragment = getFragmentManager().findFragmentByTag(BackupsFragment.class.getName());
                             if (uncastedBackupsFragment instanceof BackupsFragment) {
                                 // If we're active, kick off a refresh directly in the fragment

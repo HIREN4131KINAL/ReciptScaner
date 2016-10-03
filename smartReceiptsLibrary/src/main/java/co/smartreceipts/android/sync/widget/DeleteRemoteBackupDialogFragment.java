@@ -11,6 +11,8 @@ import android.support.v4.app.DialogFragment;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 
 public class DeleteRemoteBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
@@ -19,6 +21,7 @@ public class DeleteRemoteBackupDialogFragment extends DialogFragment implements 
 
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
+    private BackupProvidersManager mBackupProvidersManager;
     private RemoteBackupMetadata mBackupMetadata;
 
     public static DeleteRemoteBackupDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
@@ -32,6 +35,7 @@ public class DeleteRemoteBackupDialogFragment extends DialogFragment implements 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mBackupProvidersManager = ((SmartReceiptsApplication)getActivity().getApplication()).getBackupProvidersManager();
         mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
         Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
@@ -41,7 +45,11 @@ public class DeleteRemoteBackupDialogFragment extends DialogFragment implements 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(R.string.dialog_remote_backup_delete_title);
-        builder.setMessage(getString(R.string.dialog_remote_backup_delete_message, mBackupMetadata.getSyncDeviceName()));
+        if (mBackupMetadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
+            builder.setMessage(getString(R.string.dialog_remote_backup_delete_message_this_device));
+        } else {
+            builder.setMessage(getString(R.string.dialog_remote_backup_delete_message, mBackupMetadata.getSyncDeviceName()));
+        }
         builder.setCancelable(true);
         builder.setPositiveButton(R.string.dialog_remote_backup_delete_positive, this);
         builder.setNegativeButton(android.R.string.cancel, this);

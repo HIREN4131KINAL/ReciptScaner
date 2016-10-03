@@ -35,6 +35,7 @@ import co.smartreceipts.android.sync.drive.listeners.DatabaseBackupListener;
 import co.smartreceipts.android.sync.drive.listeners.ReceiptBackupListener;
 import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
+import co.smartreceipts.android.sync.drive.managers.DriveRestoreDataManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
@@ -59,6 +60,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final Context mContext;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
     private final DriveReceiptsManager mDriveReceiptsManager;
+    private final DriveRestoreDataManager mDriveRestoreDataManager;
     private final DatabaseBackupListener<Trip> mTripDatabaseBackupListener;
     private final ReceiptBackupListener mReceiptDatabaseBackupListener;
     private final DatabaseBackupListener<Distance> mDistanceDatabaseBackupListener;
@@ -85,6 +87,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
         final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager);
         mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager, mNetworkManager);
+        mDriveRestoreDataManager = new DriveRestoreDataManager(context, mDriveTaskManager);
 
         mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
         mReceiptDatabaseBackupListener = new ReceiptBackupListener(driveDatabaseManager, mDriveReceiptsManager);
@@ -145,6 +148,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     @Override
     public Date getLastDatabaseSyncTime() {
         return mGoogleDriveSyncMetadata.getLastDatabaseSyncTime();
+    }
+
+    @NonNull
+    @Override
+    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+        return mDriveRestoreDataManager.restoreBackup(remoteBackupMetadata, overwriteExistingData);
     }
 
     @NonNull

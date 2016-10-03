@@ -10,6 +10,7 @@ import co.smartreceipts.android.persistence.database.controllers.TableController
 import co.smartreceipts.android.sync.BackupProvider;
 import co.smartreceipts.android.sync.drive.GoogleDriveBackupManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.noop.NoOpBackupProvider;
 
 public class SyncProviderFactory {
 

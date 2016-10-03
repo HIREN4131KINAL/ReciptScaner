@@ -9,6 +9,7 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveId;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
@@ -64,6 +65,34 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                         return mDriveDataStreams.getSmartReceiptsFolders();
                     }
                 });
+    }
+
+    @NonNull
+    public synchronized Observable<DriveId> getDriveId(@NonNull final Identifier identifier) {
+        Preconditions.checkNotNull(identifier);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<DriveId>>() {
+                    @Override
+                    public Observable<DriveId> call(Void aVoid) {
+                        return mDriveDataStreams.getDriveId(identifier);
+                    }
+                });
+    }
+
+    @NonNull
+    public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder, @NonNull final String fileName) {
+        Preconditions.checkNotNull(driveFolder);
+        Preconditions.checkNotNull(fileName);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<DriveId>>() {
+                    @Override
+                    public Observable<DriveId> call(Void aVoid) {
+                        return mDriveDataStreams.getFilesInFolder(driveFolder, fileName);
+                    }
+                });
+
     }
 
     @NonNull
@@ -199,6 +228,20 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<Boolean> call(Void aVoid) {
                         return mDriveDataStreams.delete(identifier);
+                    }
+                });
+    }
+
+    @NonNull
+    public Observable<File> download(@NonNull final DriveFile driveFile, @NonNull final File downloadLocationFile) {
+        Preconditions.checkNotNull(driveFile);
+        Preconditions.checkNotNull(downloadLocationFile);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<File>>() {
+                    @Override
+                    public Observable<File> call(Void aVoid) {
+                        return mDriveDataStreams.download(driveFile, downloadLocationFile);
                     }
                 });
     }

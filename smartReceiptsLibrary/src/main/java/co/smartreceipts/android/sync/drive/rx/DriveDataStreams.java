@@ -153,58 +153,59 @@ class DriveDataStreams {
 
     public synchronized Observable<DriveFolder> getSmartReceiptsFolder() {
         if (mSmartReceiptsFolderSubject == null) {
+            Log.i(TAG, "Creating new replay subject for the Smart Receipts folder");
             mSmartReceiptsFolderSubject = ReplaySubject.create();
-        }
-        Observable.create(new Observable.OnSubscribe<DriveFolder>() {
-            @Override
-            public void call(final Subscriber<? super DriveFolder> subscriber) {
-                final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId())).build();
-                Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
-                    @Override
-                    public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
-                        try {
-                            DriveId folderId = null;
-                            for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
-                                if (isValidSmartReceiptsFolder(metadata)) {
-                                    folderId = metadata.getDriveId();
-                                    break;
+            Observable.create(new Observable.OnSubscribe<DriveFolder>() {
+                @Override
+                public void call(final Subscriber<? super DriveFolder> subscriber) {
+                    final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId())).build();
+                    Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
+                        @Override
+                        public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                            try {
+                                DriveId folderId = null;
+                                for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                    if (isValidSmartReceiptsFolder(metadata)) {
+                                        folderId = metadata.getDriveId();
+                                        break;
+                                    }
                                 }
-                            }
 
-                            if (folderId != null) {
-                                Log.i(TAG, "Found an existing Google Drive folder for Smart Receipts");
-                                subscriber.onNext(folderId.asDriveFolder());
-                                subscriber.onCompleted();
-                            } else {
-                                Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
-                                final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
-                                Drive.DriveApi.getRootFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
-                                    @Override
-                                    public void onSuccess(@NonNull DriveFolder.DriveFolderResult driveFolderResult) {
-                                        subscriber.onNext(driveFolderResult.getDriveFolder());
-                                        subscriber.onCompleted();
-                                    }
+                                if (folderId != null) {
+                                    Log.i(TAG, "Found an existing Google Drive folder for Smart Receipts");
+                                    subscriber.onNext(folderId.asDriveFolder());
+                                    subscriber.onCompleted();
+                                } else {
+                                    Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
+                                    final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
+                                    Drive.DriveApi.getRootFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
+                                        @Override
+                                        public void onSuccess(@NonNull DriveFolder.DriveFolderResult driveFolderResult) {
+                                            subscriber.onNext(driveFolderResult.getDriveFolder());
+                                            subscriber.onCompleted();
+                                        }
 
-                                    @Override
-                                    public void onFailure(@NonNull Status status) {
-                                        Log.e(TAG, "Failed to create a home folder with status: " + status);
-                                        subscriber.onError(new IOException(status.getStatusMessage()));
-                                    }
-                                });
+                                        @Override
+                                        public void onFailure(@NonNull Status status) {
+                                            Log.e(TAG, "Failed to create a home folder with status: " + status);
+                                            subscriber.onError(new IOException(status.getStatusMessage()));
+                                        }
+                                    });
+                                }
+                            } finally {
+                                metadataBufferResult.getMetadataBuffer().release();
                             }
-                        } finally {
-                            metadataBufferResult.getMetadataBuffer().release();
                         }
-                    }
 
-                    @Override
-                    public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to query a Smart Receipts folder with status: " + status);
-                        subscriber.onError(new IOException(status.getStatusMessage()));
-                    }
-                });
-            }
-        }).subscribe(mSmartReceiptsFolderSubject);
+                        @Override
+                        public void onFailure(@NonNull Status status) {
+                            Log.e(TAG, "Failed to query a Smart Receipts folder with status: " + status);
+                            subscriber.onError(new IOException(status.getStatusMessage()));
+                        }
+                    });
+                }
+            }).subscribe(mSmartReceiptsFolderSubject);
+        }
         return mSmartReceiptsFolderSubject;
     }
 

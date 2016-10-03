@@ -68,6 +68,7 @@ public class DriveReceiptsManager {
     public synchronized void initialize() {
         if (mNetworkManager.isNetworkAvailable()) {
             if (!mIsIntializing.getAndSet(true)) {
+                Log.i(TAG, "Performing initialization of drive receipts");
                 mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
                         .flatMap(new Func1<List<Receipt>, Observable<Receipt>>() {
                             @Override
@@ -80,6 +81,7 @@ public class DriveReceiptsManager {
                         .subscribe(new Action1<Receipt>() {
                             @Override
                             public void call(Receipt receipt) {
+                                Log.i(TAG, "Performing found unsynced receipt " + receipt.getId());
                                 if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
                                     Log.i(TAG, "Handling delete action during initialization");
                                     handleDeleteInternal(receipt);

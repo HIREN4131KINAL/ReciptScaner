@@ -46,4 +46,10 @@ class NoOpBackupProvider implements BackupProvider {
     public Identifier getDeviceSyncId() {
         return null;
     }
+
+    @NonNull
+    @Override
+    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        return Observable.just(false);
+    }
 }

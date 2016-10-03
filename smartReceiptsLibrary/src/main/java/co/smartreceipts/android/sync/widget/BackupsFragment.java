@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
@@ -25,8 +24,6 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.fragments.ExportBackupDialogFragment;
-import co.smartreceipts.android.fragments.ImportBackupDialogFragment;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
@@ -43,7 +40,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private static final String SMR_EXTENSION = "smr";
 
     private BackupProvidersManager mBackupProvidersManager;
-    private RemoteBackupsResultsCache mRemoteBackupsResultsCache;
+    private RemoteBackupsDataCache mRemoteBackupsDataCache;
     private CompositeSubscription mCompositeSubscription;
     private NavigationHandler mNavigationHandler;
 
@@ -64,7 +61,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
-        mRemoteBackupsResultsCache = new RemoteBackupsResultsCache(getFragmentManager(), mBackupProvidersManager);
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), mBackupProvidersManager);
         mNavigationHandler = new NavigationHandler(getActivity());
     }
 
@@ -126,7 +123,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, mBackupProvidersManager, getPersistenceManager().getPreferences()));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences()));
     }
 
     @Override
@@ -194,7 +191,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
             throw new IllegalArgumentException("Unsupported sync provider type was specified");
         }
 
-        mCompositeSubscription.add(mRemoteBackupsResultsCache.getBackups(syncProvider)
+        mCompositeSubscription.add(mRemoteBackupsDataCache.getBackups(syncProvider)
                 .subscribe(new Action1<List<RemoteBackupMetadata>>() {
                     @Override
                     public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
@@ -203,7 +200,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                         } else {
                             mExistingBackupsSection.setVisibility(View.VISIBLE);
                         }
-                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
                         mRecyclerView.setAdapter(remoteBackupsListAdapter);
                     }
                 }));

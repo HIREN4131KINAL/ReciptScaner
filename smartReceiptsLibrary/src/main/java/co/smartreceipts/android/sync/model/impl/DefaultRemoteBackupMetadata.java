@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.model.impl;
 
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
@@ -69,4 +70,31 @@ public class DefaultRemoteBackupMetadata implements RemoteBackupMetadata {
         result = 31 * result + mLastModifiedDate.hashCode();
         return result;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(this.mIdentifier, flags);
+        dest.writeParcelable(this.mSyncDeviceIdentifier, flags);
+        dest.writeString(this.mSyncDeviceName);
+        dest.writeLong(this.mLastModifiedDate.getTime());
+    }
+
+    public static final Creator<DefaultRemoteBackupMetadata> CREATOR = new Creator<DefaultRemoteBackupMetadata>() {
+        @Override
+        public DefaultRemoteBackupMetadata createFromParcel(@NonNull Parcel in) {
+            return new DefaultRemoteBackupMetadata((Identifier) in.readParcelable(Identifier.class.getClassLoader()),
+                    (Identifier) in.readParcelable(Identifier.class.getClassLoader()), in.readString(), new Date(in.readLong()));
+        }
+
+        @Override
+        public DefaultRemoteBackupMetadata[] newArray(int size) {
+            return new DefaultRemoteBackupMetadata[size];
+        }
+    };
 }

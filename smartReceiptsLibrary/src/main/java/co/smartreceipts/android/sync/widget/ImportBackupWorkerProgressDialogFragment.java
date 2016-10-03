@@ -1,14 +1,12 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.sync.widget;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
@@ -21,7 +19,6 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 
 public class ImportBackupWorkerProgressDialogFragment extends DialogFragment {
 

@@ -51,4 +51,13 @@ public interface BackupProvider {
     @Nullable
     Identifier getDeviceSyncId();
 
+    /**
+     * Deletes an existing backup
+     *
+     * @param remoteBackupMetadata the metadata to delete
+     * @return an {@link Observable} for the delete operation with a success boolean
+     */
+    @NonNull
+    Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
+
 }

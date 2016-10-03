@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -30,17 +31,21 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
     private static final int TYPE_ITEM = 1;
 
     private final View mHeaderView;
+    private final FragmentManager mFragmentManager;
     private final BackupProvidersManager mBackupProvidersManager;
     private final Preferences mPreferences;
     private final List<RemoteBackupMetadata> mBackupMetadataList;
 
-    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences) {
-        this(headerView, backupProvidersManager, preferences, Collections.<RemoteBackupMetadata>emptyList());
+    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentManager fragmentManager,
+                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences) {
+        this(headerView, fragmentManager, backupProvidersManager, preferences, Collections.<RemoteBackupMetadata>emptyList());
     }
 
-    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull BackupProvidersManager backupProvidersManager,
-                                    @NonNull Preferences preferences, @NonNull List<RemoteBackupMetadata> backupMetadataList) {
+    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentManager fragmentManager,
+                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
+                                    @NonNull List<RemoteBackupMetadata> backupMetadataList) {
         mHeaderView = Preconditions.checkNotNull(headerView);
+        mFragmentManager = Preconditions.checkNotNull(fragmentManager);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         mPreferences = Preconditions.checkNotNull(preferences);
         mBackupMetadataList = new ArrayList<>(backupMetadataList);
@@ -81,7 +86,8 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                                 // TODO
                                 return true;
                             } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
-                                // TODO
+                                final DeleteRemoteBackupDialogFragment deleteDialogFragment = DeleteRemoteBackupDialogFragment.newInstance(metadata);
+                                deleteDialogFragment.show(mFragmentManager, DeleteRemoteBackupDialogFragment.TAG);
                                 return true;
                             } else {
                                 throw new IllegalArgumentException("Unsupported menu type was selected");

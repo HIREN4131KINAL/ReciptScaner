@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.sync.widget;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

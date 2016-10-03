@@ -140,6 +140,14 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         return mGoogleDriveSyncMetadata.getDeviceIdentifier();
     }
 
+    @NonNull
+    @Override
+    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        Preconditions.checkNotNull(remoteBackupMetadata);
+
+        return mDriveTaskManager.deleteDriveFile(remoteBackupMetadata.getId());
+    }
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
         Log.w(TAG, "GoogleApiClient connection failed: " + result.toString());

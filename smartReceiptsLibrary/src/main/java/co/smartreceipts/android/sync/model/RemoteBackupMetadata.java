@@ -1,12 +1,13 @@
 package co.smartreceipts.android.sync.model;
 
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import java.util.Date;
 
 import co.smartreceipts.android.sync.model.impl.Identifier;
 
-public interface RemoteBackupMetadata {
+public interface RemoteBackupMetadata extends Parcelable {
 
     @NonNull
     Identifier getId();

@@ -344,6 +344,10 @@
     <string name="remote_backups_list_item_menu_restore">Restore</string>
     <string name="remote_backups_list_item_menu_delete">@string/delete</string>
 
+    <string name="dialog_remote_backup_delete_title">@string/delete</string>
+    <string name="dialog_remote_backup_delete_message">Are you sure you wish to delete your backup from the %s device? This operation cannot be undone.</string>
+    <string name="dialog_remote_backup_delete_positive">@string/delete</string>
+
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>
     <string name="dialog_filter_title">Filter By:</string>

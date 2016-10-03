@@ -191,6 +191,19 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     }
 
     @NonNull
+    public Observable<Boolean> deleteDriveFile(@NonNull final Identifier identifier) {
+        Preconditions.checkNotNull(identifier);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(Void aVoid) {
+                        return mDriveDataStreams.deleteFile(identifier);
+                    }
+                });
+    }
+
+    @NonNull
     private Observable<Void> newBlockUntilConnectedObservable() {
         return Observable.create(new Observable.OnSubscribe<Void>() {
             @Override

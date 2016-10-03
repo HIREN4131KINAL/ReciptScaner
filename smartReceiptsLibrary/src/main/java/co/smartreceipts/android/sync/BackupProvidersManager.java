@@ -13,12 +13,10 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
-import co.smartreceipts.android.sync.network.NetworkProvider;
 import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
@@ -102,5 +100,11 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Identifier getDeviceSyncId() {
         return mBackupProvider.getDeviceSyncId();
+    }
+
+    @NonNull
+    @Override
+    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        return mBackupProvider.deleteBackup(remoteBackupMetadata);
     }
 }

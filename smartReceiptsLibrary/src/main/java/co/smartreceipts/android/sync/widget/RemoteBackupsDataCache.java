@@ -20,12 +20,12 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rx.subjects.ReplaySubject;
 
-public class RemoteBackupsResultsCache {
+public class RemoteBackupsDataCache {
 
     private final BackupProvidersManager mBackupProvidersManager;
     private RemoteBackupsResultsCacheHeadlessFragment mHeadlessFragment;
 
-    public RemoteBackupsResultsCache(@NonNull FragmentManager fragmentManager, @NonNull BackupProvidersManager backupProvidersManager) {
+    public RemoteBackupsDataCache(@NonNull FragmentManager fragmentManager, @NonNull BackupProvidersManager backupProvidersManager) {
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         Preconditions.checkNotNull(fragmentManager);
 
@@ -58,7 +58,7 @@ public class RemoteBackupsResultsCache {
 
     public static final class RemoteBackupsResultsCacheHeadlessFragment extends Fragment {
 
-        private static final String TAG = RemoteBackupsResultsCache.class.getName();
+        private static final String TAG = RemoteBackupsDataCache.class.getName();
 
         private Map<SyncProvider, ReplaySubject<List<RemoteBackupMetadata>>> replaySubjectMap;
 

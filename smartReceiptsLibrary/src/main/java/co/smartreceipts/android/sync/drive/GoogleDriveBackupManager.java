@@ -145,7 +145,10 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         Preconditions.checkNotNull(remoteBackupMetadata);
 
-        return mDriveTaskManager.deleteDriveFile(remoteBackupMetadata.getId());
+        if (remoteBackupMetadata.getSyncDeviceId().equals(mGoogleDriveSyncMetadata.getDeviceIdentifier())) {
+            mGoogleDriveSyncMetadata.clear();
+        }
+        return mDriveTaskManager.deleteDriveFolder(remoteBackupMetadata.getId());
     }
 
     @Override

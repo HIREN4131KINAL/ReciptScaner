@@ -332,7 +332,7 @@
     <string name="manual_backup_description">Back up your data to keep your receipts safe! You can restore your data by importing the SmartReceipts.SMR backup file, which is generated via the "Export" button below.</string>
     <string name="manual_backup_export">Backup</string>
     <string name="manual_backup_import">Import</string>
-    <string name="auto_backup_title">Automatic Backups:</string>
+    <string name="auto_backup_title">Automatic Backups [BETA]:</string>
     <string name="auto_backup_wifi_only">Use Wi-Fi Only</string>
     <string name="auto_backup_warning_none">Warning: Automatic backups are not configured!\nYou may be at risk of losing your data.</string>
     <string name="auto_backup_warning_drive">Warning: Standard charges may apply for automatic backups over a mobile network.</string>
@@ -347,6 +347,9 @@
     <string name="dialog_remote_backup_delete_title">@string/delete</string>
     <string name="dialog_remote_backup_delete_message">Are you sure you wish to delete your backup from the %s device? This operation cannot be undone.</string>
     <string name="dialog_remote_backup_delete_positive">@string/delete</string>
+    <string name="dialog_remote_backup_delete_progress">Deleting your backup from the %s device&#8230;</string>
+    <string name="dialog_remote_backup_delete_toast_success">Successfully deleted this backup</string>
+    <string name="dialog_remote_backup_delete_toast_failure">Failed to delete this backup</string>
 
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>

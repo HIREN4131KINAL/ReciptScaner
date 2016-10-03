@@ -51,7 +51,8 @@ public class DeleteRemoteBackupDialogFragment extends DialogFragment implements 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            // TODO:
+            final DeleteRemoteBackupProgressDialogFragment progressDialogFragment = DeleteRemoteBackupProgressDialogFragment.newInstance(mBackupMetadata);
+            progressDialogFragment.show(getFragmentManager(), DeleteRemoteBackupProgressDialogFragment.TAG);
         }
         dismiss();
     }

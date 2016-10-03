@@ -16,6 +16,7 @@ import java.util.List;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
+import co.smartreceipts.android.persistence.database.tables.adapters.SyncStateAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.DefaultOrderBy;
@@ -127,29 +128,11 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     }
 
     @NonNull
-    public Observable<List<ModelType>> getUnsynced(@NonNull SyncProvider syncProvider) {
-        Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
-
-        return Observable.create(new Observable.OnSubscribe<List<ModelType>>() {
+    public synchronized Observable<List<ModelType>> getUnsynced(@NonNull final SyncProvider syncProvider) {
+        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
             @Override
-            public void call(Subscriber<? super List<ModelType>> subscriber) {
-                final ArrayList<ModelType> results = new ArrayList<>();
-                Cursor cursor = null;
-                try {
-                    cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(0) }, null, null, null);
-                    if (cursor != null && cursor.moveToFirst()) {
-                        do {
-                            results.add(mDatabaseAdapter.read(cursor));
-                        }
-                        while (cursor.moveToNext());
-                    }
-                    subscriber.onNext(results);
-                    subscriber.onCompleted();
-                } finally {
-                    if (cursor != null) {
-                        cursor.close();
-                    }
-                }
+            public Observable<List<ModelType>> call() {
+                return Observable.just(getUnsyncedBlocking(syncProvider));
             }
         });
     }
@@ -199,6 +182,16 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     }
 
     @NonNull
+    public Observable<Boolean> deleteSyncData(@NonNull final SyncProvider syncProvider) {
+        return Observable.defer(new Func0<Observable<Boolean>>() {
+            @Override
+            public Observable<Boolean> call() {
+                return Observable.just(AbstractSqlTable.this.deleteSyncDataBlocking(syncProvider));
+            }
+        });
+    }
+
+    @NonNull
     public synchronized List<ModelType> getBlocking() {
         if (mCachedResults != null) {
             return mCachedResults;
@@ -215,6 +208,28 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                 while (cursor.moveToNext());
             }
             return new ArrayList<>(mCachedResults);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    @NonNull
+    public synchronized List<ModelType> getUnsyncedBlocking(@NonNull SyncProvider syncProvider) {
+        Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
+
+        final ArrayList<ModelType> results = new ArrayList<>();
+        Cursor cursor = null;
+        try {
+            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(0) }, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    results.add(mDatabaseAdapter.read(cursor));
+                }
+                while (cursor.moveToNext());
+            }
+            return results;
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -333,6 +348,24 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
         } else {
             return null;
         }
+    }
+
+    public synchronized boolean deleteSyncDataBlocking(@NonNull SyncProvider syncProvider) {
+        Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
+
+        // First - remove all that are marked for deletion but haven't been actually deleted
+        getWritableDatabase().delete(getTableName(), COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ Integer.toString(1) });
+
+        // Next - update all items that currently contain sync data (to remove it)
+        final ContentValues contentValues = new SyncStateAdapter().deleteSyncData(syncProvider);
+        getWritableDatabase().update(getTableName(), contentValues, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(1) });
+
+        // Lastly - let's clear out all cached data
+        if (mCachedResults != null) {
+            mCachedResults.clear();
+        }
+
+        return true;
     }
 
 }

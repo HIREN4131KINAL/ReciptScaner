@@ -61,7 +61,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), mBackupProvidersManager);
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getDatabase());
         mNavigationHandler = new NavigationHandler(getActivity());
     }
 
@@ -176,38 +176,41 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         super.onPause();
     }
 
-    private void updateViewsForProvider(@NonNull SyncProvider syncProvider) {
-        if (syncProvider == SyncProvider.None) {
-            mWarningTextView.setText(R.string.auto_backup_warning_none);
-            mBackupConfigButtonText.setText(R.string.auto_backup_configure);
-            mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_off_24dp);
-            mWifiOnlyCheckbox.setVisibility(View.GONE);
-        } else if (syncProvider == SyncProvider.GoogleDrive) {
-            mWarningTextView.setText(R.string.auto_backup_warning_drive);
-            mBackupConfigButtonText.setText(R.string.auto_backup_source_google_drive);
-            mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_done_24dp);
-            mWifiOnlyCheckbox.setVisibility(View.VISIBLE);
-        } else {
-            throw new IllegalArgumentException("Unsupported sync provider type was specified");
-        }
-
-        mCompositeSubscription.add(mRemoteBackupsDataCache.getBackups(syncProvider)
-                .subscribe(new Action1<List<RemoteBackupMetadata>>() {
-                    @Override
-                    public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
-                        if (remoteBackupMetadatas.isEmpty()) {
-                            mExistingBackupsSection.setVisibility(View.GONE);
-                        } else {
-                            mExistingBackupsSection.setVisibility(View.VISIBLE);
-                        }
-                        final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
-                        mRecyclerView.setAdapter(remoteBackupsListAdapter);
-                    }
-                }));
-    }
-
     @Override
     public void onProviderChanged(@NonNull SyncProvider newProvider) {
         updateViewsForProvider(newProvider);
     }
+
+    public void updateViewsForProvider(@NonNull SyncProvider syncProvider) {
+        if (isResumed()) {
+            if (syncProvider == SyncProvider.None) {
+                mWarningTextView.setText(R.string.auto_backup_warning_none);
+                mBackupConfigButtonText.setText(R.string.auto_backup_configure);
+                mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_off_24dp);
+                mWifiOnlyCheckbox.setVisibility(View.GONE);
+            } else if (syncProvider == SyncProvider.GoogleDrive) {
+                mWarningTextView.setText(R.string.auto_backup_warning_drive);
+                mBackupConfigButtonText.setText(R.string.auto_backup_source_google_drive);
+                mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_done_24dp);
+                mWifiOnlyCheckbox.setVisibility(View.VISIBLE);
+            } else {
+                throw new IllegalArgumentException("Unsupported sync provider type was specified");
+            }
+
+            mCompositeSubscription.add(mRemoteBackupsDataCache.getBackups(syncProvider)
+                    .subscribe(new Action1<List<RemoteBackupMetadata>>() {
+                        @Override
+                        public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
+                            if (remoteBackupMetadatas.isEmpty()) {
+                                mExistingBackupsSection.setVisibility(View.GONE);
+                            } else {
+                                mExistingBackupsSection.setVisibility(View.VISIBLE);
+                            }
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
+                            mRecyclerView.setAdapter(remoteBackupsListAdapter);
+                        }
+                    }));
+        }
+    }
+
 }

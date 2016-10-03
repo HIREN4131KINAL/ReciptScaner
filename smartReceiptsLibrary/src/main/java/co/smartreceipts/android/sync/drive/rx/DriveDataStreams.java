@@ -376,7 +376,7 @@ class DriveDataStreams {
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to deleteDriveFile file with status: " + status);
+                                Log.e(TAG, "Failed to delete file with status: " + status);
                                 subscriber.onNext(false);
                                 subscriber.onCompleted();
                             }
@@ -385,7 +385,45 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteDriveFile with status: " + status);
+                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteFile with status: " + status);
+                        subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
+    }
+
+    public Observable<Boolean> deleteFolder(@NonNull final Identifier driveIdentifier) {
+        Preconditions.checkNotNull(driveIdentifier);
+
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(final Subscriber<? super Boolean> subscriber) {
+                Drive.DriveApi.fetchDriveId(mGoogleApiClient, driveIdentifier.getId()).setResultCallback(new ResultCallbacks<DriveApi.DriveIdResult>() {
+                    @Override
+                    public void onSuccess(@NonNull DriveApi.DriveIdResult driveIdResult) {
+                        final DriveId driveId = driveIdResult.getDriveId();
+                        final DriveFolder driveFolder = driveId.asDriveFolder();
+                        driveFolder.delete(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
+                            @Override
+                            public void onSuccess(@NonNull Status status) {
+                                Log.i(TAG, "Successfully deleted folder with status: " + status);
+                                subscriber.onNext(true);
+                                subscriber.onCompleted();
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Status status) {
+                                Log.e(TAG, "Failed to delete folder with status: " + status);
+                                subscriber.onNext(false);
+                                subscriber.onCompleted();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteFolder with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });

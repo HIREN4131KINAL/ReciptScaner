@@ -202,6 +202,16 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         mPerTripCache.remove(trip);
     }
 
+    @Override
+    public synchronized boolean deleteSyncDataBlocking(@NonNull SyncProvider syncProvider) {
+        final boolean success = super.deleteSyncDataBlocking(syncProvider);
+        if (success) {
+            // Clear out our cached data, so we're not out of sync
+            mPerTripCache.clear();
+        }
+        return success;
+    }
+
     /**
      * Gets the parent {@link Trip} for this {@link ModelType} instance
      *

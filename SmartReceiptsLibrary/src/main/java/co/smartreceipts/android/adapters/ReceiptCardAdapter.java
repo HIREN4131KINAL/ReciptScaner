@@ -18,17 +18,8 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 
-    private final BackupProvidersManager mBackupProvidersManager;
-    private final Drawable mCloudDisabledDrawable;
-    private final Drawable mNotSyncedDrawable;
-    private final Drawable mSyncedDrawable;
-
 	public ReceiptCardAdapter(Context context, Preferences preferences, BackupProvidersManager backupProvidersManager) {
-		super(context, preferences);
-        mBackupProvidersManager = backupProvidersManager;
-        mCloudDisabledDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_off_24dp, context.getTheme());
-        mNotSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_queue_24dp, context.getTheme());
-        mSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_done_24dp, context.getTheme());
+		super(context, preferences, backupProvidersManager);
 	}
 	
 	@Override

@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
+import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,6 +46,12 @@ class NoOpBackupProvider implements BackupProvider {
     @Override
     public Identifier getDeviceSyncId() {
         return null;
+    }
+
+    @NonNull
+    @Override
+    public Date getLastDatabaseSyncTime() {
+        return new Date(0L);
     }
 
     @NonNull

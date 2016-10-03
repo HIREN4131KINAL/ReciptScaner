@@ -17,6 +17,7 @@ import com.google.android.gms.drive.Drive;
 import com.google.common.base.Preconditions;
 
 import java.lang.ref.WeakReference;
+import java.sql.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -138,6 +139,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     @Override
     public Identifier getDeviceSyncId() {
         return mGoogleDriveSyncMetadata.getDeviceIdentifier();
+    }
+
+    @NonNull
+    @Override
+    public Date getLastDatabaseSyncTime() {
+        return mGoogleDriveSyncMetadata.getLastDatabaseSyncTime();
     }
 
     @NonNull

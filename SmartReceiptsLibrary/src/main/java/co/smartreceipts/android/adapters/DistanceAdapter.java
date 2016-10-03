@@ -1,17 +1,19 @@
 package co.smartreceipts.android.adapters;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 
 public class DistanceAdapter extends CardAdapter<Distance> {
 
-    public DistanceAdapter(Context context, Preferences preferences) {
-        super(context, preferences);
+    public DistanceAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+        super(context, preferences, backupProvidersManager);
     }
 
     @Override

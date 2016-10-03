@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -100,6 +101,12 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Identifier getDeviceSyncId() {
         return mBackupProvider.getDeviceSyncId();
+    }
+
+    @NonNull
+    @Override
+    public Date getLastDatabaseSyncTime() {
+        return mBackupProvider.getLastDatabaseSyncTime();
     }
 
     @NonNull

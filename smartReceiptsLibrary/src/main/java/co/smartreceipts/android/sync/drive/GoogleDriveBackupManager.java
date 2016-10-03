@@ -148,7 +148,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         if (remoteBackupMetadata.getSyncDeviceId().equals(mGoogleDriveSyncMetadata.getDeviceIdentifier())) {
             mGoogleDriveSyncMetadata.clear();
         }
-        return mDriveTaskManager.deleteDriveFolder(remoteBackupMetadata.getId());
+        return mDriveTaskManager.delete(remoteBackupMetadata.getId());
     }
 
     @Override

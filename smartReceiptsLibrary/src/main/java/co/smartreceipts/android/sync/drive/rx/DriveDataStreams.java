@@ -15,6 +15,7 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.DriveResource;
 import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
@@ -47,6 +48,7 @@ import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
+import rx.subjects.ReplaySubject;
 import wb.android.storage.StorageManager;
 
 class DriveDataStreams {
@@ -62,6 +64,7 @@ class DriveDataStreams {
     private final DeviceMetadata mDeviceMetadata;
     private final DriveUploadCompleteManager mDriveUploadCompleteManager;
     private final Executor mExecutor;
+    private ReplaySubject<DriveFolder> mSmartReceiptsFolderSubject;
 
     public DriveDataStreams(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
         this(googleApiClient, context, googleDriveSyncMetadata, new DeviceMetadata(context), new DriveUploadCompleteManager(), Executors.newCachedThreadPool());
@@ -77,7 +80,7 @@ class DriveDataStreams {
         mExecutor = Preconditions.checkNotNull(executor);
     }
 
-    public Observable<List<RemoteBackupMetadata>> getSmartReceiptsFolders() {
+    public synchronized Observable<List<RemoteBackupMetadata>> getSmartReceiptsFolders() {
         return Observable.create(new Observable.OnSubscribe<List<RemoteBackupMetadata>>() {
             @Override
             public void call(final Subscriber<? super List<RemoteBackupMetadata>> subscriber) {
@@ -148,8 +151,11 @@ class DriveDataStreams {
         });
     }
 
-    public Observable<DriveFolder> getSmartReceiptsFolder() {
-        return Observable.create(new Observable.OnSubscribe<DriveFolder>() {
+    public synchronized Observable<DriveFolder> getSmartReceiptsFolder() {
+        if (mSmartReceiptsFolderSubject == null) {
+            mSmartReceiptsFolderSubject = ReplaySubject.create();
+        }
+        Observable.create(new Observable.OnSubscribe<DriveFolder>() {
             @Override
             public void call(final Subscriber<? super DriveFolder> subscriber) {
                 final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId())).build();
@@ -198,10 +204,11 @@ class DriveDataStreams {
                     }
                 });
             }
-        });
+        }).subscribe(mSmartReceiptsFolderSubject);
+        return mSmartReceiptsFolderSubject;
     }
 
-    public Observable<DriveFile> createFileInFolder(@NonNull final DriveFolder folder, @NonNull final File file) {
+    public synchronized Observable<DriveFile> createFileInFolder(@NonNull final DriveFolder folder, @NonNull final File file) {
         Preconditions.checkNotNull(folder);
         Preconditions.checkNotNull(file);
 
@@ -282,7 +289,7 @@ class DriveDataStreams {
         });
     }
 
-    public Observable<DriveFile> updateFile(@NonNull final Identifier driveIdentifier, @NonNull final File file) {
+    public synchronized Observable<DriveFile> updateFile(@NonNull final Identifier driveIdentifier, @NonNull final File file) {
         Preconditions.checkNotNull(driveIdentifier);
         Preconditions.checkNotNull(file);
 
@@ -355,8 +362,19 @@ class DriveDataStreams {
         });
     }
 
-    public Observable<Boolean> deleteFile(@NonNull final Identifier driveIdentifier) {
+    public synchronized Observable<Boolean> delete(@NonNull final Identifier driveIdentifier) {
         Preconditions.checkNotNull(driveIdentifier);
+
+        final Identifier smartReceiptsFolderId;
+        if (mSmartReceiptsFolderSubject != null && mSmartReceiptsFolderSubject.getValue() != null) {
+            smartReceiptsFolderId = new Identifier(mSmartReceiptsFolderSubject.getValue().getDriveId().getResourceId());
+        } else {
+            smartReceiptsFolderId = null;
+        }
+        if (driveIdentifier.equals(smartReceiptsFolderId)) {
+            Log.i(TAG, "Attemping to delete our Smart Receipts folder. Clearing our cached replay result...");
+            mSmartReceiptsFolderSubject = null;
+        }
 
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
@@ -365,56 +383,18 @@ class DriveDataStreams {
                     @Override
                     public void onSuccess(@NonNull DriveApi.DriveIdResult driveIdResult) {
                         final DriveId driveId = driveIdResult.getDriveId();
-                        final DriveFile driveFile = driveId.asDriveFile();
-                        driveFile.delete(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
+                        final DriveResource driveResource = driveId.asDriveResource();
+                        driveResource.delete(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
                             @Override
                             public void onSuccess(@NonNull Status status) {
-                                Log.i(TAG, "Successfully deleted file with status: " + status);
+                                Log.i(TAG, "Successfully deleted resource with status: " + status);
                                 subscriber.onNext(true);
                                 subscriber.onCompleted();
                             }
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to delete file with status: " + status);
-                                subscriber.onNext(false);
-                                subscriber.onCompleted();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteFile with status: " + status);
-                        subscriber.onError(new IOException(status.getStatusMessage()));
-                    }
-                });
-            }
-        });
-    }
-
-    public Observable<Boolean> deleteFolder(@NonNull final Identifier driveIdentifier) {
-        Preconditions.checkNotNull(driveIdentifier);
-
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(final Subscriber<? super Boolean> subscriber) {
-                Drive.DriveApi.fetchDriveId(mGoogleApiClient, driveIdentifier.getId()).setResultCallback(new ResultCallbacks<DriveApi.DriveIdResult>() {
-                    @Override
-                    public void onSuccess(@NonNull DriveApi.DriveIdResult driveIdResult) {
-                        final DriveId driveId = driveIdResult.getDriveId();
-                        final DriveFolder driveFolder = driveId.asDriveFolder();
-                        driveFolder.delete(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
-                            @Override
-                            public void onSuccess(@NonNull Status status) {
-                                Log.i(TAG, "Successfully deleted folder with status: " + status);
-                                subscriber.onNext(true);
-                                subscriber.onCompleted();
-                            }
-
-                            @Override
-                            public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to delete folder with status: " + status);
+                                Log.e(TAG, "Failed to delete resource with status: " + status);
                                 subscriber.onNext(false);
                                 subscriber.onCompleted();
                             }

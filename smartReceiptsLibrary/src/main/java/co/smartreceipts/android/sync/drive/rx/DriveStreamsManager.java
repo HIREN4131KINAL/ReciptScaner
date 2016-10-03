@@ -172,7 +172,7 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<Boolean> call(Void aVoid) {
                         final Identifier driveIdentifier = currentSyncState.getSyncId(SyncProvider.GoogleDrive);
                         if (driveIdentifier != null) {
-                            return mDriveDataStreams.deleteFile(driveIdentifier);
+                            return mDriveDataStreams.delete(driveIdentifier);
                         } else {
                             return Observable.just(true);
                         }
@@ -191,27 +191,14 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     }
 
     @NonNull
-    public Observable<Boolean> deleteDriveFolder(@NonNull final Identifier identifier) {
+    public Observable<Boolean> delete(@NonNull final Identifier identifier) {
         Preconditions.checkNotNull(identifier);
 
         return newBlockUntilConnectedObservable()
                 .flatMap(new Func1<Void, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(Void aVoid) {
-                        return mDriveDataStreams.deleteFolder(identifier);
-                    }
-                });
-    }
-
-    @NonNull
-    public Observable<Boolean> deleteDriveFile(@NonNull final Identifier identifier) {
-        Preconditions.checkNotNull(identifier);
-
-        return newBlockUntilConnectedObservable()
-                .flatMap(new Func1<Void, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(Void aVoid) {
-                        return mDriveDataStreams.deleteFile(identifier);
+                        return mDriveDataStreams.delete(identifier);
                     }
                 });
     }

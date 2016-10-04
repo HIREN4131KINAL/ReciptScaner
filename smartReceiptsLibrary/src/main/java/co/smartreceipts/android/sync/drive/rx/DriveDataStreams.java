@@ -245,7 +245,7 @@ class DriveDataStreams {
         return Observable.create(new Observable.OnSubscribe<DriveId>() {
             @Override
             public void call(final Subscriber<? super DriveId> subscriber) {
-                final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, SMART_RECEIPTS_FOLDER)).build();
+                final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, fileName)).build();
                 Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
                     @Override
                     public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {

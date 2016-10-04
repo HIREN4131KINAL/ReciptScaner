@@ -24,6 +24,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -83,7 +85,15 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             if (item.getItemId() == R.id.remote_backups_list_item_menu_restore) {
-                                // TODO
+                                mBackupProvidersManager.restoreBackup(metadata, false)
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(Schedulers.io())
+                                        .subscribe(new Action1<Boolean>() {
+                                            @Override
+                                            public void call(Boolean aBoolean) {
+
+                                            }
+                                        });
                                 return true;
                             } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
                                 final DeleteRemoteBackupDialogFragment deleteDialogFragment = DeleteRemoteBackupDialogFragment.newInstance(metadata);

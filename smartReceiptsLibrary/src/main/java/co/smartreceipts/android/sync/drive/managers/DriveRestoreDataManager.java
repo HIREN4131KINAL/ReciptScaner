@@ -14,6 +14,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.tables.AbstractSqlTable;
@@ -32,17 +33,19 @@ public class DriveRestoreDataManager {
 
     private final Context mContext;
     private final DriveStreamsManager mDriveStreamsManager;
+    private final DatabaseHelper mDatabaseHelper;
 
-    public DriveRestoreDataManager(@NonNull Context context, @NonNull DriveStreamsManager driveStreamsManager) {
+    public DriveRestoreDataManager(@NonNull Context context, @NonNull DriveStreamsManager driveStreamsManager, @NonNull DatabaseHelper databaseHelper) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mDriveStreamsManager = Preconditions.checkNotNull(driveStreamsManager);
+        mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
     }
 
     @NonNull
     public Observable<Boolean> restoreBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean overwriteExistingData) {
         Log.i(TAG, "Initiating the restoration of a backup file for Google Drive with ID: " + remoteBackupMetadata.getId());
 
-        deletePreviousTemporaryDatabase()
+        return deletePreviousTemporaryDatabase()
                 .flatMap(new Func1<Boolean, Observable<DriveId>>() {
                     @Override
                     public Observable<DriveId> call(Boolean success) {
@@ -70,8 +73,8 @@ public class DriveRestoreDataManager {
                 .flatMap(new Func1<DriveFolder, Observable<DriveId>>() {
                     @Override
                     public Observable<DriveId> call(DriveFolder driveFolder) {
-                        Log.d(TAG, "Fetching receipts database in drive");
-                        return mDriveStreamsManager.getFilesInFolder(driveFolder, ManualBackupTask.DATABASE_EXPORT_NAME);
+                        Log.d(TAG, "Fetching receipts database in drive for this folder");
+                        return mDriveStreamsManager.getFilesInFolder(driveFolder, DatabaseHelper.DATABASE_NAME);
                     }
                 })
                 .take(1)
@@ -111,6 +114,7 @@ public class DriveRestoreDataManager {
                             return true;
                         } else {
                             final File receiptFile = new File(new File(mContext.getExternalFilesDir(null), partialReceipt.parentTripName), partialReceipt.fileName);
+                            Log.d(TAG, "Filtering out receipt? " + !receiptFile.exists());
                             return !receiptFile.exists();
                         }
                     }
@@ -118,11 +122,19 @@ public class DriveRestoreDataManager {
                 .flatMap(new Func1<PartialReceipt, Observable<File>>() {
                     @Override
                     public Observable<File> call(PartialReceipt partialReceipt) {
+                        Log.d(TAG, "Downloading file for partial receipt: " + partialReceipt.driveId);
                         return downloadFileForReceipt(partialReceipt);
                     }
+                })
+                .toList()
+                .flatMap(new Func1<List<File>, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(List<File> files) {
+                        Log.d(TAG, "Performing database merge");
+                        final File tempDbFile = new File(mContext.getExternalFilesDir(null), ManualBackupTask.DATABASE_EXPORT_NAME);
+                        return Observable.just(mDatabaseHelper.merge(tempDbFile.getAbsolutePath(), mContext.getPackageName(), overwriteExistingData));
+                    }
                 });
-
-        return Observable.just(false);
     }
 
     private Observable<Boolean> deletePreviousTemporaryDatabase() {

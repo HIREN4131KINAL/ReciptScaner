@@ -17,12 +17,7 @@ public class DeviceMetadata {
 
     @NonNull
     public String getUniqueDeviceId() {
-        final String id = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (id != null) {
-            return id;
-        } else {
-            return UUID.randomUUID().toString();
-        }
+        return UUID.randomUUID().toString();
     }
 
     @NonNull

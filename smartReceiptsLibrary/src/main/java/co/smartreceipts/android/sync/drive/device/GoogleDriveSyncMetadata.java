@@ -31,7 +31,7 @@ public class GoogleDriveSyncMetadata {
     }
 
     @NonNull
-    public Identifier getDeviceIdentifier() {
+    public synchronized Identifier getDeviceIdentifier() {
         final String id = mSharedPreferences.getString(KEY_DEVICE_IDENTIFIER, null);
         if (id != null) {
             return new Identifier(id);
@@ -43,7 +43,7 @@ public class GoogleDriveSyncMetadata {
     }
 
     @Nullable
-    public Identifier getDatabaseSyncIdentifier() {
+    public synchronized Identifier getDatabaseSyncIdentifier() {
         final String id = mSharedPreferences.getString(KEY_DRIVE_DATABASE_IDENTIFIER, null);
         if (id != null) {
             return new Identifier(id);
@@ -52,14 +52,14 @@ public class GoogleDriveSyncMetadata {
         }
     }
 
-    public void setDatabaseSyncIdentifier(@NonNull Identifier databaseSyncIdentifier) {
+    public synchronized void setDatabaseSyncIdentifier(@NonNull Identifier databaseSyncIdentifier) {
         Preconditions.checkNotNull(databaseSyncIdentifier);
         mSharedPreferences.edit().putString(KEY_DRIVE_DATABASE_IDENTIFIER, databaseSyncIdentifier.getId()).apply();
         mSharedPreferences.edit().putLong(KEY_DRIVE_LAST_SYNC, System.currentTimeMillis()).apply();
     }
 
     @NonNull
-    public Date getLastDatabaseSyncTime() {
+    public synchronized Date getLastDatabaseSyncTime() {
         final long syncTime = mSharedPreferences.getLong(KEY_DRIVE_LAST_SYNC, 0L);
         return new Date(syncTime);
     }

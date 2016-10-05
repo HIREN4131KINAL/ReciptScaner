@@ -15,7 +15,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.widget.Toast;
 
+import com.google.common.base.Preconditions;
+
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
@@ -28,7 +31,7 @@ public class NavigationHandler {
 
     private final FragmentManager mFragmentManager;
     private final FragmentProvider mFragmentProvider;
-    private final Context mContext;
+    private final WeakReference<FragmentActivity> mFragmentActivityWeakReference;
     private final boolean mIsDualPane;
 
     public NavigationHandler(@NonNull FragmentActivity activity) {
@@ -39,15 +42,15 @@ public class NavigationHandler {
         this(activity, activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
 
-    public NavigationHandler(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider) {
-        this(context, fragmentManager, fragmentProvider, context.getResources().getBoolean(R.bool.isTablet));
+    public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider) {
+        this(activity, fragmentManager, fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
 
-    public NavigationHandler(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
-        mContext = context.getApplicationContext();
-        mFragmentManager = fragmentManager;
-        mFragmentProvider = fragmentProvider;
-        mIsDualPane = isDualPane;
+    public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
+        mFragmentActivityWeakReference = new WeakReference<>(Preconditions.checkNotNull(activity));
+        mFragmentManager = Preconditions.checkNotNull(fragmentManager);
+        mFragmentProvider = Preconditions.checkNotNull(fragmentProvider);
+        mIsDualPane = Preconditions.checkNotNull(isDualPane);
     }
 
     public void navigateToHomeTripsFragment() {
@@ -91,13 +94,16 @@ public class NavigationHandler {
     }
 
     public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
-        try {
-            final Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(receipt.getPDF()), "application/pdf");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            mContext.startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(mContext, R.string.error_no_pdf_activity_viewer, Toast.LENGTH_LONG).show();
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            try {
+                final Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(receipt.getPDF()), "application/pdf");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                activity.startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(activity, R.string.error_no_pdf_activity_viewer, Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -109,9 +115,12 @@ public class NavigationHandler {
         }
     }
 
-    public void navigateToSettings(@NonNull Activity source) {
-        final Intent intent = new Intent(source, SettingsActivity.class);
-        source.startActivity(intent);
+    public void navigateToSettings() {
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            final Intent intent = new Intent(activity, SettingsActivity.class);
+            activity.startActivity(intent);
+        }
     }
 
     public boolean navigateBack() {

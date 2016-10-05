@@ -381,6 +381,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     @NonNull
     public final PaymentMethodsTable getPaymentMethodsTable() { return mPaymentMethodsTable; }
 
+    @NonNull
+    public final List<Table> getTables() {
+        return mTables;
+    }
+
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     // Merge
     // //////////////////////////////////////////////////////////////////////////////////////////////////

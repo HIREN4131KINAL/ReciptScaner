@@ -95,4 +95,9 @@ public interface Table<ModelType, PrimaryKeyType> {
      */
     @NonNull
     Observable<ModelType> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+
+    /**
+     * Clears any cached data in our table
+     */
+    void clearCache();
 }

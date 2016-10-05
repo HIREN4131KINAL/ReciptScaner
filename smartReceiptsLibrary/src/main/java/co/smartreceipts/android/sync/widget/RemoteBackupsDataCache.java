@@ -91,6 +91,30 @@ public class RemoteBackupsDataCache {
         return deleteReplaySubject;
     }
 
+    @NonNull
+    public synchronized Observable<Boolean> restoreBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean overwriteExistingData) {
+        if (mHeadlessFragment.restoreBackupReplaySubjectMap == null) {
+            mHeadlessFragment.restoreBackupReplaySubjectMap = new HashMap<>();
+        }
+        ReplaySubject<Boolean> restoreBackupReplaySubject = mHeadlessFragment.restoreBackupReplaySubjectMap.get(remoteBackupMetadata);
+        if (restoreBackupReplaySubject == null) {
+            restoreBackupReplaySubject = ReplaySubject.create();
+            mBackupProvidersManager.restoreBackup(remoteBackupMetadata, overwriteExistingData)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(restoreBackupReplaySubject);
+            mHeadlessFragment.restoreBackupReplaySubjectMap.put(remoteBackupMetadata, restoreBackupReplaySubject);
+        }
+        return restoreBackupReplaySubject;
+    }
+
+    @NonNull
+    public synchronized void removeCachedRestoreBackupFor(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+        if (mHeadlessFragment.restoreBackupReplaySubjectMap != null) {
+            mHeadlessFragment.restoreBackupReplaySubjectMap.remove(remoteBackupMetadata);
+        }
+
+    }
 
     public static final class RemoteBackupsResultsCacheHeadlessFragment extends Fragment {
 
@@ -98,6 +122,7 @@ public class RemoteBackupsDataCache {
 
         private Map<SyncProvider, ReplaySubject<List<RemoteBackupMetadata>>> getBackupsReplaySubjectMap;
         private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> deleteBackupReplaySubjectMap;
+        private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> restoreBackupReplaySubjectMap;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {

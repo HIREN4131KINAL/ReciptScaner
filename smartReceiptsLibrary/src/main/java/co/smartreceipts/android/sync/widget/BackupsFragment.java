@@ -153,8 +153,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == IMPORT_SMR_REQUEST_CODE) {
                 if (data != null) {
-                    final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(data.getData());
-                    importBackupDialogFragment.show(getFragmentManager(), ImportBackupDialogFragment.TAG);
+                    final ImportLocalBackupDialogFragment importLocalBackupDialogFragment = ImportLocalBackupDialogFragment.newInstance(data.getData());
+                    importLocalBackupDialogFragment.show(getFragmentManager(), ImportLocalBackupDialogFragment.TAG);
                 }
             }
         }

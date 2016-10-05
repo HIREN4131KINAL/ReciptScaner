@@ -36,6 +36,7 @@
     <string name="feedback">%s - Feedback</string>
     <string name="image">Image</string>
     <string name="import_string">Import</string>
+    <string name="import_string_item">Import %s</string>
     <string name="item_code">Code:</string>
     <string name="item_name">Name:</string>
     <string name="move">Move</string>

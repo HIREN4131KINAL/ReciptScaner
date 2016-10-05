@@ -16,9 +16,9 @@ public final class Events {
     }
 
     public static final class Navigation {
-        public static final Event SettingsOverflow = new DefaultEvent(Category.Purchases, "SettingsOverflow");
-        public static final Event BackupOverflow = new DefaultEvent(Category.Purchases, "BackupOverflow");
-        public static final Event SmartReceiptsPlusOverflow = new DefaultEvent(Category.Purchases, "SmartReceiptsPlusOverflow");
+        public static final Event SettingsOverflow = new DefaultEvent(Category.Navigation, "SettingsOverflow");
+        public static final Event BackupOverflow = new DefaultEvent(Category.Navigation, "BackupOverflow");
+        public static final Event SmartReceiptsPlusOverflow = new DefaultEvent(Category.Navigation, "SmartReceiptsPlusOverflow");
     }
 
     public static final class Reports {

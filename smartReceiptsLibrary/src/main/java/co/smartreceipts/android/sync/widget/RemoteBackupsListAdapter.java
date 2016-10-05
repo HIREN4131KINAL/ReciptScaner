@@ -85,15 +85,8 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             if (item.getItemId() == R.id.remote_backups_list_item_menu_restore) {
-                                mBackupProvidersManager.restoreBackup(metadata, false)
-                                        .subscribeOn(Schedulers.io())
-                                        .observeOn(Schedulers.io())
-                                        .subscribe(new Action1<Boolean>() {
-                                            @Override
-                                            public void call(Boolean aBoolean) {
-
-                                            }
-                                        });
+                                final ImportRemoteBackupDialogFragment importRemoteBackupFragment = ImportRemoteBackupDialogFragment.newInstance(metadata);
+                                importRemoteBackupFragment.show(mFragmentManager, ImportRemoteBackupDialogFragment.TAG);
                                 return true;
                             } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
                                 final DeleteRemoteBackupDialogFragment deleteDialogFragment = DeleteRemoteBackupDialogFragment.newInstance(metadata);

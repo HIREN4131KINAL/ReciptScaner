@@ -212,6 +212,12 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         return success;
     }
 
+    @Override
+    public synchronized void clearCache() {
+        super.clearCache();
+        mPerTripCache.clear();
+    }
+
     /**
      * Gets the parent {@link Trip} for this {@link ModelType} instance
      *

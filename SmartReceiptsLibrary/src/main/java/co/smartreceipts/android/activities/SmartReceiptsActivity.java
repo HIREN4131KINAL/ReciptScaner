@@ -20,7 +20,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.sync.widget.ImportBackupDialogFragment;
+import co.smartreceipts.android.sync.widget.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
@@ -120,8 +120,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                     Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
                 }
             } else if (attachment.isSMR() && attachment.isActionView()) {
-                final ImportBackupDialogFragment importBackupDialogFragment = ImportBackupDialogFragment.newInstance(attachment.getUri());
-                importBackupDialogFragment.show(getSupportFragmentManager(), ImportBackupDialogFragment.TAG);
+                final ImportLocalBackupDialogFragment importLocalBackupDialogFragment = ImportLocalBackupDialogFragment.newInstance(attachment.getUri());
+                importLocalBackupDialogFragment.show(getSupportFragmentManager(), ImportLocalBackupDialogFragment.TAG);
             }
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();

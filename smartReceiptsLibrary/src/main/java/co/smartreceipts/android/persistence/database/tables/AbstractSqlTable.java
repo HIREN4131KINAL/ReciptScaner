@@ -368,4 +368,11 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
         return true;
     }
 
+    @Override
+    public synchronized void clearCache() {
+        if (mCachedResults != null) {
+            mCachedResults.clear();
+        }
+    }
+
 }

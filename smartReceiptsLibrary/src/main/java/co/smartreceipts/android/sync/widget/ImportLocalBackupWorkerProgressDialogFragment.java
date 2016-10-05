@@ -20,9 +20,9 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
-public class ImportBackupWorkerProgressDialogFragment extends DialogFragment {
+public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragment {
 
-    public static final String TAG = ImportBackupWorkerProgressDialogFragment.class.getName();
+    public static final String TAG = ImportLocalBackupWorkerProgressDialogFragment.class.getName();
 
     private static final String ARG_SMR_URI = "arg_smr_uri";
     private static final String ARG_OVERWRITE = "arg_overwrite";
@@ -34,8 +34,8 @@ public class ImportBackupWorkerProgressDialogFragment extends DialogFragment {
     private Uri mUri;
     private boolean mOverwrite;
 
-    public static ImportBackupWorkerProgressDialogFragment newInstance(@NonNull Uri uri, boolean overwrite) {
-        final ImportBackupWorkerProgressDialogFragment fragment = new ImportBackupWorkerProgressDialogFragment();
+    public static ImportLocalBackupWorkerProgressDialogFragment newInstance(@NonNull Uri uri, boolean overwrite) {
+        final ImportLocalBackupWorkerProgressDialogFragment fragment = new ImportLocalBackupWorkerProgressDialogFragment();
         final Bundle args = new Bundle();
         args.putParcelable(ARG_SMR_URI, uri);
         args.putBoolean(ARG_OVERWRITE, overwrite);

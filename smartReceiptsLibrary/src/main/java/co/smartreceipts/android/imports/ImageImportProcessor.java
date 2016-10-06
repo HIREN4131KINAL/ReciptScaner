@@ -72,19 +72,15 @@ public class ImageImportProcessor implements FileImportProcessor {
                         if (mPreferences.isCameraGrayScale()) {
                             bitmap = ImageUtils.convertToGrayScale(bitmap);
                         }
+
+                        boolean wasRotationHandled = false;
                         if (mPreferences.getRotateImages()) {
                             int orientation = getOrientation(uri);
-                            if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
-                                try {
-                                    final ExifInterface exif = new ExifInterface(uri.getPath());
-                                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                                }
-                                catch (IOException e) {
-                                    Log.e(TAG, "" + e);
-                                }
-                            }
                             if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
                                 bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
+                                wasRotationHandled = true;
+                            } else {
+                                Log.w(TAG, "Failed to fetch orientation information from the content store");
                             }
                         }
 
@@ -94,6 +90,21 @@ public class ImageImportProcessor implements FileImportProcessor {
                             Log.e(TAG, "Failed to write the image data. Aborting");
                             subscriber.onError(new IOException());
                         } else {
+                            if (mPreferences.getRotateImages() && !wasRotationHandled) {
+                                int orientation = ExifInterface.ORIENTATION_UNDEFINED;
+                                try {
+                                    Log.i(TAG, "Attempting to fetch orientation information from the exif data");
+                                    // Getting exif from the local file that we just wrote to determine if rotation in necessary
+                                    final ExifInterface exif = new ExifInterface(destination.getAbsolutePath());
+                                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                                } catch (IOException e) {
+                                    Log.e(TAG, "" + e);
+                                }
+                                if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
+                                    bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
+                                    mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85);
+                                }
+                            }
                             subscriber.onNext(destination);
                             subscriber.onCompleted();
                         }
@@ -144,7 +155,7 @@ public class ImageImportProcessor implements FileImportProcessor {
         Cursor c = null;
         try {
             final String[] imageColumns = { MediaStore.Images.Media.ORIENTATION };
-            c = MediaStore.Images.Media.query(mContentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageColumns, MediaStore.Images.Media.EXTERNAL_CONTENT_URI + " = ?", new String[] { externalUri.getPath() }, null);
+            c = MediaStore.Images.Media.query(mContentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageColumns);
             if(c.moveToFirst()){
                 return c.getInt(c.getColumnIndex(MediaStore.Images.Media.ORIENTATION));
             }

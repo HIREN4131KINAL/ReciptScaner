@@ -208,7 +208,9 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onError() {
                 mProgress.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+                if (getActivity() != null) {
+                    Toast.makeText(getActivity(), getFlexString(R.string.IMG_OPEN_ERROR), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

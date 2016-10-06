@@ -14,12 +14,11 @@ import android.widget.CheckBox;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 
 public class ImportRemoteBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
-
-    public static final String TAG = ImportRemoteBackupDialogFragment.class.getName();
 
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
@@ -60,8 +59,7 @@ public class ImportRemoteBackupDialogFragment extends DialogFragment implements 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            final ImportRemoteBackupWorkerProgressDialogFragment progressDialogFragment = ImportRemoteBackupWorkerProgressDialogFragment.newInstance(mBackupMetadata, mOverwriteCheckBox.isChecked());
-            progressDialogFragment.show(getFragmentManager(), ImportRemoteBackupWorkerProgressDialogFragment.TAG);
+            new NavigationHandler(getActivity()).showDialog(ImportRemoteBackupWorkerProgressDialogFragment.newInstance(mBackupMetadata, mOverwriteCheckBox.isChecked()));
         }
         dismiss();
     }

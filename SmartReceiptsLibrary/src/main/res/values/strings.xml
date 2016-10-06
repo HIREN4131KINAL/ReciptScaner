@@ -341,7 +341,7 @@
     <string name="auto_backup_source_none">None</string>
     <string name="auto_backup_source_google_drive">Google Drive</string>
     <string name="existing_backups_title">Existing Backups:</string>
-    <string name="existing_remote_backup_current_device">%s (Your Current Device)</string>
+    <string name="existing_remote_backup_current_device">%s (Your Current Backup)</string>
     <string name="remote_backups_list_item_menu_restore">Restore</string>
     <string name="remote_backups_list_item_menu_delete">@string/delete</string>
 

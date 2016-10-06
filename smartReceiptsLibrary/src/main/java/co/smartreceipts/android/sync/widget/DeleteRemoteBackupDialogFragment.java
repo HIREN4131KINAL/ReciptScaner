@@ -12,12 +12,11 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 
 public class DeleteRemoteBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
-
-    public static final String TAG = DeleteRemoteBackupDialogFragment.class.getName();
 
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
@@ -59,8 +58,7 @@ public class DeleteRemoteBackupDialogFragment extends DialogFragment implements 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            final DeleteRemoteBackupProgressDialogFragment progressDialogFragment = DeleteRemoteBackupProgressDialogFragment.newInstance(mBackupMetadata);
-            progressDialogFragment.show(getFragmentManager(), DeleteRemoteBackupProgressDialogFragment.TAG);
+            new NavigationHandler(getActivity()).showDialog(DeleteRemoteBackupProgressDialogFragment.newInstance(mBackupMetadata));
         }
         dismiss();
     }

@@ -14,10 +14,9 @@ import android.widget.CheckBox;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.NavigationHandler;
 
 public class ImportLocalBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
-
-    public static final String TAG = ImportLocalBackupDialogFragment.class.getName();
 
     private static final String ARG_SMR_URI = "arg_smr_uri";
 
@@ -57,8 +56,7 @@ public class ImportLocalBackupDialogFragment extends DialogFragment implements D
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            final ImportLocalBackupWorkerProgressDialogFragment progressDialogFragment = ImportLocalBackupWorkerProgressDialogFragment.newInstance(mUri, mOverwriteCheckBox.isChecked());
-            progressDialogFragment.show(getFragmentManager(), ImportLocalBackupWorkerProgressDialogFragment.TAG);
+            new NavigationHandler(getActivity()).showDialog(ImportLocalBackupWorkerProgressDialogFragment.newInstance(mUri, mOverwriteCheckBox.isChecked()));
         }
         dismiss();
     }

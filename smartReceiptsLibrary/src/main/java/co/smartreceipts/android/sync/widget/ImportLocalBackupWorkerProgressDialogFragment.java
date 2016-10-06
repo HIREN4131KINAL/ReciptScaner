@@ -22,8 +22,6 @@ import rx.functions.Action1;
 
 public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragment {
 
-    public static final String TAG = ImportLocalBackupWorkerProgressDialogFragment.class.getName();
-
     private static final String ARG_SMR_URI = "arg_smr_uri";
     private static final String ARG_OVERWRITE = "arg_overwrite";
 

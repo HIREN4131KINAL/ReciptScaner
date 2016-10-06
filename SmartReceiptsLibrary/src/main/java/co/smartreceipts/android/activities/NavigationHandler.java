@@ -9,6 +9,7 @@ import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -130,6 +131,11 @@ public class NavigationHandler {
             // This exception is always thrown if saveInstanceState was already been called.
             return false;
         }
+    }
+
+    public void showDialog(@NonNull DialogFragment dialogFragment) {
+        final String tag = dialogFragment.getClass().getName();
+        dialogFragment.show(mFragmentManager, tag);
     }
 
     public boolean isDualPane() {

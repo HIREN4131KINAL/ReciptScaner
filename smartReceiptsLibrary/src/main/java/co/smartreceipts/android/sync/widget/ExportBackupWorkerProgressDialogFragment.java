@@ -20,8 +20,6 @@ import rx.functions.Action1;
 
 public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
 
-    public static final String TAG = ExportBackupWorkerProgressDialogFragment.class.getName();
-
     private ManualBackupAndRestoreTaskCache mManualBackupAndRestoreTaskCache;
     private Subscription mSubscription;
 

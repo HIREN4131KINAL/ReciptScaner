@@ -25,8 +25,6 @@ import rx.functions.Action1;
 
 public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
 
-    public static final String TAG = DeleteRemoteBackupProgressDialogFragment.class.getName();
-
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;

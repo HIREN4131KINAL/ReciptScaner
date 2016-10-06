@@ -8,10 +8,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.NavigationHandler;
 
 public class ExportBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
-
-    public static final String TAG = ExportBackupDialogFragment.class.getName();
 
     @NonNull
     @Override
@@ -28,8 +27,7 @@ public class ExportBackupDialogFragment extends DialogFragment implements Dialog
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            final ExportBackupWorkerProgressDialogFragment progressDialogFragment = new ExportBackupWorkerProgressDialogFragment();
-            progressDialogFragment.show(getFragmentManager(), ExportBackupWorkerProgressDialogFragment.TAG);
+            new NavigationHandler(getActivity()).showDialog(new ExportBackupWorkerProgressDialogFragment());
         }
         dismiss();
     }

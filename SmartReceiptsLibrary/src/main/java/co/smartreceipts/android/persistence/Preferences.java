@@ -454,7 +454,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public void setUseNativeCamera(boolean useNativeCamera) {
         this.mUseNativeCamera = useNativeCamera;
-        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
+        getSharedPreferences().edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
     }
 
     public boolean onlyIncludeExpensableReceiptsInReports() {

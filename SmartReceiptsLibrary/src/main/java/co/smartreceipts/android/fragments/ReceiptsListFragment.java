@@ -1,6 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
@@ -56,13 +54,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     private static final int PERMISSION_STORAGE_REQUEST = 22;
 
     // Outstate
+    private static final String OUT_HIGHLIGHTED_RECEIPT = "out_highlighted_receipt";
     private static final String OUT_IMAGE_URI = "out_image_uri";
 
     private ReceiptTableController mReceiptTableController;
     private ReceiptCardAdapter mAdapter;
     private Receipt mHighlightedReceipt;
     private Uri mImageUri;
-    private ProgressBar mProgressDialog;
+    private ProgressBar mLoadingProgress;
     private TextView mNoDataAlert;
     private Attachable mAttachable;
 
@@ -73,10 +72,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof Attachable) {
-            mAttachable = (Attachable) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Attachable) {
+            mAttachable = (Attachable) context;
         } else {
             throw new ClassCastException("The ReceiptFragment's Activity must extend the Attachable interfaces");
         }
@@ -91,6 +90,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
+            mHighlightedReceipt = savedInstanceState.getParcelable(OUT_HIGHLIGHTED_RECEIPT);
         }
     }
 
@@ -98,7 +98,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         final View rootView = inflater.inflate(getLayoutId(), container, false);
-        mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
+        mLoadingProgress = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -185,6 +185,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(OUT_IMAGE_URI, mImageUri);
+        outState.putParcelable(OUT_HIGHLIGHTED_RECEIPT, mHighlightedReceipt);
     }
 
     @Override
@@ -225,11 +226,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                         mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
                         break;
                 }
+                mHighlightedReceipt = null;
             }
 
             @Override
             public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+                mHighlightedReceipt = null;
             }
         });
     }
@@ -455,7 +458,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onGetSuccess(@NonNull List<Receipt> receipts, @NonNull Trip trip) {
         if (isAdded()) {
-            mProgressDialog.setVisibility(View.GONE);
+            mLoadingProgress.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
             if (receipts.isEmpty()) {
                 mNoDataAlert.setVisibility(View.VISIBLE);

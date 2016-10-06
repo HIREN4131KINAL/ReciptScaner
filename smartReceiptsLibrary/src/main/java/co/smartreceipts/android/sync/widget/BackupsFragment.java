@@ -24,8 +24,13 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
@@ -37,10 +42,9 @@ import rx.subscriptions.CompositeSubscription;
 public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
-    private static final String SMR_EXTENSION = "smr";
 
     private BackupProvidersManager mBackupProvidersManager;
-    private RemoteBackupsDataCache mRemoteBackupsDataCache;
+    private RemoteBackupsDataCache mRemoteBackupsDataCache;;
     private CompositeSubscription mCompositeSubscription;
     private NavigationHandler mNavigationHandler;
 
@@ -55,6 +59,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private CheckBox mWifiOnlyCheckbox;
     private View mExistingBackupsSection;
     private RecyclerView mRecyclerView;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,8 +110,19 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mBackupConfigButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final SelectAutomaticBackupProviderDialogFragment selectAutomaticBackupProviderDialogFragment = new SelectAutomaticBackupProviderDialogFragment();
-                selectAutomaticBackupProviderDialogFragment.show(getFragmentManager(), SelectAutomaticBackupProviderDialogFragment.TAG);
+                final SubscriptionManager subscriptionManager;
+                if (getActivity() instanceof SmartReceiptsActivity) {
+                    final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) getActivity();
+                    subscriptionManager = smartReceiptsActivity.getSubscriptionManager();
+                } else {
+                    subscriptionManager = null;
+                }
+
+                if (subscriptionManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+                } else {
+                    mNavigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
+                }
             }
         });
         mWifiOnlyCheckbox.setChecked(getPersistenceManager().getPreferences().getAutoBackupOnWifiOnly());

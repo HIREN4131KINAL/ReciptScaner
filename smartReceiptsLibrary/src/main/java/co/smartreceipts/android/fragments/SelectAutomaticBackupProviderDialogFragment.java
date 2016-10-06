@@ -18,8 +18,6 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class SelectAutomaticBackupProviderDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
-    public static final String TAG = SelectAutomaticBackupProviderDialogFragment.class.getName();
-
     private BackupProvidersManager mBackupProvidersManager;
 
     @Override

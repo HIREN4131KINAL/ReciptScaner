@@ -62,6 +62,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     private Receipt mHighlightedReceipt;
     private Uri mImageUri;
     private ProgressBar mLoadingProgress;
+    private ProgressBar mUpdatingDataProgress;
     private TextView mNoDataAlert;
     private Attachable mAttachable;
 
@@ -99,6 +100,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         Log.d(TAG, "onCreateView");
         final View rootView = inflater.inflate(getLayoutId(), container, false);
         mLoadingProgress = (ProgressBar) rootView.findViewById(R.id.progress);
+        mUpdatingDataProgress = (ProgressBar) rootView.findViewById(R.id.progress_adding_new);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -205,6 +207,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         final Uri cachedImageSaveLocation = mImageUri;
         mImageUri = null;
 
+        mUpdatingDataProgress.setVisibility(View.VISIBLE);
         final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager());
         importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
             @Override
@@ -227,12 +230,14 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                         break;
                 }
                 mHighlightedReceipt = null;
+                mUpdatingDataProgress.setVisibility(View.GONE);
             }
 
             @Override
             public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
                 mHighlightedReceipt = null;
+                mUpdatingDataProgress.setVisibility(View.GONE);
             }
         });
     }

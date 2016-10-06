@@ -7,6 +7,9 @@
  		android:visibility="invisible" />
 	<ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
         android:id="@+id/progress" />
+    <ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
+        android:id="@+id/progress_adding_new"
+        android:visibility="gone" />
 	<TextView style="@style/Widget.SmartReceipts.TextView.NoData"
 	    android:id="@+id/no_data"
         android:text="@string/receipt_no_data"

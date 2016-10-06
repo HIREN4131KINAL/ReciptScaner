@@ -25,7 +25,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragment {
-    
+
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
     private static final String ARG_OVERWRITE = "arg_overwrite";
 

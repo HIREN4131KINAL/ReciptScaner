@@ -120,8 +120,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                     Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
                 }
             } else if (attachment.isSMR() && attachment.isActionView()) {
-                final ImportLocalBackupDialogFragment importLocalBackupDialogFragment = ImportLocalBackupDialogFragment.newInstance(attachment.getUri());
-                importLocalBackupDialogFragment.show(getSupportFragmentManager(), ImportLocalBackupDialogFragment.TAG);
+                mNavigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(attachment.getUri()));
             }
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();

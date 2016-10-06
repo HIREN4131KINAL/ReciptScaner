@@ -85,8 +85,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mExportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final ExportBackupDialogFragment exportBackupDialogFragment = new ExportBackupDialogFragment();
-                exportBackupDialogFragment.show(getFragmentManager(), ExportBackupDialogFragment.TAG);
+                mNavigationHandler.showDialog(new ExportBackupDialogFragment());
             }
         });
         mImportButton.setOnClickListener(new View.OnClickListener() {
@@ -123,7 +122,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences()));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences()));
     }
 
     @Override
@@ -153,8 +152,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == IMPORT_SMR_REQUEST_CODE) {
                 if (data != null) {
-                    final ImportLocalBackupDialogFragment importLocalBackupDialogFragment = ImportLocalBackupDialogFragment.newInstance(data.getData());
-                    importLocalBackupDialogFragment.show(getFragmentManager(), ImportLocalBackupDialogFragment.TAG);
+                    mNavigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(data.getData()));
                 }
             }
         }
@@ -206,7 +204,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                             } else {
                                 mExistingBackupsSection.setVisibility(View.VISIBLE);
                             }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
                             mRecyclerView.setAdapter(remoteBackupsListAdapter);
                         }
                     }));

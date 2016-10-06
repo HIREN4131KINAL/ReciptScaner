@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -33,21 +35,21 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
     private static final int TYPE_ITEM = 1;
 
     private final View mHeaderView;
-    private final FragmentManager mFragmentManager;
+    private final FragmentActivity mFragmentActivity;
     private final BackupProvidersManager mBackupProvidersManager;
     private final Preferences mPreferences;
     private final List<RemoteBackupMetadata> mBackupMetadataList;
 
-    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentManager fragmentManager,
+    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
                                     @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences) {
-        this(headerView, fragmentManager, backupProvidersManager, preferences, Collections.<RemoteBackupMetadata>emptyList());
+        this(headerView, fragmentActivity, backupProvidersManager, preferences, Collections.<RemoteBackupMetadata>emptyList());
     }
 
-    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentManager fragmentManager,
+    public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
                                     @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
                                     @NonNull List<RemoteBackupMetadata> backupMetadataList) {
         mHeaderView = Preconditions.checkNotNull(headerView);
-        mFragmentManager = Preconditions.checkNotNull(fragmentManager);
+        mFragmentActivity = Preconditions.checkNotNull(fragmentActivity);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         mPreferences = Preconditions.checkNotNull(preferences);
         mBackupMetadataList = new ArrayList<>(backupMetadataList);
@@ -85,12 +87,10 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             if (item.getItemId() == R.id.remote_backups_list_item_menu_restore) {
-                                final ImportRemoteBackupDialogFragment importRemoteBackupFragment = ImportRemoteBackupDialogFragment.newInstance(metadata);
-                                importRemoteBackupFragment.show(mFragmentManager, ImportRemoteBackupDialogFragment.TAG);
+                                new NavigationHandler(mFragmentActivity).showDialog(ImportRemoteBackupDialogFragment.newInstance(metadata));
                                 return true;
                             } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
-                                final DeleteRemoteBackupDialogFragment deleteDialogFragment = DeleteRemoteBackupDialogFragment.newInstance(metadata);
-                                deleteDialogFragment.show(mFragmentManager, DeleteRemoteBackupDialogFragment.TAG);
+                                new NavigationHandler(mFragmentActivity).showDialog(DeleteRemoteBackupDialogFragment.newInstance(metadata));
                                 return true;
                             } else {
                                 throw new IllegalArgumentException("Unsupported menu type was selected");

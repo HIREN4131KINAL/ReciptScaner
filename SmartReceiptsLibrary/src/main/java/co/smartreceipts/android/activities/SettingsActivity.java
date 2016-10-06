@@ -322,8 +322,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             // We always use the native camera for M+
             ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
             final PreferenceCategory cameraCategory = (PreferenceCategory) universal.findPreference(R.string.pref_camera_header_key);
-            final Preference nativeCameraPreference = universal.findPreference(R.string.pref_camera_use_native_camera_key);
-            cameraCategory.removePreference(nativeCameraPreference);
+            if (cameraCategory != null) {
+                final Preference nativeCameraPreference = universal.findPreference(R.string.pref_camera_use_native_camera_key);
+                cameraCategory.removePreference(nativeCameraPreference);
+            }
         }
     }
 

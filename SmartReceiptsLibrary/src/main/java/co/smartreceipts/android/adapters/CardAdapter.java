@@ -193,6 +193,7 @@ public class CardAdapter<T> extends BaseAdapter {
 	}
 
     protected void setSyncStateImage(ImageView image, T data) {
+        image.setClickable(false);
         if (mBackupProvidersManager.getSyncProvider() == SyncProvider.GoogleDrive) {
             if (data instanceof Syncable) {
                 final Syncable syncableData = (Syncable) data;

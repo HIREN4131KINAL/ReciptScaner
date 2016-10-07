@@ -180,7 +180,7 @@ class DriveDataStreams {
                                 } else {
                                     Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
                                     final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
-                                    Drive.DriveApi.getRootFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
+                                    Drive.DriveApi.getAppFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
                                         @Override
                                         public void onSuccess(@NonNull DriveFolder.DriveFolderResult driveFolderResult) {
                                             subscriber.onNext(driveFolderResult.getDriveFolder());
@@ -525,6 +525,6 @@ class DriveDataStreams {
     }
 
     private boolean isValidSmartReceiptsFolder(@NonNull Metadata metadata) {
-        return metadata.isFolder() && !metadata.isTrashed();
+        return metadata.isInAppFolder() && metadata.isFolder() && !metadata.isTrashed();
     }
 }

@@ -72,6 +72,9 @@ public class ManualRestoreTask {
                 mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Uri: " + uri);
                 try {
                     SDCardFileManager external = mPersistenceManager.getExternalStorageManager();
+                    if (external.getFile(ManualBackupTask.DATABASE_EXPORT_NAME).delete()); {
+                        mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Deleting existing backup database");
+                    }
                     String scheme = uri.getScheme();
                     if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
                         mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Processing URI with accepted scheme.");

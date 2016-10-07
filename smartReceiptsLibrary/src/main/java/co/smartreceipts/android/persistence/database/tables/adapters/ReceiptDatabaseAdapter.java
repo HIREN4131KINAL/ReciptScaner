@@ -16,6 +16,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -110,11 +111,15 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
             file = mStorageManager.getFile(trip.getDirectory(), path);
         }
         final SyncState syncState = mSyncStateAdapter.read(cursor);
+        Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).toBlocking().first();
+        if (categoryImpl == null) {
+            categoryImpl = new ImmutableCategoryImpl(category, category);
+        }
 
         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
         builder.setTrip(trip)
                 .setName(name)
-                .setCategory(mCategoriesTable.findByPrimaryKey(category).toBlocking().first())
+                .setCategory(categoryImpl)
                 .setFile(file)
                 .setDate(date)
                 .setTimeZone(timezone)

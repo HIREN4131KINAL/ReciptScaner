@@ -13,7 +13,9 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -27,8 +29,9 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
 
     private ManualBackupAndRestoreTaskCache mManualBackupAndRestoreTaskCache;
     private Subscription mSubscription;
-
+    private DatabaseHelper mDatabaseHelper;
     private TableControllerManager mTableControllerManager;
+
     private Uri mUri;
     private boolean mOverwrite;
 
@@ -47,6 +50,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
         setCancelable(false);
         mUri = getArguments().getParcelable(ARG_SMR_URI);
         mOverwrite = getArguments().getBoolean(ARG_OVERWRITE);
+        mDatabaseHelper = ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getDatabase();
         mTableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
         Preconditions.checkNotNull(mUri, "ImportBackupDialogFragment requires a valid SMR Uri");
     }
@@ -76,6 +80,9 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
                     public void call(@Nullable Boolean success) {
                         if (success != null && success) {
                             Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
+                            for (final Table table : mDatabaseHelper.getTables()) {
+                                table.clearCache();
+                            }
                             getActivity().finish(); // TODO: Fix this hack (for the settings import)
                             mTableControllerManager.getTripTableController().get();
                         } else {

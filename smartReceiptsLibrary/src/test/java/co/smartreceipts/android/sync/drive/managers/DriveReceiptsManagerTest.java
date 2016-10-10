@@ -124,7 +124,7 @@ public class DriveReceiptsManagerTest {
                 return mReceiptBuilderFactory2;
             }
         }).when(mReceiptBuilderFactory2).setSyncState(any(SyncState.class));
-
+        
         when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
 
         mDriveReceiptsManager = new DriveReceiptsManager(mReceiptTableController, mReceiptsTable, mDriveTaskManager,

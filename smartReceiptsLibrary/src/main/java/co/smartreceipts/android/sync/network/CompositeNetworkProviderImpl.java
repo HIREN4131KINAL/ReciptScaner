@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 
  * @author Will Baumann
  */
-class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChangeListener {
+public class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChangeListener {
 
 	protected final List<NetworkProvider> mNetworkProviders;
     private final NetworkStateChangeListenerTracker mNetworkStateChangeListenerTracker = new NetworkStateChangeListenerTracker();
@@ -26,7 +26,7 @@ class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChang
 	}
 
     @Override
-    public final synchronized void initialize() {
+    public synchronized void initialize() {
         mIsConnected.set(isNetworkAvailable());
         for (final NetworkProvider networkProvider : mNetworkProviders) {
             networkProvider.initialize();
@@ -35,7 +35,7 @@ class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChang
     }
 
     @Override
-    public final synchronized void deinitialize() {
+    public synchronized void deinitialize() {
         for (final NetworkProvider networkProvider : mNetworkProviders) {
             networkProvider.deinitialize();
             networkProvider.unregisterListener(this);
@@ -45,7 +45,7 @@ class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChang
     }
 
     @Override
-	public final synchronized boolean isNetworkAvailable() {
+	public synchronized boolean isNetworkAvailable() {
         boolean isNetworkAvailable = false;
         for (final NetworkProvider networkProvider : mNetworkProviders) {
             isNetworkAvailable = isNetworkAvailable || networkProvider.isNetworkAvailable();
@@ -54,22 +54,22 @@ class CompositeNetworkProviderImpl implements NetworkProvider, NetworkStateChang
 	}
 
     @Override
-    public final synchronized void registerListener(@NonNull NetworkStateChangeListener listener) {
+    public synchronized void registerListener(@NonNull NetworkStateChangeListener listener) {
         mNetworkStateChangeListenerTracker.registerListener(listener);
     }
 
     @Override
-    public final synchronized void unregisterListener(@NonNull NetworkStateChangeListener listener) {
+    public synchronized void unregisterListener(@NonNull NetworkStateChangeListener listener) {
         mNetworkStateChangeListenerTracker.unregisterListener(listener);
     }
 
     @Override
-    public final synchronized void onNetworkConnectivityLost() {
+    public synchronized void onNetworkConnectivityLost() {
         checkForConnectionChange();
     }
 
     @Override
-    public final synchronized void onNetworkConnectivityGained() {
+    public synchronized void onNetworkConnectivityGained() {
         checkForConnectionChange();
     }
 

@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.tables.adapters;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,14 +17,12 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
-import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
@@ -63,7 +60,7 @@ public class ReceiptDatabaseAdapterTest {
     private static final long DATE = 1409703721000L;
     private static final String TIMEZONE = TimeZone.getDefault().getID();
     private static final String COMMENT = "Comment";
-    private static final boolean EXPENSABLE = true;
+    private static final boolean REIMBURSABLE = true;
     private static final int PAYMENT_METHOD_ID = 2;
     private static final int INDEX = 3;
     private static final PaymentMethod PAYMENT_METHOD = new ImmutablePaymentMethodImpl(PAYMENT_METHOD_ID, "method");
@@ -162,7 +159,7 @@ public class ReceiptDatabaseAdapterTest {
         when(mCursor.getLong(dateIndex)).thenReturn(DATE);
         when(mCursor.getString(timezoneIndex)).thenReturn(TIMEZONE);
         when(mCursor.getString(commentIndex)).thenReturn(COMMENT);
-        when(mCursor.getInt(expenseableIndex)).thenReturn(EXPENSABLE ? 1 : 0);
+        when(mCursor.getInt(expenseableIndex)).thenReturn(REIMBURSABLE ? 1 : 0);
         when(mCursor.getString(currencyCodeIndex)).thenReturn(CURRENCY_CODE);
         when(mCursor.getInt(paymentMethodKeyIndex)).thenReturn(PAYMENT_METHOD_ID);
         when(mCursor.getInt(fullPageImageIndex)).thenReturn(FULL_PAGE ? 1 : 0);
@@ -181,7 +178,7 @@ public class ReceiptDatabaseAdapterTest {
         when(mReceipt.getDate()).thenReturn(new Date(DATE));
         when(mReceipt.getTimeZone()).thenReturn(TimeZone.getTimeZone(TIMEZONE));
         when(mReceipt.getComment()).thenReturn(COMMENT);
-        when(mReceipt.isExpensable()).thenReturn(EXPENSABLE);
+        when(mReceipt.isReimbursable()).thenReturn(REIMBURSABLE);
         when(mReceipt.getPaymentMethod()).thenReturn(PAYMENT_METHOD);
         when(mReceipt.isFullPage()).thenReturn(FULL_PAGE);
         when(mReceipt.getExtraEditText1()).thenReturn(EXTRA1);
@@ -232,7 +229,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setDate(DATE)
                 .setTimeZone(TIMEZONE)
                 .setComment(COMMENT)
-                .setIsExpenseable(EXPENSABLE)
+                .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(!FULL_PAGE)
                 .setIndex(INDEX)
@@ -259,7 +256,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setDate(DATE)
                 .setTimeZone(TIMEZONE)
                 .setComment(COMMENT)
-                .setIsExpenseable(EXPENSABLE)
+                .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(!FULL_PAGE)
                 .setIndex(INDEX)
@@ -292,7 +289,7 @@ public class ReceiptDatabaseAdapterTest {
         assertEquals(DATE, (long) contentValues.getAsLong("rcpt_date"));
         assertEquals(TIMEZONE, contentValues.getAsString("timezone"));
         assertEquals(COMMENT, contentValues.getAsString("comment"));
-        assertEquals(EXPENSABLE, contentValues.getAsBoolean("expenseable"));
+        assertEquals(REIMBURSABLE, contentValues.getAsBoolean("expenseable"));
         assertEquals(CURRENCY_CODE, contentValues.getAsString("isocode"));
         assertEquals(PAYMENT_METHOD_ID, (int) contentValues.getAsInteger("paymentMethodKey"));
         assertEquals(!FULL_PAGE, contentValues.getAsBoolean("fullpageimage"));
@@ -323,7 +320,7 @@ public class ReceiptDatabaseAdapterTest {
         assertEquals(DATE, (long) contentValues.getAsLong("rcpt_date"));
         assertEquals(TIMEZONE, contentValues.getAsString("timezone"));
         assertEquals(COMMENT, contentValues.getAsString("comment"));
-        assertEquals(EXPENSABLE, contentValues.getAsBoolean("expenseable"));
+        assertEquals(REIMBURSABLE, contentValues.getAsBoolean("expenseable"));
         assertEquals(CURRENCY_CODE, contentValues.getAsString("isocode"));
         assertEquals(PAYMENT_METHOD_ID, (int) contentValues.getAsInteger("paymentMethodKey"));
         assertEquals(!FULL_PAGE, contentValues.getAsBoolean("fullpageimage"));
@@ -347,7 +344,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setDate(DATE)
                 .setTimeZone(TIMEZONE)
                 .setComment(COMMENT)
-                .setIsExpenseable(EXPENSABLE)
+                .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(FULL_PAGE)
                 .setIndex(INDEX)

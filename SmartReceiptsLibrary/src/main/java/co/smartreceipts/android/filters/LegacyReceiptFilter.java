@@ -15,8 +15,8 @@ public final class LegacyReceiptFilter extends AndFilter<Receipt> {
 
     public LegacyReceiptFilter(@NonNull Preferences preferences) {
         and(new LegacyReceiptMinimumPriceFilter(preferences.getMinimumReceiptPriceToIncludeInReports()));
-        if (preferences.onlyIncludeExpensableReceiptsInReports()) {
-            and(new ReceiptIsExpensableFilter());
+        if (preferences.onlyIncludeReimbursableReceiptsInReports()) {
+            and(new ReceiptIsReimbursableFilter());
         }
     }
 

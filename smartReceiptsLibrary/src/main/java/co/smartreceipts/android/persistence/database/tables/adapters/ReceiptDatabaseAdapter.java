@@ -76,7 +76,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final int dateIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_DATE);
         final int timeZoneIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_TIMEZONE);
         final int commentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_COMMENT);
-        final int expenseableIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
+        final int reimbursableIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_REIMBURSABLE);
         final int currencyIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
         final int fullpageIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
         final int paymentMethodIdIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PAYMENT_METHOD_ID);
@@ -99,7 +99,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final long date = cursor.getLong(dateIndex);
         final String timezone = (timeZoneIndex > 0) ? cursor.getString(timeZoneIndex) : null;
         final String comment = cursor.getString(commentIndex);
-        final boolean expensable = cursor.getInt(expenseableIndex) > 0;
+        final boolean reimbursable = cursor.getInt(reimbursableIndex) > 0;
         final String currency = cursor.getString(currencyIndex);
         final boolean fullpage = !(cursor.getInt(fullpageIndex) > 0);
         final int paymentMethodId = cursor.getInt(paymentMethodIdIndex); // TODO: How to use JOINs w/o blocking
@@ -124,7 +124,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setDate(date)
                 .setTimeZone(timezone)
                 .setComment(comment)
-                .setIsExpenseable(expensable)
+                .setIsReimbursable(reimbursable)
                 .setCurrency(currency)
                 .setIsFullPage(fullpage)
                 .setIndex(cursor.getPosition() + 1)
@@ -178,7 +178,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         values.put(ReceiptsTable.COLUMN_TIMEZONE, receipt.getTimeZone().getID());
         values.put(ReceiptsTable.COLUMN_COMMENT, receipt.getComment());
         values.put(ReceiptsTable.COLUMN_ISO4217, receipt.getPrice().getCurrencyCode());
-        values.put(ReceiptsTable.COLUMN_EXPENSEABLE, receipt.isExpensable());
+        values.put(ReceiptsTable.COLUMN_REIMBURSABLE, receipt.isReimbursable());
         values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, !receipt.isFullPage());
 
         // Add file

@@ -26,15 +26,12 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
@@ -91,7 +88,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private DateEditText dateBox;
     private AutoCompleteTextView commentBox;
     private Spinner categoriesSpinner;
-    private CheckBox expensable;
+    private CheckBox reimbursable;
     private CheckBox fullpage;
     private Spinner paymentMethodsSpinner;
     private EditText extra_edittext_box_1;
@@ -184,7 +181,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.dateBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
         this.commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
         this.categoriesSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
-        this.expensable = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
+        this.reimbursable = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
         this.fullpage = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
         this.paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.dialog_receiptmenu_payment_methods_spinner);
         mPaymentMethodsContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.payment_methods_container);
@@ -297,7 +294,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
 
                 final Preferences preferences = getPersistenceManager().getPreferences();
-                expensable.setChecked(preferences.doReceiptsDefaultAsExpensable());
+                reimbursable.setChecked(preferences.doReceiptsDefaultAsReimbursable());
                 if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
                     if (mFocusedView == null) {
                         mFocusedView = priceBox;
@@ -340,7 +337,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     mExchangeRateContainer.setVisibility(View.VISIBLE);
                 }
 
-                expensable.setChecked(mReceipt.isExpensable());
+                reimbursable.setChecked(mReceipt.isReimbursable());
                 fullpage.setChecked(mReceipt.isFullPage());
 
                 if (extra_edittext_box_1 != null && mReceipt.hasExtraEditText1()) {
@@ -701,7 +698,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         builderFactory.setCurrency(currency);
         builderFactory.setComment(commentBox.getText().toString());
         builderFactory.setPaymentMethod((PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null));
-        builderFactory.setIsExpenseable(expensable.isChecked());
+        builderFactory.setIsReimbursable(reimbursable.isChecked());
         builderFactory.setIsFullPage(fullpage.isChecked());
         builderFactory.setExtraEditText1((extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString());
         builderFactory.setExtraEditText2((extra_edittext_box_2 == null) ? null : extra_edittext_box_2.getText().toString());

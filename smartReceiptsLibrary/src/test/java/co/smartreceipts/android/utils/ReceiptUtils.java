@@ -1,11 +1,9 @@
 package co.smartreceipts.android.utils;
 
-import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
@@ -39,7 +37,7 @@ public class ReceiptUtils {
         public static final String IMAGE_FILE_NAME = "img.jpg";
         public static final File PDF_FILE = new File("/Android/data/wb.receipts/files/Report/pdf.pdf");
         public static final String PDF_FILE_NAME = "pdf.pdf";
-        public static final boolean IS_EXPENSABLE = true;
+        public static final boolean IS_REIMBURSABLE = true;
         public static final boolean IS_FULLPAGE = false;
         public static final boolean IS_SELECTED = true;
         public static final String NAME = "Name";
@@ -65,7 +63,7 @@ public class ReceiptUtils {
         factory.setTimeZone(Constants.TIMEZONE);
         factory.setCategory(Constants.CATEGORY);
         factory.setComment(Constants.COMMENT);
-        factory.setIsExpenseable(Constants.IS_EXPENSABLE);
+        factory.setIsReimbursable(Constants.IS_REIMBURSABLE);
         factory.setIsFullPage(Constants.IS_FULLPAGE);
         factory.setImage(img);
         factory.setIndex(Constants.INDEX);
@@ -118,7 +116,7 @@ public class ReceiptUtils {
         assertEquals(receipt1.getExtraEditText2(), receipt2.getExtraEditText2());
         assertEquals(receipt1.getExtraEditText3(), receipt2.getExtraEditText3());
         assertEquals(receipt1.getFile(), receipt2.getFile());
-        assertEquals(receipt1.isExpensable(), receipt2.isExpensable());
+        assertEquals(receipt1.isReimbursable(), receipt2.isReimbursable());
         assertEquals(receipt1.isFullPage(), receipt2.isFullPage());
         assertEquals(receipt1.isSelected(), receipt2.isSelected());
         assertEquals(receipt1.getName(), receipt2.getName());

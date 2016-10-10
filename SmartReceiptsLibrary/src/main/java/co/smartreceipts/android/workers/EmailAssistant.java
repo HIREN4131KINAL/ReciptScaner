@@ -19,8 +19,6 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.itextpdf.text.BadElementException;
@@ -53,7 +51,6 @@ import java.util.List;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -70,7 +67,6 @@ import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
-import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -398,7 +394,7 @@ public class EmailAssistant {
          * @return true if if should be filtered out, false otherwise
          */
         private boolean filterOutReceipt(Preferences preferences, Receipt receipt) {
-            if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+            if (preferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
                 return true;
             } else if (receipt.getPrice().getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports()) {
                 return true;
@@ -618,7 +614,7 @@ public class EmailAssistant {
         }
 
         private void addFullPageImage(Document document, Receipt receipt, PdfWriter writer) {
-            if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+            if (mPreferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
                 return;
             }
             if (receipt.getPrice().getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {

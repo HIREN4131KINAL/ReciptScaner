@@ -44,15 +44,15 @@ public class ReceiptFilterTest {
     }
 
     @Test
-    public void receiptIsExpensableFilterTest() throws JSONException {
-        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsExpenseable(true).build();
-        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsExpenseable(false).build();
-        final ReceiptIsExpensableFilter filter = new ReceiptIsExpensableFilter();
+    public void receiptIsReimbursableFilterTest() throws JSONException {
+        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsReimbursable(true).build();
+        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsReimbursable(false).build();
+        final ReceiptIsReimbursableFilter filter = new ReceiptIsReimbursableFilter();
 
         assertTrue(filter.accept(receipt1));
         assertFalse(filter.accept(receipt2));
         assertEquals(filter, FilterFactory.getReceiptFilter(filter.getJsonRepresentation()));
-        assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_expensable);
+        assertEquals(filter.getNameResource(), co.smartreceipts.android.R.string.filter_name_receipt_reimbursable);
         assertEquals(filter.getType(), FilterType.Boolean);
     }
 
@@ -156,7 +156,7 @@ public class ReceiptFilterTest {
     public void receiptAndFilterTest() throws JSONException {
         final Receipt receipt = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
 
-        final ReceiptIsExpensableFilter trueFilter1 = new ReceiptIsExpensableFilter();
+        final ReceiptIsReimbursableFilter trueFilter1 = new ReceiptIsReimbursableFilter();
         final ReceiptCategoryFilter trueFilter2 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter falseFilter = new ReceiptCategoryFilter("BAD Category");
 

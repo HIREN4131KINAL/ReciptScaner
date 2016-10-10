@@ -56,7 +56,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         PRICE_PLUS_TAX_EXCHANGED(R.string.column_item_converted_price_plus_tax_exchange_rate),
         EXCHANGE_RATE(R.string.column_item_exchange_rate),
         PICTURED(R.string.column_item_pictured),
-        EXPENSABLE(R.string.column_item_expensable),
+        REIMBURSABLE(R.string.column_item_reimbursable),
         INDEX(R.string.column_item_index),
         ID(R.string.column_item_id),
         PAYMENT_METHOD(R.string.column_item_payment_method),
@@ -149,7 +149,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         columns.add(getColumn(ActualDefinition.PRICE));
         columns.add(getColumn(ActualDefinition.DATE));
         columns.add(getColumn(ActualDefinition.CATEGORY_NAME));
-        columns.add(getColumn(ActualDefinition.EXPENSABLE));
+        columns.add(getColumn(ActualDefinition.REIMBURSABLE));
         columns.add(getColumn(ActualDefinition.PICTURED));
         return columns;
     }
@@ -209,8 +209,8 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
                 return new ReceiptExchangeRateColumn(id, definitionName, syncState);
             case PICTURED:
                 return new ReceiptIsPicturedColumn(id, definitionName, syncState, mContext);
-            case EXPENSABLE:
-                return new ReceiptIsExpensableColumn(id, definitionName, syncState, mContext);
+            case REIMBURSABLE:
+                return new ReceiptIsReimbursableColumn(id, definitionName, syncState, mContext);
             case INDEX:
                 return new ReceiptIndexColumn(id, definitionName, syncState);
             case ID:

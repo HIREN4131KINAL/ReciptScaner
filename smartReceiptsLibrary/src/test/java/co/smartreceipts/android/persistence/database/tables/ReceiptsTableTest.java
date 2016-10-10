@@ -162,7 +162,7 @@ public class ReceiptsTableTest {
                 .setDate(new Date(System.currentTimeMillis()))
                 .setTimeZone(TimeZone.getDefault())
                 .setComment("")
-                .setIsExpenseable(true)
+                .setIsReimbursable(true)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(false)
                 .setPaymentMethod(mPaymentMethod);

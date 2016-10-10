@@ -59,10 +59,10 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
 
         // Pre-tax => receipt total does not include price
         final boolean usePrexTaxPrice = getPreferences().getUsesPreTaxPrice();
-        final boolean onlyUseExpensable = getPreferences().onlyIncludeExpensableReceiptsInReports();
+        final boolean onlyUseReimbursable = getPreferences().onlyIncludeReimbursableReceiptsInReports();
         final ArrayList<Price> netTotal = new ArrayList<Price>(receipts.size());
         final ArrayList<Price> receiptTotal = new ArrayList<Price>(receipts.size());
-        final ArrayList<Price> expensableTotal = new ArrayList<Price>(receipts.size());
+        final ArrayList<Price> reimbursableTotal = new ArrayList<Price>(receipts.size());
         final ArrayList<Price> noTaxesTotal = new ArrayList<Price>(receipts.size() * 2);
         final ArrayList<Price> taxesTotal = new ArrayList<Price>(receipts.size() * 2);
         final ArrayList<Price> distanceTotal = new ArrayList<Price>(distances.size());
@@ -71,7 +71,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
         final int len = receipts.size();
         for (int i = 0; i < len; i++) {
             final Receipt receipt = receipts.get(i);
-            if (!onlyUseExpensable || receipt.isExpensable()) {
+            if (!onlyUseReimbursable || receipt.isReimbursable()) {
                 netTotal.add(receipt.getPrice());
                 receiptTotal.add(receipt.getPrice());
                 // Treat taxes as negative prices for the sake of this conversion
@@ -81,8 +81,8 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
                 if (usePrexTaxPrice) {
                     netTotal.add(receipt.getTax());
                 }
-                if (receipt.isExpensable()) {
-                    expensableTotal.add(receipt.getPrice());
+                if (receipt.isReimbursable()) {
+                    reimbursableTotal.add(receipt.getPrice());
                 }
             }
         }
@@ -97,7 +97,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
         final WBCurrency tripCurrency = trip.getTripCurrency();
         final Price netPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
         final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
-        final Price expensablePrice = new PriceBuilderFactory().setPrices(expensableTotal, tripCurrency).build();
+        final Price reimbursablePrice = new PriceBuilderFactory().setPrices(reimbursableTotal, tripCurrency).build();
         final Price noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal, tripCurrency).build();
         final Price taxPrice = new PriceBuilderFactory().setPrices(taxesTotal, tripCurrency).build();
         final Price distancePrice = new PriceBuilderFactory().setPrices(distanceTotal, tripCurrency).build();
@@ -116,8 +116,8 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
                     document.add(new Paragraph(getContext().getString(R.string.report_header_receipts_total_no_tax, noTaxPrice.getCurrencyFormattedPrice()) + "\n"));
                 }
             }
-            if (!getPreferences().onlyIncludeExpensableReceiptsInReports() && !expensablePrice.equals(receiptsPrice)) {
-                document.add(new Paragraph(getContext().getString(R.string.report_header_receipts_total_expensable, expensablePrice.getCurrencyFormattedPrice()) + "\n"));
+            if (!getPreferences().onlyIncludeReimbursableReceiptsInReports() && !reimbursablePrice.equals(receiptsPrice)) {
+                document.add(new Paragraph(getContext().getString(R.string.report_header_receipts_total_reimbursable, reimbursablePrice.getCurrencyFormattedPrice()) + "\n"));
             }
             if (distances.size() > 0) {
                 document.add(new Paragraph(getContext().getString(R.string.report_header_distance_total, distancePrice.getCurrencyFormattedPrice()) + "\n"));

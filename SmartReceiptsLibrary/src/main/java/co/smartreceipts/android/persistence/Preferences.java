@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -42,7 +41,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Receipt Preferences
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mReceiptsDefaultAsExpensable, mDefaultToFirstReportDate,
+    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mReceiptsDefaultAsReimbursable, mDefaultToFirstReportDate,
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
@@ -135,12 +134,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mEnableAutoCompleteSuggestions = prefs.getBoolean(mContext.getString(R.string.pref_receipt_enable_autocomplete_key), true);
     }
 
-    private void initOnlyIncludeExpensable(SharedPreferences prefs) {
-        this.mOnlyIncludeExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_only_key), false);
+    private void initOnlyIncludeReimbursable(SharedPreferences prefs) {
+        this.mOnlyIncludeReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_only_key), false);
     }
 
-    private void initReceiptsDefaultAsExpensable(SharedPreferences prefs) {
-        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), false);
+    private void initReceiptsDefaultAsReimbursable(SharedPreferences prefs) {
+        this.mReceiptsDefaultAsReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_default_key), mContext.getResources().getBoolean(R.bool.pref_receipt_reimbursable_default_defaultValue));
     }
 
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
@@ -308,8 +307,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultTaxPercentage(prefs);
         this.initPredictCategories(prefs);
         this.initEnableAutoCompleteSuggestions(prefs);
-        this.initOnlyIncludeExpensable(prefs);
-        this.initReceiptsDefaultAsExpensable(prefs);
+        this.initOnlyIncludeReimbursable(prefs);
+        this.initReceiptsDefaultAsReimbursable(prefs);
         this.initDefaultToFirstReportDate(prefs);
         this.initMatchNameCats(prefs);
         this.initMatchCommentCats(prefs);
@@ -406,21 +405,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, mShowActionSendHelpDialog);
-        /*
-        editor.putInt(INT_DEFAULT_TRIP_DURATION, mDefaultTripDuration);
-        editor.putFloat(FLOAT_MIN_RECEIPT_PRICE, mMinReceiptPrice);
-        editor.putString(STRING_DEFAULT_EMAIL_TO, mEmailTo);
-        editor.putString(STRING_CURRENCY, mDefaultCurrency);
-        editor.putBoolean(BOOL_PREDICT_CATEGORIES, mPredictCategories);
-        editor.putBoolean(BOOL_USE_NATIVE_CAMERA, mUseNativeCamera);
-        editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, mMatchNameCats);
-        editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, mMatchCommentCats);
-        editor.putBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, mOnlyIncludeExpensable);
-        editor.putBoolean(BOOL_INCLUDE_TAX_FIELD, mIncludeTaxField);
-        editor.putBoolean(BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS, mEnableAutoCompleteSuggestions);
-        editor.putString(STRING_USERNAME, mUserID);
-        editor.putString(STRING_DATE_SEPARATOR, mDateSeparator);
-        editor.putBoolean(BOOL_DEFAULT_TO_FIRST_TRIP_DATE, mDefaultToFirstReportDate);*/
         if (Utils.ApiHelper.hasGingerbread()) {
             editor.apply();
         } else {
@@ -457,12 +441,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         getSharedPreferences().edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
     }
 
-    public boolean onlyIncludeExpensableReceiptsInReports() {
-        return mOnlyIncludeExpensable;
+    public boolean onlyIncludeReimbursableReceiptsInReports() {
+        return mOnlyIncludeReimbursable;
     }
 
-    public boolean doReceiptsDefaultAsExpensable() {
-        return mReceiptsDefaultAsExpensable;
+    public boolean doReceiptsDefaultAsReimbursable() {
+        return mReceiptsDefaultAsReimbursable;
     }
 
     public boolean includeTaxField() {

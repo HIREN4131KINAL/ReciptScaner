@@ -48,7 +48,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
     public static final String COLUMN_DATE = "rcpt_date";
     public static final String COLUMN_TIMEZONE = "timezone";
     public static final String COLUMN_COMMENT = "comment";
-    public static final String COLUMN_EXPENSEABLE = "expenseable";
+    public static final String COLUMN_REIMBURSABLE = "expenseable";
     public static final String COLUMN_ISO4217 = "isocode";
     public static final String COLUMN_PAYMENT_METHOD_ID = "paymentMethodKey";
     public static final String COLUMN_NOTFULLPAGEIMAGE = "fullpageimage";
@@ -83,7 +83,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                 + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
                 + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
                 + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
-                + ReceiptsTable.COLUMN_EXPENSEABLE + " BOOLEAN DEFAULT 1, "
+                + ReceiptsTable.COLUMN_REIMBURSABLE + " BOOLEAN DEFAULT 1, "
                 + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
                 + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "

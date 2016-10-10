@@ -6,7 +6,7 @@
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============== Preference Receipt ================ -->
-    <bool name="pref_receipt_expensable_default_defaultValue">true</bool>
+    <bool name="pref_receipt_reimbursable_default_defaultValue">true</bool>
     <bool name="pref_receipt_include_tax_field_defaultValue">false</bool>
     <bool name="pref_receipt_use_payment_methods_defaultValue">false</bool>
 

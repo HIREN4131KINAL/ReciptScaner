@@ -41,7 +41,7 @@ public final class DefaultReceiptImpl implements Receipt {
     private final Price mPrice, mTax;
     private final Date mDate;
     private final TimeZone mTimeZone;
-    private final boolean mIsExpensable;
+    private final boolean mIsReimbursable;
     private final boolean mIsFullPage;
     private final Source mSource;
     private final String mExtraEditText1;
@@ -53,15 +53,15 @@ public final class DefaultReceiptImpl implements Receipt {
 
     public DefaultReceiptImpl(int id, int index, @NonNull Trip trip, @Nullable File file, @Nullable PaymentMethod paymentMethod, @NonNull String name,
                               @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
-                              @NonNull TimeZone timeZone, boolean isExpensable, boolean isFullPage, boolean isSelected,
+                              @NonNull TimeZone timeZone, boolean isReimbursable, boolean isFullPage, boolean isSelected,
                               @NonNull Source source, @Nullable String extraEditText1, @Nullable String extraEditText2, @Nullable String extraEditText3) {
-        this(id, index, trip, file, paymentMethod, name, category, comment, price, tax, date, timeZone, isExpensable, isFullPage, isSelected, source, extraEditText1, extraEditText2, extraEditText3, new DefaultSyncState());
+        this(id, index, trip, file, paymentMethod, name, category, comment, price, tax, date, timeZone, isReimbursable, isFullPage, isSelected, source, extraEditText1, extraEditText2, extraEditText3, new DefaultSyncState());
 
     }
 
     public DefaultReceiptImpl(int id, int index, @NonNull Trip trip, @Nullable File file, @Nullable PaymentMethod paymentMethod, @NonNull String name,
                               @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
-                              @NonNull TimeZone timeZone, boolean isExpensable, boolean isFullPage, boolean isSelected,
+                              @NonNull TimeZone timeZone, boolean isReimbursable, boolean isFullPage, boolean isSelected,
                               @NonNull Source source, @Nullable String extraEditText1, @Nullable String extraEditText2, @Nullable String extraEditText3,
                               @NonNull SyncState syncState) {
 
@@ -80,7 +80,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mIndex = index;
         mFile = file;
         mPaymentMethod = paymentMethod;
-        mIsExpensable = isExpensable;
+        mIsReimbursable = isReimbursable;
         mIsFullPage = isFullPage;
         mExtraEditText1 = extraEditText1;
         mExtraEditText2 = extraEditText2;
@@ -100,7 +100,7 @@ public final class DefaultReceiptImpl implements Receipt {
         final String fileName = in.readString();
         mFile = TextUtils.isEmpty(fileName) ? null : new File(fileName);
         mDate = new Date(in.readLong());
-        mIsExpensable = (in.readByte() != 0);
+        mIsReimbursable = (in.readByte() != 0);
         mIsFullPage = (in.readByte() != 0);
         mIsSelected = (in.readByte() != 0);
         mExtraEditText1 = in.readString();
@@ -274,8 +274,8 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
-    public boolean isExpensable() {
-        return mIsExpensable;
+    public boolean isReimbursable() {
+        return mIsReimbursable;
     }
 
     @Override
@@ -361,7 +361,7 @@ public final class DefaultReceiptImpl implements Receipt {
                 ", mTax=" + mTax +
                 ", mDate=" + mDate +
                 ", mTimeZone=" + mTimeZone +
-                ", mIsExpensable=" + mIsExpensable +
+                ", mIsReimbursable=" + mIsReimbursable +
                 ", mIsFullPage=" + mIsFullPage +
                 ", mSource=" + mSource +
                 ", mExtraEditText1='" + mExtraEditText1 + '\'' +
@@ -380,7 +380,7 @@ public final class DefaultReceiptImpl implements Receipt {
         DefaultReceiptImpl that = (DefaultReceiptImpl) o;
 
         if (mId != that.mId) return false;
-        if (mIsExpensable != that.mIsExpensable) return false;
+        if (mIsReimbursable != that.mIsReimbursable) return false;
         if (mIsFullPage != that.mIsFullPage) return false;
         if (!mTrip.equals(that.mTrip)) return false;
         if (mPaymentMethod != null ? !mPaymentMethod.equals(that.mPaymentMethod) : that.mPaymentMethod != null)
@@ -414,7 +414,7 @@ public final class DefaultReceiptImpl implements Receipt {
         result = 31 * result + mTax.hashCode();
         result = 31 * result + mDate.hashCode();
         result = 31 * result + mTimeZone.hashCode();
-        result = 31 * result + (mIsExpensable ? 1 : 0);
+        result = 31 * result + (mIsReimbursable ? 1 : 0);
         result = 31 * result + (mIsFullPage ? 1 : 0);
         result = 31 * result + (mExtraEditText1 != null ? mExtraEditText1.hashCode() : 0);
         result = 31 * result + (mExtraEditText2 != null ? mExtraEditText2.hashCode() : 0);
@@ -440,7 +440,7 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeParcelable(getTax(), flags);
         dest.writeString(getFilePath());
         dest.writeLong(getDate().getTime());
-        dest.writeByte((byte) (isExpensable() ? 1 : 0));
+        dest.writeByte((byte) (isReimbursable() ? 1 : 0));
         dest.writeByte((byte) (isFullPage() ? 1 : 0));
         dest.writeByte((byte) (isSelected() ? 1 : 0));
         dest.writeString(getExtraEditText1());

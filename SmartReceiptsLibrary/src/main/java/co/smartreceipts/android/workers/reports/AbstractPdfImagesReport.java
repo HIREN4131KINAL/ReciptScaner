@@ -2,7 +2,6 @@ package co.smartreceipts.android.workers.reports;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -247,7 +246,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
     }
 
     private void addFullPageImage(Document document, Receipt receipt, PdfWriter writer) {
-        if (getPreferences().onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+        if (getPreferences().onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
             return;
         }
         if (receipt.getPrice().getPriceAsFloat() < getPreferences().getMinimumReceiptPriceToIncludeInReports()) {

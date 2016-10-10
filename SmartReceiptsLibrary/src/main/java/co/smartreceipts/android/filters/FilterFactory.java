@@ -60,8 +60,8 @@ public class FilterFactory {
 		else if (ReceiptNotFilter.class.getName().equals(className)) {
 			return new ReceiptNotFilter(json);
 		} 
-		else if (ReceiptIsExpensableFilter.class.getName().equals(className)) {
-			return new ReceiptIsExpensableFilter(json);
+		else if (ReceiptIsReimbursableFilter.class.getName().equals(className)) {
+			return new ReceiptIsReimbursableFilter(json);
 		} 
 		else if (ReceiptSelectedFilter.class.getName().equals(className)) {
 			return new ReceiptSelectedFilter(json);

@@ -4,9 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +12,6 @@ import java.util.Map;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
@@ -105,7 +102,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         factory.setTrip(distance0.getTrip());
         factory.setDate(distance0.getDate());
         factory.setImage(null);
-        factory.setIsExpenseable(true);
+        factory.setIsReimbursable(true);
         factory.setTimeZone(distance0.getTimeZone());
         factory.setCategory(mContext.getString(R.string.distance));
         factory.setCurrency(distance0.getTrip().getTripCurrency());

@@ -2,7 +2,6 @@ package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -46,7 +45,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     private TimeZone _timezone;
     private int _id;
     private int _index;
-    private boolean _isExpenseable, _isFullPage, _isSelected;
+    private boolean _isReimbursable, _isFullPage, _isSelected;
     private Source _source;
     private SyncState _syncState;
 
@@ -79,7 +78,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _category = receipt.getCategory();
         _comment = receipt.getComment();
         _paymentMethod = receipt.getPaymentMethod();
-        _isExpenseable = receipt.isExpensable();
+        _isReimbursable = receipt.isReimbursable();
         _isFullPage = receipt.isFullPage();
         _isSelected = receipt.isSelected();
         _extraEditText1 = receipt.getExtraEditText1();
@@ -217,8 +216,8 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setIsExpenseable(boolean isExpenseable) {
-        _isExpenseable = isExpenseable;
+    public ReceiptBuilderFactory setIsReimbursable(boolean isReimbursable) {
+        _isReimbursable = isReimbursable;
         return this;
     }
 
@@ -272,7 +271,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     @Override
     @NonNull
     public Receipt build() {
-        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3, _syncState);
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isReimbursable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3, _syncState);
     }
 
 }

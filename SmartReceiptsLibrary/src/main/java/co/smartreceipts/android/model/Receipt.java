@@ -189,11 +189,11 @@ public interface Receipt extends Parcelable, Priceable, Comparable<Receipt>, Syn
     TimeZone getTimeZone();
 
     /**
-     * Checks if the receipt was marked as expensable (i.e. counting towards the total) or not
+     * Checks if the receipt was marked as Reimbursable (i.e. counting towards the total) or not
      *
-     * @return {@code true} if it's expensable, {@code false} otherwise
+     * @return {@code true} if it's Reimbursable, {@code false} otherwise
      */
-    boolean isExpensable();
+    boolean isReimbursable();
 
     /**
      * Checks if this receipt should be printed as a full page in the PDF report

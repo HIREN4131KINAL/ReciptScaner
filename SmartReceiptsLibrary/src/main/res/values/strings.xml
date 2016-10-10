@@ -89,7 +89,7 @@
     <string name="report_header_receipts_total">Receipts Total: %s</string>
     <string name="report_header_receipts_total_tax">Tax Total: %s</string>
     <string name="report_header_receipts_total_no_tax">Receipts Total (Sans Tax): %s</string>
-    <string name="report_header_receipts_total_expensable">Receipts Total (Expensable): %s</string>
+    <string name="report_header_receipts_total_reimbursable">Receipts Total (Reimbursable): %s</string>
     <string name="report_header_distance_total">Distance Total: %s</string>
     <string name="report_header_gross_total">Gross Total: %s</string>
     <string name="report_header_cost_center">Cost Center: %s</string>
@@ -260,7 +260,7 @@
     <string name="DIALOG_SETTINGS_CHECKBOX_TAX">Include Tax Field For Receipts</string>
     <string name="DIALOG_SETTINGS_CHECKBOX_NAME_TO_CAT">Match Name to Categories</string>
     <string name="DIALOG_SETTINGS_CHECKBOX_COMMENT_TO_CAT">Match Comments to Categories</string>
-    <string name="DIALOG_SETTINGS_CHECKBOX_EXPENSABLE">Only Report Expensable Receipts</string>
+    <string name="DIALOG_SETTINGS_CHECKBOX_EXPENSABLE">Only Report Reimbursable Receipts</string>
     <string name="DIALOG_SETTINGS_CHECKBOX_AUTOCOMPLETE">Enable AutoComplete Suggestions</string>
     <string name="DIALOG_SETTINGS_TEXTVIEW_SEPARATOR">Date Separator:</string>
     <string name="DIALOG_SETTINGS_DEFAULT_TO_FIRST_DATE">Default Receipt Date to Report Start Date</string>
@@ -294,7 +294,7 @@
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Category</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Comment</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COST_CENTER">Cost Center</string>
-    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE"> Expensable?</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE">Reimbursable?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW">New Receipt</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW_ID">New Receipt - %s</string>
@@ -378,7 +378,7 @@
     <string name="RECEIPTMENU_FIELD_DATE">Date</string>
     <string name="RECEIPTMENU_FIELD_CATEGORY">Category</string>
     <string name="RECEIPTMENU_FIELD_COMMENT">Comment</string>
-    <string name="RECEIPTMENU_FIELD_EXPENSABLE">Expensable</string>
+    <string name="RECEIPTMENU_FIELD_EXPENSABLE">Reimbursable</string>
     <string name="RECEIPTMENU_FIELD_FULL_PAGE">Full Page</string>
     <string name="RECEIPTMENU_FIELD_EXTRA_EDITTEXT_1"></string>
     <string name="RECEIPTMENU_FIELD_EXTRA_EDITTEXT_2"></string>
@@ -419,7 +419,7 @@
     <string name="column_item_converted_price_plus_tax_exchange_rate">Price Plus Tax (Exchanged)</string>
     <string name="column_item_exchange_rate">Exchange Rate</string>
     <string name="column_item_pictured">Pictured</string>
-    <string name="column_item_expensable">Expensable</string>
+    <string name="column_item_reimbursable">Reimbursable</string>
     <string name="column_item_index">Receipt Index</string>
     <string name="column_item_id">Receipt ID</string>
     <string name="column_item_payment_method">Payment Method</string>
@@ -495,7 +495,7 @@
     <string name="filter_name_not">Not</string>
     <string name="filter_name_or">Or</string>
     <string name="filter_name_receipt_category">Category</string>
-    <string name="filter_name_receipt_expensable">Is Expensable</string>
+    <string name="filter_name_receipt_reimbursable">Is Reimbursable</string>
     <string name="filter_name_receipt_max_price">Max Price</string>
     <string name="filter_name_receipt_min_price">Min Price</string>
     <string name="filter_name_receipt_on_or_after">On Or After</string>

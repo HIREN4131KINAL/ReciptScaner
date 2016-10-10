@@ -233,11 +233,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripPrice(final Trip trip) {
-        final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
-            if (!onlyUseExpensable || receipt.isExpensable()) {
+            if (!onlyUseReimbursable || receipt.isReimbursable()) {
                 prices.add(receipt);
             }
         }
@@ -258,11 +258,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripDailyPrice(final Trip trip) {
-        final boolean onlyUseExpensable = mPersistenceManager.getPreferences().onlyIncludeExpensableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
-            if (!onlyUseExpensable || receipt.isExpensable()) {
+            if (!onlyUseReimbursable || receipt.isReimbursable()) {
                 if(DateUtils.isToday(receipt.getDate())) {
                     prices.add(receipt);
                 }
@@ -489,7 +489,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         final int priceIndex = c.getColumnIndex(ReceiptsTable.COLUMN_PRICE);
                         final int dateIndex = c.getColumnIndex(ReceiptsTable.COLUMN_DATE);
                         final int commentIndex = c.getColumnIndex(ReceiptsTable.COLUMN_COMMENT);
-                        final int expenseableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_EXPENSEABLE);
+                        final int reimbursableIndex = c.getColumnIndex(ReceiptsTable.COLUMN_REIMBURSABLE);
                         final int currencyIndex = c.getColumnIndex(ReceiptsTable.COLUMN_ISO4217);
                         final int fullpageIndex = c.getColumnIndex(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE);
                         final int extra_edittext_1_Index = c.getColumnIndex(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1);
@@ -528,7 +528,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final BigDecimal price = getDecimal(c, priceIndex);
                             final long date = getLong(c, dateIndex, 0L);
                             final String comment = getString(c, commentIndex, "");
-                            final boolean expensable = getBoolean(c, expenseableIndex, true);
+                            final boolean reimbursable = getBoolean(c, reimbursableIndex, true);
                             final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
                             final boolean fullpage = getBoolean(c, fullpageIndex, false);
                             final String extra_edittext_1 = getString(c, extra_edittext_1_Index, null);
@@ -551,7 +551,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                                     values.put(ReceiptsTable.COLUMN_PRICE, price.doubleValue());
                                     values.put(ReceiptsTable.COLUMN_DATE, date);
                                     values.put(ReceiptsTable.COLUMN_COMMENT, comment);
-                                    values.put(ReceiptsTable.COLUMN_EXPENSEABLE, expensable);
+                                    values.put(ReceiptsTable.COLUMN_REIMBURSABLE, reimbursable);
                                     values.put(ReceiptsTable.COLUMN_ISO4217, currency);
                                     values.put(ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE, fullpage);
                                     values.put(ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1, extra_edittext_1);

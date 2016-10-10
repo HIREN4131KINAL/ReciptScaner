@@ -64,7 +64,7 @@
     <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Catégorie</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Commentaire</string>
-    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE"> Expensable?</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE">Reimbursable?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW">Nouvelle Note de Frais</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_EDIT">Editer</string>

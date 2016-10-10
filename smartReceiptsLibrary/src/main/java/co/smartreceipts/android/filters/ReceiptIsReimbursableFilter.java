@@ -8,19 +8,19 @@ import org.json.JSONObject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 
-public class ReceiptIsExpensableFilter implements Filter<Receipt> {
+public class ReceiptIsReimbursableFilter implements Filter<Receipt> {
 
-	public ReceiptIsExpensableFilter() {
+	public ReceiptIsReimbursableFilter() {
 		// empty
 	}
 
-	public ReceiptIsExpensableFilter(JSONObject json) throws JSONException {
+	public ReceiptIsReimbursableFilter(JSONObject json) throws JSONException {
 		// empty
 	}
 
 	@Override
 	public boolean accept(Receipt t) {
-		return t.isExpensable();
+		return t.isReimbursable();
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class ReceiptIsExpensableFilter implements Filter<Receipt> {
 
 	@Override
 	public int getNameResource() {
-		return R.string.filter_name_receipt_expensable;
+		return R.string.filter_name_receipt_reimbursable;
 	}
 
 	@Override

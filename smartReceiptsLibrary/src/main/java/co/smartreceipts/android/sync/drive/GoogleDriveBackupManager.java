@@ -75,7 +75,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
+                .addScope(Drive.SCOPE_APPFOLDER)
                 .useDefaultAccount()
                 .build();
         mContext = Preconditions.checkNotNull(context.getApplicationContext());

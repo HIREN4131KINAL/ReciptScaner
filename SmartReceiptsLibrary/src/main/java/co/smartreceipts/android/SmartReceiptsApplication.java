@@ -68,7 +68,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     @Override
 	public void onCreate() {
 		super.onCreate();
-		preloadSharedPreferences();
 		WBUncaughtExceptionHandler.initialize();
 		sApplication = this;
 		mDeferFirstRunDialog = false;
@@ -84,6 +83,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         final NetworkManager networkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
         networkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), networkManager);
+
+        clearCacheDir();
 	}
 
     @Deprecated
@@ -105,41 +106,24 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 	/**
 	 * All SharedPreferences are singletons, so let's go ahead and load all of them as soon as our app starts
 	 */
-	private void preloadSharedPreferences() {
-		if (BuildConfig.DEBUG) {
-			Log.d(TAG, "Preloading Shared Preferences");
-		}
-		final WeakReference<Context> appContext = new WeakReference<Context>(this);
+	private void clearCacheDir() {
+        Log.d(TAG, "Clearing the cached dir");
 		try {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
-						SharedPreferenceDefinitions[] definitions = SharedPreferenceDefinitions.values();
-						for (SharedPreferenceDefinitions definition : definitions) {
-							Context context = appContext.get();
-							if (context != null) {
-								context.getSharedPreferences(definition.toString(), 0);
-							}
-						}
-						// Load AppRating Prefs (these are hidden normally)
-						Context context = appContext.get();
-						if (context != null) {
-							context.getSharedPreferences(AppRating.getApplicationName(context) + "rating", 0);
-						}
-					}
-					catch (Exception e) {
-						// Bugsense was reporting a large crash count due to an NPE on threaded method
-						// The stack trace wasn't valuable at all, so I'm just using an ugly try-catch
-						// here (since I think this is the only Thread instance I use anyway).
+                        final File[] cachedFiles = mPersistenceManager.getStorageManager().listFilesAndDirectories(getCacheDir());
+                        for (File cachedFile : cachedFiles) {
+                            mPersistenceManager.getStorageManager().deleteRecursively(cachedFile);
+                        }
+                    } catch (Exception e) {
+
 					}
 				}
 			}).start();
-		}
-		catch (Exception e) {
-			// Bugsense was reporting a large crash count due to an NPE on threaded method
-			// The stack trace wasn't valuable at all, so I'm just using an ugly try-catch
-			// here (since I think this is the only Thread instance I use anyway).
+		} catch (Exception e) {
+
 		}
 	}
 

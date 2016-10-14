@@ -25,6 +25,7 @@ import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action0;
 import rx.functions.Func1;
 
 public class DriveRestoreDataManager {
@@ -33,19 +34,59 @@ public class DriveRestoreDataManager {
 
     private final Context mContext;
     private final DriveStreamsManager mDriveStreamsManager;
+    private final DriveDatabaseManager mDriveDatabaseManager;
     private final DatabaseHelper mDatabaseHelper;
+    private final File mStorageDirectory;
 
-    public DriveRestoreDataManager(@NonNull Context context, @NonNull DriveStreamsManager driveStreamsManager, @NonNull DatabaseHelper databaseHelper) {
+    @SuppressWarnings("ConstantConditions")
+    public DriveRestoreDataManager(@NonNull Context context, @NonNull DriveStreamsManager driveStreamsManager, @NonNull DatabaseHelper databaseHelper,
+                                   @NonNull DriveDatabaseManager driveDatabaseManager) {
+        this(context, driveStreamsManager, databaseHelper, driveDatabaseManager, context.getExternalFilesDir(null));
+    }
+
+    public DriveRestoreDataManager(@NonNull Context context, @NonNull DriveStreamsManager driveStreamsManager, @NonNull DatabaseHelper databaseHelper,
+                                   @NonNull DriveDatabaseManager driveDatabaseManager, @NonNull File storageDirectory) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mDriveStreamsManager = Preconditions.checkNotNull(driveStreamsManager);
         mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
+        mDriveDatabaseManager = Preconditions.checkNotNull(driveDatabaseManager);
+        mStorageDirectory = Preconditions.checkNotNull(storageDirectory);
     }
 
     @NonNull
     public Observable<Boolean> restoreBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean overwriteExistingData) {
         Log.i(TAG, "Initiating the restoration of a backup file for Google Drive with ID: " + remoteBackupMetadata.getId());
 
-        return deletePreviousTemporaryDatabase()
+        return downloadBackupMetadataImages(remoteBackupMetadata, overwriteExistingData, mStorageDirectory)
+                .flatMap(new Func1<List<File>, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(List<File> files) {
+                        Log.d(TAG, "Performing database merge");
+                        final File tempDbFile = new File(mStorageDirectory, ManualBackupTask.DATABASE_EXPORT_NAME);
+                        return Observable.just(mDatabaseHelper.merge(tempDbFile.getAbsolutePath(), mContext.getPackageName(), overwriteExistingData));
+                    }
+                })
+                .doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        Log.d(TAG, "Syncing database following merge operation");
+                        mDriveDatabaseManager.syncDatabase();
+                    }
+                });
+    }
+
+    @NonNull
+    public Observable<List<File>> downloadAllBackupMetadataImages(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation) {
+        return downloadBackupMetadataImages(remoteBackupMetadata, true, downloadLocation);
+    }
+
+    @NonNull
+    private Observable<List<File>> downloadBackupMetadataImages(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean overwriteExistingData,
+                                                                @NonNull final File downloadLocation) {
+        Preconditions.checkNotNull(remoteBackupMetadata);
+        Preconditions.checkNotNull(downloadLocation);
+
+        return deletePreviousTemporaryDatabase(downloadLocation)
                 .flatMap(new Func1<Boolean, Observable<DriveId>>() {
                     @Override
                     public Observable<DriveId> call(Boolean success) {
@@ -89,7 +130,7 @@ public class DriveRestoreDataManager {
                     @Override
                     public Observable<File> call(DriveFile driveFile) {
                         Log.d(TAG, "Downloading database file");
-                        final File tempDbFile = new File(mContext.getExternalFilesDir(null), ManualBackupTask.DATABASE_EXPORT_NAME);
+                        final File tempDbFile = new File(downloadLocation, ManualBackupTask.DATABASE_EXPORT_NAME);
                         return mDriveStreamsManager.download(driveFile, tempDbFile);
                     }
                 })
@@ -104,7 +145,7 @@ public class DriveRestoreDataManager {
                     @Override
                     public Observable<PartialReceipt> call(PartialReceipt partialReceipt) {
                         Log.d(TAG, "Creating trip folder for partial receipt: " + partialReceipt.parentTripName);
-                        return createParentFolderIfNeeded(partialReceipt);
+                        return createParentFolderIfNeeded(partialReceipt, downloadLocation);
                     }
                 })
                 .filter(new Func1<PartialReceipt, Boolean>() {
@@ -113,7 +154,7 @@ public class DriveRestoreDataManager {
                         if (overwriteExistingData) {
                             return true;
                         } else {
-                            final File receiptFile = new File(new File(mContext.getExternalFilesDir(null), partialReceipt.parentTripName), partialReceipt.fileName);
+                            final File receiptFile = new File(new File(downloadLocation, partialReceipt.parentTripName), partialReceipt.fileName);
                             Log.d(TAG, "Filtering out receipt? " + !receiptFile.exists());
                             return !receiptFile.exists();
                         }
@@ -123,40 +164,27 @@ public class DriveRestoreDataManager {
                     @Override
                     public Observable<File> call(PartialReceipt partialReceipt) {
                         Log.d(TAG, "Downloading file for partial receipt: " + partialReceipt.driveId);
-                        return downloadFileForReceipt(partialReceipt);
+                        return downloadFileForReceipt(partialReceipt, downloadLocation);
                     }
                 })
-                .toList()
-                .flatMap(new Func1<List<File>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(List<File> files) {
-                        Log.d(TAG, "Performing database merge");
-                        final File tempDbFile = new File(mContext.getExternalFilesDir(null), ManualBackupTask.DATABASE_EXPORT_NAME);
-                        return Observable.just(mDatabaseHelper.merge(tempDbFile.getAbsolutePath(), mContext.getPackageName(), overwriteExistingData));
-                    }
-                });
+                .toList();
     }
 
-    private Observable<Boolean> deletePreviousTemporaryDatabase() {
+    private Observable<Boolean> deletePreviousTemporaryDatabase(@NonNull final File inDirectory) {
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
             public void call(Subscriber<? super Boolean> subscriber) {
-                final File filesDir = mContext.getExternalFilesDir(null);
-                if (filesDir != null) {
-                    final File tempDbFile = new File(filesDir, ManualBackupTask.DATABASE_EXPORT_NAME);
-                    if (tempDbFile.exists()) {
-                        if (tempDbFile.delete()) {
-                            subscriber.onNext(true);
-                            subscriber.onCompleted();
-                        } else {
-                            subscriber.onError(new IOException("Failed to delete our temporary database file"));
-                        }
-                    } else {
+                final File tempDbFile = new File(inDirectory, ManualBackupTask.DATABASE_EXPORT_NAME);
+                if (tempDbFile.exists()) {
+                    if (tempDbFile.delete()) {
                         subscriber.onNext(true);
                         subscriber.onCompleted();
+                    } else {
+                        subscriber.onError(new IOException("Failed to delete our temporary database file"));
                     }
                 } else {
-                    subscriber.onError(new IOException("Failed to connect to the external files dir"));
+                    subscriber.onNext(true);
+                    subscriber.onCompleted();
                 }
             }
         });
@@ -187,8 +215,8 @@ public class DriveRestoreDataManager {
                             }
                         }
                         while (cursor.moveToNext());
-                        subscriber.onCompleted();
                     }
+                    subscriber.onCompleted();
                 } finally {
                     if (importDb != null) {
                         importDb.close();
@@ -201,11 +229,11 @@ public class DriveRestoreDataManager {
         });
     }
     
-    private Observable<PartialReceipt> createParentFolderIfNeeded(@NonNull final PartialReceipt partialReceipt) {
+    private Observable<PartialReceipt> createParentFolderIfNeeded(@NonNull final PartialReceipt partialReceipt, @NonNull final File inDirectory) {
         return Observable.create(new Observable.OnSubscribe<PartialReceipt>() {
             @Override
             public void call(Subscriber<? super PartialReceipt> subscriber) {
-                final File parentTripFolder = new File(mContext.getExternalFilesDir(null), partialReceipt.parentTripName);
+                final File parentTripFolder = new File(inDirectory, partialReceipt.parentTripName);
                 if (!parentTripFolder.exists()) {
                     if (parentTripFolder.mkdir()) {
                         subscriber.onNext(partialReceipt);
@@ -221,7 +249,7 @@ public class DriveRestoreDataManager {
         });
     }
 
-    private Observable<File> downloadFileForReceipt(@NonNull final PartialReceipt partialReceipt) {
+    private Observable<File> downloadFileForReceipt(@NonNull final PartialReceipt partialReceipt, @NonNull final File inDirectory) {
         return mDriveStreamsManager.getDriveId(partialReceipt.driveId)
                 .flatMap(new Func1<DriveId, Observable<DriveFile>>() {
                     @Override
@@ -232,7 +260,7 @@ public class DriveRestoreDataManager {
                 .flatMap(new Func1<DriveFile, Observable<File>>() {
                     @Override
                     public Observable<File> call(DriveFile driveFile) {
-                        final File receiptFile = new File(new File(mContext.getExternalFilesDir(null), partialReceipt.parentTripName), partialReceipt.fileName);
+                        final File receiptFile = new File(new File(inDirectory, partialReceipt.parentTripName), partialReceipt.fileName);
                         return mDriveStreamsManager.download(driveFile, receiptFile);
                     }
                 });

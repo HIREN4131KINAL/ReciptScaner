@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,12 +12,13 @@ import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
 
+import java.io.File;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -24,24 +26,19 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragment {
+public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFragment {
 
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
-    private static final String ARG_OVERWRITE = "arg_overwrite";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
-    private TableControllerManager mTableControllerManager;
-    private DatabaseHelper mDatabaseHelper;
-    private boolean mOverwrite;
 
-    public static ImportRemoteBackupWorkerProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwrite) {
-        final ImportRemoteBackupWorkerProgressDialogFragment fragment = new ImportRemoteBackupWorkerProgressDialogFragment();
+    public static DownloadRemoteBackupImagesProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        final DownloadRemoteBackupImagesProgressDialogFragment fragment = new DownloadRemoteBackupImagesProgressDialogFragment();
         final Bundle args = new Bundle();
         args.putParcelable(ARG_BACKUP_METADATA, remoteBackupMetadata);
-        args.putBoolean(ARG_OVERWRITE, overwrite);
         fragment.setArguments(args);
         return fragment;
     }
@@ -51,9 +48,6 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
         super.onCreate(savedInstanceState);
         setCancelable(false);
         mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
-        mOverwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        mTableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
-        mDatabaseHelper = ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getDatabase();
         Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
 
@@ -61,7 +55,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         ProgressDialog dialog = new ProgressDialog(getActivity(), getTheme());
-        dialog.setMessage(getString(R.string.progress_import));
+        dialog.setMessage(getString(R.string.dialog_remote_backup_download_progress));
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         return dialog;
@@ -77,27 +71,25 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mRemoteBackupsDataCache.restoreBackup(mBackupMetadata, mOverwrite)
+        mSubscription = mRemoteBackupsDataCache.downloadBackup(mBackupMetadata)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
+                .subscribe(new Action1<File>() {
                     @Override
-                    public void call(@Nullable Boolean success) {
-                        if (success != null && success) {
-                            Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : mDatabaseHelper.getTables()) {
-                                table.clearCache();
-                            }
-                            getActivity().finish(); // TODO: Fix this hack (for the settings import)
-                            mTableControllerManager.getTripTableController().get();
+                    public void call(@Nullable File directory) {
+                        if (directory != null) {
+                            final Intent sentIntent = new Intent(android.content.Intent.ACTION_SEND);
+                            sentIntent.setType("application/octet-stream");
+                            sentIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(directory));
+                            getActivity().startActivity(Intent.createChooser(sentIntent, getString(R.string.export)));
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
                         dismiss();
                     }

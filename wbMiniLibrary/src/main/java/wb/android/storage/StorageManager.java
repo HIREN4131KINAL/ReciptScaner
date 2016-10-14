@@ -286,7 +286,7 @@ public class StorageManager {
 	/**
 	 * Appends a string to the end of an existing file
 	 * 
-	 * @param file
+	 * @param filename
 	 *            - the {@link String} representing the file name (in the root directory)
 	 * @param string
 	 *            - the {@link String} to add to the end
@@ -773,13 +773,7 @@ public class StorageManager {
 			return null;
 		}
 		finally {
-			try {
-				if (zipStream != null)
-					zipStream.close();
-			}
-			catch (IOException e) {
-				Log.e(TAG, e.toString());
-			}
+			closeQuietly(zipStream);
 		}
 		return zipFile;
 	}
@@ -810,60 +804,13 @@ public class StorageManager {
 				reader.close();
 			}
 			finally {
-				if (reader != null)
-					reader.close();
+				closeQuietly(reader);
 			}
 		}
-	}
-
-	public File zip() {
-		return zipHelper(_root);
 	}
 
 	public File zip(File inputDir) {
-		return zipHelper(inputDir);
-	}
-
-	private File zipHelper(File inputDir) {
-		File zipFile = (inputDir.getParentFile() != null) ? getFile(inputDir.getParentFile(), inputDir.getName() + ".zip") : getFile(inputDir.getName() + ".zip");
-		ZipOutputStream zipStream = null;
-		try {
-			zipStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
-			zipRecursively(inputDir, zipStream);
-			zipStream.close();
-		}
-		catch (IOException e) {
-			Log.e(TAG, e.toString());
-			return null;
-		}
-		finally {
-			try {
-				if (zipStream != null)
-					zipStream.close();
-			}
-			catch (IOException e) {
-				Log.e(TAG, e.toString());
-				return null;
-			}
-		}
-		return zipFile;
-	}
-
-	private void zipRecursively(File file, ZipOutputStream zipStream) throws IOException {
-		if (file.isDirectory()) {
-			if (D)
-				Log.v(TAG, "Zipping: " + file.getName());
-			File[] files = listFilesAndDirectories(file);
-			for (int i = 0; i < files.length; i++) {
-				zipRecursively(files[i], zipStream);
-			}
-		}
-		else {
-			ZipEntry entry = new ZipEntry(file.getName());
-			zipStream.putNextEntry(entry);
-			byte[] bytes = read(file);
-			zipStream.write(bytes);
-		}
+		return zipBuffered(inputDir, 8192);
 	}
 
 	public boolean unzip(File zip, boolean overwrite) {

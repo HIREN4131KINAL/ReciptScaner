@@ -173,7 +173,7 @@
     <string name="SPACE_ERROR">Error: The name cannot begin with a space</string>
     <string name="CALENDAR_TAB_ERROR">Error: Please Touch the Date TextBox to set the Date</string>
     <string name="DURATION_ERROR">Error: The Start Date Must Occur Prior To The End Date</string>
-    <string name="EXPORT_ERROR">Error: Failed to properly export your data. Please make sure your phone is not mounted to your computer.</string>
+    <string name="EXPORT_ERROR">Error: Failed to properly export your data.</string>
     <string name="IMPORT_ERROR">Error: Failed to recognize the file as importable</string>
     <string name="MOVE_ERROR">Error: Failed to move the receipt</string>
     <string name="COPY_ERROR">Error: Failed to copy the receipt</string>
@@ -344,6 +344,7 @@
     <string name="existing_remote_backup_current_device">%s (Your Current Backup)</string>
     <string name="remote_backups_list_item_menu_restore">Restore</string>
     <string name="remote_backups_list_item_menu_delete">@string/delete</string>
+    <string name="remote_backups_list_item_menu_download_images">Download to ZIP</string>
 
     <string name="dialog_remote_backup_delete_title">@string/delete</string>
     <string name="dialog_remote_backup_delete_message">Are you sure you wish to delete your backup from the %s device? This operation cannot be undone.</string>
@@ -352,6 +353,7 @@
     <string name="dialog_remote_backup_delete_progress">Deleting your backup from the %s device&#8230;</string>
     <string name="dialog_remote_backup_delete_toast_success">Successfully deleted this backup</string>
     <string name="dialog_remote_backup_delete_toast_failure">Failed to delete this backup</string>
+    <string name="dialog_remote_backup_download_progress">Downloading images to ZIP File&#8230;</string>
 
     <string name="automatic_backups_info_dialog_message">Automatic backups are not currently enabled.</string>
     <string name="automatic_backups_info_dialog_positive">Tap to Configure</string>

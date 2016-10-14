@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
+import java.io.File;
 import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
@@ -64,5 +65,11 @@ public class NoOpBackupProvider implements BackupProvider {
     @Override
     public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         return Observable.just(false);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return Observable.just(Collections.<File>emptyList());
     }
 }

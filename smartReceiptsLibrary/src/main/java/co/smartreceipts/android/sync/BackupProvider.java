@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 
+import java.io.File;
 import java.sql.Date;
 import java.util.List;
 
@@ -76,5 +77,15 @@ public interface BackupProvider {
      */
     @NonNull
     Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
+
+    /**
+     * Downloads an existing backup to a specific location
+     *
+     * @param remoteBackupMetadata the metadata to download
+     * @param downloadLocation the {@link File} location to download it to
+     * @return an {@link Observable} that contains the downloaded images
+     */
+    @NonNull
+    Observable<List<File>> downloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
 
 }

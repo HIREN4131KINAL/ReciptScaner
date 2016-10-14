@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.widget;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,6 +9,8 @@ import android.support.v4.app.FragmentManager;
 
 import com.google.common.base.Preconditions;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,19 +19,25 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.utils.FileUtils;
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.ReplaySubject;
+import wb.android.storage.StorageManager;
 
 public class RemoteBackupsDataCache {
 
+    private final Context mContext;
     private final BackupProvidersManager mBackupProvidersManager;
     private final DatabaseHelper mDatabaseHelper;
     private RemoteBackupsResultsCacheHeadlessFragment mHeadlessFragment;
 
-    public RemoteBackupsDataCache(@NonNull FragmentManager fragmentManager, @NonNull BackupProvidersManager backupProvidersManager, @NonNull DatabaseHelper databaseHelper) {
+    public RemoteBackupsDataCache(@NonNull FragmentManager fragmentManager, @NonNull Context context,
+                                  @NonNull BackupProvidersManager backupProvidersManager, @NonNull DatabaseHelper databaseHelper) {
+        mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
         Preconditions.checkNotNull(fragmentManager);
@@ -109,25 +118,53 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
+    public synchronized Observable<File> downloadBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+        if (mHeadlessFragment.downloadBackupReplaySubjectMap == null) {
+            mHeadlessFragment.downloadBackupReplaySubjectMap = new HashMap<>();
+        }
+
+        ReplaySubject<File> downloadBackupReplaySubjectMap = mHeadlessFragment.downloadBackupReplaySubjectMap.get(remoteBackupMetadata);
+        if (downloadBackupReplaySubjectMap == null) {
+            final File cacheDir = new File(mContext.getCacheDir(), FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()));
+            final File cacheDirZipFile = new File(mContext.getCacheDir(), FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()) + ".zip");
+            downloadBackupReplaySubjectMap = ReplaySubject.create();
+            Observable.create(new Observable.OnSubscribe<Boolean>() {
+                    @Override
+                    public void call(Subscriber<? super Boolean> subscriber) {
+                        if ((cacheDir.exists() || cacheDir.mkdirs()) && (!cacheDirZipFile.exists() || cacheDirZipFile.delete())) {
+                            subscriber.onNext(true);
+                            subscriber.onCompleted();
+                        } else {
+                            subscriber.onError(new IOException("Failed to create cache directory to save the images"));
+                        }
+                    }
+                })
+                .flatMap(new Func1<Boolean, Observable<List<File>>>() {
+                    @Override
+                    public Observable<List<File>> call(Boolean aBoolean) {
+                        return mBackupProvidersManager.downloadAllData(remoteBackupMetadata, cacheDir);
+                    }
+                })
+                .map(new Func1<List<File>, File>() {
+                    @Override
+                    public File call(List<File> files) {
+                        return StorageManager.getInstance(mContext).zip(cacheDir);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(downloadBackupReplaySubjectMap);
+            mHeadlessFragment.downloadBackupReplaySubjectMap.put(remoteBackupMetadata, downloadBackupReplaySubjectMap);
+        }
+        return downloadBackupReplaySubjectMap;
+    }
+
     public synchronized void removeCachedRestoreBackupFor(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
         if (mHeadlessFragment.restoreBackupReplaySubjectMap != null) {
             mHeadlessFragment.restoreBackupReplaySubjectMap.remove(remoteBackupMetadata);
         }
-
-    }
-
-    public static final class RemoteBackupsResultsCacheHeadlessFragment extends Fragment {
-
-        private static final String TAG = RemoteBackupsDataCache.class.getName();
-
-        private Map<SyncProvider, ReplaySubject<List<RemoteBackupMetadata>>> getBackupsReplaySubjectMap;
-        private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> deleteBackupReplaySubjectMap;
-        private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> restoreBackupReplaySubjectMap;
-
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setRetainInstance(true);
+        if (mHeadlessFragment.downloadBackupReplaySubjectMap != null) {
+            mHeadlessFragment.downloadBackupReplaySubjectMap.remove(remoteBackupMetadata);
         }
     }
 
@@ -139,4 +176,21 @@ public class RemoteBackupsDataCache {
             return Observable.just(true);
         }
     }
+
+    public static final class RemoteBackupsResultsCacheHeadlessFragment extends Fragment {
+
+        private static final String TAG = RemoteBackupsDataCache.class.getName();
+
+        private Map<SyncProvider, ReplaySubject<List<RemoteBackupMetadata>>> getBackupsReplaySubjectMap;
+        private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> deleteBackupReplaySubjectMap;
+        private Map<RemoteBackupMetadata, ReplaySubject<Boolean>> restoreBackupReplaySubjectMap;
+        private Map<RemoteBackupMetadata, ReplaySubject<File>> downloadBackupReplaySubjectMap;
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setRetainInstance(true);
+        }
+    }
+
 }

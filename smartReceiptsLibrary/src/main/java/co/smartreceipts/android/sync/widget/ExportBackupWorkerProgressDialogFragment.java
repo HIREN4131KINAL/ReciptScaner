@@ -57,6 +57,8 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
                             sentIntent.setType("application/octet-stream");
                             sentIntent.putExtra(Intent.EXTRA_STREAM, uri);
                             getActivity().startActivity(Intent.createChooser(sentIntent, getString(R.string.export)));
+                        } else {
+                            Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         }
                     }
                 }, new Action1<Throwable>() {

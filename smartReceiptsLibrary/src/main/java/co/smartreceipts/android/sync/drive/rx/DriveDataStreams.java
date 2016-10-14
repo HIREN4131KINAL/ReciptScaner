@@ -488,7 +488,7 @@ class DriveDataStreams {
                         mExecutor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                Log.i(TAG, "Successfully connected to the drive contents");
+                                Log.i(TAG, "Successfully connected to the drive download stream");
                                 final DriveContents driveContents = driveContentsResult.getDriveContents();
                                 InputStream inputStream = null;
                                 FileOutputStream fileOutputStream = null;

@@ -16,6 +16,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.google.common.base.Preconditions;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.sql.Date;
 import java.util.List;
@@ -87,7 +88,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
         final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager);
         mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager, mNetworkManager);
-        mDriveRestoreDataManager = new DriveRestoreDataManager(context, mDriveTaskManager, databaseHelper);
+        mDriveRestoreDataManager = new DriveRestoreDataManager(context, mDriveTaskManager, databaseHelper, driveDatabaseManager);
 
         mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);
         mReceiptDatabaseBackupListener = new ReceiptBackupListener(driveDatabaseManager, mDriveReceiptsManager);
@@ -165,6 +166,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
             mGoogleDriveSyncMetadata.clear();
         }
         return mDriveTaskManager.delete(remoteBackupMetadata.getId());
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mDriveRestoreDataManager.downloadAllBackupMetadataImages(remoteBackupMetadata, downloadLocation);
     }
 
     @Override

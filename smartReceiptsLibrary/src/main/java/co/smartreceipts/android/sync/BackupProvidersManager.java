@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import java.io.File;
 import java.sql.Date;
 import java.util.List;
 import java.util.Set;
@@ -119,5 +120,11 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         return mBackupProvider.deleteBackup(remoteBackupMetadata);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mBackupProvider.downloadAllData(remoteBackupMetadata, downloadLocation);
     }
 }

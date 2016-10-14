@@ -67,7 +67,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), mBackupProvidersManager, getPersistenceManager().getDatabase());
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, getPersistenceManager().getDatabase());
         mNavigationHandler = new NavigationHandler(getActivity());
     }
 

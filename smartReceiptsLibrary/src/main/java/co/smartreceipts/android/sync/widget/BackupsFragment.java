@@ -34,6 +34,7 @@ import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import rx.functions.Action1;
@@ -44,7 +45,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
 
     private BackupProvidersManager mBackupProvidersManager;
-    private RemoteBackupsDataCache mRemoteBackupsDataCache;;
+    private NetworkManager mNetworkManager;
+    private RemoteBackupsDataCache mRemoteBackupsDataCache;
     private CompositeSubscription mCompositeSubscription;
     private NavigationHandler mNavigationHandler;
 
@@ -60,13 +62,12 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     private View mExistingBackupsSection;
     private RecyclerView mRecyclerView;
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
+        mNetworkManager = getSmartReceiptsApplication().getNetworkManager();
         mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, getPersistenceManager().getDatabase());
         mNavigationHandler = new NavigationHandler(getActivity());
     }
@@ -139,7 +140,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences()));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager));
     }
 
     @Override
@@ -221,7 +222,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                             } else {
                                 mExistingBackupsSection.setVisibility(View.VISIBLE);
                             }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), remoteBackupMetadatas);
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager, remoteBackupMetadatas);
                             mRecyclerView.setAdapter(remoteBackupsListAdapter);
                         }
                     }));

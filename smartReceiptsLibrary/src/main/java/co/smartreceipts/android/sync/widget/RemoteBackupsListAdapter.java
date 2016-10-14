@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
 
@@ -26,6 +27,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
@@ -38,20 +41,23 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
     private final FragmentActivity mFragmentActivity;
     private final BackupProvidersManager mBackupProvidersManager;
     private final Preferences mPreferences;
+    private final NetworkManager mNetworkManager;
     private final List<RemoteBackupMetadata> mBackupMetadataList;
 
     public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
-                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences) {
-        this(headerView, fragmentActivity, backupProvidersManager, preferences, Collections.<RemoteBackupMetadata>emptyList());
+                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
+                                    @NonNull NetworkManager networkManager) {
+        this(headerView, fragmentActivity, backupProvidersManager, preferences, networkManager, Collections.<RemoteBackupMetadata>emptyList());
     }
 
     public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
                                     @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
-                                    @NonNull List<RemoteBackupMetadata> backupMetadataList) {
+                                    @NonNull NetworkManager networkManager, @NonNull List<RemoteBackupMetadata> backupMetadataList) {
         mHeaderView = Preconditions.checkNotNull(headerView);
         mFragmentActivity = Preconditions.checkNotNull(fragmentActivity);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         mPreferences = Preconditions.checkNotNull(preferences);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mBackupMetadataList = new ArrayList<>(backupMetadataList);
     }
 
@@ -86,17 +92,22 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
-                            if (item.getItemId() == R.id.remote_backups_list_item_menu_restore) {
-                                new NavigationHandler(mFragmentActivity).showDialog(ImportRemoteBackupDialogFragment.newInstance(metadata));
-                                return true;
-                            } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
-                                new NavigationHandler(mFragmentActivity).showDialog(DeleteRemoteBackupDialogFragment.newInstance(metadata));
-                                return true;
-                            } else if (item.getItemId() == R.id.remote_backups_list_item_menu_download_images) {
-                                new NavigationHandler(mFragmentActivity).showDialog(DownloadRemoteBackupImagesProgressDialogFragment.newInstance(metadata));
+                            if (!mNetworkManager.isNetworkAvailable() && mNetworkManager.getSupportedNetworkType() == SupportedNetworkType.WifiOnly) {
+                                Toast.makeText(mFragmentActivity, mFragmentActivity.getString(R.string.error_no_wifi), Toast.LENGTH_SHORT).show();
                                 return true;
                             } else {
-                                throw new IllegalArgumentException("Unsupported menu type was selected");
+                                if (item.getItemId() == R.id.remote_backups_list_item_menu_restore) {
+                                    new NavigationHandler(mFragmentActivity).showDialog(ImportRemoteBackupDialogFragment.newInstance(metadata));
+                                    return true;
+                                } else if (item.getItemId() == R.id.remote_backups_list_item_menu_delete) {
+                                    new NavigationHandler(mFragmentActivity).showDialog(DeleteRemoteBackupDialogFragment.newInstance(metadata));
+                                    return true;
+                                } else if (item.getItemId() == R.id.remote_backups_list_item_menu_download_images) {
+                                    new NavigationHandler(mFragmentActivity).showDialog(DownloadRemoteBackupImagesProgressDialogFragment.newInstance(metadata));
+                                    return true;
+                                } else {
+                                    throw new IllegalArgumentException("Unsupported menu type was selected");
+                                }
                             }
                         }
                     });

@@ -52,6 +52,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private TableControllerManager mTableControllerManager;
     private AnalyticsManager mAnalyticsManager;
     private BackupProvidersManager mBackupProvidersManager;
+    private NetworkManager mNetworkManager;
 	private boolean mDeferFirstRunDialog;
 
 	/**
@@ -80,9 +81,9 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 																				// in onVersionUpgrade
         mTableControllerManager = new TableControllerManager(mPersistenceManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
-        final NetworkManager networkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
-        networkManager.initialize();
-        mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), networkManager);
+        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
+        mNetworkManager.initialize();
+        mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager);
 
         clearCacheDir();
 	}
@@ -171,6 +172,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     @NonNull
     public BackupProvidersManager getBackupProvidersManager() {
         return mBackupProvidersManager;
+    }
+
+    @NonNull
+    public NetworkManager getNetworkManager() {
+        return mNetworkManager;
     }
 
 	@Override

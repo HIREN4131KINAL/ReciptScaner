@@ -13,6 +13,7 @@ public class NetworkManager extends CompositeNetworkProviderImpl {
     private static final String TAG = NetworkManager.class.getSimpleName();
 
     private final NetworkProviderFactory mNetworkProviderFactory;
+    private final Preferences mPreferences;
 
     public NetworkManager(@NonNull Context context, @NonNull Preferences preferences) {
         this(new NetworkProviderFactory(context), preferences);
@@ -21,6 +22,7 @@ public class NetworkManager extends CompositeNetworkProviderImpl {
     public NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull Preferences preferences) {
         super(networkProviderFactory.get(preferences.getAutoBackupOnWifiOnly() ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks));
         mNetworkProviderFactory = Preconditions.checkNotNull(networkProviderFactory);
+        mPreferences = Preconditions.checkNotNull(preferences);
         initialize();
     }
 
@@ -46,6 +48,11 @@ public class NetworkManager extends CompositeNetworkProviderImpl {
         }
 
         checkForConnectionChange();
+    }
+
+    @NonNull
+    public synchronized SupportedNetworkType getSupportedNetworkType() {
+        return mPreferences.getAutoBackupOnWifiOnly() ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks;
     }
 
 }

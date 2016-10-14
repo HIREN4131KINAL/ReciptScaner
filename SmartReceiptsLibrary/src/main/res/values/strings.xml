@@ -462,6 +462,7 @@
     <string name="error_no_send_intent_dialog_message">We could not find an email application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
     <string name="error_no_file_intent_dialog_title">No File App Found</string>
     <string name="error_no_file_intent_dialog_message">We could not find an file browser application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
+    <string name="error_no_wifi">Error: Not connected to WiFi</string>
 
     <!-- ================== ActionBar ===================== -->
     <string name="actionbar_subtitle_list">List View</string>

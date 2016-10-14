@@ -197,7 +197,8 @@ public class CardAdapter<T> extends BaseAdapter {
         if (mBackupProvidersManager.getSyncProvider() == SyncProvider.GoogleDrive) {
             if (data instanceof Syncable) {
                 final Syncable syncableData = (Syncable) data;
-                if (mBackupProvidersManager.getLastDatabaseSyncTime().getTime() >= syncableData.getSyncState().getLastLocalModificationTime().getTime()) {
+                if (mBackupProvidersManager.getLastDatabaseSyncTime().getTime() >= syncableData.getSyncState().getLastLocalModificationTime().getTime()
+                        && syncableData.getSyncState().getLastLocalModificationTime().getTime() > 0) {
                     Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mSyncedDrawable).into(image);
                 } else {
                     Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mNotSyncedDrawable).into(image);

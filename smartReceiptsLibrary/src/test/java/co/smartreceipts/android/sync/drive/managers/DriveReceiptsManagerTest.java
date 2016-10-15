@@ -15,6 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.io.File;
 import java.util.Arrays;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
@@ -61,6 +62,9 @@ public class DriveReceiptsManagerTest {
 
     @Mock
     NetworkManager mNetworkManager;
+
+    @Mock
+    Analytics mAnalytics;
 
     @Mock
     DriveStreamMappings mDriveStreamMappings;
@@ -128,7 +132,7 @@ public class DriveReceiptsManagerTest {
         when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
 
         mDriveReceiptsManager = new DriveReceiptsManager(mReceiptTableController, mReceiptsTable, mDriveTaskManager,
-                mDriveDatabaseManager, mNetworkManager, mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.immediate(), Schedulers.immediate());
+                mDriveDatabaseManager, mNetworkManager, mAnalytics, mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @Test

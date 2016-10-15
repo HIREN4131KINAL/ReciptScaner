@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
@@ -37,6 +39,7 @@ public class DriveReceiptsManager {
     private final DriveStreamsManager mDriveTaskManager;
     private final DriveDatabaseManager mDriveDatabaseManager;
     private final NetworkManager mNetworkManager;
+    private final Analytics mAnalytics;
     private final DriveStreamMappings mDriveStreamMappings;
     private final ReceiptBuilderFactoryFactory mReceiptBuilderFactoryFactory;
     private final Scheduler mObserveOnScheduler;
@@ -45,13 +48,13 @@ public class DriveReceiptsManager {
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
                                 @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveDatabaseManager driveDatabaseManager,
-                                @NonNull NetworkManager networkManager) {
-        this(receiptsTableController, receiptsTable, driveTaskManager, driveDatabaseManager, networkManager, new DriveStreamMappings(), new ReceiptBuilderFactoryFactory(), Schedulers.io(), Schedulers.io());
+                                @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
+        this(receiptsTableController, receiptsTable, driveTaskManager, driveDatabaseManager, networkManager, analytics, new DriveStreamMappings(), new ReceiptBuilderFactoryFactory(), Schedulers.io(), Schedulers.io());
     }
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
                                 @NonNull DriveStreamsManager driveTaskManager, @NonNull DriveDatabaseManager driveDatabaseManager,
-                                @NonNull NetworkManager networkManager, @NonNull DriveStreamMappings driveStreamMappings,
+                                @NonNull NetworkManager networkManager, @NonNull Analytics analytics, @NonNull DriveStreamMappings driveStreamMappings,
                                 @NonNull ReceiptBuilderFactoryFactory receiptBuilderFactoryFactory, @NonNull Scheduler observeOnScheduler,
                                 @NonNull Scheduler subscribeOnScheduler) {
         mReceiptTableController = Preconditions.checkNotNull(receiptsTableController);
@@ -59,6 +62,7 @@ public class DriveReceiptsManager {
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
         mDriveDatabaseManager = Preconditions.checkNotNull(driveDatabaseManager);
         mNetworkManager = Preconditions.checkNotNull(networkManager);
+        mAnalytics = Preconditions.checkNotNull(analytics);
         mDriveStreamMappings = Preconditions.checkNotNull(driveStreamMappings);
         mReceiptBuilderFactoryFactory = Preconditions.checkNotNull(receiptBuilderFactoryFactory);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
@@ -93,6 +97,7 @@ public class DriveReceiptsManager {
                         }, new Action1<Throwable>() {
                             @Override
                             public void call(Throwable throwable) {
+                                mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
                                 Log.e(TAG, "Failed to fetch our unsynced receipt data", throwable);
                                 mIsIntializing.set(false);
                             }
@@ -138,6 +143,7 @@ public class DriveReceiptsManager {
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
+                            mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
                             Log.e(TAG, "Failed to handle insert/update for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });
@@ -177,6 +183,7 @@ public class DriveReceiptsManager {
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
+                            mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
                             Log.e(TAG, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });

@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
@@ -38,23 +41,25 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     private final Table<ModelType, ?> mTable;
     protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
+    protected final Analytics mAnalytics;
     protected final Scheduler mSubscribeOnScheduler;
     protected final Scheduler mObserveOnScheduler;
 
     protected CompositeSubscription mCompositeSubscription = new CompositeSubscription();
 
-    public AbstractTableController(@NonNull Table<ModelType, ?> table) {
-        this(table, new StubTableActionAlterations<ModelType>());
+    public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull Analytics analytics) {
+        this(table, new StubTableActionAlterations<ModelType>(), analytics);
     }
 
-    public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations) {
-        this(table, tableActionAlterations, Schedulers.io(), AndroidSchedulers.mainThread());
+    public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations, @NonNull Analytics analytics) {
+        this(table, tableActionAlterations, analytics, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
     AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations,
-                            @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+                            @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
         mTable = Preconditions.checkNotNull(table);
         mTableActionAlterations = Preconditions.checkNotNull(tableActionAlterations);
+        mAnalytics = Preconditions.checkNotNull(analytics);
         mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         mTableEventsListeners = new CopyOnWriteArrayList<>();
@@ -117,6 +122,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Log.e(TAG, "#onGetFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onGetFailure(throwable);
@@ -175,6 +181,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Log.e(TAG, "#onInsertFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onInsertFailure(insertModelType, throwable, databaseOperationMetadata);
@@ -233,6 +240,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Log.e(TAG, "#onUpdateFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onUpdateFailure(oldModelType, throwable, databaseOperationMetadata);
@@ -291,6 +299,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Log.e(TAG, "#onDeleteFailure - onError", throwable);
                         for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
                             tableEventsListener.onDeleteFailure(modelType, throwable, databaseOperationMetadata);

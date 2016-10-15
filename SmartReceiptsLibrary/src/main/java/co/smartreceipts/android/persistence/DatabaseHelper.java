@@ -40,7 +40,7 @@ import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.sync.manual.ManualRestoreTask;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.utils.ExceptionUtils;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
 import rx.Subscriber;
@@ -465,7 +465,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a1]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a1]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -589,7 +589,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a2]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a2]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -627,7 +627,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a3]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a3]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -662,7 +662,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a4]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a4]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -697,7 +697,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a5]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a5]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -732,7 +732,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -803,7 +803,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     if (BuildConfig.DEBUG) {
                         Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
                     }
-                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
                         c.close();
@@ -817,7 +817,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, e.toString());
                 }
-                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + Utils.getStackTrace(e));
+                mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + ExceptionUtils.getStackTrace(e));
                 return false;
             } finally {
                 if (c != null && !c.isClosed()) {

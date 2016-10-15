@@ -208,7 +208,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         mImageUri = null;
 
         mUpdatingDataProgress.setVisibility(View.VISIBLE);
-        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager());
+        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
         importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
             @Override
             public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {

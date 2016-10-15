@@ -16,7 +16,7 @@ import java.util.Map;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.utils.Utils;
+import co.smartreceipts.android.utils.ExceptionUtils;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -97,7 +97,7 @@ public class ManualRestoreTask {
                         }
                         catch (IOException e) {
                             Log.e(TAG, e.toString());
-                            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [1]: " + Utils.getStackTrace(e));
+                            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [1]: " + ExceptionUtils.getStackTrace(e));
                             subscriber.onError(e);
                         }
                         finally {
@@ -133,7 +133,7 @@ public class ManualRestoreTask {
                     }
                 } catch (IOException | SDCardStateException e) {
                     Log.e(TAG, e.toString());
-                    mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [2]: " + Utils.getStackTrace(e));
+                    mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [2]: " + ExceptionUtils.getStackTrace(e));
                     subscriber.onError(e);
                 }
             }
@@ -157,7 +157,7 @@ public class ManualRestoreTask {
         }
         catch (IOException e) {
             Log.e(TAG, e.toString());
-            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [3]: " + Utils.getStackTrace(e));
+            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [3]: " + ExceptionUtils.getStackTrace(e));
         }
         try {
             File internalDir = external.getFile("Internal");
@@ -165,7 +165,7 @@ public class ManualRestoreTask {
         }
         catch (IOException e) {
             Log.e(TAG, e.toString());
-            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [4]: " + Utils.getStackTrace(e));
+            mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [4]: " + ExceptionUtils.getStackTrace(e));
         }
         DatabaseHelper db = mPersistenceManager.getDatabase();
         mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Merging database");

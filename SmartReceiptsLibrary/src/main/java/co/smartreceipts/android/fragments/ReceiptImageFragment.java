@@ -145,7 +145,7 @@ public class ReceiptImageFragment extends WBFragment {
         final Uri cachedImageSaveLocation = mImageUri;
         mImageUri = null;
 
-        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mReceipt.getTrip(), getPersistenceManager());
+        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mReceipt.getTrip(), getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
         importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
             @Override
             public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {

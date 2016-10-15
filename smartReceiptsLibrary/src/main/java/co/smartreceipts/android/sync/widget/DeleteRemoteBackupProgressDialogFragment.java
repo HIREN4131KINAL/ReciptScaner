@@ -15,6 +15,8 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
@@ -28,6 +30,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
+    private Analytics mAnalytics;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
@@ -63,6 +66,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
+        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -93,6 +97,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
                         Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
                         dismiss();
                     }

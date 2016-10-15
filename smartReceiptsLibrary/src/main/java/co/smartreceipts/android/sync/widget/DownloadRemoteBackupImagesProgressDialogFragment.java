@@ -16,6 +16,8 @@ import java.io.File;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
@@ -31,6 +33,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
+    private Analytics mAnalytics;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
@@ -66,6 +69,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
+        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -89,6 +93,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(DownloadRemoteBackupImagesProgressDialogFragment.this, throwable));
                         Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
                         dismiss();

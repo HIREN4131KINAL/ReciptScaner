@@ -12,6 +12,8 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
@@ -20,6 +22,7 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +44,9 @@ public class DriveDatabaseManagerTest {
     @Mock
     NetworkManager mNetworkManager;
 
+    @Mock
+    Analytics mAnalytics;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -52,7 +58,7 @@ public class DriveDatabaseManagerTest {
 
         when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
 
-        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, mNetworkManager, Schedulers.immediate(), Schedulers.immediate());
+        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, mNetworkManager, mAnalytics, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @After
@@ -88,6 +94,16 @@ public class DriveDatabaseManagerTest {
 
         mDriveDatabaseManager.syncDatabase();
         verify(mGoogleDriveSyncMetadata).setDatabaseSyncIdentifier(identifier);
+    }
+
+    @Test
+    public void syncDatabaseError() {
+        final Exception e = new Exception();
+        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Observable.<Identifier>error(e));
+
+        mDriveDatabaseManager.syncDatabase();
+        verify(mGoogleDriveSyncMetadata, never()).setDatabaseSyncIdentifier(any(Identifier.class));
+        verify(mAnalytics).record(any(ErrorEvent.class));
     }
 
 }

@@ -8,10 +8,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
@@ -28,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class AbstractTableControllerTest {
 
     /**
@@ -36,9 +39,9 @@ public class AbstractTableControllerTest {
      */
     private class AbstractTableControllerTestImpl extends AbstractTableController<Object> {
 
-        AbstractTableControllerTestImpl(@NonNull Table<Object, ?> table, @NonNull TableActionAlterations<Object> tableActionAlterations,
+        AbstractTableControllerTestImpl(@NonNull Table<Object, ?> table, @NonNull TableActionAlterations<Object> tableActionAlterations, @NonNull Analytics analytics,
                                         @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
-            super(table, tableActionAlterations, subscribeOnScheduler, observeOnScheduler);
+            super(table, tableActionAlterations, analytics, subscribeOnScheduler, observeOnScheduler);
         }
     }
 
@@ -52,6 +55,9 @@ public class AbstractTableControllerTest {
     TableActionAlterations<Object> mTableActionAlterations;
 
     @Mock
+    Analytics mAnalytics;
+
+    @Mock
     TableEventsListener<Object> mListener1;
 
     @Mock
@@ -63,7 +69,7 @@ public class AbstractTableControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mAbstractTableController = new AbstractTableControllerTestImpl(mTable, mTableActionAlterations, Schedulers.immediate(), Schedulers.immediate());
+        mAbstractTableController = new AbstractTableControllerTestImpl(mTable, mTableActionAlterations, mAnalytics, Schedulers.immediate(), Schedulers.immediate());
         mAbstractTableController.subscribe(mListener1);
         mAbstractTableController.subscribe(mListener2);
         mAbstractTableController.subscribe(mListener3);
@@ -93,6 +99,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onGetFailure(e);
         verify(mListener3).onGetFailure(e);
         verifyZeroInteractions(mListener2);
@@ -108,6 +115,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onGetFailure(e);
         verify(mListener3).onGetFailure(e);
         verifyZeroInteractions(mListener2);
@@ -123,8 +131,8 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
 
-        verify(mListener1).onGetFailure(any(Exception.class
-        ));
+        verify(mAnalytics).record(any(ErrorEvent.class));
+        verify(mListener1).onGetFailure(any(Exception.class));
         verify(mListener3).onGetFailure(any(Exception.class));
         verifyZeroInteractions(mListener2);
     }
@@ -155,6 +163,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onInsertFailure(insertItem, e, databaseOperationMetadata);
         verify(mListener3).onInsertFailure(insertItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -171,6 +180,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onInsertFailure(insertItem, e, databaseOperationMetadata);
         verify(mListener3).onInsertFailure(insertItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -189,6 +199,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onInsertFailure(eq(insertItem), any(Exception.class), eq(databaseOperationMetadata));
         verify(mListener3).onInsertFailure(eq(insertItem), any(Exception.class), eq(databaseOperationMetadata));
         verifyZeroInteractions(mListener2);
@@ -222,6 +233,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onUpdateFailure(oldItem, e, databaseOperationMetadata);
         verify(mListener3).onUpdateFailure(oldItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -239,6 +251,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onUpdateFailure(oldItem, e, databaseOperationMetadata);
         verify(mListener3).onUpdateFailure(oldItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -258,6 +271,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onUpdateFailure(eq(oldItem), any(Exception.class), eq(databaseOperationMetadata));
         verify(mListener3).onUpdateFailure(eq(oldItem), any(Exception.class), eq(databaseOperationMetadata));
         verifyZeroInteractions(mListener2);
@@ -291,6 +305,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verify(mListener3).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -308,6 +323,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verify(mListener3).onDeleteFailure(deleteCandidateItem, e, databaseOperationMetadata);
         verifyZeroInteractions(mListener2);
@@ -327,6 +343,7 @@ public class AbstractTableControllerTest {
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
 
         // The Exceptions.propagate call wraps our exception inside a RuntimeException
+        verify(mAnalytics).record(any(ErrorEvent.class));
         verify(mListener1).onDeleteFailure(eq(deleteCandidateItem), any(Exception.class), eq(databaseOperationMetadata));
         verify(mListener3).onDeleteFailure(eq(deleteCandidateItem), any(Exception.class), eq(databaseOperationMetadata));
         verifyZeroInteractions(mListener2);

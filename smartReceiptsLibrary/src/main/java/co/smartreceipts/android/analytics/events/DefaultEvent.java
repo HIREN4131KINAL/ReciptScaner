@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class DefaultEvent implements Event {
@@ -19,9 +20,13 @@ class DefaultEvent implements Event {
     }
 
     public DefaultEvent(@NonNull Category category, @NonNull Name name) {
+        this(category, name, Collections.<DataPoint>emptyList());
+    }
+
+    public DefaultEvent(@NonNull Category category, @NonNull Name name, @NonNull List<DataPoint> dataPoints) {
         mCategory = Preconditions.checkNotNull(category);
         mName = Preconditions.checkNotNull(name);
-        mDataPoints = new ArrayList<>();
+        mDataPoints = new ArrayList<>(Preconditions.checkNotNull(dataPoints));
     }
 
     @NonNull

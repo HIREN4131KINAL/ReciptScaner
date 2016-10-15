@@ -12,11 +12,11 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
-import co.smartreceipts.android.fragments.ImportPhotoPdfDialogFragment;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -34,16 +34,20 @@ public class ActivityFileResultImporter {
     private final Trip mTrip;
     private final StorageManager mStorageManager;
     private final Preferences mPreferences;
+    private final Analytics mAnalytics;
 
-    public ActivityFileResultImporter(@NonNull Context context, @NonNull Trip trip, @NonNull PersistenceManager persistenceManager) {
-        this(context, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferences());
+    public ActivityFileResultImporter(@NonNull Context context, @NonNull Trip trip, @NonNull PersistenceManager persistenceManager, 
+                                      @NonNull Analytics analytics) {
+        this(context, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferences(), analytics);
     }
 
-    public ActivityFileResultImporter(@NonNull Context context, @NonNull Trip trip, @NonNull StorageManager storageManager, @NonNull Preferences preferences) {
+    public ActivityFileResultImporter(@NonNull Context context, @NonNull Trip trip, @NonNull StorageManager storageManager, 
+                                      @NonNull Preferences preferences, @NonNull Analytics analytics) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mTrip = Preconditions.checkNotNull(trip);
         mStorageManager = Preconditions.checkNotNull(storageManager);
         mPreferences = Preconditions.checkNotNull(preferences);
+        mAnalytics = Preconditions.checkNotNull(analytics);
     }
 
     public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable final Uri proposedImageSaveLocation, @NonNull final FileImportListener listener) {
@@ -94,6 +98,7 @@ public class ActivityFileResultImporter {
                                      }, new Action1<Throwable>() {
                                          @Override
                                          public void call(Throwable throwable) {
+                                             mAnalytics.record(new ErrorEvent(ActivityFileResultImporter.this, throwable));
                                              listener.onImportFailed(throwable, requestCode, resultCode);
                                              subscriptionReference.get().unsubscribe();
                                          }

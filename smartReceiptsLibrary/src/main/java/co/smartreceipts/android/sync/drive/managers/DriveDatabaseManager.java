@@ -8,6 +8,8 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
@@ -26,20 +28,22 @@ public class DriveDatabaseManager {
     private final DriveStreamsManager mDriveTaskManager;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;
     private final NetworkManager mNetworkManager;
+    private final Analytics mAnalytics;
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
 
     public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
-                                @NonNull NetworkManager networkManager) {
-        this(context, driveTaskManager, googleDriveSyncMetadata, networkManager, Schedulers.io(), Schedulers.io());
+                                @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
+        this(context, driveTaskManager, googleDriveSyncMetadata, networkManager, analytics, Schedulers.io(), Schedulers.io());
     }
 
     public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
-                                @NonNull NetworkManager networkManager, @NonNull Scheduler observeOnScheduler, @NonNull Scheduler subscribeOnScheduler) {
+                                @NonNull NetworkManager networkManager, @NonNull Analytics analytics, @NonNull Scheduler observeOnScheduler, @NonNull Scheduler subscribeOnScheduler) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mDriveTaskManager = Preconditions.checkNotNull(driveTaskManager);
         mGoogleDriveSyncMetadata = Preconditions.checkNotNull(googleDriveSyncMetadata);
         mNetworkManager = Preconditions.checkNotNull(networkManager);
+        mAnalytics = Preconditions.checkNotNull(analytics);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
     }
@@ -64,6 +68,7 @@ public class DriveDatabaseManager {
                             }, new Action1<Throwable>() {
                                 @Override
                                 public void call(Throwable throwable) {
+                                    mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this, throwable));
                                     Log.e(TAG, "Failed to synced our database", throwable);
                                 }
                             });

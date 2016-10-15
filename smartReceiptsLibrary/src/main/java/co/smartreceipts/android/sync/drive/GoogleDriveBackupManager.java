@@ -22,6 +22,7 @@ import java.sql.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
@@ -71,7 +72,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final DatabaseBackupListener<Column<Receipt>> mPdfColumnDatabaseBackupListener;
 
     public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager,
-                                    @NonNull NetworkManager networkManager) {
+                                    @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -86,8 +87,8 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
 
-        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager);
-        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager, mNetworkManager);
+        final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager, analytics);
+        mDriveReceiptsManager = new DriveReceiptsManager(tableControllerManager.getReceiptTableController(), databaseHelper.getReceiptsTable(), mDriveTaskManager, driveDatabaseManager, mNetworkManager, analytics);
         mDriveRestoreDataManager = new DriveRestoreDataManager(context, mDriveTaskManager, databaseHelper, driveDatabaseManager);
 
         mTripDatabaseBackupListener = new DatabaseBackupListener<>(driveDatabaseManager);

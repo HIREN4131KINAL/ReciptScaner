@@ -1,11 +1,9 @@
 package co.smartreceipts.android.persistence;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -17,7 +15,6 @@ import java.util.Locale;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.utils.Utils;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -395,7 +392,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mContext.getSharedPreferences(SMART_PREFS, 0);
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public void commit() {
         /**
          * *********************************
@@ -405,11 +401,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, mShowActionSendHelpDialog);
-        if (Utils.ApiHelper.hasGingerbread()) {
-            editor.apply();
-        } else {
-            editor.commit();
-        }
+        editor.apply();
     }
 
     @Override

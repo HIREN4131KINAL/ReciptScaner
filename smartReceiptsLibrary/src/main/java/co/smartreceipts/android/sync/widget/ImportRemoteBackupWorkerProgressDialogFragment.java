@@ -13,6 +13,8 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
@@ -30,6 +32,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     private static final String ARG_OVERWRITE = "arg_overwrite";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
+    private Analytics mAnalytics;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
@@ -72,6 +75,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
+        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -97,6 +101,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
                         dismiss();

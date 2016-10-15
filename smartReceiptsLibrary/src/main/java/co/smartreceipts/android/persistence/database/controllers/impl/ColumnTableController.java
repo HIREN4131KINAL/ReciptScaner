@@ -9,6 +9,8 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
@@ -32,18 +34,18 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
     private final Scheduler mPreprocessingObserveOnScheduler;
 
-    public ColumnTableController(@NonNull AbstractColumnTable table, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        this(table, new StubTableActionAlterations<Column<Receipt>>(), receiptColumnDefinitions);
+    public ColumnTableController(@NonNull AbstractColumnTable table, @NonNull Analytics analytics, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+        this(table, new StubTableActionAlterations<Column<Receipt>>(), analytics, receiptColumnDefinitions);
     }
 
     public ColumnTableController(@NonNull AbstractColumnTable table, @NonNull TableActionAlterations<Column<Receipt>> tableActionAlterations,
-                                 @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-        this(table, tableActionAlterations, receiptColumnDefinitions, Schedulers.io(), AndroidSchedulers.mainThread(), Schedulers.io());
+                                 @NonNull Analytics analytics, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+        this(table, tableActionAlterations, receiptColumnDefinitions, analytics, Schedulers.io(), AndroidSchedulers.mainThread(), Schedulers.io());
     }
 
     ColumnTableController(@NonNull AbstractColumnTable table, @NonNull TableActionAlterations<Column<Receipt>> tableActionAlterations, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions,
-                          @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler, @NonNull Scheduler preprocessingObserveOnScheduler) {
-        super(table, tableActionAlterations, subscribeOnScheduler, observeOnScheduler);
+                          @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler, @NonNull Scheduler preprocessingObserveOnScheduler) {
+        super(table, tableActionAlterations, analytics, subscribeOnScheduler, observeOnScheduler);
         mAbstractColumnTable = Preconditions.checkNotNull(table);
         mReceiptColumnDefinitions = Preconditions.checkNotNull(receiptColumnDefinitions);
         mPreprocessingObserveOnScheduler = Preconditions.checkNotNull(preprocessingObserveOnScheduler);
@@ -89,6 +91,7 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
         }, new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
+                mAnalytics.record(new ErrorEvent(ColumnTableController.this, throwable));
                 Log.d(TAG, "#onDeleteLastFailure - onError");
                 unsubscribeReference(subscriptionRef);
             }

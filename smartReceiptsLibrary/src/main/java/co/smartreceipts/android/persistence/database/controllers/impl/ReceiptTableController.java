@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -32,23 +34,23 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     private final ReceiptTableActionAlterations mReceiptTableActionAlterations;
     private final CopyOnWriteArrayList<ReceiptTableEventsListener> mReceiptTableEventsListeners = new CopyOnWriteArrayList<>();
 
-    public ReceiptTableController(@NonNull PersistenceManager persistenceManager, @NonNull TripTableController tripTableController) {
-        this(Preconditions.checkNotNull(persistenceManager.getDatabase().getReceiptsTable()), Preconditions.checkNotNull(persistenceManager.getStorageManager()), tripTableController);
+    public ReceiptTableController(@NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+        this(Preconditions.checkNotNull(persistenceManager.getDatabase().getReceiptsTable()), Preconditions.checkNotNull(persistenceManager.getStorageManager()), analytics, tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull TripTableController tripTableController) {
-        this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager), tripTableController);
+    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+        this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager), analytics, tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull TripTableController tripTableController) {
-        super(receiptsTable, receiptTableActionAlterations);
+    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+        super(receiptsTable, receiptTableActionAlterations, analytics);
         mReceiptTableActionAlterations = Preconditions.checkNotNull(receiptTableActionAlterations);
         subscribe(new ReceiptRefreshTripPricesListener(Preconditions.checkNotNull(tripTableController)));
     }
 
-    ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull TripTableController tripTableController,
-                           @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
-        super(receiptsTable, receiptTableActionAlterations, subscribeOnScheduler, observeOnScheduler);
+    ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull Analytics analytics,
+                           @NonNull TripTableController tripTableController, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+        super(receiptsTable, receiptTableActionAlterations, analytics, subscribeOnScheduler, observeOnScheduler);
         mReceiptTableActionAlterations = Preconditions.checkNotNull(receiptTableActionAlterations);
         subscribe(new ReceiptRefreshTripPricesListener(Preconditions.checkNotNull(tripTableController)));
     }
@@ -109,6 +111,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
                         Log.d(TAG, "#onMoveFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onMoveFailure(receiptToMove, throwable);
@@ -166,6 +169,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
                         Log.d(TAG, "#onCopyFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onCopyFailure(receiptToCopy, throwable);
@@ -223,6 +227,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
                         Log.d(TAG, "#onSwapUpFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onSwapFailure(throwable);
@@ -280,6 +285,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
                         Log.d(TAG, "#onSwapDownFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onSwapFailure(throwable);

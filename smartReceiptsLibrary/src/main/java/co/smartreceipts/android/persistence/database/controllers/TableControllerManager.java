@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -25,17 +26,17 @@ public class TableControllerManager {
     private final PDFTableController mPDFTableController;
     private final PaymentMethodsTableController mPaymentMethodsTableController;
 
-    public TableControllerManager(@NonNull PersistenceManager persistenceManager, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+    public TableControllerManager(@NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
         Preconditions.checkNotNull(persistenceManager);
         Preconditions.checkNotNull(receiptColumnDefinitions);
 
-        mTripTableController = new TripTableController(persistenceManager);
-        mReceiptTableController = new ReceiptTableController(persistenceManager, mTripTableController);
-        mDistanceTableController = new DistanceTableController(persistenceManager, mTripTableController);
-        mCategoriesTableController = new CategoriesTableController(persistenceManager);
-        mCSVTableController = new CSVTableController(persistenceManager, receiptColumnDefinitions);
-        mPDFTableController = new PDFTableController(persistenceManager, receiptColumnDefinitions);
-        mPaymentMethodsTableController = new PaymentMethodsTableController(persistenceManager);
+        mTripTableController = new TripTableController(persistenceManager, analytics);
+        mReceiptTableController = new ReceiptTableController(persistenceManager, analytics, mTripTableController);
+        mDistanceTableController = new DistanceTableController(persistenceManager, analytics, mTripTableController);
+        mCategoriesTableController = new CategoriesTableController(persistenceManager, analytics);
+        mCSVTableController = new CSVTableController(persistenceManager, analytics, receiptColumnDefinitions);
+        mPDFTableController = new PDFTableController(persistenceManager, analytics, receiptColumnDefinitions);
+        mPaymentMethodsTableController = new PaymentMethodsTableController(persistenceManager, analytics);
     }
 
     @NonNull

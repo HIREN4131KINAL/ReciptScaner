@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
@@ -36,8 +37,8 @@ public class BackupProvidersManager implements BackupProvider {
     private final Set<BackupProviderChangeListener> mBackupProviderChangeListeners = new CopyOnWriteArraySet<>();
     private BackupProvider mBackupProvider;
 
-    public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager, @NonNull NetworkManager networkManager) {
-        this(new SyncProviderFactory(context, databaseHelper, tableControllerManager, networkManager), new SyncProviderStore(context), networkManager);
+    public BackupProvidersManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager, @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
+        this(new SyncProviderFactory(context, databaseHelper, tableControllerManager, networkManager, analytics), new SyncProviderStore(context), networkManager);
     }
 
     public BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore, @NonNull NetworkManager networkManager) {

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.tables.TripForeignKeyAbstractSqlTable;
@@ -34,18 +36,18 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
     private final CopyOnWriteArrayList<TripForeignKeyTableEventsListener<ModelType>> mForeignTableEventsListeners = new CopyOnWriteArrayList<>();
     protected final TripForeignKeyAbstractSqlTable<ModelType, ?> mTripForeignKeyTable;
 
-    public TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table) {
-        super(table);
+    public TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table, @NonNull Analytics analytics) {
+        super(table, analytics);
         mTripForeignKeyTable = table;
     }
 
-    public TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations) {
-        super(table, tableActionAlterations);
+    public TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations, @NonNull Analytics analytics) {
+        super(table, tableActionAlterations, analytics);
         mTripForeignKeyTable = table;
     }
 
-    TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
-        super(table, tableActionAlterations, subscribeOnScheduler, observeOnScheduler);
+    TripForeignKeyAbstractTableController(@NonNull TripForeignKeyAbstractSqlTable<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations, @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+        super(table, tableActionAlterations, analytics, subscribeOnScheduler, observeOnScheduler);
         mTripForeignKeyTable = table;
     }
 
@@ -122,7 +124,8 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        Log.d(TAG, "#onGetFailure - onError");
+                        mAnalytics.record(new ErrorEvent(TripForeignKeyAbstractTableController.this, throwable));
+                        Log.e(TAG, "#onGetFailure - onError");
                         for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
                             foreignTableEventsListener.onGetFailure(throwable, trip);
                         }

@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -21,6 +23,7 @@ import rx.functions.Action1;
 public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
 
     private ManualBackupAndRestoreTaskCache mManualBackupAndRestoreTaskCache;
+    private Analytics mAnalytics;
     private Subscription mSubscription;
 
     @Override
@@ -42,7 +45,9 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mManualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager(), getContext());
+        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
+        mManualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), smartReceiptsApplication.getPersistenceManager(), getContext());
+        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -64,6 +69,7 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        mAnalytics.record(new ErrorEvent(ExportBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         dismiss();
                     }

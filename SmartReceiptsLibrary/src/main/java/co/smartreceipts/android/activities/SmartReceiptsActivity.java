@@ -214,8 +214,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public void setAttachment(Attachment attachment) {
         mAttachment = attachment;
     }
-
-
+    
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
         Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);

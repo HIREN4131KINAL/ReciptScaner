@@ -95,7 +95,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
 	@Override
 	public void onTerminate() {
-		// TODO: Alter this as this method will NEVER be called outside of an emulated environment
+		// Note: This is useful for unit tests but never gets called on actual devices
 		mCurrentActivity = null;
 		mPersistenceManager.onDestroy();
 		mWorkerManager.onDestroy();

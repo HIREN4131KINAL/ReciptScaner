@@ -22,10 +22,10 @@ ext {
     minSdkVersion = 15
     targetSdkVersion = 23
     compileSdkVersion = 23
-    buildToolsVersion = "24.0.1"
+    buildToolsVersion = "24.0.3"
 
-    versionCode = 201
-    versionName = "4.0.0.1"
+    versionCode = 202
+    versionName = "4.0.0.2"
 }
 
 task wrapper(type: Wrapper) {

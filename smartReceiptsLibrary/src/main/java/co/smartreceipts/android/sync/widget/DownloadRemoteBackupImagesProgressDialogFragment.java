@@ -22,6 +22,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.utils.IntentUtils;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -80,12 +81,10 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<File>() {
                     @Override
-                    public void call(@Nullable File directory) {
-                        if (directory != null) {
-                            final Intent sentIntent = new Intent(android.content.Intent.ACTION_SEND);
-                            sentIntent.setType("application/octet-stream");
-                            sentIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(directory));
-                            getActivity().startActivity(Intent.createChooser(sentIntent, getString(R.string.export)));
+                    public void call(@Nullable File zippedDataFile) {
+                        if (zippedDataFile != null) {
+                            final Intent intent = IntentUtils.getSendIntent(getContext(), zippedDataFile);
+                            getActivity().startActivity(Intent.createChooser(intent, getString(R.string.export)));
                         } else {
                             Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         }

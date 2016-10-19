@@ -382,7 +382,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
-            return true;
+            throw new UnsupportedOperationException("Not supported in production at the moment");
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
             final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);

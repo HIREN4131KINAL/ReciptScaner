@@ -24,6 +24,7 @@ import java.lang.ref.WeakReference;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.utils.IntentUtils;
 
 public class NavigationHandler {
 
@@ -96,10 +97,9 @@ public class NavigationHandler {
 
     public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
-        if (activity != null) {
+        if (activity != null && receipt.getFile() != null) {
             try {
-                final Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(receipt.getPDF()), "application/pdf");
+                final Intent intent = IntentUtils.getViewIntent(activity, receipt.getFile(), "application/pdf");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 activity.startActivity(intent);
             } catch (ActivityNotFoundException e) {

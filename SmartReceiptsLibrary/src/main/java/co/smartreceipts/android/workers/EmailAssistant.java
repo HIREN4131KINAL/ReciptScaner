@@ -61,6 +61,7 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
@@ -132,12 +133,12 @@ public class EmailAssistant {
     }
 
     public void onAttachmentsCreated(File[] attachments) {
-        ArrayList<Uri> uris = new ArrayList<Uri>();
+        List<File> files = new ArrayList<File>();
         StringBuilder bodyBuilder = new StringBuilder();
         String path = "";
         if (attachments[EmailOptions.PDF_FULL.getIndex()] != null) {
             path = attachments[EmailOptions.PDF_FULL.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.PDF_FULL.getIndex()]));
+            files.add(attachments[EmailOptions.PDF_FULL.getIndex()]);
             if (attachments[EmailOptions.PDF_FULL.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.PDF_FULL.getIndex()].getAbsolutePath()));
@@ -145,7 +146,7 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()] != null) {
             path = attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()]));
+            files.add(attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()]);
             if (attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].getAbsolutePath()));
@@ -153,7 +154,7 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.CSV.getIndex()] != null) {
             path = attachments[EmailOptions.CSV.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.CSV.getIndex()]));
+            files.add(attachments[EmailOptions.CSV.getIndex()]);
             if (attachments[EmailOptions.CSV.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.CSV.getIndex()].getAbsolutePath()));
@@ -161,35 +162,26 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()] != null) {
             path = attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]));
+            files.add(attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]);
             if (attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getAbsolutePath()));
             }
         }
 
-        //TODO: Check if we've defined the subject in our preferences
         String body = bodyBuilder.toString();
         if (body.length() > 0) {
             body = "\n\n" + body;
         }
-        if (uris.size() == 1) {
+        if (files.size() == 1) {
             body = mContext.getString(R.string.report_attached) + body;
-        } else if (uris.size() > 1) {
-            body = mContext.getString(R.string.reports_attached, Integer.toString(uris.size())) + body;
+        } else if (files.size() > 1) {
+            body = mContext.getString(R.string.reports_attached, Integer.toString(files.size())) + body;
         }
-
-		/*Works for Google Drive. Breaks the rest
-        ArrayList<String> extra_text = new ArrayList<String>(); //Need this part to fix a Bundle casting bug
-		if (uris.size() == 1) extra_text.add(uris.size() + " report attached");
-		if (uris.size() > 1) extra_text.add(uris.size() + " reports attached");
-		emailIntent.putStringArrayListExtra(Intent.EXTRA_TEXT, extra_text);
-		*/
 
         if (!mPersistenceManager.getPreferences().getUsesFileExporerForOutputIntent()) {
             // Action Send Output
-            final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
-            emailIntent.setType("application/octet-stream");
+            final Intent emailIntent = IntentUtils.getSendIntent(mContext, files);
             final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
             final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
             final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
@@ -198,8 +190,6 @@ public class EmailAssistant {
             emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
             emailIntent.putExtra(Intent.EXTRA_TEXT, body);
-            // emailIntent.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, new ArrayList<CharSequence>(Arrays.asList(body)));
-            emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
             try {
                 mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
             } catch (ActivityNotFoundException e) {

@@ -20,6 +20,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.IntentUtils;
 
 public class CameraInteractionController {
 
@@ -43,7 +44,7 @@ public class CameraInteractionController {
      */
     @NonNull
     public Uri takePhoto(@NonNull Trip trip) {
-        return startPhotoIntent(Uri.fromFile(new File(trip.getDirectory(), System.currentTimeMillis() + "x.jpg")), RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
+        return startPhotoIntent(new File(trip.getDirectory(), System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
     }
 
     /**
@@ -54,7 +55,7 @@ public class CameraInteractionController {
      */
     @NonNull
     public Uri addPhoto(@NonNull Receipt receipt) {
-        return startPhotoIntent(Uri.fromFile(new File(receipt.getTrip().getDirectory(), System.currentTimeMillis() + "x.jpg")), RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
+        return startPhotoIntent(new File(receipt.getTrip().getDirectory(), System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
     }
 
     /**
@@ -65,11 +66,12 @@ public class CameraInteractionController {
      */
     @NonNull
     public Uri retakePhoto(@NonNull Receipt receipt) {
-        return startPhotoIntent(Uri.fromFile(receipt.getFile()), RequestCodes.NATIVE_RETAKE_PHOTO_CAMERA_REQUEST, RequestCodes.RETAKE_PHOTO_CAMERA_REQUEST);
+        Preconditions.checkNotNull(receipt.getFile());
+        return startPhotoIntent(receipt.getFile(), RequestCodes.NATIVE_RETAKE_PHOTO_CAMERA_REQUEST, RequestCodes.RETAKE_PHOTO_CAMERA_REQUEST);
     }
 
     @NonNull
-    private Uri startPhotoIntent(@NonNull Uri saveLocation, int nativeCameraRequestCode, int localCameraRequestCode) {
+    private Uri startPhotoIntent(@NonNull File saveLocation, int nativeCameraRequestCode, int localCameraRequestCode) {
         final Fragment fragment = mFragmentReference.get();
         if (fragment == null || !fragment.isResumed()) {
             return Uri.EMPTY;
@@ -78,15 +80,15 @@ public class CameraInteractionController {
         final boolean hasCameraPermission = ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         final boolean hasWritePermission = ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         if (mPreferences.useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
-            final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, saveLocation);
+            final Intent intent = IntentUtils.getImageCaptureIntent(fragment.getActivity(), saveLocation);
             fragment.startActivityForResult(intent, nativeCameraRequestCode);
-            return saveLocation;
+            return intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
         } else {
+            final Uri saveLocationUri = Uri.fromFile(saveLocation);
             final Intent intent = new Intent(fragment.getActivity(), wb.android.google.camera.CameraActivity.class);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, saveLocation);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, saveLocationUri);
             fragment.startActivityForResult(intent, localCameraRequestCode);
-            return saveLocation;
+            return saveLocationUri;
         }
     }
 }

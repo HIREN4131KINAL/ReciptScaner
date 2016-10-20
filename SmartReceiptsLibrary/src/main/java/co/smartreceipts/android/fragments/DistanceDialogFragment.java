@@ -245,6 +245,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             // Delete
             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(getString(R.string.delete_item, mUpdateableDistance.getLocation()));
+            builder.setMessage(R.string.delete_sync_information);
             builder.setCancelable(true);
             builder.setPositiveButton(R.string.delete, new OnClickListener() {
                 @Override

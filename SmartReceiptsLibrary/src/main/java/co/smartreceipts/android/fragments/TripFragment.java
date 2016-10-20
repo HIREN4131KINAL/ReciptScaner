@@ -339,7 +339,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     public final void deleteTrip(final Trip trip) {
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        builder.setTitle(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START) + " " + trip.getName() + getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+        builder.setTitle(getString(R.string.delete_item, trip.getName())).setMessage(getString(R.string.delete_sync_information)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 mTripTableController.delete(trip, new DatabaseOperationMetadata());

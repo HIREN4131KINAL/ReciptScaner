@@ -447,7 +447,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     public final void deleteReceipt(final Receipt receipt) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.delete_item, receipt.getName())).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+        builder.setTitle(getString(R.string.delete_item, receipt.getName())).setMessage(R.string.delete_sync_information).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 mReceiptTableController.delete(receipt, new DatabaseOperationMetadata());

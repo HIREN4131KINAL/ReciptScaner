@@ -88,9 +88,6 @@
     <string name="pref_output_csv_header_key" translatable="false">IncludeCSVHeaders</string>
     <string name="pref_output_csv_header_title">Show CSV Headers</string>
     <string name="pref_output_csv_header_summary">Prints a CSV header row</string>
-    <string name="pref_output_launch_file_explorer_key" translatable="false">UseFileExplorer</string>
-    <string name="pref_output_launch_file_explorer_title">Output to File Explorer</string>
-    <string name="pref_output_launch_file_explorer_summary">Generated reports are not emailed</string>
     <string name="pref_output_print_receipt_id_by_photo_key" translatable="false">PrintByIDPhotoKey</string>
     <string name="pref_output_print_receipt_id_by_photo_title">Print ID By Photo</string>
     <string name="pref_output_print_receipt_id_by_photo_summary">Shows the Receipt ID instead of Index</string>

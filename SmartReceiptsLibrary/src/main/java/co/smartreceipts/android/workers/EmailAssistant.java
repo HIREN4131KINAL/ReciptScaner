@@ -179,52 +179,28 @@ public class EmailAssistant {
             body = mContext.getString(R.string.reports_attached, Integer.toString(files.size())) + body;
         }
 
-        if (!mPersistenceManager.getPreferences().getUsesFileExporerForOutputIntent()) {
-            // Action Send Output
-            final Intent emailIntent = IntentUtils.getSendIntent(mContext, files);
-            final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
-            final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
-            final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
-            emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
-            emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
-            emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
-            emailIntent.putExtra(Intent.EXTRA_TEXT, body);
-            try {
-                mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
-            } catch (ActivityNotFoundException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(R.string.error_no_send_intent_dialog_title)
-                        .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
-            }
-        } else {
-            final Intent fileIntent = new Intent(android.content.Intent.ACTION_GET_CONTENT);
-            fileIntent.setType("file/*");
-            if (path != null) {
-                File parentDirectory = new File(path);
-                fileIntent.setData(Uri.fromFile(parentDirectory));
-            }
-            try {
-                mContext.startActivity(Intent.createChooser(fileIntent, mContext.getString(R.string.send_file)));
-            } catch (ActivityNotFoundException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(R.string.error_no_file_intent_dialog_title)
-                        .setMessage(mContext.getString(R.string.error_no_file_intent_dialog_message, path))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
-            }
+        final Intent emailIntent = IntentUtils.getSendIntent(mContext, files);
+        final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
+        final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
+        final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
+        emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
+        emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
+        emailIntent.putExtra(Intent.EXTRA_TEXT, body);
+        try {
+            mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
+        } catch (ActivityNotFoundException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle(R.string.error_no_send_intent_dialog_title)
+                    .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         }
     }
 

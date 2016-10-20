@@ -45,7 +45,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Output Preferences
     private String mUserID;
     private File mSignaturePhoto;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
+    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -177,10 +177,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initIncludeCSVHeaders(SharedPreferences prefs) {
         this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), mContext.getResources().getBoolean(R.bool.pref_output_csv_header_defaultValue));
-    }
-
-    private void initUseFileExplorerForOutput(SharedPreferences prefs) {
-        this.mUseFileExplorerForOutput = prefs.getBoolean(mContext.getString(R.string.pref_output_launch_file_explorer_key), false);
     }
 
     private void initIncludeReceiptIdNotIndex(SharedPreferences prefs) {
@@ -320,7 +316,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initIncludeCSVHeaders(prefs);
         this.initIncludeReceiptIdNotIndex(prefs);
         this.initIncludeCommentByReceiptPhoto(prefs);
-        this.initUseFileExplorerForOutput(prefs);
         this.initOptimizeSpaceForPDFOutput(prefs);
         this.initShowBlankSignature(prefs);
         this.initSignaturePhoto(prefs);
@@ -560,10 +555,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean getUsesPreTaxPrice() {
         return this.mUsePreTaxPrice;
-    }
-
-    public boolean getUsesFileExporerForOutputIntent() {
-        return this.mUseFileExplorerForOutput;
     }
 
     public boolean hasDefaultDistanceRate() {

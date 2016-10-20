@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -240,6 +241,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                 mUpdatingDataProgress.setVisibility(View.GONE);
             }
         });
+
+        if (resultCode != Activity.RESULT_OK) {
+            mUpdatingDataProgress.setVisibility(View.GONE);
+        }
     }
 
     public final void addPictureReceipt() {

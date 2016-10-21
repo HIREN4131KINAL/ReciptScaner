@@ -28,7 +28,7 @@
     <string name="default_currency">Default Currency: </string>
     <string name="delete">Delete</string>
     <string name="delete_item">Delete %s?</string>
-    <string name="delete_sync_information">Any remote syncs for this item will also be deleted.</string>
+    <string name="delete_sync_information">Any remotely synchronized data for this item will also be deleted.</string>
     <string name="distance">Distance</string>
     <string name="distance_item">Distance %s</string>
     <string name="distance_total_item">Dist. Total: %s</string>

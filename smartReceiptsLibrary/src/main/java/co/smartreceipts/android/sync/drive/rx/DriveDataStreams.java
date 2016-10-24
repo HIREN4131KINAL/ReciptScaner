@@ -246,7 +246,7 @@ class DriveDataStreams {
             @Override
             public void call(final Subscriber<? super DriveId> subscriber) {
                 final Query folderQuery = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, fileName)).build();
-                Drive.DriveApi.query(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
+                driveFolder.queryChildren(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
                     @Override
                     public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
                         try {

@@ -40,7 +40,7 @@ public class TableDefaultCustomizerImpl implements TableDefaultsCustomizer {
         final List<Column<Receipt>> columns = mReceiptColumnDefinitions.getCsvDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            csvTable.insert(columns.get(i), databaseOperationMetadata);
+            csvTable.insertBlocking(columns.get(i), databaseOperationMetadata);
         }
     }
 
@@ -50,7 +50,7 @@ public class TableDefaultCustomizerImpl implements TableDefaultsCustomizer {
         final List<Column<Receipt>> columns = mReceiptColumnDefinitions.getPdfDefaults();
         final int size = columns.size();
         for (int i = 0; i < size; i++) {
-            pdfTable.insert(columns.get(i), databaseOperationMetadata);
+            pdfTable.insertBlocking(columns.get(i), databaseOperationMetadata);
         }
     }
 

@@ -131,11 +131,16 @@ public class RemoteBackupsDataCache {
             Observable.create(new Observable.OnSubscribe<Boolean>() {
                     @Override
                     public void call(Subscriber<? super Boolean> subscriber) {
-                        if ((cacheDir.exists() || cacheDir.mkdirs()) && (!cacheDirZipFile.exists() || cacheDirZipFile.delete())) {
-                            subscriber.onNext(true);
-                            subscriber.onCompleted();
+                        final StorageManager storageManager = StorageManager.getInstance(mContext);
+                        if (storageManager.deleteRecursively(cacheDir)) {
+                            if ((cacheDir.exists() || cacheDir.mkdirs()) && (!cacheDirZipFile.exists() || cacheDirZipFile.delete())) {
+                                subscriber.onNext(true);
+                                subscriber.onCompleted();
+                            } else {
+                                subscriber.onError(new IOException("Failed to create cache directory to save the images"));
+                            }
                         } else {
-                            subscriber.onError(new IOException("Failed to create cache directory to save the images"));
+                            subscriber.onError(new IOException("Failed delete our previously cached directory"));
                         }
                     }
                 })

@@ -31,6 +31,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinit
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.tables.AbstractSqlTable;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
@@ -445,6 +446,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             values.put(TripsTable.COLUMN_COST_CENTER, costCenter);
                             values.put(TripsTable.COLUMN_PROCESSING_STATUS, processingStatus);
                             values.put(TripsTable.COLUMN_DEFAULT_CURRENCY, defaultCurrency);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             if (fromTimeZoneIndex > 0) {
                                 final String fromTimeZome = c.getString(fromTimeZoneIndex);
                                 values.put(TripsTable.COLUMN_FROM_TIMEZONE, fromTimeZome);
@@ -560,6 +562,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                                     values.put(ReceiptsTable.COLUMN_TAX, tax.doubleValue());
                                     values.put(ReceiptsTable.COLUMN_PROCESSING_STATUS, processingStatus);
                                     values.put(ReceiptsTable.COLUMN_EXCHANGE_RATE, exchangeRate.doubleValue());
+                                    values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                                     if (timeZoneIndex > 0) {
                                         final String timeZone = c.getString(timeZoneIndex);
                                         values.put(ReceiptsTable.COLUMN_TIMEZONE, timeZone);
@@ -619,6 +622,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             values.put(CategoriesTable.COLUMN_NAME, name);
                             values.put(CategoriesTable.COLUMN_CODE, code);
                             values.put(CategoriesTable.COLUMN_BREAKDOWN, breakdown);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             currDB.insert(CategoriesTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
@@ -654,6 +658,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             ContentValues values = new ContentValues(2);
                             values.put(CSVTable.COLUMN_ID, index);
                             values.put(CSVTable.COLUMN_TYPE, type);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             currDB.insert(CSVTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
@@ -689,6 +694,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             ContentValues values = new ContentValues(2);
                             values.put(PDFTable.COLUMN_ID, index);
                             values.put(PDFTable.COLUMN_TYPE, type);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             currDB.insert(PDFTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
@@ -724,6 +730,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             ContentValues values = new ContentValues(2);
                             values.put(PaymentMethodsTable.COLUMN_ID, index);
                             values.put(PaymentMethodsTable.COLUMN_METHOD, type);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             currDB.insert(PaymentMethodsTable.TABLE_NAME, null, values);
                         }
                         while (c.moveToNext());
@@ -774,6 +781,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             values.put(DistanceTable.COLUMN_DATE, date);
                             values.put(DistanceTable.COLUMN_TIMEZONE, timezone);
                             values.put(DistanceTable.COLUMN_COMMENT, comment);
+                            values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
                             try {
                                 countCursor = currDB.rawQuery(distanceCountQuery, new String[]{parentTripPath, location, Long.toString(date)});
                                 if (countCursor != null && countCursor.moveToFirst()) {

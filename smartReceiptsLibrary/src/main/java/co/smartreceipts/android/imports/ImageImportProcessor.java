@@ -126,10 +126,14 @@ public class ImageImportProcessor implements FileImportProcessor {
             inputStream = mContentResolver.openInputStream(uri);
             if (inputStream != null) {
                 final int maxDimension = 1024;
-                final BitmapFactory.Options fullOpts = new BitmapFactory.Options();
-                fullOpts.inJustDecodeBounds = true;
+                final BitmapFactory.Options inJustDecodeBoundsOptions = new BitmapFactory.Options();
+                inJustDecodeBoundsOptions.inJustDecodeBounds = true;
 
-                int fullWidth = fullOpts.outWidth, fullHeight = fullOpts.outHeight;
+                // Decode data to our option bounds but don't read the full image
+                BitmapFactory.decodeStream(inputStream, null, inJustDecodeBoundsOptions);
+
+                int fullWidth = inJustDecodeBoundsOptions.outWidth;
+                int fullHeight = inJustDecodeBoundsOptions.outHeight;
                 int scale = 1;
                 while (fullWidth > maxDimension && fullHeight > maxDimension) {
                     fullWidth >>>= 1;

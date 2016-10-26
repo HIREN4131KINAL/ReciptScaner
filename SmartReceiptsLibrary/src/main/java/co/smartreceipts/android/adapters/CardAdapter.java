@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,9 +59,9 @@ public class CardAdapter<T> extends BaseAdapter {
         mContext = context;
         mData = new ArrayList<T>(data);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
-        mCloudDisabledDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_off_24dp, context.getTheme());
-        mNotSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_queue_24dp, context.getTheme());
-        mSyncedDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_cloud_done_24dp, context.getTheme());
+        mCloudDisabledDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_off_24dp);
+        mNotSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_queue_24dp);
+        mSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_done_24dp);
         final Resources resources = mContext.getResources();
         final DisplayMetrics metrics = resources.getDisplayMetrics();
         mMaxPriceWidth = (int) (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width

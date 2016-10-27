@@ -16,10 +16,11 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class IntentUtils {
 
-    private static final String AUTHORITY = "co.smartreceipts.android.fileprovider";
+    private static final String AUTHORITY_FORMAT = "%s.fileprovider";
 
     private IntentUtils() {
 
@@ -32,7 +33,8 @@ public class IntentUtils {
         Preconditions.checkNotNull(fallbackMimeType);
 
         final Intent sentIntent = new Intent(Intent.ACTION_VIEW);
-        final Uri uri = FileProvider.getUriForFile(context, AUTHORITY, file);
+        final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
+        final Uri uri = FileProvider.getUriForFile(context, authority, file);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadPermissionsToUri(context, sentIntent, uri);
         }
@@ -53,7 +55,8 @@ public class IntentUtils {
         Preconditions.checkNotNull(file);
 
         final Intent sentIntent = new Intent(Intent.ACTION_SEND);
-        final Uri uri = FileProvider.getUriForFile(context, AUTHORITY, file);
+        final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
+        final Uri uri = FileProvider.getUriForFile(context, authority, file);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadPermissionsToUri(context, sentIntent, uri);
         }
@@ -80,9 +83,10 @@ public class IntentUtils {
             final Intent sentIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
             sentIntent.setType("application/octet-stream");
 
+            final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
             final ArrayList<Uri> uris = new ArrayList<>();
             for (final File file : files) {
-                final Uri uri = FileProvider.getUriForFile(context, AUTHORITY, file);
+                final Uri uri = FileProvider.getUriForFile(context, authority, file);
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
                     grantReadPermissionsToUri(context, sentIntent, uri);
                 }
@@ -100,7 +104,8 @@ public class IntentUtils {
         Preconditions.checkNotNull(file);
 
         final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        final Uri uri = FileProvider.getUriForFile(context, AUTHORITY, file);
+        final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
+        final Uri uri = FileProvider.getUriForFile(context, authority, file);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadWritePermissionsToUri(context, intent, uri);
         }

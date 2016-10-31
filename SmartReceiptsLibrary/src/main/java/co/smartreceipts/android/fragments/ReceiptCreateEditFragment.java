@@ -241,14 +241,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
                 // Then determine if we should show/hide the box
                 final String baseCurrencyCode = mCurrenciesAdapter.getItem(position).toString();
-                final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
-                if (baseCurrencyCode.equals(exchangeRateCurrencyCode)) {
-                    mExchangeRateContainer.setVisibility(View.GONE);
-                    exchangeRateBox.setText(""); // Clear out if we're hiding the box
-                } else {
-                    mExchangeRateContainer.setVisibility(View.VISIBLE);
-                    submitExchangeRateRequest(baseCurrencyCode);
-                }
+                configureExchangeRateField(baseCurrencyCode);
             }
 
             @Override
@@ -307,9 +300,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                 int idx = mCurrenciesAdapter.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
                 int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrenciesAdapter.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
-                idx = (cachedIdx > 0) ? cachedIdx : idx;
-                if (idx > 0) {
+                idx = (cachedIdx >= 0) ? cachedIdx : idx;
+                if (idx >= 0) {
                     currencySpinner.setSelection(idx);
+                }
+                if (!mTrip.getDefaultCurrencyCode().equals(mReceiptInputCache.getCachedCurrency())) {
+                    configureExchangeRateField(mReceiptInputCache.getCachedCurrency());
                 }
                 fullpage.setChecked(preferences.shouldDefaultToFullPage());
 
@@ -614,6 +610,17 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().unsubscribe(mCategoryTableEventsListener);
         getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().unsubscribe(mPaymentMethodTableEventsListener);
         super.onDestroy();
+    }
+
+    private void configureExchangeRateField(@Nullable String baseCurrencyCode) {
+        final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+        if (exchangeRateCurrencyCode.equals(baseCurrencyCode) || baseCurrencyCode == null) {
+            mExchangeRateContainer.setVisibility(View.GONE);
+            exchangeRateBox.setText(""); // Clear out if we're hiding the box
+        } else {
+            mExchangeRateContainer.setVisibility(View.VISIBLE);
+            submitExchangeRateRequest(baseCurrencyCode);
+        }
     }
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {

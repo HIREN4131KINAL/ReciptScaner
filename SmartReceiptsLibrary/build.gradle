@@ -2,13 +2,14 @@ apply plugin: 'com.android.library'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
+
     compile project(':wbMiniLibrary')
     compile project(':androidCamera')
+
     compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:cardview-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:recyclerview-v7:$SUPPORT_LIBRARY_VERSION"
-
     compile "com.android.support:multidex:$MULTIDEX_VERSION"
 
     compile "com.google.android.gms:play-services-drive:$GOOGLE_PLAY_SERVICES_VERSION"
@@ -17,6 +18,11 @@ dependencies {
     compile "com.squareup.retrofit:retrofit:$RETROFIT_VERSION"
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
+
+    compile "com.amazonaws:aws-android-sdk-core:$AWS_SDK_VERSION"
+    compile "com.amazonaws:aws-android-sdk-cognito:$AWS_SDK_VERSION"
+    compile "com.amazonaws:aws-android-sdk-s3:$AWS_SDK_VERSION"
+    compile "com.amazonaws:aws-android-sdk-ddb:$AWS_SDK_VERSION"
 
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"

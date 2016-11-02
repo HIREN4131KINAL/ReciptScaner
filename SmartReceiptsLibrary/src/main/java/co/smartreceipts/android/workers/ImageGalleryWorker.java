@@ -10,6 +10,7 @@ import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,6 +20,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -29,6 +31,7 @@ import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
 
+@Deprecated
 public class ImageGalleryWorker extends WorkerChild {
 
     private static final String TAG = ImageGalleryWorker.class.getSimpleName();
@@ -103,6 +106,7 @@ public class ImageGalleryWorker extends WorkerChild {
      * @param imageDestination - The default save location. If this is null, imageUri will be used
      * @return
      */
+    @Deprecated
     public File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
         // TODO: Move this all to a separate thread
         Log.d(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");
@@ -136,7 +140,7 @@ public class ImageGalleryWorker extends WorkerChild {
         fullOpts.inJustDecodeBounds = true;
 
         // Decode just the size info
-        getBitmap(imageUriCopy, fullOpts);
+        getBitmap(imageUriCopy, fullOpts, data);
         int fullWidth=fullOpts.outWidth, fullHeight=fullOpts.outHeight;
         int scale=1;
         while(fullWidth > maxDimension && fullHeight > maxDimension){
@@ -149,7 +153,7 @@ public class ImageGalleryWorker extends WorkerChild {
         System.gc();
 
         // Decode the actual bitmap
-        Bitmap endBitmap = getBitmap(imageUriCopy, smallerOpts);
+        Bitmap endBitmap = getBitmap(imageUriCopy, smallerOpts, data);
 
         if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
             try {
@@ -173,7 +177,7 @@ public class ImageGalleryWorker extends WorkerChild {
     }
 
     @Nullable
-    private Bitmap getBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options) {
+    private Bitmap getBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options, @Nullable Intent data) {
         Bitmap bitmap = null;
         try {
             // First, just see if we can get the bitmap directly
@@ -187,9 +191,9 @@ public class ImageGalleryWorker extends WorkerChild {
             Log.e(TAG, "Caught import security exception. Swallowing", e);
         }
 
-        if (bitmap == null) {
+        if (bitmap == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // If we still have nothing, see if we can use some KitKat and above fixes
-            bitmap = getKitKatAndAboveBitmap(photoUri, options);
+            bitmap = getKitKatAndAboveBitmap(photoUri, options, data);
         }
         return bitmap;
     }
@@ -222,7 +226,20 @@ public class ImageGalleryWorker extends WorkerChild {
         }
     }
 
-    private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options) {
+    @SuppressWarnings("WrongConstant")
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private Bitmap getKitKatAndAboveBitmap(@NonNull Uri photoUri, @NonNull BitmapFactory.Options options, @Nullable Intent data) {
+        if (data != null) {
+            // Check for the freshest data for KK
+            try {
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                mWorkerManager.getApplication().getContentResolver().takePersistableUriPermission(photoUri, takeFlags);
+            } catch (SecurityException e) {
+                Log.e(TAG, "Caught import security exception. Swallowing", e);
+                return null;
+            }
+        }
+
         ParcelFileDescriptor parcelFileDescriptor = null;
         try {
             parcelFileDescriptor = mWorkerManager.getApplication().getContentResolver().openFileDescriptor(photoUri, "r");

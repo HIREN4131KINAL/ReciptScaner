@@ -1,6 +1,7 @@
 package co.smartreceipts.android.fragments.preferences;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
@@ -25,35 +26,41 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.ColumnTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
 
-public abstract class ColumnsListFragment extends WBFragment implements AdapterView.OnItemSelectedListener {
+public abstract class ColumnsListFragment extends WBFragment implements TableEventsListener<Column<Receipt>> {
 
 	public static String TAG = "ColumnsListFragment";
 
+    private final AdapterView.OnItemSelectedListener mSpinnerSelectionListener = new ColumnTypeChangeSelectionListener();
 	private BaseAdapter mAdapter;
     private Toolbar mToolbar;
 	private ListView mListView;
+    private ColumnTableController mColumnTableController;
 	private List<Column<Receipt>> mColumns;
     private ArrayAdapter<Column<Receipt>> mSpinnerAdapter;
+    private boolean mDisableInsertsAndDeletes = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mColumns = getColumns();
+		mColumnTableController = getColumnTableController();
+        mAdapter = getAdapter();
         mSpinnerAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getColumnDefinitions().getAllColumns());
         mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		setHasOptionsMenu(true);
 	}
 
-	public abstract List<Column<Receipt>> getColumns();
+	public abstract ColumnTableController getColumnTableController();
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.simple_list, container, false);
         mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
 		mListView = (ListView) rootView.findViewById(android.R.id.list);
-		mAdapter = getAdapter();
-		mListView.setAdapter(mAdapter);
 		return rootView;
 	}
 
@@ -70,27 +77,41 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
         if (actionBar != null) {
             actionBar.setSubtitle(null);
         }
+        mColumnTableController.subscribe(this);
+        mColumnTableController.get();
 	}
 
-	@Override
+    @Override
+    public void onPause() {
+        mColumnTableController.unsubscribe(this);
+        super.onPause();
+    }
+
+    @Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.menu_settings_columns, menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            getActivity().onBackPressed();
+            return true;
+        }
+
+        if (mDisableInsertsAndDeletes) {
+            // Temporarily until we receive a callback below
+            return false;
+        }
+
 		if (item.getItemId() == R.id.menu_settings_add) {
-			addColumn();
-			mAdapter.notifyDataSetChanged();
+            mDisableInsertsAndDeletes = true;
+			mColumnTableController.insertDefaultColumn();
 			return true;
 		}
 		else if (item.getItemId() == R.id.menu_settings_delete) {
-			deleteLastColumn();
-			mAdapter.notifyDataSetChanged();
-			return true;
-		}
-		else if (item.getItemId() == android.R.id.home) {
-			getActivity().onBackPressed();
+            mDisableInsertsAndDeletes = true;
+			mColumnTableController.deleteLast(new DatabaseOperationMetadata());
 			return true;
 		}
 		else {
@@ -98,19 +119,60 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 		}
 	}
 
-	@Override
-	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-		SpinnerTag spinnerTag = (SpinnerTag) parent.getTag();
-        final Column<Receipt> oldColumn = mColumns.get(spinnerTag.index);
-        final Column<Receipt> newColumn = mSpinnerAdapter.getItem(position);
-		updateColumn(oldColumn, newColumn);
-		mAdapter.notifyDataSetChanged();
-	}
+    @Override
+    public void onGetSuccess(@NonNull List<Column<Receipt>> list) {
+        if (isResumed()) {
+            mColumns = list;
+            if (mListView.getAdapter() == null) {
+                mListView.setAdapter(mAdapter);
+            } else {
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
 
-	@Override
-	public void onNothingSelected(AdapterView<?> parent) {
-		// Stub
-	}
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+        // No-op
+    }
+
+    @Override
+    public void onInsertSuccess(@NonNull Column<Receipt> column, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        mDisableInsertsAndDeletes = false;
+        if (isResumed()) {
+            mColumnTableController.get();
+        }
+    }
+
+    @Override
+    public void onInsertFailure(@NonNull Column<Receipt> column, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        mDisableInsertsAndDeletes = false;
+    }
+
+    @Override
+    public void onUpdateSuccess(@NonNull Column<Receipt> oldT, @NonNull Column<Receipt> newT, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isResumed()) {
+            mColumnTableController.get();
+        }
+    }
+
+    @Override
+    public void onUpdateFailure(@NonNull Column<Receipt> oldT, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        // No-op
+    }
+
+    @Override
+    public void onDeleteSuccess(@NonNull Column<Receipt> column, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        mDisableInsertsAndDeletes = false;
+        if (isResumed()) {
+            mColumnTableController.get();
+        }
+    }
+
+    @Override
+    public void onDeleteFailure(@NonNull Column<Receipt> column, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        mDisableInsertsAndDeletes = false;
+    }
 
     protected ColumnDefinitions<Receipt> getColumnDefinitions() {
         return new ReceiptColumnDefinitions(getActivity(), getPersistenceManager(), getFlex());
@@ -124,14 +186,8 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
 		return R.layout.settings_column_card_item;
 	}
 
-	public abstract void addColumn();
-
-	public abstract void deleteLastColumn();
-
-	public abstract void updateColumn(Column<Receipt> oldColumn, Column<Receipt> newColumn);
-
 	private static final class SpinnerTag {
-		public int index; //0s index
+		public Column<Receipt> column;
 	}
 
 	private static final class MyViewHolder {
@@ -184,9 +240,9 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
             if (selectedPosition >= 0) {
                 holder.spinner.setSelection(selectedPosition);
             }
-            holder.spinner.setOnItemSelectedListener(ColumnsListFragment.this);
+            holder.spinner.setOnItemSelectedListener(mSpinnerSelectionListener);
 			SpinnerTag spinnerTag = (SpinnerTag) holder.spinner.getTag();
-	        spinnerTag.index = i;
+	        spinnerTag.column = getItem(i);
 			return convertView;
 		}
 
@@ -207,7 +263,22 @@ public abstract class ColumnsListFragment extends WBFragment implements AdapterV
             return -1;
         }
 
-
 	}
+
+    private class ColumnTypeChangeSelectionListener extends UserSelectionTrackingOnItemSelectedListener {
+
+        @Override
+        public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
+            final SpinnerTag spinnerTag = (SpinnerTag) parent.getTag();
+            final Column<Receipt> oldColumn = spinnerTag.column;
+            final Column<Receipt> newColumn = mSpinnerAdapter.getItem(position);
+            mColumnTableController.update(oldColumn, newColumn, new DatabaseOperationMetadata());
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+
+        }
+    }
 
 }

@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
@@ -17,12 +18,14 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
+    private static final int ROUNDING_PRECISION = PRECISION + 2;
+
     private final BigDecimal mPrice;
     private final WBCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
 
     public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull WBCurrency currency, @NonNull ExchangeRate exchangeRate) {
-        mPrice = price;
+        mPrice = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mCurrency = currency;
         mExchangeRate = exchangeRate;
     }

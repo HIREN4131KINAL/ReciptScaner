@@ -1,32 +1,22 @@
 package co.smartreceipts.android.fragments;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.SQLException;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,43 +27,43 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
-import co.smartreceipts.android.legacycamera.MyCameraActivity;
+import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.CameraInteractionController;
+import co.smartreceipts.android.imports.FileImportListener;
+import co.smartreceipts.android.imports.RequestCodes;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import wb.android.dialog.BetterDialogBuilder;
-import wb.android.google.camera.PhotoModule;
-import wb.android.google.camera.app.GalleryApp;
 
-public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHelper.ReceiptRowListener {
+public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
 
     public static final String TAG = "ReceiptsListFragment";
-
-    // Activity Request ints
-    private static final int NEW_RECEIPT_CAMERA_REQUEST = 1;
-    private static final int ADD_PHOTO_CAMERA_REQUEST = 2;
-    private static final int NATIVE_NEW_RECEIPT_CAMERA_REQUEST = 3;
-    private static final int NATIVE_ADD_PHOTO_CAMERA_REQUEST = 4;
-    private static final int IMPORT_GALLERY_IMAGE = 5;
 
     // Permissions Request Ints
     private static final int PERMISSION_CAMERA_REQUEST = 21;
     private static final int PERMISSION_STORAGE_REQUEST = 22;
 
     // Outstate
+    private static final String OUT_HIGHLIGHTED_RECEIPT = "out_highlighted_receipt";
     private static final String OUT_IMAGE_URI = "out_image_uri";
 
+    private ReceiptTableController mReceiptTableController;
     private ReceiptCardAdapter mAdapter;
     private Receipt mHighlightedReceipt;
     private Uri mImageUri;
-    private ProgressBar mProgressDialog;
+    private ProgressBar mLoadingProgress;
+    private ProgressBar mUpdatingDataProgress;
     private TextView mNoDataAlert;
     private Attachable mAttachable;
 
@@ -81,15 +71,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     private View mFloatingActionMenuActiveMaskView;
 
     private NavigationHandler mNavigationHandler;
-    private boolean mShowDialogOnResume = false;
-    private File mImageFile;
 
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof Attachable) {
-            mAttachable = (Attachable) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Attachable) {
+            mAttachable = (Attachable) context;
         } else {
             throw new ClassCastException("The ReceiptFragment's Activity must extend the Attachable interfaces");
         }
@@ -99,10 +87,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences());
+        mReceiptTableController = getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController();
+        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
+            mHighlightedReceipt = savedInstanceState.getParcelable(OUT_HIGHLIGHTED_RECEIPT);
         }
     }
 
@@ -110,20 +100,21 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         final View rootView = inflater.inflate(getLayoutId(), container, false);
-        mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
+        mLoadingProgress = (ProgressBar) rootView.findViewById(R.id.progress);
+        mUpdatingDataProgress = (ProgressBar) rootView.findViewById(R.id.progress_adding_new);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final int id = v.getId();
                 if (id == R.id.receipt_action_camera) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Picture_Receipt");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddPictureReceipt);
                     addPictureReceipt();
                 } else if (id == R.id.receipt_action_text) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Add_Text_Receipt");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddTextReceipt);
                     addTextReceipt();
                 } else if (id == R.id.receipt_action_import) {
-                    getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Import from gallery");
+                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ImportPictureReceipt);
                     importReceipt();
                 }
             }
@@ -172,21 +163,16 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        getPersistenceManager().getDatabase().registerReceiptRowListener(this);
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-        if (mShowDialogOnResume) {
-            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, mImageFile);
-            // receiptMenu(mCurrentTrip, null, mImageFile);
-            mShowDialogOnResume = false;
-        }
+        mReceiptTableController.subscribe(this);
+        mReceiptTableController.get(mCurrentTrip);
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
+        if (getView() != null && isVisibleToUser) {
             // Refresh as soon as we're visible
-            getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+            mReceiptTableController.get(mCurrentTrip);
         }
     }
 
@@ -194,7 +180,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onPause() {
         Log.d(TAG, "onPause");
         mFloatingActionMenu.close(false);
-        getPersistenceManager().getDatabase().unregisterReceiptRowListener();
+        mReceiptTableController.unsubscribe(this);
         super.onPause();
     }
 
@@ -202,13 +188,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(OUT_IMAGE_URI, mImageUri);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        getPersistenceManager().getDatabase().unregisterReceiptRowListener();
-        super.onDestroy();
+        outState.putParcelable(OUT_HIGHLIGHTED_RECEIPT, mHighlightedReceipt);
     }
 
     @Override
@@ -224,124 +204,51 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
             mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         }
 
-        // Let's cache the image uri and then null it out to not impact future requests
-        final Uri cachedImageUriForRequest = mImageUri;
+        // Null out the last request
+        final Uri cachedImageSaveLocation = mImageUri;
         mImageUri = null;
 
-        if (resultCode == Activity.RESULT_OK) { // -1
-            File imgFile = (cachedImageUriForRequest != null) ? new File(cachedImageUriForRequest.getPath()) : null;
-            if (requestCode == NATIVE_NEW_RECEIPT_CAMERA_REQUEST || requestCode == NATIVE_ADD_PHOTO_CAMERA_REQUEST) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, null);
-            } else if (requestCode == IMPORT_GALLERY_IMAGE) {
-                imgFile = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(cachedImageUriForRequest, data, Uri.fromFile(new File(mCurrentTrip.getDirectory(), System.currentTimeMillis() + ".jpg")));
+        mUpdatingDataProgress.setVisibility(View.VISIBLE);
+        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
+        importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
+            @Override
+            public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
+                switch (requestCode) {
+                    case RequestCodes.IMPORT_GALLERY_IMAGE:
+                    case RequestCodes.IMPORT_GALLERY_PDF:
+                    case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
+                    case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
+                        if (isResumed()) {
+                            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, file);
+                        } else {
+                            // TODO: How do we handle this? Via replay?
+                        }
+                        break;
+                    case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
+                    case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
+                        final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(file).build();
+                        mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
+                        break;
+                }
+                mHighlightedReceipt = null;
+                mUpdatingDataProgress.setVisibility(View.GONE);
             }
-            if (imgFile == null) {
+
+            @Override
+            public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
                 Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-                return;
+                mHighlightedReceipt = null;
+                mUpdatingDataProgress.setVisibility(View.GONE);
             }
-            switch (requestCode) {
-                case IMPORT_GALLERY_IMAGE:
-                case NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                case NEW_RECEIPT_CAMERA_REQUEST:
-                    if (this.isResumed()) {
-                        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, imgFile);
-                        // receiptMenu(mCurrentTrip, null, imgFile);
-                    } else {
-                        mShowDialogOnResume = true;
-                        mImageFile = imgFile;
-                    }
-                    break;
-                case NATIVE_ADD_PHOTO_CAMERA_REQUEST:
-                case ADD_PHOTO_CAMERA_REQUEST:
-                    final Receipt updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, imgFile);
-                    if (updatedReceipt != null) {
-                        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-                        Toast.makeText(getActivity(), "Receipt Image Successfully Added to " + mHighlightedReceipt.getName(), Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-                        getPersistenceManager().getStorageManager().delete(imgFile); // Rollback
-                        return;
-                    }
-                    break;
-                default:
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Unrecognized Request Code: " + requestCode);
-                    }
-                    super.onActivityResult(requestCode, resultCode, data);
-                    break;
-            }
-        } else if (resultCode == MyCameraActivity.PICTURE_SUCCESS) { // 51
-            switch (requestCode) {
-                case NEW_RECEIPT_CAMERA_REQUEST:
-                    File imgFile = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-                    if (this.isResumed()) {
-                        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, imgFile);
-                        // receiptMenu(mCurrentTrip, null, imgFile);
-                    } else {
-                        mShowDialogOnResume = true;
-                        mImageFile = imgFile;
-                    }
-                    break;
-                case ADD_PHOTO_CAMERA_REQUEST:
-                    File img = new File(data.getStringExtra(MyCameraActivity.IMG_FILE));
-                    final Receipt updatedReceipt = getPersistenceManager().getDatabase().updateReceiptFile(mHighlightedReceipt, img);
-                    if (updatedReceipt != null) {
-                        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-                        Toast.makeText(getActivity(), "Receipt Image Successfully Added to " + mHighlightedReceipt.getName(), Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    break;
-                default:
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Unrecognized Request Code: " + requestCode);
-                    }
-                    super.onActivityResult(requestCode, resultCode, data);
-                    break;
-            }
-        } else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-            Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-        } else {
-            Log.e(TAG, "Unrecgonized Result Code: " + resultCode);
-            List<String> errors = ((GalleryApp) getActivity().getApplication()).getErrorList();
-            final int size = errors.size();
-            for (int i = 0; i < size; i++) {
-                getWorkerManager().getLogger().logError(errors.get(i));
-            }
-            errors.clear();
-            super.onActivityResult(requestCode, resultCode, data);
+        });
+
+        if (resultCode != Activity.RESULT_OK) {
+            mUpdatingDataProgress.setVisibility(View.GONE);
         }
     }
 
     public final void addPictureReceipt() {
-        String dirPath;
-        File dir = mCurrentTrip.getDirectory();
-        if (dir.exists()) {
-            dirPath = dir.getAbsolutePath();
-        } else {
-            dirPath = getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-        }
-        final boolean hasCameraPermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        final boolean hasWritePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        if (getPersistenceManager().getPreferences().useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
-            final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            startActivityForResult(intent, NATIVE_NEW_RECEIPT_CAMERA_REQUEST);
-        } else {
-            if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                mImageUri = Uri.fromFile(new File(dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"));
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
-            } else {
-                final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                String[] strings = new String[]{dirPath, System.currentTimeMillis() + "x" + getPersistenceManager().getDatabase().getReceiptsSerial(mCurrentTrip).size() + ".jpg"};
-                intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                startActivityForResult(intent, NEW_RECEIPT_CAMERA_REQUEST);
-            }
-        }
+        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto(mCurrentTrip);
     }
 
     @Override
@@ -379,15 +286,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
     private void importReceipt() {
-        final Intent intent;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            intent = new Intent(Intent.ACTION_GET_CONTENT);
-        } else {
-            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        }
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(intent, IMPORT_GALLERY_IMAGE);
+        final ImportPhotoPdfDialogFragment fragment = new ImportPhotoPdfDialogFragment();
+        fragment.show(getFragmentManager(), ImportPhotoPdfDialogFragment.TAG);
     }
 
     public final boolean showReceiptMenu(final Receipt receipt) {
@@ -459,51 +359,32 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
                     final String selection = receiptActions[item];
                     if (selection != null) {
                         if (selection.equals(receiptActionEdit)) { // Edit Receipt
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Edit_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuEdit);
                             // ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
                             mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Take_Photo_For_Existing_Receipt");
-                            File dir = mCurrentTrip.getDirectory();
-                            String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-                            if (getPersistenceManager().getPreferences().useNativeCamera()) {
-                                final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
-                                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                startActivityForResult(intent, NATIVE_ADD_PHOTO_CAMERA_REQUEST);
-                            } else {
-                                if (wb.android.google.camera.common.ApiHelper.NEW_SR_CAMERA_IS_SUPPORTED) {
-                                    final Intent intent = new Intent(getActivity(), wb.android.google.camera.CameraActivity.class);
-                                    mImageUri = Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg"));
-                                    intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-                                    startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
-                                } else {
-                                    final Intent intent = new Intent(getActivity(), MyCameraActivity.class);
-                                    String[] strings = new String[]{dirPath, receipt.getId() + "x.jpg"};
-                                    intent.putExtra(MyCameraActivity.STRING_DATA, strings);
-                                    startActivityForResult(intent, ADD_PHOTO_CAMERA_REQUEST);
-                                }
-                            }
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
+                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto(receipt);
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
-                                getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_PDF");
+                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);
                                 ReceiptsListFragment.this.showPDF(receipt);
                             } else {
-                                getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "View_Image");
+                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewPdf);
                                 ReceiptsListFragment.this.showImage(receipt);
                             }
                         } else if (selection.equals(receiptActionDelete)) { // Delete Receipt
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Delete_Receipt");
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuDelete);
                             ReceiptsListFragment.this.deleteReceipt(receipt);
                         } else if (selection.equals(receiptActionMoveCopy)) {// Move-Copy
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Move_Copy_Receipt");
-                            ReceiptsListFragment.this.moveOrCopy(receipt);
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuMoveCopy);
+                            ReceiptMoveCopyDialogFragment.newInstance(receipt).show(getFragmentManager(), ReceiptMoveCopyDialogFragment.TAG);
                         } else if (selection.equals(receiptActionSwapUp)) { // Swap Up
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Up");
-                            ReceiptsListFragment.this.moveReceiptUp(receipt);
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapUp);
+                            mReceiptTableController.swapUp(receipt);
                         } else if (selection.equals(receiptActionSwapDown)) { // Swap Down
-                            getWorkerManager().getLogger().logEvent(ReceiptsListFragment.this, "Swap_Down");
-                            ReceiptsListFragment.this.moveReceiptDown(receipt);
+                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapDown);
+                            mReceiptTableController.swapDown(receipt);
                         }
                     }
                     dialog.cancel();
@@ -515,22 +396,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
     private void attachImageToReceipt(Attachment attachment, Receipt receipt, boolean replace) {
-        File dir = mCurrentTrip.getDirectory();
-        String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-        File file = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(attachment.getUri(), null, Uri.fromFile(new File(dirPath, receipt.getId() + "x.jpg")));
+        final File dir = mCurrentTrip.getDirectory();
+        // TODO: Off UI Thread
+        File file = getWorkerManager().getImageGalleryWorker().transformNativeCameraBitmap(attachment.getUri(), null, Uri.fromFile(new File(dir, receipt.getId() + "x.jpg")));
         if (file != null) {
-            // TODO: Off UI Thread
-            final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
-            if (retakeReceipt != null) {
-                getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-                int stringId = replace ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
-                Toast.makeText(getActivity(), getString(stringId, receipt.getName()), Toast.LENGTH_SHORT).show();
-                getActivity().finish(); // Finish activity since we're done with the send action
-            } else {
-                Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-                getActivity().finish(); // Finish activity since we're done with the send action
-                // TODO: Add overwrite rollback here
-            }
+            final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(file).build();
+            mReceiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
         } else {
             Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
             getActivity().finish(); // Finish activity since we're done with the send action
@@ -538,44 +409,27 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
     }
 
     private void attachPDFToReceipt(Attachment attachment, Receipt receipt, boolean replace) {
-        File dir = mCurrentTrip.getDirectory();
-        String dirPath = dir.exists() ? dir.getAbsolutePath() : getPersistenceManager().getStorageManager().mkdir(dir.getName()).getAbsolutePath();
-        File file = new File(dirPath, receipt.getId() + "x.pdf");
+        final File dir = mCurrentTrip.getDirectory();
+        File file = new File(dir, receipt.getId() + "x.pdf");
         InputStream is = null;
         try {
-            // TODO: Off UI Thread
             is = attachment.openUri(getActivity().getContentResolver());
+            // TODO: Off UI Thread
             getPersistenceManager().getStorageManager().copy(is, file, true);
-            if (file != null) {
-                final Receipt retakeReceipt = getPersistenceManager().getDatabase().updateReceiptFile(receipt, file);
-                if (retakeReceipt != null) {
-                    getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-                    int stringId = replace ? R.string.toast_receipt_pdf_replaced : R.string.toast_receipt_pdf_added;
-                    Toast.makeText(getActivity(), getString(stringId, receipt.getName()), Toast.LENGTH_SHORT).show();
-                    getActivity().finish(); // Finish activity since we're done with the send action
-                } else {
-                    Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-                    getActivity().finish(); // Finish activity since we're done with the send action
-                    // TODO: Add overwrite rollback here
-                }
-            }
+            final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(file).build();
+            mReceiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
         } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, e.toString());
-            }
+            Log.e(TAG, e.toString());
             Toast.makeText(getActivity(), getString(R.string.toast_pdf_save_error), Toast.LENGTH_SHORT).show();
             getActivity().finish();
         } catch (SecurityException e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, e.toString());
-            }
+            Log.e(TAG, e.toString());
             Toast.makeText(getActivity(), getString(R.string.toast_kitkat_security_error), Toast.LENGTH_LONG).show();
             getActivity().finish();
         } finally {
             try {
                 if (is != null) {
                     is.close();
-                    is = null;
                 }
             } catch (IOException e) {
                 Log.w(TAG, e.toString());
@@ -593,10 +447,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
 
     public final void deleteReceipt(final Receipt receipt) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.delete_item, receipt.getName())).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+        builder.setTitle(getString(R.string.delete_item, receipt.getName())).setMessage(R.string.delete_sync_information).setCancelable(true).setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                getPersistenceManager().getDatabase().deleteReceiptParallel(receipt, mCurrentTrip);
+                mReceiptTableController.delete(receipt, new DatabaseOperationMetadata());
             }
         }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
@@ -606,144 +460,125 @@ public class ReceiptsListFragment extends ReceiptsFragment implements DatabaseHe
         }).show();
     }
 
-    public void moveOrCopy(final Receipt receipt) {
-        final DatabaseHelper db = getPersistenceManager().getDatabase();
-        final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        final View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.move_copy_dialog, null);
-        final Spinner tripsSpinner = (Spinner) dialogView.findViewById(R.id.move_copy_spinner);
-        List<CharSequence> trips = db.getTripNames(mCurrentTrip);
-        final ArrayAdapter<CharSequence> tripNames = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, trips);
-        tripNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        tripsSpinner.setAdapter(tripNames);
-        tripsSpinner.setPrompt(getString(R.string.report));
-        builder.setTitle(getString(R.string.move_copy_item, receipt.getName())).setView(dialogView).setCancelable(true).setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                if (tripsSpinner.getSelectedItem() != null) {
-                    db.moveReceiptParallel(receipt, mCurrentTrip, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-                    dialog.cancel();
-                } else {
-                    ReceiptsListFragment.this.onReceiptMoveFailure();
-                }
-            }
-        }).setNegativeButton(R.string.copy, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                if (tripsSpinner.getSelectedItem() != null) {
-                    db.copyReceiptParallel(receipt, db.getTripByName(tripsSpinner.getSelectedItem().toString()));
-                    dialog.cancel();
-                } else {
-                    ReceiptsListFragment.this.onReceiptCopyFailure();
-                }
-            }
-        }).show();
-    }
-
-    final void moveReceiptUp(final Receipt receipt) {
-        getPersistenceManager().getDatabase().moveReceiptUp(mCurrentTrip, receipt);
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-    }
-
-    final void moveReceiptDown(final Receipt receipt) {
-        getPersistenceManager().getDatabase().moveReceiptDown(mCurrentTrip, receipt);
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-    }
-
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         showReceiptMenu(mAdapter.getItem(position));
     }
 
     @Override
-    public void onReceiptRowsQuerySuccess(List<Receipt> receipts) {
+    public void onGetSuccess(@NonNull List<Receipt> receipts, @NonNull Trip trip) {
         if (isAdded()) {
-            mProgressDialog.setVisibility(View.GONE);
+            mLoadingProgress.setVisibility(View.GONE);
             getListView().setVisibility(View.VISIBLE);
-            if (receipts == null || receipts.size() == 0) {
+            if (receipts.isEmpty()) {
                 mNoDataAlert.setVisibility(View.VISIBLE);
             } else {
                 mNoDataAlert.setVisibility(View.INVISIBLE);
             }
-            getPersistenceManager().getDatabase().getTripsParallel();
             mAdapter.notifyDataSetChanged(receipts);
             updateActionBarTitle(getUserVisibleHint());
         }
     }
 
     @Override
-    public void onReceiptRowInsertSuccess(Receipt receipt) {
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+    public void onGetFailure(@Nullable Throwable e, @NonNull Trip trip) {
+        Toast.makeText(getActivity(), R.string.database_get_error, Toast.LENGTH_LONG).show();
     }
 
     @Override
-    public void onReceiptRowInsertFailure(SQLException ex) {
-        if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+    public void onGetSuccess(@NonNull List<Receipt> list) {
+        // TODO: Respond?
+    }
+
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+        Toast.makeText(getActivity(), R.string.database_get_error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onInsertSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isResumed()) {
+            mReceiptTableController.get(mCurrentTrip);
         }
     }
 
     @Override
-    public void onReceiptRowUpdateSuccess(Receipt receipt) {
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
+    public void onInsertFailure(@NonNull Receipt receipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
-            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onReceiptRowUpdateFailure() {
+    public void onUpdateSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onReceiptDeleteSuccess(Receipt receipt) {
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-        if (isAdded()) {
-            if (receipt.hasFile()) {
-                if (!getPersistenceManager().getStorageManager().delete(receipt.getFile())) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-                }
+            if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+                int stringId = oldReceipt.getFile() != null ? R.string.toast_receipt_image_replaced : R.string.toast_receipt_image_added;
+                Toast.makeText(getActivity(), getString(stringId, newReceipt.getName()), Toast.LENGTH_SHORT).show();
             }
+
+            mReceiptTableController.get(mCurrentTrip);
             ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
 
     @Override
-    public void onReceiptDeleteFailure() {
+    public void onUpdateFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DB_ERROR), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onReceiptCopySuccess(Trip trip) {
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-        getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
+    public void onDeleteSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
+            mReceiptTableController.get(mCurrentTrip);
+            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
+        }
+    }
+
+    @Override
+    public void onDeleteFailure(@NonNull Receipt receipt, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isAdded()) {
+            Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onCopySuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
+        if (isAdded()) {
+            mReceiptTableController.get(mCurrentTrip);
             Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_copy), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onReceiptCopyFailure() {
+    public void onCopyFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.COPY_ERROR), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onReceiptMoveSuccess(Trip trip) {
-        getPersistenceManager().getDatabase().getReceiptsParallel(mCurrentTrip);
-        getPersistenceManager().getDatabase().getTripsParallel(); // Call this to update Trip Fragments
+    public void onSwapSuccess() {
+        mReceiptTableController.get(mCurrentTrip);
+    }
+
+    @Override
+    public void onSwapFailure(@Nullable Throwable e) {
+        // TODO: Respond?
+    }
+
+    @Override
+    public void onMoveSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
         if (isAdded()) {
+            mReceiptTableController.get(mCurrentTrip);
             Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_move), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void onReceiptMoveFailure() {
+    public void onMoveFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.MOVE_ERROR), Toast.LENGTH_SHORT).show();
         }

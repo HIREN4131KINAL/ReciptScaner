@@ -2,13 +2,15 @@ package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
+
+import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
@@ -17,27 +19,35 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
+import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
  * implementation, which will be used to generate instances of {@link co.smartreceipts.android.model.Receipt} objects
  */
-public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
+public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
 
     private static final int UNKNOWN_ID = -1;
 
     private Trip _trip;
     private PaymentMethod _paymentMethod;
     private File _file;
-    private String _name, _category, _comment;
-    private String _extraEditText1, _extraEditText2, _extraEditText3;
+    private String _name;
+    private Category _category;
+    private String _comment;
+    private String _extraEditText1;
+    private String _extraEditText2;
+    private String _extraEditText3;
     private final PriceBuilderFactory _priceBuilderFactory, _taxBuilderFactory;
     private Date _date;
     private TimeZone _timezone;
     private int _id;
     private int _index;
-    private boolean _isExpenseable, _isFullPage, _isSelected;
+    private boolean _isReimbursable, _isFullPage, _isSelected;
     private Source _source;
+    private SyncState _syncState;
 
     public ReceiptBuilderFactory() {
         this(UNKNOWN_ID);
@@ -46,7 +56,6 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
     public ReceiptBuilderFactory(int id) {
         _id = id;
         _name = "";
-        _category = "";
         _comment = "";
         _priceBuilderFactory = new PriceBuilderFactory();
         _taxBuilderFactory = new PriceBuilderFactory();
@@ -54,6 +63,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _timezone = TimeZone.getDefault();
         _index = -1;
         _source = Source.Undefined;
+        _syncState = new DefaultSyncState();
     }
 
     public ReceiptBuilderFactory(@NonNull Receipt receipt) {
@@ -68,7 +78,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _category = receipt.getCategory();
         _comment = receipt.getComment();
         _paymentMethod = receipt.getPaymentMethod();
-        _isExpenseable = receipt.isExpensable();
+        _isReimbursable = receipt.isReimbursable();
         _isFullPage = receipt.isFullPage();
         _isSelected = receipt.isSelected();
         _extraEditText1 = receipt.getExtraEditText1();
@@ -76,6 +86,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _extraEditText3 = receipt.getExtraEditText3();
         _index = receipt.getIndex();
         _source = receipt.getSource();
+        _syncState = receipt.getSyncState();
     }
 
     public ReceiptBuilderFactory(int id, @NonNull Receipt receipt) {
@@ -83,7 +94,7 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         _id = id;
     }
 
-    public ReceiptBuilderFactory setTrip(Trip trip) {
+    public ReceiptBuilderFactory setTrip(@NonNull Trip trip) {
         _trip = trip;
         return this;
     }
@@ -93,17 +104,24 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setName(String name) {
+    public ReceiptBuilderFactory setName(@NonNull String name) {
         _name = name;
         return this;
     }
 
-    public ReceiptBuilderFactory setCategory(String category) {
+    @Deprecated
+    public ReceiptBuilderFactory setCategory(@NonNull String category) {
+        // TODO: Delete me
+        _category = new ImmutableCategoryImpl(category, "");
+        return this;
+    }
+
+    public ReceiptBuilderFactory setCategory(@NonNull Category category) {
         _category = category;
         return this;
     }
 
-    public ReceiptBuilderFactory setComment(String comment) {
+    public ReceiptBuilderFactory setComment(@NonNull String comment) {
         _comment = comment;
         return this;
     }
@@ -198,8 +216,8 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setIsExpenseable(boolean isExpenseable) {
-        _isExpenseable = isExpenseable;
+    public ReceiptBuilderFactory setIsReimbursable(boolean isReimbursable) {
+        _isReimbursable = isReimbursable;
         return this;
     }
 
@@ -245,25 +263,15 @@ public final class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setSourceAsCache() {
-        _source = Source.Cache;
+    public ReceiptBuilderFactory setSyncState(@NonNull SyncState syncState) {
+        _syncState = Preconditions.checkNotNull(syncState);
         return this;
     }
 
     @Override
     @NonNull
     public Receipt build() {
-        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isExpenseable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3);
+        return new DefaultReceiptImpl(_id, _index, _trip, _file, _paymentMethod, _name, _category, _comment, _priceBuilderFactory.build(), _taxBuilderFactory.build(), _date, _timezone, _isReimbursable, _isFullPage, _isSelected, _source, _extraEditText1, _extraEditText2, _extraEditText3, _syncState);
     }
 
-    private BigDecimal tryParse(String number) {
-        if (TextUtils.isEmpty(number)) {
-            return new BigDecimal(0);
-        }
-        try {
-            return new BigDecimal(number.replace(",", "."));
-        } catch (NumberFormatException e) {
-            return new BigDecimal(0);
-        }
-    }
 }

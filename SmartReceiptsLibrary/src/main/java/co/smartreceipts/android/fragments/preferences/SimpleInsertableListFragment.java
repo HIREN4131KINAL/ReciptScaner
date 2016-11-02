@@ -1,9 +1,12 @@
 package co.smartreceipts.android.fragments.preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,18 +18,23 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
-public abstract class SimpleInsertableListFragment<T> extends WBFragment implements View.OnClickListener {
+public abstract class SimpleInsertableListFragment<T> extends WBFragment implements View.OnClickListener, TableEventsListener<T> {
 
     private Toolbar mToolbar;
 	private ListView mListView;
-	private Adapter<T> mAdapter;
+	private Adapter mAdapter;
+    private List<T> mData;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
-		mAdapter = new Adapter<T>(this, getActivity(), getData());
+        mData = new ArrayList<>();
+		mAdapter = new Adapter(this, getActivity());
 	}
 	
 	@Override
@@ -64,18 +72,31 @@ public abstract class SimpleInsertableListFragment<T> extends WBFragment impleme
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
-	/**
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getTableController().subscribe(this);
+        getTableController().get();
+    }
+
+    @Override
+    public void onPause() {
+        getTableController().unsubscribe(this);
+        super.onPause();
+    }
+
+    /**
 	 * @return the {@link Adapter} that is being used by this fragment
 	 */
-	protected final Adapter<T> getAdapter() {
+	protected final Adapter getAdapter() {
 		return mAdapter;
 	}
 	
 	/**
 	 * @return - the data set used to populate this list fragment
 	 */
-	protected abstract List<T> getData();
+	protected abstract TableController<T> getTableController();
 	
 	/**
 	 * Shows the proper message in order to assist the user with inserting an item
@@ -91,18 +112,56 @@ public abstract class SimpleInsertableListFragment<T> extends WBFragment impleme
 	 * @return the properly constructed view object
 	 */
 	public abstract View getView(LayoutInflater inflater, T item, View convertView, ViewGroup parent);
+
+    @Override
+    public void onGetSuccess(@NonNull List<T> list) {
+        mData = list;
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+
+    }
+
+    @Override
+    public void onInsertSuccess(@NonNull T t, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        getTableController().get();
+    }
+
+    @Override
+    public void onInsertFailure(@NonNull T t, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+
+    }
+
+    @Override
+    public void onUpdateSuccess(@NonNull T oldT, @NonNull T newT, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        getTableController().get();
+    }
+
+    @Override
+    public void onUpdateFailure(@NonNull T oldT, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+
+    }
+
+    @Override
+    public void onDeleteSuccess(@NonNull T t, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        getTableController().get();
+    }
+
+    @Override
+    public void onDeleteFailure(@NonNull T t, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+
+    }
 	
-	
-	public static final class Adapter<T> extends BaseAdapter {
+	private final class Adapter extends BaseAdapter {
 		
 		private final SimpleInsertableListFragment<T> mParentFragment;
-		private final List<T> mData;
 		protected final LayoutInflater mInflater;
 		
-		public Adapter(final SimpleInsertableListFragment<T> parentFragment, final Context context, final List<T> data) {
+		public Adapter(final SimpleInsertableListFragment<T> parentFragment, final Context context) {
 			mParentFragment = parentFragment;
 			mInflater = LayoutInflater.from(context);
-			mData = data;
 		}
 
 		@Override

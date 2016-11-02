@@ -1,20 +1,30 @@
 package co.smartreceipts.android.activities;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.widget.Toast;
+
+import com.google.common.base.Preconditions;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.utils.IntentUtils;
 
 public class NavigationHandler {
 
@@ -23,24 +33,34 @@ public class NavigationHandler {
 
     private final FragmentManager mFragmentManager;
     private final FragmentProvider mFragmentProvider;
+    private final WeakReference<FragmentActivity> mFragmentActivityWeakReference;
     private final boolean mIsDualPane;
 
+    public NavigationHandler(@NonNull FragmentActivity activity) {
+        this(activity, new DefaultFragmentProvider());
+    }
+
     public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentProvider fragmentProvider) {
-        this(activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
+        this(activity, activity.getSupportFragmentManager(), fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
 
-    public NavigationHandler(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider) {
-        this(fragmentManager, fragmentProvider, context.getResources().getBoolean(R.bool.isTablet));
+    public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider) {
+        this(activity, fragmentManager, fragmentProvider, activity.getResources().getBoolean(R.bool.isTablet));
     }
 
-    public NavigationHandler(@NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
-        mFragmentManager = fragmentManager;
-        mFragmentProvider = fragmentProvider;
-        mIsDualPane = isDualPane;
+    public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentManager fragmentManager, @NonNull FragmentProvider fragmentProvider, boolean isDualPane) {
+        mFragmentActivityWeakReference = new WeakReference<>(Preconditions.checkNotNull(activity));
+        mFragmentManager = Preconditions.checkNotNull(fragmentManager);
+        mFragmentProvider = Preconditions.checkNotNull(fragmentProvider);
+        mIsDualPane = Preconditions.checkNotNull(isDualPane);
     }
 
-    public void navigateToTripsFragment() {
-        replaceFragment(mFragmentProvider.newTripFragmentInstance(), R.id.content_list);
+    public void navigateToHomeTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(true), R.id.content_list);
+    }
+
+    public void navigateUpToTripsFragment() {
+        replaceFragment(mFragmentProvider.newTripFragmentInstance(false), R.id.content_list);
     }
 
     public void navigateToReportInfoFragment(@NonNull Trip trip) {
@@ -76,11 +96,46 @@ public class NavigationHandler {
     }
 
     public void navigateToViewReceiptPdf(@NonNull Receipt receipt) {
-        if (mIsDualPane) {
-            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_details);
-        } else {
-            replaceFragment(mFragmentProvider.newReceiptPdfFragment(receipt), R.id.content_list);
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null && receipt.getFile() != null) {
+            try {
+                final Intent intent = IntentUtils.getViewIntent(activity, receipt.getFile(), "application/pdf");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                activity.startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(activity, R.string.error_no_pdf_activity_viewer, Toast.LENGTH_LONG).show();
+            }
         }
+    }
+
+    public void navigateToBackupMenu() {
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_list);
+        }
+    }
+
+    public void navigateToSettings() {
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            final Intent intent = new Intent(activity, SettingsActivity.class);
+            activity.startActivity(intent);
+        }
+    }
+
+    public boolean navigateBack() {
+        try {
+            return mFragmentManager.popBackStackImmediate();
+        } catch (final IllegalStateException e) {
+            // This exception is always thrown if saveInstanceState was already been called.
+            return false;
+        }
+    }
+
+    public void showDialog(@NonNull DialogFragment dialogFragment) {
+        final String tag = dialogFragment.getClass().getName();
+        dialogFragment.show(mFragmentManager, tag);
     }
 
     public boolean isDualPane() {

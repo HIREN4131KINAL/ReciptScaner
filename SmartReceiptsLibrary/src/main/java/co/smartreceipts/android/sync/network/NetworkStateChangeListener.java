@@ -11,12 +11,12 @@ public interface NetworkStateChangeListener {
 	 * This method is called whenever the network connection is lost. It will also be called when this listener is first
 	 * registered if network is not currently available.
 	 */
-	public void onNetworkConnectivityLost();
+	void onNetworkConnectivityLost();
 
 	/**
 	 * This method is called whenever the network connection is regained. It will also be called when this listener is
 	 * first registered if network is currently available.
 	 */
-	public void onNetworkConnectivityGained();
+	void onNetworkConnectivityGained();
 
 }

@@ -170,7 +170,7 @@
     <string name="set_time_interval" msgid="2970567717633813771">"Définir l\'intervalle de temps"</string>
     <string name="set_time_interval_help" msgid="6665849510484821483">"La fonctionnalité Time Lapse est désactivée. Veuillez l\'activer pour définir un intervalle."</string>
     <string name="remember_location_title" msgid="9060472929006917810">"Se souvenir du lieu des photos ?"</string>
-    <string name="remember_location_prompt" msgid="724592331305808098">"Ajoutez des tags à vos photos et à vos vidéos pour identifier l\'endroit de la prise de vue."\n\n"D\'autres applications peuvent accéder à ces informations, ainsi qu\'aux images enregistrées."</string>
+    <string name="remember_location_prompt" msgid="724592331305808098">"Ajoutez des tags à vos photos et à vos vidéos pour identifierMap l\'endroit de la prise de vue."\n\n"D\'autres applications peuvent accéder à ces informations, ainsi qu\'aux images enregistrées."</string>
     <string name="remember_location_no" msgid="7541394381714894896">"Non, merci"</string>
     <string name="remember_location_yes" msgid="862884269285964180">"Oui"</string>
 </resources>

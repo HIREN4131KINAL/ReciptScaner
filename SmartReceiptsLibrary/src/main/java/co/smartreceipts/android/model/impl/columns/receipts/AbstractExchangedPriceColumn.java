@@ -15,6 +15,7 @@ import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.model.utils.ModelUtils;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Allows us to genericize how different prices are converted to a trip's base currency
@@ -23,8 +24,8 @@ public abstract class AbstractExchangedPriceColumn extends AbstractColumnImpl<Re
 
     private final Context mContext;
 
-    public AbstractExchangedPriceColumn(int id, @NonNull String name, @NonNull Context context) {
-        super(id, name);
+    public AbstractExchangedPriceColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context) {
+        super(id, name, syncState);
         mContext = context;
     }
 

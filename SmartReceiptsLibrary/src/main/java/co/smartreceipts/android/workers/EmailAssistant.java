@@ -19,8 +19,6 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.itextpdf.text.BadElementException;
@@ -50,11 +48,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -65,14 +61,13 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
-import wb.android.dialog.BetterDialogBuilder;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -105,11 +100,6 @@ public class EmailAssistant {
     private final PersistenceManager mPersistenceManager;
     private final Trip mTrip;
 
-    public static final void email(SmartReceiptsApplication app, Context context, Trip trip) {
-        EmailAssistant assistant = new EmailAssistant(context, app.getFlex(), app.getPersistenceManager(), trip);
-        assistant.emailTrip();
-    }
-
     public static final Intent getEmailDeveloperIntent() {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setType("text/plain");
@@ -136,72 +126,6 @@ public class EmailAssistant {
         mTrip = trip;
     }
 
-    public final void emailTrip() {
-        if (!mPersistenceManager.getStorageManager().isExternal()) {
-            Toast.makeText(mContext, mFlex.getString(mContext, R.string.SD_ERROR), Toast.LENGTH_LONG).show();
-            return;
-        }
-        View scrollView = mFlex.getView(mContext, R.layout.dialog_email);
-        final CheckBox pdfFull = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
-        final CheckBox pdfImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
-        final CheckBox csv = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
-        final CheckBox zipStampedImages = (CheckBox) mFlex.getSubView(mContext, scrollView, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
-        final BetterDialogBuilder builder = new BetterDialogBuilder(mContext);
-        String msg = mFlex.getString(mContext, R.string.DIALOG_EMAIL_MESSAGE);
-        if (msg.length() > 0) {
-            builder.setMessage(msg);
-        }
-        builder.setTitle(mFlex.getString(mContext, R.string.DIALOG_EMAIL_TITLE))
-                .setCancelable(true)
-                .setView(scrollView)
-                .setPositiveButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        if (!pdfFull.isChecked() && !pdfImages.isChecked() && !csv.isChecked() && !zipStampedImages.isChecked()) {
-                            Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
-                            dialog.cancel();
-                            return;
-                        }
-                        if (mPersistenceManager.getDatabase().getReceiptsSerial(mTrip).isEmpty()) {
-                            if (mPersistenceManager.getDatabase().getDistanceSerial(mTrip).isEmpty() || !pdfFull.isChecked()) {
-                                // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
-                                Toast.makeText(mContext, mFlex.getString(mContext, R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
-                                dialog.cancel();
-                                return;
-                            } else {
-                                // Uncheck "Illegal" Items
-                                pdfImages.setChecked(false);
-                                csv.setChecked(false);
-                                zipStampedImages.setChecked(false);
-                            }
-                        }
-                        ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
-                        EnumSet<EmailOptions> options = EnumSet.noneOf(EmailOptions.class);
-                        if (pdfFull.isChecked()) {
-                            options.add(EmailOptions.PDF_FULL);
-                        }
-                        if (pdfImages.isChecked()) {
-                            options.add(EmailOptions.PDF_IMAGES_ONLY);
-                        }
-                        if (csv.isChecked()) {
-                            options.add(EmailOptions.CSV);
-                        }
-                        if (zipStampedImages.isChecked()) {
-                            options.add(EmailOptions.ZIP_IMAGES_STAMPED);
-                        }
-                        EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
-                        attachmentWriter.execute(mTrip);
-                    }
-                })
-                .setNegativeButton(mFlex.getString(mContext, R.string.DIALOG_EMAIL_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                })
-                .show();
-    }
-
     public void emailTrip(@NonNull EnumSet<EmailOptions> options) {
         ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
         EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
@@ -209,12 +133,12 @@ public class EmailAssistant {
     }
 
     public void onAttachmentsCreated(File[] attachments) {
-        ArrayList<Uri> uris = new ArrayList<Uri>();
+        List<File> files = new ArrayList<File>();
         StringBuilder bodyBuilder = new StringBuilder();
         String path = "";
         if (attachments[EmailOptions.PDF_FULL.getIndex()] != null) {
             path = attachments[EmailOptions.PDF_FULL.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.PDF_FULL.getIndex()]));
+            files.add(attachments[EmailOptions.PDF_FULL.getIndex()]);
             if (attachments[EmailOptions.PDF_FULL.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.PDF_FULL.getIndex()].getAbsolutePath()));
@@ -222,7 +146,7 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()] != null) {
             path = attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()]));
+            files.add(attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()]);
             if (attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.PDF_IMAGES_ONLY.getIndex()].getAbsolutePath()));
@@ -230,7 +154,7 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.CSV.getIndex()] != null) {
             path = attachments[EmailOptions.CSV.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.CSV.getIndex()]));
+            files.add(attachments[EmailOptions.CSV.getIndex()]);
             if (attachments[EmailOptions.CSV.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.CSV.getIndex()].getAbsolutePath()));
@@ -238,80 +162,45 @@ public class EmailAssistant {
         }
         if (attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()] != null) {
             path = attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getParentFile().getAbsolutePath();
-            uris.add(Uri.fromFile(attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]));
+            files.add(attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()]);
             if (attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].length() > 5000000) { //Technically, this should be 5,242,880 but I'd rather give a warning buffer
                 bodyBuilder.append("\n");
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getAbsolutePath()));
             }
         }
 
-        //TODO: Check if we've defined the subject in our preferences
         String body = bodyBuilder.toString();
         if (body.length() > 0) {
             body = "\n\n" + body;
         }
-        if (uris.size() == 1) {
+        if (files.size() == 1) {
             body = mContext.getString(R.string.report_attached) + body;
-        } else if (uris.size() > 1) {
-            body = mContext.getString(R.string.reports_attached, Integer.toString(uris.size())) + body;
+        } else if (files.size() > 1) {
+            body = mContext.getString(R.string.reports_attached, Integer.toString(files.size())) + body;
         }
 
-		/*Works for Google Drive. Breaks the rest
-        ArrayList<String> extra_text = new ArrayList<String>(); //Need this part to fix a Bundle casting bug
-		if (uris.size() == 1) extra_text.add(uris.size() + " report attached");
-		if (uris.size() > 1) extra_text.add(uris.size() + " reports attached");
-		emailIntent.putStringArrayListExtra(Intent.EXTRA_TEXT, extra_text);
-		*/
-
-        if (!mPersistenceManager.getPreferences().getUsesFileExporerForOutputIntent()) {
-            // Action Send Output
-            final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
-            emailIntent.setType("application/octet-stream");
-            final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
-            final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
-            final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
-            emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
-            emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
-            emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
-            emailIntent.putExtra(Intent.EXTRA_TEXT, body);
-            // emailIntent.putCharSequenceArrayListExtra(Intent.EXTRA_TEXT, new ArrayList<CharSequence>(Arrays.asList(body)));
-            emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-            try {
-                mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
-            } catch (ActivityNotFoundException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(R.string.error_no_send_intent_dialog_title)
-                        .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
-            }
-        } else {
-            final Intent fileIntent = new Intent(android.content.Intent.ACTION_GET_CONTENT);
-            fileIntent.setType("file/*");
-            if (path != null) {
-                File parentDirectory = new File(path);
-                fileIntent.setData(Uri.fromFile(parentDirectory));
-            }
-            try {
-                mContext.startActivity(Intent.createChooser(fileIntent, mContext.getString(R.string.send_file)));
-            } catch (ActivityNotFoundException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(R.string.error_no_file_intent_dialog_title)
-                        .setMessage(mContext.getString(R.string.error_no_file_intent_dialog_message, path))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        })
-                        .show();
-            }
+        final Intent emailIntent = IntentUtils.getSendIntent(mContext, files);
+        final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
+        final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
+        final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
+        emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
+        emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
+        emailIntent.putExtra(Intent.EXTRA_TEXT, body);
+        try {
+            mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
+        } catch (ActivityNotFoundException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle(R.string.error_no_send_intent_dialog_title)
+                    .setMessage(mContext.getString(R.string.error_no_send_intent_dialog_message, path))
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -370,7 +259,7 @@ public class EmailAssistant {
 
             // Set up our initial variables
             final Trip trip = trips[0];
-            final List<Receipt> receipts = mDB.getReceiptsSerial(trip, false);
+            final List<Receipt> receipts = mDB.getReceiptsTable().getBlocking(trip, false);
             final int len = receipts.size();
             final WriterResults results = new WriterResults();
 
@@ -402,11 +291,11 @@ public class EmailAssistant {
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
-                final List<Column<Receipt>> csvColumns = mDB.getCSVColumns();
+                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().toBlocking().first();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
-                    final List<Distance> distances = new ArrayList<Distance>(mDB.getDistanceSerial(trip));
+                    final List<Distance> distances = new ArrayList<>(mDB.getDistanceTable().getBlocking(trip, true));
                     if (!distances.isEmpty()) {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
 
@@ -414,7 +303,7 @@ public class EmailAssistant {
                         final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
                         final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         data += "\n\n";
-                        data += new CsvTableGenerator<Distance>(distanceColumns, true, true).generate(distances);
+                        data += new CsvTableGenerator<>(distanceColumns, true, true).generate(distances);
                     }
                 }
                 String filename = dir.getName() + ".csv";
@@ -435,7 +324,7 @@ public class EmailAssistant {
                         try {
                             Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
                             if (b != null) {
-                                mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
+                                mStorageManager.writeBitmap(dir, b, receipts.get(i).getImage().getName(), CompressFormat.JPEG, 85);
                                 b.recycle();
                                 b = null;
                             }
@@ -444,7 +333,7 @@ public class EmailAssistant {
                             try {
                                 Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
                                 if (b != null) {
-                                    mStorageManager.writeBitmap(dir, b, (i + 1) + "_" + FileUtils.omitIllegalCharactersFromFileName(receipts.get(i).getName()) + ".jpg", CompressFormat.JPEG, 85);
+                                    mStorageManager.writeBitmap(dir, b, receipts.get(i).getImage().getName(), CompressFormat.JPEG, 85);
                                     b.recycle();
                                 }
                             } catch (OutOfMemoryError e2) {
@@ -471,7 +360,7 @@ public class EmailAssistant {
          * @return true if if should be filtered out, false otherwise
          */
         private boolean filterOutReceipt(Preferences preferences, Receipt receipt) {
-            if (preferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+            if (preferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
                 return true;
             } else if (receipt.getPrice().getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports()) {
                 return true;
@@ -550,7 +439,7 @@ public class EmailAssistant {
                 }
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_DATE) + ": " + receipt.getFormattedDate(mContext, mPersistenceManager.getPreferences().getDateSeparator()), xPad / 2, y, brush);
                 y += spacing;
-                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.getCategory(), xPad / 2, y, brush);
+                canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_CATEGORY) + ": " + receipt.getCategory().getName(), xPad / 2, y, brush);
                 y += spacing;
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_COMMENT) + ": " + receipt.getComment(), xPad / 2, y, brush);
                 y += spacing;
@@ -691,7 +580,7 @@ public class EmailAssistant {
         }
 
         private void addFullPageImage(Document document, Receipt receipt, PdfWriter writer) {
-            if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+            if (mPreferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
                 return;
             }
             if (receipt.getPrice().getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {

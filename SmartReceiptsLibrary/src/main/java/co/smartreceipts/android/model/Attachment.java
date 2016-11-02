@@ -91,7 +91,12 @@ public class Attachment {
 	            cursor.moveToFirst();
 	            int idx = cursor.getColumnIndex(column); 
 	            if (idx >= 0) {
-	            	return Uri.fromFile(new File(cursor.getString(idx)));
+					final String path = cursor.getString(idx);
+					if (path != null) {
+						return Uri.fromFile(new File(cursor.getString(idx)));
+					} else {
+						return null;
+					}
 	            }
 	            else {
 	            	return null;

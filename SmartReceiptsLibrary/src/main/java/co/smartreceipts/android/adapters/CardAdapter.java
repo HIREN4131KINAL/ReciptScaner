@@ -8,14 +8,27 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.common.base.Preconditions;
+import com.squareup.picasso.Picasso;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.model.Syncable;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class CardAdapter<T> extends BaseAdapter {
 	
@@ -23,22 +36,32 @@ public class CardAdapter<T> extends BaseAdapter {
 	private static final int MIN_PRICE_WIDTH_DIVIDER = 6;
 	private static final float PRICE_WIDTH_BUFFER = 1.1f;
 
+    protected final BackupProvidersManager mBackupProvidersManager;
+    protected final Drawable mCloudDisabledDrawable;
+    protected final Drawable mNotSyncedDrawable;
+    protected final Drawable mSyncedDrawable;
+
 	private final LayoutInflater mInflater;
 	private final Preferences mPreferences;
 	private final Context mContext;
-	private List<T> mData;
-	private int mMinPriceWidth, mMaxPriceWidth, mCurrentPriceWidth;
 	private final float mCardPriceTextSize;
+
+    private List<T> mData;
+    private int mMinPriceWidth, mMaxPriceWidth, mCurrentPriceWidth;
 	
-	public CardAdapter(Context context, Preferences preferences) {
-		this(context, preferences, Collections.<T>emptyList());
+	public CardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+		this(context, preferences, backupProvidersManager, Collections.<T>emptyList());
 	}
 
-    public CardAdapter(Context context, Preferences preferences, List<T> data) {
+    public CardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager, @NonNull List<T> data) {
         mInflater = LayoutInflater.from(context);
         mPreferences = preferences;
         mContext = context;
         mData = new ArrayList<T>(data);
+        mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
+        mCloudDisabledDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_off_24dp);
+        mNotSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_queue_24dp);
+        mSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_done_24dp);
         final Resources resources = mContext.getResources();
         final DisplayMetrics metrics = resources.getDisplayMetrics();
         mMaxPriceWidth = (int) (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width
@@ -85,6 +108,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		public TextView date;
 		public TextView category;
 		public TextView marker;
+        public ImageView syncState;
 	}
 
 	@Override
@@ -99,6 +123,7 @@ public class CardAdapter<T> extends BaseAdapter {
 			holder.date = (TextView) convertView.findViewById(android.R.id.summary);
 			holder.category = (TextView) convertView.findViewById(android.R.id.text1);
 			holder.marker = (TextView) convertView.findViewById(android.R.id.text2);
+            holder.syncState = (ImageView) convertView.findViewById(R.id.card_sync_state);
 			convertView.setTag(holder);
 		}
 		else {
@@ -113,6 +138,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		setDateTextView(holder.date, data);
 		setCategory(holder.category, data);
 		setMarker(holder.marker, data);
+        setSyncStateImage(holder.syncState, data);
 		return convertView;
 	}
 	
@@ -166,6 +192,25 @@ public class CardAdapter<T> extends BaseAdapter {
 	protected void setMarker(TextView textView, T data) {
 		textView.setVisibility(View.GONE);
 	}
+
+    protected void setSyncStateImage(ImageView image, T data) {
+        image.setClickable(false);
+        if (mBackupProvidersManager.getSyncProvider() == SyncProvider.GoogleDrive) {
+            if (data instanceof Syncable) {
+                final Syncable syncableData = (Syncable) data;
+                if (mBackupProvidersManager.getLastDatabaseSyncTime().getTime() >= syncableData.getSyncState().getLastLocalModificationTime().getTime()
+                        && syncableData.getSyncState().getLastLocalModificationTime().getTime() > 0) {
+                    Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mSyncedDrawable).into(image);
+                } else {
+                    Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mNotSyncedDrawable).into(image);
+                }
+            } else {
+                image.setVisibility(View.GONE);
+            }
+        } else {
+            Picasso.with(getContext()).load(Uri.EMPTY).placeholder(mCloudDisabledDrawable).into(image);
+        }
+    }
 	
 	protected int getCardPriceTextSizeResouce() {
 		return R.dimen.card_price_size;

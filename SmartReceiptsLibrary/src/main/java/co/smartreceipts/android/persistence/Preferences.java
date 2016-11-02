@@ -1,12 +1,9 @@
 package co.smartreceipts.android.persistence;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -18,7 +15,6 @@ import java.util.Locale;
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.utils.Utils;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -42,14 +38,14 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Receipt Preferences
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeExpensable, mReceiptsDefaultAsExpensable, mDefaultToFirstReportDate,
+    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mReceiptsDefaultAsReimbursable, mDefaultToFirstReportDate,
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
     // Output Preferences
     private String mUserID;
     private File mSignaturePhoto;
-    private boolean mIncludeCSVHeaders, mUseFileExplorerForOutput, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
+    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -66,6 +62,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Pro Preferences
     private String mPdfFooterText;
+
+    // No Category
+    private boolean mAutoBackupOnWifiOnly;
 
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
@@ -132,12 +131,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mEnableAutoCompleteSuggestions = prefs.getBoolean(mContext.getString(R.string.pref_receipt_enable_autocomplete_key), true);
     }
 
-    private void initOnlyIncludeExpensable(SharedPreferences prefs) {
-        this.mOnlyIncludeExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_only_key), false);
+    private void initOnlyIncludeReimbursable(SharedPreferences prefs) {
+        this.mOnlyIncludeReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_only_key), false);
     }
 
-    private void initReceiptsDefaultAsExpensable(SharedPreferences prefs) {
-        this.mReceiptsDefaultAsExpensable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_expensable_default_key), false);
+    private void initReceiptsDefaultAsReimbursable(SharedPreferences prefs) {
+        this.mReceiptsDefaultAsReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_default_key), mContext.getResources().getBoolean(R.bool.pref_receipt_reimbursable_default_defaultValue));
     }
 
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
@@ -169,7 +168,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initUsePaymentMethods(SharedPreferences prefs) {
-        this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), false);
+        this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), mContext.getResources().getBoolean(R.bool.pref_receipt_use_payment_methods_defaultValue));
     }
 
     private void initUserID(SharedPreferences prefs) {
@@ -178,10 +177,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initIncludeCSVHeaders(SharedPreferences prefs) {
         this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), mContext.getResources().getBoolean(R.bool.pref_output_csv_header_defaultValue));
-    }
-
-    private void initUseFileExplorerForOutput(SharedPreferences prefs) {
-        this.mUseFileExplorerForOutput = prefs.getBoolean(mContext.getString(R.string.pref_output_launch_file_explorer_key), false);
     }
 
     private void initIncludeReceiptIdNotIndex(SharedPreferences prefs) {
@@ -276,6 +271,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
     }
 
+    private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
+        this.mAutoBackupOnWifiOnly = prefs.getBoolean(mContext.getString(R.string.pref_no_category_auto_backup_wifi_only_key), mContext.getResources().getBoolean(R.bool.pref_no_category_auto_backup_wifi_only_defaultValue));
+    }
+
     Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
@@ -301,8 +300,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultTaxPercentage(prefs);
         this.initPredictCategories(prefs);
         this.initEnableAutoCompleteSuggestions(prefs);
-        this.initOnlyIncludeExpensable(prefs);
-        this.initReceiptsDefaultAsExpensable(prefs);
+        this.initOnlyIncludeReimbursable(prefs);
+        this.initReceiptsDefaultAsReimbursable(prefs);
         this.initDefaultToFirstReportDate(prefs);
         this.initMatchNameCats(prefs);
         this.initMatchCommentCats(prefs);
@@ -317,7 +316,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initIncludeCSVHeaders(prefs);
         this.initIncludeReceiptIdNotIndex(prefs);
         this.initIncludeCommentByReceiptPhoto(prefs);
-        this.initUseFileExplorerForOutput(prefs);
         this.initOptimizeSpaceForPDFOutput(prefs);
         this.initShowBlankSignature(prefs);
         this.initSignaturePhoto(prefs);
@@ -347,6 +345,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
         // Pro Preferences
         this.initPdfFooterText(prefs);
+
+        // No Category
+        this.initAutoBackupOnWifiOnly(prefs);
 
         // Misc (i.e. inaccessible preferences) for app use only
         this.mShowActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
@@ -382,7 +383,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    public SharedPreferences getSharedPreferences() {
+        return mContext.getSharedPreferences(SMART_PREFS, 0);
+    }
+
     public void commit() {
         /**
          * *********************************
@@ -392,26 +396,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, mShowActionSendHelpDialog);
-        /*
-        editor.putInt(INT_DEFAULT_TRIP_DURATION, mDefaultTripDuration);
-        editor.putFloat(FLOAT_MIN_RECEIPT_PRICE, mMinReceiptPrice);
-        editor.putString(STRING_DEFAULT_EMAIL_TO, mEmailTo);
-        editor.putString(STRING_CURRENCY, mDefaultCurrency);
-        editor.putBoolean(BOOL_PREDICT_CATEGORIES, mPredictCategories);
-        editor.putBoolean(BOOL_USE_NATIVE_CAMERA, mUseNativeCamera);
-        editor.putBoolean(BOOL_MATCH_NAME_WITH_CATEGORIES, mMatchNameCats);
-        editor.putBoolean(BOOL_MATCH_COMMENT_WITH_CATEGORIES, mMatchCommentCats);
-        editor.putBoolean(BOOL_ONLY_INCLUDE_EXPENSABLE_ITEMS, mOnlyIncludeExpensable);
-        editor.putBoolean(BOOL_INCLUDE_TAX_FIELD, mIncludeTaxField);
-        editor.putBoolean(BOOL_ENABLE_AUTOCOMPLETE_SUGGESTIONS, mEnableAutoCompleteSuggestions);
-        editor.putString(STRING_USERNAME, mUserID);
-        editor.putString(STRING_DATE_SEPARATOR, mDateSeparator);
-        editor.putBoolean(BOOL_DEFAULT_TO_FIRST_TRIP_DATE, mDefaultToFirstReportDate);*/
-        if (Utils.ApiHelper.hasGingerbread()) {
-            editor.apply();
-        } else {
-            editor.commit();
-        }
+        editor.apply();
     }
 
     @Override
@@ -440,15 +425,15 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public void setUseNativeCamera(boolean useNativeCamera) {
         this.mUseNativeCamera = useNativeCamera;
-        PreferenceManager.getDefaultSharedPreferences(mContext).edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
+        getSharedPreferences().edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
     }
 
-    public boolean onlyIncludeExpensableReceiptsInReports() {
-        return mOnlyIncludeExpensable;
+    public boolean onlyIncludeReimbursableReceiptsInReports() {
+        return mOnlyIncludeReimbursable;
     }
 
-    public boolean doReceiptsDefaultAsExpensable() {
-        return mReceiptsDefaultAsExpensable;
+    public boolean doReceiptsDefaultAsReimbursable() {
+        return mReceiptsDefaultAsReimbursable;
     }
 
     public boolean includeTaxField() {
@@ -572,10 +557,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mUsePreTaxPrice;
     }
 
-    public boolean getUsesFileExporerForOutputIntent() {
-        return this.mUseFileExplorerForOutput;
-    }
-
     public boolean hasDefaultDistanceRate() {
         return this.mDefaultDistanceRate > 0;
     }
@@ -613,6 +594,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public String getPdfFooterText() {
         return mPdfFooterText;
+    }
+
+    public boolean getAutoBackupOnWifiOnly() {
+        return mAutoBackupOnWifiOnly;
     }
 
 }

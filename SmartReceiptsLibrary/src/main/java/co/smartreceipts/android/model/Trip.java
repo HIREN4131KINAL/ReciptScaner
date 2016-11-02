@@ -3,22 +3,25 @@ package co.smartreceipts.android.model;
 import android.content.Context;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.sync.model.Syncable;
 
-public interface Trip extends Parcelable, Priceable {
+public interface Trip extends Parcelable, Priceable, Comparable<Trip>, Syncable {
 
-    public static final String PARCEL_KEY = Trip.class.getName();
+    String PARCEL_KEY = Trip.class.getName();
 
     /**
      * Gets the name of this trip
      *
      * @return the {@link String} object, contain the name of this trip (this will be the name of {@link #getDirectory()}
      */
+    @NonNull
     String getName();
 
     /**
@@ -26,6 +29,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the {@link java.io.File} directory containing this trips images
      */
+    @NonNull
     File getDirectory();
 
     /**
@@ -33,6 +37,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return a representation of the directory path via {@link #getDirectory()} and {@link java.io.File#getAbsolutePath()}.
      */
+    @NonNull
     String getDirectoryPath();
 
     /**
@@ -40,6 +45,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the start {@link java.sql.Date}
      */
+    @NonNull
     Date getStartDate();
 
     /**
@@ -50,6 +56,7 @@ public interface Trip extends Parcelable, Priceable {
      * @param separator - the date separator (e.g. "/", "-", ".")
      * @return the formatted date string for the start date
      */
+    @NonNull
     String getFormattedStartDate(Context context, String separator);
 
     /**
@@ -57,6 +64,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return - the {@link java.util.TimeZone} for the start date
      */
+    @NonNull
     TimeZone getStartTimeZone();
 
     /**
@@ -64,6 +72,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the end {@link java.sql.Date}
      */
+    @NonNull
     Date getEndDate();
 
     /**
@@ -74,6 +83,7 @@ public interface Trip extends Parcelable, Priceable {
      * @param separator - the date separator (e.g. "/", "-", ".")
      * @return the formatted date string for the end date
      */
+    @NonNull
     String getFormattedEndDate(Context context, String separator);
 
     /**
@@ -81,6 +91,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return - the {@link java.util.TimeZone} for the start date
      */
+    @NonNull
     TimeZone getEndTimeZone();
 
     /**
@@ -94,7 +105,7 @@ public interface Trip extends Parcelable, Priceable {
      * @param date - the {@link java.sql.Date} to test
      * @return {@code true} if it is contained within. {@code false} otherwise
      */
-    boolean isDateInsideTripBounds(Date date);
+    boolean isDateInsideTripBounds(@Nullable Date date);
 
     /**
      * As the price of a trip exists as a function of it's receipt children (and not itself), this method can
@@ -109,6 +120,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the daily sub-total {@link co.smartreceipts.android.model.Price}
      */
+    @NonNull
     Price getDailySubTotal();
 
     /**
@@ -137,34 +149,11 @@ public interface Trip extends Parcelable, Priceable {
     String getDefaultCurrencyCode();
 
     /**
-     * Gets the total mileage for this trip. This has been deprecated in favor of {@link Distance}s.
-     *
-     * @return the total mileage as a float
-     */
-    @Deprecated
-    float getMileage();
-
-    /**
-     * Gets the total mileage for this trip. This has been deprecated in favor of {@link Distance}s.
-     *
-     * @return the total mileage as a {@link java.lang.String}
-     */
-    @Deprecated
-    String getMilesAsString();
-
-    /**
-     * Sets the mileage for this trip. This has been deprecated in favor of {@link Distance}s.
-     *
-     * @param mileage the current mileage
-     */
-    @Deprecated
-    void setMileage(float mileage);
-
-    /**
      * Gets the user defined comment for this trip
      *
      * @return - the current comment as a {@link java.lang.String}
      */
+    @NonNull
     String getComment();
 
     /**
@@ -172,6 +161,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the {@link java.lang.String} containing the cost center
      */
+    @NonNull
     String getCostCenter();
 
     /**
@@ -179,14 +169,8 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the {@link co.smartreceipts.android.model.Source}
      */
+    @NonNull
     Source getSource();
-
-    /**
-     * Tests if this particular trip has a {@link co.smartreceipts.android.filters.Filter} attached
-     *
-     * @return {@code true} if it has a {@link co.smartreceipts.android.filters.Filter}, {@code false} otherwise
-     */
-    boolean hasFilter();
 
     /**
      * Gets the {@link co.smartreceipts.android.filters.Filter} that is associated with this trip and can be applied
@@ -194,6 +178,7 @@ public interface Trip extends Parcelable, Priceable {
      *
      * @return the {@link co.smartreceipts.android.filters.Filter} or {@code null} if one does not exist
      */
+    @Nullable
     Filter<Receipt> getFilter();
 
 }

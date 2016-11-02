@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,8 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  * @author williambaumann
  */
 public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
+
+    private static final int ROUNDING_PRECISION = PRECISION + 2;
 
     private final List<Price> mPrices;
     private final Map<WBCurrency, BigDecimal> mCurrencyToPriceMap;
@@ -58,8 +61,8 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
             final BigDecimal priceForCurrency = mCurrencyToPriceMap.containsKey(currencyForPriceToAdd) ? mCurrencyToPriceMap.get(currencyForPriceToAdd).add(priceToAdd) : priceToAdd;
             mCurrencyToPriceMap.put(currencyForPriceToAdd, priceForCurrency);
         }
-        mTotalPrice = totalPrice;
-        mPossiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice;
+        mTotalPrice = totalPrice.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
+        mPossiblyIncorrectTotalPrice = possiblyIncorrectTotalPrice.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mAreAllExchangeRatesValid = areAllExchangeRatesValid;
         mExchangeRate = new ExchangeRateBuilderFactory().setBaseCurrency(baseCurrency).build();
     }

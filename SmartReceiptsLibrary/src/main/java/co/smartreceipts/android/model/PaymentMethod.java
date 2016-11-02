@@ -3,12 +3,14 @@ package co.smartreceipts.android.model;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.sync.model.Syncable;
+
 /**
  * This interface establishes the contract for encapsulating the behavior of different payment models.
  *
  * @author Will Baumann
  */
-public interface PaymentMethod extends Parcelable {
+public interface PaymentMethod extends Parcelable, Syncable {
 
     /**
      * @return - the database primary key id for this method

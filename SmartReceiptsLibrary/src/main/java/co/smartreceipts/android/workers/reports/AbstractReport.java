@@ -62,7 +62,7 @@ abstract class AbstractReport implements Report {
      */
     @Deprecated
     protected final boolean filterOutReceipt(Receipt receipt) {
-        if (mPreferences.onlyIncludeExpensableReceiptsInReports() && !receipt.isExpensable()) {
+        if (mPreferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
             return true;
         } else if (receipt.getPrice().getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {
             return true;

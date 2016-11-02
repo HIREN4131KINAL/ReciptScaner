@@ -2,8 +2,12 @@ package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.impl.ImmutablePaymentMethodImpl;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * A {@link co.smartreceipts.android.model.Receipt} {@link co.smartreceipts.android.model.factory.BuilderFactory}
@@ -13,13 +17,15 @@ public class PaymentMethodBuilderFactory implements BuilderFactory<PaymentMethod
 
     private int _id;
     private String _method;
+    private SyncState _syncState;
 
     /**
      * Default constructor for this class
      */
     public PaymentMethodBuilderFactory() {
-        _id = -1;
+        _id = MISSING_ID;
         _method = "";
+        _syncState = new DefaultSyncState();
     }
 
     /**
@@ -40,7 +46,12 @@ public class PaymentMethodBuilderFactory implements BuilderFactory<PaymentMethod
      * @return this {@link PaymentMethodBuilderFactory} for method chaining
      */
     public PaymentMethodBuilderFactory setMethod(@NonNull String method) {
-        _method = method;
+        _method = Preconditions.checkNotNull(method);
+        return this;
+    }
+
+    public PaymentMethodBuilderFactory setSyncState(@NonNull SyncState syncState) {
+        _syncState = Preconditions.checkNotNull(syncState);
         return this;
     }
 
@@ -49,6 +60,6 @@ public class PaymentMethodBuilderFactory implements BuilderFactory<PaymentMethod
      */
     @NonNull
     public PaymentMethod build() {
-        return new ImmutablePaymentMethodImpl(_id, _method);
+        return new ImmutablePaymentMethodImpl(_id, _method, _syncState);
     }
 }

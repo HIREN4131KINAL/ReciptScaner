@@ -13,7 +13,7 @@
     <!-- ============== Start Error Messages ================= -->
     <string name="SD_ERROR">Erreur: Vérifier que votre carte SD est présente et pas utilisée par votre ordinateur.</string>
     <string name="SD_WARNING">Attention: Votre carte SD n\'est pas disponible ou est utilisée par votre ordinateur. Certaines photos ne seront pas accessible. Utilisation de la mémoire interne&#8230;</string>
-    <string name="DB_ERROR">Erreur: Une autre application utilise la base SQLite.</string>
+    <string name="database_error">Erreur: Une autre application utilise la base SQLite.</string>
     <string name="IMG_OPEN_ERROR">Erreur: La photo n\'est pas accesible ou corronpue. Votre carte SD est indisponible ou toujours utilisée par votre ordinateur. Dans le cas contraire, presser le bouton menu pour prendre à nouveau une photo.</string>
     <string name="toast_pdf_open_error">Erreur: Le fichier PDF n\'est pas accesible ou corrompu. Votre carte SD ests indisponible ou toujours utilisée par votre ordinateur.</string>
     <string name="IMG_SAVE_ERROR">Erreur: Impossible d\'enregistrer la photo.</string>
@@ -24,7 +24,7 @@
     <string name="CALENDAR_TAB_ERROR">Erreur: Merci de mettre une date</string>
     <string name="DURATION_ERROR">Erreur: La date de début doit précédé la date de fin</string>
     <string name="EXPORT_ERROR">Erreur: Impossible d\'exporter vos données. Vérifier que votre téléphone n\'est pas utilisé par votre ordinateur.</string>
-    <string name="IMPORT_ERROR">Erreur: Impossible d\'identifier le fichier a importer</string>
+    <string name="IMPORT_ERROR">Erreur: Impossible d\'identifierMap le fichier a importer</string>
     <string name="MOVE_ERROR">Erreur: Impossible de déplaçer le ticket</string>
     <string name="COPY_ERROR">Erreur: Impossible de copier le ticket</string>
     <string name="toast_error_trip_exists">Erreur: Une note de frais avec ce nom existe déjà</string>
@@ -64,7 +64,7 @@
     <string name="DIALOG_RECEIPTMENU_HINT_DATE">Date</string>
     <string name="DIALOG_RECEIPTMENU_HINT_CATEGORY">Catégorie</string>
     <string name="DIALOG_RECEIPTMENU_HINT_COMMENT">Commentaire</string>
-    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE"> Expensable?</string>
+    <string name="DIALOG_RECEIPTMENU_HINT_EXPENSABLE">Reimbursable?</string>
     <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW">Nouvelle Note de Frais</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_EDIT">Editer</string>

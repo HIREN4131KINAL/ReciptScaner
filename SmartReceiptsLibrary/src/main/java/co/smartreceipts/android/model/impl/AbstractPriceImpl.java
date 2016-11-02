@@ -9,7 +9,7 @@ import co.smartreceipts.android.model.Price;
  */
 abstract class AbstractPriceImpl implements Price {
 
-    protected static final float EPSILON = 0.00001f;
+    protected static final float EPSILON = 1f / (Price.PRECISION + 2f);
 
     @Override
     public boolean equals(Object o) {

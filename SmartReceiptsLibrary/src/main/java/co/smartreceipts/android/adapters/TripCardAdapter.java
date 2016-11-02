@@ -1,15 +1,17 @@
 package co.smartreceipts.android.adapters;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.widget.TextView;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 
 public class TripCardAdapter extends CardAdapter<Trip> {
 
-	public TripCardAdapter(Context context, Preferences preferences) {
-		super(context, preferences);
+	public TripCardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+		super(context, preferences, backupProvidersManager);
 	}
 	
 	@Override

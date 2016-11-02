@@ -5,12 +5,14 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
+import co.smartreceipts.android.sync.model.Syncable;
+
 /**
  * Provides a contract for how each individual column in a report should operate
  */
-public interface Column<T> {
+public interface Column<T> extends Syncable {
 
-    public static final int UNKNOWN_ID = -1;
+    int UNKNOWN_ID = -1;
 
     /**
      * Gets the unique identifier number for this column

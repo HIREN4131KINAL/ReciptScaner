@@ -1,16 +1,13 @@
 package co.smartreceipts.android.activities;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.File;
 
+import co.smartreceipts.android.sync.widget.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
-import co.smartreceipts.android.fragments.ReceiptPDFFragment;
-import co.smartreceipts.android.fragments.ReceiptsFragment;
-import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Receipt;
@@ -20,8 +17,8 @@ public class DefaultFragmentProvider implements FragmentProvider {
 
     @NonNull
     @Override
-    public TripFragment newTripFragmentInstance() {
-        return TripFragment.newInstance();
+    public TripFragment newTripFragmentInstance(boolean navigateToViewLastTrip) {
+        return TripFragment.newInstance(navigateToViewLastTrip);
     }
 
     @NonNull
@@ -50,9 +47,8 @@ public class DefaultFragmentProvider implements FragmentProvider {
 
     @NonNull
     @Override
-    public ReceiptPDFFragment newReceiptPdfFragment(@NonNull Receipt receipt) {
-        return ReceiptPDFFragment.newInstance(receipt);
+    public BackupsFragment newBackupsFragment() {
+        return new BackupsFragment();
     }
-
 
 }

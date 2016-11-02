@@ -20,11 +20,6 @@
 	       android:title="@string/pref_output_username_title"
 	       wb:emptyValue="@string/pref_output_username_emptyValue" />
 		<CheckBoxPreference
-            android:key="@string/pref_output_launch_file_explorer_key"
-            android:title="@string/pref_output_launch_file_explorer_title"
-            android:summary="@string/pref_output_launch_file_explorer_summary"
-            android:defaultValue="false "/>
-		<CheckBoxPreference
             android:key="@string/pref_output_print_receipt_id_by_photo_key"
             android:title="@string/pref_output_print_receipt_id_by_photo_title"
             android:summary="@string/pref_output_print_receipt_id_by_photo_summary"

@@ -18,19 +18,15 @@
     </style>
     
     <style name="Widget.View.Divider.Horizontal" parent="Widget">
-        <item name="android:layout_width">fill_parent</item>
-        <item name="android:layout_height">1dp</item>
-	    <item name="android:background">@android:color/darker_gray</item>
-	    <item name="android:layout_marginLeft">3dp</item>
-	    <item name="android:layout_marginRight">3dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:background">?android:attr/listDivider</item>
 	</style>
 	
     <style name="Widget.View.Divider.Vertical" parent="Widget">
         <item name="android:layout_width">1dp</item>
-        <item name="android:layout_height">fill_parent</item>
-	    <item name="android:background">@android:color/darker_gray</item>
-	    <item name="android:layout_marginTop">3dp</item>
-	    <item name="android:layout_marginBottom">3dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">?android:attr/listDivider</item>
 	</style>
     
     <style name="Widget.SmartReceipts.RelativeLayout" parent="Widget">
@@ -154,6 +150,25 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Widget.SmartReceipts.Button" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="android:textAppearance">@style/Widget.SmartReceipts.TextView.Button</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/button_background</item>
+    </style>
+
+    <style name="Widget.SmartReceipts.TextView.Button.Secondary">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?colorAccent</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="Widget.SmartReceipts.Button.Secondary" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="android:textAppearance">@style/Widget.SmartReceipts.TextView.Button.Secondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/button_secondary_background</item>
     </style>
 
     <style name="Widget.SmartReceipts.FloatingActionButton">

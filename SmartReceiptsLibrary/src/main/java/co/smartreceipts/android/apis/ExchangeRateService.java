@@ -16,24 +16,25 @@ import retrofit.http.Query;
 public interface ExchangeRateService {
 
     /**
-     * Submits a synchronous network request to get the exchange rate for a particular currency on a given date
+     * Submits an asynchronous network request to get the exchange rate for a particular currency on a given date
      *
      * @param date                 the desired date to get the exchange rate for
+     * @param app_id               the app id token
      * @param baseCurrencyCode     the base currency code (to which all conversion rates apply)
-     * @param exchangeCurrencyCode the currency code that we would want to exchange the base into
-     * @return the {@link co.smartreceipts.android.model.gson.ExchangeRate} containing this information
+     * @param callback             the callback that gets triggered when the request completes
      */
-    @GET("/{date}")
-    ExchangeRate getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbols") String exchangeCurrencyCode);
+    @GET("/api/historical/{date}.json")
+    void getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("app_id") String app_id, @NonNull @Query("base") String baseCurrencyCode, @NonNull Callback<ExchangeRate> callback);
 
     /**
      * Submits an asynchronous network request to get the exchange rate for a particular currency on a given date
      *
      * @param date                 the desired date to get the exchange rate for
+     * @param app_id               the app id token
      * @param baseCurrencyCode     the base currency code (to which all conversion rates apply)
      * @param exchangeCurrencyCode the currency code that we would want to exchange the base into
      * @param callback             the callback that gets triggered when the request completes
      */
-    @GET("/{date}")
-    void getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbols") String exchangeCurrencyCode, @NonNull Callback<ExchangeRate> callback);
+    @GET("/api/historical/{date}.json")
+    void getExchangeRate(@NonNull @Path("date") Date date, @NonNull @Query("app_id") String app_id, @NonNull @Query("base") String baseCurrencyCode, @NonNull @Query("symbols") String exchangeCurrencyCode, @NonNull Callback<ExchangeRate> callback);
 }

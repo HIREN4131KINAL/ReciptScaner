@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.UnknownColumnResolutionStrategory;
 import co.smartreceipts.android.model.impl.columns.ConstantColumn;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * Provides a default implementation of the {@link co.smartreceipts.android.model.UnknownColumnResolutionStrategory}
@@ -14,7 +15,7 @@ public final class ConstantColumnUnknownColumnResolutionStrategory<T> implements
 
     @Override
     public Column<T> resolve(int id, @NonNull String columnName) {
-        return new ConstantColumn<T>(id, columnName);
+        return new ConstantColumn<>(id, columnName, new DefaultSyncState());
     }
 }
 

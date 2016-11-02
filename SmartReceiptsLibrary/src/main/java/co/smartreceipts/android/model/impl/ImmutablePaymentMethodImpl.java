@@ -3,7 +3,11 @@ package co.smartreceipts.android.model.impl;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.model.PaymentMethod;
+import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 
 /**
  * An immutable implementation of {@link co.smartreceipts.android.model.PaymentMethod}.
@@ -14,15 +18,22 @@ public final class ImmutablePaymentMethodImpl implements PaymentMethod {
 
     private final int mId;
     private final String mMethod;
+    private final SyncState mSyncState;
 
-    public ImmutablePaymentMethodImpl(final int id, final String method) {
+    public ImmutablePaymentMethodImpl(int id, @NonNull String method) {
+        this(id, method, new DefaultSyncState());
+    }
+
+    public ImmutablePaymentMethodImpl(int id, @NonNull String method, @NonNull SyncState syncState) {
         mId = id;
-        mMethod = method;
+        mMethod = Preconditions.checkNotNull(method);
+        mSyncState = Preconditions.checkNotNull(syncState);
     }
 
     private ImmutablePaymentMethodImpl(final Parcel in) {
         mId = in.readInt();
         mMethod = in.readString();
+        mSyncState = in.readParcelable(getClass().getClassLoader());
     }
 
     /**
@@ -39,38 +50,33 @@ public final class ImmutablePaymentMethodImpl implements PaymentMethod {
         return mMethod;
     }
 
+    @NonNull
+    @Override
+    public SyncState getSyncState() {
+        return mSyncState;
+    }
+
     @Override
     public String toString() {
         return mMethod;
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + mId;
-        result = prime * result + ((mMethod == null) ? 0 : mMethod.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ImmutablePaymentMethodImpl)) return false;
+
+        ImmutablePaymentMethodImpl that = (ImmutablePaymentMethodImpl) o;
+
+        if (mId != that.mId) return false;
+        return (mMethod.equals(that.mMethod));
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
-        ImmutablePaymentMethodImpl other = (ImmutablePaymentMethodImpl) obj;
-        if (mId != other.mId) {
-            return false;
-        }
-        if (mMethod == null) {
-            if (other.mMethod != null) {
-                return false;
-            }
-        } else if (!mMethod.equals(other.mMethod)) {
-            return false;
-        }
-        return true;
+    public int hashCode() {
+        int result = mId;
+        result = 31 * result + mMethod.hashCode();
+        return result;
     }
 
     @Override
@@ -82,6 +88,7 @@ public final class ImmutablePaymentMethodImpl implements PaymentMethod {
     public void writeToParcel(final Parcel out, final int flags) {
         out.writeInt(mId);
         out.writeString(mMethod);
+        out.writeParcelable(mSyncState, flags);
     }
 
     public static Creator<ImmutablePaymentMethodImpl> CREATOR = new Creator<ImmutablePaymentMethodImpl>() {

@@ -8,13 +8,14 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
+import co.smartreceipts.android.sync.model.SyncState;
 
 public final class DistancePriceColumn extends AbstractColumnImpl<Distance> {
 
     private final boolean mAllowSpecialCharacters;
 
-    public DistancePriceColumn(int id, @NonNull String name, boolean allowSpecialCharacters) {
-        super(id, name);
+    public DistancePriceColumn(int id, @NonNull String name, @NonNull SyncState syncState, boolean allowSpecialCharacters) {
+        super(id, name, syncState);
         mAllowSpecialCharacters = allowSpecialCharacters;
     }
 

@@ -9,9 +9,11 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Receipt extends Parcelable, Priceable {
+import co.smartreceipts.android.sync.model.Syncable;
 
-    public static final String PARCEL_KEY = Receipt.class.getName();
+public interface Receipt extends Parcelable, Priceable, Comparable<Receipt>, Syncable {
+
+    String PARCEL_KEY = Receipt.class.getName();
 
     /**
      * Gets the primary key id for this receipt
@@ -38,13 +40,6 @@ public interface Receipt extends Parcelable, Priceable {
      */
     @Nullable
     PaymentMethod getPaymentMethod();
-
-    /**
-     * Checks if a payment method is attached to this receipt and can be retrieved via {@link #getPaymentMethod()}.
-     *
-     * @return {@code true} if there is a {@link co.smartreceipts.android.model.PaymentMethod}, {@code false} otherwise.
-     */
-    boolean hasPaymentMethod();
 
     /**
      * Gets the name of this receipt. This should never be {@code null}.
@@ -143,10 +138,10 @@ public interface Receipt extends Parcelable, Priceable {
     /**
      * Gets the category to which this receipt is attached
      *
-     * @return the {@link java.lang.String} representation of the category
+     * @return the {@link Category} this receipt uses
      */
     @NonNull
-    String getCategory();
+    Category getCategory();
 
     /**
      * Gets the user defined comment for this receipt
@@ -194,11 +189,11 @@ public interface Receipt extends Parcelable, Priceable {
     TimeZone getTimeZone();
 
     /**
-     * Checks if the receipt was marked as expensable (i.e. counting towards the total) or not
+     * Checks if the receipt was marked as Reimbursable (i.e. counting towards the total) or not
      *
-     * @return {@code true} if it's expensable, {@code false} otherwise
+     * @return {@code true} if it's Reimbursable, {@code false} otherwise
      */
-    boolean isExpensable();
+    boolean isReimbursable();
 
     /**
      * Checks if this receipt should be printed as a full page in the PDF report

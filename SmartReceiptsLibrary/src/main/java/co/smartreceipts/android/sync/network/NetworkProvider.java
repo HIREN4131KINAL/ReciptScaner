@@ -1,38 +1,36 @@
 package co.smartreceipts.android.sync.network;
 
+import android.support.annotation.NonNull;
+
 /**
  * This interface defines different network provider types (e.g. WiFi-Only vs Mobile) in order to allow us to track the
  * current state and changing states of each
- * 
- * @author Will Baumann
  */
 public interface NetworkProvider {
 
-	/**
-	 * This action will be broadcast whenever our network provider state has changed. It will be sent with one of the
-	 * following extras:
-	 * 
-	 * <ul>
-	 * <li>{@link #EXTRA_NETWORK_STATE_CONNECTED}</li>
-	 * </ul>
-	 */
-	public static final String ACTION_NETWORK_STATE_CHANGED = "co.smartreceipts.android.sync.network.StateChanged";
+    void initialize();
 
-	/**
-	 * This boolean extra contains the following data:
-	 * 
-	 * <ul>
-	 * <li>{@code true} - if we now have a network connection</li>
-	 * <li>{@code false} - if we no longer have a connection</li>
-	 * </ul>
-	 */
-	public static final String EXTRA_NETWORK_STATE_CONNECTED = "co.smartreceipts.android.sync.network.Connection";
+    void deinitialize();
 
 	/**
 	 * Checks if a network connection is currently available
 	 * 
 	 * @return {@code true} if the network is currently available. {@code false} if it is not.
 	 */
-	public boolean isNetworkAvailable();
+	boolean isNetworkAvailable();
+
+    /**
+     * Registers a listener to be informed network is lost or gained
+     *
+     * @param listener the {@link NetworkStateChangeListener} to register
+     */
+    void registerListener(@NonNull NetworkStateChangeListener listener);
+
+    /**
+     * Un-registers a listener to no longer be if informed network is lost or gained
+     *
+     * @param listener the {@link NetworkStateChangeListener} to un-register
+     */
+    void unregisterListener(@NonNull NetworkStateChangeListener listener);
 
 }

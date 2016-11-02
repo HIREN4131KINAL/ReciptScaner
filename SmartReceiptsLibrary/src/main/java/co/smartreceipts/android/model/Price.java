@@ -12,6 +12,8 @@ import co.smartreceipts.android.model.gson.ExchangeRate;
  */
 public interface Price extends Parcelable {
 
+    int PRECISION = 5;
+
     /**
      * Gets the float representation of this price
      *

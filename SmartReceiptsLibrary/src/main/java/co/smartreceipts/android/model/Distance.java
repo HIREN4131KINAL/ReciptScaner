@@ -8,10 +8,12 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-public interface Distance extends Parcelable, Priceable {
+import co.smartreceipts.android.sync.model.Syncable;
 
-    public static final String PARCEL_KEY = Distance.class.getName();
-    public static final int RATE_PRECISION = 3;
+public interface Distance extends Parcelable, Priceable, Comparable<Distance>, Syncable {
+
+    String PARCEL_KEY = Distance.class.getName();
+    int RATE_PRECISION = 3;
 
     /**
      * Gets the primary key id for this distance
@@ -101,6 +103,6 @@ public interface Distance extends Parcelable, Priceable {
      *
      * @return - the current comment as a {@link java.lang.String}
      */
-    public String getComment();
+    String getComment();
 
 }

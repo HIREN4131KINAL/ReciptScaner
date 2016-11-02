@@ -120,7 +120,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
     		else {
     			Toast.makeText(getCurrentActivity(), R.string.IMPORT_ERROR, Toast.LENGTH_LONG).show();
     		}
-    		getPersistenceManager().getDatabase().getTripsParallel();
+    		getTableControllerManager().getTripTableController().get();
 		}
 
 	}

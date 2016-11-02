@@ -1,13 +1,11 @@
 package co.smartreceipts.android.fragments;
 
-import android.database.SQLException;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -24,9 +22,11 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
-import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
-public class DistanceFragment extends WBListFragment implements DatabaseHelper.DistanceRowListener {
+public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
 
     public static final String TAG = DistanceFragment.class.getName();
 
@@ -35,6 +35,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     private View mProgressDialog;
     private TextView mNoDataAlert;
     private Distance mLastInsertedDistance;
+    private DistanceTableController mDistanceTableController;
 
     public static DistanceFragment newInstance(final Trip trip) {
         final DistanceFragment fragment = new DistanceFragment();
@@ -48,11 +49,9 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-        mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences());
+        mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        if (savedInstanceState ==  null) {
-            getWorkerManager().getLogger().logEvent(this, "Edit_Mileage");
-        }
+        mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
     }
 
 
@@ -66,7 +65,6 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
         view.findViewById(R.id.distance_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getWorkerManager().getLogger().logEvent(DistanceFragment.this, "Add_Mileage");
                 final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
                 dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             }
@@ -85,16 +83,16 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
-        getPersistenceManager().getDatabase().registerDistanceRowListener(this);
-        getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+        mDistanceTableController.subscribe(this);
+        mDistanceTableController.get(mTrip);
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
+        if (getView() != null && isVisibleToUser) {
             // Refresh as soon as we're visible
-            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+            mDistanceTableController.get(mTrip);
         }
     }
 
@@ -102,7 +100,7 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        getPersistenceManager().getDatabase().unregisterDistanceRowListener();
+        mDistanceTableController.unsubscribe(this);
     }
 
     @Override
@@ -114,18 +112,18 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
     }
 
     @Override
-    public void onDistanceRowsQuerySuccess(List<Distance> distances) {
+    public void onGetSuccess(@NonNull List<Distance> distances, @NonNull Trip trip) {
         if (isAdded()) {
             mAdapter.notifyDataSetChanged(distances);
             mProgressDialog.setVisibility(View.GONE);
-            if (distances == null || distances.size() == 0) {
+            if (distances.isEmpty()) {
                 getListView().setVisibility(View.GONE);
                 mNoDataAlert.setVisibility(View.VISIBLE);
-                return;
             } else {
                 mNoDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
+
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
                 if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {
@@ -139,45 +137,58 @@ public class DistanceFragment extends WBListFragment implements DatabaseHelper.D
                     getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, ModelUtils.getDecimalFormattedValue(distanceTotal)));
                 }
             }
-            // Fetch trips in the background to ensure this info is up to date
-            getPersistenceManager().getDatabase().getTripsParallel();
         }
     }
 
     @Override
-    public void onDistanceRowInsertSuccess(Distance distance) {
-        if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+    public void onGetFailure(@Nullable Throwable e, @NonNull Trip trip) {
+        // TODO: Respond?
+    }
+
+    @Override
+    public void onGetSuccess(@NonNull List<Distance> list) {
+        // TODO: Respond?
+    }
+
+    @Override
+    public void onGetFailure(@Nullable Throwable e) {
+        // TODO: Respond?
+    }
+
+    @Override
+    public void onInsertSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isResumed()) {
+            mDistanceTableController.get(mTrip);
         }
         mLastInsertedDistance = distance;
     }
 
     @Override
-    public void onDistanceRowInsertFailure(SQLException error) {
+    public void onInsertFailure(@NonNull Distance distance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_insert_failed);
     }
 
     @Override
-    public void onDistanceRowUpdateSuccess(Distance distance) {
-        if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+    public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isResumed()) {
+            mDistanceTableController.get(mTrip);
         }
     }
 
     @Override
-    public void onDistanceRowUpdateFailure() {
+    public void onUpdateFailure(@NonNull Distance oldDistance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_update_failed);
     }
 
     @Override
-    public void onDistanceDeleteSuccess(Distance distance) {
-        if (isAdded()) {
-            getPersistenceManager().getDatabase().getDistanceParallel(mTrip);
+    public void onDeleteSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        if (isResumed()) {
+            mDistanceTableController.get(mTrip);
         }
     }
 
     @Override
-    public void onDistanceDeleteFailure() {
+    public void onDeleteFailure(@NonNull Distance distance, @Nullable Throwable e, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         showToastMessage(R.string.distance_delete_failed);
     }
 

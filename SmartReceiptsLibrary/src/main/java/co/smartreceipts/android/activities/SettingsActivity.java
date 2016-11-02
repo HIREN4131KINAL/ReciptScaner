@@ -11,10 +11,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceCategory;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -39,12 +39,16 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference;
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
 import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
@@ -95,7 +99,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             configurePreferencesAbout(this);
         }
 
-        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        final SmartReceiptsApplication app = ((SmartReceiptsApplication)getApplication());
+        mSubscriptionManager = new SubscriptionManager(this, app.getPersistenceManager().getSubscriptionCache(), app.getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
@@ -150,7 +155,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     protected void onStart() {
-        mApp.getWorkerManager().getLogger().logScreen(this);
         super.onStart();
     }
 
@@ -317,6 +321,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // We always use the native camera for M+
             ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
+            final PreferenceCategory cameraCategory = (PreferenceCategory) universal.findPreference(R.string.pref_camera_header_key);
+            if (cameraCategory != null) {
+                final Preference nativeCameraPreference = universal.findPreference(R.string.pref_camera_use_native_camera_key);
+                cameraCategory.removePreference(nativeCameraPreference);
+            }
         }
     }
 
@@ -329,7 +338,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configureProPreferences(UniversalPreferences universal) {
-        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
         pdfFooterPreference.setAppearsEnabled(hasProSubscription);
         pdfFooterPreference.setOnPreferenceClickListener(this);
@@ -373,15 +382,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
-            return true;
+            throw new UnsupportedOperationException("Not supported in production at the moment");
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
-            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+            final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
-                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
+                mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }
@@ -428,7 +437,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull SubscriptionWallet updateSubscriptionWallet) {
+    public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updateSubscriptionWallet) {
+        ((SmartReceiptsApplication)getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -439,7 +449,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
-    public void onPurchaseFailed() {
+    public void onPurchaseFailed(@NonNull PurchaseSource purchaseSource) {
+        ((SmartReceiptsApplication)getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -457,8 +468,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     private String getDebugScreen() {
-        String debug = "Debug-information: \n" + "Smart Receipts Version: " + getAppVersion() + "\n" + "Brand: " + android.os.Build.BRAND + "\n" + "CPU: " + android.os.Build.CPU_ABI + "\n" + "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" + "Device: " + android.os.Build.DEVICE + "\n" + "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" + "Two-Paned: " + mIsUsingHeaders;
-        return debug;
+        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        return "Debug-information: \n" +
+                "Smart Receipts Version: " + getAppVersion() + "\n" +
+                "Plus: " + hasProSubscription + "\n" +
+                "Brand: " + android.os.Build.BRAND + "\n" +
+                "CPU: " + android.os.Build.CPU_ABI + "\n" +
+                "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" +
+                "Device: " + android.os.Build.DEVICE + "\n" +
+                "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" +
+                "Two-Paned: " + mIsUsingHeaders;
     }
 
     private static class CopySignatureImageClass extends AsyncTask<Void, Void, Boolean> {

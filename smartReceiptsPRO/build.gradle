@@ -1,11 +1,7 @@
 apply plugin: 'com.android.application'
-// apply plugin: 'robolectric'
 
 dependencies {
     compile project(':smartReceiptsLibrary')
-    androidTestCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
-    androidTestCompile "junit:junit:$JUNIT_VERSION"
-    androidTestCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
 }
 
 android {
@@ -13,9 +9,17 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
+        applicationId "wb.receiptspro"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    dexOptions {
+        javaMaxHeapSize "2048M"
     }
 
     lintOptions {
@@ -23,14 +27,6 @@ android {
     }
 
     sourceSets {
-        // Move the tests to src/test/java, src/test/res, etc...
-
-        /* TODO: Commenting out until I fix Robolectric
-        androidTest {
-            setRoot('src/test')
-        }
-        */
-
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
         // This moves them out of them default location under src/<type>/... which would

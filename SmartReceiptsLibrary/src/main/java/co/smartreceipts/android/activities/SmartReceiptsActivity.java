@@ -4,26 +4,27 @@ import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.fragments.TripFragment;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.sync.widget.ImportLocalBackupDialogFragment;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.purchases.PurchaseableSubscription;
+import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
@@ -37,10 +38,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     // logging variables
     static final String TAG = "SmartReceiptsActivity";
 
-    // Camera Request Extras
-    public static final String STRING_DATA = "strData";
-    public static final int DIR = 0;
-    public static final int NAME = 1;
+    private static final int STORAGE_PERMISSION_REQUEST = 33;
+    private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     // AppRating (Use a combination of launches and a timer for the app rating
     // to ensure that we aren't prompting new users too soon
@@ -51,6 +50,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
+    private BackupProvidersManager mBackupProvidersManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +58,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Log.d(TAG, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
-        mSubscriptionManager = new SubscriptionManager(this, ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache());
+        mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
@@ -67,11 +67,13 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
         if (savedInstanceState == null) {
             Log.d(TAG, "savedInstanceState == null");
-            mNavigationHandler.navigateToTripsFragment();
+            mNavigationHandler.navigateToHomeTripsFragment();
             AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
+        mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
+        mBackupProvidersManager.initialize(this);
     }
 
     @Override
@@ -92,26 +94,33 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         // Present dialog for viewing an attachment
         final Attachment attachment = new Attachment(getIntent(), getContentResolver());
         setAttachment(attachment);
-        if (attachment.isValid() && attachment.isDirectlyAttachable()) {
-            final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
-            final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
-            if (preferences.showActionSendHelpDialog()) {
-                BetterDialogBuilder builder = new BetterDialogBuilder(this);
-                builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        preferences.setShowActionSendHelpDialog(false);
-                        preferences.commit();
-                        dialog.cancel();
-                    }
-                }).show();
-            } else {
-                Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
+        if (attachment.isValid()) {
+            final boolean hasStoragePermission = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            if (attachment.isActionView() && !hasStoragePermission) {
+                ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
+            } else if (attachment.isDirectlyAttachable()) {
+                final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
+                final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
+                if (preferences.showActionSendHelpDialog()) {
+                    BetterDialogBuilder builder = new BetterDialogBuilder(this);
+                    builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            preferences.setShowActionSendHelpDialog(false);
+                            preferences.commit();
+                            dialog.cancel();
+                        }
+                    }).show();
+                } else {
+                    Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
+                }
+            } else if (attachment.isSMR() && attachment.isActionView()) {
+                mNavigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(attachment.getUri()));
             }
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();
@@ -120,7 +129,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data);
+            if (!mBackupProvidersManager.onActivityResult(requestCode, resultCode, data)) {
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 
@@ -128,8 +139,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPro);
-        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPro);
+        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
         if (!proSubscriptionIsAvailable || haveProSubscription) {
@@ -147,17 +158,16 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
-            SRNavUtils.showSettings(this);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Settings_Menu");
+            mNavigationHandler.navigateToSettings();
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
-            final Fragment tripsFragment = getSupportFragmentManager().findFragmentByTag(TripFragment.class.getName());
-            getSmartReceiptsApplication().getSettings().showExport(tripsFragment);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Export_Import_Menu");
+            mNavigationHandler.navigateToBackupMenu();
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPro);
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Show_Pro_Purchase_Menu");
+            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -204,25 +214,17 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public void setAttachment(Attachment attachment) {
         mAttachment = attachment;
     }
-
-
+    
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
         Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
-
-        if (subscriptionWallet.hasSubscription(Subscription.SmartReceiptsPro)) {
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Has_Pro_Sub");
-        } else {
-            getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Queried_Without_Pro_Sub");
-        }
     }
 
     @Override
     public void onSubscriptionsUnavailable() {
         Log.w(TAG, "No subscriptions were found for this session");
-        // Intentional no-op
     }
 
     @Override
@@ -250,11 +252,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Success_" + subscription.getSku());
                 invalidateOptionsMenu(); // To hide the subscription option
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_succeeded, Toast.LENGTH_LONG).show();
             }
@@ -262,11 +264,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseFailed() {
+    public void onPurchaseFailed(@NonNull final PurchaseSource purchaseSource) {
+        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getSmartReceiptsApplication().getWorkerManager().getLogger().logEvent(SmartReceiptsActivity.this, "Purchase_Failed");
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
             }
         });

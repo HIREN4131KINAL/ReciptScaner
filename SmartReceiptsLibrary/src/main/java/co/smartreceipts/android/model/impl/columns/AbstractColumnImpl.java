@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.sync.model.SyncState;
 
 /**
  * Provides an abstract implementation of the column contract to cover shared code
@@ -13,10 +14,12 @@ public abstract class AbstractColumnImpl<T> implements Column<T>, Comparable<Abs
 
     private final int mId;
     private final String mName;
+    private final SyncState mSyncState;
 
-    public AbstractColumnImpl(int id, @NonNull String name) {
+    public AbstractColumnImpl(int id, @NonNull String name, @NonNull SyncState syncState) {
         mId = id;
         mName = name;
+        mSyncState = syncState;
     }
 
     @Override
@@ -44,7 +47,13 @@ public abstract class AbstractColumnImpl<T> implements Column<T>, Comparable<Abs
 
     @Override
     public int compareTo(@NonNull AbstractColumnImpl<T> otherColumn) {
-        return getName().compareTo(otherColumn.getName());
+        return getId() - otherColumn.getId();
+    }
+
+    @NonNull
+    @Override
+    public SyncState getSyncState() {
+        return mSyncState;
     }
 
     @Override

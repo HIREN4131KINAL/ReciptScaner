@@ -24,7 +24,7 @@ public class NetworkRequestManager<T> {
 
     public NetworkRequestManager(@NonNull FragmentManager fragmentManager, @NonNull String endpoint, @NonNull Class<T> serviceClass) {
         RetrofitHeadlessFragment headlessFragment = (RetrofitHeadlessFragment) fragmentManager.findFragmentByTag(RetrofitHeadlessFragment.TAG);
-        if (headlessFragment == null) {
+        if (headlessFragment == null || headlessFragment.mServiceClass == null) {
             headlessFragment = new RetrofitHeadlessFragment();
             fragmentManager.beginTransaction().add(headlessFragment, RetrofitHeadlessFragment.TAG).commit();
             final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();

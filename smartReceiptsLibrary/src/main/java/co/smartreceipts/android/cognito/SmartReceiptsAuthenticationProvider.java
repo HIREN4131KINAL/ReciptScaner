@@ -24,7 +24,7 @@ import co.smartreceipts.android.identity.Token;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDeveloperIdentityProvider implements LoginCallback {
+public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDeveloperIdentityProvider {
 
     private static final String TAG = SmartReceiptsAuthenticationProvider.class.getSimpleName();
 
@@ -44,8 +44,6 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
         mLocalCognitoTokenStore = localCognitoTokenStore;
         mServiceManager = serviceManager;
         mExecutor = executor;
-
-        mIdentityManager.registerLoginCallback(this);
     }
 
     @Override
@@ -53,6 +51,7 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
         return "login.smartreceipts.co";
     }
 
+    /*
     @Override
     public String refresh() {
         // Null things out to start
@@ -151,6 +150,6 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
         } else {
             return null;
         }
-    }
+    }*/
 
 }

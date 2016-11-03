@@ -18,6 +18,7 @@ dependencies {
     compile "com.squareup.okhttp3:okhttp:$OK_HTTP_VERSION"
     compile "com.squareup.retrofit2:retrofit:$RETROFIT_VERSION"
     compile "com.squareup.retrofit2:converter-gson:$RETROFIT_VERSION"
+    compile "com.squareup.retrofit2:adapter-rxjava:$RETROFIT_VERSION"
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
 

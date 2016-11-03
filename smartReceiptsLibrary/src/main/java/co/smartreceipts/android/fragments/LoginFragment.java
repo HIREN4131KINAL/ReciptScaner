@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,24 +16,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.apis.me.MeService;
-import co.smartreceipts.android.apis.me.MeResponse;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.LoginCallback;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 
-public class LoginFragment extends WBFragment implements LoginCallback {
+public class LoginFragment extends WBFragment {
 
     public static final String TAG = LoginFragment.class.getSimpleName();
 
+    private static final String OUT_LOGIN_PARAMS = "out_login_params";
+
     private NavigationHandler mNavigationHandler;
     private IdentityManager mIdentityManager;
+
+    private SmartReceiptsUserLogin mLoginParams;
+    private Subscription mSubscription;
 
     private EditText mEmailInput;
     private EditText mPasswordInput;
@@ -49,16 +51,19 @@ public class LoginFragment extends WBFragment implements LoginCallback {
         return new LoginFragment();
     }
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mIdentityManager = getSmartReceiptsApplication().getIdentityManager();
-        mIdentityManager.registerLoginCallback(this);
+        if (savedInstanceState != null) {
+            final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
+            if (loginParams != null) {
+                logIn(loginParams);
+            }
+        }
     }
-
 
     @Nullable
     @Override
@@ -77,7 +82,7 @@ public class LoginFragment extends WBFragment implements LoginCallback {
             public void onClick(View view) {
                 final String email = mEmailInput.getText().toString();
                 final String password = mPasswordInput.getText().toString();
-                mIdentityManager.logIn(new SmartReceiptsUserLogin(email, password));
+                logIn(new SmartReceiptsUserLogin(email, password));
             }
         });
 
@@ -120,30 +125,53 @@ public class LoginFragment extends WBFragment implements LoginCallback {
     }
 
     @Override
-    public void onDestroy() {
-        mIdentityManager.unregisterLoginCallback(this);
-        super.onDestroy();
+    public void onPause() {
+        if (mSubscription != null) {
+            mSubscription.unsubscribe();
+        }
+        super.onPause();
     }
 
     @Override
-    public void onLoginSuccess() {
-        mEmailInput.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
-                showDebugText();
-            }
-        });
+    public void onSaveInstanceState(Bundle outState) {
+        if (mLoginParams != null) {
+            outState.putParcelable(OUT_LOGIN_PARAMS, mLoginParams);
+        }
+        super.onSaveInstanceState(outState);
     }
 
-    @Override
-    public void onLoginFailure() {
-        mEmailInput.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), "Login Failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {
+        mLoginParams = loginParams;
+        mSubscription = mIdentityManager.logIn(loginParams)
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnSubscribe(new Action0() {
+                @Override
+                public void call() {
+                    mLoginButton.setEnabled(false);
+                }
+            })
+            .subscribe(new Action1<LoginResponse>() {
+                @Override
+                public void call(LoginResponse loginResponse) {
+                    Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
+                    showDebugText();
+                }
+            }, new Action1<Throwable>() {
+                @Override
+                public void call(Throwable throwable) {
+                    mIdentityManager.markLoginComplete(mLoginParams);
+                    mLoginParams = null;
+                    mLoginButton.setEnabled(true);
+                    Toast.makeText(getContext(), "Login Failed", Toast.LENGTH_SHORT).show();
+                }
+            }, new Action0() {
+                @Override
+                public void call() {
+                    mIdentityManager.markLoginComplete(mLoginParams);
+                    mLoginParams = null;
+                    mLoginButton.setEnabled(true);
+                }
+            });
     }
 
     private void showDebugText() {

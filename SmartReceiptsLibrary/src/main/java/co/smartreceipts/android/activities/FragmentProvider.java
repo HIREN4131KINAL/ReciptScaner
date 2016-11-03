@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
+import co.smartreceipts.android.fragments.LoginFragment;
 import co.smartreceipts.android.sync.widget.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
@@ -68,4 +69,12 @@ public interface FragmentProvider {
      */
     @NonNull
     BackupsFragment newBackupsFragment();
+
+    /**
+     * Creates a {@link LoginFragment} instance
+     *
+     * @return a new instance of this fragment
+     */
+    @NonNull
+    LoginFragment newLoginFragment();
 }

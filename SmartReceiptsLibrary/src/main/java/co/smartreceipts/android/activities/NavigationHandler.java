@@ -1,10 +1,7 @@
 package co.smartreceipts.android.activities;
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -113,6 +110,14 @@ public class NavigationHandler {
             replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_details);
         } else {
             replaceFragment(mFragmentProvider.newBackupsFragment(), R.id.content_list);
+        }
+    }
+
+    public void navigateToLoginScreen() {
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newLoginFragment(), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newLoginFragment(), R.id.content_list);
         }
     }
 

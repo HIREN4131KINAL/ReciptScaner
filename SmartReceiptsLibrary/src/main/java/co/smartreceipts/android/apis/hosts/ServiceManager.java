@@ -2,10 +2,16 @@ package co.smartreceipts.android.apis.hosts;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.schedulers.Schedulers;
 
 /**
  * Provides a standardized manner in which we can define host configurations and their association to a specific
@@ -13,52 +19,42 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ServiceManager {
 
-    private final ConcurrentHashMap<Object, HostConfiguration> mHostConfigurationMap = new ConcurrentHashMap<>();
-    private final HostConfiguration mDefaultHostConfiguration;
+    private final Retrofit mRetrofit;
+    private final Map<Class<?>, Object> mCachedServiceMap = new HashMap<>();
 
     public ServiceManager() {
         this(new SmartReceiptsHostConfiguration());
     }
 
     public ServiceManager(@NonNull HostConfiguration defaultHostConfiguration) {
-        mDefaultHostConfiguration = defaultHostConfiguration;
-    }
+        Preconditions.checkNotNull(defaultHostConfiguration);
 
-    /**
-     * Registers an endpoint to use a host configuration that does not align with our default
-     *
-     * @param hostConfiguration the custom {@link HostConfiguration} to use for this request
-     * @param service the service class that will be used for this request
-     */
-    public <T> void registerEndpoint(@NonNull HostConfiguration hostConfiguration, final Class<T> service) {
-        mHostConfigurationMap.put(service, hostConfiguration);
+        final Retrofit.Builder builder = new Retrofit.Builder();
+        builder.baseUrl(defaultHostConfiguration.getBaseUrl());
+        if (defaultHostConfiguration.getClient() != null) {
+            builder.client(defaultHostConfiguration.getClient());
+        }
+        builder.addConverterFactory(GsonConverterFactory.create());
+        builder.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
+
+        mRetrofit = builder.build();
     }
 
     /**
      * Generates an appropriate service that can be used for network requests
      *
-     * @param service the service class type
+     * @param serviceClass the service class type
      * @return an instance of the service class, which can be used for the actual request
      */
     @NonNull
-    @SuppressWarnings("SuspiciousMethodCalls")
-    public <T> T getService(final Class<T> service) {
-        final HostConfiguration hostConfiguration;
-        if (mHostConfigurationMap.contains(service)) {
-            hostConfiguration = mHostConfigurationMap.get(service);
-        } else {
-            hostConfiguration = mDefaultHostConfiguration;
+    @SuppressWarnings("unchecked")
+    public synchronized  <T> T getService(final Class<T> serviceClass) {
+        if (mCachedServiceMap.containsKey(serviceClass)) {
+            return (T) mCachedServiceMap.get(serviceClass);
         }
 
-
-        final Retrofit.Builder builder = new Retrofit.Builder();
-        builder.baseUrl(hostConfiguration.getBaseUrl());
-        if (hostConfiguration.getClient() != null) {
-            builder.client(hostConfiguration.getClient());
-        }
-        builder.addConverterFactory(GsonConverterFactory.create());
-        final Retrofit retrofit = builder.build();
-
-        return retrofit.create(service);
+        final T service = mRetrofit.create(serviceClass);
+        mCachedServiceMap.put(serviceClass, service);
+        return service;
     }
 }

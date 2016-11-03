@@ -2,7 +2,9 @@ package co.smartreceipts.android.apis.me;
 
 import android.support.annotation.Nullable;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
 
     private final String id;
     private final String email;

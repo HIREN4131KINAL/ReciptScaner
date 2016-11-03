@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
+import co.smartreceipts.android.fragments.LoginFragment;
 import co.smartreceipts.android.sync.widget.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
@@ -49,6 +50,12 @@ public class DefaultFragmentProvider implements FragmentProvider {
     @Override
     public BackupsFragment newBackupsFragment() {
         return new BackupsFragment();
+    }
+
+    @NonNull
+    @Override
+    public LoginFragment newLoginFragment() {
+        return LoginFragment.newInstance();
     }
 
 }

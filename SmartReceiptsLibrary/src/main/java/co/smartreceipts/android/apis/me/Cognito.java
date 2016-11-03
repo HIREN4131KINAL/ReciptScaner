@@ -2,7 +2,9 @@ package co.smartreceipts.android.apis.me;
 
 import android.support.annotation.Nullable;
 
-public class Cognito {
+import java.io.Serializable;
+
+public class Cognito implements Serializable {
 
     private final String cognito_token;
     private final long cognito_token_expires_at;

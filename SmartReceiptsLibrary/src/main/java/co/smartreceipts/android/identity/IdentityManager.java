@@ -4,23 +4,30 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.util.concurrent.CopyOnWriteArrayList;
+import com.google.common.base.Preconditions;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.apis.login.LoginParams;
 import co.smartreceipts.android.apis.login.LoginPayload;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.LoginService;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import rx.Observable;
+import rx.functions.Action0;
+import rx.functions.Func1;
+import rx.subjects.AsyncSubject;
+import rx.subjects.Subject;
 
 public class IdentityManager {
 
     private final Context mContext;
     private final ServiceManager mServiceManager;
     private final IdentityStore mIdentityStore;
-    private final CopyOnWriteArrayList<LoginCallback> mCallbacksList;
+    private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> mLoginMap = new ConcurrentHashMap<>();
 
     public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager) {
         this(context, serviceManager, new IdentityStore(context));
@@ -30,7 +37,6 @@ public class IdentityManager {
         mContext = context.getApplicationContext();
         mServiceManager = serviceManager;
         mIdentityStore = identityStore;
-        mCallbacksList = new CopyOnWriteArrayList<>();
     }
 
     public boolean isLoggedIn() {
@@ -47,47 +53,35 @@ public class IdentityManager {
         return mIdentityStore.getToken();
     }
 
-    public void registerLoginCallback(@NonNull LoginCallback loginCallback) {
-        mCallbacksList.add(loginCallback);
-    }
+    public synchronized Observable<LoginResponse> logIn(@NonNull final SmartReceiptsUserLogin login) {
+        Preconditions.checkNotNull(login.getEmail(), "A valid email must be provided to login");
 
-    public void unregisterLoginCallback(@NonNull LoginCallback loginCallback) {
-        mCallbacksList.remove(loginCallback);
-    }
-
-    public void logIn(@NonNull final SmartReceiptsUserLogin login) {
         final LoginService loginService = mServiceManager.getService(LoginService.class);
         final LoginPayload request = new LoginPayload(login);
 
-        loginService.logIn(request).enqueue(new Callback<LoginResponse>() {
-            @Override
-            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                if (response.isSuccessful()) {
-                    final LoginResponse body = response.body();
-                    if (body.getToken() != null && login.getEmail() != null) {
-                        mIdentityStore.setEmailAddress(login.getEmail());
-                        mIdentityStore.setToken(body.getToken());
-                        for (LoginCallback callback : mCallbacksList) {
-                            callback.onLoginSuccess();
+        Subject<LoginResponse, LoginResponse> loginSubject = mLoginMap.get(login);
+        if (loginSubject == null) {
+            loginSubject = AsyncSubject.create();;
+            loginService.logIn(request)
+                    .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
+                        @Override
+                        public Observable<LoginResponse> call(LoginResponse loginResponse) {
+                            if (loginResponse.getToken() != null) {
+                                mIdentityStore.setEmailAddress(login.getEmail());
+                                mIdentityStore.setToken(loginResponse.getToken());
+                                return Observable.just(loginResponse);
+                            } else {
+                                return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
+                            }
                         }
-                    } else {
-                        for (LoginCallback callback : mCallbacksList) {
-                            callback.onLoginFailure();
-                        }
-                    }
-                } else {
-                    for (LoginCallback callback : mCallbacksList) {
-                        callback.onLoginFailure();
-                    }
-                }
-            }
+                    })
+                    .subscribe(loginSubject);
+            mLoginMap.put(login, loginSubject);
+        }
+        return loginSubject;
+    }
 
-            @Override
-            public void onFailure(Call<LoginResponse> call, Throwable t) {
-                for (LoginCallback callback : mCallbacksList) {
-                    callback.onLoginFailure();
-                }
-            }
-        });
+    public synchronized void markLoginComplete(@NonNull final LoginParams login) {
+        mLoginMap.remove(login);
     }
 }

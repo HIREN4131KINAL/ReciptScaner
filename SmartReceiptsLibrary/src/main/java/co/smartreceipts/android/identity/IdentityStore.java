@@ -42,7 +42,7 @@ final class IdentityStore {
     }
 
     public void setEmailAddress(@NonNull EmailAddress emailAddress) {
-        setEmailAddress(emailAddress.get());
+        setEmailAddress(emailAddress.getId());
     }
 
     public void setEmailAddress(@NonNull String emailAddress) {
@@ -50,7 +50,7 @@ final class IdentityStore {
     }
 
     public void setToken(@NonNull Token token) {
-        setToken(token.get());
+        setToken(token.getId());
     }
 
     public void setToken(@NonNull String token) {

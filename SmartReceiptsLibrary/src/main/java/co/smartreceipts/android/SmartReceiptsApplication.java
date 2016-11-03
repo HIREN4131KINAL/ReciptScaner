@@ -1,25 +1,5 @@
 package co.smartreceipts.android;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-
-import co.smartreceipts.android.analytics.AnalyticsLogger;
-import co.smartreceipts.android.analytics.AnalyticsManager;
-import co.smartreceipts.android.config.ConfigurationManager;
-import co.smartreceipts.android.config.DefaultConfigurationManager;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
-import co.smartreceipts.android.purchases.SubscriptionCache;
-import co.smartreceipts.android.sync.BackupProvidersManager;
-import co.smartreceipts.android.sync.network.NetworkManager;
-import wb.android.flex.Flex;
-import wb.android.flex.Flexable;
-import wb.android.google.camera.app.GalleryAppImpl;
-import wb.android.storage.SDCardStateException;
-import wb.android.storage.StorageManager;
-import wb.android.util.AppRating;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -27,12 +7,32 @@ import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
+import java.io.File;
+import java.io.IOException;
+
+import co.smartreceipts.android.analytics.AnalyticsLogger;
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
+import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.config.ConfigurationManager;
+import co.smartreceipts.android.config.DefaultConfigurationManager;
+import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
+import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
+import wb.android.flex.Flex;
+import wb.android.flex.Flexable;
+import wb.android.google.camera.app.GalleryAppImpl;
+import wb.android.storage.SDCardStateException;
+import wb.android.storage.StorageManager;
 
 /**
  * This extends GalleryAppImpl for the camera, since we can only define a single application in the manifest
@@ -53,6 +53,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private AnalyticsManager mAnalyticsManager;
     private BackupProvidersManager mBackupProvidersManager;
     private NetworkManager mNetworkManager;
+	private IdentityManager mIdentityManager;
+	private ServiceManager mServiceManager;
 	private boolean mDeferFirstRunDialog;
 
 	/**
@@ -86,6 +88,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
         clearCacheDir();
+		mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration());
+		mIdentityManager = new IdentityManager(this, mServiceManager);
 	}
 
     @Deprecated
@@ -149,7 +153,17 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 		return mPersistenceManager;
 	}
 
-    @NonNull
+	@NonNull
+	public IdentityManager getIdentityManager() {
+		return mIdentityManager;
+	}
+
+	@NonNull
+	public ServiceManager getServiceManager() {
+		return mServiceManager;
+	}
+
+	@NonNull
 	public Flex getFlex() {
 		return mFlex;
 	}

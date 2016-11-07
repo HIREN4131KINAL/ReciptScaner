@@ -20,6 +20,7 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.IdentityManager;
 import rx.Observable;
 import rx.Subscription;

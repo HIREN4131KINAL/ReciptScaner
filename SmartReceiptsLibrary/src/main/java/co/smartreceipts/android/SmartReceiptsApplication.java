@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import co.smartreceipts.android.analytics.AnalyticsLogger;
 import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.config.ConfigurationManager;
@@ -88,7 +89,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
         clearCacheDir();
-		mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration());
+		mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
 		mIdentityManager = new IdentityManager(this, mServiceManager);
 	}
 

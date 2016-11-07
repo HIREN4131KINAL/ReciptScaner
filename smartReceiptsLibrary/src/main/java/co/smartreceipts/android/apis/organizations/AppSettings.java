@@ -22,11 +22,11 @@ public class AppSettings {
     @SerializedName("PaymentMethods")
     private final List<PaymentMethod> paymentMethods;
     @SerializedName("CSVColumns")
-    private final Column<Receipt> csvColumns;
+    private final List<Column<Receipt>> csvColumns;
     @SerializedName("PDFColumns")
-    private final Column<Receipt> pdfColumns;
+    private final List<Column<Receipt>> pdfColumns;
 
-    public AppSettings(Configurations configurations, RemoteSettingsDefinitions remoteSettingsDefinitions, List<Category> categories, List<PaymentMethod> paymentMethods, Column<Receipt> csvColumns, Column<Receipt> pdfColumns) {
+    public AppSettings(Configurations configurations, RemoteSettingsDefinitions remoteSettingsDefinitions, List<Category> categories, List<PaymentMethod> paymentMethods, List<Column<Receipt>> csvColumns, List<Column<Receipt>> pdfColumns) {
         this.configurations = configurations;
         this.mRemoteSettingsDefinitions = remoteSettingsDefinitions;
         this.categories = categories;
@@ -56,12 +56,12 @@ public class AppSettings {
     }
 
     @Nullable
-    public Column<Receipt> getCsvColumns() {
+    public List<Column<Receipt>> getCsvColumns() {
         return csvColumns;
     }
 
     @Nullable
-    public Column<Receipt> getPdfColumns() {
+    public List<Column<Receipt>> getPdfColumns() {
         return pdfColumns;
     }
 }

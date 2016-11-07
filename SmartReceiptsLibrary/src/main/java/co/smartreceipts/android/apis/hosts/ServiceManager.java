@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -24,11 +25,11 @@ public class ServiceManager {
     private final Retrofit mRetrofit;
     private final Map<Class<?>, Object> mCachedServiceMap = new HashMap<>();
 
-    public ServiceManager() {
-        this(new SmartReceiptsHostConfiguration());
+    public ServiceManager(@NonNull SmartReceiptsGsonBuilder gsonBuilder) {
+        this(new SmartReceiptsHostConfiguration(), gsonBuilder);
     }
 
-    public ServiceManager(@NonNull HostConfiguration defaultHostConfiguration) {
+    public ServiceManager(@NonNull HostConfiguration defaultHostConfiguration, @NonNull SmartReceiptsGsonBuilder gsonBuilder) {
         Preconditions.checkNotNull(defaultHostConfiguration);
 
         final Retrofit.Builder builder = new Retrofit.Builder();
@@ -36,7 +37,7 @@ public class ServiceManager {
         if (defaultHostConfiguration.getClient() != null) {
             builder.client(defaultHostConfiguration.getClient());
         }
-        builder.addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()));
+        builder.addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()));
         builder.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
 
         mRetrofit = builder.build();

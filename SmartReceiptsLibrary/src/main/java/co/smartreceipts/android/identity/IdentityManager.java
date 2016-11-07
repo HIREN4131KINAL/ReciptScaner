@@ -18,6 +18,7 @@ import co.smartreceipts.android.apis.login.LoginService;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.apis.me.MeResponse;
 import co.smartreceipts.android.apis.me.MeService;
+import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.apis.organizations.OrganizationsService;
 import rx.Observable;
 import rx.functions.Func1;

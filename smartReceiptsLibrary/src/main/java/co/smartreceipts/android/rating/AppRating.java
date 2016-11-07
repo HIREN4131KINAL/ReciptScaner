@@ -1,9 +1,10 @@
-package wb.android.util;
+package co.smartreceipts.android.rating;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.ref.WeakReference;
 
 import wb.android.R;
+import wb.android.util.Utils;
 import wb.android.workers.AsyncTask;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;

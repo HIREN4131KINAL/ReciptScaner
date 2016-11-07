@@ -31,7 +31,7 @@ import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import wb.android.dialog.BetterDialogBuilder;
-import wb.android.util.AppRating;
+import co.smartreceipts.android.rating.AppRating;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 

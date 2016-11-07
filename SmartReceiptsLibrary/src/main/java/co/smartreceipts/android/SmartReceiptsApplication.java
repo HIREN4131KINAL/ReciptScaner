@@ -2,7 +2,6 @@ package co.smartreceipts.android;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.analytics.AnalyticsLogger;
 import co.smartreceipts.android.analytics.AnalyticsManager;
@@ -19,7 +18,7 @@ import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
-import wb.android.util.AppRating;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -30,7 +29,6 @@ import android.util.Log;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 

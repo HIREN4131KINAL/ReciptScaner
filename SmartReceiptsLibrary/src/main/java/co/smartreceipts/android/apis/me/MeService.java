@@ -13,5 +13,6 @@ import rx.Observable;
 public interface MeService {
 
     @GET("api/users/me")
-    Observable<MeResponse> me(@NonNull @Query("auth_params[email]") String email, @NonNull @Query("auth_params[token]") String token);
+    Observable<MeResponse> me(@NonNull @Query("auth_params[email]") CharSequence email, @NonNull @Query("auth_params[token]") CharSequence token);
+    
 }

@@ -16,6 +16,8 @@ import co.smartreceipts.android.apis.login.LoginPayload;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.LoginService;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.apis.me.MeResponse;
+import co.smartreceipts.android.apis.me.MeService;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
@@ -83,5 +85,13 @@ public class IdentityManager {
 
     public synchronized void markLoginComplete(@NonNull final LoginParams login) {
         mLoginMap.remove(login);
+    }
+
+    public Observable<MeResponse> getMe() {
+        if (mIdentityStore.getEmail() != null && mIdentityStore.getToken() != null) {
+            return mServiceManager.getService(MeService.class).me(mIdentityStore.getEmail(), mIdentityStore.getToken());
+        } else {
+            return Observable.error(new IllegalStateException("Cannot fetch the user account until we're logged in"));
+        }
     }
 }

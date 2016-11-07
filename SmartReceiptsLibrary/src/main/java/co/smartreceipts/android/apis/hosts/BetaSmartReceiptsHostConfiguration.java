@@ -13,6 +13,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
 
@@ -59,7 +60,7 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
             builder.sslSocketFactory(sslSocketFactory);
             builder.hostnameVerifier(new HostnameVerifier() {
                 @Override
@@ -67,6 +68,10 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
                     return true;
                 }
             });
+
+            final HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            builder.addInterceptor(interceptor);
 
             return builder.build();
         } catch (Exception e) {

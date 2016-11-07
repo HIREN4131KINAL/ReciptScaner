@@ -20,11 +20,15 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.apis.me.MeResponse;
+import co.smartreceipts.android.apis.me.User;
 import co.smartreceipts.android.identity.IdentityManager;
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 public class LoginFragment extends WBFragment {
 
@@ -143,35 +147,47 @@ public class LoginFragment extends WBFragment {
     private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {
         mLoginParams = loginParams;
         mSubscription = mIdentityManager.logIn(loginParams)
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe(new Action0() {
-                @Override
-                public void call() {
-                    mLoginButton.setEnabled(false);
-                }
-            })
-            .subscribe(new Action1<LoginResponse>() {
-                @Override
-                public void call(LoginResponse loginResponse) {
-                    Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
-                    showDebugText();
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    mIdentityManager.markLoginComplete(mLoginParams);
-                    mLoginParams = null;
-                    mLoginButton.setEnabled(true);
-                    Toast.makeText(getContext(), "Login Failed", Toast.LENGTH_SHORT).show();
-                }
-            }, new Action0() {
-                @Override
-                public void call() {
-                    mIdentityManager.markLoginComplete(mLoginParams);
-                    mLoginParams = null;
-                    mLoginButton.setEnabled(true);
-                }
-            });
+                .flatMap(new Func1<LoginResponse, Observable<MeResponse>>() {
+                    @Override
+                    public Observable<MeResponse> call(LoginResponse loginResponse) {
+                        return mIdentityManager.getMe();
+                    }
+                })
+                .map(new Func1<MeResponse, User>() {
+                    @Override
+                    public User call(MeResponse meResponse) {
+                        return meResponse.getUser();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe(new Action0() {
+                    @Override
+                    public void call() {
+                        mLoginButton.setEnabled(false);
+                    }
+                })
+                .subscribe(new Action1<User>() {
+                    @Override
+                    public void call(User user) {
+                        Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
+                        showDebugText();
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mIdentityManager.markLoginComplete(mLoginParams);
+                        mLoginParams = null;
+                        mLoginButton.setEnabled(true);
+                        Toast.makeText(getContext(), "Login Failed", Toast.LENGTH_SHORT).show();
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        mIdentityManager.markLoginComplete(mLoginParams);
+                        mLoginParams = null;
+                        mLoginButton.setEnabled(true);
+                    }
+                });
     }
 
     private void showDebugText() {

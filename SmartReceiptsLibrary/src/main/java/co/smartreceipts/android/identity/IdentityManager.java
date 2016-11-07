@@ -18,8 +18,8 @@ import co.smartreceipts.android.apis.login.LoginService;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.apis.me.MeResponse;
 import co.smartreceipts.android.apis.me.MeService;
+import co.smartreceipts.android.apis.organizations.OrganizationsService;
 import rx.Observable;
-import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.subjects.AsyncSubject;
 import rx.subjects.Subject;
@@ -91,7 +91,15 @@ public class IdentityManager {
         if (mIdentityStore.getEmail() != null && mIdentityStore.getToken() != null) {
             return mServiceManager.getService(MeService.class).me(mIdentityStore.getEmail(), mIdentityStore.getToken());
         } else {
-            return Observable.error(new IllegalStateException("Cannot fetch the user account until we're logged in"));
+            return Observable.error(new IllegalStateException("Cannot fetch the user's account until we're logged in"));
+        }
+    }
+
+    public Observable<OrganizationsResponse> getOrganizations() {
+        if (mIdentityStore.getEmail() != null && mIdentityStore.getToken() != null) {
+            return mServiceManager.getService(OrganizationsService.class).organizations(mIdentityStore.getEmail(), mIdentityStore.getToken());
+        } else {
+            return Observable.error(new IllegalStateException("Cannot fetch the user's organizations until we're logged in"));
         }
     }
 }

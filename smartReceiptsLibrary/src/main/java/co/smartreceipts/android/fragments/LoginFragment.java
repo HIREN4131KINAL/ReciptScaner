@@ -20,8 +20,6 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.apis.me.MeResponse;
-import co.smartreceipts.android.apis.me.User;
 import co.smartreceipts.android.identity.IdentityManager;
 import rx.Observable;
 import rx.Subscription;
@@ -147,16 +145,10 @@ public class LoginFragment extends WBFragment {
     private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {
         mLoginParams = loginParams;
         mSubscription = mIdentityManager.logIn(loginParams)
-                .flatMap(new Func1<LoginResponse, Observable<MeResponse>>() {
+                .flatMap(new Func1<LoginResponse, Observable<OrganizationsResponse>>() {
                     @Override
-                    public Observable<MeResponse> call(LoginResponse loginResponse) {
-                        return mIdentityManager.getMe();
-                    }
-                })
-                .map(new Func1<MeResponse, User>() {
-                    @Override
-                    public User call(MeResponse meResponse) {
-                        return meResponse.getUser();
+                    public Observable<OrganizationsResponse> call(LoginResponse loginResponse) {
+                        return mIdentityManager.getOrganizations();
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -166,9 +158,9 @@ public class LoginFragment extends WBFragment {
                         mLoginButton.setEnabled(false);
                     }
                 })
-                .subscribe(new Action1<User>() {
+                .subscribe(new Action1<OrganizationsResponse>() {
                     @Override
-                    public void call(User user) {
+                    public void call(OrganizationsResponse org) {
                         Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
                         showDebugText();
                     }

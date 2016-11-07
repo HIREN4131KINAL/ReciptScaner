@@ -3,6 +3,8 @@ package co.smartreceipts.android.apis.hosts;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.GsonBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,7 @@ public class ServiceManager {
         if (defaultHostConfiguration.getClient() != null) {
             builder.client(defaultHostConfiguration.getClient());
         }
-        builder.addConverterFactory(GsonConverterFactory.create());
+        builder.addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create()));
         builder.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
 
         mRetrofit = builder.build();

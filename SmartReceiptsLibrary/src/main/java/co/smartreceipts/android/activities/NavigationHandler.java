@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
@@ -135,7 +136,11 @@ public class NavigationHandler {
 
     public void showDialog(@NonNull DialogFragment dialogFragment) {
         final String tag = dialogFragment.getClass().getName();
-        dialogFragment.show(mFragmentManager, tag);
+        try {
+            dialogFragment.show(mFragmentManager, tag);
+        } catch (IllegalStateException e) {
+            // This exception is always thrown if saveInstanceState was already been called.
+        }
     }
 
     public boolean isDualPane() {

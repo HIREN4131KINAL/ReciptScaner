@@ -87,9 +87,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        Log.d(TAG, "onResumeFragments");
 
         // Present dialog for viewing an attachment
         final Attachment attachment = new Attachment(getIntent(), getContentResolver());

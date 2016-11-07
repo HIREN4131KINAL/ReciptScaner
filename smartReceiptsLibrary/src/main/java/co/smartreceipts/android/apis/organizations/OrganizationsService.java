@@ -9,6 +9,6 @@ import rx.Observable;
 public interface OrganizationsService {
 
     @GET("api/organizations")
-    Observable<Void> organizations(@NonNull @Query("auth_params[email]") CharSequence email, @NonNull @Query("auth_params[token]") CharSequence token);
+    Observable<OrganizationsResponse> organizations(@NonNull @Query("auth_params[email]") CharSequence email, @NonNull @Query("auth_params[token]") CharSequence token);
 
 }

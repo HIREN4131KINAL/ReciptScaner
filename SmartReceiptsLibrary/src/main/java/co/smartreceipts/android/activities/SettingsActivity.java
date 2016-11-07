@@ -57,7 +57,7 @@ import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
-import wb.android.util.AppRating;
+import co.smartreceipts.android.rating.AppRating;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 

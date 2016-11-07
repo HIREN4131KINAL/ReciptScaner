@@ -1,10 +1,5 @@
-package wb.android.util;
+package co.smartreceipts.android.rating;
 
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.lang.ref.WeakReference;
-
-import wb.android.R;
-import wb.android.workers.AsyncTask;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,6 +11,16 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
+
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.ref.WeakReference;
+
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.Events;
+import wb.android.R;
+import wb.android.util.Utils;
+import wb.android.workers.AsyncTask;
 
 /**
  * The AppRating class simplifies the process of tracking common rating functionality like the number of launches before
@@ -66,6 +71,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	private int mDialogTitleRes, mDialogMessageRes, mDialogNegativeButtonRes;
 	private final int mDialogNeutralButtonRes;
 	private int mDialogPositiveButtonRes;
+    private Analytics mAnalytics;
 	private final Utilities mUtilities;
 	private Listener mListener;
 
@@ -155,7 +161,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	}
 
 	public AppRating(Context context) {
-		mContext = new WeakReference<Context>(context);
+		mContext = new WeakReference<>(context);
 		mUtilities = new UtiltiesImpl();
 		// Set some reasonable defaults below
 		mShowDialog = true;
@@ -177,6 +183,11 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	public static AppRating initialize(Context context) {
 		return new AppRating(context);
 	}
+
+    public AppRating setAnalytics(@NonNull Analytics analytics) {
+        mAnalytics = analytics;
+        return this;
+    }
 
 	/**
 	 * Defines how many times the application must be launched until the user is prompted to rate the application
@@ -375,12 +386,21 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
 		if (which == DialogInterface.BUTTON_POSITIVE) {
+            if (mAnalytics != null) {
+                mAnalytics.record(Events.Ratings.UserSelectedRate);
+            }
 			mUtilities.launchRatingIntent();
 		}
 		else if (which == DialogInterface.BUTTON_NEUTRAL) {
+            if (mAnalytics != null) {
+                mAnalytics.record(Events.Ratings.UserSelectedLater);
+            }
 			mUtilities.rateLater(INCREASE_THRESHOLD_ON_REMIND_LATER);
 		}
 		else if (which == DialogInterface.BUTTON_NEGATIVE) {
+            if (mAnalytics != null) {
+                mAnalytics.record(Events.Ratings.UserSelectedNever);
+            }
 			mUtilities.doNotShowRatingPromptAgain();
 		}
 		else {
@@ -451,6 +471,9 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 			final String appName = getApplicationName(context);
 			AlertDialog.Builder builder = new AlertDialog.Builder(context);
 			builder.setTitle(context.getString(mDialogTitleRes, appName)).setMessage(context.getString(mDialogMessageRes, appName)).setNegativeButton(context.getString(mDialogNegativeButtonRes, appName), this).setNeutralButton(context.getString(mDialogNeutralButtonRes, appName), this).setPositiveButton(context.getString(mDialogPositiveButtonRes, appName), this).show();
+            if (mAnalytics != null) {
+                mAnalytics.record(Events.Ratings.RatingPromptShown);
+            }
 		}
 
 		if (mListener != null) {

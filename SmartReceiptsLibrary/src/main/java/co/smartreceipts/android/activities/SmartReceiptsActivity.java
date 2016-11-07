@@ -31,7 +31,7 @@ import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import wb.android.dialog.BetterDialogBuilder;
-import wb.android.util.AppRating;
+import co.smartreceipts.android.rating.AppRating;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
@@ -87,9 +87,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        Log.d(TAG, "onResumeFragments");
 
         // Present dialog for viewing an attachment
         final Attachment attachment = new Attachment(getIntent(), getContentResolver());

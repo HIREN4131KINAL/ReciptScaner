@@ -3,7 +3,7 @@ package co.smartreceipts.android.analytics.events;
 public final class Events {
 
     private enum Category implements Event.Category {
-        Purchases, Navigation, Reports, Receipts, Distance, Generate
+        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings
     }
 
     public static final class Purchases {
@@ -61,6 +61,13 @@ public final class Events {
         public static final Event ImagesPdfReport = new DefaultEvent(Category.Generate, "ImagesPdfReport");
         public static final Event CsvReport = new DefaultEvent(Category.Generate, "CsvReport");
         public static final Event StampedZipReport = new DefaultEvent(Category.Generate, "StampedZipReport");
+    }
+
+    public static final class Ratings {
+        public static final Event RatingPromptShown = new DefaultEvent(Category.Ratings, "RatingPromptShown");
+        public static final Event UserSelectedRate = new DefaultEvent(Category.Ratings, "UserSelectedRate");
+        public static final Event UserSelectedNever = new DefaultEvent(Category.Ratings, "UserSelectedNever");
+        public static final Event UserSelectedLater = new DefaultEvent(Category.Ratings, "UserSelectedLater");
     }
 
 }

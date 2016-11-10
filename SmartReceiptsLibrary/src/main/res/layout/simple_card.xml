@@ -24,7 +24,7 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="@dimen/card_name_date_margin"
         android:layout_toRightOf="@id/price"
-        android:layout_toLeftOf="@android:id/text2"
+        android:layout_toLeftOf="@id/card_sync_state"
         android:gravity="center_vertical"
         android:orientation="vertical" >
 

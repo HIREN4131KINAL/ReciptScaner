@@ -120,7 +120,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 }
 
                 if (subscriptionManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
-                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
                     mNavigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
                 }

@@ -7,8 +7,10 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
+import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 
 public class SmartReceiptsGsonBuilder {
@@ -24,6 +26,8 @@ public class SmartReceiptsGsonBuilder {
         final GsonBuilder builder = new GsonBuilder();
         builder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         builder.registerTypeAdapter(Column.class, new ColumnGsonAdpater(mReceiptColumnDefinitions));
+        builder.registerTypeAdapter(PaymentMethod.class, new PaymentMethodGsonAdapter());
+        builder.registerTypeAdapter(Category.class, new CategoryGsonAdapter());
         return builder.create();
     }
 }

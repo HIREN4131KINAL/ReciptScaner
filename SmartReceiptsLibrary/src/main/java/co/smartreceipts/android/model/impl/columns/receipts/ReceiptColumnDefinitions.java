@@ -56,7 +56,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         PRICE_PLUS_TAX_EXCHANGED(R.string.column_item_converted_price_plus_tax_exchange_rate),
         EXCHANGE_RATE(R.string.column_item_exchange_rate),
         PICTURED(R.string.column_item_pictured),
-        REIMBURSABLE(R.string.column_item_reimbursable),
+        REIMBURSABLE(R.string.column_item_reimbursable, R.string.column_item_deprecated_expensable),
         INDEX(R.string.column_item_index),
         ID(R.string.column_item_id),
         PAYMENT_METHOD(R.string.column_item_payment_method),
@@ -65,14 +65,32 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
         EXTRA_EDITTEXT_3(R.string.RECEIPTMENU_FIELD_EXTRA_EDITTEXT_3);
 
         private final int mStringResId;
+        private final int mLegacyStringResId;
 
         ActualDefinition(@StringRes int stringResId) {
+            this(stringResId, -1);
+        }
+
+        /**
+         * Allows us to specify a legacy item that we've updated our name from, since columns are keyed off the name itself (so what happens
+         * if we change the column name... probably not the best design here but we'll revisit later)
+         *
+         * @param stringResId the current id
+         * @param legacyStringResId the legacy id
+         */
+        ActualDefinition(@StringRes int stringResId, @StringRes int legacyStringResId) {
             mStringResId = stringResId;
+            mLegacyStringResId = legacyStringResId;
         }
 
         @StringRes
         public final int getStringResId() {
             return mStringResId;
+        }
+
+        @StringRes
+        public final int getLegacyStringResId() {
+            return mLegacyStringResId;
         }
 
     }
@@ -104,6 +122,9 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
             final ActualDefinition definition = mActualDefinitions[i];
             if (definitionName.equals(getColumnNameFromStringResId(definition.getStringResId()))) {
                 return getColumnFromClass(id, definition, definitionName, syncState);
+            } else if (definition.getLegacyStringResId() >= 0 && definitionName.equals(getColumnNameFromStringResId(definition.getLegacyStringResId()))) {
+                final String newDefinitionName = getColumnNameFromStringResId(definition.getStringResId());
+                return getColumnFromClass(id, definition, newDefinitionName, syncState);
             }
         }
         return null;

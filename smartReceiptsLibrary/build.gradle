@@ -44,6 +44,10 @@ dependencies {
 }
 
 android {
+    // correct propagation of build-type
+    // https://code.google.com/p/android/issues/detail?id=52962#c129
+    publishNonDefault true
+
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
@@ -71,6 +75,7 @@ android {
         }
         release {
             setRoot('build-types/release')
+//            assets.srcDirs += 'src/release/assets'
         }
     }
 

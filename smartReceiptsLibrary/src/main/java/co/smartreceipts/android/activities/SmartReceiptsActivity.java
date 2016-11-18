@@ -30,6 +30,7 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.Logger;
 import wb.android.dialog.BetterDialogBuilder;
 import co.smartreceipts.android.rating.AppRating;
 
@@ -40,7 +41,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
-
     // AppRating (Use a combination of launches and a timer for the app rating
     // to ensure that we aren't prompting new users too soon
     private static final int LAUNCHES_UNTIL_PROMPT = 30;
@@ -56,6 +56,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        Logger.debug(this, "HELLO LOGBACK");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
         mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());

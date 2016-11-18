@@ -31,6 +31,12 @@ dependencies {
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"
 
+    compile "org.slf4j:slf4j-api:$SLF4J_VERSION"
+    compile "com.github.tony19:logback-android-core:$LOGBACK_VERSION"
+    compile("com.github.tony19:logback-android-classic:$LOGBACK_VERSION") {
+        // workaround issue #73
+        exclude group: 'com.google.android', module: 'android'
+    }
     // Unit Tests
     testCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
     testCompile "junit:junit:$JUNIT_VERSION"

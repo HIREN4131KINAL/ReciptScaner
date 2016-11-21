@@ -100,7 +100,7 @@ public class NavigationHandler {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
         if (activity != null && receipt.getFile() != null) {
             try {
-                final Intent intent = IntentUtils.getViewIntent(activity, receipt.getFile(), "application/pdf");
+                final Intent intent = IntentUtils.getLegacyViewIntent(activity, receipt.getFile(), "application/pdf");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 activity.startActivity(intent);
             } catch (ActivityNotFoundException e) {

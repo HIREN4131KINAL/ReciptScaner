@@ -26,6 +26,32 @@ public class IntentUtils {
 
     }
 
+    /**
+     * All PDF Viewers that I tested don't work with File Providers yet, so this is our fallback way
+     */
+    @NonNull
+    @Deprecated
+    public static Intent getLegacyViewIntent(@NonNull Context context, @NonNull File file, @NonNull String fallbackMimeType) {
+        Preconditions.checkNotNull(context);
+        Preconditions.checkNotNull(file);
+        Preconditions.checkNotNull(fallbackMimeType);
+
+        final Intent sentIntent = new Intent(Intent.ACTION_VIEW);
+        final Uri uri = Uri.fromFile(file);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            grantReadPermissionsToUri(context, sentIntent, uri);
+        }
+
+        final String mimeType = UriUtils.getMimeType(uri, context.getContentResolver());
+        if (!TextUtils.isEmpty(mimeType)) {
+            sentIntent.setDataAndType(uri, mimeType);
+        } else {
+            sentIntent.setDataAndType(uri, fallbackMimeType);
+        }
+        sentIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        return sentIntent;
+    }
+
     @NonNull
     public static Intent getViewIntent(@NonNull Context context, @NonNull File file, @NonNull String fallbackMimeType) {
         Preconditions.checkNotNull(context);

@@ -137,7 +137,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
             final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
             final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
             if (getPreferences().getPrintDistanceAsDailyReceipt()) {
-                receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceTable().getBlocking(trip, true)));
+                receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceTable().getBlocking(trip, false)));
                 Collections.sort(receiptsTableList, new ReceiptDateComparator());
             }
             final PdfTableGenerator<Receipt> pdfTableGenerator = new PdfTableGenerator<Receipt>(columns, new LegacyReceiptFilter(getPreferences()), true, false);

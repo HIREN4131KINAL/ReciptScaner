@@ -78,21 +78,26 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
 
     @NonNull
     public synchronized List<ModelType> getBlocking(@NonNull Trip trip, boolean isDescending) {
-        if (mPerTripCache.containsKey(trip)) {
+        // We only cache descending entries
+        final boolean cacheResults = isDescending;
+
+        if (mPerTripCache.containsKey(trip) && cacheResults) {
             return new ArrayList<>(mPerTripCache.get(trip));
         }
 
         Cursor cursor = null;
         try {
             final List<ModelType> results = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ? AND "+ COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ trip.getName(), Integer.toString(0) }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
+            cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ? AND " + COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ trip.getName(), Integer.toString(0) }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip));
                 }
                 while (cursor.moveToNext());
             }
-            mPerTripCache.put(trip, results);
+            if (cacheResults) {
+                mPerTripCache.put(trip, results);
+            }
             return new ArrayList<>(results);
         } finally {
             if (cursor != null) {

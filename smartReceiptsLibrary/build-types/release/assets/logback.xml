@@ -1,0 +1,22 @@
+<configuration>
+    <appender name="logcat" class="ch.qos.logback.classic.android.LogcatAppender">
+        <tagEncoder>
+            <pattern>%logger{12}</pattern>
+        </tagEncoder>
+        <encoder>
+            <pattern>[%date] &lt;%logger{20}&gt; %level: %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <file>/data/data/wb.receipts/files/log.txt</file>
+        <encoder>
+            <pattern>[%date] &lt;%logger{20}&gt; %level: %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <!--<appender-ref ref="logcat" />-->
+        <appender-ref ref="file" />
+    </root>
+</configuration>

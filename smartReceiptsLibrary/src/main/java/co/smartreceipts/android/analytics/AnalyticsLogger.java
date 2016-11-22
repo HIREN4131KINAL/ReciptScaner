@@ -10,15 +10,9 @@ import co.smartreceipts.android.utils.Logger;
 
 public class AnalyticsLogger implements Analytics {
 
-    private static final String TAG = AnalyticsLogger.class.getSimpleName();
-
     @Override
     public void record(@NonNull Event event) {
-        final StringBuilder builder = new StringBuilder("Logging Event: ");
-        builder.append(event);
-        builder.append(" with datapoints: ");
-        builder.append(getDataPointsString(event.getDataPoints()));
-        Logger.info(this, builder.toString());
+        Logger.info(this, "Logging Event: {} with datapoints: {}", event, getDataPointsString(event.getDataPoints()));
     }
 
     @NonNull

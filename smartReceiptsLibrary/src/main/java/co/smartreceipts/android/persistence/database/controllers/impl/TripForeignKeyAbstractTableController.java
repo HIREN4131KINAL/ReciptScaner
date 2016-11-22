@@ -88,7 +88,6 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                 .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
                     @Override
                     public Observable<List<ModelType>> call(Void oVoid) {
-P
                         return mTripForeignKeyTable.get(trip, isDescending);
                     }
                 })

@@ -21,6 +21,14 @@ public class Logger {
         getLoggerForCaller(caller).debug(format, arg);
     }
 
+    public static void debug(Object caller, String format, Object arg) {
+        getLoggerForCaller(caller).debug(format, arg);
+    }
+
+    public static void debug(Object caller, String format, Object arg1, Object arg2) {
+        getLoggerForCaller(caller).debug(format, arg1, arg2);
+    }
+
     public static void info(Object caller, String msg) {
         getLoggerForCaller(caller).info(msg);
     }
@@ -33,6 +41,14 @@ public class Logger {
         getLoggerForCaller(caller).info(format, arg);
     }
 
+    public static void info(Object caller, String format, Object arg) {
+        getLoggerForCaller(caller).info(format, arg);
+    }
+
+    public static void info(Object caller, String format, Object arg1, Object arg2) {
+        getLoggerForCaller(caller).info(format, arg1, arg2);
+    }
+
     public static void trace(Object caller, String msg) {
         getLoggerForCaller(caller).trace(msg);
     }
@@ -43,6 +59,14 @@ public class Logger {
 
     public static void trace(Object caller, String format, Object... arg) {
         getLoggerForCaller(caller).trace(format, arg);
+    }
+
+    public static void trace(Object caller, String format, Object arg) {
+        getLoggerForCaller(caller).trace(format, arg);
+    }
+
+    public static void trace(Object caller, String format, Object arg1, Object arg2) {
+        getLoggerForCaller(caller).trace(format, arg1, arg2);
     }
 
     public static void warn(Object caller, String msg) {
@@ -61,6 +85,14 @@ public class Logger {
         getLoggerForCaller(caller).warn(format, arg);
     }
 
+    public static void warn(Object caller, String format, Object arg) {
+        getLoggerForCaller(caller).warn(format, arg);
+    }
+
+    public static void warn(Object caller, String format, Object arg1, Object arg2) {
+        getLoggerForCaller(caller).warn(format, arg1, arg2);
+    }
+
     public static void error(Object caller, String msg) {
         getLoggerForCaller(caller).error(msg);
     }
@@ -77,4 +109,11 @@ public class Logger {
         getLoggerForCaller(caller).error(format, arg);
     }
 
+    public static void error(Object caller, String format, Object arg) {
+        getLoggerForCaller(caller).error(format, arg);
+    }
+
+    public static void error(Object caller, String format, Object arg1, Object arg2) {
+        getLoggerForCaller(caller).error(format, arg1, arg2);
+    }
 }

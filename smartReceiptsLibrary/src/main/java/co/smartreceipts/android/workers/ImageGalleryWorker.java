@@ -5,6 +5,7 @@ import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import co.smartreceipts.android.utils.Logger;
 import wb.android.flex.Flex;
 import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
@@ -26,7 +27,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
@@ -34,7 +34,6 @@ import co.smartreceipts.android.persistence.Preferences;
 @Deprecated
 public class ImageGalleryWorker extends WorkerChild {
 
-    private static final String TAG = ImageGalleryWorker.class.getSimpleName();
 	private static final int GALLERY_TIME_DIFF_MILLIS = 15000; //5secs
 	
 	private final StorageManager mStorageManager;
@@ -60,7 +59,7 @@ public class ImageGalleryWorker extends WorkerChild {
     private int deleteDuplicateGalleryImage() {
         final boolean hasWritePermission = ContextCompat.checkSelfPermission(getWorkerManager().getApplication(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         if (!hasWritePermission) {
-            Log.e(TAG, "Storage permission is not allowed... Skipping rotate and duplicate deletion check");
+            Logger.error(this, "Storage permission is not allowed... Skipping rotate and duplicate deletion check");
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
 
@@ -86,7 +85,7 @@ public class ImageGalleryWorker extends WorkerChild {
             }
         }
         catch (Exception e) {
-            Log.e(TAG, "", e);
+            Logger.error(this, e);
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
         finally {
@@ -109,7 +108,7 @@ public class ImageGalleryWorker extends WorkerChild {
     @Deprecated
     public File transformNativeCameraBitmap(final Uri imageUri, final Intent data, Uri imageDestination) {
         // TODO: Move this all to a separate thread
-        Log.d(TAG, "Handling image save for: {" + imageUri + ";" + data + ";" + imageDestination + "}");
+        Logger.debug(this, "Handling image save for: {{};{};{}}", imageUri, data, imageDestination);
         System.gc();
         int orientation = this.deleteDuplicateGalleryImage(); //Some devices duplicate the gallery images
         Uri imageUriCopy;
@@ -121,7 +120,7 @@ public class ImageGalleryWorker extends WorkerChild {
                 imageUriCopy = data.getData();
             }
             else {
-                Log.e(TAG, "Failed to find enough intent data to save. Aborting");
+                Logger.error(this, "Failed to find enough intent data to save. Aborting");
                 return null;
             }
         }
@@ -131,7 +130,7 @@ public class ImageGalleryWorker extends WorkerChild {
         final Context context = mWorkerManager.getApplication();
         if (imageDestination == null) {
             Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "No save destination. Aborting");
+            Logger.error(this, "No save destination. Aborting");
             return null;
         }
         File imgFile = new File(imageDestination.getPath());
@@ -170,7 +169,7 @@ public class ImageGalleryWorker extends WorkerChild {
         }
         if (!mStorageManager.writeBitmap(imageDestination, endBitmap, CompressFormat.JPEG, 85)) {
             Toast.makeText(context, mFlex.getString(context, R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Failed to write the image data. Aborting");
+            Logger.error(this, "Failed to write the image data. Aborting");
             imgFile = null;
         }
         return imgFile;
@@ -188,7 +187,7 @@ public class ImageGalleryWorker extends WorkerChild {
                 bitmap = BitmapFactory.decodeFile(getMediaStoreUri(photoUri).getPath(), options);
             }
         } catch (SecurityException e) {
-            Log.e(TAG, "Caught import security exception. Swallowing", e);
+            Logger.error(this, "Caught import security exception. Swallowing", e);
         }
 
         if (bitmap == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -216,7 +215,7 @@ public class ImageGalleryWorker extends WorkerChild {
                 return Uri.EMPTY;
             }
         } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Unabled to find the requested column", e);
+            Logger.error(this, "Unabled to find the requested column", e);
             return Uri.EMPTY;
         }
         finally {
@@ -235,7 +234,7 @@ public class ImageGalleryWorker extends WorkerChild {
                 final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 mWorkerManager.getApplication().getContentResolver().takePersistableUriPermission(photoUri, takeFlags);
             } catch (SecurityException e) {
-                Log.e(TAG, "Caught import security exception. Swallowing", e);
+                Logger.error(this, "Caught import security exception. Swallowing", e);
                 return null;
             }
         }

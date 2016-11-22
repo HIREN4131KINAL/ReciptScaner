@@ -11,11 +11,9 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +21,7 @@ import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
@@ -80,25 +79,25 @@ public class ImageImportProcessor implements FileImportProcessor {
                                 bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
                                 wasRotationHandled = true;
                             } else {
-                                Log.w(TAG, "Failed to fetch orientation information from the content store");
+                                Logger.warn(this, "Failed to fetch orientation information from the content store");
                             }
                         }
 
                         // Save the file
                         final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
                         if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
-                            Log.e(TAG, "Failed to write the image data. Aborting");
+                            Logger.error(this, "Failed to write the image data. Aborting");
                             subscriber.onError(new IOException());
                         } else {
                             if (mPreferences.getRotateImages() && !wasRotationHandled) {
                                 int orientation = ExifInterface.ORIENTATION_UNDEFINED;
                                 try {
-                                    Log.i(TAG, "Attempting to fetch orientation information from the exif data");
+                                    Logger.info(this, "Attempting to fetch orientation information from the exif data");
                                     // Getting exif from the local file that we just wrote to determine if rotation in necessary
                                     final ExifInterface exif = new ExifInterface(destination.getAbsolutePath());
                                     orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
                                 } catch (IOException e) {
-                                    Log.e(TAG, "" + e);
+                                    Logger.error(this, e);
                                 }
                                 if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
                                     bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
@@ -143,7 +142,7 @@ public class ImageImportProcessor implements FileImportProcessor {
                 return scale;
             }
         } catch (IOException e) {
-            Log.w(TAG, "Failed to process image scale. " + e);
+            Logger.warn(this, "Failed to process image scale", e);
         } finally {
             StorageManager.closeQuietly(inputStream);
         }
@@ -168,7 +167,7 @@ public class ImageImportProcessor implements FileImportProcessor {
             }
         }
         catch (Exception e) {
-            Log.e(TAG, "", e);
+            Logger.error(this, e);
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
         finally {

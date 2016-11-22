@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -21,6 +20,7 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func0;
@@ -129,15 +129,15 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
 
     public void postMove(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
         if (newReceipt != null) { // i.e. - the move succeeded (delete the old data)
-            Log.i(TAG, "Completed the move procedure");
+            Logger.info(this, "Completed the move procedure");
             if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).toBlocking().first() != null) {
                 if (oldReceipt.hasFile()) {
                     if (!mStorageManager.delete(oldReceipt.getFile())) {
-                        Log.e(TAG, "Failed to delete the moved receipt's file");
+                        Logger.error(this, "Failed to delete the moved receipt's file");
                     }
                 }
             } else {
-                Log.e(TAG, "Failed to delete the moved receipt from the database for it's original trip");
+                Logger.error(this, "Failed to delete the moved receipt from the database for it's original trip");
             }
         }
     }
@@ -176,7 +176,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
             final String newName = stringBuilder.toString();
             final File renamedFile = mStorageManager.getFile(receipt.getTrip().getDirectory(), newName);
             if (!renamedFile.exists()) {
-                Log.i(TAG, "Changing image name from: " + file.getName() + " to: " + newName);
+                Logger.info(this, "Changing image name from: {} to: {}", file.getName(), newName);
                 builder.setFile(mStorageManager.rename(file, newName)); // Returns oldFile on failure
             }
         }
@@ -191,7 +191,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         if (receipt.hasFile()) {
             final File destination = mStorageManager.getFile(toTrip.getDirectory(), System.currentTimeMillis() + receipt.getFileName());
             if (mStorageManager.copy(receipt.getFile(), destination, true)) {
-                Log.i(TAG, "Successfully copied the receipt file to the new trip: " + toTrip.getName());
+                Logger.info(this, "Successfully copied the receipt file to the new trip: {}", toTrip.getName());
                 builder.setFile(destination);
             } else {
                 throw new IOException("Failed to copy the receipt file to the new trip: " + toTrip.getName());

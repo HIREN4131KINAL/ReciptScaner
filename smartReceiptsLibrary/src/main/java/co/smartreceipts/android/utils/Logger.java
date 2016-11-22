@@ -53,12 +53,20 @@ public class Logger {
         getLoggerForCaller(caller).warn(msg, t);
     }
 
+    public static void warn(Object caller,Throwable t) {
+        getLoggerForCaller(caller).warn(null, t);
+    }
+
     public static void warn(Object caller, String format, Object... arg) {
         getLoggerForCaller(caller).warn(format, arg);
     }
 
     public static void error(Object caller, String msg) {
         getLoggerForCaller(caller).error(msg);
+    }
+
+    public static void error(Object caller, Throwable t) {
+        getLoggerForCaller(caller).error(null, t);
     }
 
     public static void error(Object caller, String msg, Throwable t) {

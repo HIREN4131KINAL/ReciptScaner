@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.text.method.TextKeyListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -57,6 +56,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
@@ -531,10 +531,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onUserRetry() {
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
-            Log.i(TAG, "Attempting to retry with valid subscription. Submitting request directly");
+            Logger.info(this, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
-            Log.i(TAG, "Attempting to retry without valid subscription. Directing user to purchase intent");
+            Logger.info(this, "Attempting to retry without valid subscription. Directing user to purchase intent");
             final Activity activity = getActivity();
             if (activity instanceof SmartReceiptsActivity) {
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
@@ -587,7 +587,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             if (mFocusedView != null) {
                 inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
             } else {
-                Log.w(TAG, "Unable to dismiss soft keyboard due to a null view");
+                Logger.warn(this, "Unable to dismiss soft keyboard due to a null view");
             }
         }
 
@@ -626,7 +626,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
         if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
-            Log.i(TAG, "Submitting exchange rate request");
+            Logger.info(this, "Submitting exchange rate request");
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
@@ -643,11 +643,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
-                            Log.w(TAG, "User already started typing... Ignoring exchange rate result");
+                            Logger.warn(this, "User already started typing... Ignoring exchange rate result");
                         }
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
-                        Log.e(TAG, "Received a null exchange rate");
+                        Logger.error(this, "Received a null exchange rate");
                         getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailedWithNull);
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
@@ -655,7 +655,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                 @Override
                 public void failure(EditText editText, Call<ExchangeRate> call, Throwable th) {
-                    Log.e(TAG, "" + th);
+                    Logger.error(this, th);
                     getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailed);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
@@ -663,7 +663,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, getString(R.string.exchange_rate_key), baseCurrencyCode, mLastExchangeRateFetchCallback);
         } else {
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);
-            Log.i(TAG, "Ignoring exchange rate request, since there is no subscription for it");
+            Logger.info(this, "Ignoring exchange rate request, since there is no subscription for it");
         }
     }
 

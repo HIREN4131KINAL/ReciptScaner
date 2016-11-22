@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -17,6 +16,7 @@ import java.util.Map;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.ExceptionUtils;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -96,7 +96,7 @@ public class ManualRestoreTask {
                             }
                         }
                         catch (IOException e) {
-                            Log.e(TAG, e.toString());
+                            Logger.error(ManualRestoreTask.this, e);
                             mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [1]: " + ExceptionUtils.getStackTrace(e));
                             subscriber.onError(e);
                         }
@@ -132,7 +132,7 @@ public class ManualRestoreTask {
                         }
                     }
                 } catch (IOException | SDCardStateException e) {
-                    Log.e(TAG, e.toString());
+                    Logger.error(ManualRestoreTask.this, e);
                     mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught exception during import at [2]: " + ExceptionUtils.getStackTrace(e));
                     subscriber.onError(e);
                 }
@@ -151,12 +151,12 @@ public class ManualRestoreTask {
         File prefs = internal.getFile(internal.getRoot().getParentFile(), "shared_prefs");
         try {
             if (!internal.copy(sdPrefs, prefs, overwrite)) {
-                Log.e(TAG, "Failed to import settings");
+                Logger.error(this, "Failed to import settings");
                 mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Failed to import settings");
             }
         }
         catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Logger.error(this, e.toString());
             mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [3]: " + ExceptionUtils.getStackTrace(e));
         }
         try {
@@ -164,7 +164,7 @@ public class ManualRestoreTask {
             internal.copy(internalDir, internal.getRoot(), overwrite);
         }
         catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Logger.error(this, e.toString());
             mPersistenceManager.getStorageManager().appendTo(LOG_FILE, "Caught IOexception during import at [4]: " + ExceptionUtils.getStackTrace(e));
         }
         DatabaseHelper db = mPersistenceManager.getDatabase();

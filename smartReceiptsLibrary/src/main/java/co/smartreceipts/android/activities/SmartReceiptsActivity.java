@@ -10,7 +10,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -36,9 +35,6 @@ import co.smartreceipts.android.rating.AppRating;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
-    // logging variables
-    static final String TAG = "SmartReceiptsActivity";
-
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     // AppRating (Use a combination of launches and a timer for the app rating
@@ -55,8 +51,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
-        Logger.debug(this, "HELLO LOGBACK");
+        Logger.debug(this, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
         mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
@@ -67,7 +62,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
-            Log.d(TAG, "savedInstanceState == null");
+            Logger.debug(this, "savedInstanceState == null");
             mNavigationHandler.navigateToHomeTripsFragment();
             AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
         }
@@ -80,7 +75,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "onStart");
+        Logger.debug(this, "onStart");
 
         if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal()) {
             Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
@@ -90,7 +85,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
-        Log.d(TAG, "onResumeFragments");
+        Logger.debug(this, "onResumeFragments");
 
         // Present dialog for viewing an attachment
         final Attachment attachment = new Attachment(getIntent(), getContentResolver());
@@ -189,24 +184,19 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onPause() {
-        Log.i(TAG, "onPause");
+        Logger.info(this, "onPause");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "onDestroy");
+        Logger.info(this, "onDestroy");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
         mSubscriptionManager.removeEventListener(this);
         mSubscriptionManager.onDestroy();
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
         super.onDestroy();
-    }
-
-    @Override
-    public String getTag() {
-        return TAG;
     }
 
     @Override
@@ -221,14 +211,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
     }
 
     @Override
     public void onSubscriptionsUnavailable() {
-        Log.w(TAG, "No subscriptions were found for this session");
+        Logger.warn(this, "No subscriptions were found for this session");
     }
 
     @Override

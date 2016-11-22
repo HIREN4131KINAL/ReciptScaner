@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -42,6 +41,7 @@ import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.sync.manual.ManualRestoreTask;
 import co.smartreceipts.android.utils.ExceptionUtils;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
 import rx.Subscriber;
@@ -50,10 +50,6 @@ import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
 public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {
-
-    // Logging Vars
-    private static final boolean D = true;
-    private static final String TAG = "DatabaseHelper";
 
     // Database Info
     public static final String DATABASE_NAME = "receipts.db";
@@ -203,7 +199,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             this.close();
         } catch (Exception e) {
             // This can be called from finalize, so operate cautiously
-            Log.e(TAG, e.toString());
+            Logger.error(this, e);
         }
     }
 
@@ -264,7 +260,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
             if (!onlyUseReimbursable || receipt.isReimbursable()) {
-                if(DateUtils.isToday(receipt.getDate())) {
+                if (DateUtils.isToday(receipt.getDate())) {
                     prices.add(receipt);
                 }
             }
@@ -273,7 +269,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
-                if(DateUtils.isToday(distance.getDate())) {
+                if (DateUtils.isToday(distance.getDate())) {
                     prices.add(distance);
                 }
             }
@@ -380,7 +376,9 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     }
 
     @NonNull
-    public final PaymentMethodsTable getPaymentMethodsTable() { return mPaymentMethodsTable; }
+    public final PaymentMethodsTable getPaymentMethodsTable() {
+        return mPaymentMethodsTable;
+    }
 
     @NonNull
     public final List<Table> getTables() {
@@ -403,9 +401,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 importDB = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE);
                 // Merge Trips
                 try {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "Merging Trips");
-                    }
+                    Logger.debug(this, "Merging Trips");
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Trips");
                     c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
                     if (c != null && c.moveToFirst()) {
@@ -464,9 +460,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a1]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -476,9 +470,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 }
 
                 // Merge Receipts
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging Receipts");
-                }
+                Logger.debug(this, "Merging Receipts");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Receipts");
                 try {
                     final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND " + ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
@@ -589,9 +581,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a2]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -603,9 +593,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // Merge Categories
                 // No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
                 // enough outlying data) => Always overwirte
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging Categories");
-                }
+                Logger.debug(this, "Merging Categories");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging Categories");
                 try {
                     c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
@@ -628,9 +616,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a3]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -642,9 +628,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // Merge CSV
                 // No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
                 // enough outlying data) => Always overwirte
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging CSV");
-                }
+                Logger.debug(this, "Merging CSV");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging CSV");
                 try {
                     c = importDB.query(CSVTable.TABLE_NAME, null, null, null, null, null, null);
@@ -664,9 +648,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a4]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -678,9 +660,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // Merge PDF
                 // No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
                 // enough outlying data) => Always overwirte
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging PDF");
-                }
+                Logger.debug(this, "Merging PDF");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Merging PDF");
                 try {
                     c = importDB.query(PDFTable.TABLE_NAME, null, null, null, null, null, null);
@@ -700,9 +680,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a5]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -714,9 +692,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // Merge Payment methods
                 // No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
                 // enough outlying data) => Always overwirte
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging Payment Methods");
-                }
+                Logger.debug(this, "Merging Payment Methods");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Payment Methods");
                 try {
                     c = importDB.query(PaymentMethodsTable.TABLE_NAME, null, null, null, null, null, null);
@@ -736,9 +712,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -747,9 +721,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     }
                 }
 
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Merging Distance");
-                }
+                Logger.debug(this, "Merging Distance");
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Distance");
                 try {
                     c = importDB.query(DistanceTable.TABLE_NAME, null, null, null, null, null, null);
@@ -808,9 +780,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                         while (c.moveToNext());
                     }
                 } catch (SQLiteException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, e.toString(), e); // Occurs if Table does not exist
-                    }
+                    Logger.error(this, e); // Occurs if Table does not exist
                     mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught sql exception during import at [a6]: " + ExceptionUtils.getStackTrace(e));
                 } finally {
                     if (c != null && !c.isClosed()) {
@@ -822,9 +792,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Success");
                 return true;
             } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString());
-                }
+                Logger.error(this, e);
                 mPersistenceManager.getStorageManager().appendTo(ManualRestoreTask.LOG_FILE, "Caught fatal db exception during import at [a7]: " + ExceptionUtils.getStackTrace(e));
                 return false;
             } finally {

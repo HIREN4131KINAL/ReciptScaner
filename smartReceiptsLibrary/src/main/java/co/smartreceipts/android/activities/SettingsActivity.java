@@ -20,7 +20,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -54,6 +53,7 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
@@ -61,7 +61,6 @@ import co.smartreceipts.android.rating.AppRating;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
-    public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
@@ -402,13 +401,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
     }
 
     @Override
     public void onSubscriptionsUnavailable() {
-        Log.w(TAG, "No subscriptions were found for this session");
+        Logger.warn(this, "No subscriptions were found for this session");
         // Intentional no-op
     }
 
@@ -516,7 +515,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                 mSharedPreferences.edit().putString(mKey, filename).apply();
                 return true;
             } catch (IOException e) {
-                Log.e(TAG, "Failed to save signature image in onActivityResult", e);
+                Logger.error(this, "Failed to save signature image in onActivityResult", e);
                 return false;
             } finally {
                 if (inputStream != null) {

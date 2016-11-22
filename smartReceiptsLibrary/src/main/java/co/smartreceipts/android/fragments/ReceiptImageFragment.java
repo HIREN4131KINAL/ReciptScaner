@@ -11,7 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +25,6 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
@@ -39,13 +37,12 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.utils.Logger;
 import wb.android.google.camera.Util;
 import wb.android.storage.StorageManager;
 import wb.android.ui.PinchToZoomImageView;
 
 public class ReceiptImageFragment extends WBFragment {
-
-    public static final String TAG = "ReceiptImageFragment";
 
     // Save state
     private static final String KEY_OUT_RECEIPT = "key_out_receipt";
@@ -133,7 +130,7 @@ public class ReceiptImageFragment extends WBFragment {
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        Log.d(TAG, "Result Code: " + resultCode);
+        Logger.debug(this, "Result Code: " + resultCode);
         if (mReceipt == null) {
             mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         }
@@ -274,9 +271,7 @@ public class ReceiptImageFragment extends WBFragment {
                 storage.writeBitmap(root, bitmap, filename, CompressFormat.JPEG, 85);
                 return bitmap;
             } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString());
-                }
+                Logger.error(this, e);
                 return null;
             }
         }

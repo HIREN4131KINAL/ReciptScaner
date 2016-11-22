@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.io.File;
 
@@ -15,6 +14,7 @@ import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCusto
 import co.smartreceipts.android.persistence.database.tables.adapters.TripDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.TripPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
+import co.smartreceipts.android.utils.Logger;
 
 public final class TripsTable extends AbstractSqlTable<Trip, String> {
 
@@ -60,7 +60,7 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
                 + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
-        Log.d(TAG, trips);
+        Logger.debug(this, trips);
         db.execSQL(trips);
     }
 
@@ -81,12 +81,12 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
                         }
 
                         final String relPath = absPath.substring(absPath.lastIndexOf(File.separatorChar) + 1, absPath.length());
-                        Log.d(TAG, "Updating Abs. Trip Path: " + absPath + " => " + relPath);
+                        Logger.debug("Updating Abs. Trip Path: {} => {}", absPath, relPath);
 
                         final ContentValues tripValues = new ContentValues(1);
                         tripValues.put(TripsTable.COLUMN_NAME, relPath);
                         if (db.update(TripsTable.TABLE_NAME, tripValues, TripsTable.COLUMN_NAME + " = ?", new String[]{absPath}) == 0) {
-                            Log.e(TAG, "Trip Update Error Occured");
+                            Logger.error(this, "Trip Update Error Occured");
                         }
                     }
                     while (tripsCursor.moveToNext());
@@ -102,8 +102,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
             final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FROM_TIMEZONE + " TEXT";
             final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_TO_TIMEZONE + " TEXT";
 
-            Log.d(TAG, alterTrips1);
-            Log.d(TAG, alterTrips2);
+            Logger.debug(this, alterTrips1);
+            Logger.debug(this, alterTrips2);
 
             db.execSQL(alterTrips1);
             db.execSQL(alterTrips2);
@@ -113,8 +113,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
             final String alterTrips1 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COMMENT + " TEXT";
             final String alterTrips2 = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_DEFAULT_CURRENCY + " TEXT";
 
-            Log.d(TAG, alterTrips1);
-            Log.d(TAG, alterTrips2);
+            Logger.debug(this, alterTrips1);
+            Logger.debug(this, alterTrips2);
 
             db.execSQL(alterTrips1);
             db.execSQL(alterTrips2);
@@ -123,7 +123,7 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
         if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
             final String alterTrips = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_FILTERS + " TEXT";
 
-            Log.d(TAG, alterTrips);
+            Logger.debug(this, alterTrips);
 
             db.execSQL(alterTrips);
         }
@@ -132,8 +132,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
             final String alterTripsWithCostCenter = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_COST_CENTER + " TEXT";
             final String alterTripsWithProcessingStatus = "ALTER TABLE " + TripsTable.TABLE_NAME + " ADD " + TripsTable.COLUMN_PROCESSING_STATUS + " TEXT";
 
-            Log.d(TAG, alterTripsWithCostCenter);
-            Log.d(TAG, alterTripsWithProcessingStatus);
+            Logger.debug(this, alterTripsWithCostCenter);
+            Logger.debug(this, alterTripsWithProcessingStatus);
 
             db.execSQL(alterTripsWithCostCenter);
             db.execSQL(alterTripsWithProcessingStatus);

@@ -2,11 +2,11 @@ package co.smartreceipts.android.sync.network;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.Logger;
 
 public class NetworkManager extends CompositeNetworkProviderImpl {
 
@@ -27,21 +27,21 @@ public class NetworkManager extends CompositeNetworkProviderImpl {
     }
 
     public synchronized void setAndInitializeNetworkProviderType(@NonNull SupportedNetworkType supportedNetworkType) {
-        Log.i(TAG, "Updating network provider type to: " + supportedNetworkType);
+        Logger.info(this, "Updating network provider type to: {}", supportedNetworkType);
         final NetworkProvider newNetworkProvider = mNetworkProviderFactory.get(supportedNetworkType);
 
-        Log.i(TAG, "De-initializing the old network type");
+        Logger.info(this, "De-initializing the old network type");
         for (final NetworkProvider networkProvider : mNetworkProviders) {
             networkProvider.deinitialize();
             networkProvider.unregisterListener(this);
         }
 
         // Updating
-        Log.i(TAG, "Updating network type references");
+        Logger.info(this, "Updating network type references");
         mNetworkProviders.clear();
         mNetworkProviders.add(newNetworkProvider);
 
-        Log.i(TAG, "Initializing the new provider");
+        Logger.info(this, "Initializing the new provider");
         for (final NetworkProvider networkProvider : mNetworkProviders) {
             networkProvider.initialize();
             networkProvider.registerListener(this);

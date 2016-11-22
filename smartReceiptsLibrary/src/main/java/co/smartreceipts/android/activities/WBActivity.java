@@ -63,8 +63,4 @@ public class WBActivity extends AppCompatActivity {
 		return mApplication;
 	}
 
-	public String getTag() {
-		return "";
-	}
-
 }

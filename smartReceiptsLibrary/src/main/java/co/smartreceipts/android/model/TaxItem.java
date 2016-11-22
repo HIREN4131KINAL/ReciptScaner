@@ -5,14 +5,11 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 import android.text.TextUtils;
-import android.util.Log;
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.Logger;
 
 public class TaxItem {
-	
-	private static final String TAG = "TaxItem";
-	
+
 	private static final int SCALE = 2;
 	private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_EVEN;
 	
@@ -84,7 +81,7 @@ public class TaxItem {
 			getTax();
 		}
 		catch (NumberFormatException e) {
-			if (BuildConfig.DEBUG) Log.e(TAG, e.toString());
+			Logger.error(this, e);
 			mPrice = null;
 		}
 	}
@@ -98,7 +95,7 @@ public class TaxItem {
 			mTax = null;
 		}
 		else {
-			Log.d(TAG, mPrice.toString());
+			Logger.debug(this, mPrice.toString());
 			if (mUsePreTaxPrice) {
 				mTax = mPrice.multiply(mPercent).divide(new BigDecimal(100), SCALE, ROUNDING_MODE);
 			}

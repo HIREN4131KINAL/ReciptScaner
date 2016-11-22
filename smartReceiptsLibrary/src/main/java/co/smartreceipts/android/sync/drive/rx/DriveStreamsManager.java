@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.DriveFile;
@@ -22,13 +21,12 @@ import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
 
 public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks {
-
-    private static final String TAG = DriveStreamsManager.class.getSimpleName();
 
     private final DriveDataStreams mDriveDataStreams;
     private final DriveStreamMappings mDriveStreamMappings;
@@ -46,13 +44,13 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "GoogleApiClient connection succeeded.");
+        Logger.info(this, "GoogleApiClient connection succeeded.");
         mLatchReference.get().countDown();
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.i(TAG, "GoogleApiClient connection suspended with cause " + cause);
+        Logger.info(this, "GoogleApiClient connection suspended with cause {}", cause);
         mLatchReference.set(new CountDownLatch(1));
     }
 

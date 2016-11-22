@@ -3,7 +3,6 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -17,6 +16,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -25,8 +25,6 @@ import rx.functions.Func1;
  * each to centralize where all logic is managed
  */
 public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receipt>, Integer> {
-
-    private static final String TAG = AbstractColumnTable.class.getSimpleName();
 
     private final int mTableExistsSinceDatabaseVersion;
     private final ColumnDefinitions<Receipt> mReceiptColumnDefinitions;
@@ -52,7 +50,7 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
                 + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"+ ");";
-        Log.d(TAG, columnsTable);
+        Logger.debug(this, columnsTable);
 
         db.execSQL(columnsTable);
         insertDefaults(customizer);
@@ -66,7 +64,7 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
                     + mIdColumnName + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + mTypeColumnName + " TEXT"
                     + ");";
-            Log.d(TAG, columnsTable);
+            Logger.debug(this, columnsTable);
 
             db.execSQL(columnsTable);
             insertDefaults(customizer);

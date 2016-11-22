@@ -18,7 +18,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.itextpdf.text.BadElementException;
@@ -62,6 +61,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.IntentUtils;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
@@ -90,8 +90,6 @@ public class EmailAssistant {
             return this.index;
         }
     }
-
-    private static final String TAG = "EmailAssistant";
 
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
 
@@ -309,7 +307,7 @@ public class EmailAssistant {
                 String filename = dir.getName() + ".csv";
                 if (!mStorageManager.write(dir, filename, data)) {
                     if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Failed to write the csv file");
+                        Logger.error(this, "Failed to write the csv file");
                     }
                     results.didCSVFailCompletely = true;
                 } else {
@@ -512,18 +510,14 @@ public class EmailAssistant {
                         img1 = Image.getInstance(receipt.getFilePath());
                         receipt1 = receipt;
                     } catch (Exception e) {
-                        if (BuildConfig.DEBUG) {
-                            Log.e(TAG, e.toString(), e);
-                        }
+                        Logger.error(this, e);
                         continue;
                     }
                 } else if (receipt.hasImage() && img2 == null) {
                     try {
                         img2 = Image.getInstance(receipt.getFilePath());
                     } catch (Exception e) {
-                        if (BuildConfig.DEBUG) {
-                            Log.e(TAG, e.toString());
-                        }
+                        Logger.error(this, e);
                         continue;
                     }
                     addHeaderCell(table, receipt1);
@@ -540,9 +534,7 @@ public class EmailAssistant {
                         try {
                             document.add(table);
                         } catch (DocumentException e) {
-                            if (BuildConfig.DEBUG) {
-                                Log.e(TAG, e.toString());
-                            }
+                            Logger.error(this, e);
                         }
                         table = getPanedPdfPTable();
                         flag = 0;
@@ -559,9 +551,7 @@ public class EmailAssistant {
             try {
                 document.add(table);
             } catch (DocumentException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString(), e);
-                }
+                Logger.error(this, e);
             }
             document.newPage(); //TODO: See if this code can be made more linear (i.e. add columns dyanmically instead of doing it all at once)
 
@@ -628,29 +618,19 @@ public class EmailAssistant {
                     document.newPage();
                 }
             } catch (FileNotFoundException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString(), e);
-                }
+                Logger.error(this, e);
                 return;
             } catch (BadPdfFormatException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString(), e);
-                }
+                Logger.error(this, e);
                 return;
             } catch (IOException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString(), e);
-                }
+                Logger.error(this, e);
                 return;
             } catch (BadElementException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString(), e);
-                }
+                Logger.error(this, e);
                 return;
             } catch (DocumentException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString());
-                }
+                Logger.error(this, e);
                 return;
             }
         }
@@ -682,9 +662,7 @@ public class EmailAssistant {
             try {
                 table.setWidths(new float[]{big, small, big});
             } catch (DocumentException e1) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e1.toString(), e1);
-                }
+                Logger.error(this, e1);
             }
             table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
             table.getDefaultCell().setVerticalAlignment(Element.ALIGN_CENTER);

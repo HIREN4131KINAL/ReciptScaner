@@ -4,20 +4,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import co.smartreceipts.android.utils.Logger;
 
 abstract class AbstractNetworkProvider implements NetworkProvider {
 
-    private final String TAG = getClass().getSimpleName();
 
     private final Context mContext;
     private final List<String> mConnectionChangeIntentActions;
@@ -65,7 +63,7 @@ abstract class AbstractNetworkProvider implements NetworkProvider {
             if (mConnectionChangeIntentActions.contains(intent.getAction())) {
                 final boolean hasConnection = isNetworkAvailable();
                 if (mIsConnected.compareAndSet(!hasConnection, hasConnection)) {
-                    Log.d(TAG, "Network connection changed: " + hasConnection);
+                    Logger.debug(this, "Network connection changed: " + hasConnection);
                     if (hasConnection) {
                         mNetworkStateChangeListenerTracker.notifyNetworkConnectivityGained();
                     } else {

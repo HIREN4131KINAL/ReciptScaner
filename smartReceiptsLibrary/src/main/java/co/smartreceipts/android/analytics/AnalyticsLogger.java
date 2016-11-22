@@ -1,12 +1,12 @@
 package co.smartreceipts.android.analytics;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.List;
 
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.utils.Logger;
 
 public class AnalyticsLogger implements Analytics {
 
@@ -18,7 +18,7 @@ public class AnalyticsLogger implements Analytics {
         builder.append(event);
         builder.append(" with datapoints: ");
         builder.append(getDataPointsString(event.getDataPoints()));
-        Log.i(TAG, builder.toString());
+        Logger.info(this, builder.toString());
     }
 
     @NonNull

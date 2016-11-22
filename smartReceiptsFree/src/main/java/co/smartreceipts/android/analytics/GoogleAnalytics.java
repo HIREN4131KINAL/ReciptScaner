@@ -1,7 +1,6 @@
 package co.smartreceipts.android.analytics;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -11,10 +10,9 @@ import java.util.List;
 
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.utils.Logger;
 
 public class GoogleAnalytics implements Analytics {
-
-    private static final String TAG = GoogleAnalytics.class.getSimpleName();
 
     private final Tracker mTracker;
 
@@ -27,7 +25,7 @@ public class GoogleAnalytics implements Analytics {
         try {
             mTracker.send(new HitBuilders.EventBuilder(event.category().name(), event.name().name()).setLabel(getLabelString(event.getDataPoints())).build());
         } catch (Exception e) {
-            Log.e(TAG, "Swallowing GA Exception: " + e.getMessage());
+            Logger.error(this, "Swallowing GA Exception: ", e);
         }
     }
 

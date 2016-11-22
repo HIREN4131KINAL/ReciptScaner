@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallbacks;
@@ -47,6 +46,7 @@ import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.DefaultRemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.utils.Logger;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
@@ -130,12 +130,12 @@ class DriveDataStreams {
 
                                         @Override
                                         public void onFailure(@NonNull Status status) {
-                                            Log.e(TAG, "Failed to query a database within the parent folder: " + status);
+                                            Logger.error(DriveDataStreams.this, "Failed to query a database within the parent folder: {}", status);
                                             subscriber.onError(new IOException(status.getStatusMessage()));
                                         }
                                     });
                                 } else {
-                                    Log.e(TAG, "Found an invalid Smart Receipts folder. Skipping");
+                                    Logger.error(DriveDataStreams.this, "Found an invalid Smart Receipts folder. Skipping");
                                 }
                             }
                         } finally {
@@ -145,7 +145,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to query a Smart Receipts folder with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to query a Smart Receipts folder with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -155,7 +155,7 @@ class DriveDataStreams {
 
     public synchronized Observable<DriveFolder> getSmartReceiptsFolder() {
         if (mSmartReceiptsFolderSubject == null) {
-            Log.i(TAG, "Creating new replay subject for the Smart Receipts folder");
+            Logger.info(this, "Creating new replay subject for the Smart Receipts folder");
             mSmartReceiptsFolderSubject = ReplaySubject.create();
             Observable.create(new Observable.OnSubscribe<DriveFolder>() {
                 @Override
@@ -174,11 +174,11 @@ class DriveDataStreams {
                                 }
 
                                 if (folderId != null) {
-                                    Log.i(TAG, "Found an existing Google Drive folder for Smart Receipts");
+                                    Logger.info(DriveDataStreams.this, "Found an existing Google Drive folder for Smart Receipts");
                                     subscriber.onNext(folderId.asDriveFolder());
                                     subscriber.onCompleted();
                                 } else {
-                                    Log.i(TAG, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
+                                    Logger.info(DriveDataStreams.this, "Failed to find an existing Smart Receipts folder for this device. Creating a new one...");
                                     final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(SMART_RECEIPTS_FOLDER).setDescription(mDeviceMetadata.getDeviceName()).setCustomProperty(SMART_RECEIPTS_FOLDER_KEY, mGoogleDriveSyncMetadata.getDeviceIdentifier().getId()).build();
                                     Drive.DriveApi.getAppFolder(mGoogleApiClient).createFolder(mGoogleApiClient, changeSet).setResultCallback(new ResultCallbacks<DriveFolder.DriveFolderResult>() {
                                         @Override
@@ -189,7 +189,7 @@ class DriveDataStreams {
 
                                         @Override
                                         public void onFailure(@NonNull Status status) {
-                                            Log.e(TAG, "Failed to create a home folder with status: " + status);
+                                            Logger.error(DriveDataStreams.this, "Failed to create a home folder with status: {}", status);
                                             subscriber.onError(new IOException(status.getStatusMessage()));
                                         }
                                     });
@@ -201,7 +201,7 @@ class DriveDataStreams {
 
                         @Override
                         public void onFailure(@NonNull Status status) {
-                            Log.e(TAG, "Failed to query a Smart Receipts folder with status: " + status);
+                            Logger.error(DriveDataStreams.this, "Failed to query a Smart Receipts folder with status: {}", status);
                             subscriber.onError(new IOException(status.getStatusMessage()));
                         }
                     });
@@ -222,14 +222,14 @@ class DriveDataStreams {
                         @Override
                         public void onSuccess(@NonNull DriveApi.DriveIdResult driveIdResult) {
                             final DriveId driveId = driveIdResult.getDriveId();
-                            Log.d(TAG, "Successfully fetch file with id: " + driveId);
+                            Logger.debug(DriveDataStreams.this, "Successfully fetch file with id: {}", driveId);
                             subscriber.onNext(driveId);
                             subscriber.onCompleted();
                         }
 
                         @Override
                         public void onFailure(@NonNull Status status) {
-                            Log.e(TAG, "Failed to fetch file with status: " + status);
+                            Logger.error(DriveDataStreams.this, "Failed to fetch file with status: {}", status);
                             subscriber.onError(new IOException(status.getStatusMessage()));
                         }
                     });
@@ -263,7 +263,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to query files in folder with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to query files in folder with status: {}", status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -327,12 +327,12 @@ class DriveDataStreams {
 
                                         @Override
                                         public void onFailure(@NonNull Status status) {
-                                            Log.e(TAG, "Failed to create file with status: " + status);
+                                            Logger.error(DriveDataStreams.this, "Failed to create file with status: {}", status);
                                             subscriber.onError(new IOException(status.getStatusMessage()));
                                         }
                                     });
                                 } catch (IOException e) {
-                                    Log.e(TAG, "Failed write file with exception: ", e);
+                                    Logger.error(DriveDataStreams.this, "Failed write file with exception: ", e);
                                     driveContents.discard(mGoogleApiClient);
                                     subscriber.onError(e);
                                 } finally {
@@ -345,7 +345,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to create file with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to create file with status: " + status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -392,12 +392,12 @@ class DriveDataStreams {
 
                                                 @Override
                                                 public void onFailure(@NonNull Status status) {
-                                                    Log.e(TAG, "Failed to updateDriveFile file with status: " + status);
+                                                    Logger.error(DriveDataStreams.this, "Failed to updateDriveFile file with status: {}", status);
                                                     subscriber.onError(new IOException(status.getStatusMessage()));
                                                 }
                                             });
                                         } catch (IOException e) {
-                                            Log.e(TAG, "Failed write file with exception: ", e);
+                                            Logger.error(DriveDataStreams.this, "Failed write file with exception: ", e);
                                             driveContents.discard(mGoogleApiClient);
                                             subscriber.onError(e);
                                         } finally {
@@ -410,7 +410,7 @@ class DriveDataStreams {
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to updateDriveFile file with status: " + status);
+                                Logger.error(DriveDataStreams.this, "Failed to updateDriveFile file with status: {}", status);
                                 subscriber.onError(new IOException(status.getStatusMessage()));
                             }
                         });
@@ -418,7 +418,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to updateDriveFile with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to fetch drive id {} to updateDriveFile with status: {}", driveIdentifier, status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -436,7 +436,7 @@ class DriveDataStreams {
             smartReceiptsFolderId = null;
         }
         if (driveIdentifier.equals(smartReceiptsFolderId)) {
-            Log.i(TAG, "Attemping to delete our Smart Receipts folder. Clearing our cached replay result...");
+            Logger.info(DriveDataStreams.this, "Attemping to delete our Smart Receipts folder. Clearing our cached replay result...");
             mSmartReceiptsFolderSubject = null;
         }
 
@@ -451,14 +451,14 @@ class DriveDataStreams {
                         driveResource.delete(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
                             @Override
                             public void onSuccess(@NonNull Status status) {
-                                Log.i(TAG, "Successfully deleted resource with status: " + status);
+                                Logger.info(DriveDataStreams.this, "Successfully deleted resource with status: {}", status);
                                 subscriber.onNext(true);
                                 subscriber.onCompleted();
                             }
 
                             @Override
                             public void onFailure(@NonNull Status status) {
-                                Log.e(TAG, "Failed to delete resource with status: " + status);
+                                Logger.error(DriveDataStreams.this, "Failed to delete resource with status: {}", status);
                                 subscriber.onNext(false);
                                 subscriber.onCompleted();
                             }
@@ -467,7 +467,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to fetch drive id " + driveIdentifier + " to deleteFolder with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to fetch drive id " + driveIdentifier + " to deleteFolder with status: {}", status);
                         subscriber.onError(new IOException(status.getStatusMessage()));
                     }
                 });
@@ -488,7 +488,7 @@ class DriveDataStreams {
                         mExecutor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                Log.i(TAG, "Successfully connected to the drive download stream");
+                                Logger.info(DriveDataStreams.this, "Successfully connected to the drive download stream");
                                 final DriveContents driveContents = driveContentsResult.getDriveContents();
                                 InputStream inputStream = null;
                                 FileOutputStream fileOutputStream = null;
@@ -504,7 +504,7 @@ class DriveDataStreams {
                                     subscriber.onNext(downloadLocationFile);
                                     subscriber.onCompleted();
                                 } catch (IOException e) {
-                                    Log.e(TAG, "Failed write file with exception: ", e);
+                                    Logger.error(DriveDataStreams.this, "Failed write file with exception: ", e);
                                     driveContents.discard(mGoogleApiClient);
                                     subscriber.onError(e);
                                 } finally {
@@ -517,7 +517,7 @@ class DriveDataStreams {
 
                     @Override
                     public void onFailure(@NonNull Status status) {
-                        Log.e(TAG, "Failed to downloaded the drive resource with status: " + status);
+                        Logger.error(DriveDataStreams.this, "Failed to downloaded the drive resource with status: {}", status);
                     }
                 });
             }

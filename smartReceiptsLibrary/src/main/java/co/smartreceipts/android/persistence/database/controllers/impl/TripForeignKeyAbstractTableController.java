@@ -1,9 +1,6 @@
 package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
-
-import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -17,6 +14,7 @@ import co.smartreceipts.android.persistence.database.tables.TripForeignKeyAbstra
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
@@ -84,12 +82,13 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
      */
     public synchronized void get(@NonNull final Trip trip, final  boolean isDescending) {
         // TODO: #preGet should really have the foreign key param... Which means all tables should be foreign key friendly...
-        Log.i(TAG, "#get: " + trip);
+        Logger.info(this, "#get: {}", trip);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTableActionAlterations.preGet()
                 .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
                     @Override
                     public Observable<List<ModelType>> call(Void oVoid) {
+P
                         return mTripForeignKeyTable.get(trip, isDescending);
                     }
                 })
@@ -109,13 +108,13 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                     @Override
                     public void call(List<ModelType> modelTypes) {
                         if (modelTypes != null) {
-                            Log.d(TAG, "#onGetSuccess - onNext");
+                            Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetSuccess - onNext");
                             for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
                                 foreignTableEventsListener.onGetSuccess(modelTypes, trip);
                             }
                         }
                         else {
-                            Log.d(TAG, "#onGetFailure - onNext");
+                            Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetFailure - onNext");
                             for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
                                 foreignTableEventsListener.onGetFailure(null, trip);
                             }
@@ -125,7 +124,7 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(TripForeignKeyAbstractTableController.this, throwable));
-                        Log.e(TAG, "#onGetFailure - onError");
+                        Logger.error(TripForeignKeyAbstractTableController.this, "#onGetFailure - onError");
                         for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
                             foreignTableEventsListener.onGetFailure(throwable, trip);
                         }
@@ -134,7 +133,7 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
                 }, new Action0() {
                     @Override
                     public void call() {
-                        Log.d(TAG, "#get - onComplete");
+                        Logger.debug(TripForeignKeyAbstractTableController.this, "#get - onComplete");
                         unsubscribeReference(subscriptionRef);
                     }
                 });

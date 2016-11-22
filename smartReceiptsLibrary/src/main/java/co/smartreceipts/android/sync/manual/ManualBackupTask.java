@@ -2,7 +2,6 @@ package co.smartreceipts.android.sync.manual;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -10,10 +9,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.utils.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -73,21 +72,19 @@ public class ManualBackupTask {
                     //Preferences File
                     if (prefs != null && prefs.exists()) {
                         File sdPrefs = external.getFile("shared_prefs");
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "Copying the prefs file from: " + prefs.getAbsolutePath() + " to " + sdPrefs.getAbsolutePath());
-                        }
+                        Logger.debug(ManualBackupTask.this,
+                                "Copying the prefs file from: {} to {}", prefs.getAbsolutePath(), sdPrefs.getAbsolutePath());
                         try {
                             external.copy(prefs, sdPrefs, true);
-                        }
-                        catch (IOException e) {
-                            Log.e(TAG, e.toString());
+                        } catch (IOException e) {
+                            Logger.error(this, e);
                         }
                     }
 
                     //Internal Files
                     final File[] internalFiles = internal.listFilesAndDirectories();
                     if (internalFiles != null && internalFiles.length > 0) {
-                        Log.d(TAG, "Copying " + internalFiles.length + " files/directories to the SD Card.");
+                        Logger.debug(ManualBackupTask.this, "Copying {} files/directories to the SD Card.", internalFiles.length);
                         final File internalOnSD = external.mkdir("Internal");
                         internal.copy(internalOnSD, true);
                     }
@@ -97,9 +94,8 @@ public class ManualBackupTask {
                     zip = external.rename(zip, EXPORT_FILENAME);
                     subscriber.onNext(Uri.fromFile(zip));
                     subscriber.onCompleted();
-                }
-                catch (IOException | SDCardStateException e) {
-                    Log.e(TAG, e.toString());
+                } catch (IOException | SDCardStateException e) {
+                    Logger.error(this, e);
                     subscriber.onError(e);
                 }
             }

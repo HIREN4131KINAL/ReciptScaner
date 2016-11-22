@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +24,9 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.utils.Logger;
 
 public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
-
-    public static final String TAG = DistanceFragment.class.getName();
 
     private Trip mTrip;
     private DistanceAdapter mAdapter;
@@ -48,7 +46,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
+        Logger.debug(this, "onCreate");
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
@@ -57,7 +55,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
+        Logger.debug(this, "onCreateView");
         final View view = inflater.inflate(R.layout.report_distance_list, container, false);
         mProgressDialog = view.findViewById(R.id.progress);
         mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
@@ -75,14 +73,14 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(TAG, "onActivityCreated");
+        Logger.debug(this, "onActivityCreated");
         setListAdapter(mAdapter);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Logger.debug(this, "onResume");
         mDistanceTableController.subscribe(this);
         mDistanceTableController.get(mTrip);
     }
@@ -99,7 +97,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause");
+        Logger.debug(this, "onPause");
         mDistanceTableController.unsubscribe(this);
     }
 

@@ -471,11 +471,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         return "Debug-information: \n" +
                 "Smart Receipts Version: " + getAppVersion() + "\n" +
+                "Package: " + getPackageName() + "\n" +
                 "Plus: " + hasProSubscription + "\n" +
                 "Brand: " + android.os.Build.BRAND + "\n" +
-                "CPU: " + android.os.Build.CPU_ABI + "\n" +
                 "OS API Level: " + android.os.Build.VERSION.SDK_INT + "\n" +
                 "Device: " + android.os.Build.DEVICE + "\n" +
+                "Manufacturer: " + Build.MANUFACTURER + "\n" +
                 "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" +
                 "Two-Paned: " + mIsUsingHeaders;
     }

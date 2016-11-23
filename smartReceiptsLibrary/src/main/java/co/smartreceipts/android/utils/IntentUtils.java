@@ -60,7 +60,8 @@ public class IntentUtils {
 
         final Intent sentIntent = new Intent(Intent.ACTION_VIEW);
         final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
-        final Uri uri = FileProvider.getUriForFile(context, authority, file);
+        final Uri uri = getUriFromFile(context, authority, file);
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadPermissionsToUri(context, sentIntent, uri);
         }
@@ -82,7 +83,8 @@ public class IntentUtils {
 
         final Intent sentIntent = new Intent(Intent.ACTION_SEND);
         final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
-        final Uri uri = FileProvider.getUriForFile(context, authority, file);
+        final Uri uri = getUriFromFile(context, authority, file);
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadPermissionsToUri(context, sentIntent, uri);
         }
@@ -112,7 +114,7 @@ public class IntentUtils {
             final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
             final ArrayList<Uri> uris = new ArrayList<>();
             for (final File file : files) {
-                final Uri uri = FileProvider.getUriForFile(context, authority, file);
+                final Uri uri = getUriFromFile(context, authority, file);
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
                     grantReadPermissionsToUri(context, sentIntent, uri);
                 }
@@ -131,7 +133,8 @@ public class IntentUtils {
 
         final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
-        final Uri uri = FileProvider.getUriForFile(context, authority, file);
+        final Uri uri = getUriFromFile(context, authority, file);
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             grantReadWritePermissionsToUri(context, intent, uri);
         }
@@ -159,5 +162,27 @@ public class IntentUtils {
             final String packageName = resolveInfo.activityInfo.packageName;
             context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         }
+    }
+
+    @NonNull
+    private static Uri getUriFromFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
+        if (worksWithAndroidsFileProvider()) {
+            return FileProvider.getUriForFile(context, authority, file);
+        } else {
+            return Uri.fromFile(file);
+        }
+    }
+
+    /**
+     * Huawei devices decided to not follow the Android contract for calls to {@link Context#getExternalFilesDirs(String)}.
+     * Rather than returning {@link Context#getExternalFilesDir(String)} (ie the default entry) as the first entry in the
+     * array returned by the former call, it always returns the sd card. This breaks shit. Rather than building a ton of hackys
+     * for this stupid device, we'll just break the preferred Android security model for them
+     *
+     * @return {@code true} if we can use {@link FileProvider#getUriForFile(Context, String, File)}
+     */
+    private static boolean worksWithAndroidsFileProvider() {
+        final String buggyManufacturers = "Huawei";
+        return !buggyManufacturers.equalsIgnoreCase(Build.MANUFACTURER);
     }
 }

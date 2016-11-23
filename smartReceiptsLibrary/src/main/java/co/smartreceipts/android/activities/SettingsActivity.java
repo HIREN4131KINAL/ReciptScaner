@@ -33,7 +33,6 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -370,25 +369,29 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             startActivity(AppRating.getRatingIntent(this, getString(R.string.package_name)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_send_feedback_key))) {
-            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.feedback, getString(R.string.sr_app_name)), false);
+            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.feedback, getString(R.string.sr_app_name)));
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_support_email_key))) {
+            // TODO-apapad improve this
             Uri uri0 = Uri.parse("file://" + "/data/data/wb.receipts/files/log.txt");
             Uri uri1 = Uri.parse("file://" + "/data/data/wb.receipts/files/log1.txt");
             Uri uri2 = Uri.parse("file://" + "/data/data/wb.receipts/files/log2.txt");
-            ArrayList<Uri> uris = new ArrayList<>();
-            if (new File(uri0.getPath()).exists()) {
-                uris.add(uri0);
+            List<File> files = new ArrayList<>();
+            File file1 = new File(uri0.getPath());
+            File file2 = new File(uri1.getPath());
+            File file3 = new File(uri2.getPath());
+            if (file1.exists()) {
+                files.add(file1);
             }
-            if (new File(uri1.getPath()).exists()) {
-                uris.add(uri1);
+            if (file2.exists()) {
+                files.add(file2);
             }
-            if (new File(uri2.getPath()).exists()) {
-                uris.add(uri2);
+            if (file3.exists()) {
+                files.add(file3);
             }
-            final Intent intent = EmailAssistant.getEmailDeveloperIntent(
-                    getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), uris);
+            final Intent intent = EmailAssistant.getEmailDeveloperIntent(this,
+                    getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), files);
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_output_signature_picture_key))) {

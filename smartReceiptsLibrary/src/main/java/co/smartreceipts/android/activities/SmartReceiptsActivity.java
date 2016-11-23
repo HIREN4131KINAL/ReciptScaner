@@ -14,6 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.File;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
@@ -80,6 +82,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         if (!getSmartReceiptsApplication().getPersistenceManager().getStorageManager().isExternal()) {
             Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
         }
+
+        File[] files = getFilesDir().listFiles();
+        StringBuilder sb = new StringBuilder();
+        for (File file : files) {
+            sb.append(file.getAbsoluteFile() + " - " + file.length()/1024 + "\n");
+        }
+        Logger.debug(this, "FILES: %s", sb.toString());
+        Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

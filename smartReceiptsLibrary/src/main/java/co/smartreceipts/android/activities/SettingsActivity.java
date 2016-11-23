@@ -33,6 +33,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -369,11 +370,25 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             startActivity(AppRating.getRatingIntent(this, getString(R.string.package_name)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_send_feedback_key))) {
-            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.feedback, getString(R.string.sr_app_name)));
+            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.feedback, getString(R.string.sr_app_name)), false);
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_support_email_key))) {
-            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen());
+            Uri uri0 = Uri.parse("file://" + "/data/data/wb.receipts/files/log.txt");
+            Uri uri1 = Uri.parse("file://" + "/data/data/wb.receipts/files/log1.txt");
+            Uri uri2 = Uri.parse("file://" + "/data/data/wb.receipts/files/log2.txt");
+            ArrayList<Uri> uris = new ArrayList<>();
+            if (new File(uri0.getPath()).exists()) {
+                uris.add(uri0);
+            }
+            if (new File(uri1.getPath()).exists()) {
+                uris.add(uri1);
+            }
+            if (new File(uri2.getPath()).exists()) {
+                uris.add(uri2);
+            }
+            final Intent intent = EmailAssistant.getEmailDeveloperIntent(
+                    getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), uris);
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_output_signature_picture_key))) {

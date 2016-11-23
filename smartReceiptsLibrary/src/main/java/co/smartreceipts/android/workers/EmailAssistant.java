@@ -43,6 +43,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -98,22 +100,30 @@ public class EmailAssistant {
     private final PersistenceManager mPersistenceManager;
     private final Trip mTrip;
 
-    public static final Intent getEmailDeveloperIntent() {
+    public static final Intent getEmailDeveloperIntent(boolean multiple) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setType("text/plain");
         intent.setData(Uri.parse("mailto:" + "will.r.b" + "aumann" + "@" + "gm" + "ail" + "." + "com"));
         return intent;
     }
 
-    public static final Intent getEmailDeveloperIntent(String subject) {
-        Intent intent = getEmailDeveloperIntent();
+    public static final Intent getEmailDeveloperIntent(String subject, boolean multiple) {
+        Intent intent = getEmailDeveloperIntent(multiple);
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         return intent;
     }
 
+
     public static final Intent getEmailDeveloperIntent(String subject, String body) {
-        Intent intent = getEmailDeveloperIntent(subject);
+        Intent intent = getEmailDeveloperIntent(subject, false);
         intent.putExtra(Intent.EXTRA_TEXT, body);
+        return intent;
+    }
+
+    public static final Intent getEmailDeveloperIntent(String subject, String body, ArrayList<Uri> uris) {
+        Intent intent = getEmailDeveloperIntent(subject, true);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
         return intent;
     }
 

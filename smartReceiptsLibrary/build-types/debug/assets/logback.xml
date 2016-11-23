@@ -13,6 +13,14 @@
         <encoder>
             <pattern>[%date] &lt;%logger{20}&gt; %level: %msg%n</pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <minIndex>1</minIndex>
+            <maxIndex>2</maxIndex>
+            <FileNamePattern>/data/data/wb.receipts/files/log%i.txt</FileNamePattern>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>5KB</MaxFileSize>
+        </triggeringPolicy>
     </appender>
 
     <root level="DEBUG">

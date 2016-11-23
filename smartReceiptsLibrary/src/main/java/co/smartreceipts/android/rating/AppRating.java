@@ -501,28 +501,26 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	private static class SharedPreferencesLoader extends AsyncTask<Void, Void, SharedPreferences> {
 
-		private final WeakReference<AppRating> sAppRating;
+		private final AppRating mAppRating;
 
 		public SharedPreferencesLoader(AppRating appRating) {
-			sAppRating = new WeakReference<AppRating>(appRating);
+            mAppRating = appRating;
 		}
 
 		@Override
 		protected SharedPreferences doInBackground(Void... args) {
-			AppRating appRating = sAppRating.get();
-			if (appRating == null) {
+			if (mAppRating == null) {
 				return null;
 			}
 			else {
-				return appRating.getSharedPreferences();
+				return mAppRating.getSharedPreferences();
 			}
 		}
 
 		@Override
 		protected void onPostExecute(SharedPreferences result) {
-			AppRating appRating = sAppRating.get();
-			if (appRating != null) {
-				appRating.onSharedPreferencesLoaded(result);
+			if (mAppRating != null) {
+                mAppRating.onSharedPreferencesLoaded(result);
 			}
 		}
 

@@ -16,7 +16,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.functions.Func1;
 

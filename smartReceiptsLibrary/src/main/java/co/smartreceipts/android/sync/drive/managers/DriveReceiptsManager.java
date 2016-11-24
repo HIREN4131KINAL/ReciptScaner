@@ -22,7 +22,7 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action0;

@@ -5,7 +5,7 @@ import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.flex.Flex;
 import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;

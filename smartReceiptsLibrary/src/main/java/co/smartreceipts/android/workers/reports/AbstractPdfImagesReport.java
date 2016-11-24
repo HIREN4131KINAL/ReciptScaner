@@ -39,7 +39,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;

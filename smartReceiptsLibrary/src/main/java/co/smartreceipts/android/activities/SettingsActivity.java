@@ -53,7 +53,8 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.LogConstants;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
@@ -373,22 +374,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_support_email_key))) {
-            // TODO-apapad improve this
-            Uri uri0 = Uri.parse("file://" + "/data/data/wb.receipts/files/log.txt");
-            Uri uri1 = Uri.parse("file://" + "/data/data/wb.receipts/files/log1.txt");
-            Uri uri2 = Uri.parse("file://" + "/data/data/wb.receipts/files/log2.txt");
             List<File> files = new ArrayList<>();
-            File file1 = new File(uri0.getPath());
-            File file2 = new File(uri1.getPath());
-            File file3 = new File(uri2.getPath());
+            File file1 = new File(getFilesDir().getAbsolutePath(), LogConstants.LOG_FILE_NAME_1);
+            File file2 = new File(getFilesDir().getAbsolutePath(), LogConstants.LOG_FILE_NAME_2);
             if (file1.exists()) {
                 files.add(file1);
             }
             if (file2.exists()) {
                 files.add(file2);
-            }
-            if (file3.exists()) {
-                files.add(file3);
             }
             final Intent intent = EmailAssistant.getEmailDeveloperIntent(this,
                     getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), files);

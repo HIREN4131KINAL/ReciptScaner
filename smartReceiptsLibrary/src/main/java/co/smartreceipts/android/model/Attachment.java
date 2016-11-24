@@ -5,8 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Locale;
 
-import co.smartreceipts.android.BuildConfig;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 import android.content.ContentResolver;
 import android.content.Intent;

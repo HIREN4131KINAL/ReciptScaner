@@ -1,4 +1,4 @@
-package co.smartreceipts.android.utils;
+package co.smartreceipts.android.utils.log;
 
 
 import org.slf4j.LoggerFactory;

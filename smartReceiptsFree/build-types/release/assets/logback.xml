@@ -18,12 +18,12 @@
             <FileNamePattern>/data/data/wb.receipts/files/log%i.txt</FileNamePattern>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <MaxFileSize>5KB</MaxFileSize>
+            <MaxFileSize>1MB</MaxFileSize>
         </triggeringPolicy>
     </appender>
 
     <root level="DEBUG">
-        <appender-ref ref="logcat" />
+        <!--<appender-ref ref="logcat" />-->
         <appender-ref ref="file" />
     </root>
 </configuration>

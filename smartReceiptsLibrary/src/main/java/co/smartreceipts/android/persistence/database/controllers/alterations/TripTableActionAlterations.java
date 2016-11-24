@@ -19,9 +19,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.utils.Logger;
-import rx.Observable;
-import rx.functions.Func0;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.storage.StorageManager;
 
 public class TripTableActionAlterations extends StubTableActionAlterations<Trip> {

@@ -20,10 +20,9 @@ import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.Syncable;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.functions.Func0;
-import wb.android.google.camera.data.Log;
 
 /**
  * Extends the {@link AbstractColumnTable} class to provide support for an extra method, {@link #get(Trip)}. We may

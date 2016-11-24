@@ -6,7 +6,7 @@ import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.purchases.ProSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import co.smartreceipts.android.SmartReceiptsApplication;

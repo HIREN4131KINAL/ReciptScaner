@@ -31,7 +31,7 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.dialog.BetterDialogBuilder;
 import co.smartreceipts.android.rating.AppRating;
 
@@ -83,13 +83,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             Toast.makeText(SmartReceiptsActivity.this, getSmartReceiptsApplication().getFlex().getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
         }
 
-        File[] files = getFilesDir().listFiles();
-        StringBuilder sb = new StringBuilder();
-        for (File file : files) {
-            sb.append(file.getAbsoluteFile() + " - " + file.length()/1024 + "\n");
-        }
-        Logger.debug(this, "FILES: %s", sb.toString());
-        Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

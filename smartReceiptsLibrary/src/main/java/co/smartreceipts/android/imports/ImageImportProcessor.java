@@ -21,7 +21,7 @@ import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;

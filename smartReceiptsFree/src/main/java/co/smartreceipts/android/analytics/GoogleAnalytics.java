@@ -10,7 +10,7 @@ import java.util.List;
 
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class GoogleAnalytics implements Analytics {
 

@@ -13,7 +13,7 @@ import java.util.Locale;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 

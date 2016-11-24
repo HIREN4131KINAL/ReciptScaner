@@ -41,7 +41,7 @@ import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.sync.manual.ManualRestoreTask;
 import co.smartreceipts.android.utils.ExceptionUtils;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
 import rx.Subscriber;

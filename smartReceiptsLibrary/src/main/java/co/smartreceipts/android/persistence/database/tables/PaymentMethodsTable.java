@@ -8,7 +8,7 @@ import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.PaymentMethodDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PaymentMethodPrimaryKey;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * Stores all database operations related to the {@link PaymentMethod} model object

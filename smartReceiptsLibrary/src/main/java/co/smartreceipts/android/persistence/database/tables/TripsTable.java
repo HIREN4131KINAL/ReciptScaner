@@ -14,7 +14,7 @@ import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCusto
 import co.smartreceipts.android.persistence.database.tables.adapters.TripDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.TripPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 public final class TripsTable extends AbstractSqlTable<Trip, String> {
 

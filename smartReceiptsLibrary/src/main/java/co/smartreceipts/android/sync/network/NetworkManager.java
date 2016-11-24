@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class NetworkManager extends CompositeNetworkProviderImpl {
 

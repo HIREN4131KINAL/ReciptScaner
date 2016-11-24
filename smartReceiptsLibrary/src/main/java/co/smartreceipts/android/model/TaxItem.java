@@ -6,7 +6,7 @@ import java.text.DecimalFormat;
 
 import android.text.TextUtils;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.utils.Logger;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class TaxItem {
 

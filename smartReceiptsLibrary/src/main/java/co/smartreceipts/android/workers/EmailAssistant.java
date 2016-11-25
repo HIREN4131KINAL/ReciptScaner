@@ -74,6 +74,8 @@ import wb.android.storage.StorageManager;
 //TODO: Redo this class... Really sloppy
 public class EmailAssistant {
 
+    private static final String DEVELOPER_EMAIL = "will.r.b" + "aumann" + "@" + "gm" + "ail" + "." + "com";
+
     public enum EmailOptions {
         PDF_FULL(0),
         PDF_IMAGES_ONLY(1),
@@ -101,8 +103,13 @@ public class EmailAssistant {
     public static final Intent getEmailDeveloperIntent() {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setType("text/plain");
-        intent.setData(Uri.parse("mailto:" + "will.r.b" + "aumann" + "@" + "gm" + "ail" + "." + "com"));
+        setEmailDeveloperRecipient(intent);
+        intent.setData(Uri.parse("mailto:" + DEVELOPER_EMAIL));
         return intent;
+    }
+
+    private static void setEmailDeveloperRecipient(Intent intent) {
+        intent.setData(Uri.parse("mailto:" + "will.r.b" + "aumann" + "@" + "gm" + "ail" + "." + "com"));
     }
 
     public static final Intent getEmailDeveloperIntent(String subject) {
@@ -120,6 +127,7 @@ public class EmailAssistant {
 
     public static final Intent getEmailDeveloperIntent(Context context, String subject, String body, List<File> files) {
         Intent intent = IntentUtils.getSendIntent(context, files);
+        intent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{DEVELOPER_EMAIL});
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_TEXT, body);
         return intent;

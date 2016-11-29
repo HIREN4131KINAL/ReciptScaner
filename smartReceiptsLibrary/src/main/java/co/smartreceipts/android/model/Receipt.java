@@ -121,6 +121,15 @@ public interface Receipt extends Parcelable, Priceable, Comparable<Receipt>, Syn
     String getFileName();
 
     /**
+     * Java uses immutable {@link File}, so when we rename our files as part of a receipt update, we might rename it
+     * to the same file name as the old receipt. By tracking the last update time as well, we can determine if this file
+     * was updated between two "like" receipts
+     *
+     * @return the last updated time or {@code -1} if we don't have a file
+     */
+    long getFileLastModifiedTime();
+
+    /**
      * Attaches a file to this receipt (e.g. a PDF or Image)
      *
      * @param file the {@link java.io.File} to associate with this receipt or {@code null} if the picture was removed

@@ -50,6 +50,7 @@ public final class DefaultReceiptImpl implements Receipt {
     private final SyncState mSyncState;
     private boolean mIsSelected;
     private File mFile;
+    private long mFileLastModifiedTime;
 
     public DefaultReceiptImpl(int id, int index, @NonNull Trip trip, @Nullable File file, @Nullable PaymentMethod paymentMethod, @NonNull String name,
                               @NonNull Category category, @NonNull String comment, @NonNull Price price, @NonNull Price tax, @NonNull Date date,
@@ -79,6 +80,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mId = id;
         mIndex = index;
         mFile = file;
+        mFileLastModifiedTime = file != null ? file.lastModified() : -1;
         mPaymentMethod = paymentMethod;
         mIsReimbursable = isReimbursable;
         mIsFullPage = isFullPage;
@@ -99,6 +101,7 @@ public final class DefaultReceiptImpl implements Receipt {
         mTax = in.readParcelable(Price.class.getClassLoader());
         final String fileName = in.readString();
         mFile = TextUtils.isEmpty(fileName) ? null : new File(fileName);
+        mFileLastModifiedTime = in.readLong();
         mDate = new Date(in.readLong());
         mIsReimbursable = (in.readByte() != 0);
         mIsFullPage = (in.readByte() != 0);
@@ -221,8 +224,14 @@ public final class DefaultReceiptImpl implements Receipt {
     }
 
     @Override
+    public long getFileLastModifiedTime() {
+        return mFileLastModifiedTime;
+    }
+
+    @Override
     public void setFile(File file) {
         mFile = file;
+        mFileLastModifiedTime = file != null ? file.lastModified() : -1;
     }
 
     @NonNull
@@ -369,6 +378,7 @@ public final class DefaultReceiptImpl implements Receipt {
                 ", mExtraEditText3='" + mExtraEditText3 + '\'' +
                 ", mIsSelected=" + mIsSelected +
                 ", mFile=" + mFile +
+                ", mFileLastModifiedTime=" + mFileLastModifiedTime +
                 '}';
     }
 
@@ -398,6 +408,7 @@ public final class DefaultReceiptImpl implements Receipt {
             return false;
         if (mExtraEditText3 != null ? !mExtraEditText3.equals(that.mExtraEditText3) : that.mExtraEditText3 != null)
             return false;
+        if (mFileLastModifiedTime != that.mFileLastModifiedTime) return false;
         return mFile != null ? mFile.equals(that.mFile) : that.mFile == null;
 
     }
@@ -420,6 +431,7 @@ public final class DefaultReceiptImpl implements Receipt {
         result = 31 * result + (mExtraEditText2 != null ? mExtraEditText2.hashCode() : 0);
         result = 31 * result + (mExtraEditText3 != null ? mExtraEditText3.hashCode() : 0);
         result = 31 * result + (mFile != null ? mFile.hashCode() : 0);
+        result = 31 * result + (int) mFileLastModifiedTime;
         return result;
     }
 
@@ -439,6 +451,7 @@ public final class DefaultReceiptImpl implements Receipt {
         dest.writeParcelable(getPrice(), flags);
         dest.writeParcelable(getTax(), flags);
         dest.writeString(getFilePath());
+        dest.writeLong(getFileLastModifiedTime());
         dest.writeLong(getDate().getTime());
         dest.writeByte((byte) (isReimbursable() ? 1 : 0));
         dest.writeByte((byte) (isFullPage() ? 1 : 0));

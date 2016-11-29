@@ -7,7 +7,9 @@ import java.util.Locale;
 
 import co.smartreceipts.android.utils.log.Logger;
 
+import android.content.ContentProvider;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -144,13 +146,20 @@ public class Attachment {
 	public boolean isSMR() {
 		return SMR_EXTENSION.equals(mExtension);
 	}
+
+    /**
+     * @return {@code true} if we require storage permissions before continuing (ie we're on Android M+ and our Uri doesn't start with content://)
+     */
+    public boolean requiresStoragePermissions() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ((mUri != null && !mUri.toString().startsWith(ContentResolver.SCHEME_CONTENT)) || isActionView());
+    }
 	
 	/**
 	 * Checks if this is a file that can be attached to a receipt (i.e. PDF or Image)
 	 * @return true if so. false otherwise
 	 */
 	public boolean isDirectlyAttachable() {
-		return (isActionSend() && isImage()) || (isActionView() && isPDF());
+		return isActionSend() && (isImage() || isPDF());
 	}
 
 }

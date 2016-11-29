@@ -15,12 +15,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
+import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
 import co.smartreceipts.android.sync.widget.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
@@ -95,27 +97,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         setAttachment(attachment);
         if (attachment.isValid()) {
             final boolean hasStoragePermission = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-            if (attachment.isActionView() && !hasStoragePermission) {
+            if (attachment.requiresStoragePermissions() && !hasStoragePermission) {
                 ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
             } else if (attachment.isDirectlyAttachable()) {
                 final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
-                final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
-                if (preferences.showActionSendHelpDialog()) {
-                    BetterDialogBuilder builder = new BetterDialogBuilder(this);
-                    builder.setTitle(getString(R.string.dialog_attachment_title, getString(stringId))).setMessage(getString(R.string.dialog_attachment_text, getString(stringId))).setPositiveButton(R.string.dialog_attachment_positive, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    }).setNegativeButton(R.string.dialog_attachment_negative, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            preferences.setShowActionSendHelpDialog(false);
-                            preferences.commit();
-                            dialog.cancel();
-                        }
-                    }).show();
+                if (InformAboutPdfImageAttachmentDialogFragment.shouldInformAboutPdfImageAttachmentDialogFragment(preferences)) {
+                    mNavigationHandler.showDialog(InformAboutPdfImageAttachmentDialogFragment.newInstance(attachment));
                 } else {
+                    final int stringId = attachment.isPDF() ? R.string.pdf : R.string.image;
                     Toast.makeText(this, getString(R.string.dialog_attachment_text, getString(stringId)), Toast.LENGTH_LONG).show();
                 }
             } else if (attachment.isSMR() && attachment.isActionView()) {

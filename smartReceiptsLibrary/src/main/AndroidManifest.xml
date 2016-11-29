@@ -37,6 +37,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+            </intent-filter>
 
             <!-- ****Do not nest these filters!! They will not work if so. *** -->
             <!-- Filter to open file with gmail version 4.2 -->

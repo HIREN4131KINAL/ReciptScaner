@@ -21,8 +21,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     //Preference Identifiers - Global
     public static final String SMART_PREFS = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
+
     private static final String INT_VERSION_CODE = "VersionCode";
-    private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
 
     //Preference Folder
     private static final String PREFERENCES_FOLDER_NAME = ".prefs_file";
@@ -65,7 +65,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Misc (i.e. inaccessible preferences) for app use only
     private int mVersionCode;
-    private boolean mShowActionSendHelpDialog;
 
     //Other Instance Variables
     private final Context mContext;
@@ -345,7 +344,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initAutoBackupOnWifiOnly(prefs);
 
         // Misc (i.e. inaccessible preferences) for app use only
-        this.mShowActionSendHelpDialog = prefs.getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
         this.mVersionCode = prefs.getInt(INT_VERSION_CODE, 78);
     }
 
@@ -376,18 +374,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public SharedPreferences getSharedPreferences() {
         return mContext.getSharedPreferences(SMART_PREFS, 0);
-    }
-
-    public void commit() {
-        /**
-         * *********************************
-         * Don't remove everything here! Still need to keep internal app commit settings (i.e. versionCode, don't showHelp)
-         * **********
-         */
-        SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, mShowActionSendHelpDialog);
-        editor.apply();
     }
 
     @Override
@@ -482,14 +468,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
-    }
-
-    public boolean showActionSendHelpDialog() {
-        return mShowActionSendHelpDialog;
-    }
-
-    public void setShowActionSendHelpDialog(boolean showActionSendHelpDialog) {
-        this.mShowActionSendHelpDialog = showActionSendHelpDialog;
     }
 
     public boolean includeCSVHeaders() {

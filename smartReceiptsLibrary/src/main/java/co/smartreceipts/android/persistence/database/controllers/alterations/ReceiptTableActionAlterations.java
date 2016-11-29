@@ -21,6 +21,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func0;
@@ -66,8 +67,20 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                     // If we changed the receipt file, rename it to our naming schema
                     if (oldReceipt.getFile() != null) {
                         final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
-                        if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
-                            factory.setFile(oldReceipt.getFile());
+                        final String oldExtension = "." + StorageManager.getExtension(oldReceipt.getFile());
+                        final String newExtension = "." + StorageManager.getExtension(newReceipt.getFile());
+                        if (newExtension.equals(oldExtension)) {
+                            if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
+                                // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
+                                factory.setFile(oldReceipt.getFile());
+                            }
+                        } else {
+                            final String renamedNewFileName = oldReceipt.getFile().getName().replace(oldExtension, newExtension);
+                            final String renamedNewFilePath = newReceipt.getFile().getAbsolutePath().replace(newReceipt.getFile().getName(), renamedNewFileName);
+                            final File renamedNewFile = new File(renamedNewFilePath);
+                            if (newReceipt.getFile().renameTo(renamedNewFile)) {
+                                factory.setFile(renamedNewFile);
+                            }
                         }
                         subscriber.onNext(factory.build());
                         subscriber.onCompleted();

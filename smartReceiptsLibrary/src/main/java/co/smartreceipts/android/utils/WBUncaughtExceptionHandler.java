@@ -19,7 +19,6 @@ import co.smartreceipts.android.utils.log.Logger;
  */
 public class WBUncaughtExceptionHandler implements UncaughtExceptionHandler {
 
-	private static final String LOG_FILE = "crash_log.txt";
 
 	private static boolean sIsInitialized = false;
 	private final UncaughtExceptionHandler mUncaughtExceptionHandlerParent;
@@ -39,23 +38,7 @@ public class WBUncaughtExceptionHandler implements UncaughtExceptionHandler {
 	@Override
 	public void uncaughtException(Thread thread, Throwable throwable) {
 		try {
-			final File crashFile = new File(SmartReceiptsApplication.getInstance().getExternalFilesDir(null), LOG_FILE);
-			final StringWriter stringWriter = new StringWriter();
-			final PrintWriter printWriter = new PrintWriter(stringWriter);
-			throwable.printStackTrace(printWriter);
-			PrintWriter appendWriter = null;
-			try {
-				appendWriter = new PrintWriter(new BufferedWriter(new FileWriter(crashFile, true)));
-				appendWriter.println(stringWriter.toString());
-			}
-			catch (IOException e) {
-				Logger.error(this, "Caught IOException in uncaughtException", e);
-			}
-			finally {
-				if (appendWriter != null) {
-					appendWriter.close();
-				}
-			}
+			Logger.error(this, throwable);
 		} catch (Throwable t) {
 			// Silently swallow any issues here to avoid a recursive crash loop
 		}

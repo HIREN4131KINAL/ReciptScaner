@@ -22,8 +22,6 @@ import rx.schedulers.Schedulers;
 
 public class DriveDatabaseManager {
 
-    private static final String TAG = DriveDatabaseManager.class.getSimpleName();
-
     private final Context mContext;
     private final DriveStreamsManager mDriveTaskManager;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;

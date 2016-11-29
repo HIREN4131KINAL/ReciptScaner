@@ -47,8 +47,6 @@ import rx.Observable;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
 
-    private static final String TAG = GoogleDriveBackupManager.class.getSimpleName();
-
     /**
      * Request code for auto Google Play Services error resolution.
      */

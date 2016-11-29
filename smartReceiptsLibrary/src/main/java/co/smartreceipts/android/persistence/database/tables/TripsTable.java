@@ -35,8 +35,6 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
     @Deprecated
     private static final String COLUMN_PRICE = "price"; // Once used but keeping to avoid future name conflicts
 
-    private static final String TAG = TripsTable.class.getSimpleName();
-
     public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull PersistenceManager persistenceManager) {
         super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey(), new OrderBy(TripsTable.COLUMN_TO, true));
     }

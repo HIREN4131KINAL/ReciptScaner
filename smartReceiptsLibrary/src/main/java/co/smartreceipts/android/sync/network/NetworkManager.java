@@ -10,8 +10,6 @@ import co.smartreceipts.android.utils.log.Logger;
 
 public class NetworkManager extends CompositeNetworkProviderImpl {
 
-    private static final String TAG = NetworkManager.class.getSimpleName();
-
     private final NetworkProviderFactory mNetworkProviderFactory;
     private final Preferences mPreferences;
 

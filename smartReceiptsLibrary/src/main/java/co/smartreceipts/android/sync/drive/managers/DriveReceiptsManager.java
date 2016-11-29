@@ -32,8 +32,6 @@ import rx.schedulers.Schedulers;
 
 public class DriveReceiptsManager {
 
-    private static final String TAG = DriveReceiptsManager.class.getSimpleName();
-
     private final TableController<Receipt> mReceiptTableController;
     private final ReceiptsTable mReceiptsTable;
     private final DriveStreamsManager mDriveTaskManager;

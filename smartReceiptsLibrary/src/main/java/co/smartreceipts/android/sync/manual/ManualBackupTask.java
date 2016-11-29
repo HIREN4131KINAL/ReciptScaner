@@ -25,7 +25,6 @@ public class ManualBackupTask {
 
     public static final String DATABASE_EXPORT_NAME = "receipts_backup.db";
 
-    private static final String TAG = ManualBackupTask.class.getSimpleName();
     private static final String EXPORT_FILENAME = DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_SmartReceipts.smr";
     private static final String DATABASE_JOURNAL = "receipts.db-journal";
 

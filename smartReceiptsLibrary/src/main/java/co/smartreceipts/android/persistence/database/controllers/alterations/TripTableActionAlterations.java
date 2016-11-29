@@ -24,8 +24,6 @@ import wb.android.storage.StorageManager;
 
 public class TripTableActionAlterations extends StubTableActionAlterations<Trip> {
 
-    private static final String TAG = TripTableActionAlterations.class.getSimpleName();
-
     private final Table<Trip, String> mTripsTable;
     private final ReceiptsTable mReceiptsTable;
     private final DistanceTable mDistanceTable;

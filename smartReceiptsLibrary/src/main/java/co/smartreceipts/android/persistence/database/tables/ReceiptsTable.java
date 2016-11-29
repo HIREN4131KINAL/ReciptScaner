@@ -57,8 +57,6 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
     public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
     public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
 
-    private static final String TAG = ReceiptsTable.class.getSimpleName();
-
     private final String mDefaultCurrencyCode;
 
     public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull Table<Category, String> categoryTable, @NonNull PersistenceManager persistenceManager) {

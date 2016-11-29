@@ -30,7 +30,6 @@ import wb.android.storage.StorageManager;
 
 public class ImageImportProcessor implements FileImportProcessor {
 
-    private static final String TAG = ImageImportProcessor.class.getSimpleName();
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     private final Trip mTrip;

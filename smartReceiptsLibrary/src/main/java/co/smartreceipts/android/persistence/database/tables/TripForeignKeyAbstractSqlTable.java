@@ -34,7 +34,6 @@ import rx.functions.Func0;
  */
 public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> extends AbstractSqlTable<ModelType, PrimaryKeyType> {
 
-    private final String TAG = getClass().getSimpleName();
     private final HashMap<Trip, List<ModelType>> mPerTripCache = new HashMap<>();
     private final SelectionBackedDatabaseAdapter<ModelType, PrimaryKey<ModelType, PrimaryKeyType>, Trip> mSelectionBackedDatabaseAdapter;
     private final String mTripForeignKeyReferenceColumnName;

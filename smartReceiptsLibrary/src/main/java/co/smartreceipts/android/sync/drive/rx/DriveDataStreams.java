@@ -55,8 +55,6 @@ import wb.android.storage.StorageManager;
 
 class DriveDataStreams {
 
-    private static final String TAG = DriveDataStreams.class.getSimpleName();
-
     private static final String SMART_RECEIPTS_FOLDER = "Smart Receipts";
     private static final CustomPropertyKey SMART_RECEIPTS_FOLDER_KEY = new CustomPropertyKey("smart_receipts_id", CustomPropertyKey.PUBLIC);
 

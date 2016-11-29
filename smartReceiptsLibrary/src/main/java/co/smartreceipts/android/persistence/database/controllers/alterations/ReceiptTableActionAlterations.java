@@ -28,7 +28,6 @@ import wb.android.storage.StorageManager;
 
 public class ReceiptTableActionAlterations extends StubTableActionAlterations<Receipt> {
 
-    private static final String TAG = ReceiptTableActionAlterations.class.getSimpleName();
 
     private final ReceiptsTable mReceiptsTable;
     private final StorageManager mStorageManager;

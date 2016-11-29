@@ -70,7 +70,6 @@ import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener, DatabaseHelper.ReceiptAutoCompleteListener {
 
-    private static final String TAG = ReceiptCreateEditFragment.class.getSimpleName();
     private static final String ARG_FILE = "arg_file";
     private static final String KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE = "key_is_exchange_rate_visible";
 

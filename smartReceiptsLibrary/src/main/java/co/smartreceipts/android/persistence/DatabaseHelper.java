@@ -590,7 +590,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // No clean way to merge (since auto-increment is not guaranteed to have any order and there isn't
                 // enough outlying data) => Always overwirte
                 Logger.debug(this, "Merging Categories");
-                Logger.debug(this,  "Merging Categories");
                 try {
                     c = importDB.query(CategoriesTable.TABLE_NAME, null, null, null, null, null, null);
                     if (c != null && c.moveToFirst()) {

@@ -78,25 +78,25 @@ public class ImageImportProcessor implements FileImportProcessor {
                                 bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
                                 wasRotationHandled = true;
                             } else {
-                                Logger.warn(this, "Failed to fetch orientation information from the content store");
+                                Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store");
                             }
                         }
 
                         // Save the file
                         final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
                         if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
-                            Logger.error(this, "Failed to write the image data. Aborting");
+                            Logger.error(ImageImportProcessor.this, "Failed to write the image data. Aborting");
                             subscriber.onError(new IOException());
                         } else {
                             if (mPreferences.getRotateImages() && !wasRotationHandled) {
                                 int orientation = ExifInterface.ORIENTATION_UNDEFINED;
                                 try {
-                                    Logger.info(this, "Attempting to fetch orientation information from the exif data");
+                                    Logger.info(ImageImportProcessor.this, "Attempting to fetch orientation information from the exif data");
                                     // Getting exif from the local file that we just wrote to determine if rotation in necessary
                                     final ExifInterface exif = new ExifInterface(destination.getAbsolutePath());
                                     orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
                                 } catch (IOException e) {
-                                    Logger.error(this, e);
+                                    Logger.error(ImageImportProcessor.this, e);
                                 }
                                 if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
                                     bitmap = ImageUtils.rotateBitmap(bitmap, orientation);

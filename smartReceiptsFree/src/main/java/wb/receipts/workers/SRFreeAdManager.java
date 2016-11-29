@@ -185,7 +185,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     @Override
     public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
-        Logger.info(this, "Received purchase success in our ad manager for: %s", subscription);
+        Logger.info(this, "Received purchase success in our ad manager for: {}", subscription);
         if (Subscription.SmartReceiptsPlus == subscription) {
             final AdView adView = mAdViewReference.get();
             if (adView != null) {

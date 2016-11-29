@@ -25,7 +25,7 @@ public class GoogleAnalytics implements Analytics {
         try {
             mTracker.send(new HitBuilders.EventBuilder(event.category().name(), event.name().name()).setLabel(getLabelString(event.getDataPoints())).build());
         } catch (Exception e) {
-            Logger.error(this, "Swallowing GA Exception: ", e);
+            Logger.error(this, "Swallowing GA Exception", e);
         }
     }
 

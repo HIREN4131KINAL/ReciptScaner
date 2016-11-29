@@ -642,11 +642,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
-                            Logger.warn(this, "User already started typing... Ignoring exchange rate result");
+                            Logger.warn(ReceiptCreateEditFragment.this, "User already started typing... Ignoring exchange rate result");
                         }
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
-                        Logger.error(this, "Received a null exchange rate");
+                        Logger.error(ReceiptCreateEditFragment.this, "Received a null exchange rate");
                         getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailedWithNull);
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
@@ -654,7 +654,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                 @Override
                 public void failure(EditText editText, Call<ExchangeRate> call, Throwable th) {
-                    Logger.error(this, th);
+                    Logger.error(ReceiptCreateEditFragment.this, th);
                     getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailed);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }

@@ -3,7 +3,6 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -12,6 +11,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.DistanceDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.DistancePrimaryKey;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * Stores all database operations related to the {@link Distance} model objects
@@ -29,9 +29,6 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
     public static final String COLUMN_COMMENT = "comment";
     public static final String COLUMN_RATE = "rate";
     public static final String COLUMN_RATE_CURRENCY = "rate_currency";
-
-
-    private static final String TAG = DistanceTable.class.getSimpleName();
 
 
     private final String mDefaultCurrencyCode;
@@ -59,7 +56,7 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
                 + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE "
                 + ");";
-        Log.d(TAG, sql);
+        Logger.debug(this, sql);
         db.execSQL(sql);
     }
 
@@ -78,7 +75,7 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
                     + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
                     + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00"
                     + ");";
-            Log.d(TAG, createSqlV12);
+            Logger.debug(this, createSqlV12);
             db.execSQL(createSqlV12);
 
             // Once we create the table, we need to move our "trips" mileage into a single item in the distance table
@@ -87,8 +84,8 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
             final String distanceMigrateNotNullCurrency = distanceMigrateBase + TripsTable.COLUMN_DEFAULT_CURRENCY + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NOT NULL AND " + TripsTable.COLUMN_MILEAGE + " > 0;";
             final String distanceMigrateNullCurrency = distanceMigrateBase + "\"" + mDefaultCurrencyCode + "\" as " + DistanceTable.COLUMN_RATE_CURRENCY + " FROM " + TripsTable.TABLE_NAME + " WHERE " + TripsTable.COLUMN_DEFAULT_CURRENCY + " IS NULL AND " + TripsTable.COLUMN_MILEAGE + " > 0;";
 
-            Log.d(TAG, distanceMigrateNotNullCurrency);
-            Log.d(TAG, distanceMigrateNullCurrency);
+            Logger.debug(this, distanceMigrateNotNullCurrency);
+            Logger.debug(this, distanceMigrateNullCurrency);
             db.execSQL(distanceMigrateNotNullCurrency);
             db.execSQL(distanceMigrateNullCurrency);
         }

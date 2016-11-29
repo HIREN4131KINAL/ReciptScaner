@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Locale;
 
-import co.smartreceipts.android.BuildConfig;
+import co.smartreceipts.android.utils.log.Logger;
 
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -14,13 +14,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 public class Attachment {
-	
-	private static final String TAG = "Attachment";
-	
+
 	private static final String PDF_EXTENSION = "pdf";
 	private static final String SMR_EXTENSION = "smr";
 	private static final String PNG_EXTENSION = "png";
@@ -64,9 +61,9 @@ public class Attachment {
 		if (mUri == null) {
 			mIsValid = false;
 		}
-		if (BuildConfig.DEBUG) Log.d(TAG, "Action: " + mAction);
-		if (BuildConfig.DEBUG) Log.d(TAG, "Extension: " + mExtension);
-		if (BuildConfig.DEBUG) Log.d(TAG, "Uri: " + mUri);
+		Logger.debug(this, "Action: " + mAction);
+		Logger.debug(this, "Extension: " + mExtension);
+		Logger.debug(this, "Uri: " + mUri);
 	}
 	
 	private String getExtension(ContentResolver resolver, Uri uri) {

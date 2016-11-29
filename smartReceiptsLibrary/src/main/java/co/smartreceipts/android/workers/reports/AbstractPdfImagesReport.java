@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.itextpdf.text.BadElementException;
@@ -40,6 +39,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -50,7 +50,6 @@ import wb.android.storage.StorageManager;
  */
 abstract class AbstractPdfImagesReport extends AbstractReport {
 
-    private static final String TAG = AbstractPdfImagesReport.class.getName();
     private static final Rectangle DEFAULT_PAGE_SIZE = PageSize.A4;
     private static final int DEFAULT_MARGIN = 36;
     private static final int DEFAULT_MARGIN_BOTTOM = 50;
@@ -114,10 +113,10 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
 
             return getStorageManager().getFile(trip.getDirectory(), outputFileName);
         } catch (IOException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
             throw new ReportGenerationException(e);
         } catch (DocumentException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
             throw new ReportGenerationException(e);
         } finally {
             if (document != null) {
@@ -125,7 +124,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
                     document.close(); //Close me first
                 } catch (Exception e) {
                     // We might see this if it was an empty document
-                    Log.e(TAG, e.toString(), e);
+                    Logger.error(this, e);
                 }
             }
             if (pdfStream != null) {
@@ -186,14 +185,14 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
                     img1 = Image.getInstance(receipt.getFilePath());
                     receipt1 = receipt;
                 } catch (Exception e) {
-                    Log.e(TAG, e.toString(), e);
+                    Logger.error(this, e);
                     continue;
                 }
             } else if (receipt.hasImage() && img2 == null) {
                 try {
                     img2 = Image.getInstance(receipt.getFilePath());
                 } catch (Exception e) {
-                    Log.e(TAG, e.toString());
+                    Logger.error(this, e);
                     continue;
                 }
                 addHeaderCell(table, receipt1);
@@ -210,7 +209,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
                     try {
                         document.add(table);
                     } catch (DocumentException e) {
-                        Log.e(TAG, e.toString());
+                        Logger.error(this, e);
                     }
                     table = getPanedPdfPTable();
                     flag = 0;
@@ -227,7 +226,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
         try {
             document.add(table);
         } catch (DocumentException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
         }
         document.newPage(); //TODO: See if this code can be made more linear (i.e. add columns dyanmically instead of doing it all at once)
 
@@ -294,15 +293,15 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
                 document.newPage();
             }
         } catch (FileNotFoundException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
         } catch (BadPdfFormatException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
         } catch (IOException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
         } catch (BadElementException e) {
-            Log.e(TAG, e.toString(), e);
+            Logger.error(this, e);
         } catch (DocumentException e) {
-            Log.e(TAG, e.toString());
+            Logger.error(this, e);
         }
     }
 
@@ -333,7 +332,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
         try {
             table.setWidths(new float[]{big, small, big});
         } catch (DocumentException e1) {
-            Log.e(TAG, e1.toString(), e1);
+            Logger.error(this, e1);
         }
         table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
         table.getDefaultCell().setVerticalAlignment(Element.ALIGN_CENTER);

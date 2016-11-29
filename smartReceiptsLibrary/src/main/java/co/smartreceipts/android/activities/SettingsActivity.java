@@ -20,7 +20,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -54,6 +53,8 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.log.LogConstants;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.preferences.SummaryEditTextPreference;
 import wb.android.storage.StorageManager;
@@ -61,7 +62,6 @@ import co.smartreceipts.android.rating.AppRating;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
-    public static final String TAG = "SettingsActivity";
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
@@ -374,7 +374,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_help_support_email_key))) {
-            final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen());
+            List<File> files = new ArrayList<>();
+            File file1 = new File(getFilesDir().getAbsolutePath(), LogConstants.LOG_FILE_NAME_1);
+            File file2 = new File(getFilesDir().getAbsolutePath(), LogConstants.LOG_FILE_NAME_2);
+            if (file1.exists()) {
+                files.add(file1);
+            }
+            if (file2.exists()) {
+                files.add(file2);
+            }
+            final Intent intent = EmailAssistant.getEmailDeveloperIntent(this,
+                    getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), files);
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
         } else if (key.equals(getString(R.string.pref_output_signature_picture_key))) {
@@ -402,13 +412,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
-        Log.i(TAG, "The following subscriptions are available: " + purchaseableSubscriptions);
+        Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
     }
 
     @Override
     public void onSubscriptionsUnavailable() {
-        Log.w(TAG, "No subscriptions were found for this session");
+        Logger.warn(this, "No subscriptions were found for this session");
         // Intentional no-op
     }
 
@@ -516,7 +526,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                 mSharedPreferences.edit().putString(mKey, filename).apply();
                 return true;
             } catch (IOException e) {
-                Log.e(TAG, "Failed to save signature image in onActivityResult", e);
+                Logger.error(this, "Failed to save signature image in onActivityResult", e);
                 return false;
             } finally {
                 if (inputStream != null) {

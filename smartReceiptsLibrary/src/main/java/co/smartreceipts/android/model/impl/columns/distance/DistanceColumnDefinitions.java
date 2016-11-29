@@ -25,7 +25,6 @@ import wb.android.flex.Flex;
  */
 public final class DistanceColumnDefinitions implements ColumnDefinitions<Distance> {
 
-    private static final String TAG = DistanceColumnDefinitions.class.getSimpleName();
 
     private static enum ActualDefinition {
         LOCATION(R.string.distance_location_field),

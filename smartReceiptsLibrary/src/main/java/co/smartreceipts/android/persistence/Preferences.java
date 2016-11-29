@@ -5,22 +5,19 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.TypedValue;
 
 import java.io.File;
 import java.util.Currency;
 import java.util.Locale;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.date.DateUtils;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
 public class Preferences implements OnSharedPreferenceChangeListener {
-
-    private static final String TAG = "Preferences";
 
     //Preference Identifiers - Global
     public static final String SMART_PREFS = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
@@ -286,9 +283,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initAllPreferences(SharedPreferences prefs) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Initializing Shared Preferences");
-        }
+        Logger.debug(this, "Initializing Shared Preferences");
         // General Preferences
         this.initDefaultTripDuration(prefs);
         this.initDefaultDateSeparator(prefs);
@@ -369,17 +364,13 @@ public class Preferences implements OnSharedPreferenceChangeListener {
                     editor.apply();
                 }
             } catch (NameNotFoundException e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, e.toString());
-                }
+                Logger.error(this, e);
             } catch (RuntimeException e) {
                 // Only intended for RoboE
-                Log.e(TAG, e.toString());
+                Logger.error(this, e);
             }
         } else {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "A null VersionUpgradeListener was provided. Updates will not be registered");
-            }
+            Logger.error(this, "A null VersionUpgradeListener was provided. Updates will not be registered");
         }
     }
 

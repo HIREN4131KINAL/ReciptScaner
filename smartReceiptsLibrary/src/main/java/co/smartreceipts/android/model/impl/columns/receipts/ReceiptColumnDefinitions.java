@@ -31,8 +31,6 @@ import wb.android.flex.Flex;
  */
 public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt> {
 
-    private static final String TAG = ReceiptColumnDefinitions.class.getSimpleName();
-
     private enum ActualDefinition {
         BLANK(R.string.column_item_blank),
         CATEGORY_CODE(R.string.column_item_category_code),

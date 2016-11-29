@@ -8,11 +8,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import android.util.Log;
-
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.persistence.PersistenceManager;
-import wb.android.storage.StorageManager;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * This enables us to handle uncaught exceptions in a customizable manner. This is needed to fix a bug with Google Play
@@ -22,8 +19,6 @@ import wb.android.storage.StorageManager;
  */
 public class WBUncaughtExceptionHandler implements UncaughtExceptionHandler {
 
-	private static final String TAG = WBUncaughtExceptionHandler.class.getSimpleName();
-	private static final String LOG_FILE = "crash_log.txt";
 
 	private static boolean sIsInitialized = false;
 	private final UncaughtExceptionHandler mUncaughtExceptionHandlerParent;
@@ -43,30 +38,14 @@ public class WBUncaughtExceptionHandler implements UncaughtExceptionHandler {
 	@Override
 	public void uncaughtException(Thread thread, Throwable throwable) {
 		try {
-			final File crashFile = new File(SmartReceiptsApplication.getInstance().getExternalFilesDir(null), LOG_FILE);
-			final StringWriter stringWriter = new StringWriter();
-			final PrintWriter printWriter = new PrintWriter(stringWriter);
-			throwable.printStackTrace(printWriter);
-			PrintWriter appendWriter = null;
-			try {
-				appendWriter = new PrintWriter(new BufferedWriter(new FileWriter(crashFile, true)));
-				appendWriter.println(stringWriter.toString());
-			}
-			catch (IOException e) {
-				Log.e(TAG, "Caught IOException in uncaughtException", e);
-			}
-			finally {
-				if (appendWriter != null) {
-					appendWriter.close();
-				}
-			}
+			Logger.error(this, throwable);
 		} catch (Throwable t) {
 			// Silently swallow any issues here to avoid a recursive crash loop
 		}
 		if (thread.getName().startsWith("AdWorker")) {
 			// Solves a bug with Google Play Services:
 			// http://stackoverflow.com/questions/24457689/google-play-services-5-0-77
-			Log.w(TAG, "AdWorker thread threw an exception", throwable);
+			Logger.warn(this, "AdWorker thread threw an exception", throwable);
 		}
 		else {
 			mUncaughtExceptionHandlerParent.uncaughtException(thread, throwable);

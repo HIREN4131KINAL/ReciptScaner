@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.io.File;
 import java.sql.Date;
@@ -29,6 +28,7 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * Stores all database operations related to the {@link Receipt} model objects
@@ -56,8 +56,6 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
     public static final String COLUMN_EXTRA_EDITTEXT_1 = "extra_edittext_1";
     public static final String COLUMN_EXTRA_EDITTEXT_2 = "extra_edittext_2";
     public static final String COLUMN_EXTRA_EDITTEXT_3 = "extra_edittext_3";
-
-    private static final String TAG = ReceiptsTable.class.getSimpleName();
 
     private final String mDefaultCurrencyCode;
 
@@ -94,7 +92,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                 + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
-        Log.d(TAG, receipts);
+        Logger.debug(this, receipts);
         db.execSQL(receipts);
     }
 
@@ -106,7 +104,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         if (oldVersion <= 1) { // Add mCurrency column to receipts table
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL " + "DEFAULT " + mDefaultCurrencyCode;
 
-            Log.d(TAG, alterReceipts);
+            Logger.debug(this, alterReceipts);
 
             db.execSQL(alterReceipts);
         }
@@ -116,9 +114,9 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
             final String alterReceipts2 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT";
             final String alterReceipts3 = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT";
 
-            Log.d(TAG, alterReceipts1);
-            Log.d(TAG, alterReceipts2);
-            Log.d(TAG, alterReceipts3);
+            Logger.debug(this, alterReceipts1);
+            Logger.debug(this, alterReceipts2);
+            Logger.debug(this, alterReceipts3);
 
             db.execSQL(alterReceipts1);
             db.execSQL(alterReceipts2);
@@ -128,7 +126,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         if (oldVersion <= 4) { // Change Mileage to Decimal instead of Integer
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
 
-            Log.d(TAG, alterReceipts);
+            Logger.debug(this, alterReceipts);
 
             db.execSQL(alterReceipts);
         }
@@ -153,15 +151,15 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                         final ContentValues receiptValues = new ContentValues(2);
                         final String relParentPath = absParentPath.substring(absParentPath.lastIndexOf(File.separatorChar) + 1, absParentPath.length());
                         receiptValues.put(ReceiptsTable.COLUMN_PARENT, relParentPath);
-                        Log.d(TAG, "Updating Abs. Parent Path for Receipt" + id + ": " + absParentPath + " => " + relParentPath);
+                        Logger.debug(this, "Updating Abs. Parent Path for Receipt{}: {} => {}", id, absParentPath, relParentPath);
 
                         if (!absImgPath.equalsIgnoreCase(DatabaseHelper.NO_DATA)) { // This can be either a path or NO_DATA
                             final String relImgPath = absImgPath.substring(absImgPath.lastIndexOf(File.separatorChar) + 1, absImgPath.length());
                             receiptValues.put(ReceiptsTable.COLUMN_PATH, relImgPath);
-                            Log.d(TAG, "Updating Abs. Img Path for Receipt" + id + ": " + absImgPath + " => " + relImgPath);
+                            Logger.debug(this, "Updating Abs. Img Path for Receipt{}: {} => {}", id, absImgPath, relImgPath);
                         }
                         if (db.update(ReceiptsTable.TABLE_NAME, receiptValues, ReceiptsTable.COLUMN_ID + " = ?", new String[]{Integer.toString(id)}) == 0) {
-                            Log.e(TAG, "Receipt Update Error Occured");
+                            Logger.error(this, "Receipt Update Error Occured");
                         }
                     }
                     while (receiptsCursor.moveToNext());
@@ -175,7 +173,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         if (oldVersion <= 7) { // Added a timezone column to the receipts table
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TIMEZONE + " TEXT";
 
-            Log.d(TAG, alterReceipts);
+            Logger.debug(this, alterReceipts);
 
             db.execSQL(alterReceipts);
         }
@@ -183,7 +181,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         if (oldVersion <= 11) { // Added trips filters, payment methods, and mileage table
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION";
 
-            Log.d(TAG, alterReceipts);
+            Logger.debug(this, alterReceipts);
 
             db.execSQL(alterReceipts);
         }
@@ -191,13 +189,13 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
 
             final String alterReceiptsWithProcessingStatus = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT";
 
-            Log.d(TAG, alterReceiptsWithProcessingStatus);
+            Logger.debug(this, alterReceiptsWithProcessingStatus);
 
             db.execSQL(alterReceiptsWithProcessingStatus);
         }
         if (oldVersion <= 13) {
             final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00";
-            Log.d(TAG, alterReceipts);
+            Logger.debug(this, alterReceipts);
             db.execSQL(alterReceipts);
         }
         if (oldVersion <= 14) {

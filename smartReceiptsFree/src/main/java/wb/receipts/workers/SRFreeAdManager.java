@@ -9,6 +9,7 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.receipts.R;
@@ -18,7 +19,6 @@ import android.app.PendingIntent;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -35,8 +35,6 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     private static final int RANDOM_MAX = 100;
     private static final int UPSELL_FREQUENCY = 1; // Out of 100
-
-    private static final String TAG = SRFreeAdManager.class.getSimpleName();
 
     //Preference Identifiers - SubClasses Only
     private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
@@ -187,7 +185,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     @Override
     public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
-        Log.i(TAG, "Received purchase success in our ad manager for: " + subscription);
+        Logger.info(this, "Received purchase success in our ad manager for: {}", subscription);
         if (Subscription.SmartReceiptsPlus == subscription) {
             final AdView adView = mAdViewReference.get();
             if (adView != null) {
@@ -195,10 +193,10 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                     @Override
                     public void run() {
                         if (shouldShowAds(adView)) {
-                            Log.w(TAG, "Showing the original ad following a purchase");
+                            Logger.warn(this, "Showing the original ad following a purchase");
                             adView.setVisibility(View.VISIBLE);
                         } else {
-                            Log.i(TAG, "Hiding the original ad following a purchase");
+                            Logger.info(this, "Hiding the original ad following a purchase");
                             adView.setVisibility(View.GONE);
                         }
                     }
@@ -237,7 +235,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                 try {
                     adView.loadAd(getAdRequest());
                 } catch (Exception e) {
-                    Log.e(TAG, "Swallowing ad load exception... " + e);
+                    Logger.error(this, "Swallowing ad load exception... ", e);
                     // Swallowing all exception b/c I'm lazy and don't want to handle activity finishing states
                 }
             }

@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,11 +43,10 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.dialog.BetterDialogBuilder;
 
 public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
-
-    public static final String TAG = "ReceiptsListFragment";
 
     // Permissions Request Ints
     private static final int PERMISSION_CAMERA_REQUEST = 21;
@@ -86,7 +84,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
+        Logger.debug(this, "onCreate");
         mReceiptTableController = getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController();
         mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
@@ -98,7 +96,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
+        Logger.debug(this, "onCreateView");
         final View rootView = inflater.inflate(getLayoutId(), container, false);
         mLoadingProgress = (ProgressBar) rootView.findViewById(R.id.progress);
         mUpdatingDataProgress = (ProgressBar) rootView.findViewById(R.id.progress_adding_new);
@@ -151,7 +149,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(TAG, "onActivityCreated");
+        Logger.debug(this, "onActivityCreated");
         setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
     }
 
@@ -162,7 +160,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Logger.debug(this, "onResume");
         mReceiptTableController.subscribe(this);
         mReceiptTableController.get(mCurrentTrip);
     }
@@ -178,7 +176,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public void onPause() {
-        Log.d(TAG, "onPause");
+        Logger.debug(this, "onPause");
         mFloatingActionMenu.close(false);
         mReceiptTableController.unsubscribe(this);
         super.onPause();
@@ -193,9 +191,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        Log.d(TAG, "onActivityResult");
-        Log.d(TAG, "Result Code: " + resultCode);
-        Log.d(TAG, "Request Code: " + requestCode);
+        Logger.debug(this, "onActivityResult");
+        Logger.debug(this, "Result Code: {}", resultCode);
+        Logger.debug(this, "Request Code: {}", requestCode);
 
         // Need to make this call here, since users with "Don't keep activities" will hit this call
         // before any of onCreate/onStart/onResume is called. This should restore our current trip (what
@@ -254,25 +252,25 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_CAMERA_REQUEST) {
-            Log.i(TAG, "Received response for Camera permission request.");
+            Logger.info(this, "Received response for Camera permission request.");
 
             // Check if the only required permission has been granted
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "CAMERA permission has now been granted.");
+                Logger.info(this, "CAMERA permission has now been granted.");
             } else {
-                Log.i(TAG, "CAMERA permission was NOT granted.");
+                Logger.info(this, "CAMERA permission was NOT granted.");
                 getPersistenceManager().getPreferences().setUseNativeCamera(true);
             }
             // Retry add now with either native camera or now granted way
             addPictureReceipt();
         } else if (requestCode == PERMISSION_STORAGE_REQUEST) {
-            Log.i(TAG, "Received response for storage permission request.");
+            Logger.info(this, "Received response for storage permission request.");
 
             // Check if the only required permission has been granted
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "STORAGE permission has now been granted.");
+                Logger.info(this, "STORAGE permission has now been granted.");
             } else {
-                Log.i(TAG, "STORAGE permission was NOT granted.");
+                Logger.info(this, "STORAGE permission was NOT granted.");
                 getPersistenceManager().getPreferences().setUseNativeCamera(true);
             }
             // Retry add now with either native camera or now granted way
@@ -419,11 +417,11 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(file).build();
             mReceiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
         } catch (IOException e) {
-            Log.e(TAG, e.toString());
+            Logger.error(this, e);
             Toast.makeText(getActivity(), getString(R.string.toast_pdf_save_error), Toast.LENGTH_SHORT).show();
             getActivity().finish();
         } catch (SecurityException e) {
-            Log.e(TAG, e.toString());
+            Logger.error(this, e);
             Toast.makeText(getActivity(), getString(R.string.toast_kitkat_security_error), Toast.LENGTH_LONG).show();
             getActivity().finish();
         } finally {
@@ -432,7 +430,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     is.close();
                 }
             } catch (IOException e) {
-                Log.w(TAG, e.toString());
+                Logger.warn(this, e);
             }
         }
     }

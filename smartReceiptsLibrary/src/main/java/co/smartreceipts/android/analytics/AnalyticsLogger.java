@@ -1,24 +1,18 @@
 package co.smartreceipts.android.analytics;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.List;
 
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class AnalyticsLogger implements Analytics {
 
-    private static final String TAG = AnalyticsLogger.class.getSimpleName();
-
     @Override
     public void record(@NonNull Event event) {
-        final StringBuilder builder = new StringBuilder("Logging Event: ");
-        builder.append(event);
-        builder.append(" with datapoints: ");
-        builder.append(getDataPointsString(event.getDataPoints()));
-        Log.i(TAG, builder.toString());
+        Logger.info(this, "Logging Event: {} with datapoints: {}", event, getDataPointsString(event.getDataPoints()));
     }
 
     @NonNull

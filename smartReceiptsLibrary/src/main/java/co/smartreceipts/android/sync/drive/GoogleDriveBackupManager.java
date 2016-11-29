@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -43,11 +42,10 @@ import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
-
-    private static final String TAG = GoogleDriveBackupManager.class.getSimpleName();
 
     /**
      * Request code for auto Google Play Services error resolution.
@@ -177,11 +175,11 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
-        Log.w(TAG, "GoogleApiClient connection failed: " + result.toString());
+        Logger.warn(this, "GoogleApiClient connection failed: {}", result);
 
         final FragmentActivity activity = mActivityReference.get().get();
         if (activity == null) {
-            Log.e(TAG, "The parent activity was destroyed. Unable to resolve GoogleApiClient connection failure.");
+            Logger.error(this, "The parent activity was destroyed. Unable to resolve GoogleApiClient connection failure.");
             return;
         }
 
@@ -193,10 +191,10 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
             try {
                 result.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
             } catch (IntentSender.SendIntentException e) {
-                Log.e(TAG, "Exception while starting resolution activity", e);
+                Logger.error(this, "Exception while starting resolution activity", e);
             }
         } catch (IllegalStateException e) {
-            Log.w(TAG, "The parent activity is in a bad state.. Unable to resolve GoogleApiClient connection failure.");
+            Logger.warn(this,  "The parent activity is in a bad state.. Unable to resolve GoogleApiClient connection failure.");
         }
     }
 
@@ -232,7 +230,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
     @Override
     public void onNetworkConnectivityGained() {
-        Log.i(TAG, "Handling a NetworkConnectivityGained event for drive");
+        Logger.info(this, "Handling a NetworkConnectivityGained event for drive");
         if (!isConnectedOrConnecting()) {
             final FragmentActivity existingActivity = mActivityReference.get().get();
             if (existingActivity != null) {

@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -20,6 +19,7 @@ import co.smartreceipts.android.persistence.database.controllers.alterations.Tab
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.AbstractColumnTable;
 import co.smartreceipts.android.utils.ListUtils;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -64,7 +64,7 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
     public synchronized void deleteLast(final @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         // TODO: Reduce code overflow and just chain directly with #delete observables via composition
 
-        Log.i(TAG, "#deleteLast:");
+        Logger.info(this, "#deleteLast:");
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mAbstractColumnTable.get().map(new Func1<List<Column<Receipt>>, Column<Receipt>>() {
             @Override
@@ -92,13 +92,13 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
             @Override
             public void call(Throwable throwable) {
                 mAnalytics.record(new ErrorEvent(ColumnTableController.this, throwable));
-                Log.d(TAG, "#onDeleteLastFailure - onError");
+                Logger.debug(this, "#onDeleteLastFailure - onError");
                 unsubscribeReference(subscriptionRef);
             }
         }, new Action0() {
             @Override
             public void call() {
-                Log.d(TAG, "#deleteLast - onComplete");
+                Logger.debug(this, "#deleteLast - onComplete");
                 unsubscribeReference(subscriptionRef);
             }
         });

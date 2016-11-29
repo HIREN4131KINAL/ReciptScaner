@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.text.method.TextKeyListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,14 +43,13 @@ import co.smartreceipts.android.persistence.database.controllers.TableEventsList
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
 import wb.android.dialog.LongLivedOnClickListener;
 
 public class TripFragment extends WBListFragment implements TableEventsListener<Trip>, AdapterView.OnItemLongClickListener {
-
-    public static final String TAG = "TripFragment";
 
     private static final String ARG_NAVIGATE_TO_VIEW_LAST_TRIP = "arg_nav_to_last_trip";
     private static final String OUT_NAV_TO_LAST_TRIP = "out_nav_to_last_trip";
@@ -79,7 +77,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
+        Logger.debug(this, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
         mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
@@ -92,7 +90,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
+        Logger.debug(this, "onCreateView");
         final View rootView = inflater.inflate(getLayoutId(), container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
@@ -124,7 +122,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Logger.debug(this, "onResume");
         mTripTableController.subscribe(this);
         mTripTableController.get();
         getActivity().setTitle(getFlexString(R.string.sr_app_name));
@@ -136,7 +134,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     @Override
     public void onPause() {
-        Log.d(TAG, "onPause");
+        Logger.debug(this, "onPause");
         if (mNameAutoCompleteAdapter != null) {
             mNameAutoCompleteAdapter.onPause();
         }

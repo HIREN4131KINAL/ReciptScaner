@@ -109,7 +109,7 @@ public class EmailAssistant {
     }
 
     private static void setEmailDeveloperRecipient(Intent intent) {
-        intent.setData(Uri.parse("mailto:" + "will.r.b" + "aumann" + "@" + "gm" + "ail" + "." + "com"));
+        intent.setData(Uri.parse("mailto:" + DEVELOPER_EMAIL));
     }
 
     public static final Intent getEmailDeveloperIntent(String subject) {

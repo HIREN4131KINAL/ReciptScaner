@@ -36,6 +36,8 @@ import wb.android.google.camera.app.GalleryAppImpl;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
+import static co.smartreceipts.android.utils.log.LogConstants.LOG_FILE_NAME_1;
+
 /**
  * This extends GalleryAppImpl for the camera, since we can only define a single application in the manifest
  *
@@ -93,10 +95,8 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     }
 
     private void configureLog() {
-        final String logFilename = new File(getFilesDir(), LogConstants.LOG_FILE_NAME_1).getPath() ;
-        System.setProperty("LOG_FILE", logFilename);
-        System.setProperty("IS_DEBUG", String.valueOf(BuildConfig.DEBUG));
-
+        final String logDirPath = getFilesDir().getPath() ;
+        System.setProperty("LOG_DIR", logDirPath);
     }
 
     @Deprecated

@@ -8,6 +8,7 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.CategoryDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.CategoryPrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import co.smartreceipts.android.utils.log.Logger;
 
 /**
@@ -23,7 +24,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
 
 
     public CategoriesTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
-        super(sqLiteOpenHelper, TABLE_NAME, new CategoryDatabaseAdapter(), new CategoryPrimaryKey());
+        super(sqLiteOpenHelper, TABLE_NAME, new CategoryDatabaseAdapter(), new CategoryPrimaryKey(), new OrderBy(COLUMN_NAME, false));
     }
 
     @Override

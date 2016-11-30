@@ -26,7 +26,6 @@ import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
-import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
@@ -35,8 +34,6 @@ import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
-
-import static co.smartreceipts.android.utils.log.LogConstants.LOG_FILE_NAME_1;
 
 /**
  * This extends GalleryAppImpl for the camera, since we can only define a single application in the manifest

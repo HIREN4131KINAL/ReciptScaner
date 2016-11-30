@@ -9,7 +9,7 @@
     </appender>
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/data/data/wb.receipts/files/log.txt</file>
+        <file>${LOG_FILE}</file>
         <encoder>
             <pattern>[%date] &lt;%logger{20}&gt; %level: %msg%n</pattern>
         </encoder>

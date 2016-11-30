@@ -26,6 +26,7 @@ import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
@@ -69,6 +70,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     @Override
     public void onCreate() {
         super.onCreate();
+        configureLog();
         WBUncaughtExceptionHandler.initialize();
         sApplication = this;
         mDeferFirstRunDialog = false;
@@ -88,6 +90,13 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         clearCacheDir();
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
         mIdentityManager = new IdentityManager(this, mServiceManager);
+    }
+
+    private void configureLog() {
+        final String logFilename = new File(getFilesDir(), LogConstants.LOG_FILE_NAME_1).getPath() ;
+        System.setProperty("LOG_FILE", logFilename);
+        System.setProperty("IS_DEBUG", String.valueOf(BuildConfig.DEBUG));
+
     }
 
     @Deprecated

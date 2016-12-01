@@ -69,6 +69,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     @Override
     public void onCreate() {
         super.onCreate();
+        configureLog();
         WBUncaughtExceptionHandler.initialize();
         sApplication = this;
         mDeferFirstRunDialog = false;
@@ -88,6 +89,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         clearCacheDir();
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
         mIdentityManager = new IdentityManager(this, mServiceManager);
+    }
+
+    private void configureLog() {
+        final String logDirPath = getFilesDir().getPath() ;
+        System.setProperty("LOG_DIR", logDirPath);
     }
 
     @Deprecated

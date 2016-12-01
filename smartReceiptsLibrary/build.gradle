@@ -23,11 +23,6 @@ dependencies {
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
 
-    compile "com.amazonaws:aws-android-sdk-core:$AWS_SDK_VERSION"
-    compile "com.amazonaws:aws-android-sdk-cognito:$AWS_SDK_VERSION"
-    compile "com.amazonaws:aws-android-sdk-s3:$AWS_SDK_VERSION"
-    compile "com.amazonaws:aws-android-sdk-ddb:$AWS_SDK_VERSION"
-
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"
 

@@ -10,7 +10,4 @@
     <item android:id="@+id/menu_main_pro_subscription"
           android:title="@string/pro_subscription"
           app:showAsAction="never" />
-    <item android:id="@+id/menu_main_login"
-          android:title="Test -- Login"
-          app:showAsAction="never" />
 </menu>

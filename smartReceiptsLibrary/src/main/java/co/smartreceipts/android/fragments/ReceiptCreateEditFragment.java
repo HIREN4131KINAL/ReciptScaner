@@ -659,7 +659,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };
-            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, getString(R.string.exchange_rate_key), baseCurrencyCode, mLastExchangeRateFetchCallback);
+            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, getString(R.string.exchange_rate_key), baseCurrencyCode).enqueue(mLastExchangeRateFetchCallback);
         } else {
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);
             Logger.info(this, "Ignoring exchange rate request, since there is no subscription for it");

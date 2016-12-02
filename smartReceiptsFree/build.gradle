@@ -9,6 +9,9 @@ dependencies {
     // https://code.google.com/p/android/issues/detail?id=52962#c129
     debugCompile project(path: ':smartReceiptsLibrary', configuration: 'debug')
     releaseCompile project(path: ':smartReceiptsLibrary', configuration: 'release')
+
+    compile "com.google.firebase:firebase-core:$FIREBASE_VERSION"
+    compile "com.google.firebase:firebase-crash:$FIREBASE_VERSION"
 }
 
 android {
@@ -43,4 +46,7 @@ android {
             setRoot('build-types/release')
         }
     }
+
+    apply plugin: 'com.google.gms.google-services'
+
 }

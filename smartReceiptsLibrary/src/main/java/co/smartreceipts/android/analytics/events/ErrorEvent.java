@@ -10,11 +10,13 @@ public class ErrorEvent extends DefaultEvent {
 
     private static final String DEFAULT_NAME = "Exception";
     private static final String TRACE_DATAPOINT_NAME = "trace";
+    private final Throwable throwable;
+
+
 
     private enum Category implements Event.Category {
-        OnError
+        OnError;
     }
-
     public ErrorEvent(@NonNull Throwable throwable) {
         this(DEFAULT_NAME, throwable);
     }
@@ -29,5 +31,11 @@ public class ErrorEvent extends DefaultEvent {
 
     public ErrorEvent(@NonNull String name, @NonNull Throwable throwable) {
         super(Category.OnError, new ImmutableName(name), Collections.singletonList(new DataPoint(TRACE_DATAPOINT_NAME, ExceptionUtils.getStackTrace(throwable))));
+        this.throwable = throwable;
     }
+
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
 }

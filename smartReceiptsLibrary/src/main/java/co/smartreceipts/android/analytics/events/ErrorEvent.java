@@ -2,6 +2,8 @@ package co.smartreceipts.android.analytics.events;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
 import java.util.Collections;
 
 import co.smartreceipts.android.utils.ExceptionUtils;
@@ -15,7 +17,7 @@ public class ErrorEvent extends DefaultEvent {
 
 
     private enum Category implements Event.Category {
-        OnError;
+        OnError
     }
     public ErrorEvent(@NonNull Throwable throwable) {
         this(DEFAULT_NAME, throwable);
@@ -31,9 +33,10 @@ public class ErrorEvent extends DefaultEvent {
 
     public ErrorEvent(@NonNull String name, @NonNull Throwable throwable) {
         super(Category.OnError, new ImmutableName(name), Collections.singletonList(new DataPoint(TRACE_DATAPOINT_NAME, ExceptionUtils.getStackTrace(throwable))));
-        this.throwable = throwable;
+        this.throwable = Preconditions.checkNotNull(throwable);
     }
 
+    @NonNull
     public Throwable getThrowable() {
         return throwable;
     }

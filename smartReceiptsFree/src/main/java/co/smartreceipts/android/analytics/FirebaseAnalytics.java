@@ -19,7 +19,8 @@ public class FirebaseAnalytics implements Analytics {
     private final com.google.firebase.analytics.FirebaseAnalytics mFirebaseAnalytics;
 
     public FirebaseAnalytics(@NonNull Context context) {
-        mFirebaseAnalytics = com.google.firebase.analytics.FirebaseAnalytics.getInstance(context);
+        mFirebaseAnalytics = com.google.firebase.analytics.FirebaseAnalytics.getInstance(
+                context.getApplicationContext());
     }
 
     @Override

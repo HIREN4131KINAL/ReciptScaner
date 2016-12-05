@@ -87,19 +87,21 @@ public class Attachment {
 	        	return Uri.parse(uri.toString());
 	        } 
 	        else { 
-	            cursor.moveToFirst();
-	            int idx = cursor.getColumnIndex(column); 
-	            if (idx >= 0) {
-					final String path = cursor.getString(idx);
-					if (path != null) {
-						return Uri.fromFile(new File(cursor.getString(idx)));
-					} else {
-						return null;
-					}
-	            }
-	            else {
-	            	return null;
-	            }
+	            if (cursor.moveToFirst()) {
+                    int idx = cursor.getColumnIndex(column);
+                    if (idx >= 0 && cursor.getColumnCount() > 0) {
+                        final String path = cursor.getString(idx);
+                        if (path != null) {
+                            return Uri.fromFile(new File(cursor.getString(idx)));
+                        } else {
+                            return null;
+                        }
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
 	        }
 		}
 		finally {

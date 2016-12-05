@@ -129,6 +129,15 @@ public class NavigationHandler {
         }
     }
 
+    public void navigateToSettingsScrollToReportSection() {
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            final Intent intent = new Intent(activity, SettingsActivity.class);
+            intent.putExtra(SettingsActivity.EXTRA_GO_TO_CATEGORY, R.string.pref_output_header_key);
+            activity.startActivity(intent);
+        }
+    }
+
     public boolean navigateBack() {
         try {
             return mFragmentManager.popBackStackImmediate();

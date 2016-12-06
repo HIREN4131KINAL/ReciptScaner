@@ -1,7 +1,6 @@
 package co.smartreceipts.android.analytics;
 
 import android.content.Context;
-import android.icu.text.IDNA;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 

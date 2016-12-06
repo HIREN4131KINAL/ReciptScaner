@@ -108,6 +108,19 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
+
+        // For some reason (http://stackoverflow.com/a/8167755)
+        // getListView().setSelection() won't work in onCreate, onResume or even onPostResume
+        // Only way I got it to work was by postDelaying it
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                int sectionHeader = getIntent().getIntExtra(EXTRA_GO_TO_CATEGORY, 0);
+                if (sectionHeader > 0) {
+                    scrollToCategory(SettingsActivity.this, getString(sectionHeader));
+                }
+            }
+        }, 10);
     }
 
 
@@ -316,22 +329,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         if (signaturePreference != null) {
             signaturePreference.setOnPreferenceClickListener(this);
         }
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                int sectionHeader = getIntent().getIntExtra(EXTRA_GO_TO_CATEGORY, 0);
-                if (sectionHeader > 0) {
-                    scrollToCategory(SettingsActivity.this
-                            , getString(sectionHeader));
-                }
-            }
-        }, 10);
     }
 
     private void scrollToCategory(UniversalPreferences universal, String sectionHeader) {

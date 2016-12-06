@@ -40,9 +40,11 @@ public class Attachment {
 				mIsValid = true;
 			}
 			else if (Intent.ACTION_SEND.equals(mAction) && intent.getExtras() != null) {
+                Logger.debug(this, "Managing send action for {}.", intent);
 				final Uri extraStreamUri = (Uri) intent.getExtras().get(Intent.EXTRA_STREAM);
 				final Uri resolvedUri = resolveUri(extraStreamUri, resolver, MediaStore.Images.ImageColumns.DATA);
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Logger.debug(this, "Found the following Uris: extra => {}, stream => {}.", extraStreamUri, resolvedUri);
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || resolvedUri == null) {
 					// For M, just use the "content://" one instead of the "file://"
 					mUri = extraStreamUri;
 				} else {

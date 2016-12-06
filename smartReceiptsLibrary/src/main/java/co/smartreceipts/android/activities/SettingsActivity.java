@@ -16,7 +16,6 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceCategory;
-import android.preference.PreferenceGroup;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -43,9 +42,9 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.fragments.preferences.AbstractPreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference;
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
-import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -109,18 +108,23 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
 
-        // For some reason (http://stackoverflow.com/a/8167755)
-        // getListView().setSelection() won't work in onCreate, onResume or even onPostResume
-        // Only way I got it to work was by postDelaying it
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                int sectionHeader = getIntent().getIntExtra(EXTRA_GO_TO_CATEGORY, 0);
-                if (sectionHeader > 0) {
-                    scrollToCategory(SettingsActivity.this, getString(sectionHeader));
+
+        // Scroll to a predefined preference category (if provided). Only for when not using headers -
+        // when we are using headers, selecting the appropriate header is handled by the EXTRA_SHOW_FRAGMENT
+        if (!mIsUsingHeaders) {
+            // For some reason (http://stackoverflow.com/a/8167755)
+            // getListView().setSelection() won't work in onCreate, onResume or even onPostResume
+            // Only way I got it to work was by postDelaying it
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int sectionHeader = getIntent().getIntExtra(EXTRA_GO_TO_CATEGORY, 0);
+                    if (sectionHeader > 0) {
+                        scrollToCategory(SettingsActivity.this, getString(sectionHeader));
+                    }
                 }
-            }
-        }, 10);
+            }, 10);
+        }
     }
 
 
@@ -201,9 +205,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     protected boolean isValidFragment(String fragmentName) {
-        if (PreferenceHeaderFragment.class.getName().equals(fragmentName)) {
-            return true;
-        } else {
+        try {
+            return AbstractPreferenceHeaderFragment.class.isAssignableFrom(
+                            Class.forName(fragmentName));
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }

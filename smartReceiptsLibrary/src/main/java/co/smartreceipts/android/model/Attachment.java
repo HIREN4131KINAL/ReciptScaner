@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Locale;
 
+import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
 
 import android.content.ContentProvider;
@@ -47,10 +48,11 @@ public class Attachment {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M || resolvedUri == null) {
 					// For M, just use the "content://" one instead of the "file://"
 					mUri = extraStreamUri;
+                    mExtension = extraStreamUri != null ? UriUtils.getExtension(extraStreamUri, resolver) : "";
 				} else {
-					mUri = resolvedUri;
+                    mUri = resolvedUri;
+                    mExtension = resolvedUri.toString().substring(resolvedUri.toString().lastIndexOf(".") + 1);
 				}
-				mExtension = (resolvedUri != null) ? resolvedUri.toString().substring(resolvedUri.toString().lastIndexOf(".") + 1) : "";
 				mIsValid = true;
 			}
 			else {

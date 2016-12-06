@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContentUriProvider;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 
@@ -166,23 +167,7 @@ public class IntentUtils {
 
     @NonNull
     private static Uri getUriFromFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
-        if (worksWithAndroidsFileProvider()) {
-            return FileProvider.getUriForFile(context, authority, file);
-        } else {
-            return Uri.fromFile(file);
-        }
+        return ContentUriProvider.getUriForFile(context, authority, file);
     }
 
-    /**
-     * Huawei devices decided to not follow the Android contract for calls to {@link Context#getExternalFilesDirs(String)}.
-     * Rather than returning {@link Context#getExternalFilesDir(String)} (ie the default entry) as the first entry in the
-     * array returned by the former call, it always returns the sd card. This breaks shit. Rather than building a ton of hackys
-     * for this stupid device, we'll just break the preferred Android security model for them
-     *
-     * @return {@code true} if we can use {@link FileProvider#getUriForFile(Context, String, File)}
-     */
-    private static boolean worksWithAndroidsFileProvider() {
-        final String buggyManufacturers = "Huawei";
-        return !buggyManufacturers.equalsIgnoreCase(Build.MANUFACTURER);
-    }
 }

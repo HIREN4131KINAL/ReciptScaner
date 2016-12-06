@@ -141,6 +141,7 @@ public class EmailAssistant {
     }
 
     public void emailTrip(@NonNull EnumSet<EmailOptions> options) {
+        Logger.info(this, "Creating reports...");
         ProgressDialog progress = ProgressDialog.show(mContext, "", "Building Reports...", true, false);
         EmailAttachmentWriter attachmentWriter = new EmailAttachmentWriter(mPersistenceManager, progress, options);
         attachmentWriter.execute(mTrip);
@@ -182,6 +183,7 @@ public class EmailAssistant {
                 bodyBuilder.append(mContext.getString(R.string.email_body_subject_5mb_warning, attachments[EmailOptions.ZIP_IMAGES_STAMPED.getIndex()].getAbsolutePath()));
             }
         }
+        Logger.info(this, "Built the following files [{}].", files);
 
         String body = bodyBuilder.toString();
         if (body.length() > 0) {
@@ -202,6 +204,9 @@ public class EmailAssistant {
         emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
         emailIntent.putExtra(Intent.EXTRA_TEXT, body);
+
+        Logger.debug(this, "Built the send intent {} with extras {}.", emailIntent, emailIntent.getExtras());
+
         try {
             mContext.startActivity(Intent.createChooser(emailIntent, mContext.getString(R.string.send_email)));
         } catch (ActivityNotFoundException e) {
@@ -286,6 +291,7 @@ public class EmailAssistant {
                 }
             }
 
+            Logger.info(this, "Generating the following report types {}.", mOptions);
             if (mOptions.contains(EmailOptions.PDF_FULL)) {
                 final Report pdfFullReport = new FullPdfReport(mContext, mPersistenceManager, mFlex);
                 try {
@@ -343,6 +349,7 @@ public class EmailAssistant {
                                 b = null;
                             }
                         } catch (OutOfMemoryError e) {
+                            Logger.error(this, "Trying to recover from OOM", e);
                             System.gc();
                             try {
                                 Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.RGB_565);
@@ -351,6 +358,7 @@ public class EmailAssistant {
                                     b.recycle();
                                 }
                             } catch (OutOfMemoryError e2) {
+                                Logger.error(this, "Failed to recover from OOM", e2);
                                 results.didZIPFailCompletely = true;
                                 memoryErrorOccured = true;
                                 break;

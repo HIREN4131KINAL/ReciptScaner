@@ -98,7 +98,7 @@ public class Logger {
     }
 
     public static void error(Object caller, Throwable t) {
-        getLoggerForCaller(caller).error(null, t);
+        getLoggerForCaller(caller).error("", t);
     }
 
     public static void error(Object caller, String msg, Throwable t) {

@@ -19,9 +19,13 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.fragments.preferences.PreferenceHeaderHelpFragment;
+import co.smartreceipts.android.fragments.preferences.PreferenceHeaderReportOutputFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.IntentUtils;
+
+import static android.preference.PreferenceActivity.EXTRA_SHOW_FRAGMENT;
 
 public class NavigationHandler {
 
@@ -125,6 +129,20 @@ public class NavigationHandler {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
         if (activity != null) {
             final Intent intent = new Intent(activity, SettingsActivity.class);
+            activity.startActivity(intent);
+        }
+    }
+
+    public void navigateToSettingsScrollToReportSection() {
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            final Intent intent = new Intent(activity, SettingsActivity.class);
+            if (mIsDualPane) {
+                intent.putExtra(EXTRA_SHOW_FRAGMENT, PreferenceHeaderReportOutputFragment.class.getName());
+            } else {
+                intent.putExtra(SettingsActivity.EXTRA_GO_TO_CATEGORY, R.string.pref_output_header_key);
+            }
+
             activity.startActivity(intent);
         }
     }

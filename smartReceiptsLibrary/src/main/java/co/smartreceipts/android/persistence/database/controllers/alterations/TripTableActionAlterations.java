@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -20,13 +19,10 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import rx.Observable;
-import rx.functions.Func0;
+import co.smartreceipts.android.utils.log.Logger;
 import wb.android.storage.StorageManager;
 
 public class TripTableActionAlterations extends StubTableActionAlterations<Trip> {
-
-    private static final String TAG = TripTableActionAlterations.class.getSimpleName();
 
     private final Table<Trip, String> mTripsTable;
     private final ReceiptsTable mReceiptsTable;
@@ -72,7 +68,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
         if (trip != null) {
             final File dir = mStorageManager.mkdir(trip.getName());
             if (dir == null) {
-                Log.e(TAG, "Failed to create a trip directory... Rolling back and throwing an exception");
+                Logger.error(this, "Failed to create a trip directory... Rolling back and throwing an exception");
                 mTripsTable.delete(trip, new DatabaseOperationMetadata()).toBlocking().first();
                 throw new IOException("Failed to create trip directory");
             } else {
@@ -91,7 +87,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
                 mDistanceTable.updateParentBlocking(oldTrip, newTrip);
                 final File dir = mStorageManager.rename(oldTrip.getDirectory(), newTrip.getName());
                 if (dir.equals(oldTrip.getDirectory())) {
-                    Log.e(TAG, "Failed to re-name the trip directory... Rolling back and throwing an exception");
+                    Logger.error(this, "Failed to re-name the trip directory... Rolling back and throwing an exception");
                     mTripsTable.update(newTrip, oldTrip, new DatabaseOperationMetadata()).toBlocking().first();
                     mReceiptsTable.updateParentBlocking(newTrip, oldTrip);
                     mDistanceTable.updateParentBlocking(newTrip, oldTrip);
@@ -108,7 +104,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
             mDistanceTable.deleteParentBlocking(trip);
             if (!mStorageManager.deleteRecursively(trip.getDirectory())) {
                 // TODO: Create clean up script
-                Log.e(TAG, "Failed to fully delete the underlying data. Create a clean up script to fix this later");
+                Logger.error(this, "Failed to fully delete the underlying data. Create a clean up script to fix this later");
             }
         }
     }
@@ -120,9 +116,9 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
         File sdDB = mStorageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DatabaseHelper.DATABASE_NAME + ".bak");
         try {
             mStorageManager.copy(new File(DatabaseHelper.DATABASE_NAME), sdDB, true);
-            Log.i(TAG, "Backed up database file to: " + sdDB.getName());
+            Logger.info(this, "Backed up database file to: {}", sdDB.getName());
         } catch (Exception e) {
-            Log.e(TAG, "Failed to back up database: " + e.toString());
+            Logger.error(this, "Failed to back up database", e);
         }
     }
 }

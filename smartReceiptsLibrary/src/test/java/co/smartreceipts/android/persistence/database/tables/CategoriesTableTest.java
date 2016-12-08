@@ -12,6 +12,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class CategoriesTableTest {
 
     private static final String NAME1 = "name1";
@@ -151,6 +152,15 @@ public class CategoriesTableTest {
     }
 
     @Test
+    public void getMaintainsAlphabeticalSortingOrder() {
+        final Category zCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("zz").setCode("zz").build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Category aCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("aa").setCode("aa").build(), new DatabaseOperationMetadata()).toBlocking().first();
+
+        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
+        assertEquals(categories, Arrays.asList(aCategory, mCategory1, mCategory2, zCategory));
+    }
+
+    @Test
     public void findByPrimaryKey() {
         final Category foundCategory = mCategoriesTable.findByPrimaryKey(mCategory1.getName()).toBlocking().first();
         assertNotNull(foundCategory);
@@ -165,13 +175,13 @@ public class CategoriesTableTest {
 
     @Test
     public void insert() {
-        final String name = "NewName";
-        final String code = "NewCode";
+        final String name = "abc";
+        final String code = "abc";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
         assertEquals(insertCategory, mCategoriesTable.insert(insertCategory, new DatabaseOperationMetadata()).toBlocking().first());
 
         final List<Category> categories = mCategoriesTable.get().toBlocking().first();
-        assertEquals(categories, Arrays.asList(mCategory1, mCategory2, insertCategory));
+        assertEquals(categories, Arrays.asList(insertCategory, mCategory1, mCategory2));
     }
     
     @Test

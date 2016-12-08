@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="co.smartreceipts.android"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-permission android:name="android.permission.CAMERA" android:maxSdkVersion="22" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
+
+    <application
+        tools:replace="android:icon,android:label,android:theme"
+        android:icon="@drawable/icon" 
+        android:label="@string/sr_app_name"
+        android:theme="@style/Theme.SmartReceipts"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        android:logo="@drawable/logo" >
+
+        <activity android:name=".activities.SmartReceiptsActivity"
+                  android:label="@string/sr_app_name"
+                  android:windowSoftInputMode="adjustPan" >
+
+            <!-- Main Launcher filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Filter to handle action send activities -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+            </intent-filter>
+
+            <!-- ****Do not nest these filters!! They will not work if so. *** -->
+            <!-- Filter to open file with gmail version 4.2 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/smr" android:pathPattern=".*\\.smr"  android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError" />
+            </intent-filter>
+
+            <!-- This seems to be the "key" one for SMRs -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/octet-stream" android:pathPattern=".*\\.smr" android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError"/>
+            </intent-filter>
+
+            <!-- Filter to open with file browser -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.smr" android:host="*" />
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name="co.smartreceipts.android.activities.SettingsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
+        <activity
+            android:name="co.smartreceipts.android.activities.SettingsViewerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
+        <activity android:name="wb.android.google.camera.CameraActivity"
+                  android:taskAffinity="wb.android.google.camera.CameraActivity"
+                  android:theme="@style/Theme.Camera"
+                  android:configChanges="orientation|screenSize|keyboardHidden"
+                  android:clearTaskOnLaunch="true"
+                  android:screenOrientation="portrait"
+                  android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
+
+        <service android:name=".sync.drive.services.DriveCompletionEventService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.drive.events.HANDLE_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+
+    </application>
+</manifest>

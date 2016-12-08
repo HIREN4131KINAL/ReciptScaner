@@ -446,7 +446,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 																	// threshold
 			}
 			if (Utils.ApiHelper.hasGingerbread()) {
-				editor.apply(); // Same as commit but async
+				editor.apply(); // Same as apply but async
 			}
 			else {
 				editor.commit();

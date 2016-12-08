@@ -6,7 +6,8 @@ buildscript {
 	jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.1'
+        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.google.gms:google-services:3.0.0'
     }
 }
 
@@ -24,8 +25,8 @@ ext {
     compileSdkVersion = 23
     buildToolsVersion = "24.0.3"
 
-    versionCode = 207
-    versionName = "4.0.0.7"
+    versionCode = 213
+    versionName = "4.0.2.213"
 }
 
 task wrapper(type: Wrapper) {

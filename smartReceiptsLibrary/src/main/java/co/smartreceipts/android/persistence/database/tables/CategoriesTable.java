@@ -3,12 +3,13 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.CategoryDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.CategoryPrimaryKey;
+import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * Stores all database operations related to the {@link Category} model object
@@ -22,10 +23,8 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
     public static final String COLUMN_BREAKDOWN = "breakdown";
 
 
-    private static final String TAG = CategoriesTable.class.getSimpleName();
-
     public CategoriesTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
-        super(sqLiteOpenHelper, TABLE_NAME, new CategoryDatabaseAdapter(), new CategoryPrimaryKey());
+        super(sqLiteOpenHelper, TABLE_NAME, new CategoryDatabaseAdapter(), new CategoryPrimaryKey(), new OrderBy(COLUMN_NAME, false));
     }
 
     @Override
@@ -41,7 +40,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
 
-        Log.d(TAG, categories);
+        Logger.debug(this, categories);
         db.execSQL(categories);
         customizer.insertCategoryDefaults(this);
     }

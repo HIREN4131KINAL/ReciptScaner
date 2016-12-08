@@ -1,7 +1,6 @@
 package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -20,6 +19,7 @@ import co.smartreceipts.android.persistence.database.controllers.TableEventsList
 import co.smartreceipts.android.persistence.database.controllers.alterations.ReceiptTableActionAlterations;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
@@ -72,7 +72,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     }
 
     public synchronized void move(@NonNull final Receipt receiptToMove, @NonNull Trip toTrip) {
-        Log.i(TAG, "#move: " + receiptToMove + "; " + toTrip);
+        Logger.info(this, "#move: {}; {}", receiptToMove, toTrip);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mReceiptTableActionAlterations.preMove(receiptToMove, toTrip)
                 .flatMap(new Func1<Receipt, Observable<Receipt>>() {
@@ -97,12 +97,12 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Receipt newReceipt) {
                         if (newReceipt != null) {
-                            Log.d(TAG, "#onMoveSuccess - onNext");
+                            Logger.debug(this, "#onMoveSuccess - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onMoveSuccess(receiptToMove, newReceipt);
                             }
                         } else {
-                            Log.d(TAG, "#onMoveFailure - onNext");
+                            Logger.debug(this, "#onMoveFailure - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onMoveFailure(receiptToMove, null);
                             }
@@ -112,7 +112,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Log.d(TAG, "#onMoveFailure - onError");
+                        Logger.debug(this, "#onMoveFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onMoveFailure(receiptToMove, throwable);
                         }
@@ -121,7 +121,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action0() {
                     @Override
                     public void call() {
-                        Log.d(TAG, "#move - onComplete");
+                        Logger.debug(this, "#move - onComplete");
                         unsubscribeReference(subscriptionRef);
                     }
                 });
@@ -130,7 +130,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     }
 
     public synchronized void copy(@NonNull final Receipt receiptToCopy, @NonNull Trip toTrip) {
-        Log.i(TAG, "#move: " + receiptToCopy + "; " + toTrip);
+        Logger.info(this, "#move: {}; {}", receiptToCopy, toTrip);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mReceiptTableActionAlterations.preCopy(receiptToCopy, toTrip)
                 .flatMap(new Func1<Receipt, Observable<Receipt>>() {
@@ -155,12 +155,12 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Receipt newReceipt) {
                         if (newReceipt != null) {
-                            Log.d(TAG, "#onCopySuccess - onNext");
+                            Logger.debug(this, "#onCopySuccess - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onCopySuccess(receiptToCopy, newReceipt);
                             }
                         } else {
-                            Log.d(TAG, "#onCopyFailure - onNext");
+                            Logger.debug(this, "#onCopyFailure - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onCopyFailure(receiptToCopy, null);
                             }
@@ -170,7 +170,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Log.d(TAG, "#onCopyFailure - onError");
+                        Logger.debug(this, "#onCopyFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onCopyFailure(receiptToCopy, throwable);
                         }
@@ -179,7 +179,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action0() {
                     @Override
                     public void call() {
-                        Log.d(TAG, "#move - onComplete");
+                        Logger.debug(this, "#move - onComplete");
                         unsubscribeReference(subscriptionRef);
                     }
                 });
@@ -188,7 +188,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     }
 
     public synchronized void swapUp(@NonNull final Receipt receiptToSwapUp) {
-        Log.i(TAG, "#swapUp: " + receiptToSwapUp);
+        Logger.info(TAG, "#swapUp: {}", receiptToSwapUp);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTripForeignKeyTable.get(receiptToSwapUp.getTrip())
                 .flatMap(new Func1<List<Receipt>, Observable<List<? extends Map.Entry<Receipt, Receipt>>>>() {
@@ -213,12 +213,12 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Boolean success) {
                         if (success) {
-                            Log.d(TAG, "#onSwapUpSuccess - onNext");
+                            Logger.debug(this, "#onSwapUpSuccess - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onSwapSuccess();
                             }
                         } else {
-                            Log.d(TAG, "#onSwapUpFailure - onNext");
+                            Logger.debug(this, "#onSwapUpFailure - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onSwapFailure(null);
                             }
@@ -228,7 +228,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Log.d(TAG, "#onSwapUpFailure - onError");
+                        Logger.debug(this, "#onSwapUpFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onSwapFailure(throwable);
                         }
@@ -237,7 +237,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action0() {
                     @Override
                     public void call() {
-                        Log.d(TAG, "#swapUp - onComplete");
+                        Logger.debug(this, "#swapUp - onComplete");
                         unsubscribeReference(subscriptionRef);
                     }
                 });
@@ -246,7 +246,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     }
 
     public synchronized void swapDown(@NonNull final Receipt receiptToSwapDown) {
-        Log.i(TAG, "#swapDown: " + receiptToSwapDown);
+        Logger.info(this, "#swapDown: {}", receiptToSwapDown);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
         final Subscription subscription = mTripForeignKeyTable.get(receiptToSwapDown.getTrip())
                 .flatMap(new Func1<List<Receipt>, Observable<List<? extends Map.Entry<Receipt, Receipt>>>>() {
@@ -271,12 +271,12 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Boolean success) {
                         if (success) {
-                            Log.d(TAG, "#onSwapDownSuccess - onNext");
+                            Logger.debug(this, "#onSwapDownSuccess - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onSwapSuccess();
                             }
                         } else {
-                            Log.d(TAG, "#onSwapDownFailure - onNext");
+                            Logger.debug(this, "#onSwapDownFailure - onNext");
                             for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                                 tableEventsListener.onSwapFailure(null);
                             }
@@ -286,7 +286,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Log.d(TAG, "#onSwapDownFailure - onError");
+                        Logger.debug(this, "#onSwapDownFailure - onError");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
                             tableEventsListener.onSwapFailure(throwable);
                         }
@@ -295,7 +295,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 }, new Action0() {
                     @Override
                     public void call() {
-                        Log.d(TAG, "#swapDown - onComplete");
+                        Logger.debug(this, "#swapDown - onComplete");
                         unsubscribeReference(subscriptionRef);
                     }
                 });

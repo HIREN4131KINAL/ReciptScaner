@@ -3,12 +3,12 @@ package co.smartreceipts.android.persistence.database.tables;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.adapters.PaymentMethodDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.PaymentMethodPrimaryKey;
+import co.smartreceipts.android.utils.log.Logger;
 
 /**
  * Stores all database operations related to the {@link PaymentMethod} model object
@@ -20,8 +20,6 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_METHOD = "method";
 
-
-    private static final String TAG = CategoriesTable.class.getSimpleName();
 
     public PaymentMethodsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper) {
         super(sqLiteOpenHelper, TABLE_NAME, new PaymentMethodDatabaseAdapter(), new PaymentMethodPrimaryKey());
@@ -39,7 +37,7 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
 
-        Log.d(TAG, sql);
+        Logger.debug(this, sql);
         db.execSQL(sql);
         customizer.insertPaymentMethodDefaults(this);
     }
@@ -53,7 +51,7 @@ public final class PaymentMethodsTable extends AbstractSqlTable<PaymentMethod, I
                     + COLUMN_METHOD + " TEXT"
                     + ");";
 
-            Log.d(TAG, sql);
+            Logger.debug(this, sql);
             db.execSQL(sql);
             customizer.insertPaymentMethodDefaults(this);
         }

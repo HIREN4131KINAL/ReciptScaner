@@ -30,6 +30,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -979,6 +980,7 @@ public class StorageManager {
 	 *            - the file to get the extension from
 	 * @return the extension as a string
 	 */
+    @Nullable
 	public static final String getExtension(File file) {
 		if (file == null || TextUtils.isEmpty(file.getName()) || file.isDirectory()) {
 			return null;

@@ -200,7 +200,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                             adView.setVisibility(View.VISIBLE);
                         } else {
                             Logger.info(this, "Hiding the original ad following a purchase");
-                            adView.setVisibility(View.GONE);
+                            hideAdAndUpsell();
                         }
                     }
                 });

@@ -112,19 +112,15 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
 
 
             return getStorageManager().getFile(trip.getDirectory(), outputFileName);
-        } catch (IOException e) {
-            Logger.error(this, e);
-            throw new ReportGenerationException(e);
-        } catch (DocumentException e) {
-            Logger.error(this, e);
+        } catch (IOException | DocumentException e) {
+            Logger.error(this, "An exception occurred when generating a pdf report", e);
             throw new ReportGenerationException(e);
         } finally {
             if (document != null) {
                 try {
-                    document.close(); //Close me first
+                    document.close();
                 } catch (Exception e) {
-                    // We might see this if it was an empty document
-                    Logger.error(this, e);
+                    Logger.error(this, "We may be trying to close an empty document.", e);
                 }
             }
             if (pdfStream != null) {

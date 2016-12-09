@@ -32,6 +32,7 @@ import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
+import wb.android.google.camera.data.Log;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
@@ -223,7 +224,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
                     try {
                         external.copy(db, sdDB, true);
                     } catch (IOException e) {
-                        Logger.error(this, e);
+                        Logger.error(this, "Exception occurred when upgrading app version", e);
                     }
                 }
             } catch (SDCardStateException e) {

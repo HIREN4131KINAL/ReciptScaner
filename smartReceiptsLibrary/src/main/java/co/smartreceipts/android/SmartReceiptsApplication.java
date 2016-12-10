@@ -6,6 +6,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 
+import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -90,7 +92,9 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
         mIdentityManager = new IdentityManager(this, mServiceManager);
 
-        // Clear our cache
+        PDFBoxResourceLoader.init(getApplicationContext());
+        
+	// Clear our cache
         new SmartReceiptsTemporaryFileCache(this).resetCache();
     }
 

@@ -74,6 +74,8 @@ public class ReceiptUtils {
         return factory;
     }
 
+
+
     public static Receipt newDefaultReceipt() {
         return newDefaultReceiptBuilderFactory().build();
     }

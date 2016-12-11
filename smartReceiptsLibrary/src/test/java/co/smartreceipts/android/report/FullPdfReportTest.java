@@ -4,12 +4,6 @@ package co.smartreceipts.android.report;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.pdmodel.PDPage;
-import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
-import com.tom_roush.pdfbox.pdmodel.font.PDFont;
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +18,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -31,9 +26,7 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReceiptsTablePdfSection;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxSection;
 import wb.android.flex.Flex;
 
 @RunWith(RobolectricTestRunner.class)
@@ -73,9 +66,10 @@ public class FullPdfReportTest {
         }
 
 
-        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context);
+        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, "/");
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>()));
+                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
+                        new ArrayList<Column<Receipt>>()));
 
         OutputStream os = new FileOutputStream(new File("aaa3.pdf"));
 

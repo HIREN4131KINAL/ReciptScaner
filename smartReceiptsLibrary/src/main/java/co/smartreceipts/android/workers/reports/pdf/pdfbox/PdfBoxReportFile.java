@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -22,9 +23,9 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final PDDocument doc;
     private List<PdfBoxSection> sections;
 
-    public PdfBoxReportFile(Context androidContext) {
+    public PdfBoxReportFile(Context androidContext, String dateSeparator) {
         sections = new ArrayList<>();
-        context = new DefaultPdfBoxContext(androidContext);
+        context = new DefaultPdfBoxContext(androidContext, dateSeparator);
         doc = new PDDocument();
     }
 
@@ -49,8 +50,9 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     }
 
     @Override
-    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(List<Distance> distances) {
-        return new PdfBoxReceiptsTablePdfSection(context, doc, distances);
+    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(List<Distance> distances,
+                                                                    List<Column<Receipt>> columns) {
+        return new PdfBoxReceiptsTablePdfSection(context, doc, distances, columns);
     }
 
     @Override

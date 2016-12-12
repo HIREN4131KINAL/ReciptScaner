@@ -32,7 +32,7 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 public class ContentUriProvider {
 
     private static final String HUAWEI_MANUFACTURER = "Huawei";
-    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD");
+    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD", "H1611");
 
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
         if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER)) {

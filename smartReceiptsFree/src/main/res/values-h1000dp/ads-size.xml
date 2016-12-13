@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="adSize" translatable="false">450x130</string>
+    <string name="adSize" translatable="false">FULL_WIDTHx130</string>
 </resources>

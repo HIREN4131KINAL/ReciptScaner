@@ -11,6 +11,8 @@ import java.util.List;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Column;
 
+import static android.R.attr.columnCount;
+import static android.R.attr.rowHeight;
 import static android.R.attr.y;
 
 
@@ -22,6 +24,8 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<Void, Data
     private final boolean mPrintHeaders;
     private final boolean mPrintFooters;
     private final int mCurrentLineOffset;
+    private int topPadding = 40;
+    private int rowHeight = 50;
 
     public PdfBoxTableGenerator(PDPageContentStream contentStream,
                                 List<Column<DataType>> columns,
@@ -42,7 +46,8 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<Void, Data
     public Void generate(@NonNull List<DataType> list) {
         try {
             if (!list.isEmpty()) {
-                final int columnCount = mColumns.size();
+//                final int columnCount = mColumns.size();
+                final int columnCount = 4;
                 final List<DataType> filteredList = new ArrayList<>(list.size());
                 final int rowCount = filteredList.size()
                         + (mPrintHeaders ? 1 : 0)
@@ -50,14 +55,23 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<Void, Data
 
 
                 //draw the rows
-                float nexty = mCurrentLineOffset;
+                float nexty = mCurrentLineOffset - topPadding;
                 for (int i = 0; i <= rowCount; i++) {
                     mContentStream.moveTo(100, nexty);
-                    mContentStream.lineTo(500, nexty);
+                    mContentStream.lineTo(600, nexty);
                     mContentStream.stroke();
-                    nexty -= 20;
+                    nexty -= rowHeight;
                 }
 
+                //draw the columns
+                float nextx = 100;
+                float y = mCurrentLineOffset-topPadding;
+                for (int i = 0; i <= columnCount; i++) {
+                    mContentStream.moveTo(nextx, y);
+                    mContentStream.lineTo(nextx, y-rowCount*rowHeight);
+                    mContentStream.stroke();
+                    nextx += 500/columnCount;
+                }
 
                 // Add the header
                 if (mPrintHeaders) {

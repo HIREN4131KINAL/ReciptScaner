@@ -9,22 +9,15 @@ import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.Filter;
-import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
-import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableGenerator;
-import co.smartreceipts.android.workers.reports.tables.PdfTableGenerator;
-
-import static java.security.AccessController.getContext;
 
 public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
@@ -43,7 +36,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private boolean includeCostCenter;
     private boolean printDistanceAsDailyReceipt;
 
-    private int currentLineOffset;
+    private int currentCursorPosition;
 
     protected PdfBoxReceiptsTablePdfSection(PdfBoxContext context,
                                             PDDocument doc,
@@ -61,22 +54,19 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         ReceiptsReportTableData data = new ReceiptsReportTableData(trip,
                 receipts, distances, usePreTaxPrice, onlyUseReimbursable);
 
-        PDPage page = new PDPage();
+        PDPage page = new PDPage(context.getPageSize());
         doc.addPage(page);
 
         PDPageContentStream contentStream = new PDPageContentStream(doc, page);
 
-        contentStream.setFont(context.getFont(), context.getFontSize());
 
         contentStream.beginText();
 
-        contentStream.newLineAtOffset(context.getPageOffsetX(), context.getPageOffsetY());
-        currentLineOffset = context.getPageOffsetY();
-
+        contentStream.newLineAtOffset(context.getPageMarginHorizontal(),
+                context.getPageSize().getHeight() - context.getPageMarginVertical());
+        currentCursorPosition = context.getPageMarginVertical();
 
         writeHeader(contentStream, trip, data);
-
-        addLineBreak(contentStream);
 
         contentStream.endText();
 
@@ -86,10 +76,16 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     }
 
     private void writeHeader(PDPageContentStream contentStream, Trip trip, ReceiptsReportTableData data) throws IOException {
-        contentStream.showText(trip.getName());
+
+        writeNewLine(contentStream,
+                context.getTitleFont(),
+                trip.getName()
+        );
+
 
         if (!data.receiptsPrice.equals(data.netPrice)) {
             writeNewLine(contentStream,
+                    context.getDefaultFont(),
                     R.string.report_header_receipts_total,
                     data.receiptsPrice.getCurrencyFormattedPrice()
             );
@@ -98,6 +94,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         if (includeTaxField) {
             if (usePreTaxPrice && data.taxPrice.getPriceAsFloat() > EPSILON) {
                 writeNewLine(contentStream,
+                        context.getDefaultFont(),
                         R.string.report_header_receipts_total_tax,
                         data.taxPrice.getCurrencyFormattedPrice()
                 );
@@ -105,6 +102,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             } else if (!data.noTaxPrice.equals(data.receiptsPrice) &&
                     data.noTaxPrice.getPriceAsFloat() > EPSILON) {
                 writeNewLine(contentStream,
+                        context.getDefaultFont(),
                         R.string.report_header_receipts_total_no_tax,
                         data.noTaxPrice.getCurrencyFormattedPrice()
                 );
@@ -114,39 +112,49 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         if (onlyIncludeReimbursableReceiptsInReports &&
                 !data.reimbursablePrice.equals(data.receiptsPrice)) {
             writeNewLine(contentStream,
+                    context.getDefaultFont(),
                     R.string.report_header_receipts_total_reimbursable,
                     data.reimbursablePrice.getCurrencyFormattedPrice()
             );
         }
         if (distances.size() > 0) {
             writeNewLine(contentStream,
+                    context.getDefaultFont(),
                     R.string.report_header_distance_total,
                     data.distancePrice.getCurrencyFormattedPrice()
             );
         }
 
         writeNewLine(contentStream,
+                context.getDefaultFont(),
                 R.string.report_header_gross_total,
                 data.netPrice.getCurrencyFormattedPrice()
         );
 
+        // TODO
 
-        addLineBreak(contentStream);
 
-        contentStream.showText(context.getString(R.string.report_header_from,
-                trip.getFormattedStartDate(context.getApplicationContext(), context.getDateSeparator())) + " ");
+        String fromToPeriod = context.getString(R.string.report_header_from,
+                trip.getFormattedStartDate(context.getApplicationContext(), context.getDateSeparator()))
+                + " "
+                + context.getString(R.string.report_header_to,
+                trip.getFormattedEndDate(context.getApplicationContext(), context.getDateSeparator()));
 
-        contentStream.showText(context.getString(R.string.report_header_to,
-                trip.getFormattedEndDate(context.getApplicationContext(), context.getDateSeparator())));
+        writeNewLine(contentStream,
+                context.getDefaultFont(),
+                fromToPeriod);
+
 
         if (includeCostCenter && !TextUtils.isEmpty(trip.getCostCenter())) {
             writeNewLine(contentStream,
+                    context.getDefaultFont(),
                     R.string.report_header_cost_center,
                     trip.getCostCenter()
             );
         }
         if (!TextUtils.isEmpty(trip.getComment())) {
             writeNewLine(contentStream,
+                    context.getDefaultFont(),
                     R.string.report_header_comment,
                     trip.getComment()
             );
@@ -159,7 +167,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                             List<Receipt> receipts,
                             ReceiptsReportTableData data) {
 
-        final List<Receipt> receiptsTableList = new ArrayList<Receipt>(receipts);
+        final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
         if (printDistanceAsDailyReceipt) {
             // TODO
 //            receiptsTableList.addAll(new DistanceToReceiptsConverter(getContext(), getPreferences()).convert(getDatabase().getDistanceTable().getBlocking(trip, false)));
@@ -169,26 +177,35 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         final PdfBoxTableGenerator<Receipt> pdfTableGenerator =
                 new PdfBoxTableGenerator<>(contentStream, columns,
-                        receiptFilter, true, true, currentLineOffset);
+                        receiptFilter, true, true, currentCursorPosition);
 
         pdfTableGenerator.generate(receipts);
 
     }
 
     private void writeNewLine(PDPageContentStream contentStream,
+                              PdfBoxContext.FontSpec spec,
                               @StringRes int resId,
                               Object... args) throws IOException {
-        contentStream.newLineAtOffset(0, -context.getLineBreakOffset());
         if (resId != 0) {
-            contentStream.showText(context.getString(resId, args));
+            writeNewLine(contentStream, spec, context.getString(resId, args));
         }
-        currentLineOffset -= context.getLineBreakOffset();
     }
 
-    private void addLineBreak(PDPageContentStream contentStream) throws IOException {
-        writeNewLine(contentStream, 0);
-    }
 
+    private void writeNewLine(PDPageContentStream contentStream,
+                              PdfBoxContext.FontSpec spec,
+                              String str) throws IOException {
+        // set the font
+        contentStream.setFont(spec.getFont(), spec.getSize());
+        // calculate dy (font size + line spacing)
+        float dy = spec.getSize() + context.getLineSpacing();
+        // move the cursor by dy and update the currentCursorPosition
+        contentStream.newLineAtOffset(0, -dy);
+        currentCursorPosition -= dy;
+        // write the text
+        contentStream.showText(str);
+    }
 
     public void setOnlyUseReimbursable(boolean onlyUseReimbursable) {
         this.onlyUseReimbursable = onlyUseReimbursable;

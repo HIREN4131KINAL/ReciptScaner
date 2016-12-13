@@ -3,6 +3,7 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 import android.content.Context;
 import android.support.annotation.StringRes;
 
+import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 
@@ -18,28 +19,35 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     }
 
     @Override
-    public PDFont getFont() {
-        return PDType1Font.HELVETICA;
+    public FontSpec getDefaultFont() {
+        return new FontSpec(PDType1Font.HELVETICA, 14);
+    }
+
+
+    @Override
+    public FontSpec getTitleFont() {
+        return new FontSpec(PDType1Font.HELVETICA_BOLD, 18);
     }
 
     @Override
-    public int getFontSize() {
-        return 14;
+    public FontSpec getSmallFont() {
+        return new FontSpec(PDType1Font.HELVETICA, 12);
+    }
+
+
+    @Override
+    public int getLineSpacing() {
+        return 8;
     }
 
     @Override
-    public int getLineBreakOffset() {
-        return 20;
+    public int getPageMarginHorizontal() {
+        return 36;
     }
 
     @Override
-    public int getPageOffsetX() {
-        return 50;
-    }
-
-    @Override
-    public int getPageOffsetY() {
-        return 700;
+    public int getPageMarginVertical() {
+        return 36;
     }
 
     @Override
@@ -56,6 +64,13 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     public Context getApplicationContext() {
         return context;
     }
+
+    @Override
+    public PDRectangle getPageSize() {
+        return PDRectangle.A4;
+    }
+
+
 
 
 }

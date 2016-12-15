@@ -6,10 +6,10 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.media.ExifInterface;
 import android.support.v4.content.ContextCompat;
 
 import com.google.common.base.Preconditions;
@@ -61,7 +61,7 @@ public class ImageImportProcessor implements FileImportProcessor {
                     final int scale = getImageScaleFactor(uri);
                     inputStream = mContentResolver.openInputStream(uri);
                     if (inputStream != null) {
-                        // Get scaled bitmapt
+                        // Get scaled bitmap
                         final BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
                         smallerOpts.inSampleSize = scale;
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, smallerOpts);
@@ -71,43 +71,43 @@ public class ImageImportProcessor implements FileImportProcessor {
                             bitmap = ImageUtils.convertToGrayScale(bitmap);
                         }
 
-                        boolean wasRotationHandled = false;
                         if (mPreferences.getRotateImages()) {
+                            Logger.debug(ImageImportProcessor.this, "Configured for auto-rotation. Attempting to determine the orientation");
                             int orientation = getOrientationFromMediaStore(uri);
+
+                            if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
+                                Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store. Trying from Exif.");
+                                InputStream exifInputStream = null; // Note: Re-open to avoid issues with #reset()
+                                try {
+                                    exifInputStream = mContentResolver.openInputStream(uri);
+                                    if (exifInputStream != null) {
+                                        final ExifInterface exif = new ExifInterface(exifInputStream);
+                                        orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                                        Logger.info(ImageImportProcessor.this, "Read exif orientation as {}", orientation);
+                                    }
+                                } catch (IOException e) {
+                                    Logger.error(ImageImportProcessor.this, "An Exif parsing exception occurred", e);
+                                } finally {
+                                    StorageManager.closeQuietly(exifInputStream);
+                                }
+                            }
+
                             if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
                                 Logger.info(ImageImportProcessor.this, "Image orientation determined as {}. Rotating...", orientation);
                                 bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
-                                wasRotationHandled = true;
                             } else {
-                                Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store");
+                                Logger.warn(ImageImportProcessor.this, "Indeterminate orientation. Skipping rotation");
                             }
                         } else {
                             Logger.info(ImageImportProcessor.this, "Image import rotation is disabled. Ignoring...");
                         }
 
-                        // Save the file
                         final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
                         if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
                             Logger.error(ImageImportProcessor.this, "Failed to write the image data. Aborting");
                             subscriber.onError(new IOException("Failed to write the image data. Aborting"));
                         } else {
                             Logger.info(ImageImportProcessor.this, "Successfully saved the image to {}.", destination);
-                            if (mPreferences.getRotateImages() && !wasRotationHandled) {
-                                int orientation = ExifInterface.ORIENTATION_UNDEFINED;
-                                try {
-                                    Logger.debug(ImageImportProcessor.this, "We cannot get Exif data from the input stream. Reading from the local system");
-
-                                    final ExifInterface exif = new ExifInterface(destination.getAbsolutePath());
-                                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                                    Logger.info(ImageImportProcessor.this, "Read exif orientation as {}", orientation);
-                                } catch (IOException e) {
-                                    Logger.error(ImageImportProcessor.this, "An Exif parsing exception occurred", e);
-                                }
-                                if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
-                                    bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
-                                    mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85);
-                                }
-                            }
                             subscriber.onNext(destination);
                             subscriber.onCompleted();
                         }

@@ -73,30 +73,35 @@ public class ImageImportProcessor implements FileImportProcessor {
 
                         boolean wasRotationHandled = false;
                         if (mPreferences.getRotateImages()) {
-                            int orientation = getOrientation(uri);
+                            int orientation = getOrientationFromMediaStore(uri);
                             if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
+                                Logger.info(ImageImportProcessor.this, "Image orientation determined as {}. Rotating...", orientation);
                                 bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
                                 wasRotationHandled = true;
                             } else {
                                 Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store");
                             }
+                        } else {
+                            Logger.info(ImageImportProcessor.this, "Image import rotation is disabled. Ignoring...");
                         }
 
                         // Save the file
                         final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
                         if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
                             Logger.error(ImageImportProcessor.this, "Failed to write the image data. Aborting");
-                            subscriber.onError(new IOException());
+                            subscriber.onError(new IOException("Failed to write the image data. Aborting"));
                         } else {
+                            Logger.info(ImageImportProcessor.this, "Successfully saved the image to {}.", destination);
                             if (mPreferences.getRotateImages() && !wasRotationHandled) {
                                 int orientation = ExifInterface.ORIENTATION_UNDEFINED;
                                 try {
-                                    Logger.info(ImageImportProcessor.this, "Attempting to fetch orientation information from the exif data");
-                                    // Getting exif from the local file that we just wrote to determine if rotation in necessary
+                                    Logger.debug(ImageImportProcessor.this, "We cannot get Exif data from the input stream. Reading from the local system");
+
                                     final ExifInterface exif = new ExifInterface(destination.getAbsolutePath());
                                     orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                                    Logger.info(ImageImportProcessor.this, "Read exif orientation as {}", orientation);
                                 } catch (IOException e) {
-                                    Logger.error(ImageImportProcessor.this, e);
+                                    Logger.error(ImageImportProcessor.this, "An Exif parsing exception occurred", e);
                                 }
                                 if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
                                     bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
@@ -148,30 +153,32 @@ public class ImageImportProcessor implements FileImportProcessor {
         return 1;
     }
 
-    private int getOrientation(@NonNull Uri externalUri) {
+    private int getOrientationFromMediaStore(@NonNull Uri externalUri) {
         final boolean hasStoragePermission = ContextCompat.checkSelfPermission(mContext, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         if (!hasStoragePermission) {
+            Logger.warn(ImageImportProcessor.this, "The user has not provided storage permissions. Unabled to determine the rotation from the content provider.");
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
 
-        Cursor c = null;
+        Cursor cursor = null;
         try {
-            final String[] imageColumns = { MediaStore.Images.Media.ORIENTATION };
-            c = MediaStore.Images.Media.query(mContentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageColumns);
-            if(c.moveToFirst()){
-                return c.getInt(c.getColumnIndex(MediaStore.Images.Media.ORIENTATION));
+            final String[] imageColumns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION };
+            cursor = mContentResolver.query(externalUri, imageColumns, null, null, null);
+            if(cursor != null && cursor.moveToFirst()){
+                return cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media.ORIENTATION));
             }
             else {
+                Logger.warn(this, "Failed to find the URI to determine the orientation");
                 return ExifInterface.ORIENTATION_UNDEFINED;
             }
         }
         catch (Exception e) {
-            Logger.error(this, e);
+            Logger.error(this, "An exception occurred when fetching the content orientation", e);
             return ExifInterface.ORIENTATION_UNDEFINED;
         }
         finally {
-            if (c != null) {
-                c.close();
+            if (cursor != null) {
+                cursor.close();
             }
         }
     }

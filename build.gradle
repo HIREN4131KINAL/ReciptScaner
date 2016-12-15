@@ -6,7 +6,7 @@ buildscript {
 	jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
         classpath 'com.google.gms:google-services:3.0.0'
     }
 }
@@ -30,5 +30,5 @@ ext {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.1.0' // Gradle wrapper script
+    gradleVersion = '2.14.1' // Gradle wrapper script
 }

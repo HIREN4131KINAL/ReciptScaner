@@ -36,7 +36,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private boolean includeCostCenter;
     private boolean printDistanceAsDailyReceipt;
 
-    private int currentCursorPosition;
+    private float currentCursorPosition;
 
     protected PdfBoxReceiptsTablePdfSection(PdfBoxContext context,
                                             PDDocument doc,
@@ -54,7 +54,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         ReceiptsReportTableData data = new ReceiptsReportTableData(trip,
                 receipts, distances, usePreTaxPrice, onlyUseReimbursable);
 
-        PDPage page = new PDPage(context.getPageSize());
+        PDPage page = new PDPage();
         doc.addPage(page);
 
         PDPageContentStream contentStream = new PDPageContentStream(doc, page);
@@ -63,8 +63,8 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         contentStream.beginText();
 
         contentStream.newLineAtOffset(context.getPageMarginHorizontal(),
-                context.getPageSize().getHeight() - context.getPageMarginVertical());
-        currentCursorPosition = context.getPageMarginVertical();
+                page.getMediaBox().getHeight() - context.getPageMarginVertical());
+        currentCursorPosition = page.getMediaBox().getHeight()  - context.getPageMarginVertical();
 
         writeHeader(contentStream, trip, data);
 
@@ -176,7 +176,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
 
         final PdfBoxTableGenerator<Receipt> pdfTableGenerator =
-                new PdfBoxTableGenerator<>(contentStream, columns,
+                new PdfBoxTableGenerator<>(context, contentStream, columns,
                         receiptFilter, true, true, currentCursorPosition);
 
         pdfTableGenerator.generate(receipts);

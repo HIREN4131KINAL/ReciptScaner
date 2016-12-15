@@ -31,7 +31,7 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
     @Override
     public FontSpec getSmallFont() {
-        return new FontSpec(PDType1Font.HELVETICA, 12);
+        return new FontSpec(PDType1Font.HELVETICA, 10);
     }
 
 

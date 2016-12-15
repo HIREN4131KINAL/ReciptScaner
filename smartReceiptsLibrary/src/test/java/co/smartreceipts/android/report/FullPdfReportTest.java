@@ -23,7 +23,9 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
@@ -67,9 +69,17 @@ public class FullPdfReportTest {
 
 
         PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, "/");
+        ArrayList<Column<Receipt>> columns = new ArrayList<>();
+        columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
+        columns.add(new ReceiptNameColumn(2, "Price", new DefaultSyncState()));
+        columns.add(new ReceiptNameColumn(3, "Date", new DefaultSyncState()));
+        columns.add(new ReceiptNameColumn(4, "Category name", new DefaultSyncState()));
+        columns.add(new ReceiptNameColumn(5, "Reimbursable", new DefaultSyncState()));
+        columns.add(new ReceiptNameColumn(6, "Pictured", new DefaultSyncState()));
+
         pdfBoxReportFile.addSection(
                 pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
-                        new ArrayList<Column<Receipt>>()));
+                        columns));
 
         OutputStream os = new FileOutputStream(new File("aaa3.pdf"));
 

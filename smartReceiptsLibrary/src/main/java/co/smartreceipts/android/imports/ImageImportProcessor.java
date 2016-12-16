@@ -30,6 +30,7 @@ import wb.android.storage.StorageManager;
 
 public class ImageImportProcessor implements FileImportProcessor {
 
+    private static final int MAX_DIMENSION = 1024;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     private final Trip mTrip;
@@ -58,9 +59,10 @@ public class ImageImportProcessor implements FileImportProcessor {
             public void call(Subscriber<? super File> subscriber) {
                 InputStream inputStream = null;
                 try {
-                    final int scale = getImageScaleFactor(uri);
                     inputStream = mContentResolver.openInputStream(uri);
                     if (inputStream != null) {
+                        final int scale = getImageScaleFactor(uri);
+
                         // Get scaled bitmap
                         final BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
                         smallerOpts.inSampleSize = scale;
@@ -128,7 +130,7 @@ public class ImageImportProcessor implements FileImportProcessor {
         try {
             inputStream = mContentResolver.openInputStream(uri);
             if (inputStream != null) {
-                final int maxDimension = 1024;
+
                 final BitmapFactory.Options inJustDecodeBoundsOptions = new BitmapFactory.Options();
                 inJustDecodeBoundsOptions.inJustDecodeBounds = true;
 
@@ -138,7 +140,7 @@ public class ImageImportProcessor implements FileImportProcessor {
                 int fullWidth = inJustDecodeBoundsOptions.outWidth;
                 int fullHeight = inJustDecodeBoundsOptions.outHeight;
                 int scale = 1;
-                while (fullWidth > maxDimension && fullHeight > maxDimension) {
+                while (fullWidth > MAX_DIMENSION && fullHeight > MAX_DIMENSION) {
                     fullWidth >>>= 1;
                     fullHeight >>>= 1;
                     scale <<= 1;

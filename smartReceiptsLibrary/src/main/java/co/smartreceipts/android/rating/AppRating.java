@@ -10,6 +10,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
@@ -20,7 +21,6 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import wb.android.R;
 import wb.android.util.Utils;
-import wb.android.workers.AsyncTask;
 
 /**
  * The AppRating class simplifies the process of tracking common rating functionality like the number of launches before

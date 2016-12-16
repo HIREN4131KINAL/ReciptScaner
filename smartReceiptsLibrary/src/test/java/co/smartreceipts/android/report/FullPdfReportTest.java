@@ -86,6 +86,7 @@ public class FullPdfReportTest {
 
         pdfBoxReportFile.writeFile(os, trip, receipts);
 
+
         os.close();
 
     }

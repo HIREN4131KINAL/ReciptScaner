@@ -3,12 +3,17 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 import android.content.Context;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
+import com.tom_roush.pdfbox.pdmodel.font.PDFont;
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
+import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
@@ -25,7 +30,27 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
     public PdfBoxReportFile(Context androidContext, String dateSeparator) {
         sections = new ArrayList<>();
+        Map<String, AWTColor> colors = new HashMap<>();
+        colors.put("DARK_BLUE", new AWTColor(0, 122, 255));
+        colors.put("HEADER_BACKGROUND", new AWTColor(204, 228, 255));
+        colors.put("CELL_BACKGROUND", new AWTColor(239, 239, 24));
+
+        PDFont MAIN_FONT = PDType1Font.HELVETICA;
+        PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;
+        int DEFAULT_SIZE = 12;
+        int TITLE_SIZE = 14;
+        int SMALL_SIZE = 10;
+
+        Map<String,PdfBoxContext.FontSpec> fonts = new HashMap<>();
+        fonts.put("DEFAULT", new PdfBoxContext.FontSpec(MAIN_FONT, DEFAULT_SIZE));
+        fonts.put("TITLE", new PdfBoxContext.FontSpec(BOLD_FONT, TITLE_SIZE));
+        fonts.put("SMALL", new PdfBoxContext.FontSpec(MAIN_FONT, SMALL_SIZE));
+        fonts.put("TABLE_HEADER", new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
+
+
         context = new DefaultPdfBoxContext(androidContext, dateSeparator);
+        context.setColors(colors);
+        context.setFonts(fonts);
         doc = new PDDocument();
     }
 

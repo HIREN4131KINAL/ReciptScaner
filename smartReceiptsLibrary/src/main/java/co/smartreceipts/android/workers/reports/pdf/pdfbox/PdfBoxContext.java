@@ -7,12 +7,15 @@ import android.support.annotation.StringRes;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
+import com.tom_roush.pdfbox.util.awt.AWTColor;
+
+import java.util.Map;
 
 public interface PdfBoxContext {
 
-    FontSpec getDefaultFont();
-    FontSpec getTitleFont();
-    FontSpec getSmallFont();
+    FontSpec getFont(String name);
+    AWTColor getColor(String name);
+
 
     int getLineSpacing();
     int getPageMarginHorizontal();

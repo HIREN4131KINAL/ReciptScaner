@@ -78,14 +78,14 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private void writeHeader(PDPageContentStream contentStream, Trip trip, ReceiptsReportTableData data) throws IOException {
 
         writeNewLine(contentStream,
-                context.getTitleFont(),
+                context.getFont("TITLE"),
                 trip.getName()
         );
 
 
         if (!data.receiptsPrice.equals(data.netPrice)) {
             writeNewLine(contentStream,
-                    context.getDefaultFont(),
+                    context.getFont("DEFAULT"),
                     R.string.report_header_receipts_total,
                     data.receiptsPrice.getCurrencyFormattedPrice()
             );
@@ -94,7 +94,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         if (includeTaxField) {
             if (usePreTaxPrice && data.taxPrice.getPriceAsFloat() > EPSILON) {
                 writeNewLine(contentStream,
-                        context.getDefaultFont(),
+                        context.getFont("DEFAULT"),
                         R.string.report_header_receipts_total_tax,
                         data.taxPrice.getCurrencyFormattedPrice()
                 );
@@ -102,7 +102,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             } else if (!data.noTaxPrice.equals(data.receiptsPrice) &&
                     data.noTaxPrice.getPriceAsFloat() > EPSILON) {
                 writeNewLine(contentStream,
-                        context.getDefaultFont(),
+                        context.getFont("DEFAULT"),
                         R.string.report_header_receipts_total_no_tax,
                         data.noTaxPrice.getCurrencyFormattedPrice()
                 );
@@ -112,21 +112,21 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         if (onlyIncludeReimbursableReceiptsInReports &&
                 !data.reimbursablePrice.equals(data.receiptsPrice)) {
             writeNewLine(contentStream,
-                    context.getDefaultFont(),
+                    context.getFont("DEFAULT"),
                     R.string.report_header_receipts_total_reimbursable,
                     data.reimbursablePrice.getCurrencyFormattedPrice()
             );
         }
         if (distances.size() > 0) {
             writeNewLine(contentStream,
-                    context.getDefaultFont(),
+                    context.getFont("DEFAULT"),
                     R.string.report_header_distance_total,
                     data.distancePrice.getCurrencyFormattedPrice()
             );
         }
 
         writeNewLine(contentStream,
-                context.getDefaultFont(),
+                context.getFont("DEFAULT"),
                 R.string.report_header_gross_total,
                 data.netPrice.getCurrencyFormattedPrice()
         );
@@ -141,20 +141,20 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 trip.getFormattedEndDate(context.getApplicationContext(), context.getDateSeparator()));
 
         writeNewLine(contentStream,
-                context.getDefaultFont(),
+                context.getFont("DEFAULT"),
                 fromToPeriod);
 
 
         if (includeCostCenter && !TextUtils.isEmpty(trip.getCostCenter())) {
             writeNewLine(contentStream,
-                    context.getDefaultFont(),
+                    context.getFont("DEFAULT"),
                     R.string.report_header_cost_center,
                     trip.getCostCenter()
             );
         }
         if (!TextUtils.isEmpty(trip.getComment())) {
             writeNewLine(contentStream,
-                    context.getDefaultFont(),
+                    context.getFont("DEFAULT"),
                     R.string.report_header_comment,
                     trip.getComment()
             );

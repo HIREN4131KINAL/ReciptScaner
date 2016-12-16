@@ -56,6 +56,10 @@ public class ContentUriProvider {
         }
     }
 
+    /**
+     * Here, we try to use reflection to solve the problem. Please note that this will only work for devices
+     * that do NOT have a {@link SecurityManager} present that prevents this type of behavior
+     */
     @SuppressWarnings("unchecked")
     private static void adjustHuaweiStaticCache(@NonNull Context context, @NonNull String authority) {
         try {

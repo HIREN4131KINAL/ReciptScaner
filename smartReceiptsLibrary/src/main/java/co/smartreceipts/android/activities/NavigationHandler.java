@@ -2,6 +2,7 @@ package co.smartreceipts.android.activities;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -24,6 +25,7 @@ import co.smartreceipts.android.fragments.preferences.PreferenceHeaderReportOutp
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.IntentUtils;
+import co.smartreceipts.android.utils.log.Logger;
 
 import static android.preference.PreferenceActivity.EXTRA_SHOW_FRAGMENT;
 
@@ -100,7 +102,14 @@ public class NavigationHandler {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
         if (activity != null && receipt.getFile() != null) {
             try {
-                final Intent intent = IntentUtils.getLegacyViewIntent(activity, receipt.getFile(), "application/pdf");
+                final Intent intent;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    Logger.debug(this, "Creating a PDF view intent with a content scheme");
+                    intent = IntentUtils.getViewIntent(activity, receipt.getFile(), "application/pdf");
+                } else {
+                    Logger.debug(this, "Creating a PDF view intent with a file scheme");
+                    intent = IntentUtils.getLegacyViewIntent(activity, receipt.getFile(), "application/pdf");
+                }
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 activity.startActivity(intent);
             } catch (ActivityNotFoundException e) {

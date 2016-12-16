@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import co.smartreceipts.android.utils.log.Logger;
+
 public class IntentUtils {
 
     private static final String AUTHORITY_FORMAT = "%s.fileprovider";
@@ -63,9 +65,8 @@ public class IntentUtils {
         final String authority = String.format(Locale.US, AUTHORITY_FORMAT, context.getPackageName());
         final Uri uri = getUriFromFile(context, authority, file);
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-            grantReadPermissionsToUri(context, sentIntent, uri);
-        }
+        // We need to do this for all devices (not just KK+) but this to work it seems
+        grantReadPermissionsToUri(context, sentIntent, uri);
 
         final String mimeType = UriUtils.getMimeType(uri, context.getContentResolver());
         if (!TextUtils.isEmpty(mimeType)) {
@@ -147,6 +148,7 @@ public class IntentUtils {
      * KitKat doesn't handle this gracefully, so we manually give permissions to all apps :/
      */
     private static void grantReadPermissionsToUri(@NonNull Context context, @NonNull Intent intent, @NonNull Uri uri) {
+        Logger.debug(IntentUtils.class, "Granting read permissions to all potential apps for {}.", uri);
         final List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         for (final ResolveInfo resolveInfo : resInfoList) {
             final String packageName = resolveInfo.activityInfo.packageName;
@@ -158,6 +160,7 @@ public class IntentUtils {
      * KitKat doesn't handle this gracefully, so we manually give permissions to all apps :/
      */
     private static void grantReadWritePermissionsToUri(@NonNull Context context, @NonNull Intent intent, @NonNull Uri uri) {
+        Logger.debug(IntentUtils.class, "Granting read/write permissions to all potential apps for {}.", uri);
         final List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         for (final ResolveInfo resolveInfo : resInfoList) {
             final String packageName = resolveInfo.activityInfo.packageName;

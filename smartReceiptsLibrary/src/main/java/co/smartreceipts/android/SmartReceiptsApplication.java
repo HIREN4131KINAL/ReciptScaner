@@ -26,13 +26,13 @@ import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.google.camera.app.GalleryAppImpl;
-import wb.android.google.camera.data.Log;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
@@ -87,9 +87,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
-        clearCacheDir();
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
         mIdentityManager = new IdentityManager(this, mServiceManager);
+
+        // Clear our cache
+        new SmartReceiptsTemporaryFileCache(this).resetCache();
     }
 
     private void configureLog() {
@@ -111,30 +113,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mPersistenceManager = null;
         mWorkerManager = null;
         super.onTerminate();
-    }
-
-    /**
-     * All SharedPreferences are singletons, so let's go ahead and load all of them as soon as our app starts
-     */
-    private void clearCacheDir() {
-        Logger.debug(this, "Clearing the cached dir");
-        try {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        final File[] cachedFiles = mPersistenceManager.getStorageManager().listFilesAndDirectories(getCacheDir());
-                        for (File cachedFile : cachedFiles) {
-                            mPersistenceManager.getStorageManager().deleteRecursively(cachedFile);
-                        }
-                    } catch (Exception e) {
-
-                    }
-                }
-            }).start();
-        } catch (Exception e) {
-
-        }
     }
 
     public synchronized void setCurrentActivity(Activity activity) {

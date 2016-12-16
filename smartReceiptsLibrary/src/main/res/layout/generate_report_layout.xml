@@ -4,19 +4,17 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-	<TextView
-		android:id="@+id/DIALOG_EMAIL_TOOLTIP"
+	<Button style="@style/Widget.SmartReceipts.Button.Secondary"
+		android:id="@+id/generate_report_tooltip"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		style="@style/Widget.SmartReceipts.TextView.Button.Secondary"
-		android:text="@string/DIALOG_EMAIL_TOOLTIP"
-		android:layout_marginTop="@dimen/default_margin_size"
+		android:text="@string/generate_report_tooltip"
 		android:gravity="center"/>
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
-		android:layout_below="@id/DIALOG_EMAIL_TOOLTIP"
+		android:layout_below="@id/generate_report_tooltip"
         android:padding="@dimen/generate_report_padding">
 
         <CheckBox android:id="@+id/DIALOG_EMAIL_CHECKBOX_PDF_FULL"

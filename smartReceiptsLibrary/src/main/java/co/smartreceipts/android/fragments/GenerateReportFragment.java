@@ -13,12 +13,8 @@ import android.widget.Toast;
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.AnalyticsManager;
-import co.smartreceipts.android.analytics.events.DataPoint;
-import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -60,7 +56,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
         mCsvCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
         mZipStampedImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
         root.findViewById(R.id.receipt_action_send).setOnClickListener(this);
-        root.findViewById(R.id.DIALOG_EMAIL_TOOLTIP).setOnClickListener(new View.OnClickListener() {
+        root.findViewById(R.id.generate_report_tooltip).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Informational.ConfigureReport);

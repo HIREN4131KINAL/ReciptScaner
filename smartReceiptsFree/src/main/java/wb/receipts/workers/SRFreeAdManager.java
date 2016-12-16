@@ -16,21 +16,34 @@ import wb.receipts.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Point;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.NativeExpressAdView;
 
 import java.lang.ref.WeakReference;
 import java.util.Random;
+
+import static android.R.attr.id;
+import static android.R.attr.layout_gravity;
+import static android.R.attr.layout_height;
+import static android.R.attr.layout_width;
 
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
@@ -51,8 +64,17 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable SubscriptionManager subscriptionManager) {
         super.onActivityCreated(activity, subscriptionManager);
-        final NativeExpressAdView adView = (NativeExpressAdView) activity.findViewById(R.id.adView);
+
+        final ViewGroup container = (ViewGroup) activity.findViewById(R.id.adView_container);
         final Button upsell = (Button) activity.findViewById(R.id.adView_upsell);
+
+        final NativeExpressAdView adView = new NativeExpressAdView(activity);
+        adView.setAdSize(calculateAdSize());
+        adView.setAdUnitId(activity.getResources().getString(R.string.adUnitId));
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        adView.setLayoutParams(params);
+        container.addView(adView);
+
         mAdViewReference = new WeakReference<>(adView);
         mUpsellReference = new WeakReference<>(upsell);
 
@@ -98,6 +120,27 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                 }
             }
         });
+    }
+
+    @NonNull
+    private AdSize calculateAdSize() {
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        int heightPixels = Resources.getSystem().getDisplayMetrics().heightPixels;
+        int heightDps = (int) (heightPixels / density);
+
+        int widthPixels = Resources.getSystem().getDisplayMetrics().widthPixels;
+        int widthDps = (int) (widthPixels / density);
+
+        // Use FULL_WIDTH unless the screen width is greater than the max width
+        int adWidth = (widthDps < 1200) ? AdSize.FULL_WIDTH : 1200;
+
+        if (heightDps < 700) {
+            return new AdSize(adWidth, 80);
+        } else if (heightDps < 1000) {
+            return new AdSize(adWidth, 100);
+        } else {
+            return new AdSize(adWidth, 130);
+        }
     }
 
     public synchronized void onResume() {

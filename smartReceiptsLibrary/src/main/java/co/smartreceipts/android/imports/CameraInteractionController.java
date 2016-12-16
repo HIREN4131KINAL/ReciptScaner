@@ -21,9 +21,11 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.IntentUtils;
+import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 
 public class CameraInteractionController {
 
+    private final Context mContext;
     private final WeakReference<Fragment> mFragmentReference;
     private final Preferences mPreferences;
 
@@ -32,6 +34,7 @@ public class CameraInteractionController {
     }
 
     public CameraInteractionController(@NonNull Fragment fragment, @NonNull Preferences preferences) {
+        mContext = Preconditions.checkNotNull(fragment.getContext()).getApplicationContext();
         mFragmentReference = new WeakReference<>(Preconditions.checkNotNull(fragment));
         mPreferences = Preconditions.checkNotNull(preferences);
     }
@@ -39,23 +42,21 @@ public class CameraInteractionController {
     /**
      * Takes a photo for a given trip directory
      *
-     * @param trip the desired {@link Trip}
      * @return the Uri result of the photo
      */
     @NonNull
-    public Uri takePhoto(@NonNull Trip trip) {
-        return startPhotoIntent(new File(trip.getDirectory(), System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
+    public Uri takePhoto() {
+        return startPhotoIntent(new SmartReceiptsTemporaryFileCache(mContext).getFile(System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST, RequestCodes.NEW_RECEIPT_CAMERA_REQUEST);
     }
 
     /**
      * Takes a photo for a given receipt
      *
-     * @param receipt the desired {@link Receipt}
      * @return the Uri result of the photo
      */
     @NonNull
-    public Uri addPhoto(@NonNull Receipt receipt) {
-        return startPhotoIntent(new File(receipt.getTrip().getDirectory(), System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
+    public Uri addPhoto() {
+        return startPhotoIntent(new SmartReceiptsTemporaryFileCache(mContext).getFile(System.currentTimeMillis() + "x.jpg"), RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST, RequestCodes.ADD_PHOTO_CAMERA_REQUEST);
     }
 
     /**

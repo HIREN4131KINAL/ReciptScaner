@@ -20,6 +20,7 @@ import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -125,8 +126,8 @@ public class RemoteBackupsDataCache {
 
         ReplaySubject<File> downloadBackupReplaySubjectMap = mHeadlessFragment.downloadBackupReplaySubjectMap.get(remoteBackupMetadata);
         if (downloadBackupReplaySubjectMap == null) {
-            final File cacheDir = new File(mContext.getCacheDir(), FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()));
-            final File cacheDirZipFile = new File(mContext.getCacheDir(), FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()) + ".zip");
+            final File cacheDir = new SmartReceiptsTemporaryFileCache(mContext).getFile(FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()));
+            final File cacheDirZipFile = new SmartReceiptsTemporaryFileCache(mContext).getFile(FileUtils.omitIllegalCharactersFromFileName(remoteBackupMetadata.getSyncDeviceName()) + ".zip");
             downloadBackupReplaySubjectMap = ReplaySubject.create();
             Observable.create(new Observable.OnSubscribe<Boolean>() {
                     @Override

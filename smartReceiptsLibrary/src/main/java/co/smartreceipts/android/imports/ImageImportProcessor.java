@@ -164,7 +164,7 @@ public class ImageImportProcessor implements FileImportProcessor {
         try {
             final String[] imageColumns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION };
             cursor = mContentResolver.query(externalUri, imageColumns, null, null, null);
-            if(cursor != null && cursor.moveToFirst()){
+            if(cursor != null && cursor.moveToFirst() && cursor.getColumnCount() > 0){
                 return cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media.ORIENTATION));
             }
             else {

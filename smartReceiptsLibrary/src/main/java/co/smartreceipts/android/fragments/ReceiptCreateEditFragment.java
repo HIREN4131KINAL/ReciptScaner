@@ -509,6 +509,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             mNavigationHandler.navigateToReportInfoFragment(mTrip);
+            deleteReceiptFileIfUnused();
             return true;
         }
         if (item.getItemId() == R.id.action_save) {
@@ -724,6 +725,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         mNavigationHandler.navigateToReportInfoFragment(mTrip);
+    }
+
+    private void deleteReceiptFileIfUnused() {
+        if (mReceipt == null && mFile != null) {
+            if (mFile.delete()) {
+                Logger.info(this, "Deleting receipt file as we're not saving it");
+            }
+        }
     }
 
     private class SpinnerSelectionListener implements AdapterView.OnItemSelectedListener {

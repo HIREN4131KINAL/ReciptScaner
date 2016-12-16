@@ -256,7 +256,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addPictureReceipt() {
-        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto(mCurrentTrip);
+        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto();
     }
 
     @Override
@@ -376,7 +376,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
-                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto(receipt);
+                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto();
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
                                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);

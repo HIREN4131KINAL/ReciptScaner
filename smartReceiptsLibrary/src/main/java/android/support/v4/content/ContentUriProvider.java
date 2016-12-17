@@ -42,12 +42,10 @@ public class ContentUriProvider {
                 if (Build.PRODUCT != null && Build.PRODUCT.startsWith(buildProductPrefix)) {
                     Logger.info(ContentUriProvider.class, "Found a known 'bad' huawei device: {}.", Build.PRODUCT);
                     if (FILE_URI_SCHEME_FALLBACK_DEVICES.contains(Build.PRODUCT) ) {
-                        Logger.info(ContentUriProvider.class, "Unfixable device. Restoring to returning the file:// scheme uri");
-                        return Uri.fromFile(file);
-                    } else {
-                        Logger.info(ContentUriProvider.class, "Attempting to use reflection to fix the Huawei bug");
-                        adjustHuaweiStaticCache(context, authority);
+                        Logger.error(ContentUriProvider.class, "Presumed unfixable device. Not sure how to procede");
                     }
+                    Logger.info(ContentUriProvider.class, "Attempting to use reflection to fix the Huawei bug");
+                    adjustHuaweiStaticCache(context, authority);
                 }
             }
             return FileProvider.getUriForFile(context, authority, file);

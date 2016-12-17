@@ -36,13 +36,13 @@ public class ContentUriProvider {
     private static final List<String> FILE_URI_SCHEME_FALLBACK_DEVICES = Arrays.asList("KIW-L24");
 
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
-        if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER)) {
-            Logger.warn(ContentUriProvider.class, "Using a Huawei device. Increased likelihood of failure...");
+        if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER) && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            Logger.warn(ContentUriProvider.class, "Using a Huawei device on pre-N. Increased likelihood of failure...");
             for (final String buildProductPrefix : KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES) {
                 if (Build.PRODUCT != null && Build.PRODUCT.startsWith(buildProductPrefix)) {
                     Logger.info(ContentUriProvider.class, "Found a known 'bad' huawei device: {}.", Build.PRODUCT);
                     if (FILE_URI_SCHEME_FALLBACK_DEVICES.contains(Build.PRODUCT) ) {
-                        Logger.error(ContentUriProvider.class, "Presumed unfixable device. Not sure how to procede");
+                        Logger.error(ContentUriProvider.class, "Presumed unfixable device. Not sure how to proceed");
                     }
                     Logger.info(ContentUriProvider.class, "Attempting to use reflection to fix the Huawei bug");
                     adjustHuaweiStaticCache(context, authority);

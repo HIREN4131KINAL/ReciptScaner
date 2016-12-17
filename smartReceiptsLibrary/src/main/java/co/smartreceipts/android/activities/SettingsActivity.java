@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -41,9 +42,9 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.fragments.preferences.AbstractPreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference;
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
-import co.smartreceipts.android.fragments.preferences.PreferenceHeaderFragment;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -63,6 +64,8 @@ import co.smartreceipts.android.rating.AppRating;
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
     private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
+
+    public static final String EXTRA_GO_TO_CATEGORY = "GO_TO_CATEGORY";
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private SmartReceiptsApplication mApp;
@@ -99,12 +102,31 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             configurePreferencesAbout(this);
         }
 
-        final SmartReceiptsApplication app = ((SmartReceiptsApplication)getApplication());
+        final SmartReceiptsApplication app = ((SmartReceiptsApplication) getApplication());
         mSubscriptionManager = new SubscriptionManager(this, app.getPersistenceManager().getSubscriptionCache(), app.getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
         mSubscriptionManager.querySubscriptions();
+
+
+        // Scroll to a predefined preference category (if provided). Only for when not using headers -
+        // when we are using headers, selecting the appropriate header is handled by the EXTRA_SHOW_FRAGMENT
+        if (!mIsUsingHeaders) {
+            // For some reason (http://stackoverflow.com/a/8167755)
+            // getListView().setSelection() won't work in onCreate, onResume or even onPostResume
+            // Only way I got it to work was by postDelaying it
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int sectionHeader = getIntent().getIntExtra(EXTRA_GO_TO_CATEGORY, 0);
+                    if (sectionHeader > 0) {
+                        scrollToCategory(SettingsActivity.this, getString(sectionHeader));
+                    }
+                }
+            }, 10);
+        }
     }
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -153,6 +175,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -166,6 +189,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             actionBar.setTitle(R.string.menu_main_settings);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
     }
 
     // Called only on Honeycomb and later
@@ -181,9 +205,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     protected boolean isValidFragment(String fragmentName) {
-        if (PreferenceHeaderFragment.class.getName().equals(fragmentName)) {
-            return true;
-        } else {
+        try {
+            return AbstractPreferenceHeaderFragment.class.isAssignableFrom(
+                            Class.forName(fragmentName));
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }
@@ -218,11 +243,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                 final StorageManager storageManager = mApp.getPersistenceManager().getStorageManager();
                 final Preferences preferences = mApp.getPersistenceManager().getPreferences();
                 new CopySignatureImageClass(getContentResolver(), data, preferences, storageManager, getSharedPreferences(Preferences.SMART_PREFS, 0), getString(R.string.pref_output_signature_picture_key)).execute();
-            } else{
+            } else {
                 super.onActivityResult(requestCode, resultCode, data);
             }
-        }
-        else {
+        } else {
             if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
                 super.onActivityResult(requestCode, resultCode, data);
             }
@@ -312,6 +336,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         }
     }
 
+    private void scrollToCategory(UniversalPreferences universal, String sectionHeader) {
+        PreferenceCategory category = (PreferenceCategory) universal.findPreference(sectionHeader);
+        if (category == null) {
+            return;
+        }
+
+        for (int i = 0; i < getPreferenceScreen().getRootAdapter().getCount(); i++) {
+            Object o = getPreferenceScreen().getRootAdapter().getItem(i);
+            if (o.equals(category)) {
+                getListView().setSelection(i);
+                break;
+            }
+        }
+    }
+
     public void configurePreferencesEmail(UniversalPreferences universal) {
         Preference subjectPreference = universal.findPreference(R.string.pref_email_default_email_subject_key);
         subjectPreference.setDefaultValue(((SmartReceiptsApplication) getApplication()).getFlex().getString(this, R.string.EMAIL_DATA_SUBJECT));
@@ -320,7 +359,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     public void configurePreferencesCamera(UniversalPreferences universal) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // We always use the native camera for M+
-            ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
+            ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
             final PreferenceCategory cameraCategory = (PreferenceCategory) universal.findPreference(R.string.pref_camera_header_key);
             if (cameraCategory != null) {
                 final Preference nativeCameraPreference = universal.findPreference(R.string.pref_camera_use_native_camera_key);
@@ -448,7 +487,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updateSubscriptionWallet) {
-        ((SmartReceiptsApplication)getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        ((SmartReceiptsApplication) getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -460,7 +499,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseFailed(@NonNull PurchaseSource purchaseSource) {
-        ((SmartReceiptsApplication)getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
+        ((SmartReceiptsApplication) getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -541,8 +580,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         protected void onPostExecute(Boolean success) {
             if (success) {
                 // TODO: Toast Yay
-            }
-            else {
+            } else {
                 // TODO: Toast Booo
             }
         }

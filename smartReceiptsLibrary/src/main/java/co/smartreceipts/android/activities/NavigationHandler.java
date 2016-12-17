@@ -2,6 +2,7 @@ package co.smartreceipts.android.activities;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -19,9 +20,14 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.fragments.preferences.PreferenceHeaderHelpFragment;
+import co.smartreceipts.android.fragments.preferences.PreferenceHeaderReportOutputFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.IntentUtils;
+import co.smartreceipts.android.utils.log.Logger;
+
+import static android.preference.PreferenceActivity.EXTRA_SHOW_FRAGMENT;
 
 public class NavigationHandler {
 
@@ -96,7 +102,14 @@ public class NavigationHandler {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
         if (activity != null && receipt.getFile() != null) {
             try {
-                final Intent intent = IntentUtils.getLegacyViewIntent(activity, receipt.getFile(), "application/pdf");
+                final Intent intent;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    Logger.debug(this, "Creating a PDF view intent with a content scheme");
+                    intent = IntentUtils.getViewIntent(activity, receipt.getFile(), "application/pdf");
+                } else {
+                    Logger.debug(this, "Creating a PDF view intent with a file scheme");
+                    intent = IntentUtils.getLegacyViewIntent(activity, receipt.getFile(), "application/pdf");
+                }
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 activity.startActivity(intent);
             } catch (ActivityNotFoundException e) {
@@ -125,6 +138,20 @@ public class NavigationHandler {
         final FragmentActivity activity = mFragmentActivityWeakReference.get();
         if (activity != null) {
             final Intent intent = new Intent(activity, SettingsActivity.class);
+            activity.startActivity(intent);
+        }
+    }
+
+    public void navigateToSettingsScrollToReportSection() {
+        final FragmentActivity activity = mFragmentActivityWeakReference.get();
+        if (activity != null) {
+            final Intent intent = new Intent(activity, SettingsActivity.class);
+            if (mIsDualPane) {
+                intent.putExtra(EXTRA_SHOW_FRAGMENT, PreferenceHeaderReportOutputFragment.class.getName());
+            } else {
+                intent.putExtra(SettingsActivity.EXTRA_GO_TO_CATEGORY, R.string.pref_output_header_key);
+            }
+
             activity.startActivity(intent);
         }
     }

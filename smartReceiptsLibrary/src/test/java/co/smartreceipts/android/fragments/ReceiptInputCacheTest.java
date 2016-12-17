@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.util.ActivityController;
 
 import java.sql.Date;
@@ -17,7 +17,7 @@ import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ReceiptInputCacheTest {
 
     ActivityController<FragmentActivity> mActivityController;

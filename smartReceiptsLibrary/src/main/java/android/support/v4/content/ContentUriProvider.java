@@ -32,7 +32,8 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 public class ContentUriProvider {
 
     private static final String HUAWEI_MANUFACTURER = "Huawei";
-    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD");
+    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD", "H1611", "VNS", "GRA");
+    private static final List<String> FILE_URI_SCHEME_FALLBACK_DEVICES = Arrays.asList("KIW-L24");
 
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
         if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER)) {
@@ -40,6 +41,10 @@ public class ContentUriProvider {
             for (final String buildProductPrefix : KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES) {
                 if (Build.PRODUCT != null && Build.PRODUCT.startsWith(buildProductPrefix)) {
                     Logger.info(ContentUriProvider.class, "Found a known 'bad' huawei device: {}.", Build.PRODUCT);
+                    if (FILE_URI_SCHEME_FALLBACK_DEVICES.contains(Build.PRODUCT) ) {
+                        Logger.error(ContentUriProvider.class, "Presumed unfixable device. Not sure how to procede");
+                    }
+                    Logger.info(ContentUriProvider.class, "Attempting to use reflection to fix the Huawei bug");
                     adjustHuaweiStaticCache(context, authority);
                 }
             }
@@ -49,6 +54,10 @@ public class ContentUriProvider {
         }
     }
 
+    /**
+     * Here, we try to use reflection to solve the problem. Please note that this will only work for devices
+     * that do NOT have a {@link SecurityManager} present that prevents this type of behavior
+     */
     @SuppressWarnings("unchecked")
     private static void adjustHuaweiStaticCache(@NonNull Context context, @NonNull String authority) {
         try {

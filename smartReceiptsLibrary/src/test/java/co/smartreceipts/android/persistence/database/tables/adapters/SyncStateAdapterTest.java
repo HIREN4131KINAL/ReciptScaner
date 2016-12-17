@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import java.sql.Date;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class SyncStateAdapterTest {
 
     private static final String IDENTIFIER_STRING = "id";

@@ -70,4 +70,8 @@ public final class Events {
         public static final Event UserSelectedLater = new DefaultEvent(Category.Ratings, "UserSelectedLater");
     }
 
+    public static final class Informational {
+        public static final Event ConfigureReport = new DefaultEvent(Category.Reports, "ConfigureReport");
+    }
+
 }

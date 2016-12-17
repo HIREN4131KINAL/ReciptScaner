@@ -6,6 +6,7 @@
     <string name="pref_general_header">General</string>
     <string name="pref_receipt_header">Receipts</string>
     <string name="pref_output_header">Report Output</string>
+    <string name="pref_output_header_key" translatable="false">pref_output_category_key</string>
     <string name="pref_email_header">Email</string>
     <string name="pref_camera_header">Camera</string>
     <string name="pref_camera_header_key" translatable="false">pref_camera_category_key</string>
@@ -14,6 +15,7 @@
     <string name="pref_pro_header">Smart Receipts Plus</string>
     <string name="pref_help_header">Support</string>
     <string name="pref_about_header">About</string>
+
 
     <!-- ============== Preference General ================= -->
     <string name="pref_general_trip_duration_key" translatable="false">TripDuration</string>

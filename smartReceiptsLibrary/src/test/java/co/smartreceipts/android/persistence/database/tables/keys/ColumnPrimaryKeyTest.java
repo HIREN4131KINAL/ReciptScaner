@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
@@ -13,7 +13,7 @@ import co.smartreceipts.android.model.Receipt;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ColumnPrimaryKeyTest {
 
     private static final String COLUMN = "column";

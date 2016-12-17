@@ -5,7 +5,7 @@ import android.os.Parcel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.Category;
@@ -19,7 +19,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 public class ImmutableCategoryImplTest {
 
     private static final String NAME = "name";

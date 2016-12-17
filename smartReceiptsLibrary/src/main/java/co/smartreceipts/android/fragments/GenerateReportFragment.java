@@ -13,6 +13,8 @@ import android.widget.Toast;
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -25,6 +27,8 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     private CheckBox mZipStampedImagesCheckbox;
 
     private Trip mTrip;
+
+    private NavigationHandler mNavigationHandler;
 
     @NonNull
     public static GenerateReportFragment newInstance(@NonNull Trip currentTrip) {
@@ -39,6 +43,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
     }
 
 
@@ -51,6 +56,13 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
         mCsvCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
         mZipStampedImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
         root.findViewById(R.id.receipt_action_send).setOnClickListener(this);
+        root.findViewById(R.id.generate_report_tooltip).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Informational.ConfigureReport);
+                mNavigationHandler.navigateToSettingsScrollToReportSection();
+            }
+        });
         return root;
     }
 

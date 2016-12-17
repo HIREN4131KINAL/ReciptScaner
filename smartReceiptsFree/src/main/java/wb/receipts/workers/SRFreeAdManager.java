@@ -16,20 +16,35 @@ import wb.receipts.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Point;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.NativeExpressAdView;
 
 import java.lang.ref.WeakReference;
 import java.util.Random;
+
+import static android.R.attr.id;
+import static android.R.attr.layout_gravity;
+import static android.R.attr.layout_height;
+import static android.R.attr.layout_width;
+
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
 
@@ -40,7 +55,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
     private static final String SHOW_AD = "pref1";
 
-    private WeakReference<AdView> mAdViewReference;
+    private WeakReference<NativeExpressAdView> mAdViewReference;
     private WeakReference<Button> mUpsellReference;
 
     public SRFreeAdManager(@NonNull WorkerManager manager) {
@@ -49,12 +64,21 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
 
     public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable SubscriptionManager subscriptionManager) {
         super.onActivityCreated(activity, subscriptionManager);
-        final AdView adView = (AdView) activity.findViewById(R.id.adView);
+
+        final ViewGroup container = (ViewGroup) activity.findViewById(R.id.adView_container);
         final Button upsell = (Button) activity.findViewById(R.id.adView_upsell);
+
+        final NativeExpressAdView adView = new NativeExpressAdView(activity);
+        adView.setAdSize(calculateAdSize());
+        adView.setAdUnitId(activity.getResources().getString(R.string.adUnitId));
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        adView.setLayoutParams(params);
+        container.addView(adView);
+
         mAdViewReference = new WeakReference<>(adView);
         mUpsellReference = new WeakReference<>(upsell);
 
-        final AnalyticsManager analyticsManager = ((SmartReceiptsApplication)activity.getApplication()).getAnalyticsManager();
+        final AnalyticsManager analyticsManager = ((SmartReceiptsApplication) activity.getApplication()).getAnalyticsManager();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 if (showUpsell()) {
@@ -98,9 +122,30 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         });
     }
 
+    @NonNull
+    private AdSize calculateAdSize() {
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        int heightPixels = Resources.getSystem().getDisplayMetrics().heightPixels;
+        int heightDps = (int) (heightPixels / density);
+
+        int widthPixels = Resources.getSystem().getDisplayMetrics().widthPixels;
+        int widthDps = (int) (widthPixels / density);
+
+        // Use FULL_WIDTH unless the screen width is greater than the max width
+        int adWidth = (widthDps < 1200) ? AdSize.FULL_WIDTH : 1200;
+
+        if (heightDps < 700) {
+            return new AdSize(adWidth, 80);
+        } else if (heightDps < 1000) {
+            return new AdSize(adWidth, 100);
+        } else {
+            return new AdSize(adWidth, 130);
+        }
+    }
+
     public synchronized void onResume() {
         super.onResume();
-        final AdView adView = mAdViewReference.get();
+        final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 adView.resume();
@@ -111,7 +156,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     public synchronized void onPause() {
-        final AdView adView = mAdViewReference.get();
+        final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 adView.pause();
@@ -123,7 +168,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     public synchronized void onDestroy() {
-        final AdView adView = mAdViewReference.get();
+        final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 adView.destroy();
@@ -137,7 +182,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         super.onDestroy();
     }
 
-    private boolean shouldShowAds(@NonNull AdView adView) {
+    private boolean shouldShowAds(@NonNull NativeExpressAdView adView) {
         final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
@@ -147,13 +192,14 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         return new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                 .addTestDevice("BFB48A3556EED9C87CB3AD907780D610")
+                .addTestDevice("E03AEBCB2894909B8E4EC87C0368C242")
                 .build();
     }
 
     @Override
     public synchronized void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
         // Refresh our subscriptions now
-        final AdView adView = mAdViewReference.get();
+        final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
             adView.post(new Runnable() {
                 @Override
@@ -187,7 +233,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
         Logger.info(this, "Received purchase success in our ad manager for: {}", subscription);
         if (Subscription.SmartReceiptsPlus == subscription) {
-            final AdView adView = mAdViewReference.get();
+            final NativeExpressAdView adView = mAdViewReference.get();
             if (adView != null) {
                 adView.post(new Runnable() {
                     @Override
@@ -197,7 +243,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
                             adView.setVisibility(View.VISIBLE);
                         } else {
                             Logger.info(this, "Hiding the original ad following a purchase");
-                            adView.setVisibility(View.GONE);
+                            hideAdAndUpsell();
                         }
                     }
                 });
@@ -211,7 +257,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     private void hideAdAndUpsell() {
-        final AdView adView = mAdViewReference.get();
+        final NativeExpressAdView adView = mAdViewReference.get();
         final Button upsell = mUpsellReference.get();
         if (adView != null) {
             adView.setVisibility(View.GONE);
@@ -228,7 +274,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
      *
      * @param adView
      */
-    private void loadAdDelayed(@NonNull final AdView adView) {
+    private void loadAdDelayed(@NonNull final NativeExpressAdView adView) {
         adView.postDelayed(new Runnable() {
             @Override
             public void run() {

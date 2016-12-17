@@ -4,12 +4,19 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
+	<Button style="@style/Widget.SmartReceipts.Button.Secondary"
+		android:id="@+id/generate_report_tooltip"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/generate_report_tooltip"
+		android:gravity="center"/>
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/generate_report_item_separation"
+		android:layout_below="@id/generate_report_tooltip"
         android:padding="@dimen/generate_report_padding">
+
         <CheckBox android:id="@+id/DIALOG_EMAIL_CHECKBOX_PDF_FULL"
             android:layout_width="fill_parent"
     		android:layout_height="wrap_content"

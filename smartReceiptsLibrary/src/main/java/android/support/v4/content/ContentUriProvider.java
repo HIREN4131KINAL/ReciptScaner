@@ -32,27 +32,27 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 public class ContentUriProvider {
 
     private static final String HUAWEI_MANUFACTURER = "Huawei";
-    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD", "H1611", "VNS", "GRA");
-    private static final List<String> FILE_URI_SCHEME_FALLBACK_DEVICES = Arrays.asList("KIW-L24");
+
+    private static final String EXTERNAL_FILES_PATH = "public-files-path";
 
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
         if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER) && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             Logger.warn(ContentUriProvider.class, "Using a Huawei device on pre-N. Increased likelihood of failure...");
-            for (final String buildProductPrefix : KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES) {
-                if (Build.PRODUCT != null && Build.PRODUCT.startsWith(buildProductPrefix)) {
-                    Logger.info(ContentUriProvider.class, "Found a known 'bad' huawei device: {}.", Build.PRODUCT);
-                    if (FILE_URI_SCHEME_FALLBACK_DEVICES.contains(Build.PRODUCT) ) {
-                        Logger.error(ContentUriProvider.class, "Presumed unfixable device. Not sure how to proceed");
-                    }
-                    Logger.info(ContentUriProvider.class, "Attempting to use reflection to fix the Huawei bug");
-                    adjustHuaweiStaticCache(context, authority);
-                }
+            final Uri fileProviderUri = FileProvider.getUriForFile(context, authority, file);
+            if (fileProviderUri != null && fileProviderUri.getPath().contains(EXTERNAL_FILES_PATH)) {
+                Logger.info(ContentUriProvider.class, "Returning Uri.fromFile to avoid Huawei 'external-files-path' bugs");
+                return Uri.fromFile(file);
+            } else {
+                Logger.info(ContentUriProvider.class, "Returning the file provider Uri as this is not a 'external-files-path' file");
+                return fileProviderUri;
             }
-            return FileProvider.getUriForFile(context, authority, file);
         } else {
             return FileProvider.getUriForFile(context, authority, file);
         }
     }
+
+    private static final List<String> KNOWN_FAULTY_BUILD_PRODUCTS_PREFIXES = Arrays.asList("ALE", "KIW", "FRD", "H1611", "VNS", "GRA");
+    private static final List<String> FILE_URI_SCHEME_FALLBACK_DEVICES = Arrays.asList("KIW-L24");
 
     /**
      * Here, we try to use reflection to solve the problem. Please note that this will only work for devices

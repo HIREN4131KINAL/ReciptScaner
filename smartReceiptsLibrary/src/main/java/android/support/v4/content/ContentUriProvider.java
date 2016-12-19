@@ -33,18 +33,14 @@ public class ContentUriProvider {
 
     private static final String HUAWEI_MANUFACTURER = "Huawei";
 
-    private static final String EXTERNAL_FILES_PATH = "public-files-path";
-
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
         if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER) && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             Logger.warn(ContentUriProvider.class, "Using a Huawei device on pre-N. Increased likelihood of failure...");
-            final Uri fileProviderUri = FileProvider.getUriForFile(context, authority, file);
-            if (fileProviderUri != null && fileProviderUri.getPath().contains(EXTERNAL_FILES_PATH)) {
-                Logger.info(ContentUriProvider.class, "Returning Uri.fromFile to avoid Huawei 'external-files-path' bugs");
+            try {
+                return FileProvider.getUriForFile(context, authority, file);
+            } catch (IllegalArgumentException e) {
+                Logger.warn(ContentUriProvider.class, "Returning Uri.fromFile to avoid Huawei 'external-files-path' bug", e);
                 return Uri.fromFile(file);
-            } else {
-                Logger.info(ContentUriProvider.class, "Returning the file provider Uri as this is not a 'external-files-path' file");
-                return fileProviderUri;
             }
         } else {
             return FileProvider.getUriForFile(context, authority, file);

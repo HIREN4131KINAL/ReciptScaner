@@ -1,27 +1,14 @@
-package android.support.v4.content;
+package co.smartreceipts.android.utils;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
-import android.content.res.XmlResourceParser;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.NonNull;
-
-import org.xmlpull.v1.XmlPullParserException;
+import android.support.v4.content.FileProvider;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 import co.smartreceipts.android.utils.log.Logger;
-
-import static org.xmlpull.v1.XmlPullParser.END_DOCUMENT;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 /** 
  * Some (ie just one) phone manufacturers (ie Huawei) break the Android contract for calls to {@link Context#getExternalFilesDirs(String)}. 

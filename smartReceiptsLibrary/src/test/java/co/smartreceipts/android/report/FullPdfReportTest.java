@@ -2,6 +2,7 @@ package co.smartreceipts.android.report;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import org.junit.Before;
@@ -23,13 +24,21 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsPicturedColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsReimbursableColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 import wb.android.flex.Flex;
+
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 public class FullPdfReportTest {
@@ -42,6 +51,9 @@ public class FullPdfReportTest {
     PersistenceManager mPersistenceManager;
 
     @Mock
+    Preferences prefs;
+
+    @Mock
     Flex mFlex;
 
     private Context context;
@@ -52,6 +64,9 @@ public class FullPdfReportTest {
         MockitoAnnotations.initMocks(this);
         context = RuntimeEnvironment.application;
 
+        when(mPersistenceManager.getPreferences()).thenReturn(prefs);
+
+        when(prefs.getDateSeparator()).thenReturn("/");
 
     }
 
@@ -71,11 +86,11 @@ public class FullPdfReportTest {
         PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, "/");
         ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
-        columns.add(new ReceiptNameColumn(2, "Price", new DefaultSyncState()));
-        columns.add(new ReceiptNameColumn(3, "Date", new DefaultSyncState()));
-        columns.add(new ReceiptNameColumn(4, "Category name", new DefaultSyncState()));
-        columns.add(new ReceiptNameColumn(5, "Reimbursable", new DefaultSyncState()));
-        columns.add(new ReceiptNameColumn(6, "Pictured", new DefaultSyncState()));
+        columns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));
+        columns.add(new ReceiptDateColumn(3, "Date", new DefaultSyncState(), context, mPersistenceManager.getPreferences()));
+        columns.add(new ReceiptCategoryNameColumn(4, "Category name", new DefaultSyncState()));
+        columns.add(new ReceiptIsReimbursableColumn(5, "Reimbursable", new DefaultSyncState(), context));
+        columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), context));
 
         pdfBoxReportFile.addSection(
                 pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),

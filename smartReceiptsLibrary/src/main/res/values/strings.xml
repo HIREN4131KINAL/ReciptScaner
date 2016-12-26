@@ -97,6 +97,9 @@
     <string name="report_header_comment">Report Comment: %s</string>
 
     <!-- ================ Categories ================== -->
+    <string name="ocr_informational_tooltip_text">Interested in OCR (auto-scans)? Tap here.</string>
+
+    <!-- ================ Categories ================== -->
     <string name="category_name">Name: </string>
     <string name="category_code">Code: </string>
     <string name="category_null">&lt;Category&gt;</string>

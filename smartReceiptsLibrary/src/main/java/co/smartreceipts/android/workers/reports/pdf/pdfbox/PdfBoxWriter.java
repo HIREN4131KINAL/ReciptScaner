@@ -105,7 +105,20 @@ public class PdfBoxWriter {
         }
 
         for (PdfBoxTableRow pdfBoxTableRow : table.getRows()) {
-            printRow(pdfBoxTableRow);
+            // If we must add a page break
+            if (!printRow(pdfBoxTableRow)) {
+                // add new page
+                newPage();
+                // repeat header (if available)
+                if (table.getHeaderRow() != null) {
+                    printRow(table.getHeaderRow());
+                }
+                // print out the row again
+                boolean successInNewPage = printRow(pdfBoxTableRow);
+                if (!successInNewPage) {
+                    throw new IOException("Row does not fit in a single page...");
+                }
+            }
         }
 
         if (table.getFooterRow() != null) {
@@ -113,7 +126,23 @@ public class PdfBoxWriter {
         }
     }
 
-    private void printRow(PdfBoxTableRow row) throws IOException {
+    public void verticalJump(float dy) {
+        currentYPosition -= dy;
+    }
+
+    /**
+     *
+     * @param row
+     * @return Whether the row was printed or not. (It might not be printed if
+     * the page has no more vertical space available).
+     * @throws IOException
+     */
+    private boolean printRow(PdfBoxTableRow row) throws IOException {
+        // Line break if required
+        if (currentYPosition - row.getHeight() < context.getPageMarginVertical()) {
+            return false;
+        }
+
         float x = context.getPageMarginHorizontal();
         if (row.getBackgroundColor() != null) {
             PDRectangle rect = new PDRectangle(
@@ -130,7 +159,9 @@ public class PdfBoxWriter {
         // draw the cells contents
         printRowContents(row, x, currentYPosition);
         currentYPosition -= row.getHeight();
+        return true;
     }
+
 
     void printRowContents(PdfBoxTableRow row, float x, float y) throws IOException {
         float xCell = x;
@@ -140,7 +171,6 @@ public class PdfBoxWriter {
             xCell += cell.getWidth();
         }
     }
-
 
     /**
      * Prints the cell content centering the contents vertically and horizontally.
@@ -183,9 +213,5 @@ public class PdfBoxWriter {
 
         }
 
-    }
-
-    public void verticalJump(float dy) {
-        currentYPosition -= dy;
     }
 }

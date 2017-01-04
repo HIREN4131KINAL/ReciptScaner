@@ -2,10 +2,8 @@ package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
 
-import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,76 +43,39 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         List<PdfBoxTableRow> rows = new ArrayList<>();
         PdfBoxTableRow footerRow = null;
         PdfBoxTableRow headerRow = null;
-        if (!list.isEmpty()) {
-            final int colCount = mColumns.size();
-            final List<DataType> filteredList = new ArrayList<>(list.size());
+        final int colCount = mColumns.size();
+        final List<DataType> filteredList = new ArrayList<>(list.size());
 
-            float xStart = context.getPageMarginHorizontal();
-            float xEnd = context.getPageSize().getWidth() - context.getPageMarginHorizontal();
+        float xStart = context.getPageMarginHorizontal();
+        float xEnd = context.getPageSize().getWidth() - context.getPageMarginHorizontal();
 
-            // calculate column widths
-            float[] colWidths = calculateColumnWidths(colCount, xEnd - xStart);
+        // calculate column widths
+        float[] colWidths = calculateColumnWidths(colCount, xEnd - xStart);
 
-            float xPosition = xStart;
-            float yPosition = mStartingCursorPosition - topPadding;
 
-            float tableWidth = xEnd - xStart;
+        float tableWidth = xEnd - xStart;
 
-            // Add the header
-            if (mPrintHeaders) {
-                FixedWidthCell[] cells = new FixedWidthCell[colCount];
-                for (int i = 0; i < colCount; i++) {
-                    FixedWidthCell cell = new FixedWidthCell(
-                            colWidths[i],
-                            cellPadding,
-                            mColumns.get(i).getHeader(),
-                            context.getFont("TABLE_HEADER"),
-                            context.getColor("DARK_BLUE"));
-                    cells[i] = cell;
-                    xPosition += colWidths[i];
-                }
-
-                headerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
-
-//                    printRow(headerRow, xStart, yPosition);
-
-//                    // draw the separator line
-//                    int lineHeight = 2;
-//                    mContentStream.setLineWidth(lineHeight);
-//                    mContentStream.setStrokingColor(context.getColor("DARK_BLUE"));
-//                    mContentStream.moveTo(xStart, yPosition - headerRow.getHeight());
-//                    mContentStream.lineTo(xEnd, yPosition - headerRow.getHeight());
-//                    mContentStream.stroke();
-//                    mContentStream.setLineWidth(1);
-
-                yPosition -= headerRow.getHeight();
-
-//                    //draw the grid: rows
-//                    float nexty = mStartingCursorPosition - topPadding;
-//                    for (int i = 0; i <= rowCount; i++) {
-//                        mContentStream.moveTo(xStart, nexty);
-//                        mContentStream.lineTo(xEnd, nexty);
-//                        mContentStream.stroke();
-//                        nexty -= rowHeight;
-//                    }
-
-//                    //draw the grid: columns
-//                    float x = context.getPageMarginHorizontal();
-//                    float y = mStartingCursorPosition - topPadding;
-//                    for (int i = 0; i <= colCount; i++) {
-//                        mContentStream.moveTo(x, y);
-//                        mContentStream.lineTo(x, y - rowCount * rowHeight);
-//                        mContentStream.stroke();
-//                        if (i < colCount) {
-//                            x += colWidths[i];
-//                        }
-//                    }
+        // Add the header
+        if (mPrintHeaders) {
+            FixedWidthCell[] cells = new FixedWidthCell[colCount];
+            for (int i = 0; i < colCount; i++) {
+                FixedWidthCell cell = new FixedWidthCell(
+                        colWidths[i],
+                        cellPadding,
+                        mColumns.get(i).getHeader(),
+                        context.getFont("TABLE_HEADER"),
+                        context.getColor("DARK_BLUE"));
+                cells[i] = cell;
             }
 
+            headerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
+
+        }
+
+        if (!list.isEmpty()) {
 
             // Add each row
             for (int j = 0; j < list.size(); j++) {
-                xPosition = xStart;
                 final DataType data = list.get(j);
 
                 if (mFilter == null || mFilter.accept(data)) {
@@ -127,59 +88,32 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                 context.getFont("DEFAULT"),
                                 AWTColor.BLACK);
                         cells[i] = cell;
-                        xPosition += colWidths[i];
                     }
 
                     PdfBoxTableRow row = new PdfBoxTableRow(cells, tableWidth, j % 2 == 0 ? null : context.getColor("CELL_BACKGROUND"));
-
-//                        printRow(row, xStart, yPosition);
-                    yPosition -= row.getHeight();
 
                     rows.add(row);
                     filteredList.add(data);
                 }
             }
-
-
-            // Add the footer
-            if (mPrintFooters) {
-                xPosition = xStart;
-                FixedWidthCell[] cells = new FixedWidthCell[colCount];
-                for (int i = 0; i < colCount; i++) {
-                    FixedWidthCell cell = new FixedWidthCell(
-                            colWidths[i],
-                            cellPadding,
-                            mColumns.get(i).getFooter(filteredList),
-                            context.getFont("TABLE_HEADER"),
-                            context.getColor("DARK_BLUE"));
-                    cells[i] = cell;
-                    xPosition += colWidths[i];
-                }
-                footerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
-
-//                    printRow(footerRow, xStart, yPosition);
-                yPosition -= footerRow.getHeight();
-            }
-
-            return new PdfBoxTable(rows, headerRow, footerRow);
-
         }
 
-        return null;
+        // Add the footer
+        if (mPrintFooters) {
+            FixedWidthCell[] cells = new FixedWidthCell[colCount];
+            for (int i = 0; i < colCount; i++) {
+                FixedWidthCell cell = new FixedWidthCell(
+                        colWidths[i],
+                        cellPadding,
+                        mColumns.get(i).getFooter(filteredList),
+                        context.getFont("TABLE_HEADER"),
+                        context.getColor("DARK_BLUE"));
+                cells[i] = cell;
+            }
+            footerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
+        }
+        return new PdfBoxTable(rows, headerRow, footerRow);
     }
-
-
-    /**
-     *
-     * @param row
-     * @param x The x-coordinate of the upper-left corner of the row
-     * @param y The y-coordinate of the upper-left corner of the row
-     * @throws IOException
-     */
-//    private void printRow(PdfBoxTableRow row, float x, float y) throws IOException {
-//        // draw the background
-
-//    }
 
 
     private float[] calculateColumnWidths(int columnCount, float availableWidth) {

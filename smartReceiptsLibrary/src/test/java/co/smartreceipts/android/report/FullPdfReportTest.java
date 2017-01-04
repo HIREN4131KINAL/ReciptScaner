@@ -2,7 +2,6 @@ package co.smartreceipts.android.report;
 
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import org.junit.Before;
@@ -43,7 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 public class FullPdfReportTest {
 
-    private static final int NUM_RECEIPTS = 5;
+    private static final int NUM_RECEIPTS = 50;
     @Mock
     Context mContext;
 

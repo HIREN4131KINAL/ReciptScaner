@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
-class FixedWidthCell {
+public class FixedWidthCell {
 
     private final float width;
     private final String text;

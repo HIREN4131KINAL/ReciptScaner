@@ -9,6 +9,7 @@ import java.util.List;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.workers.reports.pdf.pdfbox.DefaultPdfBoxContext;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 
@@ -64,11 +65,12 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         cellPadding,
                         mColumns.get(i).getHeader(),
                         context.getFont("TABLE_HEADER"),
-                        context.getColor("DARK_BLUE"));
+                        context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
 
-            headerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
+            headerRow = new PdfBoxTableRow(cells, tableWidth,
+                    context.getColor(DefaultPdfBoxContext.COLOR_HEADER));
 
         }
 
@@ -90,7 +92,8 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         cells[i] = cell;
                     }
 
-                    PdfBoxTableRow row = new PdfBoxTableRow(cells, tableWidth, j % 2 == 0 ? null : context.getColor("CELL_BACKGROUND"));
+                    PdfBoxTableRow row = new PdfBoxTableRow(cells, tableWidth, j % 2 == 0 ? null :
+                            context.getColor(DefaultPdfBoxContext.COLOR_CELL));
 
                     rows.add(row);
                     filteredList.add(data);
@@ -107,10 +110,11 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         cellPadding,
                         mColumns.get(i).getFooter(filteredList),
                         context.getFont("TABLE_HEADER"),
-                        context.getColor("DARK_BLUE"));
+                        context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
-            footerRow = new PdfBoxTableRow(cells, tableWidth, context.getColor("HEADER_BACKGROUND"));
+            footerRow = new PdfBoxTableRow(cells, tableWidth,
+                    context.getColor(DefaultPdfBoxContext.COLOR_HEADER));
         }
         return new PdfBoxTable(rows, headerRow, footerRow);
     }

@@ -54,7 +54,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 receipts, distances, usePreTaxPrice, onlyUseReimbursable);
 
 
-        writer = new PdfBoxWriter(doc, context);
+        writer = new PdfBoxWriter(doc, context, new DefaultPdfBoxPageDecorations(context));
 
         writeHeader(trip, data);
 

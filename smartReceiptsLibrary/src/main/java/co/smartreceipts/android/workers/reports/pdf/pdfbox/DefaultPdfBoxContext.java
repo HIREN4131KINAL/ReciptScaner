@@ -4,8 +4,6 @@ import android.content.Context;
 import android.support.annotation.StringRes;
 
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.pdmodel.font.PDFont;
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.util.Map;
@@ -17,6 +15,10 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     private String dateSeparator;
     private Map<String, AWTColor> colors;
     private Map<String, FontSpec> fonts;
+
+    public static final String COLOR_DARK_BLUE = "DARK_BLUE";
+    public static final String COLOR_HEADER = "HEADER";
+    public static final String COLOR_CELL = "CELL";
 
     public DefaultPdfBoxContext(Context context, String dateSeparator) {
         this.context = context;
@@ -47,7 +49,7 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
     @Override
     public int getPageMarginVertical() {
-        return 36;
+        return 24;
     }
 
     @Override

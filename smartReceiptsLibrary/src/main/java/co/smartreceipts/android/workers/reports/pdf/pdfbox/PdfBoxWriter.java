@@ -17,11 +17,11 @@ import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 
-import static android.R.attr.rowHeight;
-import static android.R.attr.x;
-import static android.R.attr.y;
 
-
+/**
+ * Responsible for printing out content (text, tables, images) to a pdf.
+ * Keeps track of the y position on the page and handles pagination if required.
+ */
 public class PdfBoxWriter {
     private PDDocument doc;
     private PdfBoxContext context;
@@ -29,11 +29,15 @@ public class PdfBoxWriter {
     private float currentYPosition;
     private PDPageContentStream contentStream;
     private boolean inTextBlock;
+    private PdfBoxPageDecorations pageDecorations;
 
 
-    public PdfBoxWriter(PDDocument doc, PdfBoxContext context) throws IOException {
+    public PdfBoxWriter(PDDocument doc,
+                        PdfBoxContext context,
+                        PdfBoxPageDecorations pageDecorations) throws IOException {
         this.doc = doc;
         this.context = context;
+        this.pageDecorations = pageDecorations;
         pages = new ArrayList<>();
         newPage();
     }
@@ -43,15 +47,17 @@ public class PdfBoxWriter {
         if (contentStream != null) {
             contentStream.close();
         }
-        PDPage page = new PDPage(PDRectangle.A4);
-        currentYPosition = page.getMediaBox().getHeight() - context.getPageMarginVertical();
+        PDPage page = new PDPage(context.getPageSize());
         pages.add(page);
         contentStream = new PDPageContentStream(doc, page);
+        pageDecorations.writeHeader(contentStream);
+        currentYPosition = page.getMediaBox().getHeight()
+                - context.getPageMarginVertical()
+                - pageDecorations.getHeaderHeight();
+
+        pageDecorations.writeFooter(contentStream);
     }
 
-    private PDPage getCurrentPage() {
-        return pages.get(pages.size() - 1);
-    }
 
     public void openTextBlock() throws IOException {
         inTextBlock = true;
@@ -131,7 +137,6 @@ public class PdfBoxWriter {
     }
 
     /**
-     *
      * @param row
      * @return Whether the row was printed or not. (It might not be printed if
      * the page has no more vertical space available).
@@ -139,7 +144,7 @@ public class PdfBoxWriter {
      */
     private boolean printRow(PdfBoxTableRow row) throws IOException {
         // Line break if required
-        if (currentYPosition - row.getHeight() < context.getPageMarginVertical()) {
+        if (currentYPosition - row.getHeight() < context.getPageMarginVertical() + pageDecorations.getFooterHeight()) {
             return false;
         }
 

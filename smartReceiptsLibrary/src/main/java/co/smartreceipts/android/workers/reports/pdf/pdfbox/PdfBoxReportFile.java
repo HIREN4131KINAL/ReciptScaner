@@ -31,9 +31,9 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     public PdfBoxReportFile(Context androidContext, String dateSeparator) {
         sections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();
-        colors.put("DARK_BLUE", new AWTColor(0, 122, 255));
-        colors.put("HEADER_BACKGROUND", new AWTColor(204, 228, 255));
-        colors.put("CELL_BACKGROUND", new AWTColor(239, 239, 244));
+        colors.put(DefaultPdfBoxContext.COLOR_DARK_BLUE, new AWTColor(0, 122, 255));
+        colors.put(DefaultPdfBoxContext.COLOR_HEADER, new AWTColor(204, 228, 255));
+        colors.put(DefaultPdfBoxContext.COLOR_CELL, new AWTColor(239, 239, 244));
 
         PDFont MAIN_FONT = PDType1Font.HELVETICA;
         PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;

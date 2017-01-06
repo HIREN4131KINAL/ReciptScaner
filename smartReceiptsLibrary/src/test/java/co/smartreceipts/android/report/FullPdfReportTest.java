@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 public class FullPdfReportTest {
 
-    private static final int NUM_RECEIPTS = 50;
+    private static final int NUM_RECEIPTS = 500;
     @Mock
     Context mContext;
 

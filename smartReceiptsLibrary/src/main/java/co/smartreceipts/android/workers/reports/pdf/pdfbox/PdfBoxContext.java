@@ -4,12 +4,9 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 import android.content.Context;
 import android.support.annotation.StringRes;
 
-import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
-
-import java.util.Map;
 
 public interface PdfBoxContext {
 
@@ -26,11 +23,6 @@ public interface PdfBoxContext {
 
     Context getApplicationContext();
 
-    /**
-     * Use {@link PDPage#getMediaBox()}.getHeight() instead
-     * @return
-     */
-    @Deprecated
     PDRectangle getPageSize();
 
     class FontSpec {

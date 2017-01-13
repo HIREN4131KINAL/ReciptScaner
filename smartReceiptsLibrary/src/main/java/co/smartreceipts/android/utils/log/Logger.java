@@ -98,11 +98,19 @@ public class Logger {
     }
 
     public static void error(Object caller, Throwable t) {
-        getLoggerForCaller(caller).error("", t);
+        if (t != null && t.getStackTrace() != null) {
+            getLoggerForCaller(caller).error("", t);
+        } else {
+            getLoggerForCaller(caller).error("Insufficient logging details available for error");
+        }
     }
 
     public static void error(Object caller, String msg, Throwable t) {
-        getLoggerForCaller(caller).error(msg, t);
+        if (t != null && t.getStackTrace() != null) {
+            getLoggerForCaller(caller).error(msg, t);
+        } else {
+            getLoggerForCaller(caller).error(msg);
+        }
     }
 
     public static void error(Object caller, String format, Object... arg) {

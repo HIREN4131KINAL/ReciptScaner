@@ -105,6 +105,9 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                                 } else if (item.getItemId() == R.id.remote_backups_list_item_menu_download_images) {
                                     new NavigationHandler(mFragmentActivity).showDialog(DownloadRemoteBackupImagesProgressDialogFragment.newInstance(metadata));
                                     return true;
+                                } else if (item.getItemId() == R.id.remote_backups_list_item_menu_download_images_debug) {
+                                    new NavigationHandler(mFragmentActivity).showDialog(DownloadRemoteBackupImagesProgressDialogFragment.newInstance(metadata, true));
+                                    return true;
                                 } else {
                                     throw new IllegalArgumentException("Unsupported menu type was selected");
                                 }

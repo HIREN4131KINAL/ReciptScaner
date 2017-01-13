@@ -119,7 +119,7 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    public synchronized Observable<File> downloadBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+    public synchronized Observable<File> downloadBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean debugMode) {
         if (mHeadlessFragment.downloadBackupReplaySubjectMap == null) {
             mHeadlessFragment.downloadBackupReplaySubjectMap = new HashMap<>();
         }
@@ -148,7 +148,11 @@ public class RemoteBackupsDataCache {
                 .flatMap(new Func1<Boolean, Observable<List<File>>>() {
                     @Override
                     public Observable<List<File>> call(Boolean aBoolean) {
-                        return mBackupProvidersManager.downloadAllData(remoteBackupMetadata, cacheDir);
+                        if (debugMode) {
+                            return mBackupProvidersManager.debugDownloadAllData(remoteBackupMetadata, cacheDir);
+                        } else {
+                            return mBackupProvidersManager.downloadAllData(remoteBackupMetadata, cacheDir);
+                        }
                     }
                 })
                 .map(new Func1<List<File>, File>() {

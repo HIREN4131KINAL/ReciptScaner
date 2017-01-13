@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallbacks;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
@@ -236,6 +237,39 @@ class DriveDataStreams {
     }
 
     @NonNull
+    public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder) {
+        Preconditions.checkNotNull(driveFolder);
+
+        return Observable.create(new Observable.OnSubscribe<DriveId>() {
+            @Override
+            public void call(final Subscriber<? super DriveId> subscriber) {
+                final Query folderQuery = new Query.Builder().build();
+                driveFolder.queryChildren(mGoogleApiClient, folderQuery).setResultCallback(new ResultCallbacks<DriveApi.MetadataBufferResult>() {
+                    @Override
+                    public void onSuccess(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                        try {
+                            for (final Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                if (!metadata.isTrashed()) {
+                                    subscriber.onNext(metadata.getDriveId());
+                                }
+                            }
+                            subscriber.onCompleted();
+                        } finally {
+                            metadataBufferResult.getMetadataBuffer().release();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Logger.error(DriveDataStreams.this, "Failed to query files in folder with status: {}", status);
+                        subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
+    }
+
+    @NonNull
     public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder, @NonNull final String fileName) {
         Preconditions.checkNotNull(driveFolder);
         Preconditions.checkNotNull(fileName);
@@ -257,6 +291,30 @@ class DriveDataStreams {
                         } finally {
                             metadataBufferResult.getMetadataBuffer().release();
                         }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Status status) {
+                        Logger.error(DriveDataStreams.this, "Failed to query files in folder with status: {}", status);
+                        subscriber.onError(new IOException(status.getStatusMessage()));
+                    }
+                });
+            }
+        });
+    }
+
+    @NonNull
+    public synchronized Observable<Metadata> getMetadata(@NonNull final DriveFile driveFile) {
+        Preconditions.checkNotNull(driveFile);
+
+        return Observable.create(new Observable.OnSubscribe<Metadata>() {
+            @Override
+            public void call(final Subscriber<? super Metadata> subscriber) {
+                driveFile.getMetadata(mGoogleApiClient).setResultCallback(new ResultCallbacks<DriveResource.MetadataResult>() {
+                    @Override
+                    public void onSuccess(@NonNull DriveResource.MetadataResult metadataResult) {
+                        subscriber.onNext(metadataResult.getMetadata());
+                        subscriber.onCompleted();
                     }
 
                     @Override

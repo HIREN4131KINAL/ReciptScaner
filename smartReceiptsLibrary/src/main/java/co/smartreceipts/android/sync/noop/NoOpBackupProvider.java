@@ -72,4 +72,10 @@ public class NoOpBackupProvider implements BackupProvider {
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return Observable.just(Collections.<File>emptyList());
     }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return Observable.just(Collections.<File>emptyList());
+    }
 }

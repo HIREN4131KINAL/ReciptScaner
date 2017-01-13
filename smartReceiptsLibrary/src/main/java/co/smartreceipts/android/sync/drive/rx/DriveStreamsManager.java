@@ -9,6 +9,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
@@ -79,6 +80,20 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     }
 
     @NonNull
+    public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder) {
+        Preconditions.checkNotNull(driveFolder);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<DriveId>>() {
+                    @Override
+                    public Observable<DriveId> call(Void aVoid) {
+                        return mDriveDataStreams.getFilesInFolder(driveFolder);
+                    }
+                });
+
+    }
+
+    @NonNull
     public synchronized Observable<DriveId> getFilesInFolder(@NonNull final DriveFolder driveFolder, @NonNull final String fileName) {
         Preconditions.checkNotNull(driveFolder);
         Preconditions.checkNotNull(fileName);
@@ -88,6 +103,20 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<DriveId> call(Void aVoid) {
                         return mDriveDataStreams.getFilesInFolder(driveFolder, fileName);
+                    }
+                });
+
+    }
+
+    @NonNull
+    public synchronized Observable<Metadata> getMetadata(@NonNull final DriveFile driveFile) {
+        Preconditions.checkNotNull(driveFile);
+
+        return newBlockUntilConnectedObservable()
+                .flatMap(new Func1<Void, Observable<Metadata>>() {
+                    @Override
+                    public Observable<Metadata> call(Void aVoid) {
+                        return mDriveDataStreams.getMetadata(driveFile);
                     }
                 });
 

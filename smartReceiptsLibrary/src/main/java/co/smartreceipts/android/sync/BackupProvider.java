@@ -88,4 +88,14 @@ public interface BackupProvider {
     @NonNull
     Observable<List<File>> downloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
 
+    /**
+     * Downloads an existing backup to a specific location in a debug friendly manner
+     *
+     * @param remoteBackupMetadata the metadata to download
+     * @param downloadLocation the {@link File} location to download it to
+     * @return an {@link Observable} that contains the downloaded images
+     */
+    @NonNull
+    Observable<List<File>> debugDownloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+
 }

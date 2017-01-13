@@ -173,6 +173,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         return mDriveRestoreDataManager.downloadAllBackupMetadataImages(remoteBackupMetadata, downloadLocation);
     }
 
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mDriveRestoreDataManager.downloadAllFilesInDriveFolder(remoteBackupMetadata, downloadLocation);
+    }
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
         Logger.warn(this, "GoogleApiClient connection failed: {}", result);

@@ -128,4 +128,10 @@ public class BackupProvidersManager implements BackupProvider {
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mBackupProvider.downloadAllData(remoteBackupMetadata, downloadLocation);
     }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mBackupProvider.debugDownloadAllData(remoteBackupMetadata, downloadLocation);
+    }
 }

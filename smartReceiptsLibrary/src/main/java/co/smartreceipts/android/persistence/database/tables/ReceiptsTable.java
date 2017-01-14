@@ -71,25 +71,25 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
                 + ReceiptsTable.COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + ReceiptsTable.COLUMN_PATH + " TEXT, "
                 + ReceiptsTable.COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.TABLE_NAME + " ON DELETE CASCADE, "
-                + ReceiptsTable.COLUMN_NAME + " TEXT DEFAULT \"New Receipt\", "
+                + ReceiptsTable.COLUMN_NAME + " TEXT FONT_DEFAULT \"New Receipt\", "
                 + ReceiptsTable.COLUMN_CATEGORY + " TEXT, "
-                + ReceiptsTable.COLUMN_DATE + " DATE DEFAULT (DATE('now', 'localtime')), "
+                + ReceiptsTable.COLUMN_DATE + " DATE FONT_DEFAULT (DATE('now', 'localtime')), "
                 + ReceiptsTable.COLUMN_TIMEZONE + " TEXT, "
                 + ReceiptsTable.COLUMN_COMMENT + " TEXT, "
                 + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL, "
-                + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) DEFAULT 0.00, "
-                + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00, "
-                + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00, "
+                + ReceiptsTable.COLUMN_PRICE + " DECIMAL(10, 2) FONT_DEFAULT 0.00, "
+                + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) FONT_DEFAULT 0.00, "
+                + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) FONT_DEFAULT -1.00, "
                 + ReceiptsTable.COLUMN_PAYMENT_METHOD_ID + " INTEGER REFERENCES " + PaymentMethodsTable.TABLE_NAME + " ON DELETE NO ACTION, "
-                + ReceiptsTable.COLUMN_REIMBURSABLE + " BOOLEAN DEFAULT 1, "
-                + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN DEFAULT 1, "
+                + ReceiptsTable.COLUMN_REIMBURSABLE + " BOOLEAN FONT_DEFAULT 1, "
+                + ReceiptsTable.COLUMN_NOTFULLPAGEIMAGE + " BOOLEAN FONT_DEFAULT 1, "
                 + ReceiptsTable.COLUMN_PROCESSING_STATUS + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_1 + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_2 + " TEXT, "
                 + ReceiptsTable.COLUMN_EXTRA_EDITTEXT_3 + " TEXT, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN FONT_DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN FONT_DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Logger.debug(this, receipts);
@@ -102,7 +102,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         super.onUpgrade(db, oldVersion, newVersion, customizer);
 
         if (oldVersion <= 1) { // Add mCurrency column to receipts table
-            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL " + "DEFAULT " + mDefaultCurrencyCode;
+            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_ISO4217 + " TEXT NOT NULL " + "FONT_DEFAULT " + mDefaultCurrencyCode;
 
             Logger.debug(this, alterReceipts);
 
@@ -124,7 +124,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         }
 
         if (oldVersion <= 4) { // Change Mileage to Decimal instead of Integer
-            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) DEFAULT 0.00";
+            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_TAX + " DECIMAL(10, 2) FONT_DEFAULT 0.00";
 
             Logger.debug(this, alterReceipts);
 
@@ -194,7 +194,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
             db.execSQL(alterReceiptsWithProcessingStatus);
         }
         if (oldVersion <= 13) {
-            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) DEFAULT -1.00";
+            final String alterReceipts = "ALTER TABLE " + ReceiptsTable.TABLE_NAME + " ADD " + ReceiptsTable.COLUMN_EXCHANGE_RATE + " DECIMAL(10, 10) FONT_DEFAULT -1.00";
             Logger.debug(this, alterReceipts);
             db.execSQL(alterReceipts);
         }

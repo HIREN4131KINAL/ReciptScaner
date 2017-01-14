@@ -58,13 +58,13 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
         // Add the header
         if (mPrintHeaders) {
-            FixedWidthCell[] cells = new FixedWidthCell[colCount];
+            FixedWidthTextCell[] cells = new FixedWidthTextCell[colCount];
             for (int i = 0; i < colCount; i++) {
-                FixedWidthCell cell = new FixedWidthCell(
+                FixedWidthTextCell cell = new FixedWidthTextCell(
                         colWidths[i],
                         cellPadding,
                         mColumns.get(i).getHeader(),
-                        context.getFont("TABLE_HEADER"),
+                        context.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
                         context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
@@ -81,13 +81,13 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                 final DataType data = list.get(j);
 
                 if (mFilter == null || mFilter.accept(data)) {
-                    FixedWidthCell[] cells = new FixedWidthCell[colCount];
+                    FixedWidthTextCell[] cells = new FixedWidthTextCell[colCount];
                     for (int i = 0; i < colCount; i++) {
-                        FixedWidthCell cell = new FixedWidthCell(
+                        FixedWidthTextCell cell = new FixedWidthTextCell(
                                 colWidths[i],
                                 cellPadding,
                                 mColumns.get(i).getValue(data),
-                                context.getFont("DEFAULT"),
+                                context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
                                 AWTColor.BLACK);
                         cells[i] = cell;
                     }
@@ -103,13 +103,13 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
         // Add the footer
         if (mPrintFooters) {
-            FixedWidthCell[] cells = new FixedWidthCell[colCount];
+            FixedWidthTextCell[] cells = new FixedWidthTextCell[colCount];
             for (int i = 0; i < colCount; i++) {
-                FixedWidthCell cell = new FixedWidthCell(
+                FixedWidthTextCell cell = new FixedWidthTextCell(
                         colWidths[i],
                         cellPadding,
                         mColumns.get(i).getFooter(filteredList),
-                        context.getFont("TABLE_HEADER"),
+                        context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
                         context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }

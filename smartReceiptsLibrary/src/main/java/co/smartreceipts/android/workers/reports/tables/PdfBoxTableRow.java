@@ -27,7 +27,9 @@ public class PdfBoxTableRow {
     public float getHeight() {
         float rowHeight = 0;
         for (int i = 0; i < cells.length; i++) {
-            rowHeight = Math.max(cells[i].getHeight(), rowHeight);
+            if (cells[i] != null) {
+                rowHeight = Math.max(cells[i].getHeight(), rowHeight);
+            }
         }
         return rowHeight;
     }

@@ -1,19 +1,31 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.annotation.StringRes;
+import android.webkit.MimeTypeMap;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
+import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
+import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 
@@ -172,24 +184,91 @@ public class PdfBoxWriter {
         float xCell = x;
         float yCell = y;
         for (FixedWidthCell cell : row.getCells()) {
-            printCellContent(cell, xCell, yCell, row.getHeight());
-            xCell += cell.getWidth();
+            if (cell != null) {
+                if (cell instanceof FixedWidthTextCell) {
+                    printTextCellContent((FixedWidthTextCell) cell, xCell, yCell, row.getHeight());
+
+                } else if (cell instanceof FixedSizeImageCell) {
+                    printImageCellContent((FixedSizeImageCell) cell, xCell, yCell, row.getHeight());
+                }
+                xCell += cell.getWidth();
+            }
+
         }
     }
+
+    private void printImageCellContent(FixedSizeImageCell cell, float xCell, float yCell, float height) throws IOException {
+        // TODO calculate it based on the font
+        float textHeight = 30f;
+        float spacing = 10.0f;
+
+        PdfBoxContext.FontSpec fontSpec = cell.getFontSpec();
+
+        float stringWidth = PdfBoxUtils.getStringWidth(cell.getText(), fontSpec);
+
+        float dx = (cell.getWidth() - stringWidth) / 2.0f;
+
+        contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
+        contentStream.setNonStrokingColor(cell.getColor());
+        contentStream.beginText();
+        contentStream.newLineAtOffset(
+                xCell + dx,
+                yCell - textHeight - cell.getCellPadding());
+        contentStream.showText(cell.getText());
+        contentStream.endText();
+
+        File image = cell.getImage();
+
+        // TODO print the image
+        InputStream in = new FileInputStream(image);
+
+        String fileExtension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(image).toString());
+
+        PDImageXObject ximage;
+        if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
+            || fileExtension.toLowerCase().equals("jpeg")) {
+            ximage = JPEGFactory.createFromStream(doc, in);
+        } else if (fileExtension.toLowerCase().equals("png")) {
+            Bitmap bitmap = BitmapFactory.decodeStream(in);
+            ximage = LosslessFactory.createFromImage(doc, bitmap);
+        } else {
+            // TODO UNRECOGNIZED IMAGE
+            return;
+        }
+
+
+
+        float availableHeight = cell.getHeight() - textHeight - spacing - 2*cell.getCellPadding();
+        float availableWidth = cell.getWidth() - 2*cell.getCellPadding();
+
+        // TODO is this correct? paddings?
+        PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
+                availableWidth, availableHeight);
+
+        PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
+
+        contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
+                resizedRec.getWidth(), resizedRec.getHeight());
+
+//            contentStream.drawImage(ximage, rectangle.getLowerLeftX(), rectangle.getLowerLeftY(),
+//                    rectangle.getWidth(), rectangle.getHeight());
+
+    }
+
+
 
     /**
      * Prints the cell content centering the contents vertically and horizontally.
      *
-     * @param fixedWidthCell
      * @param cell
      * @param xCell
      * @param yCell
      * @param rowHeight      @throws IOException
      */
-    private void printCellContent(FixedWidthCell cell,
-                                  float xCell,
-                                  float yCell,
-                                  float rowHeight) throws IOException {
+    private void printTextCellContent(FixedWidthTextCell cell,
+                                      float xCell,
+                                      float yCell,
+                                      float rowHeight) throws IOException {
 
         List<String> lines = cell.getLines();
 

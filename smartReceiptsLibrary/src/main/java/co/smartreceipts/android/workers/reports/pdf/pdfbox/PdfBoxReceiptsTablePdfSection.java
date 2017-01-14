@@ -24,6 +24,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private List<Distance> distances;
     private List<Column<Receipt>> columns;
 
+    // TODO null
     private Filter<Receipt> receiptFilter;
 
     // TODO how to set these
@@ -69,13 +70,13 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         writer.openTextBlock();
 
-        writer.writeNewLine(context.getFont("TITLE"),
+        writer.writeNewLine(context.getFont("FONT_TITLE"),
                 trip.getName()
         );
 
 
         if (!data.receiptsPrice.equals(data.netPrice)) {
-            writer.writeNewLine(context.getFont("DEFAULT"),
+            writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                     R.string.report_header_receipts_total,
                     data.receiptsPrice.getCurrencyFormattedPrice()
             );
@@ -83,14 +84,14 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         if (includeTaxField) {
             if (usePreTaxPrice && data.taxPrice.getPriceAsFloat() > EPSILON) {
-                writer.writeNewLine(context.getFont("DEFAULT"),
+                writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                         R.string.report_header_receipts_total_tax,
                         data.taxPrice.getCurrencyFormattedPrice()
                 );
 
             } else if (!data.noTaxPrice.equals(data.receiptsPrice) &&
                     data.noTaxPrice.getPriceAsFloat() > EPSILON) {
-                writer.writeNewLine(context.getFont("DEFAULT"),
+                writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                         R.string.report_header_receipts_total_no_tax,
                         data.noTaxPrice.getCurrencyFormattedPrice()
                 );
@@ -99,19 +100,19 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         if (onlyIncludeReimbursableReceiptsInReports &&
                 !data.reimbursablePrice.equals(data.receiptsPrice)) {
-            writer.writeNewLine(context.getFont("DEFAULT"),
+            writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                     R.string.report_header_receipts_total_reimbursable,
                     data.reimbursablePrice.getCurrencyFormattedPrice()
             );
         }
         if (distances.size() > 0) {
-            writer.writeNewLine(context.getFont("DEFAULT"),
+            writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                     R.string.report_header_distance_total,
                     data.distancePrice.getCurrencyFormattedPrice()
             );
         }
 
-        writer.writeNewLine(context.getFont("DEFAULT"),
+        writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                 R.string.report_header_gross_total,
                 data.netPrice.getCurrencyFormattedPrice()
         );
@@ -125,19 +126,19 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 + context.getString(R.string.report_header_to,
                 trip.getFormattedEndDate(context.getApplicationContext(), context.getDateSeparator()));
 
-        writer.writeNewLine(context.getFont("DEFAULT"),
+        writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                 fromToPeriod);
 
 
         if (includeCostCenter && !TextUtils.isEmpty(trip.getCostCenter())) {
-            writer.writeNewLine(context.getFont("DEFAULT"),
+            writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                     R.string.report_header_cost_center,
                     trip.getCostCenter()
             );
         }
         if (!TextUtils.isEmpty(trip.getComment())) {
             writer.writeNewLine(
-                    context.getFont("DEFAULT"),
+                    context.getFont("FONT_DEFAULT"),
                     R.string.report_header_comment,
                     trip.getComment()
             );

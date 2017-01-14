@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
@@ -42,11 +41,13 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 public class FullPdfReportTest {
 
-    private static final int NUM_RECEIPTS = 500;
+    private static final int NUM_RECEIPTS = 150;
+    private static final int NUM_IMAGES = 5;
     @Mock
     Context mContext;
 
     @Mock
+
     PersistenceManager mPersistenceManager;
 
     @Mock
@@ -77,7 +78,13 @@ public class FullPdfReportTest {
 
         List<Receipt> receipts = new ArrayList<>();
         for (int i=0; i<NUM_RECEIPTS; i++) {
-            Receipt receipt = createReceipt("Receipt " + (i+1), trip, null);
+            File image = null;
+            if (i<NUM_IMAGES) {
+                image = new File(getClass().getClassLoader()
+                        .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
+            }
+
+            Receipt receipt = createReceipt("Receipt " + (i+1), trip, image);
             receipts.add(receipt);
         }
 
@@ -91,9 +98,14 @@ public class FullPdfReportTest {
         columns.add(new ReceiptIsReimbursableColumn(5, "Reimbursable", new DefaultSyncState(), context));
         columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), context));
 
+        // TODO temp
+//        pdfBoxReportFile.addSection(
+//                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
+//                        columns));
+
+
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
-                        columns));
+                pdfBoxReportFile.createReceiptsImagesSection());
 
         OutputStream os = new FileOutputStream(new File("aaa3.pdf"));
 

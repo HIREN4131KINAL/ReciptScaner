@@ -10,15 +10,24 @@ import java.util.Map;
 
 public class DefaultPdfBoxContext implements PdfBoxContext {
 
+    /**
+     * TODO
+     * move all these to {@link PdfBoxContext} or to the appropriate section??
+     */
+    public static final String FONT_DEFAULT = "FONT_DEFAULT";
+    public static final String FONT_TABLE_HEADER = "FONT_TABLE_HEADER";
+    public static final String FONT_SMALL = "FONT_SMALL";
+    public static final String FONT_TITLE = "FONT_TITLE";
+    public static final String COLOR_DARK_BLUE = "DARK_BLUE";
+    public static final String COLOR_HEADER = "HEADER";
+    public static final String COLOR_CELL = "CELL";
+
 
     private Context context;
     private String dateSeparator;
     private Map<String, AWTColor> colors;
-    private Map<String, FontSpec> fonts;
 
-    public static final String COLOR_DARK_BLUE = "DARK_BLUE";
-    public static final String COLOR_HEADER = "HEADER";
-    public static final String COLOR_CELL = "CELL";
+    private Map<String, FontSpec> fonts;
 
     public DefaultPdfBoxContext(Context context, String dateSeparator) {
         this.context = context;

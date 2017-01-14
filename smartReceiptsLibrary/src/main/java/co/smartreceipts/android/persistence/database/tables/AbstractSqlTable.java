@@ -100,8 +100,8 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     protected synchronized void onUpgradeToAddSyncInformation(@NonNull SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion <= 14) { // Add syncing state information
             final String alter1 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_SYNC_ID + " TEXT";
-            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0";
-            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0";
+            final String alter2 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_IS_SYNCED + " BOOLEAN FONT_DEFAULT 0";
+            final String alter3 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN FONT_DEFAULT 0";
             final String alter4 = "ALTER TABLE " + getTableName() + " ADD " + COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE";
 
             db.execSQL(alter1);

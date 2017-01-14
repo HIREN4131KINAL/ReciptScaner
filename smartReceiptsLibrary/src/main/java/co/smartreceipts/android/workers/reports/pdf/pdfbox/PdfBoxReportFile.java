@@ -42,10 +42,10 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
         int SMALL_SIZE = 10;
 
         Map<String,PdfBoxContext.FontSpec> fonts = new HashMap<>();
-        fonts.put("DEFAULT", new PdfBoxContext.FontSpec(MAIN_FONT, DEFAULT_SIZE));
-        fonts.put("TITLE", new PdfBoxContext.FontSpec(BOLD_FONT, TITLE_SIZE));
-        fonts.put("SMALL", new PdfBoxContext.FontSpec(MAIN_FONT, SMALL_SIZE));
-        fonts.put("TABLE_HEADER", new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
+        fonts.put(DefaultPdfBoxContext.FONT_DEFAULT, new PdfBoxContext.FontSpec(MAIN_FONT, DEFAULT_SIZE));
+        fonts.put(DefaultPdfBoxContext.FONT_TITLE, new PdfBoxContext.FontSpec(BOLD_FONT, TITLE_SIZE));
+        fonts.put(DefaultPdfBoxContext.FONT_SMALL, new PdfBoxContext.FontSpec(MAIN_FONT, SMALL_SIZE));
+        fonts.put(DefaultPdfBoxContext.FONT_TABLE_HEADER, new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
 
 
         context = new DefaultPdfBoxContext(androidContext, dateSeparator);

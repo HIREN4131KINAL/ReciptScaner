@@ -57,6 +57,7 @@ public final class Events {
     }
 
     public static final class Generate {
+        public static final Event GenerateReports = new DefaultEvent(Category.Generate, "GenerateReports");
         public static final Event FullPdfReport = new DefaultEvent(Category.Generate, "FullPdfReport");
         public static final Event ImagesPdfReport = new DefaultEvent(Category.Generate, "ImagesPdfReport");
         public static final Event CsvReport = new DefaultEvent(Category.Generate, "CsvReport");

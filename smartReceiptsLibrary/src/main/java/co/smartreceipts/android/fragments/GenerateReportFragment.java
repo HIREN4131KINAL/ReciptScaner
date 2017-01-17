@@ -84,6 +84,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
             return;
         }
 
+        getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.GenerateReports);
         if (mPdfFullCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.FullPdfReport);
         }

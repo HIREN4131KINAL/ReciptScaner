@@ -6,7 +6,11 @@ import org.slf4j.LoggerFactory;
 public class Logger {
 
     private static org.slf4j.Logger getLoggerForCaller(Object caller) {
-        return LoggerFactory.getLogger(caller.getClass());
+        if (caller instanceof Class<?>) {
+            return LoggerFactory.getLogger((Class<?>)caller);
+        } else {
+            return LoggerFactory.getLogger(caller.getClass());
+        }
     }
 
     public static void debug(Object caller, String msg) {

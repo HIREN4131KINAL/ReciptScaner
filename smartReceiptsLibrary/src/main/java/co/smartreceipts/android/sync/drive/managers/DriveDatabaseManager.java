@@ -63,25 +63,6 @@ public class DriveDatabaseManager {
                 if (dbFile.exists()) {
                     if (!mIsSyncInProgress.getAndSet(true)) {
                         getSyncDatabaseObservable(dbFile)
-                                .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
-                                    @Override
-                                    public Observable<?> call(Observable<? extends Throwable> observable) {
-                                        return observable.flatMap(new Func1<Throwable, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> call(Throwable throwable) {
-                                                if (throwable instanceof IOException) {
-                                                    if (throwable.getMessage() != null && throwable.getMessage().startsWith(DRIVE_NOT_FOUND_EXCEPTION_MESSAGE)) {
-                                                        Logger.error(DriveDatabaseManager.this, "Our drive database id is inaccessible. Attempting clearing and attempting to re-upload");
-                                                        mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this.getClass().getSimpleName() + "#syncDatabase", throwable));
-                                                        mGoogleDriveSyncMetadata.clear();
-                                                        return Observable.just(new Object());
-                                                    }
-                                                }
-                                                return Observable.error(throwable);
-                                            }
-                                        });
-                                    }
-                                })
                                 .observeOn(mObserveOnScheduler)
                                 .subscribeOn(mSubscribeOnScheduler)
                                 .subscribe(new Action1<Identifier>() {

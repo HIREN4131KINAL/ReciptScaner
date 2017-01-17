@@ -95,7 +95,7 @@ public class DriveReceiptsManager {
                         }, new Action1<Throwable>() {
                             @Override
                             public void call(Throwable throwable) {
-                                mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
+                                mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
                                 Logger.error(DriveReceiptsManager.this, "Failed to fetch our unsynced receipt data", throwable);
                                 mIsIntializing.set(false);
                             }
@@ -141,7 +141,7 @@ public class DriveReceiptsManager {
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
+                            mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
                             Logger.error(DriveReceiptsManager.this, "Failed to handle insert/update for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });
@@ -181,7 +181,7 @@ public class DriveReceiptsManager {
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            mAnalytics.record(new ErrorEvent(DriveDatabaseManager.class, throwable));
+                            mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
                             Logger.error(DriveReceiptsManager.this, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
                         }
                     });

@@ -111,7 +111,7 @@ public class DriveRestoreDataManager {
                                 .map(new Func1<Metadata, String>() {
                                     @Override
                                     public String call(Metadata metadata) {
-                                        return System.currentTimeMillis() + "__" + metadata.getOriginalFilename();
+                                        return driveFile.getDriveId().getResourceId() + "__" + metadata.getOriginalFilename();
                                     }
                                 })
                                 .flatMap(new Func1<String, Observable<File>>() {

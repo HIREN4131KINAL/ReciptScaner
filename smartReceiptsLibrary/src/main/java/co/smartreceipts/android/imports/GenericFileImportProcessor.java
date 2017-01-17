@@ -15,6 +15,7 @@ import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.utils.UriUtils;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import wb.android.storage.StorageManager;
@@ -38,6 +39,7 @@ public class GenericFileImportProcessor implements FileImportProcessor {
     @NonNull
     @Override
     public Observable<File> process(@NonNull final Uri uri) {
+        Logger.info(GenericFileImportProcessor.this, "Attempting to import: {}", uri);
         return Observable.create(new Observable.OnSubscribe<File>() {
             @Override
             public void call(Subscriber<? super File> subscriber) {
@@ -48,10 +50,12 @@ public class GenericFileImportProcessor implements FileImportProcessor {
                     if (mStorageManner.copy(inputStream, destination, true)) {
                         subscriber.onNext(destination);
                         subscriber.onCompleted();
+                        Logger.info(GenericFileImportProcessor.this, "Successfully copied Uri to the Smart Receipts directory");
                     } else {
                         subscriber.onError(new FileNotFoundException());
                     }
                 } catch (IOException e) {
+                    Logger.error(GenericFileImportProcessor.this, "Failed to import uri", e);
                     subscriber.onError(e);
                 } finally {
                     StorageManager.closeQuietly(inputStream);

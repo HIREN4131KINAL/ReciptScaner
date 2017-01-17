@@ -88,8 +88,8 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
                             for (final Table table : mDatabaseHelper.getTables()) {
                                 table.clearCache();
                             }
-                            getActivity().finish(); // TODO: Fix this hack (for the settings import)
                             mTableControllerManager.getTripTableController().get();
+                            getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         }

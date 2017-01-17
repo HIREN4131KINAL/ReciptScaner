@@ -372,6 +372,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     public synchronized void clearCache() {
         if (mCachedResults != null) {
             mCachedResults.clear();
+            mCachedResults = null;
         }
     }
 

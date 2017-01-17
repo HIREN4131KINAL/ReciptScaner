@@ -9,10 +9,11 @@ import com.google.common.base.Preconditions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DriveCompletionEventService extends DriveEventService {
 
-    private static final Map<DriveId, DriveIdUploadCompleteCallback> sDriveIdDriveIdCallbackMap = new HashMap<DriveId, DriveIdUploadCompleteCallback>();
+    private static final Map<DriveId, DriveIdUploadCompleteCallback> sDriveIdDriveIdCallbackMap = new ConcurrentHashMap<>();
 
     @Override
     public void onCompletion(CompletionEvent event) {

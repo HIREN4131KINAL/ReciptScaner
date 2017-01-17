@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
@@ -18,6 +19,7 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -33,6 +35,7 @@ public class DriveDatabaseManager {
     private final Analytics mAnalytics;
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
+    private final AtomicBoolean mIsSyncInProgress = new AtomicBoolean(false);
 
     public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
                                 @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
@@ -58,41 +61,51 @@ public class DriveDatabaseManager {
             if (filesDir != null) {
                 final File dbFile = new File(filesDir, DatabaseHelper.DATABASE_NAME);
                 if (dbFile.exists()) {
-                    getSyncDatabaseObservable(dbFile)
-                            .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
-                                @Override
-                                public Observable<?> call(Observable<? extends Throwable> observable) {
-                                    return observable.flatMap(new Func1<Throwable, Observable<?>>() {
-                                        @Override
-                                        public Observable<?> call(Throwable throwable) {
-                                            if (throwable instanceof IOException) {
-                                                if (throwable.getMessage() != null && throwable.getMessage().startsWith(DRIVE_NOT_FOUND_EXCEPTION_MESSAGE)) {
-                                                    Logger.error(DriveDatabaseManager.this, "Our drive database id is inaccessible. Attempting clearing and attempting to re-upload");
-                                                    mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this.getClass().getSimpleName() + "#syncDatabase", throwable));
-                                                    mGoogleDriveSyncMetadata.clear();
-                                                    return Observable.just(new Object());
+                    if (!mIsSyncInProgress.getAndSet(true)) {
+                        getSyncDatabaseObservable(dbFile)
+                                .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
+                                    @Override
+                                    public Observable<?> call(Observable<? extends Throwable> observable) {
+                                        return observable.flatMap(new Func1<Throwable, Observable<?>>() {
+                                            @Override
+                                            public Observable<?> call(Throwable throwable) {
+                                                if (throwable instanceof IOException) {
+                                                    if (throwable.getMessage() != null && throwable.getMessage().startsWith(DRIVE_NOT_FOUND_EXCEPTION_MESSAGE)) {
+                                                        Logger.error(DriveDatabaseManager.this, "Our drive database id is inaccessible. Attempting clearing and attempting to re-upload");
+                                                        mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this.getClass().getSimpleName() + "#syncDatabase", throwable));
+                                                        mGoogleDriveSyncMetadata.clear();
+                                                        return Observable.just(new Object());
+                                                    }
                                                 }
+                                                return Observable.error(throwable);
                                             }
-                                            return Observable.error(throwable);
-                                        }
-                                    });
-                                }
-                            })
-                            .observeOn(mObserveOnScheduler)
-                            .subscribeOn(mSubscribeOnScheduler)
-                            .subscribe(new Action1<Identifier>() {
-                                @Override
-                                public void call(Identifier identifier) {
-                                    Logger.info(DriveDatabaseManager.this, "Successfully synced our database");
-                                    mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
-                                }
-                            }, new Action1<Throwable>() {
-                                @Override
-                                public void call(Throwable throwable) {
-                                    mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this, throwable));
-                                    Logger.error(DriveDatabaseManager.this, "Failed to synced our database", throwable);
-                                }
-                            });
+                                        });
+                                    }
+                                })
+                                .observeOn(mObserveOnScheduler)
+                                .subscribeOn(mSubscribeOnScheduler)
+                                .subscribe(new Action1<Identifier>() {
+                                    @Override
+                                    public void call(Identifier identifier) {
+                                        Logger.info(DriveDatabaseManager.this, "Successfully synced our database");
+                                        mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
+                                    }
+                                }, new Action1<Throwable>() {
+                                    @Override
+                                    public void call(Throwable throwable) {
+                                        mIsSyncInProgress.set(false);
+                                        mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this, throwable));
+                                        Logger.error(DriveDatabaseManager.this, "Failed to synced our database", throwable);
+                                    }
+                                }, new Action0() {
+                                    @Override
+                                    public void call() {
+                                        mIsSyncInProgress.set(false);
+                                    }
+                                });
+                    } else {
+                        Logger.debug(DriveDatabaseManager.this, "A sync is already in progress. Ignoring subsequent one for now");
+                    }
                 } else {
                     Logger.error(DriveDatabaseManager.this, "Failed to find our main database");
                 }

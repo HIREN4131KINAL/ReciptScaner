@@ -68,7 +68,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         setHasOptionsMenu(true);
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mNetworkManager = getSmartReceiptsApplication().getNetworkManager();
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, getPersistenceManager().getDatabase());
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, mNetworkManager, getPersistenceManager().getDatabase());
         mNavigationHandler = new NavigationHandler(getActivity());
     }
 
@@ -160,8 +160,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
             actionBar.setTitle(R.string.backups);
         }
         mCompositeSubscription = new CompositeSubscription();
-        mBackupProvidersManager.registerChangeListener(this);
         updateViewsForProvider(mBackupProvidersManager.getSyncProvider());
+        mBackupProvidersManager.registerChangeListener(this);
     }
 
     @Override
@@ -194,6 +194,11 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     @Override
     public void onProviderChanged(@NonNull SyncProvider newProvider) {
+        // Clear out any existing subscriptions when we change providers
+        mCompositeSubscription.unsubscribe();
+        mCompositeSubscription = new CompositeSubscription();
+        mRemoteBackupsDataCache.clearGetBackupsResults();
+
         updateViewsForProvider(newProvider);
     }
 

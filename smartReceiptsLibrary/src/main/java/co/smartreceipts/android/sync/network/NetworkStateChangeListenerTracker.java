@@ -6,9 +6,18 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import rx.Observable;
+import rx.subjects.PublishSubject;
+
 class NetworkStateChangeListenerTracker {
 
+    private final PublishSubject<Boolean> mSubject = PublishSubject.create();
     private final CopyOnWriteArraySet<NetworkStateChangeListener> mListeners = new CopyOnWriteArraySet<>();
+
+    @NonNull
+    public final Observable<Boolean> getNetworkStateChangeObservable() {
+        return mSubject.asObservable();
+    }
 
     public final void registerListener(@NonNull NetworkStateChangeListener listener) {
         mListeners.add(Preconditions.checkNotNull(listener));
@@ -23,12 +32,14 @@ class NetworkStateChangeListenerTracker {
     }
 
     public final void notifyNetworkConnectivityGained() {
+        mSubject.onNext(true);
         for (final NetworkStateChangeListener listener : mListeners) {
             listener.onNetworkConnectivityGained();
         }
     }
 
     public final void notifyNetworkConnectivityLost() {
+        mSubject.onNext(false);
         for (final NetworkStateChangeListener listener : mListeners) {
             listener.onNetworkConnectivityLost();
         }

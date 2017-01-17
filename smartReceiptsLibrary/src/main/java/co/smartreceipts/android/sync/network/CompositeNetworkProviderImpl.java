@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import rx.Observable;
+
 /**
  * This class provides a simple mechanism to determine whether or not we're currently connected to one or more network
  * types via a composite check
@@ -71,6 +73,11 @@ public class CompositeNetworkProviderImpl implements NetworkProvider, NetworkSta
     @Override
     public synchronized void onNetworkConnectivityGained() {
         checkForConnectionChange();
+    }
+
+    @NonNull
+    public Observable<Boolean> getNetworkStateChangeObservable() {
+        return mNetworkStateChangeListenerTracker.getNetworkStateChangeObservable();
     }
 
     protected synchronized void checkForConnectionChange() {

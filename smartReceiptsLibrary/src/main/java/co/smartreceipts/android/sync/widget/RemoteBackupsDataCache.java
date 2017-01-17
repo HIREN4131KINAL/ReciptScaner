@@ -18,6 +18,7 @@ import java.util.Map;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
@@ -33,13 +34,16 @@ public class RemoteBackupsDataCache {
 
     private final Context mContext;
     private final BackupProvidersManager mBackupProvidersManager;
+    private final NetworkManager mNetworkManager;
     private final DatabaseHelper mDatabaseHelper;
     private RemoteBackupsResultsCacheHeadlessFragment mHeadlessFragment;
 
     public RemoteBackupsDataCache(@NonNull FragmentManager fragmentManager, @NonNull Context context,
-                                  @NonNull BackupProvidersManager backupProvidersManager, @NonNull DatabaseHelper databaseHelper) {
+                                  @NonNull BackupProvidersManager backupProvidersManager, @NonNull NetworkManager networkManager,
+                                  @NonNull DatabaseHelper databaseHelper) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
         Preconditions.checkNotNull(fragmentManager);
 
@@ -60,6 +64,18 @@ public class RemoteBackupsDataCache {
         if (backupsReplaySubject == null) {
             backupsReplaySubject = ReplaySubject.create();
             mBackupProvidersManager.getRemoteBackups()
+                    .retryWhen(new Func1<Observable<? extends Throwable>, Observable<Boolean>>() {
+                        @Override
+                        public Observable<Boolean> call(Observable<? extends Throwable> observable) {
+                            return mNetworkManager.getNetworkStateChangeObservable()
+                                    .filter(new Func1<Boolean, Boolean>() {
+                                        @Override
+                                        public Boolean call(Boolean hasNetwork) {
+                                            return hasNetwork;
+                                        }
+                                    });
+                        }
+                    })
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(backupsReplaySubject);

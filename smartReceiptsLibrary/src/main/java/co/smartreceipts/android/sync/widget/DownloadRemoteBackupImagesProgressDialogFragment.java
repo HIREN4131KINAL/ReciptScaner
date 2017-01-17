@@ -80,7 +80,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getNetworkManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
         mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 

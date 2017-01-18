@@ -38,6 +38,7 @@ import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.managers.DriveRestoreDataManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -177,6 +178,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     @Override
     public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mDriveRestoreDataManager.downloadAllFilesInDriveFolder(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
+        throw new UnsupportedOperationException("TODO: Implement me");
     }
 
     @Override

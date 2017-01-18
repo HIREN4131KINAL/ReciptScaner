@@ -17,6 +17,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -133,5 +134,11 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mBackupProvider.debugDownloadAllData(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
+        return mBackupProvider.getCriticalSyncErrorStream();
     }
 }

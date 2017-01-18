@@ -9,6 +9,7 @@ import java.io.File;
 import java.sql.Date;
 import java.util.List;
 
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
@@ -97,5 +98,13 @@ public interface BackupProvider {
      */
     @NonNull
     Observable<List<File>> debugDownloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+
+    /**
+     * @return an {@link Observable} that emits {@link CriticalSyncError} instances whenever they occur,
+     * allowing us to respond as appropriately for these items
+     */
+    @NonNull
+    Observable<CriticalSyncError> getCriticalSyncErrorStream();
+
 
 }

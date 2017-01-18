@@ -1,8 +1,8 @@
-package co.smartreceipts.android.sync.widget;
+package co.smartreceipts.android.sync.widget.backups;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,40 +11,43 @@ import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
 
+import java.io.File;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.utils.IntentUtils;
+import co.smartreceipts.android.utils.log.Logger;
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragment {
+public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFragment {
 
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
-    private static final String ARG_OVERWRITE = "arg_overwrite";
+    private static final String ARG_DOWNLOAD_DEBUG_MODE = "arg_download_debug_mode";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
     private Analytics mAnalytics;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
-    private TableControllerManager mTableControllerManager;
-    private DatabaseHelper mDatabaseHelper;
-    private boolean mOverwrite;
+    private boolean mDebugMode;
 
-    public static ImportRemoteBackupWorkerProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwrite) {
-        final ImportRemoteBackupWorkerProgressDialogFragment fragment = new ImportRemoteBackupWorkerProgressDialogFragment();
+    public static DownloadRemoteBackupImagesProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        return newInstance(remoteBackupMetadata, false);
+    }
+
+    public static DownloadRemoteBackupImagesProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean debugMode) {
+        final DownloadRemoteBackupImagesProgressDialogFragment fragment = new DownloadRemoteBackupImagesProgressDialogFragment();
         final Bundle args = new Bundle();
         args.putParcelable(ARG_BACKUP_METADATA, remoteBackupMetadata);
-        args.putBoolean(ARG_OVERWRITE, overwrite);
+        args.putBoolean(ARG_DOWNLOAD_DEBUG_MODE, debugMode);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,17 +57,16 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
         super.onCreate(savedInstanceState);
         setCancelable(false);
         mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
-        mOverwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        mTableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
-        mDatabaseHelper = ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getDatabase();
+        mDebugMode = getArguments().getBoolean(ARG_DOWNLOAD_DEBUG_MODE);
         Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
+        Logger.info(this, "Initializing download of [{}] in debug mode == {}", mBackupMetadata, mDebugMode);
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         ProgressDialog dialog = new ProgressDialog(getActivity(), getTheme());
-        dialog.setMessage(getString(R.string.progress_import));
+        dialog.setMessage(getString(R.string.dialog_remote_backup_download_progress));
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         return dialog;
@@ -81,28 +83,26 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mRemoteBackupsDataCache.restoreBackup(mBackupMetadata, mOverwrite)
+        final Observable downloadObservable;
+
+        mSubscription = mRemoteBackupsDataCache.downloadBackup(mBackupMetadata, mDebugMode)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
+                .subscribe(new Action1<File>() {
                     @Override
-                    public void call(@Nullable Boolean success) {
-                        if (success != null && success) {
-                            Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : mDatabaseHelper.getTables()) {
-                                table.clearCache();
-                            }
-                            mTableControllerManager.getTripTableController().get();
-                            getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
+                    public void call(@Nullable File zippedDataFile) {
+                        if (zippedDataFile != null) {
+                            final Intent intent = IntentUtils.getSendIntent(getContext(), zippedDataFile);
+                            getActivity().startActivity(Intent.createChooser(intent, getString(R.string.export)));
                         } else {
-                            Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
-                        Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                        mAnalytics.record(new ErrorEvent(DownloadRemoteBackupImagesProgressDialogFragment.this, throwable));
+                        Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
                         dismiss();
                     }

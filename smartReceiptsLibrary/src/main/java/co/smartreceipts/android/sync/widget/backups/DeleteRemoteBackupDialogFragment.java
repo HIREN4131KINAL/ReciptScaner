@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.widget;
+package co.smartreceipts.android.sync.widget.backups;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

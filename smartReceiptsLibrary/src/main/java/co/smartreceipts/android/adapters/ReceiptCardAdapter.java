@@ -1,24 +1,19 @@
 package co.smartreceipts.android.adapters;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import co.smartreceipts.android.sync.widget.AutomaticBackupsInfoDialogFragment;
+import co.smartreceipts.android.sync.widget.backups.AutomaticBackupsInfoDialogFragment;
 
 public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 

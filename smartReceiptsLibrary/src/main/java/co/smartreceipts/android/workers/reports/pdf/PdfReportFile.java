@@ -1,6 +1,5 @@
 package co.smartreceipts.android.workers.reports.pdf;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.util.List;
 

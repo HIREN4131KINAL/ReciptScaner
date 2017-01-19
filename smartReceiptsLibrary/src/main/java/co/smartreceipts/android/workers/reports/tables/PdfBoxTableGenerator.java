@@ -20,7 +20,6 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
     private final Filter<DataType> mFilter;
     private final boolean mPrintHeaders;
     private final boolean mPrintFooters;
-    private final float mStartingCursorPosition;
     private float topPadding = 40;
     private float cellPadding = 4;
 
@@ -28,14 +27,12 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                 List<Column<DataType>> columns,
                                 Filter<DataType> receiptFilter,
                                 boolean printHeaders,
-                                boolean printFooters,
-                                float currentLineOffset) {
+                                boolean printFooters) {
         this.context = context;
         mColumns = columns;
         mFilter = receiptFilter;
         mPrintHeaders = printHeaders;
         mPrintFooters = printFooters;
-        mStartingCursorPosition = currentLineOffset;
     }
 
     @NonNull

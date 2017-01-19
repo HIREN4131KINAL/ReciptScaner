@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 public class FullPdfReportTest {
 
-    private static final int NUM_RECEIPTS = 150;
+    private static final int NUM_RECEIPTS = 50;
     private static final int NUM_IMAGES = 5;
     @Mock
     Context mContext;
@@ -52,7 +52,7 @@ public class FullPdfReportTest {
     PersistenceManager mPersistenceManager;
 
     @Mock
-    Preferences prefs;
+    Preferences preferences;
 
     @Mock
     Flex mFlex;
@@ -65,9 +65,9 @@ public class FullPdfReportTest {
         MockitoAnnotations.initMocks(this);
         context = RuntimeEnvironment.application;
 
-        when(mPersistenceManager.getPreferences()).thenReturn(prefs);
+        when(mPersistenceManager.getPreferences()).thenReturn(preferences);
 
-        when(prefs.getDateSeparator()).thenReturn("/");
+        when(preferences.getDateSeparator()).thenReturn("/");
 
     }
 
@@ -85,12 +85,12 @@ public class FullPdfReportTest {
                         .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
             }
 
-            Receipt receipt = createReceipt("Receipt " + (i+1), trip, image);
+            Receipt receipt = createReceipt("Receipt with a long long long long description " + (i+1), trip, image);
             receipts.add(receipt);
         }
 
 
-        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, "/");
+        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, preferences, "/");
         ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
         columns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));

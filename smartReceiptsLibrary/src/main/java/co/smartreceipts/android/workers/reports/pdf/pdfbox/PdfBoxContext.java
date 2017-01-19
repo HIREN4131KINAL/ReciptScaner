@@ -8,25 +8,41 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
+import co.smartreceipts.android.persistence.Preferences;
+
 public interface PdfBoxContext {
+
+    /**
+     * The android application {@link Context}.
+     * Used for formatting dates and providing String resources through the
+     * {@link #getString(int, Object...)} method.
+     *
+     * @return
+     */
+    Context getApplicationContext();
+
+    /**
+     * A {@link PDRectangle} that represents the full page size, eg A4 etc.
+     * @return
+     */
+    PDRectangle getPageSize();
+
+    Preferences getPreferences();
 
     FontSpec getFont(String name);
     AWTColor getColor(String name);
 
-
     int getLineSpacing();
     int getPageMarginHorizontal();
     int getPageMarginVertical();
+
     String getString(@StringRes int resId, Object... args);
 
-    String getDateSeparator();
 
-    Context getApplicationContext();
-
-    PDRectangle getPageSize();
 
     class FontSpec {
         private final PDFont font;
+
         private final int size;
 
         public FontSpec(PDFont font, int size) {
@@ -37,11 +53,9 @@ public interface PdfBoxContext {
         public PDFont getFont() {
             return font;
         }
-
         public int getSize() {
             return size;
         }
-
 
     }
 }

@@ -10,6 +10,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
+import co.smartreceipts.android.persistence.Preferences;
 
 /**
  * Encapsulates the calculations and data required to show in the report receipts table
@@ -33,8 +34,7 @@ public class ReceiptsReportTableData {
     public ReceiptsReportTableData(Trip trip,
                                    List<Receipt> receipts,
                                    List<Distance> distances,
-                                   boolean usePreTaxPrice,
-                                   boolean onlyUseReimbursable) {
+                                   Preferences preferences) {
 
         netTotal = new ArrayList<>(receipts.size());
         receiptTotal = new ArrayList<>(receipts.size());
@@ -47,14 +47,14 @@ public class ReceiptsReportTableData {
         final int len = receipts.size();
         for (int i = 0; i < len; i++) {
             final Receipt receipt = receipts.get(i);
-            if (!onlyUseReimbursable || receipt.isReimbursable()) {
+            if (preferences.onlyIncludeReimbursableReceiptsInReports() || receipt.isReimbursable()) {
                 netTotal.add(receipt.getPrice());
                 receiptTotal.add(receipt.getPrice());
                 // Treat taxes as negative prices for the sake of this conversion
                 noTaxesTotal.add(receipt.getPrice());
                 noTaxesTotal.add(new PriceBuilderFactory().setCurrency(receipt.getTax().getCurrency()).setPrice(receipt.getTax().getPrice().multiply(new BigDecimal(-1))).build());
                 taxesTotal.add(receipt.getTax());
-                if (usePreTaxPrice) {
+                if (preferences.usePreTaxPrice()) {
                     netTotal.add(receipt.getTax());
                 }
                 if (receipt.isReimbursable()) {

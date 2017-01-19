@@ -8,6 +8,8 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.util.Map;
 
+import co.smartreceipts.android.persistence.Preferences;
+
 public class DefaultPdfBoxContext implements PdfBoxContext {
 
     /**
@@ -24,14 +26,14 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
 
     private Context context;
-    private String dateSeparator;
     private Map<String, AWTColor> colors;
 
     private Map<String, FontSpec> fonts;
+    private Preferences preferences;
 
-    public DefaultPdfBoxContext(Context context, String dateSeparator) {
+    public DefaultPdfBoxContext(Context context, Preferences preferences) {
         this.context = context;
-        this.dateSeparator = dateSeparator;
+        this.preferences = preferences;
     }
 
 
@@ -67,11 +69,6 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     }
 
     @Override
-    public String getDateSeparator() {
-        return dateSeparator;
-    }
-
-    @Override
     public Context getApplicationContext() {
         return context;
     }
@@ -79,6 +76,11 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     @Override
     public PDRectangle getPageSize() {
         return PDRectangle.A4;
+    }
+
+    @Override
+    public Preferences getPreferences() {
+        return preferences;
     }
 
 

@@ -19,6 +19,7 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
 
@@ -26,9 +27,11 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
     private final DefaultPdfBoxContext context;
     private final PDDocument doc;
+    private final Preferences preferences;
     private List<PdfBoxSection> sections;
 
-    public PdfBoxReportFile(Context androidContext, String dateSeparator) {
+    public PdfBoxReportFile(Context androidContext, Preferences preferences, String dateSeparator) {
+        this.preferences = preferences;
         sections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();
         colors.put(DefaultPdfBoxContext.COLOR_DARK_BLUE, new AWTColor(0, 122, 255));
@@ -48,7 +51,7 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
         fonts.put(DefaultPdfBoxContext.FONT_TABLE_HEADER, new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
 
 
-        context = new DefaultPdfBoxContext(androidContext, dateSeparator);
+        context = new DefaultPdfBoxContext(androidContext, preferences);
         context.setColors(colors);
         context.setFonts(fonts);
         doc = new PDDocument();

@@ -15,6 +15,9 @@ google-services.json
 gradle/wrapper/
 build/
 
+smartReceiptsLibrary/*.pdf
+
+
 #################
 ## Eclipse
 #################

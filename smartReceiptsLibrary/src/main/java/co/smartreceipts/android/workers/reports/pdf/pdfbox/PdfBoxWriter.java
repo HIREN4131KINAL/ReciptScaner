@@ -229,6 +229,7 @@ public class PdfBoxWriter {
             || fileExtension.toLowerCase().equals("jpeg")) {
             ximage = JPEGFactory.createFromStream(doc, in);
         } else if (fileExtension.toLowerCase().equals("png")) {
+            // TODO, doesn't work
             Bitmap bitmap = BitmapFactory.decodeStream(in);
             ximage = LosslessFactory.createFromImage(doc, bitmap);
         } else {
@@ -241,7 +242,6 @@ public class PdfBoxWriter {
         float availableHeight = cell.getHeight() - textHeight - spacing - 2*cell.getCellPadding();
         float availableWidth = cell.getWidth() - 2*cell.getCellPadding();
 
-        // TODO is this correct? paddings?
         PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
                 availableWidth, availableHeight);
 
@@ -249,9 +249,6 @@ public class PdfBoxWriter {
 
         contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
                 resizedRec.getWidth(), resizedRec.getHeight());
-
-//            contentStream.drawImage(ximage, rectangle.getLowerLeftX(), rectangle.getLowerLeftY(),
-//                    rectangle.getWidth(), rectangle.getHeight());
 
     }
 

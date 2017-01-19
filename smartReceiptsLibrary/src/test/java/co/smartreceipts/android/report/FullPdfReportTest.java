@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
@@ -99,9 +100,9 @@ public class FullPdfReportTest {
         columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), context));
 
         // TODO temp
-//        pdfBoxReportFile.addSection(
-//                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
-//                        columns));
+        pdfBoxReportFile.addSection(
+                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
+                        columns));
 
 
         pdfBoxReportFile.addSection(

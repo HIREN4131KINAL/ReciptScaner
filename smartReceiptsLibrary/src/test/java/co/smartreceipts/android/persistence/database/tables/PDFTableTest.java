@@ -111,8 +111,8 @@ public class PDFTableTest {
         assertTrue(mSqlCaptor.getValue().contains("id INTEGER PRIMARY KEY AUTOINCREMENT"));
         assertTrue(mSqlCaptor.getValue().contains("type TEXT"));
         assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN FONT_DEFAULT 0"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN DEFAULT 0"));
         assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
@@ -131,8 +131,8 @@ public class PDFTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(PDFTable.COLUMN_TYPE));
         assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE pdfcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
         assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mPDFTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
@@ -147,8 +147,8 @@ public class PDFTableTest {
         verify(customizer, never()).insertPDFDefaults(mPDFTable);
 
         assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mPDFTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mPDFTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

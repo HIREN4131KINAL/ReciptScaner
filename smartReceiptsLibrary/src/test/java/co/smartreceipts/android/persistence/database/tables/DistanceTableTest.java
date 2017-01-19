@@ -144,8 +144,8 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getValue().contains("rate DECIMAL(10, 2)"));
         assertTrue(mSqlCaptor.getValue().contains("rate_currency TEXT"));
         assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN FONT_DEFAULT 0"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN DEFAULT 0"));
         assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
@@ -171,7 +171,7 @@ public class DistanceTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains("rate_currency"));
 
         // Create
-        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) FONT_DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) FONT_DEFAULT 0.00);");
+        assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE distance (id INTEGER PRIMARY KEY AUTOINCREMENT,parent TEXT REFERENCES name ON DELETE CASCADE,distance DECIMAL(10, 2) DEFAULT 0.00,location TEXT,date DATE,timezone TEXT,comment TEXT,rate_currency TEXT NOT NULL, rate DECIMAL(10, 2) DEFAULT 0.00);");
 
         // Migrate Trip Distances to Distance WHERE the Trip Currency != NULL
         assertEquals(mSqlCaptor.getAllValues().get(1), "INSERT INTO distance(parent, distance, location, date, timezone, comment, rate_currency) SELECT name, miles_new , \"\" as location, from_date, from_timezone , \"\" as comment, trips_default_currency FROM trips WHERE trips_default_currency IS NOT NULL AND miles_new > 0;");
@@ -180,8 +180,8 @@ public class DistanceTableTest {
         assertEquals(mSqlCaptor.getAllValues().get(2), "INSERT INTO distance(parent, distance, location, date, timezone, comment, rate_currency) SELECT name, miles_new , \"\" as location, from_date, from_timezone , \"\" as comment, \"USD\" as rate_currency FROM trips WHERE trips_default_currency IS NULL AND miles_new > 0;");
 
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(5), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(5), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(6), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
@@ -196,8 +196,8 @@ public class DistanceTableTest {
         verifyZeroInteractions(customizer);
 
         assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mDistanceTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

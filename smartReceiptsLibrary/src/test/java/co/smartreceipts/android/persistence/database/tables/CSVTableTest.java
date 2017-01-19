@@ -131,8 +131,8 @@ public class CSVTableTest {
         assertTrue(mSqlCaptor.getAllValues().get(0).contains(CSVTable.COLUMN_TYPE));
         assertEquals(mSqlCaptor.getAllValues().get(0), "CREATE TABLE csvcolumns (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT);");
         assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(4), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 
@@ -147,8 +147,8 @@ public class CSVTableTest {
         verify(customizer, never()).insertCSVDefaults(mCSVTable);
 
         assertEquals(mSqlCaptor.getAllValues().get(0), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_sync_id TEXT");
-        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(1), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        assertEquals(mSqlCaptor.getAllValues().get(2), "ALTER TABLE " + mCSVTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         assertEquals(mSqlCaptor.getAllValues().get(3), "ALTER TABLE " + mCSVTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

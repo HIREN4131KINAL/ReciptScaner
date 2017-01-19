@@ -33,10 +33,10 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
         final String categories = "CREATE TABLE " + getTableName() + " ("
                 + COLUMN_NAME + " TEXT PRIMARY KEY, "
                 + COLUMN_CODE + " TEXT, "
-                + COLUMN_BREAKDOWN + " BOOLEAN FONT_DEFAULT 1, "
+                + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN FONT_DEFAULT 0, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN FONT_DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
 
@@ -50,7 +50,7 @@ public final class CategoriesTable extends AbstractSqlTable<Category, String> {
         super.onUpgrade(db, oldVersion, newVersion, customizer);
         if (oldVersion <= 2) { 
             final String alterCategories = "ALTER TABLE " + getTableName() +
-                                           " ADD " + COLUMN_BREAKDOWN + " BOOLEAN FONT_DEFAULT 1";
+                                           " ADD " + COLUMN_BREAKDOWN + " BOOLEAN DEFAULT 1";
             db.execSQL(alterCategories);
         }
         if (oldVersion <= 14) {

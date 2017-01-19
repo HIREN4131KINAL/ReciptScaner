@@ -208,8 +208,8 @@ public class ReceiptsTableTest {
         assertTrue(mSqlCaptor.getValue().contains("extra_edittext_2 TEXT"));
         assertTrue(mSqlCaptor.getValue().contains("extra_edittext_3 TEXT"));
         assertTrue(mSqlCaptor.getValue().contains("drive_sync_id TEXT"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN FONT_DEFAULT 0"));
-        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_is_synced BOOLEAN DEFAULT 0"));
+        assertTrue(mSqlCaptor.getValue().contains("drive_marked_for_deletion BOOLEAN DEFAULT 0"));
         assertTrue(mSqlCaptor.getValue().contains("last_local_modification_time DATE"));
     }
 
@@ -376,7 +376,7 @@ public class ReceiptsTableTest {
     }
 
     private void verifyV1Upgrade(@NonNull VerificationMode verificationMode) {
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD isocode TEXT NOT NULL FONT_DEFAULT USD");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD isocode TEXT NOT NULL DEFAULT USD");
     }
 
     private void verifyV3Upgrade(@NonNull VerificationMode verificationMode) {
@@ -386,7 +386,7 @@ public class ReceiptsTableTest {
     }
 
     private void verifyV4Upgrade(@NonNull VerificationMode verificationMode) {
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD tax DECIMAL(10, 2) FONT_DEFAULT 0.00");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD tax DECIMAL(10, 2) DEFAULT 0.00");
     }
 
     private void verifyV7Upgrade(@NonNull VerificationMode verificationMode) {
@@ -402,13 +402,13 @@ public class ReceiptsTableTest {
     }
 
     private void verifyV13Upgrade(@NonNull VerificationMode verificationMode) {
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD exchange_rate DECIMAL(10, 10) FONT_DEFAULT -1.00");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE receipts ADD exchange_rate DECIMAL(10, 10) DEFAULT -1.00");
     }
 
     private void verifyV14Upgrade(@NonNull VerificationMode verificationMode) {
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_sync_id TEXT");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_is_synced BOOLEAN FONT_DEFAULT 0");
-        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN FONT_DEFAULT 0");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_is_synced BOOLEAN DEFAULT 0");
+        verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD drive_marked_for_deletion BOOLEAN DEFAULT 0");
         verify(mSQLiteDatabase, verificationMode).execSQL("ALTER TABLE " + mReceiptsTable.getTableName() + " ADD last_local_modification_time DATE");
     }
 

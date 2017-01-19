@@ -54,8 +54,8 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
                 + COLUMN_PROCESSING_STATUS + " TEXT, "
                 + COLUMN_FILTERS + " TEXT, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN FONT_DEFAULT 0, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN FONT_DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE"
                 + ");";
         Logger.debug(this, trips);

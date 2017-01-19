@@ -44,16 +44,16 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
         final String sql = "CREATE TABLE " + TABLE_NAME + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
-                + COLUMN_DISTANCE + " DECIMAL(10, 2) FONT_DEFAULT 0.00,"
+                + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
                 + COLUMN_LOCATION + " TEXT,"
                 + COLUMN_DATE + " DATE,"
                 + COLUMN_TIMEZONE + " TEXT,"
                 + COLUMN_COMMENT + " TEXT,"
                 + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
-                + COLUMN_RATE + " DECIMAL(10, 2) FONT_DEFAULT 0.00, "
+                + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00, "
                 + AbstractSqlTable.COLUMN_DRIVE_SYNC_ID + " TEXT, "
-                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN FONT_DEFAULT 0, "
-                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN FONT_DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED + " BOOLEAN DEFAULT 0, "
+                + AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION + " BOOLEAN DEFAULT 0, "
                 + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " DATE "
                 + ");";
         Logger.debug(this, sql);
@@ -67,13 +67,13 @@ public class DistanceTable extends TripForeignKeyAbstractSqlTable<Distance, Inte
             final String createSqlV12 = "CREATE TABLE " + TABLE_NAME + " ("
                     + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + COLUMN_PARENT + " TEXT REFERENCES " + TripsTable.COLUMN_NAME + " ON DELETE CASCADE,"
-                    + COLUMN_DISTANCE + " DECIMAL(10, 2) FONT_DEFAULT 0.00,"
+                    + COLUMN_DISTANCE + " DECIMAL(10, 2) DEFAULT 0.00,"
                     + COLUMN_LOCATION + " TEXT,"
                     + COLUMN_DATE + " DATE,"
                     + COLUMN_TIMEZONE + " TEXT,"
                     + COLUMN_COMMENT + " TEXT,"
                     + COLUMN_RATE_CURRENCY + " TEXT NOT NULL, "
-                    + COLUMN_RATE + " DECIMAL(10, 2) FONT_DEFAULT 0.00"
+                    + COLUMN_RATE + " DECIMAL(10, 2) DEFAULT 0.00"
                     + ");";
             Logger.debug(this, createSqlV12);
             db.execSQL(createSqlV12);

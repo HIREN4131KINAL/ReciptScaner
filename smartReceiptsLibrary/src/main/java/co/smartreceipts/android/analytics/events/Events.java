@@ -3,7 +3,7 @@ package co.smartreceipts.android.analytics.events;
 public final class Events {
 
     private enum Category implements Event.Category {
-        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings
+        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings, Informational, Sync
     }
 
     public static final class Purchases {
@@ -72,7 +72,12 @@ public final class Events {
     }
 
     public static final class Informational {
-        public static final Event ConfigureReport = new DefaultEvent(Category.Reports, "ConfigureReport");
+        public static final Event ConfigureReport = new DefaultEvent(Category.Informational, "ConfigureReport");
+    }
+
+    public static final class Sync {
+        public static final Event DisplaySyncError = new DefaultEvent(Category.Sync, "DisplaySyncError");
+        public static final Event ClickSyncError = new DefaultEvent(Category.Sync, "ClickSyncError");
     }
 
 }

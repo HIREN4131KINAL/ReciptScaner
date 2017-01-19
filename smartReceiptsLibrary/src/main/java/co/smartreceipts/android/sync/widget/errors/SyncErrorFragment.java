@@ -7,6 +7,11 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
@@ -19,6 +24,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     private SyncErrorInteractor mSyncErrorInteractor;
     private SyncErrorPresenter mSyncErrorPresenter;
     private BackupProvidersManager mBackupProvidersManager;
+    private Analytics mAnalytics;
     private CompositeSubscription mCompositeSubscription;
 
     @Override
@@ -26,7 +32,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
         mBackupProvidersManager = application.getBackupProvidersManager();
-        mSyncErrorInteractor = new SyncErrorInteractor(mBackupProvidersManager, application.getAnalyticsManager());
+        mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), mBackupProvidersManager, application.getAnalyticsManager());
     }
 
     @Override
@@ -70,6 +76,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
             .subscribe(new Action1<SyncErrorType>() {
                 @Override
                 public void call(SyncErrorType syncErrorType) {
+                    mAnalytics.record(new DefaultDataPointEvent(Events.Sync.DisplaySyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
                     mSyncErrorPresenter.present(syncErrorType);
                 }
             }));

@@ -1,11 +1,15 @@
 package co.smartreceipts.android.sync.widget.errors;
 
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.AnalyticsLogger;
+import co.smartreceipts.android.analytics.events.DataPoint;
+import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
@@ -15,10 +19,12 @@ import rx.functions.Func1;
 
 public class SyncErrorInteractor {
 
+    private final FragmentActivity mActivity;
     private final BackupProvidersManager mBackupProvidersManager;
     private final Analytics mAnalytics;
 
-    public SyncErrorInteractor(@NonNull BackupProvidersManager backupProvidersManager, @NonNull Analytics analytics) {
+    public SyncErrorInteractor(@NonNull FragmentActivity activity, @NonNull BackupProvidersManager backupProvidersManager, @NonNull Analytics analytics) {
+        mActivity = Preconditions.checkNotNull(activity);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
         mAnalytics = Preconditions.checkNotNull(analytics);
     }
@@ -38,12 +44,13 @@ public class SyncErrorInteractor {
         final SyncProvider syncProvider = mBackupProvidersManager.getSyncProvider();
         Preconditions.checkArgument(syncProvider == SyncProvider.GoogleDrive, "Only Google Drive clicks are supported");
 
+        mAnalytics.record(new DefaultDataPointEvent(Events.Sync.ClickSyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
         if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
 
         } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
 
         } else if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {
-
+            mBackupProvidersManager.initialize(mActivity);
         } else {
             throw new IllegalArgumentException("Unknown SyncErrorType");
         }

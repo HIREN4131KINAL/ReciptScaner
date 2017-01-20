@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 
 public class ReportInfoFragment extends WBFragment {
 
@@ -65,6 +67,9 @@ public class ReportInfoFragment extends WBFragment {
         mLastTripController = new LastTripController(getActivity());
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), mTrip, getConfigurationManager());
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
+        if (savedInstanceState == null) {
+            getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new SyncErrorFragment()).commit();
+        }
     }
 
 

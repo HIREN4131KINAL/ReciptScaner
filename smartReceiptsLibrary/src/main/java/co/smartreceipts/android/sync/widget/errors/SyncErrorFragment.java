@@ -16,6 +16,8 @@ import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.utils.log.Logger;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
@@ -73,10 +75,17 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     private void updateForProvider(@NonNull SyncProvider provider) {
         mSyncErrorPresenter.present(provider);
         mCompositeSubscription.add(mSyncErrorInteractor.getErrorStream()
-            .subscribe(new Action1<SyncErrorType>() {
+            .doOnNext(new Action1<SyncErrorType>() {
                 @Override
                 public void call(SyncErrorType syncErrorType) {
                     mAnalytics.record(new DefaultDataPointEvent(Events.Sync.DisplaySyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
+                    Logger.info(this, "Received sync error: {}.", syncErrorType);
+                }
+            })
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Action1<SyncErrorType>() {
+                @Override
+                public void call(SyncErrorType syncErrorType) {
                     mSyncErrorPresenter.present(syncErrorType);
                 }
             }));

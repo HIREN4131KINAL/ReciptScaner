@@ -14,6 +14,7 @@ import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -45,8 +46,9 @@ public class SyncErrorInteractor {
         Preconditions.checkArgument(syncProvider == SyncProvider.GoogleDrive, "Only Google Drive clicks are supported");
 
         mAnalytics.record(new DefaultDataPointEvent(Events.Sync.ClickSyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
+        Logger.info(this, "Handling click for sync error: {}.", syncErrorType);
         if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
-
+            // No-op
         } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
 
         } else if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {

@@ -8,6 +8,8 @@
     <color name="smart_receipts_colorAccent">#42a5f5</color>
     <color name="smart_receipts_ripple_light">#44FFFFFF</color>
     <color name="smart_receipts_ripple_dark">#44000000</color>
+    <color name="smart_receipts_colorError">#c62828</color>
+    <color name="smart_receipts_colorError_pressed">#b71c1c</color>
 
     <color name="text_primary">#DFFFFFFF</color>
     <color name="text_secondary">#8AFFFFFF</color>

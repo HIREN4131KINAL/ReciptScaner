@@ -3,11 +3,14 @@ package co.smartreceipts.android.workers.reports.tables;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 public class PdfBoxTableRow {
-    private final FixedWidthCell[] cells;
+    private FixedWidthCell[] cells;
 
     private AWTColor backgroundColor;
     private float width;
 
+
+    public PdfBoxTableRow() {
+    }
 
     public PdfBoxTableRow(FixedWidthCell[] cells, float width, AWTColor backgroundColor) {
         this.cells = cells;

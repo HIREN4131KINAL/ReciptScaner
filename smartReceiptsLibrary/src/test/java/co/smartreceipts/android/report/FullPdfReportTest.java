@@ -78,6 +78,9 @@ public class FullPdfReportTest {
         Trip trip = TripUtils.newDefaultTrip();
 
         List<Receipt> receipts = new ArrayList<>();
+        ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory();
+
+
         for (int i=0; i<NUM_RECEIPTS; i++) {
             File image = null;
             if (i<NUM_IMAGES) {
@@ -85,13 +88,13 @@ public class FullPdfReportTest {
                         .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
             }
 
-            ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory();
-
+            factory.setIsFullPage(i==1);
             Receipt receipt = createReceipt(factory, i+1,
                     i == 2
                             ? "Receipt with a long long " +
                     "long long long long long description " + (i+1)
                     : "Receipt " + (i+1), trip, image);
+
             receipts.add(receipt);
         }
 

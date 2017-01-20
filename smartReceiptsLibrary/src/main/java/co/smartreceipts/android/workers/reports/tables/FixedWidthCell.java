@@ -1,11 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
-public interface FixedWidthCell {
+import co.smartreceipts.android.workers.reports.PdfBoxCell;
 
-    float getWidth();
-
-    float getHeight();
-
-    float getCellPadding();
+public interface FixedWidthCell extends PdfBoxCell {
 
 }

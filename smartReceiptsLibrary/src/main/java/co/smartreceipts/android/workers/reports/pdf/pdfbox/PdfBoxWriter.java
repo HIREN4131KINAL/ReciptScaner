@@ -26,6 +26,7 @@ import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
+import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 
@@ -180,6 +181,15 @@ public class PdfBoxWriter {
     }
 
 
+    void printRowContents(ImagesWithLegendGrid row, float x, float y) {
+        float currentY = y;
+        for (PdfBoxTableRow r : row.getRows()) {
+            float dy = r.getHeight();
+            printRowContents(row, x, currentY);
+            currentY -= dy;
+        }
+    }
+
     void printRowContents(PdfBoxTableRow row, float x, float y) throws IOException {
         float xCell = x;
         float yCell = y;
@@ -200,37 +210,36 @@ public class PdfBoxWriter {
     private void printImageCellContent(FixedSizeImageCell cell, float xCell, float yCell, float height) throws IOException {
 
         File image = cell.getImage();
+        if (image != null) {
+            InputStream in = new FileInputStream(image);
 
-        InputStream in = new FileInputStream(image);
+            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(image).toString());
 
-        String fileExtension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(image).toString());
+            PDImageXObject ximage;
+            if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
+                    || fileExtension.toLowerCase().equals("jpeg")) {
+                ximage = JPEGFactory.createFromStream(doc, in);
+            } else if (fileExtension.toLowerCase().equals("png")) {
+                // TODO, doesn't work
+                Bitmap bitmap = BitmapFactory.decodeStream(in);
+                ximage = LosslessFactory.createFromImage(doc, bitmap);
+            } else {
+                // TODO UNRECOGNIZED IMAGE
+                return;
+            }
 
-        PDImageXObject ximage;
-        if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
-            || fileExtension.toLowerCase().equals("jpeg")) {
-            ximage = JPEGFactory.createFromStream(doc, in);
-        } else if (fileExtension.toLowerCase().equals("png")) {
-            // TODO, doesn't work
-            Bitmap bitmap = BitmapFactory.decodeStream(in);
-            ximage = LosslessFactory.createFromImage(doc, bitmap);
-        } else {
-            // TODO UNRECOGNIZED IMAGE
-            return;
+
+            float availableHeight = cell.getHeight() - 2 * cell.getCellPadding();
+            float availableWidth = cell.getWidth() - 2 * cell.getCellPadding();
+
+            PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
+                    availableWidth, availableHeight);
+
+            PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
+
+            contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
+                    resizedRec.getWidth(), resizedRec.getHeight());
         }
-
-
-
-        float availableHeight = cell.getHeight() - 2*cell.getCellPadding();
-        float availableWidth = cell.getWidth() - 2*cell.getCellPadding();
-
-        PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
-                availableWidth, availableHeight);
-
-        PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
-
-        contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
-                resizedRec.getWidth(), resizedRec.getHeight());
-
     }
 
 

@@ -85,7 +85,13 @@ public class FullPdfReportTest {
                         .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
             }
 
-            Receipt receipt = createReceipt("Receipt with a long long long long description " + (i+1), trip, image);
+            ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory();
+
+            Receipt receipt = createReceipt(factory, i+1,
+                    i == 2
+                            ? "Receipt with a long long " +
+                    "long long long long long description " + (i+1)
+                    : "Receipt " + (i+1), trip, image);
             receipts.add(receipt);
         }
 
@@ -119,11 +125,11 @@ public class FullPdfReportTest {
     }
 
     @NonNull
-    private Receipt createReceipt(String name, Trip trip, File image) {
-        ReceiptBuilderFactory f = ReceiptUtils.newDefaultReceiptBuilderFactory();
+    private Receipt createReceipt(ReceiptBuilderFactory f, int index, String name, Trip trip, File image) {
         f.setTrip(trip);
         f.setName(name);
         f.setImage(image);
+        f.setIndex(index);
 
         return f.build();
     }

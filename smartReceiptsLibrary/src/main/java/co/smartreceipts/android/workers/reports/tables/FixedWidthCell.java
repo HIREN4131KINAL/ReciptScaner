@@ -7,4 +7,5 @@ public interface FixedWidthCell {
     float getHeight();
 
     float getCellPadding();
+
 }

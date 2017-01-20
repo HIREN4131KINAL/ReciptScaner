@@ -13,11 +13,16 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
+import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.tables.TableGenerator;
 
 
 // TODO apply filters etc
+
+/**
+ * Generates a table of images. Every image has a legend that is displayed above the image.
+ */
 public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTable, Receipt> {
 
     // TODO separator
@@ -41,6 +46,12 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
     }
 
 
+
+    /**
+     * We will generate 2 {@link PdfBoxTableRow}s for each visible "row" of the table, one to hold
+     * the legends and another for the images. We do this so that the images of the same row
+     * are aligned with each other (in case the legends differ in height).
+     */
     @NonNull
     @Override
     public PdfBoxImageTable generate(@NonNull List<Receipt> list) {
@@ -50,8 +61,8 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
 
         float cellHeight = availableHeight / NROWS;
 
-        FixedWidthCell[] cells = new FixedWidthCell[NCOLS];
-        FixedSizeImageCell cell;
+        FixedWidthCell[] textCells = new FixedWidthCell[NCOLS];
+        FixedWidthCell[] imageCells = new FixedWidthCell[NCOLS];
         int k = 0;
         if (!list.isEmpty()) {
 
@@ -71,28 +82,41 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                         + receipt.getFormattedDate(context.getApplicationContext(),
                         preferences.getDateSeparator()) + extra;
 
-                cell = new FixedSizeImageCell(cellWidth, cellHeight,
-                        text,
-                        context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
-                        AWTColor.BLACK,
+                FixedWidthTextCell textCell = new FixedWidthTextCell(cellWidth, cellPadding, text,
+                        context.getFont(DefaultPdfBoxContext.FONT_SMALL),
+                        AWTColor.BLACK);
+
+                // leave height empty, we will calculate it later.
+                FixedSizeImageCell imageCell = new FixedSizeImageCell(cellWidth, 0,
                         cellPadding,
                         receipt.getImage()
                 );
 
-                cells[k++] = cell;
+                textCells[k] = textCell;
+                imageCells[k] = imageCell;
+                k++;
                 if (k == NCOLS) {
-                    PdfBoxTableRow row = new PdfBoxTableRow(cells, availableWidth, null);
-                    rows.add(row);
-                    cells = new FixedWidthCell[NCOLS];
+                    PdfBoxTableRow textRow = new PdfBoxTableRow(textCells, availableWidth, null);
+                    PdfBoxTableRow imageRow = new PdfBoxTableRow(imageCells, availableWidth, null);
+
+                    for (int i=0; i <NCOLS; i++) {
+                        ((FixedSizeImageCell) imageCells[i]).setHeight(cellHeight - textRow.getHeight());
+                    }
+
+                    rows.add(textRow);
+                    rows.add(imageRow);
+                    textCells = new FixedWidthCell[NCOLS];
+                    imageCells = new FixedWidthCell[NCOLS];
                     k = 0;
                 }
-
             }
 
             // Add remaining cells (incomplete row)
             if (k < NCOLS) {
-                PdfBoxTableRow row = new PdfBoxTableRow(cells, availableWidth, AWTColor.WHITE);
-                rows.add(row);
+                PdfBoxTableRow textRow = new PdfBoxTableRow(textCells, availableWidth, null);
+                PdfBoxTableRow imagesRow = new PdfBoxTableRow(imageCells, availableWidth, AWTColor.WHITE);
+                rows.add(textRow);
+                rows.add(imagesRow);
             }
         }
 

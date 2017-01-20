@@ -1,34 +1,32 @@
 package co.smartreceipts.android.workers.reports.tables;
 
-import com.tom_roush.pdfbox.util.awt.AWTColor;
-
 import java.io.File;
 
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
-
+/**
+ * A cell that holds an image. The cell is supposed to have a predetermined size and the image should
+ * be adjusted to match its size (respecting the <code>cellPadding</code>. The <code>width</code>
+ * of the cell must be set in the constructor, but the <code>height</code> can be set later.
+ */
 public class FixedSizeImageCell implements FixedWidthCell {
 
     private final float width;
-    private final float height;
-    private final String text;
-    private final PdfBoxContext.FontSpec fontSpec;
-    private final AWTColor color;
+    private float height = -1.0f;
     private float cellPadding;
     private File image;
 
 
+    public FixedSizeImageCell(float width, File image, float cellPadding) {
+        this.width = width;
+        this.image = image;
+        this.cellPadding = cellPadding;
+    }
+
     public FixedSizeImageCell(float width,
                               float height,
-                              String text,
-                              PdfBoxContext.FontSpec fontSpec,
-                              AWTColor color,
                               float cellPadding,
                               File image) {
         this.width = width;
         this.height = height;
-        this.text = text;
-        this.fontSpec = fontSpec;
-        this.color = color;
         this.cellPadding = cellPadding;
         this.image = image;
     }
@@ -41,6 +39,10 @@ public class FixedSizeImageCell implements FixedWidthCell {
 
     @Override
     public float getHeight() {
+        if (height < 0) {
+            throw new IllegalArgumentException("Height for " + FixedSizeImageCell.class.getName() +
+                    " has not been set");
+        }
         return height;
     }
 
@@ -49,19 +51,11 @@ public class FixedSizeImageCell implements FixedWidthCell {
         return cellPadding;
     }
 
-    public PdfBoxContext.FontSpec getFontSpec() {
-        return fontSpec;
-    }
-
-    public AWTColor getColor() {
-        return color;
-    }
-
-    public String getText() {
-        return text;
-    }
-
     public File getImage() {
         return image;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
     }
 }

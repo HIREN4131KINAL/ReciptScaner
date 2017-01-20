@@ -198,28 +198,9 @@ public class PdfBoxWriter {
     }
 
     private void printImageCellContent(FixedSizeImageCell cell, float xCell, float yCell, float height) throws IOException {
-        // TODO calculate it based on the font
-        float textHeight = 30f;
-        float spacing = 10.0f;
-
-        PdfBoxContext.FontSpec fontSpec = cell.getFontSpec();
-
-        float stringWidth = PdfBoxUtils.getStringWidth(cell.getText(), fontSpec);
-
-        float dx = (cell.getWidth() - stringWidth) / 2.0f;
-
-        contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
-        contentStream.setNonStrokingColor(cell.getColor());
-        contentStream.beginText();
-        contentStream.newLineAtOffset(
-                xCell + dx,
-                yCell - textHeight - cell.getCellPadding());
-        contentStream.showText(cell.getText());
-        contentStream.endText();
 
         File image = cell.getImage();
 
-        // TODO print the image
         InputStream in = new FileInputStream(image);
 
         String fileExtension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(image).toString());
@@ -239,7 +220,7 @@ public class PdfBoxWriter {
 
 
 
-        float availableHeight = cell.getHeight() - textHeight - spacing - 2*cell.getCellPadding();
+        float availableHeight = cell.getHeight() - 2*cell.getCellPadding();
         float availableWidth = cell.getWidth() - 2*cell.getCellPadding();
 
         PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),

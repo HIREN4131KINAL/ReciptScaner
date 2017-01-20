@@ -9,7 +9,6 @@ import java.util.List;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.tables.TableGenerator;
@@ -68,10 +67,6 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
     public PdfBoxImageTable generate(@NonNull List<Receipt> list) {
         List<PdfBoxTableRow> rows = new ArrayList<>();
 
-        float cellInGridWidth = availableWidth / NCOLS;
-        float cellInGridHeight = availableHeight / NROWS;
-
-
         ImagesWithLegendGrid grid = null;
         if (!list.isEmpty()) {
 
@@ -79,12 +74,11 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                 final Receipt receipt = list.get(j);
 
                 // If no image, skip
-                if (!receipt.hasImage()) {
+                if (!receipt.hasFile()) {
                     continue;
                 }
 
-
-                if (receipt.isFullPage()) {
+                if (receipt.isFullPage() || receipt.hasPDF()) {
                     // If we have a row in process, finish
                     if (grid != null && !grid.isEmpty()) {
                         rows.addAll(grid.getRows());
@@ -99,7 +93,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                 }
 
                 final String text = buildLegendForImage(receipt);
-                grid.addImageAndLegend(text, receipt.getImage());
+                grid.addImageAndLegend(text, receipt.getFile());
 
                 if (grid.isComplete()) {
                     rows.addAll(grid.getRows());
@@ -114,22 +108,9 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
         }
 
         return new PdfBoxImageTable(rows, null, null);
-
     }
 
-    /**
-     * Creates 2 rows, the legend row and the image row, and adds them to the list of rows.
-     *
-     * @param rows
-     * @param textCells
-     * @param imageCells
-     */
-    private void createAndAddRows(List<PdfBoxTableRow> rows, FixedWidthCell[] textCells, FixedWidthCell[] imageCells) {
-        PdfBoxTableRow textRow = new PdfBoxTableRow(textCells, availableWidth, null);
-        PdfBoxTableRow imageRow = new PdfBoxTableRow(imageCells, availableWidth, null);
-        rows.add(textRow);
-        rows.add(imageRow);
-    }
+
 
     @NonNull
     private String buildLegendForImage(Receipt receipt) {

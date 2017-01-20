@@ -2,9 +2,7 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.support.annotation.StringRes;
-import android.webkit.MimeTypeMap;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
@@ -13,10 +11,12 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import com.tom_roush.pdfbox.rendering.PDFRenderer;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
 import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
+import wb.android.storage.StorageManager;
 
 
 /**
@@ -213,16 +214,31 @@ public class PdfBoxWriter {
         if (image != null) {
             InputStream in = new FileInputStream(image);
 
-            String fileExtension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(image).toString());
+            String fileExtension = StorageManager.getExtension(image);
 
             PDImageXObject ximage;
             if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
                     || fileExtension.toLowerCase().equals("jpeg")) {
                 ximage = JPEGFactory.createFromStream(doc, in);
             } else if (fileExtension.toLowerCase().equals("png")) {
-                // TODO, doesn't work
+                // TODO, doesn't work - maybe it works on Android (not in unit text, because of the bitmap,
+                // same as with pdfs below
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
+            } else if (fileExtension.toLowerCase().equals("pdf")) {
+                PDDocument document = PDDocument.load(image);
+                PDFRenderer renderer = new PDFRenderer(document);
+                Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
+
+                // TODO need to test this on android runtime, wont't work on test
+                File renderFile = new File("a.jpg");
+                FileOutputStream fileOut = new FileOutputStream(renderFile);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOut);
+                fileOut.close();
+//                OutputStream out = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+//                I
+                ximage = JPEGFactory.createFromImage(doc, bitmap);
             } else {
                 // TODO UNRECOGNIZED IMAGE
                 return;

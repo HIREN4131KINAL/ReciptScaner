@@ -68,6 +68,7 @@ public class FullPdfReportTest {
         when(mPersistenceManager.getPreferences()).thenReturn(preferences);
 
         when(preferences.getDateSeparator()).thenReturn("/");
+        when(preferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
 
     }
 
@@ -82,18 +83,20 @@ public class FullPdfReportTest {
 
 
         for (int i=0; i<NUM_RECEIPTS; i++) {
-            File image = null;
+            File file = null;
             if (i<NUM_IMAGES) {
-                image = new File(getClass().getClassLoader()
+                file = new File(getClass().getClassLoader()
                         .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
             }
 
+
             factory.setIsFullPage(i==1);
+            factory.setComment("Comment " + (i+1));
             Receipt receipt = createReceipt(factory, i+1,
                     i == 2
                             ? "Receipt with a long long " +
                     "long long long long long description " + (i+1)
-                    : "Receipt " + (i+1), trip, image);
+                    : "Receipt " + (i+1), trip, file);
 
             receipts.add(receipt);
         }

@@ -296,6 +296,7 @@ public final class WBCurrency {
         final ArrayList<String> nonIso4217Currencies = new ArrayList<String>();
         nonIso4217Currencies.add("BSF");
         nonIso4217Currencies.add("BTC"); // Bitcoin
+        nonIso4217Currencies.add("BYN"); // New Belarus Currency
         nonIso4217Currencies.add("DOGE"); // Dogecoin
         nonIso4217Currencies.add("DRC");
         nonIso4217Currencies.add("GHS");

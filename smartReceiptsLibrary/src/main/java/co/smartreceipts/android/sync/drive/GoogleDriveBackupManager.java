@@ -45,6 +45,8 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.functions.Func1;
+import rx.subjects.BehaviorSubject;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
 
@@ -69,6 +71,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final DatabaseBackupListener<Category> mCategoryDatabaseBackupListener;
     private final DatabaseBackupListener<Column<Receipt>> mCsvColumnDatabaseBackupListener;
     private final DatabaseBackupListener<Column<Receipt>> mPdfColumnDatabaseBackupListener;
+    private final BehaviorSubject<Throwable> mSyncErrorStream;
 
     public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager,
                                     @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
@@ -83,7 +86,8 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mGoogleDriveSyncMetadata = new GoogleDriveSyncMetadata(context);
         mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
         mNetworkManager = Preconditions.checkNotNull(networkManager);
-        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata);
+        mSyncErrorStream = BehaviorSubject.create();
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata, mSyncErrorStream);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
 
         final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager, analytics);
@@ -183,7 +187,23 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     @NonNull
     @Override
     public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
-        throw new UnsupportedOperationException("TODO: Implement me");
+        return mSyncErrorStream.asObservable()
+                .map(new Func1<Throwable, CriticalSyncError>() {
+                    @Override
+                    public CriticalSyncError call(Throwable throwable) {
+                        if (throwable instanceof CriticalSyncError) {
+                            return (CriticalSyncError) throwable;
+                        } else {
+                            return null;
+                        }
+                    }
+                })
+                .filter(new Func1<CriticalSyncError, Boolean>() {
+                    @Override
+                    public Boolean call(CriticalSyncError criticalSyncError) {
+                        return criticalSyncError != null;
+                    }
+                });
     }
 
     @Override

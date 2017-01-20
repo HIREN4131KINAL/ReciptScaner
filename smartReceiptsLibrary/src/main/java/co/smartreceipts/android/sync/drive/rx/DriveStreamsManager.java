@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
+import co.smartreceipts.android.sync.drive.error.DriveThrowableToSyncErrorTranslator;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -25,21 +26,30 @@ import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks {
 
     private final DriveDataStreams mDriveDataStreams;
     private final DriveStreamMappings mDriveStreamMappings;
+    private final Subject<Throwable, Throwable> mDriveErrorStream;
+    private final DriveThrowableToSyncErrorTranslator mSyncErrorTranslator;
     private final AtomicReference<CountDownLatch> mLatchReference;
 
-    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
-        this(new DriveDataStreams(context, googleApiClient, googleDriveSyncMetadata), new DriveStreamMappings());
+    public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
+                               @NonNull Subject<Throwable, Throwable> driveErrorStream) {
+        this(new DriveDataStreams(context, googleApiClient, googleDriveSyncMetadata), new DriveStreamMappings(), driveErrorStream, new DriveThrowableToSyncErrorTranslator());
     }
 
-    public DriveStreamsManager(@NonNull DriveDataStreams driveDataStreams, @NonNull DriveStreamMappings driveStreamMappings) {
+    public DriveStreamsManager(@NonNull DriveDataStreams driveDataStreams, @NonNull DriveStreamMappings driveStreamMappings,
+                               @NonNull Subject<Throwable, Throwable> driveErrorStream, @NonNull DriveThrowableToSyncErrorTranslator syncErrorTranslator) {
         mDriveDataStreams = Preconditions.checkNotNull(driveDataStreams);
         mDriveStreamMappings = Preconditions.checkNotNull(driveStreamMappings);
+        mDriveErrorStream = Preconditions.checkNotNull(driveErrorStream);
+        mSyncErrorTranslator = Preconditions.checkNotNull(syncErrorTranslator);
         mLatchReference = new AtomicReference<>(new CountDownLatch(1));
     }
 
@@ -63,6 +73,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<List<RemoteBackupMetadata>> call(Void aVoid) {
                         return mDriveDataStreams.getSmartReceiptsFolders();
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
     }
 
@@ -76,6 +92,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<DriveId> call(Void aVoid) {
                         return mDriveDataStreams.getDriveId(identifier);
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
     }
 
@@ -88,6 +110,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<DriveId> call(Void aVoid) {
                         return mDriveDataStreams.getFilesInFolder(driveFolder);
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
 
@@ -104,6 +132,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<DriveId> call(Void aVoid) {
                         return mDriveDataStreams.getFilesInFolder(driveFolder, fileName);
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
 
     }
@@ -117,6 +151,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<Metadata> call(Void aVoid) {
                         return mDriveDataStreams.getMetadata(driveFile);
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
 
@@ -145,6 +185,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<SyncState> call(DriveFile driveFile) {
                         return Observable.just(mDriveStreamMappings.postInsertSyncState(currentSyncState, driveFile));
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
     }
 
@@ -169,6 +215,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<Identifier> call(DriveFile driveFile) {
                         return Observable.just(new Identifier(driveFile.getDriveId().getResourceId()));
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
     }
@@ -195,6 +247,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     public Observable<SyncState> call(DriveFile driveFile) {
                         return Observable.just(mDriveStreamMappings.postUpdateSyncState(currentSyncState, driveFile));
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
     }
 
@@ -214,6 +272,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<Identifier> call(DriveFile driveFile) {
                         return Observable.just(new Identifier(driveFile.getDriveId().getResourceId()));
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
     }
@@ -243,6 +307,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                             return Observable.just(currentSyncState);
                         }
                     }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
+                    }
                 });
     }
 
@@ -255,6 +325,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<Boolean> call(Void aVoid) {
                         return mDriveDataStreams.delete(identifier);
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
     }
@@ -269,6 +345,12 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                     @Override
                     public Observable<File> call(Void aVoid) {
                         return mDriveDataStreams.download(driveFile, downloadLocationFile);
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        mDriveErrorStream.onNext(mSyncErrorTranslator.get(throwable));
                     }
                 });
     }

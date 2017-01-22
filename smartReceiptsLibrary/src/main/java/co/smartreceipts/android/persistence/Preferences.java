@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.TypedValue;
 
@@ -271,7 +272,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mAutoBackupOnWifiOnly = prefs.getBoolean(mContext.getString(R.string.pref_no_category_auto_backup_wifi_only_key), mContext.getResources().getBoolean(R.bool.pref_no_category_auto_backup_wifi_only_defaultValue));
     }
 
-    Preferences(Context context, Flex flex, StorageManager storageManager) {
+    @VisibleForTesting
+    public Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
         this.mFlex = flex;
         this.mStorageManager = storageManager;

@@ -62,8 +62,8 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.reports.FullPdfReport;
 import co.smartreceipts.android.workers.reports.ImagesOnlyPdfReport;
+import co.smartreceipts.android.workers.reports.PdfBoxFullPdfReport;
 import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
@@ -293,7 +293,8 @@ public class EmailAssistant {
 
             Logger.info(this, "Generating the following report types {}.", mOptions);
             if (mOptions.contains(EmailOptions.PDF_FULL)) {
-                final Report pdfFullReport = new FullPdfReport(mContext, mPersistenceManager, mFlex);
+//                final Report pdfFullReport = new FullPdfReport(mContext, mPersistenceManager, mFlex);
+                final Report pdfFullReport = new PdfBoxFullPdfReport(mContext, mPersistenceManager, mFlex);
                 try {
                     mFiles[EmailOptions.PDF_FULL.getIndex()] = pdfFullReport.generate(trip);
                 } catch (ReportGenerationException e) {

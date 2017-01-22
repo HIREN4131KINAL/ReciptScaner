@@ -2,141 +2,81 @@ package co.smartreceipts.android.report;
 
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
-import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsPicturedColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsReimbursableColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
+import co.smartreceipts.android.AbstractPdfBoxFullReportTest;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
-import co.smartreceipts.android.utils.ReceiptUtils;
-import co.smartreceipts.android.utils.TripUtils;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
-import wb.android.flex.Flex;
 
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit test version of {@link AbstractPdfBoxFullReportTest}.
+ *
+ * This test should be {@link Ignore}d by default. It's an interactive rather than
+ * an automated test.
+ *
+ */
 @RunWith(RobolectricTestRunner.class)
-public class FullPdfReportTest {
-
-    private static final int NUM_RECEIPTS = 50;
-    private static final int NUM_IMAGES = 5;
-    @Mock
-    Context mContext;
-
-    @Mock
-
-    PersistenceManager mPersistenceManager;
-
-    @Mock
-    Preferences preferences;
-
-    @Mock
-    Flex mFlex;
-
-    private Context context;
+@Ignore
+public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
 
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
-        context = RuntimeEnvironment.application;
+        super.setup();
 
-        when(mPersistenceManager.getPreferences()).thenReturn(preferences);
+        mPersistenceManager = Mockito.mock(PersistenceManager.class);
+        mPreferences = Mockito.mock(Preferences.class);
 
-        when(preferences.getDateSeparator()).thenReturn("/");
-        when(preferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
+        when(mPersistenceManager.getPreferences()).thenReturn(mPreferences);
 
+        when(mPreferences.getDateSeparator()).thenReturn("/");
+        when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
     }
 
 
+    @Override
+    protected Context getContext() {
+        return RuntimeEnvironment.application;
+    }
+
+    /**
+     * The file is generated in the <code>smartReceiptLibrary</code>
+     * module's root directory.
+     * @return
+     */
+    @Override
+    public File createOutputFile() {
+        return new File(OUTPUT_FILE);
+    }
+
+
+    /**
+     * Images are read from the resources directory.
+     * @param fileName
+     * @return
+     */
+    @Override
+    protected File getImageFile(String fileName) {
+        return new File(getClass().getClassLoader()
+                .getResource("pdf/" + fileName).getFile());
+    }
+
+
+
+    @Override
     @Test
     public void testPdfGeneration() throws Exception {
-
-        Trip trip = TripUtils.newDefaultTrip();
-
-        List<Receipt> receipts = new ArrayList<>();
-        ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory();
-
-
-        for (int i=0; i<NUM_RECEIPTS; i++) {
-            File file = null;
-            if (i<NUM_IMAGES) {
-                file = new File(getClass().getClassLoader()
-                        .getResource("pdf/" + String.valueOf(i+1) + ".jpg").getFile());
-            }
-
-
-            factory.setIsFullPage(i==1);
-            factory.setComment("Comment " + (i+1));
-            Receipt receipt = createReceipt(factory, i+1,
-                    i == 2
-                            ? "Receipt with a long long " +
-                    "long long long long long description " + (i+1)
-                    : "Receipt " + (i+1), trip, file);
-
-            receipts.add(receipt);
-        }
-
-
-        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, preferences, "/");
-        ArrayList<Column<Receipt>> columns = new ArrayList<>();
-        columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
-        columns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));
-        columns.add(new ReceiptDateColumn(3, "Date", new DefaultSyncState(), context, mPersistenceManager.getPreferences()));
-        columns.add(new ReceiptCategoryNameColumn(4, "Category name", new DefaultSyncState()));
-        columns.add(new ReceiptIsReimbursableColumn(5, "Reimbursable", new DefaultSyncState(), context));
-        columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), context));
-
-        // TODO temp
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
-                        columns));
-
-
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsImagesSection());
-
-        OutputStream os = new FileOutputStream(new File("aaa3.pdf"));
-
-
-        pdfBoxReportFile.writeFile(os, trip, receipts);
-
-
-        os.close();
-
-    }
-
-    @NonNull
-    private Receipt createReceipt(ReceiptBuilderFactory f, int index, String name, Trip trip, File image) {
-        f.setTrip(trip);
-        f.setName(name);
-        f.setImage(image);
-        f.setIndex(index);
-
-        return f.build();
+        super.testPdfGeneration();
     }
 }

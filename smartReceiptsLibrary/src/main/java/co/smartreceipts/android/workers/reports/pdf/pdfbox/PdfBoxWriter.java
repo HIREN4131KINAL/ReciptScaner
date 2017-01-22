@@ -16,7 +16,6 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -226,19 +225,25 @@ public class PdfBoxWriter {
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {
-                PDDocument document = PDDocument.load(image);
-                PDFRenderer renderer = new PDFRenderer(document);
-                Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
+                try {
+                    PDDocument document = PDDocument.load(image);
+                    PDFRenderer renderer = new PDFRenderer(document);
+                    Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
 
-                // TODO need to test this on android runtime, wont't work on test
-                File renderFile = new File("a.jpg");
-                FileOutputStream fileOut = new FileOutputStream(renderFile);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOut);
-                fileOut.close();
+//                // TODO need to test this on android runtime, wont't work on test
+//                File renderFile = new File("a.jpg");
+//                FileOutputStream fileOut = new FileOutputStream(renderFile);
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOut);
+//                fileOut.close();
 //                OutputStream out = new ByteArrayOutputStream();
 //                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-//                I
-                ximage = JPEGFactory.createFromImage(doc, bitmap);
+//
+                    ximage = JPEGFactory.createFromImage(doc, bitmap);
+                } catch (Exception e) {
+                    // TODO temp
+                    e.printStackTrace();
+                    ximage = null;
+                }
             } else {
                 // TODO UNRECOGNIZED IMAGE
                 return;

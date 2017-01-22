@@ -41,6 +41,11 @@ dependencies {
     testCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
     testCompile "junit:junit:$JUNIT_VERSION"
     testCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
+
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile "org.mockito:mockito-core:$MOCKITO_VERSION"
 }
 
 android {
@@ -56,6 +61,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     lintOptions {
@@ -77,6 +83,16 @@ android {
             setRoot('build-types/release')
 //            assets.srcDirs += 'src/release/assets'
         }
+
+        String sharedTestDir = 'src/testCommon/java'
+        androidTest {
+            java.srcDirs += sharedTestDir
+        }
+
+        test {
+            java.srcDirs += sharedTestDir
+        }
+
     }
 
     testOptions {

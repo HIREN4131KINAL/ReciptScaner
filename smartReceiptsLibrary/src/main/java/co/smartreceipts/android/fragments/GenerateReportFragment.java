@@ -15,7 +15,7 @@ import com.google.common.base.Preconditions;
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.FragmentProvider;
+import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
@@ -30,7 +30,6 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     private CheckBox mZipStampedImagesCheckbox;
 
     private Trip mTrip;
-
     private NavigationHandler mNavigationHandler;
 
     @NonNull

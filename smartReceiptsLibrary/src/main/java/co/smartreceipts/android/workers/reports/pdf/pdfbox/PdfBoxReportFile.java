@@ -30,7 +30,7 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final Preferences preferences;
     private List<PdfBoxSection> sections;
 
-    public PdfBoxReportFile(Context androidContext, Preferences preferences, String dateSeparator) {
+    public PdfBoxReportFile(Context androidContext, Preferences preferences) {
         this.preferences = preferences;
         sections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();

@@ -2,6 +2,8 @@ package co.smartreceipts.android.utils;
 
 import android.os.Environment;
 
+import junit.framework.Assert;
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -12,8 +14,6 @@ import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
-
-import static org.junit.Assert.assertEquals;
 
 public class TripUtils {
 
@@ -67,15 +67,15 @@ public class TripUtils {
     }
 
     public static void assertFieldEquality(Trip trip1, Trip trip2) {
-        assertEquals(trip1.getDirectory(), trip2.getDirectory());
-        assertEquals(trip1.getStartDate(), trip2.getStartDate());
-        assertEquals(trip1.getStartTimeZone(), trip2.getStartTimeZone());
-        assertEquals(trip1.getEndDate(), trip2.getEndDate());
-        assertEquals(trip1.getEndTimeZone(), trip2.getEndTimeZone());
-        assertEquals(trip1.getPrice(), trip2.getPrice());
-        assertEquals(trip1.getDailySubTotal(), trip2.getDailySubTotal());
-        assertEquals(trip1.getComment(), trip2.getComment());
-        assertEquals(trip1.getCostCenter(), trip2.getCostCenter());
+        Assert.assertEquals(trip1.getDirectory(), trip2.getDirectory());
+        Assert.assertEquals(trip1.getStartDate(), trip2.getStartDate());
+        Assert.assertEquals(trip1.getStartTimeZone(), trip2.getStartTimeZone());
+        Assert.assertEquals(trip1.getEndDate(), trip2.getEndDate());
+        Assert.assertEquals(trip1.getEndTimeZone(), trip2.getEndTimeZone());
+        Assert.assertEquals(trip1.getPrice(), trip2.getPrice());
+        Assert.assertEquals(trip1.getDailySubTotal(), trip2.getDailySubTotal());
+        Assert.assertEquals(trip1.getComment(), trip2.getComment());
+        Assert.assertEquals(trip1.getCostCenter(), trip2.getCostCenter());
     }
 
 }

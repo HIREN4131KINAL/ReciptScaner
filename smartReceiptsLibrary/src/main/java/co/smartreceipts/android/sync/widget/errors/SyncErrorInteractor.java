@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.AnalyticsLogger;
 import co.smartreceipts.android.analytics.events.DataPoint;
@@ -50,7 +51,7 @@ public class SyncErrorInteractor {
         if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
             // No-op
         } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
-
+            new NavigationHandler(mActivity).showDialog(new DriveRecoveryDialogFragment());
         } else if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {
             mBackupProvidersManager.initialize(mActivity);
         } else {

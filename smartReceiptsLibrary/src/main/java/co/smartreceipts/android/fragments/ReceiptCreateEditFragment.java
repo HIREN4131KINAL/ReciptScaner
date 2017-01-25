@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
@@ -153,7 +153,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mFile = (File) getArguments().getSerializable(ARG_FILE);
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
-        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
         mCategoriesList = Collections.emptyList();

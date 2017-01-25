@@ -13,9 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
-
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
@@ -55,7 +52,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
 
-        mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
         mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);

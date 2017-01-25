@@ -10,10 +10,12 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import com.google.common.base.Preconditions;
+
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
@@ -32,21 +34,15 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     private NavigationHandler mNavigationHandler;
 
     @NonNull
-    public static GenerateReportFragment newInstance(@NonNull Trip currentTrip) {
-        final GenerateReportFragment fragment = new GenerateReportFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(Trip.PARCEL_KEY, currentTrip);
-        fragment.setArguments(args);
-        return fragment;
+    public static GenerateReportFragment newInstance() {
+        return new GenerateReportFragment();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
     }
-
 
     @Nullable
     @Override
@@ -65,6 +61,15 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
             }
         });
         return root;
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Logger.debug(this, "onActivityCreated");
+        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(mTrip, "A valid trip is required");
     }
 
     @Override

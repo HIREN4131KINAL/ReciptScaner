@@ -14,7 +14,7 @@ import co.smartreceipts.android.fragments.TripFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 
-public interface FragmentProvider {
+public class FragmentProvider {
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.TripFragment} instance
@@ -22,7 +22,9 @@ public interface FragmentProvider {
      * @return a new trip fragment
      */
     @NonNull
-    TripFragment newTripFragmentInstance(boolean navigateToViewLastTrip);
+    public TripFragment newTripFragmentInstance(boolean navigateToViewLastTrip) {
+        return TripFragment.newInstance(navigateToViewLastTrip);
+    }
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReportInfoFragment} instance
@@ -31,7 +33,9 @@ public interface FragmentProvider {
      * @return a new report info fragment
      */
     @NonNull
-    ReportInfoFragment newReportInfoFragment(@NonNull Trip trip);
+    public ReportInfoFragment newReportInfoFragment(@NonNull Trip trip) {
+        return ReportInfoFragment.newInstance(trip);
+    }
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReceiptCreateEditFragment} for a new receipt
@@ -41,7 +45,9 @@ public interface FragmentProvider {
      * @return the new instance of this fragment
      */
     @NonNull
-    ReceiptCreateEditFragment newCreateReceiptFragment(@NonNull Trip trip, @Nullable File file);
+    public ReceiptCreateEditFragment newCreateReceiptFragment(@NonNull Trip trip, @Nullable File file) {
+        return ReceiptCreateEditFragment.newInstance(trip, file);
+    }
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReceiptCreateEditFragment} to edit an existing receipt
@@ -51,7 +57,9 @@ public interface FragmentProvider {
      * @return the new instance of this fragment
      */
     @NonNull
-    ReceiptCreateEditFragment newEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit);
+    public ReceiptCreateEditFragment newEditReceiptFragment(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
+        return ReceiptCreateEditFragment.newInstance(trip, receiptToEdit);
+    }
 
     /**
      * Creates a {@link co.smartreceipts.android.fragments.ReceiptImageFragment} instance
@@ -60,7 +68,9 @@ public interface FragmentProvider {
      * @return a new instance of this fragment
      */
     @NonNull
-    ReceiptImageFragment newReceiptImageFragment(@NonNull Receipt receipt);
+    public ReceiptImageFragment newReceiptImageFragment(@NonNull Receipt receipt) {
+        return ReceiptImageFragment.newInstance(receipt);
+    }
 
     /**
      * Creates a {@link BackupsFragment} instance
@@ -68,7 +78,9 @@ public interface FragmentProvider {
      * @return a new instance of this fragment
      */
     @NonNull
-    BackupsFragment newBackupsFragment();
+    public BackupsFragment newBackupsFragment() {
+        return new BackupsFragment();
+    }
 
     /**
      * Creates a {@link LoginFragment} instance
@@ -76,5 +88,8 @@ public interface FragmentProvider {
      * @return a new instance of this fragment
      */
     @NonNull
-    LoginFragment newLoginFragment();
+    public LoginFragment newLoginFragment() {
+        return LoginFragment.newInstance();
+    }
+
 }

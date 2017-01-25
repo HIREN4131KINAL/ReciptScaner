@@ -20,7 +20,6 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.fragments.preferences.PreferenceHeaderHelpFragment;
 import co.smartreceipts.android.fragments.preferences.PreferenceHeaderReportOutputFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -40,7 +39,7 @@ public class NavigationHandler {
     private final boolean mIsDualPane;
 
     public NavigationHandler(@NonNull FragmentActivity activity) {
-        this(activity, new DefaultFragmentProvider());
+        this(activity, new FragmentProvider());
     }
 
     public NavigationHandler(@NonNull FragmentActivity activity, @NonNull FragmentProvider fragmentProvider) {

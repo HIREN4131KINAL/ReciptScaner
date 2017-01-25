@@ -42,7 +42,7 @@
     <string name="item_name">Name:</string>
     <string name="move">Move</string>
     <string name="move_copy_item">Move/Copy %s?</string>
-    <string name="next_id">Next ID: %s</string>
+    <string name="next_id">Next ID: %d</string>
     <string name="no">No</string>
     <string name="pdf">PDF</string>
     <string name="report">Report</string>

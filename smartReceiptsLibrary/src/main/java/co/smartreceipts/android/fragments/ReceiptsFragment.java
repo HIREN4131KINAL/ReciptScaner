@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 
-import co.smartreceipts.android.BuildConfig;
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -16,21 +18,11 @@ public class ReceiptsFragment extends WBListFragment {
 
     public static final String TAG = "ReceiptsFragment";
 
-    protected Trip mCurrentTrip;
+    protected Trip mTrip;
     private Subscription mIdSubscription;
 
-    public static ReceiptsListFragment newListInstance(@NonNull Trip currentTrip) {
-        final ReceiptsListFragment fragment = new ReceiptsListFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(Trip.PARCEL_KEY, currentTrip);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+    public static ReceiptsListFragment newListInstance() {
+        return new ReceiptsListFragment();
     }
 
     @Override
@@ -43,7 +35,7 @@ public class ReceiptsFragment extends WBListFragment {
     }
 
     protected void updateActionBarTitle(boolean updateSubtitle) {
-        if (mCurrentTrip == null) {
+        if (mTrip == null) {
             return;
         }
 
@@ -66,7 +58,7 @@ public class ReceiptsFragment extends WBListFragment {
                                 }
                             });
                 } else {
-                    actionBar.setSubtitle(getString(R.string.daily_total, mCurrentTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+                    actionBar.setSubtitle(getString(R.string.daily_total, mTrip.getDailySubTotal().getCurrencyFormattedPrice()));
                 }
             }
         }

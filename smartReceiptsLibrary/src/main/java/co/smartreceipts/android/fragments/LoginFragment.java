@@ -16,7 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
@@ -59,7 +59,7 @@ public class LoginFragment extends WBFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
         mIdentityManager = getSmartReceiptsApplication().getIdentityManager();
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);

@@ -26,7 +26,7 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
@@ -75,7 +75,7 @@ public class ReceiptImageFragment extends WBFragment {
             mReceipt = savedInstanceState.getParcelable(KEY_OUT_RECEIPT);
         }
         mIsRotateOngoing = false;
-        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mImageUpdatedListener = new ImageUpdatedListener();
         setHasOptionsMenu(true);
     }

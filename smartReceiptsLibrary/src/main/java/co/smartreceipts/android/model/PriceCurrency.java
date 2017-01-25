@@ -10,8 +10,11 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.utils.log.Logger;
@@ -24,6 +27,8 @@ public final class PriceCurrency {
     @Deprecated
     public static final PriceCurrency MIXED_CURRENCY = new PriceCurrency("MIXED");
 
+    private static final Map<String, PriceCurrency> sCurrencyMap = new ConcurrentHashMap<>();
+
     private final String mCurrencyCode;
     private Currency mCurrency;
 
@@ -32,7 +37,15 @@ public final class PriceCurrency {
 
     @NonNull
     public static PriceCurrency getInstance(@NonNull String currencyCode) {
-        return new PriceCurrency(currencyCode);
+        // Note: I'm not concerned if we have a few duplicate entries (ie this isn't fully thread safe) as the objects are all equal
+        PriceCurrency priceCurrency = sCurrencyMap.get(currencyCode);
+        if (priceCurrency != null) {
+            return priceCurrency;
+        } else {
+            priceCurrency = new PriceCurrency(currencyCode);
+            sCurrencyMap.put(currencyCode, priceCurrency);
+            return priceCurrency;
+        }
     }
 
     @NonNull

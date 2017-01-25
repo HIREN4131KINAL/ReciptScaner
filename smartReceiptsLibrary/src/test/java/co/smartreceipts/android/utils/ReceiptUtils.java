@@ -9,7 +9,7 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 
@@ -25,7 +25,7 @@ public class ReceiptUtils {
         public static final Category CATEGORY = new ImmutableCategoryImpl("Lunch", "LNCH");
         public static final String COMMENT = "";
         public static final String CURRENCY_CODE = "USD";
-        public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE);
+        public static final PriceCurrency CURRENCY = PriceCurrency.getInstance(CURRENCY_CODE);
         public static final long DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date DATE = new Date(DATE_MILLIS);
         public static final String SLASH_FORMATTED_DATE = "Sep/02/2014";

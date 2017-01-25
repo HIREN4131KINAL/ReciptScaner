@@ -8,7 +8,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
-public final class WBCurrency {
+public final class PriceCurrency {
 
     private Currency currency;
     private String code;
@@ -17,30 +17,30 @@ public final class WBCurrency {
     private NumberFormat numberFormat;
 
     public static final String MISSING_CURRENCY_CODE = "NUL";
-    public static final WBCurrency MISSING_CURRENCY = new WBCurrency(MISSING_CURRENCY_CODE);
+    public static final PriceCurrency MISSING_CURRENCY = new PriceCurrency(MISSING_CURRENCY_CODE);
 
     public static final String MIXED_CURRENCY_CODE = "MIXED";
-    public static final WBCurrency MIXED_CURRENCY = new WBCurrency(MIXED_CURRENCY_CODE);
+    public static final PriceCurrency MIXED_CURRENCY = new PriceCurrency(MIXED_CURRENCY_CODE);
 
-    private WBCurrency(Currency currency) {
+    private PriceCurrency(Currency currency) {
         this.currency = currency;
     }
 
-    private WBCurrency(String code) {
+    private PriceCurrency(String code) {
         this.code = code;
     }
 
-    public static WBCurrency getInstance(String currencyCode) {
+    public static PriceCurrency getInstance(String currencyCode) {
         try {
-            return new WBCurrency(Currency.getInstance(currencyCode));
+            return new PriceCurrency(Currency.getInstance(currencyCode));
         } catch (IllegalArgumentException e) {
             // If a currency isn't found, just use the 3 letter code
-            return new WBCurrency(currencyCode);
+            return new PriceCurrency(currencyCode);
         }
     }
 
-    public static WBCurrency getDefault() {
-        return new WBCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+    public static PriceCurrency getDefault() {
+        return new PriceCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
     }
 
     public final String getCurrencyCode() {
@@ -321,7 +321,7 @@ public final class WBCurrency {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        WBCurrency that = (WBCurrency) o;
+        PriceCurrency that = (PriceCurrency) o;
 
         final String currencyCode = getCurrencyCode();
 

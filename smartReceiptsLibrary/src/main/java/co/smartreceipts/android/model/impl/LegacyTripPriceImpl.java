@@ -7,9 +7,8 @@ import android.text.TextUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
 
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
@@ -26,16 +25,16 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     private static final int ROUNDING_PRECISION = PRECISION + 2;
 
     private final BigDecimal mPrice;
-    private final WBCurrency mCurrency;
+    private final PriceCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
 
     /**
      * Default constructor
      *
      * @param price the price as a {@link java.math.BigDecimal}
-     * @param currency the {@link co.smartreceipts.android.model.WBCurrency}. If {@code null}, we assume it's mixed currencies
+     * @param currency the {@link PriceCurrency}. If {@code null}, we assume it's mixed currencies
      */
-    public LegacyTripPriceImpl(@NonNull BigDecimal price, @Nullable WBCurrency currency) {
+    public LegacyTripPriceImpl(@NonNull BigDecimal price, @Nullable PriceCurrency currency) {
         mPrice = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mCurrency = currency;
         mExchangeRate = new ExchangeRateBuilderFactory().build();
@@ -44,7 +43,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
     private LegacyTripPriceImpl(@NonNull Parcel in) {
         mPrice = new BigDecimal(in.readFloat());
         final String currencyCode = in.readString();
-        mCurrency = !TextUtils.isEmpty(currencyCode) ? WBCurrency.getInstance(currencyCode) : null;
+        mCurrency = !TextUtils.isEmpty(currencyCode) ? PriceCurrency.getInstance(currencyCode) : null;
         mExchangeRate = (ExchangeRate) in.readSerializable();
     }
 
@@ -87,11 +86,11 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
     @Override
     @NonNull
-    public WBCurrency getCurrency() {
+    public PriceCurrency getCurrency() {
         if (mCurrency != null) {
             return mCurrency;
         } else {
-            return WBCurrency.MISSING_CURRENCY;
+            return PriceCurrency.MISSING_CURRENCY;
         }
     }
 
@@ -101,7 +100,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
         if (mCurrency != null) {
             return mCurrency.getCurrencyCode();
         } else {
-            return WBCurrency.MISSING_CURRENCY_CODE;
+            return PriceCurrency.MISSING_CURRENCY_CODE;
         }
     }
 

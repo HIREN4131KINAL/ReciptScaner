@@ -22,7 +22,7 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
@@ -191,15 +191,15 @@ public class ReceiptDatabaseAdapterTest {
         when(mTrip.getName()).thenReturn(PARENT);
         when(mTrip.getDirectory()).thenReturn(new File(PARENT));
         when(mTrip.getDefaultCurrencyCode()).thenReturn(CURRENCY_CODE);
-        when(mTrip.getTripCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
+        when(mTrip.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
 
         when(mPrice.getPrice()).thenReturn(new BigDecimal(PRICE));
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
-        when(mPrice.getCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
+        when(mPrice.getCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
         when(mPrice.getExchangeRate()).thenReturn(EXCHANGE_RATE);
         when(mTax.getPrice()).thenReturn(new BigDecimal(TAX));
         when(mTax.getCurrencyCode()).thenReturn(CURRENCY_CODE);
-        when(mTax.getCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
+        when(mTax.getCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
         when(mTax.getExchangeRate()).thenReturn(EXCHANGE_RATE);
 
         when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));

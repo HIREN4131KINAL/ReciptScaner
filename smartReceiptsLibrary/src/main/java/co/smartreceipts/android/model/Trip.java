@@ -134,13 +134,13 @@ public interface Trip extends Parcelable, Priceable, Comparable<Trip>, Syncable 
     /**
      * Gets the currency which this trip is tracked in
      *
-     * @return - the default {@link co.smartreceipts.android.model.WBCurrency} currency representation
+     * @return - the default {@link PriceCurrency} currency representation
      */
     @NonNull
-    WBCurrency getTripCurrency();
+    PriceCurrency getTripCurrency();
 
     /**
-     * Gets the default currency code representation for this trip or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
+     * Gets the default currency code representation for this trip or {@link PriceCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the default currency code {@link java.lang.String} for this trip

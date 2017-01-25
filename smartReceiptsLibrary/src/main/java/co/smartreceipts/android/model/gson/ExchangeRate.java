@@ -7,14 +7,14 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * <p>
  * Tracks the exchange rate from a base currency to a set of other currencies. The base currency
  * is defined in {@link #getBaseCurrency()} and can be exchanged to another currency via the rate
- * from {@link #getExchangeRate(String)} or {@link #getExchangeRate(co.smartreceipts.android.model.WBCurrency)}.
+ * from {@link #getExchangeRate(String)} or {@link #getExchangeRate(PriceCurrency)}.
  * </p>
  * <p>
  * For example, if you had a price defined in "EUR" (the base currency) and wished to exchange it
@@ -37,14 +37,14 @@ public class ExchangeRate implements Serializable {
     /**
      * Gets the base currency for this exchange rate. All exchange rates will be compared against this.
      *
-     * @return the base {@link co.smartreceipts.android.model.WBCurrency}
+     * @return the base {@link PriceCurrency}
      */
     @Nullable
-    public WBCurrency getBaseCurrency() {
+    public PriceCurrency getBaseCurrency() {
         if (base == null) {
             return null;
         } else {
-            return WBCurrency.getInstance(base);
+            return PriceCurrency.getInstance(base);
         }
     }
 
@@ -61,10 +61,10 @@ public class ExchangeRate implements Serializable {
     /**
      * Tests if this exchange rate is properly defined in order to support an exchange rate for a given currency
      *
-     * @param currency the {@link co.smartreceipts.android.model.WBCurrency} to test if we have a valid rate
+     * @param currency the {@link PriceCurrency} to test if we have a valid rate
      * @return {@code true} if we have a valid exchange rate. {@code false} otherwise
      */
-    public boolean supportsExchangeRateFor(@NonNull WBCurrency currency) {
+    public boolean supportsExchangeRateFor(@NonNull PriceCurrency currency) {
         return supportsExchangeRateFor(currency.getCurrencyCode());
     }
 
@@ -93,11 +93,11 @@ public class ExchangeRate implements Serializable {
     /**
      * Gets the exchange rate from the base currency to a currency of your choice
      *
-     * @param exchangeCurrency the {@link co.smartreceipts.android.model.WBCurrency} to exchange to
+     * @param exchangeCurrency the {@link PriceCurrency} to exchange to
      * @return the exchange rate or {@code null} if we did not define one for this currency
      */
     @Nullable
-    public BigDecimal getExchangeRate(@NonNull WBCurrency exchangeCurrency) {
+    public BigDecimal getExchangeRate(@NonNull PriceCurrency exchangeCurrency) {
         return getExchangeRate(exchangeCurrency.getCurrencyCode());
     }
 
@@ -125,11 +125,11 @@ public class ExchangeRate implements Serializable {
      * A "decimal-formatted" price, which would appear to the end user as "25.20" or "25,20" instead of
      * showing naively as "25.2"
      *
-     * @param exchangeCurrency the {@link co.smartreceipts.android.model.WBCurrency} to exchange to
+     * @param exchangeCurrency the {@link PriceCurrency} to exchange to
      * @return the decimal exchange rate or an empty string if we did not define one for this currency
      */
     @NonNull
-    public String getDecimalFormattedExchangeRate(@NonNull WBCurrency exchangeCurrency) {
+    public String getDecimalFormattedExchangeRate(@NonNull PriceCurrency exchangeCurrency) {
         return getDecimalFormattedExchangeRate(exchangeCurrency.getCurrencyCode());
     }
 

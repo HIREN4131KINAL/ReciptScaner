@@ -21,7 +21,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
@@ -94,7 +94,7 @@ public final class FullPdfReport extends AbstractPdfImagesReport {
             distanceTotal.add(distance.getPrice());
         }
 
-        final WBCurrency tripCurrency = trip.getTripCurrency();
+        final PriceCurrency tripCurrency = trip.getTripCurrency();
         final Price netPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
         final Price receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
         final Price reimbursablePrice = new PriceBuilderFactory().setPrices(reimbursableTotal, tripCurrency).build();

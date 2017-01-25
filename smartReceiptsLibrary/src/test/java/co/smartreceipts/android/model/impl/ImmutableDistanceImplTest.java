@@ -15,7 +15,7 @@ import java.util.TimeZone;
 import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.sync.model.SyncState;
 
 import static junit.framework.Assert.assertEquals;
@@ -36,7 +36,7 @@ public class ImmutableDistanceImplTest {
     private static final BigDecimal DISTANCE = new BigDecimal(12.55d);
     private static final BigDecimal RATE = new BigDecimal(0.33d);
     private static final Date DATE = new Date(1409703721000L);
-    private static final WBCurrency CURRENCY = WBCurrency.getInstance("USD");
+    private static final PriceCurrency CURRENCY = PriceCurrency.getInstance("USD");
     private static final TimeZone TIMEZONE = TimeZone.getDefault();
     private static final String COMMENT = "Comment";
 
@@ -132,7 +132,7 @@ public class ImmutableDistanceImplTest {
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, "bad", DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, new BigDecimal(0), RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, new BigDecimal(0), CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
-        assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, WBCurrency.MISSING_CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
+        assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, PriceCurrency.MISSING_CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, new Date(System.currentTimeMillis()), TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, "bad", mSyncState))));
     }

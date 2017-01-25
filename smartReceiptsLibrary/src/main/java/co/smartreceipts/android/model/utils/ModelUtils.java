@@ -11,7 +11,7 @@ import java.text.DecimalFormat;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 
 /**
  * A utility class, which will be used to standard some common functions that are
@@ -88,10 +88,10 @@ public class ModelUtils {
      * The "currency-formatted" value, which would appear as "$25.20" or "$25,20" as determined by the user's locale.
      *
      * @param decimal  - the {@link java.math.BigDecimal} to format
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
      * @return - the currency formatted price {@link java.lang.String}
      */
-    public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable WBCurrency currency) {
+    public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
         if (currency != null) {
             return currency.format(decimal);
         } else {
@@ -104,10 +104,10 @@ public class ModelUtils {
      * The "currency-code-formatted" value, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale.
      *
      * @param decimal  - the {@link java.math.BigDecimal} to format
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
      * @return - the currency formatted price {@link java.lang.String}
      */
-    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable WBCurrency currency) {
+    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
         final StringBuilder stringBuilder = new StringBuilder();
         if (currency != null) {
             stringBuilder.append(currency.getCurrencyCode());

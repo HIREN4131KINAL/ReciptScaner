@@ -14,7 +14,7 @@ import java.util.TimeZone;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -38,11 +38,11 @@ public final class ImmutableDistanceImpl implements Distance {
     private final String mComment;
     private final SyncState mSyncState;
 
-    public ImmutableDistanceImpl(int id, @NonNull Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment) {
+    public ImmutableDistanceImpl(int id, @NonNull Trip trip, String location, BigDecimal distance, BigDecimal rate, PriceCurrency currency, Date date, TimeZone timeZone, String comment) {
         this(id, trip, location, distance, rate, currency, date, timeZone, comment, new DefaultSyncState());
     }
 
-    public ImmutableDistanceImpl(int id, @NonNull Trip trip, String location, BigDecimal distance, BigDecimal rate, WBCurrency currency, Date date, TimeZone timeZone, String comment, @NonNull SyncState syncState) {
+    public ImmutableDistanceImpl(int id, @NonNull Trip trip, String location, BigDecimal distance, BigDecimal rate, PriceCurrency currency, Date date, TimeZone timeZone, String comment, @NonNull SyncState syncState) {
         mId = id;
         mTrip = Preconditions.checkNotNull(trip);
         mLocation = location;

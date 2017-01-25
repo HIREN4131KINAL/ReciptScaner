@@ -1,19 +1,13 @@
 package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
-import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
-import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
@@ -29,7 +23,7 @@ public final class ExchangeRateBuilderFactory implements BuilderFactory<Exchange
         _rates = new HashMap<>();
     }
 
-    public ExchangeRateBuilderFactory setBaseCurrency(@NonNull WBCurrency baseCurrency) {
+    public ExchangeRateBuilderFactory setBaseCurrency(@NonNull PriceCurrency baseCurrency) {
         _baseCurrencyCode = baseCurrency.getCurrencyCode();
         return this;
     }
@@ -54,15 +48,15 @@ public final class ExchangeRateBuilderFactory implements BuilderFactory<Exchange
         return setRate(currencyCode, ModelUtils.tryParse(rateString, new BigDecimal(-1)));
     }
 
-    public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, double rate) {
+    public ExchangeRateBuilderFactory setRate(@NonNull PriceCurrency currency, double rate) {
         return setRate(currency.getCurrencyCode(), rate);
     }
 
-    public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, @NonNull BigDecimal rate) {
+    public ExchangeRateBuilderFactory setRate(@NonNull PriceCurrency currency, @NonNull BigDecimal rate) {
         return setRate(currency.getCurrencyCode(), rate.doubleValue());
     }
 
-    public ExchangeRateBuilderFactory setRate(@NonNull WBCurrency currency, @NonNull String rateString) {
+    public ExchangeRateBuilderFactory setRate(@NonNull PriceCurrency currency, @NonNull String rateString) {
         return setRate(currency.getCurrencyCode(), ModelUtils.tryParse(rateString, new BigDecimal(-1)));
     }
 

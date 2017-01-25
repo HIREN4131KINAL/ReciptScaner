@@ -15,12 +15,11 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -33,7 +32,7 @@ public class DefaultTripImpl implements Trip {
     private final TimeZone mStartTimeZone;
     private final Date mEndDate;
     private final TimeZone mEndTimeZone;
-    private final WBCurrency mDefaultCurrency;
+    private final PriceCurrency mDefaultCurrency;
     private final String mCostCenter;
     private final SyncState mSyncState;
 
@@ -46,7 +45,7 @@ public class DefaultTripImpl implements Trip {
 
 
     public DefaultTripImpl(@NonNull File directory, @NonNull Date startDate, @NonNull TimeZone startTimeZone, @NonNull Date endDate, @NonNull TimeZone endTimeZone,
-                           @NonNull WBCurrency defaultCurrency, @NonNull String comment, @NonNull String costCenter, @Nullable Source source, @NonNull SyncState syncState) {
+                           @NonNull PriceCurrency defaultCurrency, @NonNull String comment, @NonNull String costCenter, @Nullable Source source, @NonNull SyncState syncState) {
         mReportDirectory = Preconditions.checkNotNull(directory);
         mStartDate = Preconditions.checkNotNull(startDate);
         mStartTimeZone = Preconditions.checkNotNull(startTimeZone);
@@ -73,7 +72,7 @@ public class DefaultTripImpl implements Trip {
         mDailySubTotal = in.readParcelable(Price.class.getClassLoader());
         mComment = in.readString();
         mCostCenter = in.readString();
-        mDefaultCurrency = WBCurrency.getInstance(in.readString());
+        mDefaultCurrency = PriceCurrency.getInstance(in.readString());
         mSyncState = in.readParcelable(SyncState.class.getClassLoader());
         mSource = Source.Parcel;
     }
@@ -181,7 +180,7 @@ public class DefaultTripImpl implements Trip {
 
     @Override
     @NonNull
-    public WBCurrency getTripCurrency() {
+    public PriceCurrency getTripCurrency() {
         return mDefaultCurrency;
     }
 

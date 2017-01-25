@@ -3,11 +3,10 @@ package co.smartreceipts.android.model.impl;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
@@ -21,10 +20,10 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
     private static final int ROUNDING_PRECISION = PRECISION + 2;
 
     private final BigDecimal mPrice;
-    private final WBCurrency mCurrency;
+    private final PriceCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
 
-    public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull WBCurrency currency, @NonNull ExchangeRate exchangeRate) {
+    public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull PriceCurrency currency, @NonNull ExchangeRate exchangeRate) {
         mPrice = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mCurrency = currency;
         mExchangeRate = exchangeRate;
@@ -32,7 +31,7 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
     private ImmutablePriceImpl(@NonNull Parcel in) {
         this.mPrice = new BigDecimal(in.readFloat());
-        this.mCurrency = WBCurrency.getInstance(in.readString());
+        this.mCurrency = PriceCurrency.getInstance(in.readString());
         this.mExchangeRate = (ExchangeRate) in.readSerializable();
     }
 
@@ -67,7 +66,7 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
     @Override
     @NonNull
-    public WBCurrency getCurrency() {
+    public PriceCurrency getCurrency() {
         return mCurrency;
     }
 

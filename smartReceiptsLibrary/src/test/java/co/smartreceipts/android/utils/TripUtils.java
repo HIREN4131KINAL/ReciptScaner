@@ -8,7 +8,7 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;
@@ -19,9 +19,9 @@ public class TripUtils {
 
     public static class Constants {
         public static final String CURRENCY_CODE = "USD";
-        public static final WBCurrency CURRENCY = WBCurrency.getInstance(CURRENCY_CODE); // 1
+        public static final PriceCurrency CURRENCY = PriceCurrency.getInstance(CURRENCY_CODE); // 1
         public static final String DEFAULT_CURRENCY_CODE = "USD";
-        public static final WBCurrency DEFAULT_CURRENCY = WBCurrency.getInstance(DEFAULT_CURRENCY_CODE); // 1
+        public static final PriceCurrency DEFAULT_CURRENCY = PriceCurrency.getInstance(DEFAULT_CURRENCY_CODE); // 1
         public static final long START_DATE_MILLIS = 1409703721000L; // 09/02/2014 @ 8:22EDT
         public static final Date START_DATE = new Date(START_DATE_MILLIS);
         public static final String SLASH_FORMATTED_START_DATE = "Sep/02/2014";

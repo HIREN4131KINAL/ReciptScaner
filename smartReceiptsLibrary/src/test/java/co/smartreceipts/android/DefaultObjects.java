@@ -38,7 +38,7 @@ public class DefaultObjects {
                                   TimeZone.getDefault(),
                                   new Date(System.currentTimeMillis()),
                                   TimeZone.getDefault(),
-                                  PriceCurrency.getDefault(),
+                                  PriceCurrency.getDefaultCurrency(),
                                   "comment",
                                   "costCenter",
                                   Source.Undefined,

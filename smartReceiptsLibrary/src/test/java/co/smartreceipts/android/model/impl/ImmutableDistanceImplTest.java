@@ -132,7 +132,7 @@ public class ImmutableDistanceImplTest {
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, "bad", DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, new BigDecimal(0), RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, new BigDecimal(0), CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
-        assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, PriceCurrency.MISSING_CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState))));
+        assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, PriceCurrency.getInstance("EUR"), DATE, TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, new Date(System.currentTimeMillis()), TIMEZONE, COMMENT, mSyncState))));
         assertThat(mDistance, not(equalTo(new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, "bad", mSyncState))));
     }

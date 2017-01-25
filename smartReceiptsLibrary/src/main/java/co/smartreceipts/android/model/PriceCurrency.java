@@ -1,5 +1,10 @@
 package co.smartreceipts.android.model;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.common.base.Preconditions;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -8,116 +13,82 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
+import co.smartreceipts.android.model.utils.ModelUtils;
+import co.smartreceipts.android.utils.log.Logger;
+
 public final class PriceCurrency {
 
-    private Currency currency;
-    private String code;
+    @Deprecated
+    public static final PriceCurrency MISSING_CURRENCY = new PriceCurrency("NUL");
+    
+    @Deprecated
+    public static final PriceCurrency MIXED_CURRENCY = new PriceCurrency("MIXED");
+
+    private final String mCurrencyCode;
+    private Currency mCurrency;
 
     // Saved to reduce Memory Allocs for heavy calls
     private NumberFormat numberFormat;
 
-    public static final String MISSING_CURRENCY_CODE = "NUL";
-    public static final PriceCurrency MISSING_CURRENCY = new PriceCurrency(MISSING_CURRENCY_CODE);
-
-    public static final String MIXED_CURRENCY_CODE = "MIXED";
-    public static final PriceCurrency MIXED_CURRENCY = new PriceCurrency(MIXED_CURRENCY_CODE);
-
-    private PriceCurrency(Currency currency) {
-        this.currency = currency;
+    @NonNull
+    public static PriceCurrency getInstance(@NonNull String currencyCode) {
+        return new PriceCurrency(currencyCode);
     }
 
-    private PriceCurrency(String code) {
-        this.code = code;
+    @NonNull
+    public static PriceCurrency getDefaultCurrency() {
+        return PriceCurrency.getInstance(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
     }
 
-    public static PriceCurrency getInstance(String currencyCode) {
+    private PriceCurrency(@NonNull String currencyCode) {
+        this.mCurrencyCode = Preconditions.checkNotNull(currencyCode);
         try {
-            return new PriceCurrency(Currency.getInstance(currencyCode));
+            mCurrency = Currency.getInstance(currencyCode);
         } catch (IllegalArgumentException e) {
-            // If a currency isn't found, just use the 3 letter code
-            return new PriceCurrency(currencyCode);
+            Logger.warn(this, "Unknown system currency code requested: {}. Handling this internally", currencyCode);
         }
     }
 
-    public static PriceCurrency getDefault() {
-        return new PriceCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
-    }
-
+    @NonNull
     public final String getCurrencyCode() {
-        if (currency != null) {
-            return currency.getCurrencyCode();
-        }
-
-        else {
-            return code;
+        if (mCurrency != null) {
+            return mCurrency.getCurrencyCode();
+        } else {
+            return mCurrencyCode;
         }
     }
 
-    public final String format(final String price) {
-        return format(stringToBigDecimal(price));
-    }
-
-    public final String format(final float price) {
-        return format(new BigDecimal(price));
-    }
-
-    public final String format(final BigDecimal price) {
+    @NonNull
+    public final String format(@NonNull BigDecimal price) {
         try {
-            if (currency != null) {
+            if (mCurrency != null) {
                 if (numberFormat == null) {
+                    // Just in time allocation for this member variable
                     numberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
-                    numberFormat.setCurrency(currency);
+                    numberFormat.setCurrency(mCurrency);
                 }
-                if (price != null) {
-                    return numberFormat.format(price.doubleValue());
-                } else {
-                    return numberFormat.format(new BigDecimal(0));
-                }
+                return numberFormat.format(price.doubleValue());
             } else {
-                return code + formatStringAsStrictDecimal(price);
+                return mCurrencyCode + ModelUtils.getDecimalFormattedValue(price);
             }
         } catch (java.lang.NumberFormatException e) {
             return "$0.00";
         }
     }
 
-
-    private BigDecimal stringToBigDecimal(String input) {
-        try {
-            if (input == null || input.length() == 0)
-                return new BigDecimal(0);
-            else
-                return new BigDecimal(input);
-        } catch (NumberFormatException e) {
-            return new BigDecimal(0);
-        }
-    }
-
-    public static final String formatStringAsStrictDecimal(BigDecimal bigDecimal) {
-        DecimalFormat decimalFormat = new DecimalFormat();
-        decimalFormat.setMaximumFractionDigits(2);
-        decimalFormat.setMinimumFractionDigits(2);
-        decimalFormat.setGroupingUsed(false);
-        return decimalFormat.format(bigDecimal.doubleValue());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof PriceCurrency)) return false;
 
         PriceCurrency that = (PriceCurrency) o;
 
-        final String currencyCode = getCurrencyCode();
+        return mCurrencyCode.equals(that.mCurrencyCode);
 
-        if (currencyCode != null ? !currencyCode.equals(that.getCurrencyCode()) : that.getCurrencyCode() != null) return false;
-
-        return true;
     }
 
     @Override
     public int hashCode() {
-        return getCurrencyCode() != null ? getCurrencyCode().hashCode() : 0;
+        return mCurrencyCode.hashCode();
     }
-
 }

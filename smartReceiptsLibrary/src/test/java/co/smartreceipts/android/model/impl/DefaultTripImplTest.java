@@ -167,7 +167,7 @@ public class DefaultTripImplTest {
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, TimeZone.getTimeZone(TimeZone.getAvailableIDs()[2]), END_DATE, END_TIMEZONE, CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, new Date(System.currentTimeMillis()), END_TIMEZONE, CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, TimeZone.getTimeZone(TimeZone.getAvailableIDs()[2]), CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
-        assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, PriceCurrency.MISSING_CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
+        assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, PriceCurrency.getInstance("EUR"), COMMENT, COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, "bad", COST_CENTER, Source.Undefined, mSyncState))));
         assertThat(mTrip, not(equalTo(new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, COMMENT, "bad", Source.Undefined, mSyncState))));
 

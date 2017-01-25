@@ -5,6 +5,10 @@ dependencies {
     // https://code.google.com/p/android/issues/detail?id=52962#c129
     debugCompile project(path: ':smartReceiptsLibrary', configuration: "debug")
     releaseCompile project(path: ':smartReceiptsLibrary', configuration: "release")
+
+    debugCompile "com.squareup.leakcanary:leakcanary-android:$LEAK_CANARY_VERSION"
+    releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$LEAK_CANARY_VERSION"
+    testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$LEAK_CANARY_VERSION"
 }
 
 android {

@@ -12,6 +12,10 @@ dependencies {
 
     compile "com.google.firebase:firebase-core:$FIREBASE_VERSION"
     compile "com.google.firebase:firebase-crash:$FIREBASE_VERSION"
+
+    debugCompile "com.squareup.leakcanary:leakcanary-android:$LEAK_CANARY_VERSION"
+    releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$LEAK_CANARY_VERSION"
+    testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$LEAK_CANARY_VERSION"
 }
 
 android {

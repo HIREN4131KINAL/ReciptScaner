@@ -100,7 +100,7 @@ public class LegacyTripPriceImpl extends AbstractPriceImpl {
         if (mCurrency != null) {
             return mCurrency.getCurrencyCode();
         } else {
-            return PriceCurrency.MISSING_CURRENCY_CODE;
+            return PriceCurrency.MISSING_CURRENCY.getCurrencyCode();
         }
     }
 

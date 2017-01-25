@@ -8,7 +8,9 @@ import android.text.TextUtils;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.PriceCurrency;
@@ -18,6 +20,8 @@ import co.smartreceipts.android.model.PriceCurrency;
  * shared across multiple model objects
  */
 public class ModelUtils {
+
+    private static final Map<Integer, DecimalFormat> sDecimalFormatCache = new ConcurrentHashMap<>();
 
     private ModelUtils() {
         throw new RuntimeException("This class uses static calls only. It cannot be instantiated");
@@ -77,10 +81,15 @@ public class ModelUtils {
      */
     @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal, int precision) {
-        final DecimalFormat decimalFormat = new DecimalFormat();
-        decimalFormat.setMaximumFractionDigits(precision);
-        decimalFormat.setMinimumFractionDigits(precision);
-        decimalFormat.setGroupingUsed(false);
+        // Note: I'm not concerned if we have a few duplicate entries (ie this isn't fully thread safe) as the objects are all equal
+        DecimalFormat decimalFormat = sDecimalFormatCache.get(precision);
+        if (decimalFormat == null) {
+            decimalFormat = new DecimalFormat();
+            decimalFormat.setMaximumFractionDigits(precision);
+            decimalFormat.setMinimumFractionDigits(precision);
+            decimalFormat.setGroupingUsed(false);
+            sDecimalFormatCache.put(precision, decimalFormat);
+        }
         return decimalFormat.format(decimal);
     }
 
@@ -98,7 +107,6 @@ public class ModelUtils {
             return getDecimalFormattedValue(decimal);
         }
     }
-
 
     /**
      * The "currency-code-formatted" value, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale.

@@ -22,6 +22,7 @@ import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -137,10 +138,11 @@ public class LoginFragment extends WBFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
         if (mLoginParams != null) {
             outState.putParcelable(OUT_LOGIN_PARAMS, mLoginParams);
         }
-        super.onSaveInstanceState(outState);
     }
 
     private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {

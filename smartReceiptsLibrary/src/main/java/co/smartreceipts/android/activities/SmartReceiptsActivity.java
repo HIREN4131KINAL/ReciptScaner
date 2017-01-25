@@ -13,6 +13,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
@@ -171,6 +174,13 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.info(this, "onPause");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Logger.debug(this, "pre-onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "post-onSaveInstanceState");
     }
 
     @Override

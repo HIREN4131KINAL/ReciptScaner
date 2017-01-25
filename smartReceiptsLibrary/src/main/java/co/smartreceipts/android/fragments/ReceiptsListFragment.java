@@ -24,6 +24,7 @@ import com.github.clans.fab.FloatingActionMenu;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.R;
@@ -195,6 +196,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
         outState.putParcelable(OUT_IMAGE_URI, mImageUri);
         outState.putParcelable(OUT_HIGHLIGHTED_RECEIPT, mHighlightedReceipt);
     }

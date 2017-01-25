@@ -17,6 +17,7 @@ import co.smartreceipts.android.activities.DefaultFragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 
 public class GenerateReportFragment extends WBFragment implements View.OnClickListener {
@@ -75,6 +76,13 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
                 actionBar.setSubtitle(null);
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Logger.debug(this, "pre-onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
     }
 
     @Override

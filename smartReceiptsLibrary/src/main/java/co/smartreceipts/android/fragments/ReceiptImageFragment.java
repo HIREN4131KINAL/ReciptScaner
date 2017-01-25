@@ -179,8 +179,9 @@ public class ReceiptImageFragment extends WBFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable(KEY_OUT_RECEIPT, mReceipt);
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+        outState.putParcelable(KEY_OUT_RECEIPT, mReceipt);
     }
 
     @Override

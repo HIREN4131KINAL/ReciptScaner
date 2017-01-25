@@ -102,6 +102,12 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+    }
+
+    @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         final Distance distance = mAdapter.getItem(position);
         final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip, distance);

@@ -147,8 +147,9 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+        outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
     }
 
     public final void tripMenu(final Trip trip) {

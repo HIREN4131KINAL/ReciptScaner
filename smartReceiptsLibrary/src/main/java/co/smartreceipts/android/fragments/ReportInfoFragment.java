@@ -28,6 +28,7 @@ import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class ReportInfoFragment extends WBFragment {
 
@@ -153,8 +154,9 @@ public class ReportInfoFragment extends WBFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable(KEY_OUT_TRIP, mTrip);
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+        outState.putParcelable(KEY_OUT_TRIP, mTrip);
     }
 
     private class ActionBarTitleUpdatesListener extends StubTableEventsListener<Trip> {

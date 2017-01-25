@@ -13,6 +13,9 @@ public final class WBCurrency {
     private Currency currency;
     private String code;
 
+    // Saved to reduce Memory Allocs for heavy calls
+    private NumberFormat numberFormat;
+
     public static final String MISSING_CURRENCY_CODE = "NUL";
     public static final WBCurrency MISSING_CURRENCY = new WBCurrency(MISSING_CURRENCY_CODE);
 
@@ -61,12 +64,14 @@ public final class WBCurrency {
     public final String format(final BigDecimal price) {
         try {
             if (currency != null) {
-                final NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
-                numFormat.setCurrency(currency);
+                if (numberFormat == null) {
+                    numberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+                    numberFormat.setCurrency(currency);
+                }
                 if (price != null) {
-                    return numFormat.format(price.doubleValue());
+                    return numberFormat.format(price.doubleValue());
                 } else {
-                    return numFormat.format(new BigDecimal(0));
+                    return numberFormat.format(new BigDecimal(0));
                 }
             } else {
                 return code + formatStringAsStrictDecimal(price);

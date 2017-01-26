@@ -212,8 +212,6 @@ public class PdfBoxWriter {
                     || fileExtension.toLowerCase().equals("jpeg")) {
                 ximage = JPEGFactory.createFromStream(doc, in);
             } else if (fileExtension.toLowerCase().equals("png")) {
-                // TODO, doesn't work - maybe it works on Android (not in unit text, because of the bitmap,
-                // same as with pdfs below
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {

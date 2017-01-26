@@ -7,8 +7,6 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
 
-import co.smartreceipts.android.R;
-
 
 public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
@@ -22,10 +20,12 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
 
     private final PdfBoxContext context;
+    private String footerText;
 
 
     public DefaultPdfBoxPageDecorations(PdfBoxContext context) {
         this.context = context;
+        footerText = context.getPreferences().getPdfFooterText();
     }
 
     /**
@@ -82,7 +82,7 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
         contentStream.beginText();
         contentStream.newLineAtOffset(context.getPageMarginHorizontal(), context.getPageMarginVertical());
         contentStream.setFont(PDType1Font.HELVETICA_OBLIQUE, 12);
-        contentStream.showText(context.getString(R.string.report_page_footer));
+        contentStream.showText(footerText);
         contentStream.endText();
     }
 

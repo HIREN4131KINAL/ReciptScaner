@@ -4,8 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +16,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -57,14 +58,13 @@ public class PdfBoxFullPdfReport extends AbstractReport {
                     pdfBoxReportFile.createReceiptsImagesSection());
 
 
-
             pdfBoxReportFile.writeFile(pdfStream, trip, receipts);
 
             return getStorageManager().getFile(trip.getDirectory(), outputFileName);
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
+        } catch (IOException e) {
+            Logger.error(this, e);
+            throw new ReportGenerationException(e);
         } finally {
             // TODO
         }

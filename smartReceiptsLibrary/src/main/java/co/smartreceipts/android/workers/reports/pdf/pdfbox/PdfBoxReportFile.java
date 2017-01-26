@@ -20,7 +20,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.workers.reports.ReportGenerationException;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
 
 public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
@@ -59,16 +59,21 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
 
     @Override
-    public void writeFile(OutputStream outStream, Trip trip, List<Receipt> receipts) throws ReportGenerationException {
+    public void writeFile(OutputStream outStream, Trip trip, List<Receipt> receipts) throws IOException {
         try {
             for (PdfBoxSection section : sections) {
                 section.writeSection(trip, receipts);
             }
 
             doc.save(outStream);
-            doc.close();
         } catch (IOException e) {
-            throw new ReportGenerationException(e);
+            throw e;
+        } finally {
+            try {
+                doc.close();
+            } catch (IOException e) {
+                Logger.error(this, e);
+            }
         }
 
     }

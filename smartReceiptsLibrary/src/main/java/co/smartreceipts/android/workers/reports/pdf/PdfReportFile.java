@@ -1,5 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -20,6 +21,6 @@ public interface PdfReportFile {
      * @throws ReportGenerationException
      */
     void writeFile(OutputStream outStream, Trip trip, List<Receipt> receipts)
-            throws ReportGenerationException;
+            throws IOException;
 
 }

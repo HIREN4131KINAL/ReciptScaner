@@ -123,7 +123,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
         for (int i = 0; i < columnCount; i++) {
             String name = mColumns.get(i).getName();
-            if (name.equals("Name") || name.contains("Comment")) {
+            if (name.equals("Name") || name.contains("Comment") || name.contains("Location")) {
                 colWeights[i] = 3;
             } else {
                 colWeights[i] = 1;

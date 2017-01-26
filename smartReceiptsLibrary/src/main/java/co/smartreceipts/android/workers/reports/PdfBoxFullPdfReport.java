@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -53,6 +55,12 @@ public class PdfBoxFullPdfReport extends AbstractReport {
                     pdfBoxReportFile.createReceiptsTableSection(distances,
                             columns));
 
+            if (getPreferences().getPrintDistanceTable() && !distances.isEmpty()) {
+                final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
+                final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
+                pdfBoxReportFile.addSection(
+                        pdfBoxReportFile.createDistancesTableSection(distances, distanceColumns));
+            }
 
             pdfBoxReportFile.addSection(
                     pdfBoxReportFile.createReceiptsImagesSection());

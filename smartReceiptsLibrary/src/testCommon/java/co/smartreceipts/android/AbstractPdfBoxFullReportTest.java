@@ -17,6 +17,13 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.WBCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceCommentColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceCurrencyColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceDateColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceDistanceColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceLocationColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistancePriceColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceRateColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsPicturedColumn;
@@ -101,7 +108,7 @@ public abstract class AbstractPdfBoxFullReportTest {
         ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
         columns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));
-        columns.add(new ReceiptDateColumn(3, "Date", new DefaultSyncState(), mContext, mPersistenceManager.getPreferences()));
+        columns.add(new ReceiptDateColumn(3, "Date", new DefaultSyncState(), mContext, mPreferences));
         columns.add(new ReceiptCategoryNameColumn(4, "Category name", new DefaultSyncState()));
         columns.add(new ReceiptIsReimbursableColumn(5, "Reimbursable", new DefaultSyncState(), mContext));
         columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), mContext));
@@ -118,11 +125,26 @@ public abstract class AbstractPdfBoxFullReportTest {
             distances.add(distanceFactory.build());
         }
 
+        List<Column<Distance>> distanceColumns = new ArrayList<>();
+        distanceColumns.add(new DistanceLocationColumn(1, "Location", new DefaultSyncState(), mContext));
+        distanceColumns.add(new DistancePriceColumn(2, "Price", new DefaultSyncState(), false));
+        distanceColumns.add(new DistanceDistanceColumn(3, "Distance", new DefaultSyncState()));
+        distanceColumns.add(new DistanceCurrencyColumn(4, "Currency", new DefaultSyncState()));
+        distanceColumns.add(new DistanceRateColumn(5, "Rate", new DefaultSyncState()));
+        distanceColumns.add(new DistanceDateColumn(6, "Date", new DefaultSyncState(), mContext, mPreferences));
+        distanceColumns.add(new DistanceCommentColumn(7, "Comment", new DefaultSyncState()));
+
+
+
+
+
 
         pdfBoxReportFile.addSection(
                 pdfBoxReportFile.createReceiptsTableSection(distances,
                         columns));
 
+        pdfBoxReportFile.addSection(
+                pdfBoxReportFile.createDistancesTableSection(distances, distanceColumns));
 
         pdfBoxReportFile.addSection(
                 pdfBoxReportFile.createReceiptsImagesSection());

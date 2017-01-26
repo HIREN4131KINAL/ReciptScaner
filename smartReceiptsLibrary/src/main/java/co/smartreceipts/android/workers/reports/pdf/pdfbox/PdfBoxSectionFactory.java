@@ -8,8 +8,15 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 
 public interface PdfBoxSectionFactory {
-    PdfBoxReceiptsTablePdfSection createReceiptsTableSection(List<Distance> distances, List<Column<Receipt>> columns);
+
+    PdfBoxReceiptsTablePdfSection createReceiptsTableSection(
+            List<Distance> distances, List<Column<Receipt>> columns);
+
     PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection();
+
     PdfBoxSignatureSection createSignatureSection(File signature);
+
+    PdfBoxSection createDistancesTableSection(
+            List<Distance> distances, List<Column<Distance>> columns);
 
 }

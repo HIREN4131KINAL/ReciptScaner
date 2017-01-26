@@ -143,7 +143,7 @@ public class PdfBoxWriter {
         }
 
         if (table.getFooterRow() != null) {
-
+            printRow(table.getFooterRow());
         }
     }
 

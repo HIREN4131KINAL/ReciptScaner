@@ -97,4 +97,9 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     public PdfBoxSignatureSection createSignatureSection(File signature) {
         return new PdfBoxSignatureSection(context, doc, signature);
     }
+
+    @Override
+    public PdfBoxSection createDistancesTableSection(List<Distance> distances, List<Column<Distance>> columns) {
+        return new PdfBoxDistancesTablePdfSection(context, doc, distances, columns);
+    }
 }

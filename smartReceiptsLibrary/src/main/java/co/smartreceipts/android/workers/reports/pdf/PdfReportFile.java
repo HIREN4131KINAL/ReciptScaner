@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
+import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxSection;
 
 public interface PdfReportFile {
 
@@ -22,5 +25,7 @@ public interface PdfReportFile {
      */
     void writeFile(OutputStream outStream, Trip trip, List<Receipt> receipts)
             throws IOException;
+
+
 
 }

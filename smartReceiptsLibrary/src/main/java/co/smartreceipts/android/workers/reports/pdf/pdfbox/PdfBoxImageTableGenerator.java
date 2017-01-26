@@ -14,8 +14,6 @@ import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.tables.TableGenerator;
 
 
-// TODO apply filters etc
-
 /**
  * Generates a table of images. Every image has a legend that is displayed above the image.
  */
@@ -73,8 +71,8 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
             for (int j = 0; j < list.size(); j++) {
                 final Receipt receipt = list.get(j);
 
-                // If no image, skip
-                if (!receipt.hasFile()) {
+                // If filter rejects image or no image, skip
+                if (!mFilter.accept(receipt) || !receipt.hasFile()) {
                     continue;
                 }
 

@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
  *
  * TODO cleanup files on <code>@After</code>
  */
-@Ignore
+//@Ignore
 public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
 
     @Before
@@ -42,6 +42,7 @@ public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
 
         when(mPreferences.getDateSeparator()).thenReturn("/");
         when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
+        when(mPreferences.onlyIncludeReimbursableReceiptsInReports()).thenReturn(true);
     }
 
     @Override

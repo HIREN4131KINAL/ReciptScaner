@@ -78,6 +78,7 @@ public abstract class AbstractPdfBoxFullReportTest {
 
 
             factory.setIsFullPage(i == 1);
+            factory.setIsReimbursable( i%2 == 0);
             Receipt receipt = createReceipt(
                     factory,
                     i + 1,

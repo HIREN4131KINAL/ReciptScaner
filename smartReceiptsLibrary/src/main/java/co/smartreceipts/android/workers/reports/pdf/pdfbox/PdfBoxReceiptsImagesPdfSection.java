@@ -5,21 +5,22 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import java.io.IOException;
 import java.util.List;
 
-import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.Preferences;
 
 
 public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
 
     private PdfBoxWriter writer;
-    // TODO null
-    private Filter<Receipt> receiptFilter;
+    private final Preferences preferences;
 
 
     public PdfBoxReceiptsImagesPdfSection(PdfBoxContext context, PDDocument doc) {
         super(context, doc);
+        this.preferences = context.getPreferences();
     }
 
     @Override
@@ -37,7 +38,7 @@ public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
 
         PdfBoxImageTableGenerator pdfImageTableGenerator =
-                new PdfBoxImageTableGenerator(context, receiptFilter,
+                new PdfBoxImageTableGenerator(context, new LegacyReceiptFilter(preferences),
                         availableWidth, availableHeight);
 
         PdfBoxImageTable table = pdfImageTableGenerator.generate(receipts);

@@ -153,7 +153,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 new PdfBoxTableGenerator<>(context, columns,
                         new LegacyReceiptFilter(preferences), true, false);
 
-        PdfBoxTable table = pdfTableGenerator.generate(receipts);
+        PdfBoxTable table = pdfTableGenerator.generate(receiptsTableList);
 
         writer.writeTable(table);
     }

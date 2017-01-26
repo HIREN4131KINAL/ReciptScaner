@@ -44,6 +44,7 @@ public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
         when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
 //        when(mPreferences.onlyIncludeReimbursableReceiptsInReports()).thenReturn(true);
         when(mPreferences.getPdfFooterText()).thenReturn("Custom Footer!!!");
+        when(mPreferences.getPrintDistanceAsDailyReceipt()).thenReturn(true);
     }
 
     @Override

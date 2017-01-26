@@ -14,6 +14,8 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
@@ -39,6 +41,7 @@ public abstract class AbstractPdfBoxFullReportTest {
     protected static final int NUM_RECEIPTS = 50;
     protected static final int NUM_IMAGES = 5;
     protected static final String OUTPUT_FILE = "report.pdf";
+    private static final int NUM_DISTANCES = 2;
 
     protected Context mContext;
 
@@ -103,8 +106,21 @@ public abstract class AbstractPdfBoxFullReportTest {
         columns.add(new ReceiptIsReimbursableColumn(5, "Reimbursable", new DefaultSyncState(), mContext));
         columns.add(new ReceiptIsPicturedColumn(6, "Pictured", new DefaultSyncState(), mContext));
 
+        List<Distance> distances = new ArrayList<>();
+        DistanceBuilderFactory distanceFactory = new DistanceBuilderFactory();
+        for (int i=0; i<NUM_DISTANCES; i++) {
+            distanceFactory.setTrip(trip);
+            distanceFactory.setRate(20);
+            distanceFactory.setDistance(10);
+            distanceFactory.setCurrency(WBCurrency.getInstance("USD"));
+            distanceFactory.setLocation("Location " + String.valueOf(i+1));
+
+            distances.add(distanceFactory.build());
+        }
+
+
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
+                pdfBoxReportFile.createReceiptsTableSection(distances,
                         columns));
 
 

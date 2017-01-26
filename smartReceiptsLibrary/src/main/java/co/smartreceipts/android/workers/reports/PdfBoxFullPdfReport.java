@@ -45,11 +45,11 @@ public class PdfBoxFullPdfReport extends AbstractReport {
 
             final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
             final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
-
+            final List<Distance> distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
 
 
             pdfBoxReportFile.addSection(
-                    pdfBoxReportFile.createReceiptsTableSection(new ArrayList<Distance>(),
+                    pdfBoxReportFile.createReceiptsTableSection(distances,
                             columns));
 
 

@@ -25,7 +25,6 @@ import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
-import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 import wb.android.storage.StorageManager;
@@ -96,6 +95,9 @@ public class PdfBoxWriter {
 
     public void writeNewLine(PdfBoxContext.FontSpec spec,
                              String str) throws IOException {
+        if (!inTextBlock) {
+            throw new IllegalStateException("Tried to write out text, without opening a text block first");
+        }
         // set the font
         contentStream.setFont(spec.getFont(), spec.getSize());
         // calculate dy (font size + line spacing)
@@ -180,16 +182,6 @@ public class PdfBoxWriter {
         return true;
     }
 
-
-    void printRowContents(ImagesWithLegendGrid row, float x, float y) {
-        float currentY = y;
-        for (PdfBoxTableRow r : row.getRows()) {
-            float dy = r.getHeight();
-            printRowContents(row, x, currentY);
-            currentY -= dy;
-        }
-    }
-
     void printRowContents(PdfBoxTableRow row, float x, float y) throws IOException {
         float xCell = x;
         float yCell = y;
@@ -225,25 +217,10 @@ public class PdfBoxWriter {
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {
-                try {
-                    PDDocument document = PDDocument.load(image);
-                    PDFRenderer renderer = new PDFRenderer(document);
-                    Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
-
-//                // TODO need to test this on android runtime, wont't work on test
-//                File renderFile = new File("a.jpg");
-//                FileOutputStream fileOut = new FileOutputStream(renderFile);
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOut);
-//                fileOut.close();
-//                OutputStream out = new ByteArrayOutputStream();
-//                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-//
-                    ximage = JPEGFactory.createFromImage(doc, bitmap);
-                } catch (Exception e) {
-                    // TODO temp
-                    e.printStackTrace();
-                    ximage = null;
-                }
+                PDDocument document = PDDocument.load(image);
+                PDFRenderer renderer = new PDFRenderer(document);
+                Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
+                ximage = JPEGFactory.createFromImage(doc, bitmap);
             } else {
                 // TODO UNRECOGNIZED IMAGE
                 return;
@@ -264,14 +241,13 @@ public class PdfBoxWriter {
     }
 
 
-
     /**
      * Prints the cell content centering the contents vertically and horizontally.
      *
      * @param cell
      * @param xCell
      * @param yCell
-     * @param rowHeight      @throws IOException
+     * @param rowHeight @throws IOException
      */
     private void printTextCellContent(FixedWidthTextCell cell,
                                       float xCell,
@@ -291,7 +267,6 @@ public class PdfBoxWriter {
             float stringWidth = PdfBoxUtils.getStringWidth(lines.get(i), fontSpec);
             float dx = (cell.getWidth() - stringWidth) / 2.0f;
 
-
             contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
             contentStream.setNonStrokingColor(cell.getColor());
             contentStream.beginText();
@@ -302,7 +277,6 @@ public class PdfBoxWriter {
             contentStream.endText();
 
             y -= PdfBoxUtils.getFontHeight(fontSpec);
-
         }
 
     }

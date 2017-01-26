@@ -13,10 +13,10 @@ import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
 
 /**
- * Encapsulates the calculations and data required to show in the report receipts table
- * and that are independent of the pdf library implementation.
+ * Encapsulates the calculations and data of receipts totals.
+ * Independent of the pdf library implementation.
  */
-public class ReceiptsReportTableData {
+public class ReceiptsTotals {
 
     final ArrayList<Price> netTotal;
     final ArrayList<Price> receiptTotal;
@@ -31,10 +31,10 @@ public class ReceiptsReportTableData {
     public final Price taxPrice;
     public final Price distancePrice;
 
-    public ReceiptsReportTableData(Trip trip,
-                                   List<Receipt> receipts,
-                                   List<Distance> distances,
-                                   Preferences preferences) {
+    public ReceiptsTotals(Trip trip,
+                          List<Receipt> receipts,
+                          List<Distance> distances,
+                          Preferences preferences) {
 
         netTotal = new ArrayList<>(receipts.size());
         receiptTotal = new ArrayList<>(receipts.size());
@@ -47,7 +47,7 @@ public class ReceiptsReportTableData {
         final int len = receipts.size();
         for (int i = 0; i < len; i++) {
             final Receipt receipt = receipts.get(i);
-            if (preferences.onlyIncludeReimbursableReceiptsInReports() || receipt.isReimbursable()) {
+            if (!preferences.onlyIncludeReimbursableReceiptsInReports() || receipt.isReimbursable()) {
                 netTotal.add(receipt.getPrice());
                 receiptTotal.add(receipt.getPrice());
                 // Treat taxes as negative prices for the sake of this conversion

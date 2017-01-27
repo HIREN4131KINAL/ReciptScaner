@@ -53,6 +53,7 @@ public class SyncErrorPresenter {
                 mErrorLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        mErrorLayout.setVisibility(View.GONE);
                         mClickStream.onNext(syncErrorType);
                     }
                 });

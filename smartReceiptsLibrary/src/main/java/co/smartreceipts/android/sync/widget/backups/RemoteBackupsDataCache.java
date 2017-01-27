@@ -92,7 +92,7 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    public synchronized Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+    public synchronized Observable<Boolean> deleteBackup(@Nullable RemoteBackupMetadata remoteBackupMetadata) {
         if (mHeadlessFragment.deleteBackupReplaySubjectMap == null) {
             mHeadlessFragment.deleteBackupReplaySubjectMap = new HashMap<>();
         }
@@ -102,18 +102,24 @@ public class RemoteBackupsDataCache {
             getBackupMetadata(remoteBackupMetadata)
                     .flatMap(new Func1<RemoteBackupMetadata, Observable<Boolean>>() {
                         @Override
-                        public Observable<Boolean> call(final RemoteBackupMetadata remoteBackupMetadata) {
-                            return deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
-                                    .flatMap(new Func1<Boolean, Observable<Boolean>>() {
-                                        @Override
-                                        public Observable<Boolean> call(Boolean success) {
-                                            if (success) {
-                                                return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
-                                            } else {
-                                                return Observable.just(false);
+                        public Observable<Boolean> call(@Nullable final RemoteBackupMetadata remoteBackupMetadata) {
+                                return deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
+                                        .flatMap(new Func1<Boolean, Observable<Boolean>>() {
+                                            @Override
+                                            public Observable<Boolean> call(Boolean success) {
+                                                if (success) {
+                                                    if (remoteBackupMetadata == null) {
+                                                        Logger.info(RemoteBackupsDataCache.this, "Clearing current configuration");
+                                                        return mBackupProvidersManager.clearCurrentBackupConfiguration();
+                                                    } else {
+                                                        Logger.info(RemoteBackupsDataCache.this, "Deleting provided metadata");
+                                                        return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
+                                                    }
+                                                } else {
+                                                    return Observable.just(false);
+                                                }
                                             }
-                                        }
-                                    });
+                                        });
                         }
                     })
                     .subscribeOn(Schedulers.io())
@@ -215,13 +221,8 @@ public class RemoteBackupsDataCache {
                                         return metadata;
                                     }
                                 }
+                                Logger.warn(this, "No local backup currently exists.");
                                 return null;
-                            }
-                        })
-                        .filter(new Func1<RemoteBackupMetadata, Boolean>() {
-                            @Override
-                            public Boolean call(RemoteBackupMetadata remoteBackupMetadata) {
-                                return remoteBackupMetadata != null;
                             }
                         });
         } else {
@@ -231,8 +232,8 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    private Observable<Boolean> deleteLocalSyncDataIfNeeded(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
-        if (remoteBackupMetadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
+    private Observable<Boolean> deleteLocalSyncDataIfNeeded(@Nullable final RemoteBackupMetadata remoteBackupMetadata) {
+        if (remoteBackupMetadata == null || remoteBackupMetadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
             return mDatabaseHelper.getReceiptsTable().deleteSyncData(mBackupProvidersManager.getSyncProvider());
         } else {
             return Observable.just(true);

@@ -337,6 +337,10 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
                 });
     }
 
+    public void clearCachedData() {
+        mDriveDataStreams.clear();
+    }
+
     @NonNull
     public Observable<File> download(@NonNull final DriveFile driveFile, @NonNull final File downloadLocationFile) {
         Preconditions.checkNotNull(driveFile);

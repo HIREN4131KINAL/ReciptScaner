@@ -125,6 +125,11 @@ public class BackupProvidersManager implements BackupProvider {
         return mBackupProvider.deleteBackup(remoteBackupMetadata);
     }
 
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        return mBackupProvider.clearCurrentBackupConfiguration();
+    }
+
     @NonNull
     @Override
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {

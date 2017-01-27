@@ -80,6 +80,14 @@ public interface BackupProvider {
     @NonNull
     Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
 
+
+    /**
+     * Attempts to clear out the current backup configuration
+     *
+     * @return an {@link Observable} for the delete operation with a success boolean
+     */
+    Observable<Boolean> clearCurrentBackupConfiguration();
+
     /**
      * Downloads an existing backup to a specific location
      *

@@ -91,6 +91,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                     @Override
                     public void call(Boolean deleteSuccess) {
                         if (deleteSuccess) {
+                            Logger.info(DeleteRemoteBackupProgressDialogFragment.this, "Successfully handled delete of {}", mBackupMetadata);
                             if (mBackupMetadata != null) {
                                 Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
                             } else {

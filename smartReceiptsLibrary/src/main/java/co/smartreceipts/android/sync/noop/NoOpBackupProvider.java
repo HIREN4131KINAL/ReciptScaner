@@ -69,6 +69,11 @@ public class NoOpBackupProvider implements BackupProvider {
         return Observable.just(false);
     }
 
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        return Observable.just(false);
+    }
+
     @NonNull
     @Override
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {

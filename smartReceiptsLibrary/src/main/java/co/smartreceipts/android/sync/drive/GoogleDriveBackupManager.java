@@ -19,6 +19,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.sql.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -46,6 +47,7 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.BehaviorSubject;
 
@@ -169,8 +171,37 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
         if (remoteBackupMetadata.getSyncDeviceId().equals(mGoogleDriveSyncMetadata.getDeviceIdentifier())) {
             mGoogleDriveSyncMetadata.clear();
+            mDriveReceiptsManager.disable();
         }
-        return mDriveTaskManager.delete(remoteBackupMetadata.getId());
+        return mDriveTaskManager.delete(remoteBackupMetadata.getId())
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean success) {
+                        mDriveReceiptsManager.enable();
+                        if (success) {
+                            mDriveReceiptsManager.initialize();
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        mDriveReceiptsManager.disable();
+        mGoogleDriveSyncMetadata.clear();
+        mDriveTaskManager.clearCachedData();
+        // Note: We added a stupid delay hack here to allow things to clear out of their buffers
+        return Observable.just(true)
+                .delay(500, TimeUnit.MILLISECONDS)
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean success) {
+                        mDriveReceiptsManager.enable();
+                        if (success) {
+                            mDriveReceiptsManager.initialize();
+                        }
+                    }
+                });
     }
 
     @NonNull

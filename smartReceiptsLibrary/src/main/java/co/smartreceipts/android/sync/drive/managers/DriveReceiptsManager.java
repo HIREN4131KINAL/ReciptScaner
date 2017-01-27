@@ -42,6 +42,7 @@ public class DriveReceiptsManager {
     private final ReceiptBuilderFactoryFactory mReceiptBuilderFactoryFactory;
     private final Scheduler mObserveOnScheduler;
     private final Scheduler mSubscribeOnScheduler;
+    private final AtomicBoolean mIsEnabled = new AtomicBoolean(true);
     private final AtomicBoolean mIsIntializing = new AtomicBoolean(false);
 
     public DriveReceiptsManager(@NonNull TableController<Receipt> receiptsTableController, @NonNull ReceiptsTable receiptsTable,
@@ -68,46 +69,58 @@ public class DriveReceiptsManager {
     }
 
     public synchronized void initialize() {
-        if (mNetworkManager.isNetworkAvailable()) {
-            if (!mIsIntializing.getAndSet(true)) {
-                Logger.info(this, "Performing initialization of drive receipts");
-                mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
-                        .flatMap(new Func1<List<Receipt>, Observable<Receipt>>() {
-                            @Override
-                            public Observable<Receipt> call(List<Receipt> receipts) {
-                                return Observable.from(receipts);
-                            }
-                        })
-                        .subscribeOn(mSubscribeOnScheduler)
-                        .observeOn(mObserveOnScheduler)
-                        .subscribe(new Action1<Receipt>() {
-                            @Override
-                            public void call(Receipt receipt) {
-                                Logger.info(DriveReceiptsManager.this, "Performing found unsynced receipt " + receipt.getId());
-                                if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
-                                    Logger.info(DriveReceiptsManager.this, "Handling delete action during initialization");
-                                    handleDeleteInternal(receipt);
-                                } else {
-                                    Logger.info(DriveReceiptsManager.this, "Handling insert/update action during initialization");
-                                    handleInsertOrUpdateInternal(receipt);
+        if (mIsEnabled.get()) {
+            if (mNetworkManager.isNetworkAvailable()) {
+                if (!mIsIntializing.getAndSet(true)) {
+                    Logger.info(this, "Performing initialization of drive receipts");
+                    mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
+                            .flatMap(new Func1<List<Receipt>, Observable<Receipt>>() {
+                                @Override
+                                public Observable<Receipt> call(List<Receipt> receipts) {
+                                    return Observable.from(receipts);
                                 }
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
-                                Logger.error(DriveReceiptsManager.this, "Failed to fetch our unsynced receipt data", throwable);
-                                mIsIntializing.set(false);
-                            }
-                        }, new Action0() {
-                            @Override
-                            public void call() {
-                                mDriveDatabaseManager.syncDatabase();
-                                mIsIntializing.set(false);
-                            }
-                        });
+                            })
+                            .subscribeOn(mSubscribeOnScheduler)
+                            .observeOn(mObserveOnScheduler)
+                            .subscribe(new Action1<Receipt>() {
+                                @Override
+                                public void call(Receipt receipt) {
+                                    Logger.info(DriveReceiptsManager.this, "Performing found unsynced receipt " + receipt.getId());
+                                    if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
+                                        Logger.info(DriveReceiptsManager.this, "Handling delete action during initialization");
+                                        handleDeleteInternal(receipt);
+                                    } else {
+                                        Logger.info(DriveReceiptsManager.this, "Handling insert/update action during initialization");
+                                        handleInsertOrUpdateInternal(receipt);
+                                    }
+                                }
+                            }, new Action1<Throwable>() {
+                                @Override
+                                public void call(Throwable throwable) {
+                                    mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
+                                    Logger.error(DriveReceiptsManager.this, "Failed to fetch our unsynced receipt data", throwable);
+                                    mIsIntializing.set(false);
+                                }
+                            }, new Action0() {
+                                @Override
+                                public void call() {
+                                    mDriveDatabaseManager.syncDatabase();
+                                    mIsIntializing.set(false);
+                                }
+                            });
+                }
             }
         }
+    }
+
+    public synchronized void enable() {
+        Logger.info(this, "Enabling Drive Receipts Manager");
+        mIsEnabled.set(true);
+    }
+
+    public synchronized void disable() {
+        Logger.info(this, "Disabling Drive Receipts Manager");
+        mIsEnabled.set(false);
     }
 
     public synchronized void handleInsertOrUpdate(@NonNull final Receipt receipt) {
@@ -118,6 +131,11 @@ public class DriveReceiptsManager {
 
     @VisibleForTesting
     synchronized void handleInsertOrUpdateInternal(@NonNull final Receipt receipt) {
+        if (!mIsEnabled.get()) {
+            Logger.warn(this, "Ignoring insert or update as we're currently disabled");
+            return;
+        }
+
         Preconditions.checkNotNull(receipt);
         Preconditions.checkArgument(!receipt.getSyncState().isSynced(SyncProvider.GoogleDrive), "Cannot sync an already synced receipt");
         Preconditions.checkArgument(!receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive), "Cannot insert/update a receipt that is marked for deletion");
@@ -158,6 +176,11 @@ public class DriveReceiptsManager {
 
     @VisibleForTesting
     synchronized void handleDeleteInternal(@NonNull final Receipt receipt) {
+        if (!mIsEnabled.get()) {
+            Logger.warn(this, "Ignoring delete as we're currently disabled");
+            return;
+        }
+
         Preconditions.checkNotNull(receipt);
         Preconditions.checkArgument(!receipt.getSyncState().isSynced(SyncProvider.GoogleDrive), "Cannot delete an already synced receipt");
         Preconditions.checkArgument(receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive), "Cannot delete a receipt that isn't marked for deletion");

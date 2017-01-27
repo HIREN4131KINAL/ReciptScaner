@@ -22,6 +22,7 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -91,22 +92,28 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    public synchronized Observable<Boolean> deleteBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+    public synchronized Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         if (mHeadlessFragment.deleteBackupReplaySubjectMap == null) {
             mHeadlessFragment.deleteBackupReplaySubjectMap = new HashMap<>();
         }
         ReplaySubject<Boolean> deleteReplaySubject = mHeadlessFragment.deleteBackupReplaySubjectMap.get(remoteBackupMetadata);
         if (deleteReplaySubject == null) {
             deleteReplaySubject = ReplaySubject.create();
-            deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
-                    .flatMap(new Func1<Boolean, Observable<Boolean>>() {
+            getBackupMetadata(remoteBackupMetadata)
+                    .flatMap(new Func1<RemoteBackupMetadata, Observable<Boolean>>() {
                         @Override
-                        public Observable<Boolean> call(Boolean success) {
-                            if (success) {
-                                return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
-                            } else {
-                                return Observable.just(false);
-                            }
+                        public Observable<Boolean> call(final RemoteBackupMetadata remoteBackupMetadata) {
+                            return deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
+                                    .flatMap(new Func1<Boolean, Observable<Boolean>>() {
+                                        @Override
+                                        public Observable<Boolean> call(Boolean success) {
+                                            if (success) {
+                                                return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
+                                            } else {
+                                                return Observable.just(false);
+                                            }
+                                        }
+                                    });
                         }
                     })
                     .subscribeOn(Schedulers.io())
@@ -191,6 +198,35 @@ public class RemoteBackupsDataCache {
         }
         if (mHeadlessFragment.downloadBackupReplaySubjectMap != null) {
             mHeadlessFragment.downloadBackupReplaySubjectMap.remove(remoteBackupMetadata);
+        }
+    }
+
+    @NonNull
+    private Observable<RemoteBackupMetadata> getBackupMetadata(@Nullable RemoteBackupMetadata remoteBackupMetadata) {
+        if (remoteBackupMetadata == null) {
+            Logger.debug(this, "Attempting to fetch the local metadata");
+            return mBackupProvidersManager.getRemoteBackups()
+                        .map(new Func1<List<RemoteBackupMetadata>, RemoteBackupMetadata>() {
+                            @Override
+                            public RemoteBackupMetadata call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
+                                for (final RemoteBackupMetadata metadata : remoteBackupMetadatas) {
+                                    if (metadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
+                                        Logger.info(this, "Identified the local device metadata as {}", metadata);
+                                        return metadata;
+                                    }
+                                }
+                                return null;
+                            }
+                        })
+                        .filter(new Func1<RemoteBackupMetadata, Boolean>() {
+                            @Override
+                            public Boolean call(RemoteBackupMetadata remoteBackupMetadata) {
+                                return remoteBackupMetadata != null;
+                            }
+                        });
+        } else {
+            Logger.debug(this, "Returning the provided metadata: {}", remoteBackupMetadata);
+            return Observable.just(remoteBackupMetadata);
         }
     }
 

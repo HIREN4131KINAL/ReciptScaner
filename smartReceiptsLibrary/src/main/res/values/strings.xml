@@ -359,6 +359,12 @@
     <string name="dialog_remote_backup_delete_toast_failure">Failed to delete this backup</string>
     <string name="dialog_remote_backup_download_progress">Downloading images to ZIP File&#8230;</string>
 
+    <string name="dialog_remote_backup_drive_restore_title">Drive Restoration</string>
+    <string name="dialog_remote_backup_drive_restore_message">We\'re having trouble syncing your data. To recover, we\'d like to clear your Drive backup and re-sync. If you\'re seeing this message often, please reach out to us for further support.</string>
+    <string name="dialog_remote_backup_restore_progress">Clearing your backup to prepare for re-sync&#8230;</string>
+    <string name="dialog_remote_backup_restore_toast_success">Successfully cleared the backup. Re-syncing&#8230;</string>
+    <string name="dialog_remote_backup_restore_toast_failure">Failed to re-sync this backup</string>
+
     <string name="automatic_backups_info_dialog_message">Automatic backups are not currently enabled.</string>
     <string name="automatic_backups_info_dialog_positive">Tap to Configure</string>
 

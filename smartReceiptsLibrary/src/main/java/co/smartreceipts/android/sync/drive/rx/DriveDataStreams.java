@@ -496,6 +496,7 @@ class DriveDataStreams {
             mSmartReceiptsFolderSubject = null;
         }
 
+        // Note: (https://developers.google.com/drive/android/trash) If the target of the trash/untrash operation is a folder, all descendants of that folder are similarly trashed or untrashed
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
             public void call(final Subscriber<? super Boolean> subscriber) {

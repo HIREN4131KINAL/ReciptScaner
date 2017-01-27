@@ -92,7 +92,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
                     Logger.info(this, "Received sync error: {}.", syncErrorType);
                 }
             })
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Action1<SyncErrorType>() {
                 @Override
                 public void call(SyncErrorType syncErrorType) {

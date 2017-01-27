@@ -15,8 +15,11 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -27,12 +30,17 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
     private RemoteBackupsDataCache mRemoteBackupsDataCache;
+    private BackupProvidersManager mBackupProvidersManager;
     private Analytics mAnalytics;
     private Subscription mSubscription;
 
     private RemoteBackupMetadata mBackupMetadata;
 
-    public static DeleteRemoteBackupProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+    public static DeleteRemoteBackupProgressDialogFragment newInstance() {
+        return newInstance(null);
+    }
+
+    public static DeleteRemoteBackupProgressDialogFragment newInstance(@Nullable RemoteBackupMetadata remoteBackupMetadata) {
         final DeleteRemoteBackupProgressDialogFragment fragment = new DeleteRemoteBackupProgressDialogFragment();
         final Bundle args = new Bundle();
         args.putParcelable(ARG_BACKUP_METADATA, remoteBackupMetadata);
@@ -45,14 +53,22 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         setCancelable(false);
         mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
-        Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
+        if (mBackupMetadata == null) {
+            Logger.info(this, "Deleting the local device backup");
+        } else {
+            Logger.info(this, "Deleting the backup of another device");
+        }
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         ProgressDialog dialog = new ProgressDialog(getActivity(), getTheme());
-        dialog.setMessage(getString(R.string.dialog_remote_backup_delete_progress, mBackupMetadata.getSyncDeviceName()));
+        if (mBackupMetadata != null) {
+            dialog.setMessage(getString(R.string.dialog_remote_backup_delete_progress, mBackupMetadata.getSyncDeviceName()));
+        } else {
+            dialog.setMessage(getString(R.string.dialog_remote_backup_restore_progress));
+        }
         dialog.setIndeterminate(true);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         return dialog;
@@ -62,7 +78,8 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getNetworkManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
+        mBackupProvidersManager = smartReceiptsApplication.getBackupProvidersManager();
+        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, smartReceiptsApplication.getNetworkManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
         mAnalytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
@@ -74,7 +91,12 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                     @Override
                     public void call(Boolean deleteSuccess) {
                         if (deleteSuccess) {
-                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
+                            if (mBackupMetadata != null) {
+                                Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_success), Toast.LENGTH_LONG).show();
+                                mBackupProvidersManager.markErrorResolved(SyncErrorType.UserRevokedRemoteRights);
+                            }
 
                             // Note: this is kind of hacky but should work
                             mRemoteBackupsDataCache.clearGetBackupsResults();;
@@ -95,7 +117,12 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                     @Override
                     public void call(Throwable throwable) {
                         mAnalytics.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
-                        Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
+                        if (mBackupMetadata != null) {
+                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_failure), Toast.LENGTH_LONG).show();
+                        }
+
                         dismiss();
                     }
                 }, new Action0() {

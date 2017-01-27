@@ -13,6 +13,7 @@ import java.util.List;
 import co.smartreceipts.android.sync.BackupProvider;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
@@ -84,5 +85,10 @@ public class NoOpBackupProvider implements BackupProvider {
     @Override
     public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
         return Observable.empty();
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        // No-op
     }
 }

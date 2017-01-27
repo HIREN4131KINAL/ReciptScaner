@@ -29,19 +29,14 @@ public class SyncErrorPresenter {
         mCloseIconView = Preconditions.checkNotNull(view.findViewById(R.id.close_icon));
         mMessageTextView = Preconditions.checkNotNull((TextView) view.findViewById(R.id.error_message));
         mErrorLayout.setVisibility(View.GONE);
-        mCloseIconView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mErrorLayout.setVisibility(View.GONE);
-            }
-        });
     }
 
     public void present(@NonNull final SyncErrorType syncErrorType) {
         if (mSyncProvider == SyncProvider.GoogleDrive) {
             if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {
+                mErrorLayout.setClickable(true);
                 mErrorIconView.setVisibility(View.VISIBLE);
-                mCloseIconView.setVisibility(View.VISIBLE);
+                mCloseIconView.setVisibility(View.GONE);
                 mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_no_permissions));
                 mErrorLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -49,7 +44,9 @@ public class SyncErrorPresenter {
                         mClickStream.onNext(syncErrorType);
                     }
                 });
+                mCloseIconView.setOnClickListener(null);
             } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
+                mErrorLayout.setClickable(true);
                 mErrorIconView.setVisibility(View.VISIBLE);
                 mCloseIconView.setVisibility(View.GONE);
                 mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_lost_data));
@@ -59,10 +56,20 @@ public class SyncErrorPresenter {
                         mClickStream.onNext(syncErrorType);
                     }
                 });
+                mCloseIconView.setOnClickListener(null);
             } else if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
+                mErrorLayout.setClickable(false);
                 mErrorIconView.setVisibility(View.VISIBLE);
                 mCloseIconView.setVisibility(View.VISIBLE);
                 mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_no_space));
+                mErrorLayout.setOnClickListener(null);
+                mCloseIconView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        mErrorLayout.setVisibility(View.GONE);
+                        mClickStream.onNext(syncErrorType);
+                    }
+                });
             }
             mErrorLayout.setVisibility(View.VISIBLE);
         }

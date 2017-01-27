@@ -26,8 +26,6 @@ import rx.schedulers.Schedulers;
 
 public class DriveDatabaseManager {
 
-    private static final String DRIVE_NOT_FOUND_EXCEPTION_MESSAGE = "Drive item not found";
-
     private final Context mContext;
     private final DriveStreamsManager mDriveTaskManager;
     private final GoogleDriveSyncMetadata mGoogleDriveSyncMetadata;

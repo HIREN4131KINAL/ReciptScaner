@@ -17,6 +17,7 @@ import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
 
 public class SyncErrorInteractor {
@@ -49,11 +50,12 @@ public class SyncErrorInteractor {
         mAnalytics.record(new DefaultDataPointEvent(Events.Sync.ClickSyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
         Logger.info(this, "Handling click for sync error: {}.", syncErrorType);
         if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
-            // No-op
+            mBackupProvidersManager.markErrorResolved(syncErrorType);
         } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
             new NavigationHandler(mActivity).showDialog(new DriveRecoveryDialogFragment());
         } else if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {
             mBackupProvidersManager.initialize(mActivity);
+            mBackupProvidersManager.markErrorResolved(syncErrorType);
         } else {
             throw new IllegalArgumentException("Unknown SyncErrorType");
         }

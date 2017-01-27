@@ -39,6 +39,7 @@ import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.managers.DriveRestoreDataManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -204,6 +205,11 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
                         return criticalSyncError != null;
                     }
                 });
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        mSyncErrorStream.onNext(null);
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.sql.Date;
 import java.util.List;
 
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
@@ -105,6 +106,13 @@ public interface BackupProvider {
      */
     @NonNull
     Observable<CriticalSyncError> getCriticalSyncErrorStream();
+
+    /**
+     * Call this method to mark this particular error as resolve
+     *
+     * @param syncErrorType the {@link SyncErrorType} to mark as resolved
+     */
+    void markErrorResolved(@NonNull SyncErrorType syncErrorType);
 
 
 }

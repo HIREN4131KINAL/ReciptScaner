@@ -18,6 +18,7 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -140,5 +141,10 @@ public class BackupProvidersManager implements BackupProvider {
     @Override
     public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
         return mBackupProvider.getCriticalSyncErrorStream();
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        mBackupProvider.markErrorResolved(syncErrorType);
     }
 }

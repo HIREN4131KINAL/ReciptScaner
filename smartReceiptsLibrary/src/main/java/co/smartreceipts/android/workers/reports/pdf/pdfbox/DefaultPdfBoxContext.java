@@ -30,6 +30,7 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
     private Map<String, FontSpec> fonts;
     private Preferences preferences;
+    private PDRectangle pageSize = PDRectangle.A4;
 
     public DefaultPdfBoxContext(Context context, Preferences preferences) {
         this.context = context;
@@ -69,13 +70,18 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     }
 
     @Override
+    public void setPageSize(PDRectangle rectangle) {
+        pageSize = rectangle;
+    }
+
+    @Override
     public Context getApplicationContext() {
         return context;
     }
 
     @Override
     public PDRectangle getPageSize() {
-        return PDRectangle.A4;
+        return pageSize;
     }
 
     @Override

@@ -42,6 +42,7 @@ public class PdfBoxWriter {
     private PDPageContentStream contentStream;
     private boolean inTextBlock;
     private PdfBoxPageDecorations pageDecorations;
+    private boolean landscapeMode = true;
 
 
     public PdfBoxWriter(PDDocument doc,
@@ -59,6 +60,7 @@ public class PdfBoxWriter {
         if (contentStream != null) {
             contentStream.close();
         }
+
         PDPage page = new PDPage(context.getPageSize());
         pages.add(page);
         contentStream = new PDPageContentStream(doc, page);
@@ -277,5 +279,13 @@ public class PdfBoxWriter {
             y -= PdfBoxUtils.getFontHeight(fontSpec);
         }
 
+    }
+
+    public boolean isLandscapeMode() {
+        return landscapeMode;
+    }
+
+    public void setLandscapeMode(boolean landscapeMode) {
+        this.landscapeMode = landscapeMode;
     }
 }

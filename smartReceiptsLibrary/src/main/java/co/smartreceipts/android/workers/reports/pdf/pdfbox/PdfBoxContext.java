@@ -38,6 +38,7 @@ public interface PdfBoxContext {
 
     String getString(@StringRes int resId, Object... args);
 
+    void setPageSize(PDRectangle rectangle);
 
 
     class FontSpec {

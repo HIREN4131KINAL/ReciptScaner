@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
  *
  */
 @RunWith(RobolectricTestRunner.class)
-@Ignore
+//@Ignore
 public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
 
 
@@ -44,6 +44,7 @@ public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
         when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
         when(mPreferences.getPdfFooterText()).thenReturn("FOOTER");
         when(mPreferences.getPrintDistanceTable()).thenReturn(true);
+        when(mPreferences.isReceiptsTableLandscapeMode()).thenReturn(true);
     }
 
 

@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
+import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,10 +56,14 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     @Override
     public void writeSection(PDDocument doc) throws IOException {
 
-
         ReceiptsTotals totals = new ReceiptsTotals(trip,
                 receipts, distances, preferences);
 
+        // switch to landscape mode
+        if (preferences.isReceiptsTableLandscapeMode()) {
+            context.setPageSize(new PDRectangle(context.getPageSize().getHeight(),
+                    context.getPageSize().getWidth()));
+        }
 
         writer = new PdfBoxWriter(doc, context, new DefaultPdfBoxPageDecorations(context));
 
@@ -75,6 +80,12 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         }
 
         writer.writeAndClose();
+
+        // reset the page size if necessary
+        if (preferences.isReceiptsTableLandscapeMode()) {
+            context.setPageSize(new PDRectangle(context.getPageSize().getHeight(),
+                    context.getPageSize().getWidth()));
+        }
     }
 
     private void writeHeader(Trip trip, ReceiptsTotals data) throws IOException {

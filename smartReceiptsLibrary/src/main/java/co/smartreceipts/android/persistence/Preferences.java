@@ -43,7 +43,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Output Preferences
     private String mUserID;
     private File mSignaturePhoto;
-    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature;
+    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature, mReceiptsLandscapeMode;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -72,6 +72,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private final Flex mFlex;
     private final StorageManager mStorageManager;
     private final File mPreferenceFolder;
+
 
     public interface VersionUpgradeListener {
         public void onVersionUpgrade(int oldVersion, int newVersion);
@@ -170,6 +171,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initUserID(SharedPreferences prefs) {
         this.mUserID = prefs.getString(mContext.getString(R.string.pref_output_username_key), "");
+    }
+
+    private void initReceiptsLandscapeMode(SharedPreferences prefs) {
+        this.mReceiptsLandscapeMode = prefs.getBoolean(mContext.getString(R.string.pref_output_receipts_landscape_key), mContext.getResources().getBoolean(R.bool.pref_output_receipts_landscape_defaultValue));
     }
 
     private void initIncludeCSVHeaders(SharedPreferences prefs) {
@@ -309,6 +314,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
         // Output Preferences
         this.initUserID(prefs);
+        this.initReceiptsLandscapeMode(prefs);
         this.initIncludeCSVHeaders(prefs);
         this.initIncludeReceiptIdNotIndex(prefs);
         this.initIncludeCommentByReceiptPhoto(prefs);
@@ -470,6 +476,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
+    }
+
+    public boolean isReceiptsTableLandscapeMode() {
+        return mReceiptsLandscapeMode;
     }
 
     public boolean includeCSVHeaders() {

@@ -10,6 +10,12 @@
 		<Preference 
 		    android:key="@string/pref_output_custom_pdf_key" 
 			android:title="@string/pref_output_custom_pdf_key" />
+		<CheckBoxPreference
+			android:key="@string/pref_output_receipts_landscape_key"
+			android:title="@string/pref_output_receipts_landscape_title"
+			android:summaryOn="@string/pref_output_receipts_landscape_on"
+			android:summaryOff="@string/pref_output_receipts_landscape_off"
+			android:defaultValue="@bool/pref_output_receipts_landscape_defaultValue" />
 	   <CheckBoxPreference
 	       android:key="@string/pref_output_csv_header_key"
 	       android:title="@string/pref_output_csv_header_title"

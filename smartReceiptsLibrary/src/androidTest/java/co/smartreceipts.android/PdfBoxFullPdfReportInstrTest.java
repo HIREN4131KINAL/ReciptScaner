@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
  *
  * TODO cleanup files on <code>@After</code>
  */
-//@Ignore
+@Ignore
 public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
 
     @Before
@@ -44,8 +44,8 @@ public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
         when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
 //        when(mPreferences.onlyIncludeReimbursableReceiptsInReports()).thenReturn(true);
         when(mPreferences.getPdfFooterText()).thenReturn("Custom Footer!!!");
-        when(mPreferences.getPrintDistanceAsDailyReceipt()).thenReturn(true);
-        when(mPreferences.getPrintDistanceTable()).thenReturn(true);
+        when(mPreferences.getPrintDistanceAsDailyReceipt()).thenReturn(false);
+        when(mPreferences.getPrintDistanceTable()).thenReturn(false);
     }
 
     @Override

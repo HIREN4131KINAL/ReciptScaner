@@ -1,11 +1,9 @@
 package co.smartreceipts.android.workers.reports.pdf;
 
-import java.io.IOException;
-import java.util.List;
+import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.Trip;
+import java.io.IOException;
 
 public interface PdfSection {
-    void writeSection(Trip trip, List<Receipt> receipts) throws IOException;
+    void writeSection(PDDocument doc) throws IOException;
 }

@@ -3,9 +3,9 @@ package co.smartreceipts.android.workers.reports;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -25,10 +25,10 @@ public class PdfBoxImagesOnlyReport extends PdfBoxAbstractReport {
     }
 
     @Override
-    public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile, List<Column<Receipt>> columns) {
+    public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile) {
+        final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
 
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsImagesSection());
-
+                pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
     }
 }

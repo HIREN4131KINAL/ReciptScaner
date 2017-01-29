@@ -59,10 +59,10 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
 
     @Override
-    public void writeFile(OutputStream outStream, Trip trip, List<Receipt> receipts) throws IOException {
+    public void writeFile(OutputStream outStream, Trip trip) throws IOException {
         try {
             for (PdfBoxSection section : sections) {
-                section.writeSection(trip, receipts);
+                section.writeSection(doc);
             }
 
             doc.save(outStream);
@@ -75,7 +75,6 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
                 Logger.error(this, e);
             }
         }
-
     }
 
     public void addSection(PdfBoxSection section) {
@@ -83,23 +82,18 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     }
 
     @Override
-    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(List<Distance> distances,
-                                                                    List<Column<Receipt>> columns) {
-        return new PdfBoxReceiptsTablePdfSection(context, doc, distances, columns);
+    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(Trip trip, List<Receipt> receipts, List<Column<Receipt>> columns, List<Distance> distances, List<Column<Distance>> distanceColumns) {
+        return new PdfBoxReceiptsTablePdfSection(context, trip, receipts, columns, distances, distanceColumns);
     }
 
     @Override
-    public PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection() {
-        return new PdfBoxReceiptsImagesPdfSection(context, doc);
+    public PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(Trip trip, List<Receipt> receipts) {
+        return new PdfBoxReceiptsImagesPdfSection(context, trip, receipts);
     }
 
     @Override
-    public PdfBoxSignatureSection createSignatureSection(File signature) {
-        return new PdfBoxSignatureSection(context, doc, signature);
+    public PdfBoxSignatureSection createSignatureSection(Trip trip, File signature) {
+        return new PdfBoxSignatureSection(context, trip, signature);
     }
 
-    @Override
-    public PdfBoxSection createDistancesTableSection(List<Distance> distances, List<Column<Distance>> columns) {
-        return new PdfBoxDistancesTablePdfSection(context, doc, distances, columns);
-    }
 }

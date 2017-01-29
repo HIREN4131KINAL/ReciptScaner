@@ -6,17 +6,15 @@ import java.util.List;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.Trip;
 
 public interface PdfBoxSectionFactory {
 
     PdfBoxReceiptsTablePdfSection createReceiptsTableSection(
-            List<Distance> distances, List<Column<Receipt>> columns);
+            Trip trip, List<Receipt> receipts, List<Column<Receipt>> distances, List<Distance> columns, List<Column<Distance>> distanceColumns);
 
-    PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection();
+    PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(Trip trip, List<Receipt> receipts);
 
-    PdfBoxSignatureSection createSignatureSection(File signature);
-
-    PdfBoxSection createDistancesTableSection(
-            List<Distance> distances, List<Column<Distance>> columns);
+    PdfBoxSignatureSection createSignatureSection(Trip trip, File signature);
 
 }

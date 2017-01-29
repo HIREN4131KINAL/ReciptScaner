@@ -3,11 +3,8 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
 import java.io.File;
-import java.util.List;
 
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.workers.reports.pdf.PdfSection;
 
 public class PdfBoxSignatureSection extends PdfBoxSection {
 
@@ -16,7 +13,7 @@ public class PdfBoxSignatureSection extends PdfBoxSection {
 
 
     protected PdfBoxSignatureSection(PdfBoxContext context,
-                                     PDDocument doc,
+                                     Trip doc,
                                      File signature) {
         super(context, doc);
         this.signature = signature;
@@ -24,7 +21,7 @@ public class PdfBoxSignatureSection extends PdfBoxSection {
 
 
     @Override
-    public void writeSection(Trip trip, List<Receipt> receipts) {
+    public void writeSection(PDDocument doc) {
         // TODO
     }
 }

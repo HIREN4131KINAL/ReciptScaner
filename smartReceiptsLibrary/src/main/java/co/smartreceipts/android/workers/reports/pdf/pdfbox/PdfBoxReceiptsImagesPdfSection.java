@@ -16,15 +16,17 @@ public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
     private PdfBoxWriter writer;
     private final Preferences preferences;
+    private final List<Receipt> receipts;
 
 
-    public PdfBoxReceiptsImagesPdfSection(PdfBoxContext context, PDDocument doc) {
-        super(context, doc);
+    public PdfBoxReceiptsImagesPdfSection(PdfBoxContext context, Trip trip, List<Receipt> receipts) {
+        super(context, trip);
         this.preferences = context.getPreferences();
+        this.receipts = receipts;
     }
 
     @Override
-    public void writeSection(Trip trip, List<Receipt> receipts) throws IOException {
+    public void writeSection(PDDocument doc) throws IOException {
 
         DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(context);
         writer = new PdfBoxWriter(doc, context, pageDecorations);

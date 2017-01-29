@@ -1,5 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -24,25 +25,35 @@ import co.smartreceipts.android.workers.reports.tables.PdfBoxTableGenerator;
 public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
     private static final float EPSILON = 0.0001f;
+    private final List<Receipt> receipts;
+    private List<Column<Receipt>> receiptColumns;
 
+    @Nullable
     private List<Distance> distances;
-    private List<Column<Receipt>> columns;
+    @Nullable
+    private final List<Column<Distance>> distanceColumns;
 
     private PdfBoxWriter writer;
     private Preferences preferences;
 
     protected PdfBoxReceiptsTablePdfSection(PdfBoxContext context,
-                                            PDDocument doc,
-                                            List<Distance> distances,
-                                            List<Column<Receipt>> columns) {
-        super(context, doc);
+                                            Trip trip,
+                                            List<Receipt> receipts,
+                                            List<Column<Receipt>> receiptColumns,
+                                            @Nullable List<Distance> distances,
+                                            @Nullable List<Column<Distance>> distanceColumns) {
+        super(context, trip);
+        this.receipts = receipts;
         this.distances = distances;
-        this.columns = columns;
+        this.receiptColumns = receiptColumns;
         this.preferences = context.getPreferences();
+        this.distanceColumns = distanceColumns;
     }
 
+
+
     @Override
-    public void writeSection(Trip trip, List<Receipt> receipts) throws IOException {
+    public void writeSection(PDDocument doc) throws IOException {
 
 
         ReceiptsTotals totals = new ReceiptsTotals(trip,
@@ -55,7 +66,13 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         writer.verticalJump(40);
 
-        writeTable(receipts);
+        writeReceiptsTable(receipts);
+
+        if (preferences.getPrintDistanceTable() && distances != null && !distances.isEmpty()) {
+            writer.verticalJump(60);
+
+            writeDistancesTable(distances);
+        }
 
         writer.writeAndClose();
     }
@@ -138,7 +155,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         writer.closeTextBlock();
     }
 
-    private void writeTable(List<Receipt> receipts) throws IOException {
+    private void writeReceiptsTable(List<Receipt> receipts) throws IOException {
 
         final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
         if (preferences.getPrintDistanceAsDailyReceipt()) {
@@ -150,10 +167,23 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
 
         final PdfBoxTableGenerator<Receipt> pdfTableGenerator =
-                new PdfBoxTableGenerator<>(context, columns,
+                new PdfBoxTableGenerator<>(context, receiptColumns,
                         new LegacyReceiptFilter(preferences), true, false);
 
         PdfBoxTable table = pdfTableGenerator.generate(receiptsTableList);
+
+        writer.writeTable(table);
+    }
+
+    private void writeDistancesTable(List<Distance> distances) throws IOException {
+
+
+        final PdfBoxTableGenerator<Distance> pdfTableGenerator =
+                new PdfBoxTableGenerator<>(context, distanceColumns,
+                        null, true, true);
+
+
+        PdfBoxTable table = pdfTableGenerator.generate(distances);
 
         writer.writeTable(table);
     }

@@ -30,23 +30,28 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
     }
 
     @Override
-    public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile, List<Column<Receipt>> columns) {
-        final List<Distance> distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
+    public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile) {
+        final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
+        final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
 
 
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(distances,
-                        columns));
+        List<Distance> distances = null;
+        List<Column<Distance>> distanceColumns = null;
 
-        if (getPreferences().getPrintDistanceTable() && !distances.isEmpty()) {
-            final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
-            final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
-            pdfBoxReportFile.addSection(
-                    pdfBoxReportFile.createDistancesTableSection(distances, distanceColumns));
+        if (getPreferences().getPrintDistanceTable()) {
+            distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
+
+            final ColumnDefinitions<Distance> distanceColumnDefinitions
+                    = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
+            distanceColumns = distanceColumnDefinitions.getAllColumns();
         }
 
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsImagesSection());
+                pdfBoxReportFile.createReceiptsTableSection(trip, receipts, columns, distances,
+                        distanceColumns));
+
+        pdfBoxReportFile.addSection(
+                pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
     }
 
 }

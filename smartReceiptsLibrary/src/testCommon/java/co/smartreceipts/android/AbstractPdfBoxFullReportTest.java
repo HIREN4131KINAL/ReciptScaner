@@ -45,7 +45,7 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
  * or mockito dependencies.
  */
 public abstract class AbstractPdfBoxFullReportTest {
-    protected static final int NUM_RECEIPTS = 50;
+    protected static final int NUM_RECEIPTS = 48;
     protected static final int NUM_IMAGES = 5;
     protected static final String OUTPUT_FILE = "report.pdf";
     private static final int NUM_DISTANCES = 2;
@@ -135,23 +135,16 @@ public abstract class AbstractPdfBoxFullReportTest {
         distanceColumns.add(new DistanceCommentColumn(7, "Comment", new DefaultSyncState()));
 
 
-
-
-
+        pdfBoxReportFile.addSection(
+                pdfBoxReportFile.createReceiptsTableSection(trip, receipts, columns, distances,
+                        distanceColumns));
 
         pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(distances,
-                        columns));
-
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createDistancesTableSection(distances, distanceColumns));
-
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsImagesSection());
+                pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
 
         OutputStream os = new FileOutputStream(createOutputFile());
 
-        pdfBoxReportFile.writeFile(os, trip, receipts);
+        pdfBoxReportFile.writeFile(os, trip);
 
         os.close();
     }

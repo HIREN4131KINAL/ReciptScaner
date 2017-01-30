@@ -492,7 +492,7 @@ class DriveDataStreams {
         Preconditions.checkNotNull(driveIdentifier);
 
         final Identifier smartReceiptsFolderId;
-        if (mSmartReceiptsFolderSubject != null && mSmartReceiptsFolderSubject.getValue() != null) {
+        if (mSmartReceiptsFolderSubject != null && mSmartReceiptsFolderSubject.getValue() != null && mSmartReceiptsFolderSubject.getValue().getDriveId().getResourceId() != null) {
             smartReceiptsFolderId = new Identifier(mSmartReceiptsFolderSubject.getValue().getDriveId().getResourceId());
         } else {
             smartReceiptsFolderId = null;

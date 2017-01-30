@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info;
+package co.smartreceipts.android.ocr.info.tooltip;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

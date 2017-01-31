@@ -49,6 +49,7 @@ public class ReceiptImageFragment extends WBFragment {
 
     // Save state
     private static final String KEY_OUT_RECEIPT = "key_out_receipt";
+    private static final String KEY_OUT_URI = "key_out_uri";
 
     private PinchToZoomImageView mImageView;
     private LinearLayout mFooter;
@@ -78,6 +79,7 @@ public class ReceiptImageFragment extends WBFragment {
             mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         } else {
             mReceipt = savedInstanceState.getParcelable(KEY_OUT_RECEIPT);
+            mImageUri = savedInstanceState.getParcelable(KEY_OUT_URI);
         }
         mIsRotateOngoing = false;
         mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mReceipt.getTrip(), getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
@@ -199,6 +201,7 @@ public class ReceiptImageFragment extends WBFragment {
         super.onSaveInstanceState(outState);
         Logger.debug(this, "onSaveInstanceState");
         outState.putParcelable(KEY_OUT_RECEIPT, mReceipt);
+        outState.putParcelable(KEY_OUT_URI, mImageUri);
     }
 
     @Override

@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import java.io.File;
 
 import co.smartreceipts.android.fragments.LoginFragment;
+import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
 import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
@@ -90,6 +91,16 @@ public class FragmentProvider {
     @NonNull
     public LoginFragment newLoginFragment() {
         return LoginFragment.newInstance();
+    }
+
+    /**
+     * Creates a {@link OcrInformationalFragment} instance
+     *
+     * @return a new instance of this fragment
+     */
+    @NonNull
+    public OcrInformationalFragment newOcrInformationalFragment() {
+        return OcrInformationalFragment.newInstance();
     }
 
 }

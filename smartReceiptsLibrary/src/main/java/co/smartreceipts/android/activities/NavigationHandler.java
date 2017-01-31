@@ -89,6 +89,14 @@ public class NavigationHandler {
         }
     }
 
+    public void navigateToOcrInfomationFragment() {
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newOcrInformationalFragment(), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newOcrInformationalFragment(), R.id.content_list);
+        }
+    }
+
     public void navigateToViewReceiptImage(@NonNull Receipt receipt) {
         if (mIsDualPane) {
             replaceFragment(mFragmentProvider.newReceiptImageFragment(receipt), R.id.content_details);

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.activities.NavigationHandler;
 
 public class OcrInformationalTooltipFragment extends Fragment {
 
@@ -19,7 +20,7 @@ public class OcrInformationalTooltipFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
-        mInteractor = new OcrInformationalTooltipInteractor(getActivity(), getFragmentManager(), application.getAnalyticsManager());
+        mInteractor = new OcrInformationalTooltipInteractor(getActivity(), new NavigationHandler(getActivity()), application.getAnalyticsManager());
     }
 
     @Nullable

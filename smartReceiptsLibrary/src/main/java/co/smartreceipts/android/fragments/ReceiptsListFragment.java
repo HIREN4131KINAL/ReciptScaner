@@ -35,7 +35,6 @@ import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.AttachmentSendFileImporter;
 import co.smartreceipts.android.imports.CameraInteractionController;
-import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.imports.RequestCodes;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;

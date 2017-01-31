@@ -14,6 +14,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -171,6 +172,7 @@ public class ActivityFileResultImporter {
                         if (uri == null) {
                             subscriber.onError(new FileNotFoundException("Null Uri for request " + requestCode + " with result " + resultCode));
                         } else {
+                            Logger.info(ActivityFileResultImporter.this, "Image save location determined as {}", uri);
                             subscriber.onNext(uri);
                             subscriber.onCompleted();
                         }
@@ -183,73 +185,6 @@ public class ActivityFileResultImporter {
                 }
             }
         });
-    }
-
-    public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable final Uri proposedImageSaveLocation, @NonNull final FileImportListener listener) {
-        if (resultCode == Activity.RESULT_OK) {
-            if ((data == null || data.getData() == null) && proposedImageSaveLocation == null) {
-                listener.onImportFailed(null, requestCode, resultCode);
-            } else {
-                final Uri uri;
-                if (data != null && data.getData() != null) {
-                    uri = data.getData();
-                } else {
-                    uri = proposedImageSaveLocation;
-                }
-                final FileImportProcessor importProcessor;
-                if (RequestCodes.PHOTO_REQUESTS.contains(requestCode)) {
-                    importProcessor = new ImageImportProcessor(mTrip, mStorageManager, mPreferences, mContext);
-                } else if (RequestCodes.PDF_REQUESTS.contains(requestCode)) {
-                    importProcessor = new GenericFileImportProcessor(mTrip, mStorageManager, mContext);
-                } else {
-                    importProcessor = new AutoFailImportProcessor();
-                }
-
-                final AtomicReference<Subscription> subscriptionReference = new AtomicReference<>();
-                subscriptionReference.set(importProcessor.process(uri)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doOnNext(new Action1<File>() {
-                            @Override
-                            @SuppressWarnings("ResultOfMethodCallIgnored")
-                            public void call(File file) {
-                                if (file != null) {
-                                    final File uriLocation = new File(uri.getPath());
-                                    if (!file.equals(uriLocation)) {
-                                        uriLocation.delete(); // Clean up
-                                    }
-                                }
-                            }
-                        })
-                        .subscribe(new Action1<File>() {
-                            @Override
-                            public void call(File file) {
-                                if (file != null) {
-                                    listener.onImportSuccess(file, requestCode, resultCode);
-                                } else {
-                                    listener.onImportFailed(null, requestCode, resultCode);
-                                }
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                mAnalytics.record(new ErrorEvent(ActivityFileResultImporter.this, throwable));
-                                listener.onImportFailed(throwable, requestCode, resultCode);
-                                subscriptionReference.get().unsubscribe();
-                            }
-                        }, new Action0() {
-                            @Override
-                            public void call() {
-                                subscriptionReference.get().unsubscribe();
-                            }
-                        }));
-
-            }
-        } else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-            listener.onImportFailed(null, requestCode, resultCode);
-        } else {
-            Log.w(TAG, "Unknown activity result code (likely user cancelled) - " + resultCode);
-        }
     }
 
 }

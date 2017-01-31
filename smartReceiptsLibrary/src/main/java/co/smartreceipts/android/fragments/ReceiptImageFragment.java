@@ -32,7 +32,6 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.CameraInteractionController;
-import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;

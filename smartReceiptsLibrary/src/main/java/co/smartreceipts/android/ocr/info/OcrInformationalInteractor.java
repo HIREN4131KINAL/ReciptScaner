@@ -13,6 +13,7 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Event;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 
 public class OcrInformationalInteractor {
@@ -35,6 +36,7 @@ public class OcrInformationalInteractor {
     }
 
     public boolean submitQuestionnaire() {
+        Logger.info(this, "Submitting OCR Questionnaire");
         mAnalytics.record(Events.Ocr.OcrQuestionnaireSubmit);
         if (mQuestion1Event != null) {
             mAnalytics.record(mQuestion1Event);
@@ -46,6 +48,7 @@ public class OcrInformationalInteractor {
     }
 
     public boolean dismissQuestionnaire() {
+        Logger.info(this, "Dismissing OCR Questionnaire");
         mAnalytics.record(Events.Ocr.OcrQuestionnaireDismiss);
         return mNavigationHandler.navigateBack();
     }
@@ -64,9 +67,11 @@ public class OcrInformationalInteractor {
         } else if (questionaireRes == R.id.ocr_questionnaire_q2_option2) {
             mQuestion2Event = Events.Ocr.OcrQuestionnaireQuestion2NotInterested;
         }
+        Logger.info(this, "OCR Answers are currently set as {} and {}", mQuestion1Event, mQuestion2Event);
     }
 
     public void emailAboutOcr() {
+        Logger.info(this, "Emailing about OCR Questionnaire");
         mAnalytics.record(Events.Ocr.OcrQuestionnaireEmailUs);
         final Intent intent = EmailAssistant.getEmailDeveloperIntent("Automatic Scanning (ie OCR) Feedback");
         mActivity.startActivity(intent);

@@ -7,6 +7,7 @@ import android.widget.TextView;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
@@ -40,6 +41,7 @@ public class OcrInformationalTooltipPresenter implements View.OnClickListener {
             .subscribe(new Action1<Boolean>() {
                 @Override
                 public void call(Boolean aBoolean) {
+                    Logger.info(OcrInformationalTooltipPresenter.this, "Showing OCR Tooltip");
                     mInfoButton.setVisibility(View.VISIBLE);
                 }
             }));

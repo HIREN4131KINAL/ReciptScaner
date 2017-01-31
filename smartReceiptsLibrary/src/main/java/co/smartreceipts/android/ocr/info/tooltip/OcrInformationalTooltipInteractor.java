@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -48,11 +49,13 @@ public class OcrInformationalTooltipInteractor {
     }
 
     public void dismissTooltip() {
+        Logger.info(this, "Dismissing OCR Tooltip");
         mStateTracker.setShouldShowPreReleaseQuestions(false);
         mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipDismiss);
     }
 
     public void showOcrInformation() {
+        Logger.info(this, "Displaying OCR Fragment");
         mNavigationHandler.navigateToOcrInfomationFragment();
         mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipOpen);
         // TODO: mStateTracker.setShouldShowPreReleaseQuestions(false);

@@ -8,7 +8,9 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.Events;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
@@ -36,16 +38,23 @@ public class OcrInformationalTooltipInteractor {
                     public Boolean call(Boolean shouldShow) {
                         return shouldShow;
                     }
+                })
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipShown);
+                    }
                 });
-                // TODO: Analytics
     }
 
     public void dismissTooltip() {
         mStateTracker.setShouldShowPreReleaseQuestions(false);
+        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipDismiss);
     }
 
     public void showOcrInformation() {
         mNavigationHandler.navigateToOcrInfomationFragment();
+        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipOpen);
         // TODO: mStateTracker.setShouldShowPreReleaseQuestions(false);
     }
 }

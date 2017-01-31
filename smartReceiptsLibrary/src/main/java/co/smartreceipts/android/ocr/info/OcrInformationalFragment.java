@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.utils.log.Logger;
 
@@ -21,7 +22,6 @@ public class OcrInformationalFragment extends Fragment {
 
     private OcrInformationalInteractor mInteractor;
     private OcrInformationalPresenter mPresenter;
-    private NavigationHandler mNavigationHandler;
 
     public static OcrInformationalFragment newInstance() {
         return new OcrInformationalFragment();
@@ -33,8 +33,8 @@ public class OcrInformationalFragment extends Fragment {
         Logger.debug(this, "onCreate");
         setHasOptionsMenu(true);
 
-        mNavigationHandler = new NavigationHandler(getActivity());
-        mInteractor = new OcrInformationalInteractor();
+        final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
+        mInteractor = new OcrInformationalInteractor(application.getAnalyticsManager(), new NavigationHandler(getActivity()));
     }
 
     @Nullable
@@ -64,12 +64,10 @@ public class OcrInformationalFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            return mNavigationHandler.navigateBack();
+            return mInteractor.dismissQuestionnaire();
         } else if (item.getItemId() == R.id.action_save) {
-            mInteractor.submitQuestionnaire();
-            return mNavigationHandler.navigateBack();
-        }
-        else {
+            return mInteractor.submitQuestionnaire();
+        } else {
             return super.onOptionsItemSelected(item);
         }
     }

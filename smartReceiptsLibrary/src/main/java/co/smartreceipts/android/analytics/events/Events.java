@@ -3,7 +3,7 @@ package co.smartreceipts.android.analytics.events;
 public final class Events {
 
     private enum Category implements Event.Category {
-        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings, Informational, Sync
+        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings, Informational, Sync, Ocr
     }
 
     public static final class Purchases {
@@ -78,6 +78,20 @@ public final class Events {
     public static final class Sync {
         public static final Event DisplaySyncError = new DefaultEvent(Category.Sync, "DisplaySyncError");
         public static final Event ClickSyncError = new DefaultEvent(Category.Sync, "ClickSyncError");
+    }
+
+    public static final class Ocr {
+        public static final Event OcrQuestionnaireTooltipShown = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipShown");
+        public static final Event OcrQuestionnaireTooltipOpen = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipOpen");
+        public static final Event OcrQuestionnaireTooltipDismiss = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipDismiss");
+        public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Sync, "OcrQuestionnaireSubmit");
+        public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Sync, "OcrQuestionnaireDismiss");
+        public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Sync, "OcrQuestionnaireEmailUs");
+        public static final Event OcrQuestionnaireQuestion1PerReceipt = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt");
+        public static final Event OcrQuestionnaireQuestion1PerMonth = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerMonth");
+        public static final Event OcrQuestionnaireQuestion1NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1NotInterested");
+        public static final Event OcrQuestionnaireQuestion2DelaysOkay = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2DelaysOkay");
+        public static final Event OcrQuestionnaireQuestion2NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2NotInterested");
     }
 
 }

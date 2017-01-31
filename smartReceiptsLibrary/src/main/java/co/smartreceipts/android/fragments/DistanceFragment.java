@@ -11,6 +11,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.common.base.Preconditions;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -35,12 +37,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     private Distance mLastInsertedDistance;
     private DistanceTableController mDistanceTableController;
 
-    public static DistanceFragment newInstance(final Trip trip) {
-        final DistanceFragment fragment = new DistanceFragment();
-        final Bundle args = new Bundle();
-        args.putParcelable(Trip.PARCEL_KEY, trip);
-        fragment.setArguments(args);
-        return fragment;
+    public static DistanceFragment newInstance() {
+        return new DistanceFragment();
     }
 
     @Override
@@ -48,7 +46,6 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
     }
 
@@ -74,6 +71,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Logger.debug(this, "onActivityCreated");
+        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(mTrip, "A valid trip is required");
         setListAdapter(mAdapter);
     }
 
@@ -99,6 +98,12 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         super.onPause();
         Logger.debug(this, "onPause");
         mDistanceTableController.unsubscribe(this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
     }
 
     @Override

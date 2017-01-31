@@ -3,18 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".SmartReceiptsActivity" >
-
-    <!--
-    This layout is a two-pane layout for the Items
-    master/detail flow. See res/values-large/refs.xml and
-    res/values-sw600dp/refs.xml for an example of layout aliases
-    that replace the single-pane version of the layout with
-    this two-pane version.
-
-    For more on layout aliases, see:
-    http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
-    -->
+    tools:context=".activities.SmartReceiptsActivity" >
 
     <include layout="@layout/toolbar"
              android:id="@+id/toolbar"/>

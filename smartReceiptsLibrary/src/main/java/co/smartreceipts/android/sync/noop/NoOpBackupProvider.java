@@ -12,6 +12,8 @@ import java.util.List;
 
 import co.smartreceipts.android.sync.BackupProvider;
 import co.smartreceipts.android.sync.BackupProvidersManager;
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import rx.Observable;
@@ -67,9 +69,31 @@ public class NoOpBackupProvider implements BackupProvider {
         return Observable.just(false);
     }
 
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        return Observable.just(false);
+    }
+
     @NonNull
     @Override
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return Observable.just(Collections.<File>emptyList());
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return Observable.just(Collections.<File>emptyList());
+    }
+
+    @NonNull
+    @Override
+    public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
+        return Observable.empty();
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        // No-op
     }
 }

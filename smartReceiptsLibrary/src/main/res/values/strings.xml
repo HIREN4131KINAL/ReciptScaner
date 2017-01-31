@@ -42,7 +42,7 @@
     <string name="item_name">Name:</string>
     <string name="move">Move</string>
     <string name="move_copy_item">Move/Copy %s?</string>
-    <string name="next_id">Next ID: %s</string>
+    <string name="next_id">Next ID: %d</string>
     <string name="no">No</string>
     <string name="pdf">PDF</string>
     <string name="report">Report</string>
@@ -53,6 +53,7 @@
     <string name="signature">Signature</string>
     <string name="send_file">Get File&#8230;</string>
     <string name="send_email">Send File&#8230;</string>
+    <string name="submit">Submit</string>
     <string name="support">%s - Support</string>
     <string name="total">Total</string>
     <string name="total_item">Total: %s</string>
@@ -95,6 +96,23 @@
     <string name="report_header_gross_total">Gross Total: %s</string>
     <string name="report_header_cost_center">Cost Center: %s</string>
     <string name="report_header_comment">Report Comment: %s</string>
+
+    <!-- ===================== ocr ======================== -->
+    <string name="ocr_informational_tooltip_text">Interested in Automatic Scans? Tap here.</string>
+    <string name="ocr_questionnaire">OCR</string>
+    <string name="ocr_questionnaire_info_title">Automatic Scans (ie OCR):</string>
+    <string name="ocr_questionnaire_info_message">We\'re creating tools to scan your receipts (ie OCR) to allow you to take a photo of your receipt and automatically populate some receipt metadata fields (eg price). If you\'re interested in this, we\'d greatly appreciate if you could answer two questions below to help us get this right!</string>
+    <string name="ocr_questionnaire_title">Questionnaire:</string>
+    <string name="ocr_questionnaire_q1_message">Scans cannot be accurately run on your phone/tablet, so we\'ll have to support remote servers for the OCR process. To allow for this, would you prefer to pay:</string>
+    <string name="ocr_questionnaire_q1_option1">Per Receipt: 0.20 USD</string>
+    <string name="ocr_questionnaire_q1_option2">Per Receipt: 0.15 USD</string>
+    <string name="ocr_questionnaire_q1_option3">This is too much</string>
+    <string name="ocr_questionnaire_q1_option4">I\'m not interested</string>
+    <string name="ocr_questionnaire_q2_message">More complex scans may take some time to process (if they need to be sent to a human for verification). Would you be okay if:</string>
+    <string name="ocr_questionnaire_q2_option1">Some scans process in the background (taking at most 12 hours)</string>
+    <string name="ocr_questionnaire_q2_option2">I\'d prefer to just enter them myself</string>
+    <string name="ocr_questionnaire_email_us">Have more questions? Email us.</string>
+
 
     <!-- ================ Categories ================== -->
     <string name="category_name">Name: </string>
@@ -348,6 +366,7 @@
     <string name="remote_backups_list_item_menu_restore">Restore</string>
     <string name="remote_backups_list_item_menu_delete">@string/delete</string>
     <string name="remote_backups_list_item_menu_download_images">Download to ZIP</string>
+    <string name="remote_backups_list_item_menu_download_images_debug">[Debug] Download</string>
 
     <string name="dialog_remote_backup_delete_title">@string/delete</string>
     <string name="dialog_remote_backup_delete_message">Are you sure you wish to delete your backup from the %s device? This operation cannot be undone.</string>
@@ -358,8 +377,20 @@
     <string name="dialog_remote_backup_delete_toast_failure">Failed to delete this backup</string>
     <string name="dialog_remote_backup_download_progress">Downloading images to ZIP File&#8230;</string>
 
+    <string name="dialog_remote_backup_drive_restore_title">Drive Restoration</string>
+    <string name="dialog_remote_backup_drive_restore_message">We\'re having trouble syncing your data. To recover, we\'d like to clear your Drive backup and re-sync. If you\'re seeing this message often, please reach out to us for further support.</string>
+    <string name="dialog_remote_backup_restore_progress">Clearing your backup to prepare for re-sync&#8230;</string>
+    <string name="dialog_remote_backup_restore_toast_success">Successfully cleared the backup. Re-syncing&#8230;</string>
+    <string name="dialog_remote_backup_restore_toast_failure">Failed to re-sync this backup</string>
+
     <string name="automatic_backups_info_dialog_message">Automatic backups are not currently enabled.</string>
     <string name="automatic_backups_info_dialog_positive">Tap to Configure</string>
+
+    <string name="drive_sync_error_no_space">No Available Drive Storage Space</string>
+    <string name="drive_sync_error_no_permissions">Tap to Restore Drive Permissions</string>
+    <string name="drive_sync_error_lost_data">Drive Configuration Error - Tap to Fix</string>
+
+
 
     <!-- ==================== dialog filter ======================= -->
     <string name="dialog_filter_item_value">Value</string>
@@ -464,7 +495,7 @@
     <string name="error_no_pdf_activity_viewer">Failed to find a PDF Viewer Application</string>
     <string name="error_no_send_intent_dialog_title">No Send App Found</string>
     <string name="error_no_send_intent_dialog_message">We could not find an email application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
-    <string name="error_no_file_intent_dialog_title">No File App Found</string>
+    <string name="error_no_file_intent_dialog_title">Error: Unable to find an "import" installed app on your device</string>
     <string name="error_no_file_intent_dialog_message">We could not find an file browser application (or equivalent) on your phone. You can find your files in the following directory: %s</string>
     <string name="error_no_wifi">Error: Not connected to WiFi</string>
 

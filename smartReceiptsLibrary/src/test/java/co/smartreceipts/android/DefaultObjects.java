@@ -13,7 +13,7 @@ import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultTripImpl;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
@@ -38,7 +38,7 @@ public class DefaultObjects {
                                   TimeZone.getDefault(),
                                   new Date(System.currentTimeMillis()),
                                   TimeZone.getDefault(),
-                                  WBCurrency.getDefault(),
+                                  PriceCurrency.getDefaultCurrency(),
                                   "comment",
                                   "costCenter",
                                   Source.Undefined,
@@ -65,11 +65,11 @@ public class DefaultObjects {
 
     @NonNull
     public static Price newDefaultPrice() {
-        return new ImmutablePriceImpl(new BigDecimal(5), WBCurrency.getInstance("USD"), new ExchangeRate("USD", Collections.singletonMap("USD", 1.00d)));
+        return new ImmutablePriceImpl(new BigDecimal(5), PriceCurrency.getInstance("USD"), new ExchangeRate("USD", Collections.singletonMap("USD", 1.00d)));
     }
 
     @NonNull
     public static Price newDefaultTax() {
-        return new ImmutablePriceImpl(new BigDecimal(2), WBCurrency.getInstance("USD"), new ExchangeRate("USD", Collections.singletonMap("USD", 1.00d)));
+        return new ImmutablePriceImpl(new BigDecimal(2), PriceCurrency.getInstance("USD"), new ExchangeRate("USD", Collections.singletonMap("USD", 1.00d)));
     }
 }

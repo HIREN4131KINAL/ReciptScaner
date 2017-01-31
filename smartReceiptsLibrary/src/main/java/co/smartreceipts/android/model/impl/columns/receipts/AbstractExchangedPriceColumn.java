@@ -9,7 +9,7 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;
@@ -33,7 +33,7 @@ public abstract class AbstractExchangedPriceColumn extends AbstractColumnImpl<Re
     public String getValue(@NonNull Receipt receipt) {
         final Price price = getPrice(receipt);
         final ExchangeRate exchangeRate = price.getExchangeRate();
-        final WBCurrency baseCurrency = receipt.getTrip().getTripCurrency();
+        final PriceCurrency baseCurrency = receipt.getTrip().getTripCurrency();
         if (exchangeRate.supportsExchangeRateFor(baseCurrency)) {
             return ModelUtils.getDecimalFormattedValue(price.getPrice().multiply(exchangeRate.getExchangeRate(baseCurrency)));
         } else {

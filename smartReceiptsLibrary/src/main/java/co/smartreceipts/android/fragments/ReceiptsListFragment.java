@@ -20,22 +20,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.Attachable;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.AttachmentSendFileImporter;
 import co.smartreceipts.android.imports.CameraInteractionController;
-import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.imports.RequestCodes;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
@@ -47,6 +46,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.utils.log.Logger;
 
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -64,6 +64,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     private ReceiptTableController mReceiptTableController;
     private ReceiptCardAdapter mAdapter;
+    private ActivityFileResultImporter mActivityFileResultImporter;
     private Receipt mHighlightedReceipt;
     private Uri mImageUri;
     private ProgressBar mLoadingProgress;
@@ -94,7 +95,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         Logger.debug(this, "onCreate");
         mReceiptTableController = getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController();
         mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
-        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
             mHighlightedReceipt = savedInstanceState.getParcelable(OUT_HIGHLIGHTED_RECEIPT);
@@ -157,6 +158,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Logger.debug(this, "onActivityCreated");
+        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(mTrip, "A valid trip is required");
+        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mTrip, getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
         setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
     }
 
@@ -170,7 +174,42 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         Logger.debug(this, "onResume");
         mCompositeSubscription = new CompositeSubscription();
         mReceiptTableController.subscribe(this);
-        mReceiptTableController.get(mCurrentTrip);
+        mReceiptTableController.get(mTrip);
+        mCompositeSubscription.add(mActivityFileResultImporter.getResultStream()
+                .subscribe(new Action1<ActivityFileResultImporterResponse>() {
+                    @Override
+                    public void call(ActivityFileResultImporterResponse response) {
+                        Logger.info(ReceiptsListFragment.this, "Successfully handled the import of {}", response);
+                        switch (response.getRequestCode()) {
+                            case RequestCodes.IMPORT_GALLERY_IMAGE:
+                            case RequestCodes.IMPORT_GALLERY_PDF:
+                            case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
+                            case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
+                                mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, response.getFile());
+                                break;
+                            case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
+                            case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
+                                final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(response.getFile()).build();
+                                mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
+                                break;
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+                        mHighlightedReceipt = null;
+                        mUpdatingDataProgress.setVisibility(View.GONE);
+                        mActivityFileResultImporter.dispose();
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        mHighlightedReceipt = null;
+                        mUpdatingDataProgress.setVisibility(View.GONE);
+                        mActivityFileResultImporter.dispose();
+                    }
+                }));
     }
 
     @Override
@@ -178,7 +217,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         super.setUserVisibleHint(isVisibleToUser);
         if (getView() != null && isVisibleToUser) {
             // Refresh as soon as we're visible
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
         }
     }
 
@@ -195,6 +234,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
         outState.putParcelable(OUT_IMAGE_URI, mImageUri);
         outState.putParcelable(OUT_HIGHLIGHTED_RECEIPT, mHighlightedReceipt);
     }
@@ -208,8 +248,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         // Need to make this call here, since users with "Don't keep activities" will hit this call
         // before any of onCreate/onStart/onResume is called. This should restore our current trip (what
         // onResume() would normally do to prevent a variety of crashes that we might encounter
-        if (mCurrentTrip == null) {
-            mCurrentTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        if (mTrip == null) {
+            mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
         }
 
         // Null out the last request
@@ -217,38 +257,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         mImageUri = null;
 
         mUpdatingDataProgress.setVisibility(View.VISIBLE);
-        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mCurrentTrip, getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
-        importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
-            @Override
-            public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
-                switch (requestCode) {
-                    case RequestCodes.IMPORT_GALLERY_IMAGE:
-                    case RequestCodes.IMPORT_GALLERY_PDF:
-                    case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                    case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
-                        if (isResumed()) {
-                            mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, file);
-                        } else {
-                            // TODO: How do we handle this? Via replay?
-                        }
-                        break;
-                    case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
-                    case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
-                        final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(file).build();
-                        mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
-                        break;
-                }
-                mHighlightedReceipt = null;
-                mUpdatingDataProgress.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
-                Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-                mHighlightedReceipt = null;
-                mUpdatingDataProgress.setVisibility(View.GONE);
-            }
-        });
+        mActivityFileResultImporter.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation);
 
         if (resultCode != Activity.RESULT_OK) {
             mUpdatingDataProgress.setVisibility(View.GONE);
@@ -290,7 +299,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addTextReceipt() {
-        mNavigationHandler.navigateToCreateNewReceiptFragment(mCurrentTrip, null);
+        mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, null);
     }
 
     private void importReceipt() {
@@ -332,7 +341,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                                 ReceiptsListFragment.this.showImage(receipt);
                             }
                         } else if (selection.equals(attachFile) || selection.equals(replaceFile)) { // Attach File to Receipt
-                            final AttachmentSendFileImporter importer = new AttachmentSendFileImporter(getActivity(), mCurrentTrip, getPersistenceManager(), mReceiptTableController, getSmartReceiptsApplication().getAnalyticsManager());
+                            // TODO: Make this more graceful
+                            final AttachmentSendFileImporter importer = new AttachmentSendFileImporter(getActivity(), mTrip, getPersistenceManager(), mReceiptTableController, getSmartReceiptsApplication().getAnalyticsManager());
                             mCompositeSubscription.add(importer.importAttachment(attachment, receipt)
                                     .subscribeOn(Schedulers.io())
                                     .observeOn(AndroidSchedulers.mainThread())
@@ -372,8 +382,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     if (selection != null) {
                         if (selection.equals(receiptActionEdit)) { // Edit Receipt
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuEdit);
-                            // ReceiptsListFragment.this.receiptMenu(mCurrentTrip, receipt, null);
-                            mNavigationHandler.navigateToEditReceiptFragment(mCurrentTrip, receipt);
+                            // ReceiptsListFragment.this.receiptMenu(mTrip, receipt, null);
+                            mNavigationHandler.navigateToEditReceiptFragment(mTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
                             mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto();
@@ -468,7 +478,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onInsertSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
         }
     }
 
@@ -505,7 +515,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                 }
             }
 
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
             ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
@@ -520,7 +530,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onDeleteSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
             ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
@@ -535,7 +545,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onCopySuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
         if (isAdded()) {
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
             Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_copy), Toast.LENGTH_SHORT).show();
         }
     }
@@ -549,7 +559,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Override
     public void onSwapSuccess() {
-        mReceiptTableController.get(mCurrentTrip);
+        mReceiptTableController.get(mTrip);
     }
 
     @Override
@@ -560,7 +570,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onMoveSuccess(@NonNull Receipt oldReceipt, @NonNull Receipt newReceipt) {
         if (isAdded()) {
-            mReceiptTableController.get(mCurrentTrip);
+            mReceiptTableController.get(mTrip);
             Toast.makeText(getActivity(), getFlexString(R.string.toast_receipt_move), Toast.LENGTH_SHORT).show();
         }
     }

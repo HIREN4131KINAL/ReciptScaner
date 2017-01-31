@@ -17,7 +17,7 @@ import java.util.TimeZone;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
@@ -119,7 +119,7 @@ public class DistanceDatabaseAdapterTest {
 
         when(mTrip.getName()).thenReturn(PARENT);
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
-        when(mPrice.getCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
+        when(mPrice.getCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
 
         when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);

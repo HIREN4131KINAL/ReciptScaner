@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import co.smartreceipts.android.model.Price;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
@@ -29,14 +29,14 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     private static final int ROUNDING_PRECISION = PRECISION + 2;
 
     private final List<Price> mPrices;
-    private final Map<WBCurrency, BigDecimal> mCurrencyToPriceMap;
+    private final Map<PriceCurrency, BigDecimal> mCurrencyToPriceMap;
     private final BigDecimal mTotalPrice;
     private final BigDecimal mPossiblyIncorrectTotalPrice;
-    private final WBCurrency mCurrency;
+    private final PriceCurrency mCurrency;
     private final ExchangeRate mExchangeRate;
     private final boolean mAreAllExchangeRatesValid;
 
-    public ImmutableNetPriceImpl(@NonNull WBCurrency baseCurrency, @NonNull List<Price> prices) {
+    public ImmutableNetPriceImpl(@NonNull PriceCurrency baseCurrency, @NonNull List<Price> prices) {
         mCurrency = baseCurrency;
         mPrices = Collections.unmodifiableList(prices);
         mCurrencyToPriceMap = new HashMap<>();
@@ -45,7 +45,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
         boolean areAllExchangeRatesValid = true;
         for (final Price price : prices) {
             final BigDecimal priceToAdd;
-            final WBCurrency currencyForPriceToAdd;
+            final PriceCurrency currencyForPriceToAdd;
             if (price.getExchangeRate().supportsExchangeRateFor(baseCurrency)) {
                 priceToAdd = price.getPrice().multiply(price.getExchangeRate().getExchangeRate(baseCurrency));
                 totalPrice = totalPrice.add(priceToAdd);
@@ -68,7 +68,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
     }
 
     private ImmutableNetPriceImpl(@NonNull Parcel in) {
-        this(WBCurrency.getInstance(in.readString()), restorePricesFromParcel(in));
+        this(PriceCurrency.getInstance(in.readString()), restorePricesFromParcel(in));
     }
 
     private static List<Price> restorePricesFromParcel(Parcel in) {
@@ -117,7 +117,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
             return ModelUtils.getCurrencyFormattedValue(mTotalPrice, mCurrency);
         } else {
             final List<String> currencyStrings = new ArrayList<String>();
-            for (WBCurrency currency : mCurrencyToPriceMap.keySet()) {
+            for (PriceCurrency currency : mCurrencyToPriceMap.keySet()) {
                 currencyStrings.add(ModelUtils.getCurrencyFormattedValue(mCurrencyToPriceMap.get(currency), currency));
             }
             return TextUtils.join("; ", currencyStrings);
@@ -131,7 +131,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
             return ModelUtils.getCurrencyCodeFormattedValue(mTotalPrice, mCurrency);
         } else {
             final List<String> currencyStrings = new ArrayList<String>();
-            for (WBCurrency currency : mCurrencyToPriceMap.keySet()) {
+            for (PriceCurrency currency : mCurrencyToPriceMap.keySet()) {
                 currencyStrings.add(ModelUtils.getCurrencyCodeFormattedValue(mCurrencyToPriceMap.get(currency), currency));
             }
             return TextUtils.join("; ", currencyStrings);
@@ -140,7 +140,7 @@ public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
     @NonNull
     @Override
-    public WBCurrency getCurrency() {
+    public PriceCurrency getCurrency() {
         return mCurrency;
     }
 

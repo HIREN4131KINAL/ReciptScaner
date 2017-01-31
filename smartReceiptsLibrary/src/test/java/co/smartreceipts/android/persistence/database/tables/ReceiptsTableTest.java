@@ -26,7 +26,7 @@ import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -136,9 +136,9 @@ public class ReceiptsTableTest {
         when(mTrip1.getDefaultCurrencyCode()).thenReturn(CURRENCY_CODE);
         when(mTrip2.getDefaultCurrencyCode()).thenReturn(CURRENCY_CODE);
         when(mTrip3.getDefaultCurrencyCode()).thenReturn(CURRENCY_CODE);
-        when(mTrip1.getTripCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
-        when(mTrip2.getTripCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
-        when(mTrip3.getTripCurrency()).thenReturn(WBCurrency.getInstance(CURRENCY_CODE));
+        when(mTrip1.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
+        when(mTrip2.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
+        when(mTrip3.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
 
         when(mTripsTable.findByPrimaryKey(TRIP_1)).thenReturn(Observable.just(mTrip1));
         when(mTripsTable.findByPrimaryKey(TRIP_2)).thenReturn(Observable.just(mTrip2));

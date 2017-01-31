@@ -57,13 +57,13 @@ public interface Price extends Parcelable {
     /**
      * Gets the currency which this price is tracked in
      *
-     * @return - the {@link co.smartreceipts.android.model.WBCurrency} currency representation
+     * @return - the {@link PriceCurrency} currency representation
      */
     @NonNull
-    WBCurrency getCurrency();
+    PriceCurrency getCurrency();
 
     /**
-     * Gets the currency code representation for this price or {@link co.smartreceipts.android.model.WBCurrency#MISSING_CURRENCY_CODE}
+     * Gets the currency code representation for this price or {@link PriceCurrency#MISSING_CURRENCY_CODE}
      * if it cannot be found
      *
      * @return the currency code {@link java.lang.String} for this price

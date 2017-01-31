@@ -1,104 +1,18 @@
-package co.smartreceipts.android.model;
+package co.smartreceipts.android.model.utils;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
-import java.util.Locale;
 
-public final class WBCurrency {
+public class CurrencyUtils {
 
-    private Currency currency;
-    private String code;
-
-    public static final String MISSING_CURRENCY_CODE = "NUL";
-    public static final WBCurrency MISSING_CURRENCY = new WBCurrency(MISSING_CURRENCY_CODE);
-
-    public static final String MIXED_CURRENCY_CODE = "MIXED";
-    public static final WBCurrency MIXED_CURRENCY = new WBCurrency(MIXED_CURRENCY_CODE);
-
-    private WBCurrency(Currency currency) {
-        this.currency = currency;
-    }
-
-    private WBCurrency(String code) {
-        this.code = code;
-    }
-
-    public static WBCurrency getInstance(String currencyCode) {
-        try {
-            return new WBCurrency(Currency.getInstance(currencyCode));
-        } catch (IllegalArgumentException e) {
-            // If a currency isn't found, just use the 3 letter code
-            return new WBCurrency(currencyCode);
-        }
-    }
-
-    public static WBCurrency getDefault() {
-        try {
-            return new WBCurrency(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
-        } catch (IllegalArgumentException e) {
-            // For users that don't have an ISO 3166 locale code
-            return WBCurrency.getInstance("USD"); // Fallback to USD
-        }
-    }
-
-    public final String getCurrencyCode() {
-        if (currency != null) {
-            return currency.getCurrencyCode();
-        }
-
-        else {
-            return code;
-        }
-    }
-
-    public final String format(final String price) {
-        return format(stringToBigDecimal(price));
-    }
-
-    public final String format(final float price) {
-        return format(new BigDecimal(price));
-    }
-
-    public final String format(final BigDecimal price) {
-        try {
-            if (currency != null) {
-                final NumberFormat numFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
-                numFormat.setCurrency(currency);
-                if (price != null) {
-                    return numFormat.format(price.doubleValue());
-                } else {
-                    return numFormat.format(new BigDecimal(0));
-                }
-            } else {
-                return code + formatStringAsStrictDecimal(price);
-            }
-        } catch (java.lang.NumberFormatException e) {
-            return "$0.00";
-        }
-    }
-
-
-    private BigDecimal stringToBigDecimal(String input) {
-        try {
-            if (input == null || input.length() == 0)
-                return new BigDecimal(0);
-            else
-                return new BigDecimal(input);
-        } catch (NumberFormatException e) {
-            return new BigDecimal(0);
-        }
-    }
-
-    public static final String formatStringAsStrictDecimal(BigDecimal bigDecimal) {
-        DecimalFormat decimalFormat = new DecimalFormat();
-        decimalFormat.setMaximumFractionDigits(2);
-        decimalFormat.setMinimumFractionDigits(2);
-        decimalFormat.setGroupingUsed(false);
-        return decimalFormat.format(bigDecimal.doubleValue());
+    @NonNull
+    public static List<String> getAllCurrencies() {
+        final List<String> currencies = new ArrayList<>();
+        currencies.addAll(getIso4217CurrencyCodes());
+        currencies.addAll(getNonIso4217CurrencyCodes());
+        return currencies;
     }
 
     /**
@@ -107,6 +21,7 @@ public final class WBCurrency {
      *
      * @return a List<String> containing all ISO 4217 Currencies
      */
+    @NonNull
     public static List<String> getIso4217CurrencyCodes() {
         final ArrayList<String> iso4217Currencies = new ArrayList<String>();
         iso4217Currencies.add("AED");
@@ -297,10 +212,12 @@ public final class WBCurrency {
      *
      * @return a {@link java.util.List} of extra currency codes
      */
+    @NonNull
     public static List<String> getNonIso4217CurrencyCodes() {
         final ArrayList<String> nonIso4217Currencies = new ArrayList<String>();
         nonIso4217Currencies.add("BSF");
         nonIso4217Currencies.add("BTC"); // Bitcoin
+        nonIso4217Currencies.add("BYN"); // New Belarus Currency
         nonIso4217Currencies.add("DOGE"); // Dogecoin
         nonIso4217Currencies.add("DRC");
         nonIso4217Currencies.add("GHS");
@@ -314,24 +231,4 @@ public final class WBCurrency {
         nonIso4217Currencies.add("ZWD");
         return nonIso4217Currencies;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        WBCurrency that = (WBCurrency) o;
-
-        final String currencyCode = getCurrencyCode();
-
-        if (currencyCode != null ? !currencyCode.equals(that.getCurrencyCode()) : that.getCurrencyCode() != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return getCurrencyCode() != null ? getCurrencyCode().hashCode() : 0;
-    }
-
 }

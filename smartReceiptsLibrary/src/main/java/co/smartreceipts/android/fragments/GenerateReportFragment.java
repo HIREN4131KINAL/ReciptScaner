@@ -10,13 +10,16 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import com.google.common.base.Preconditions;
+
 import java.util.EnumSet;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 
 public class GenerateReportFragment extends WBFragment implements View.OnClickListener {
@@ -31,21 +34,15 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     private NavigationHandler mNavigationHandler;
 
     @NonNull
-    public static GenerateReportFragment newInstance(@NonNull Trip currentTrip) {
-        final GenerateReportFragment fragment = new GenerateReportFragment();
-        Bundle args = new Bundle();
-        args.putParcelable(Trip.PARCEL_KEY, currentTrip);
-        fragment.setArguments(args);
-        return fragment;
+    public static GenerateReportFragment newInstance() {
+        return new GenerateReportFragment();
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
     }
-
 
     @Nullable
     @Override
@@ -66,6 +63,15 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
         return root;
     }
 
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Logger.debug(this, "onActivityCreated");
+        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(mTrip, "A valid trip is required");
+    }
+
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
@@ -78,12 +84,20 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Logger.debug(this, "pre-onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+    }
+
+    @Override
     public void onClick(View v) {
         if (!mPdfFullCheckbox.isChecked() && !mPdfImagesCheckbox.isChecked() && !mCsvCheckbox.isChecked() && !mZipStampedImagesCheckbox.isChecked()) {
             Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
             return;
         }
 
+        getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.GenerateReports);
         if (mPdfFullCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.FullPdfReport);
         }

@@ -8,16 +8,20 @@ import android.text.TextUtils;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 
 /**
  * A utility class, which will be used to standard some common functions that are
  * shared across multiple model objects
  */
 public class ModelUtils {
+
+    private static final Map<Integer, DecimalFormat> sDecimalFormatCache = new ConcurrentHashMap<>();
 
     private ModelUtils() {
         throw new RuntimeException("This class uses static calls only. It cannot be instantiated");
@@ -77,10 +81,15 @@ public class ModelUtils {
      */
     @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal, int precision) {
-        final DecimalFormat decimalFormat = new DecimalFormat();
-        decimalFormat.setMaximumFractionDigits(precision);
-        decimalFormat.setMinimumFractionDigits(precision);
-        decimalFormat.setGroupingUsed(false);
+        // Note: I'm not concerned if we have a few duplicate entries (ie this isn't fully thread safe) as the objects are all equal
+        DecimalFormat decimalFormat = sDecimalFormatCache.get(precision);
+        if (decimalFormat == null) {
+            decimalFormat = new DecimalFormat();
+            decimalFormat.setMaximumFractionDigits(precision);
+            decimalFormat.setMinimumFractionDigits(precision);
+            decimalFormat.setGroupingUsed(false);
+            sDecimalFormatCache.put(precision, decimalFormat);
+        }
         return decimalFormat.format(decimal);
     }
 
@@ -88,10 +97,10 @@ public class ModelUtils {
      * The "currency-formatted" value, which would appear as "$25.20" or "$25,20" as determined by the user's locale.
      *
      * @param decimal  - the {@link java.math.BigDecimal} to format
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
      * @return - the currency formatted price {@link java.lang.String}
      */
-    public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable WBCurrency currency) {
+    public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
         if (currency != null) {
             return currency.format(decimal);
         } else {
@@ -99,15 +108,14 @@ public class ModelUtils {
         }
     }
 
-
     /**
      * The "currency-code-formatted" value, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale.
      *
      * @param decimal  - the {@link java.math.BigDecimal} to format
-     * @param currency - the {@link co.smartreceipts.android.model.WBCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(java.math.BigDecimal)}
      * @return - the currency formatted price {@link java.lang.String}
      */
-    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable WBCurrency currency) {
+    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
         final StringBuilder stringBuilder = new StringBuilder();
         if (currency != null) {
             stringBuilder.append(currency.getCurrencyCode());

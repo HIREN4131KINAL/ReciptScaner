@@ -19,6 +19,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.sql.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -38,12 +39,17 @@ import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.managers.DriveRestoreDataManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.subjects.BehaviorSubject;
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
 
@@ -68,6 +74,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final DatabaseBackupListener<Category> mCategoryDatabaseBackupListener;
     private final DatabaseBackupListener<Column<Receipt>> mCsvColumnDatabaseBackupListener;
     private final DatabaseBackupListener<Column<Receipt>> mPdfColumnDatabaseBackupListener;
+    private final BehaviorSubject<Throwable> mSyncErrorStream;
 
     public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper, @NonNull TableControllerManager tableControllerManager,
                                     @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
@@ -82,7 +89,8 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mGoogleDriveSyncMetadata = new GoogleDriveSyncMetadata(context);
         mTableControllerManager = Preconditions.checkNotNull(tableControllerManager);
         mNetworkManager = Preconditions.checkNotNull(networkManager);
-        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata);
+        mSyncErrorStream = BehaviorSubject.create();
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata, mSyncErrorStream);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
 
         final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context, mDriveTaskManager, mGoogleDriveSyncMetadata, mNetworkManager, analytics);
@@ -163,14 +171,76 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
         if (remoteBackupMetadata.getSyncDeviceId().equals(mGoogleDriveSyncMetadata.getDeviceIdentifier())) {
             mGoogleDriveSyncMetadata.clear();
+            mDriveReceiptsManager.disable();
         }
-        return mDriveTaskManager.delete(remoteBackupMetadata.getId());
+        return mDriveTaskManager.delete(remoteBackupMetadata.getId())
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean success) {
+                        mDriveReceiptsManager.enable();
+                        if (success) {
+                            mDriveReceiptsManager.initialize();
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        mDriveReceiptsManager.disable();
+        mGoogleDriveSyncMetadata.clear();
+        mDriveTaskManager.clearCachedData();
+        // Note: We added a stupid delay hack here to allow things to clear out of their buffers
+        return Observable.just(true)
+                .delay(500, TimeUnit.MILLISECONDS)
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean success) {
+                        mDriveReceiptsManager.enable();
+                        if (success) {
+                            mDriveReceiptsManager.initialize();
+                        }
+                    }
+                });
     }
 
     @NonNull
     @Override
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mDriveRestoreDataManager.downloadAllBackupMetadataImages(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mDriveRestoreDataManager.downloadAllFilesInDriveFolder(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
+        return mSyncErrorStream.asObservable()
+                .map(new Func1<Throwable, CriticalSyncError>() {
+                    @Override
+                    public CriticalSyncError call(Throwable throwable) {
+                        if (throwable instanceof CriticalSyncError) {
+                            return (CriticalSyncError) throwable;
+                        } else {
+                            return null;
+                        }
+                    }
+                })
+                .filter(new Func1<CriticalSyncError, Boolean>() {
+                    @Override
+                    public Boolean call(CriticalSyncError criticalSyncError) {
+                        return criticalSyncError != null;
+                    }
+                });
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        mSyncErrorStream.onNext(null);
     }
 
     @Override

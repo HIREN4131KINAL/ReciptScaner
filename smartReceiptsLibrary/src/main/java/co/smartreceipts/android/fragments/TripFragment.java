@@ -29,7 +29,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
@@ -78,7 +78,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
         mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
         mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
         if (savedInstanceState == null) {
@@ -147,8 +147,9 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
         super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
+        outState.putBoolean(OUT_NAV_TO_LAST_TRIP, mNavigateToLastTrip);
     }
 
     public final void tripMenu(final Trip trip) {

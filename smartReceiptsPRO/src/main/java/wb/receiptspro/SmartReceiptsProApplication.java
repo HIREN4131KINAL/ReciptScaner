@@ -20,9 +20,22 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import com.squareup.leakcanary.LeakCanary;
+
 public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 
     private WeakReference<ProgressDialog> mProgress;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
+            return;
+        } else {
+            LeakCanary.install(this);
+        }
+    }
 
     @Override
     protected void showFirstRunDialog() {

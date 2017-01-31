@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import java.util.List;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.sync.model.SyncState;
@@ -31,7 +31,7 @@ public final class DistancePriceColumn extends AbstractColumnImpl<Distance> {
     @Override
     @NonNull
     public String getFooter(@NonNull List<Distance> distances) {
-        final WBCurrency tripCurrency = !distances.isEmpty() ? distances.get(0).getTrip().getTripCurrency() : null;
+        final PriceCurrency tripCurrency = !distances.isEmpty() ? distances.get(0).getTrip().getTripCurrency() : null;
         if (mAllowSpecialCharacters) {
             return new PriceBuilderFactory().setPriceables(distances, tripCurrency).build().getCurrencyFormattedPrice();
         } else {

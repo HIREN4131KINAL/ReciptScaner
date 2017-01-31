@@ -24,9 +24,10 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.model.utils.CurrencyUtils;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
@@ -306,8 +307,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             return mFullCurrencyList;
         }
         mFullCurrencyList = new ArrayList<>();
-        mFullCurrencyList.addAll(WBCurrency.getIso4217CurrencyCodes());
-        mFullCurrencyList.addAll(WBCurrency.getNonIso4217CurrencyCodes());
+        mFullCurrencyList.addAll(CurrencyUtils.getAllCurrencies());
         Collections.sort(mFullCurrencyList, new AlphabeticalCaseInsensitiveCharSequenceComparator());
         mFullCurrencyList.addAll(0, getMostRecentlyUsedCurrencies());
         return mFullCurrencyList;

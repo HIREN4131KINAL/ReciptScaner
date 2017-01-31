@@ -21,12 +21,10 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
 
     private final Context mContext;
     private final ConfigurationManager mConfigurationManager;
-    private Trip mTrip;
 
-    public TripFragmentPagerAdapter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, @NonNull ConfigurationManager configurationManager) {
+    public TripFragmentPagerAdapter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull ConfigurationManager configurationManager) {
         super(fragmentManager);
         mContext = context.getApplicationContext();
-        mTrip = trip;
         mConfigurationManager = configurationManager;
     }
 
@@ -42,15 +40,15 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         if (position == 0) {
-            return ReceiptsListFragment.newListInstance(mTrip);
+            return ReceiptsListFragment.newListInstance();
         } else if (position == 1) {
             if (mConfigurationManager.isDistanceTrackingOptionAvailable()) {
-                return DistanceFragment.newInstance(mTrip);
+                return DistanceFragment.newInstance();
             } else {
-                return GenerateReportFragment.newInstance(mTrip);
+                return GenerateReportFragment.newInstance();
             }
         } else if (position == 2) {
-            return GenerateReportFragment.newInstance(mTrip);
+            return GenerateReportFragment.newInstance();
         } else {
             throw new IllegalArgumentException("Unexpected Fragment Position");
         }
@@ -72,11 +70,5 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
             throw new IllegalArgumentException("Unexpected Fragment Position");
         }
     }
-
-    public void notifyDataSetChanged(@NonNull Trip trip) {
-        mTrip = Preconditions.checkNotNull(trip);
-        notifyDataSetChanged();
-    }
-
 
 }

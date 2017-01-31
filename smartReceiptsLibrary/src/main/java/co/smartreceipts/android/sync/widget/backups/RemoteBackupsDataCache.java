@@ -1,4 +1,4 @@
-package co.smartreceipts.android.sync.widget;
+package co.smartreceipts.android.sync.widget.backups;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -18,9 +18,11 @@ import java.util.Map;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -33,13 +35,16 @@ public class RemoteBackupsDataCache {
 
     private final Context mContext;
     private final BackupProvidersManager mBackupProvidersManager;
+    private final NetworkManager mNetworkManager;
     private final DatabaseHelper mDatabaseHelper;
     private RemoteBackupsResultsCacheHeadlessFragment mHeadlessFragment;
 
     public RemoteBackupsDataCache(@NonNull FragmentManager fragmentManager, @NonNull Context context,
-                                  @NonNull BackupProvidersManager backupProvidersManager, @NonNull DatabaseHelper databaseHelper) {
+                                  @NonNull BackupProvidersManager backupProvidersManager, @NonNull NetworkManager networkManager,
+                                  @NonNull DatabaseHelper databaseHelper) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
+        mNetworkManager = Preconditions.checkNotNull(networkManager);
         mDatabaseHelper = Preconditions.checkNotNull(databaseHelper);
         Preconditions.checkNotNull(fragmentManager);
 
@@ -60,6 +65,18 @@ public class RemoteBackupsDataCache {
         if (backupsReplaySubject == null) {
             backupsReplaySubject = ReplaySubject.create();
             mBackupProvidersManager.getRemoteBackups()
+                    .retryWhen(new Func1<Observable<? extends Throwable>, Observable<Boolean>>() {
+                        @Override
+                        public Observable<Boolean> call(Observable<? extends Throwable> observable) {
+                            return mNetworkManager.getNetworkStateChangeObservable()
+                                    .filter(new Func1<Boolean, Boolean>() {
+                                        @Override
+                                        public Boolean call(Boolean hasNetwork) {
+                                            return hasNetwork;
+                                        }
+                                    });
+                        }
+                    })
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(backupsReplaySubject);
@@ -75,22 +92,34 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    public synchronized Observable<Boolean> deleteBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+    public synchronized Observable<Boolean> deleteBackup(@Nullable RemoteBackupMetadata remoteBackupMetadata) {
         if (mHeadlessFragment.deleteBackupReplaySubjectMap == null) {
             mHeadlessFragment.deleteBackupReplaySubjectMap = new HashMap<>();
         }
         ReplaySubject<Boolean> deleteReplaySubject = mHeadlessFragment.deleteBackupReplaySubjectMap.get(remoteBackupMetadata);
         if (deleteReplaySubject == null) {
             deleteReplaySubject = ReplaySubject.create();
-            deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
-                    .flatMap(new Func1<Boolean, Observable<Boolean>>() {
+            getBackupMetadata(remoteBackupMetadata)
+                    .flatMap(new Func1<RemoteBackupMetadata, Observable<Boolean>>() {
                         @Override
-                        public Observable<Boolean> call(Boolean success) {
-                            if (success) {
-                                return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
-                            } else {
-                                return Observable.just(false);
-                            }
+                        public Observable<Boolean> call(@Nullable final RemoteBackupMetadata remoteBackupMetadata) {
+                                return deleteLocalSyncDataIfNeeded(remoteBackupMetadata)
+                                        .flatMap(new Func1<Boolean, Observable<Boolean>>() {
+                                            @Override
+                                            public Observable<Boolean> call(Boolean success) {
+                                                if (success) {
+                                                    if (remoteBackupMetadata == null) {
+                                                        Logger.info(RemoteBackupsDataCache.this, "Clearing current configuration");
+                                                        return mBackupProvidersManager.clearCurrentBackupConfiguration();
+                                                    } else {
+                                                        Logger.info(RemoteBackupsDataCache.this, "Deleting provided metadata");
+                                                        return mBackupProvidersManager.deleteBackup(remoteBackupMetadata);
+                                                    }
+                                                } else {
+                                                    return Observable.just(false);
+                                                }
+                                            }
+                                        });
                         }
                     })
                     .subscribeOn(Schedulers.io())
@@ -119,7 +148,7 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    public synchronized Observable<File> downloadBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
+    public synchronized Observable<File> downloadBackup(@NonNull final RemoteBackupMetadata remoteBackupMetadata, final boolean debugMode) {
         if (mHeadlessFragment.downloadBackupReplaySubjectMap == null) {
             mHeadlessFragment.downloadBackupReplaySubjectMap = new HashMap<>();
         }
@@ -148,7 +177,11 @@ public class RemoteBackupsDataCache {
                 .flatMap(new Func1<Boolean, Observable<List<File>>>() {
                     @Override
                     public Observable<List<File>> call(Boolean aBoolean) {
-                        return mBackupProvidersManager.downloadAllData(remoteBackupMetadata, cacheDir);
+                        if (debugMode) {
+                            return mBackupProvidersManager.debugDownloadAllData(remoteBackupMetadata, cacheDir);
+                        } else {
+                            return mBackupProvidersManager.downloadAllData(remoteBackupMetadata, cacheDir);
+                        }
                     }
                 })
                 .map(new Func1<List<File>, File>() {
@@ -175,8 +208,32 @@ public class RemoteBackupsDataCache {
     }
 
     @NonNull
-    private Observable<Boolean> deleteLocalSyncDataIfNeeded(@NonNull final RemoteBackupMetadata remoteBackupMetadata) {
-        if (remoteBackupMetadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
+    private Observable<RemoteBackupMetadata> getBackupMetadata(@Nullable RemoteBackupMetadata remoteBackupMetadata) {
+        if (remoteBackupMetadata == null) {
+            Logger.debug(this, "Attempting to fetch the local metadata");
+            return mBackupProvidersManager.getRemoteBackups()
+                        .map(new Func1<List<RemoteBackupMetadata>, RemoteBackupMetadata>() {
+                            @Override
+                            public RemoteBackupMetadata call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
+                                for (final RemoteBackupMetadata metadata : remoteBackupMetadatas) {
+                                    if (metadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
+                                        Logger.info(this, "Identified the local device metadata as {}", metadata);
+                                        return metadata;
+                                    }
+                                }
+                                Logger.warn(this, "No local backup currently exists.");
+                                return null;
+                            }
+                        });
+        } else {
+            Logger.debug(this, "Returning the provided metadata: {}", remoteBackupMetadata);
+            return Observable.just(remoteBackupMetadata);
+        }
+    }
+
+    @NonNull
+    private Observable<Boolean> deleteLocalSyncDataIfNeeded(@Nullable final RemoteBackupMetadata remoteBackupMetadata) {
+        if (remoteBackupMetadata == null || remoteBackupMetadata.getSyncDeviceId().equals(mBackupProvidersManager.getDeviceSyncId())) {
             return mDatabaseHelper.getReceiptsTable().deleteSyncData(mBackupProvidersManager.getSyncProvider());
         } else {
             return Observable.just(true);

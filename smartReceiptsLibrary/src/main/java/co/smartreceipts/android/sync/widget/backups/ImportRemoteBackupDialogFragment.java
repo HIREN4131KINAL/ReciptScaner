@@ -1,9 +1,8 @@
-package co.smartreceipts.android.sync.widget;
+package co.smartreceipts.android.sync.widget.backups;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,18 +14,20 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 
-public class ImportLocalBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
+public class ImportRemoteBackupDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
-    private static final String ARG_SMR_URI = "arg_smr_uri";
+    private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
 
-    private Uri mUri;
+    private RemoteBackupMetadata mBackupMetadata;
+
     private CheckBox mOverwriteCheckBox;
 
-    public static ImportLocalBackupDialogFragment newInstance(@NonNull Uri uri) {
-        final ImportLocalBackupDialogFragment fragment = new ImportLocalBackupDialogFragment();
+    public static ImportRemoteBackupDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        final ImportRemoteBackupDialogFragment fragment = new ImportRemoteBackupDialogFragment();
         final Bundle args = new Bundle();
-        args.putParcelable(ARG_SMR_URI, uri);
+        args.putParcelable(ARG_BACKUP_METADATA, remoteBackupMetadata);
         fragment.setArguments(args);
         return fragment;
     }
@@ -34,8 +35,8 @@ public class ImportLocalBackupDialogFragment extends DialogFragment implements D
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUri = getArguments().getParcelable(ARG_SMR_URI);
-        Preconditions.checkNotNull(mUri, "ImportBackupDialogFragment requires a valid SMR Uri");
+        mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
+        Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
 
     @NonNull
@@ -46,7 +47,7 @@ public class ImportLocalBackupDialogFragment extends DialogFragment implements D
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setView(dialogView);
-        builder.setTitle(R.string.import_string);
+        builder.setTitle(getString(R.string.import_string_item, mBackupMetadata.getSyncDeviceName()));
         builder.setCancelable(true);
         builder.setPositiveButton(R.string.dialog_import_positive, this);
         builder.setNegativeButton(android.R.string.cancel, this);
@@ -56,7 +57,7 @@ public class ImportLocalBackupDialogFragment extends DialogFragment implements D
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            new NavigationHandler(getActivity()).showDialog(ImportLocalBackupWorkerProgressDialogFragment.newInstance(mUri, mOverwriteCheckBox.isChecked()));
+            new NavigationHandler(getActivity()).showDialog(ImportRemoteBackupWorkerProgressDialogFragment.newInstance(mBackupMetadata, mOverwriteCheckBox.isChecked()));
         }
         dismiss();
     }

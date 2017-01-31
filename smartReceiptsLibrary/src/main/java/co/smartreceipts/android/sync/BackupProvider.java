@@ -9,6 +9,8 @@ import java.io.File;
 import java.sql.Date;
 import java.util.List;
 
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
@@ -78,6 +80,14 @@ public interface BackupProvider {
     @NonNull
     Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
 
+
+    /**
+     * Attempts to clear out the current backup configuration
+     *
+     * @return an {@link Observable} for the delete operation with a success boolean
+     */
+    Observable<Boolean> clearCurrentBackupConfiguration();
+
     /**
      * Downloads an existing backup to a specific location
      *
@@ -87,5 +97,30 @@ public interface BackupProvider {
      */
     @NonNull
     Observable<List<File>> downloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+
+    /**
+     * Downloads an existing backup to a specific location in a debug friendly manner
+     *
+     * @param remoteBackupMetadata the metadata to download
+     * @param downloadLocation the {@link File} location to download it to
+     * @return an {@link Observable} that contains the downloaded images
+     */
+    @NonNull
+    Observable<List<File>> debugDownloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+
+    /**
+     * @return an {@link Observable} that emits {@link CriticalSyncError} instances whenever they occur,
+     * allowing us to respond as appropriately for these items
+     */
+    @NonNull
+    Observable<CriticalSyncError> getCriticalSyncErrorStream();
+
+    /**
+     * Call this method to mark this particular error as resolve
+     *
+     * @param syncErrorType the {@link SyncErrorType} to mark as resolved
+     */
+    void markErrorResolved(@NonNull SyncErrorType syncErrorType);
+
 
 }

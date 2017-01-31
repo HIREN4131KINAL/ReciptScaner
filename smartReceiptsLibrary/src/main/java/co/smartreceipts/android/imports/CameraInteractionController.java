@@ -22,6 +22,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class CameraInteractionController {
 
@@ -75,6 +76,7 @@ public class CameraInteractionController {
     private Uri startPhotoIntent(@NonNull File saveLocation, int nativeCameraRequestCode, int localCameraRequestCode) {
         final Fragment fragment = mFragmentReference.get();
         if (fragment == null || !fragment.isResumed()) {
+            Logger.debug(this, "Returning empty URI as save location");
             return Uri.EMPTY;
         }
 
@@ -83,12 +85,15 @@ public class CameraInteractionController {
         if (mPreferences.useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
             final Intent intent = IntentUtils.getImageCaptureIntent(fragment.getActivity(), saveLocation);
             fragment.startActivityForResult(intent, nativeCameraRequestCode);
-            return intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+            final Uri uri = intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+            Logger.debug(this, "Returning {} as save location", uri);
+            return uri;
         } else {
             final Uri saveLocationUri = Uri.fromFile(saveLocation);
             final Intent intent = new Intent(fragment.getActivity(), wb.android.google.camera.CameraActivity.class);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, saveLocationUri);
             fragment.startActivityForResult(intent, localCameraRequestCode);
+            Logger.debug(this, "Returning {} as save location", saveLocationUri);
             return saveLocationUri;
         }
     }

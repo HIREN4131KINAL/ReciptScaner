@@ -1,7 +1,6 @@
 package co.smartreceipts.android.activities;
 
 import android.app.PendingIntent;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -14,16 +13,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.io.File;
-import com.google.common.base.Preconditions;
-
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
-import co.smartreceipts.android.sync.widget.ImportLocalBackupDialogFragment;
+import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.Preferences;
@@ -34,7 +30,6 @@ import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.utils.log.Logger;
-import wb.android.dialog.BetterDialogBuilder;
 import co.smartreceipts.android.rating.AppRating;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
@@ -57,7 +52,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
 
-        mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
         mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
         mSubscriptionManager.onCreate();
         mSubscriptionManager.addEventListener(this);
@@ -176,6 +171,13 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.info(this, "onPause");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Logger.debug(this, "pre-onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "post-onSaveInstanceState");
     }
 
     @Override

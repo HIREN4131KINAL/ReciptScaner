@@ -11,9 +11,8 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -31,7 +30,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
     private Date _date;
     private TimeZone _timezone;
     private BigDecimal _rate;
-    private WBCurrency _currency;
+    private PriceCurrency _currency;
     private String _comment;
     private SyncState _syncState;
 
@@ -120,7 +119,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         return this;
     }
 
-    public DistanceBuilderFactory setCurrency(WBCurrency currency) {
+    public DistanceBuilderFactory setCurrency(PriceCurrency currency) {
         _currency = currency;
         return this;
     }
@@ -129,7 +128,7 @@ public final class DistanceBuilderFactory implements BuilderFactory<Distance> {
         if (TextUtils.isEmpty(currencyCode)) {
             throw new IllegalArgumentException("The currency code cannot be null or empty");
         }
-        _currency = WBCurrency.getInstance(currencyCode);
+        _currency = PriceCurrency.getInstance(currencyCode);
         return this;
     }
 

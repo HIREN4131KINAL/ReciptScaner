@@ -16,12 +16,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.apis.login.LoginResponse;
 import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -58,7 +59,7 @@ public class LoginFragment extends WBFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
         mIdentityManager = getSmartReceiptsApplication().getIdentityManager();
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
@@ -137,10 +138,11 @@ public class LoginFragment extends WBFragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
         if (mLoginParams != null) {
             outState.putParcelable(OUT_LOGIN_PARAMS, mLoginParams);
         }
-        super.onSaveInstanceState(outState);
     }
 
     private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {

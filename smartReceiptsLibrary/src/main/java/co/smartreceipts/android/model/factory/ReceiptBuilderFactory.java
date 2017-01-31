@@ -16,7 +16,7 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.DefaultReceiptImpl;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
@@ -231,7 +231,7 @@ public class ReceiptBuilderFactory implements BuilderFactory<Receipt> {
         return this;
     }
 
-    public ReceiptBuilderFactory setCurrency(WBCurrency currency) {
+    public ReceiptBuilderFactory setCurrency(PriceCurrency currency) {
         _priceBuilderFactory.setCurrency(currency);
         _taxBuilderFactory.setCurrency(currency);
         return this;

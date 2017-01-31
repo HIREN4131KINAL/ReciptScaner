@@ -71,6 +71,15 @@ public class DefaultRemoteBackupMetadata implements RemoteBackupMetadata {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "DefaultRemoteBackupMetadata{" +
+                "mIdentifier=" + mIdentifier +
+                ", mSyncDeviceIdentifier=" + mSyncDeviceIdentifier +
+                ", mSyncDeviceName='" + mSyncDeviceName + '\'' +
+                ", mLastModifiedDate=" + mLastModifiedDate +
+                '}';
+    }
 
     @Override
     public int describeContents() {

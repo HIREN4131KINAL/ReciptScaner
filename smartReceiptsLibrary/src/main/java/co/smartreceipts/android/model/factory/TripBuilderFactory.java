@@ -6,19 +6,13 @@ import android.text.TextUtils;
 
 import com.google.common.base.Preconditions;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.filters.Filter;
-import co.smartreceipts.android.filters.FilterFactory;
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.impl.DefaultTripImpl;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -33,7 +27,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
     private String _comment, _costCenter;
     private Date _startDate, _endDate;
     private TimeZone _startTimeZone, _endTimeZone;
-    private WBCurrency _defaultCurrency;
+    private PriceCurrency _defaultCurrency;
     private SyncState _syncState;
     private Source _source;
 
@@ -41,7 +35,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _dir = new File("");
         _comment = "";
         _costCenter = "";
-        _defaultCurrency = WBCurrency.getDefault();
+        _defaultCurrency = PriceCurrency.getDefaultCurrency();
         _startDate = new Date(System.currentTimeMillis());
         _endDate = _startDate;
         _source = Source.Undefined;
@@ -54,7 +48,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         _dir = trip.getDirectory();
         _comment = trip.getComment();
         _costCenter = trip.getCostCenter();
-        _defaultCurrency = WBCurrency.getInstance(trip.getDefaultCurrencyCode());
+        _defaultCurrency = PriceCurrency.getInstance(trip.getDefaultCurrencyCode());
         _startDate = trip.getStartDate();
         _endDate = trip.getEndDate();
         _source = trip.getSource();
@@ -112,7 +106,7 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         return this;
     }
 
-    public TripBuilderFactory setDefaultCurrency(@NonNull WBCurrency currency) {
+    public TripBuilderFactory setDefaultCurrency(@NonNull PriceCurrency currency) {
         _defaultCurrency = Preconditions.checkNotNull(currency);
         return this;
     }
@@ -121,15 +115,15 @@ public final class TripBuilderFactory implements BuilderFactory<Trip> {
         if (TextUtils.isEmpty(currencyCode)) {
             throw new IllegalArgumentException("The currency code cannot be null or empty");
         }
-        _defaultCurrency = WBCurrency.getInstance(currencyCode);
+        _defaultCurrency = PriceCurrency.getInstance(currencyCode);
         return this;
     }
 
     public TripBuilderFactory setDefaultCurrency(@Nullable String currencyCode, @NonNull String missingCodeDefault) {
         if (TextUtils.isEmpty(currencyCode)) {
-            _defaultCurrency = WBCurrency.getInstance(missingCodeDefault);
+            _defaultCurrency = PriceCurrency.getInstance(missingCodeDefault);
         } else {
-            _defaultCurrency = WBCurrency.getInstance(currencyCode);
+            _defaultCurrency = PriceCurrency.getInstance(currencyCode);
         }
         return this;
     }

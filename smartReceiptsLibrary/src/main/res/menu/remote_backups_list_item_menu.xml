@@ -10,4 +10,7 @@
     <item android:id="@+id/remote_backups_list_item_menu_download_images"
           android:title="@string/remote_backups_list_item_menu_download_images"/>
 
+    <item android:id="@+id/remote_backups_list_item_menu_download_images_debug"
+          android:title="@string/remote_backups_list_item_menu_download_images_debug"/>
+
 </menu>

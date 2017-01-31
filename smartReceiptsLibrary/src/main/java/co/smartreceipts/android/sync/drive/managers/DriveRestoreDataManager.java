@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
@@ -76,6 +77,52 @@ public class DriveRestoreDataManager {
     @NonNull
     public Observable<List<File>> downloadAllBackupMetadataImages(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation) {
         return downloadBackupMetadataImages(remoteBackupMetadata, true, downloadLocation);
+    }
+
+    @NonNull
+    public Observable<List<File>> downloadAllFilesInDriveFolder(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation) {
+        Preconditions.checkNotNull(remoteBackupMetadata);
+        Preconditions.checkNotNull(downloadLocation);
+
+        return mDriveStreamsManager.getDriveId(remoteBackupMetadata.getId())
+                .map(new Func1<DriveId, DriveFolder>() {
+                    @Override
+                    public DriveFolder call(DriveId driveId) {
+                        Logger.debug(DriveRestoreDataManager.this, "Converting drive id to smart receipts drive folder");
+                        return driveId.asDriveFolder();
+                    }
+                })
+                .flatMap(new Func1<DriveFolder, Observable<DriveId>>() {
+                    @Override
+                    public Observable<DriveId> call(DriveFolder driveFolder) {
+                        return mDriveStreamsManager.getFilesInFolder(driveFolder);
+                    }
+                })
+                .map(new Func1<DriveId, DriveFile>() {
+                    @Override
+                    public DriveFile call(DriveId driveId) {
+                        return driveId.asDriveFile();
+                    }
+                })
+                .flatMap(new Func1<DriveFile, Observable<File>>() {
+                    @Override
+                    public Observable<File> call(final DriveFile driveFile) {
+                        return mDriveStreamsManager.getMetadata(driveFile)
+                                .map(new Func1<Metadata, String>() {
+                                    @Override
+                                    public String call(Metadata metadata) {
+                                        return driveFile.getDriveId().getResourceId() + "__" + metadata.getOriginalFilename();
+                                    }
+                                })
+                                .flatMap(new Func1<String, Observable<File>>() {
+                                    @Override
+                                    public Observable<File> call(String filename) {
+                                        return mDriveStreamsManager.download(driveFile, new File(downloadLocation, filename));
+                                    }
+                                });
+                    }
+                })
+                .toList();
     }
 
     @NonNull

@@ -2,7 +2,6 @@ package co.smartreceipts.android.model.factory;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Priceable;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableLegacyNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;
@@ -26,7 +25,7 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
 
     private BigDecimal mPriceDecimal;
     private ExchangeRate mExchangeRate;
-    private WBCurrency mCurrency;
+    private PriceCurrency mCurrency;
     private List<Priceable> mPriceables;
     private List<Price> mPrices;
 
@@ -52,13 +51,13 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setCurrency(WBCurrency currency) {
+    public PriceBuilderFactory setCurrency(PriceCurrency currency) {
         mCurrency = currency;
         return this;
     }
 
     public PriceBuilderFactory setCurrency(String currencyCode) {
-        mCurrency = WBCurrency.getInstance(currencyCode);
+        mCurrency = PriceCurrency.getInstance(currencyCode);
         return this;
     }
 
@@ -67,13 +66,13 @@ public final class PriceBuilderFactory implements BuilderFactory<Price> {
         return this;
     }
 
-    public PriceBuilderFactory setPrices(@NonNull List<? extends Price> prices, @Nullable WBCurrency desiredCurrency) {
+    public PriceBuilderFactory setPrices(@NonNull List<? extends Price> prices, @Nullable PriceCurrency desiredCurrency) {
         mPrices = new ArrayList<>(prices);
         mCurrency = desiredCurrency;
         return this;
     }
 
-    public PriceBuilderFactory setPriceables(@NonNull List<? extends Priceable> priceables, @Nullable WBCurrency desiredCurrency) {
+    public PriceBuilderFactory setPriceables(@NonNull List<? extends Priceable> priceables, @Nullable PriceCurrency desiredCurrency) {
         mPriceables = new ArrayList<>(priceables);
         mCurrency = desiredCurrency;
         return this;

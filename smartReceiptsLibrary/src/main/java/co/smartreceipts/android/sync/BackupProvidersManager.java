@@ -17,6 +17,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.sync.errors.CriticalSyncError;
+import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -123,9 +125,31 @@ public class BackupProvidersManager implements BackupProvider {
         return mBackupProvider.deleteBackup(remoteBackupMetadata);
     }
 
+    @Override
+    public Observable<Boolean> clearCurrentBackupConfiguration() {
+        return mBackupProvider.clearCurrentBackupConfiguration();
+    }
+
     @NonNull
     @Override
     public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mBackupProvider.downloadAllData(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return mBackupProvider.debugDownloadAllData(remoteBackupMetadata, downloadLocation);
+    }
+
+    @NonNull
+    @Override
+    public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
+        return mBackupProvider.getCriticalSyncErrorStream();
+    }
+
+    @Override
+    public void markErrorResolved(@NonNull SyncErrorType syncErrorType) {
+        mBackupProvider.markErrorResolved(syncErrorType);
     }
 }

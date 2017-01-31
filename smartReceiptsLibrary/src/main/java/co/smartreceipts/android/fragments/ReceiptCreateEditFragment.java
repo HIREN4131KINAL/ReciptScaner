@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DefaultFragmentProvider;
+import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
@@ -48,6 +48,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
+import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
@@ -153,13 +154,19 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mFile = (File) getArguments().getSerializable(ARG_FILE);
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
-        mNavigationHandler = new NavigationHandler(getActivity(), new DefaultFragmentProvider());
+        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
         mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
         mCategoriesList = Collections.emptyList();
         mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
         mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
         setHasOptionsMenu(true);
+
+        if (savedInstanceState == null) {
+            if (mReceipt == null) {
+                getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new OcrInformationalTooltipFragment()).commit();
+            }
+        }
     }
 
     @Nullable
@@ -599,10 +606,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Logger.debug(this, "onSaveInstanceState");
         if (mExchangeRateContainer != null && outState != null) {
             outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
         }
-        super.onSaveInstanceState(outState);
     }
 
     @Override

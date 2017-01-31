@@ -34,7 +34,7 @@ public class OcrInformationalFragment extends Fragment {
         setHasOptionsMenu(true);
 
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
-        mInteractor = new OcrInformationalInteractor(application.getAnalyticsManager(), new NavigationHandler(getActivity()));
+        mInteractor = new OcrInformationalInteractor(application.getAnalyticsManager(), getActivity());
     }
 
     @Nullable

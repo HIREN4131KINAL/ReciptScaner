@@ -58,6 +58,6 @@ public class OcrInformationalTooltipInteractor {
         Logger.info(this, "Displaying OCR Fragment");
         mNavigationHandler.navigateToOcrInfomationFragment();
         mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipOpen);
-        // TODO: mStateTracker.setShouldShowPreReleaseQuestions(false);
+        mStateTracker.setShouldShowPreReleaseQuestions(false);
     }
 }

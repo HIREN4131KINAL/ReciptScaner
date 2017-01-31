@@ -87,8 +87,9 @@ public final class Events {
         public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Sync, "OcrQuestionnaireSubmit");
         public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Sync, "OcrQuestionnaireDismiss");
         public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Sync, "OcrQuestionnaireEmailUs");
-        public static final Event OcrQuestionnaireQuestion1PerReceipt = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt");
-        public static final Event OcrQuestionnaireQuestion1PerMonth = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerMonth");
+        public static final Event OcrQuestionnaireQuestion1PerReceipt20 = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt20");
+        public static final Event OcrQuestionnaireQuestion1PerReceipt15 = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt15");
+        public static final Event OcrQuestionnaireQuestion1TooMuch = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1TooMuch");
         public static final Event OcrQuestionnaireQuestion1NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1NotInterested");
         public static final Event OcrQuestionnaireQuestion2DelaysOkay = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2DelaysOkay");
         public static final Event OcrQuestionnaireQuestion2NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2NotInterested");

@@ -163,7 +163,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         setHasOptionsMenu(true);
 
         if (savedInstanceState == null) {
-            getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new OcrInformationalTooltipFragment()).commit();
+            if (mReceipt == null) {
+                getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new OcrInformationalTooltipFragment()).commit();
+            }
         }
     }
 

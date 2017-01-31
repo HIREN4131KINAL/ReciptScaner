@@ -23,7 +23,7 @@ public class OcrInformationalPresenter implements RadioGroup.OnCheckedChangeList
 
         mQuestion1Group = Preconditions.checkNotNull((RadioGroup) view.findViewById(R.id.ocr_questionnaire_q1));
         mQuestion2Group = Preconditions.checkNotNull((RadioGroup) view.findViewById(R.id.ocr_questionnaire_q2));
-        mEmailUsButton = Preconditions.checkNotNull((Button) view.findViewById(R.id.email));
+        mEmailUsButton = Preconditions.checkNotNull((Button) view.findViewById(R.id.ocr_questionnaire_email_us));
 
         mQuestion1Group.setOnCheckedChangeListener(this);
         mQuestion2Group.setOnCheckedChangeListener(this);

@@ -1,110 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/default_margin_size">
+    android:orientation="vertical" >
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
+    <include android:id="@+id/toolbar"
+             layout="@layout/toolbar" />
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_questionnaire_info_title" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:isScrollContainer="false" >
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_questionnaire_info_message" />
-
-    <View style="@style/Widget.View.Divider.Horizontal"
-        android:layout_marginTop="@dimen/default_margin_size"
-        android:layout_marginBottom="@dimen/default_margin_size"/>
-
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_questionnaire_title" />
-
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_questionnaire_q1_message" />
-
-    <RadioGroup
-        android:id="@+id/ocr_questionnaire_q1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator" >
-
-        <RadioButton
-            android:id="@+id/ocr_questionnaire_q1_option1"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/ocr_questionnaire_q1_option1"
-            android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
-            android:paddingStart="@dimen/default_margin_item_separator"
-            android:paddingEnd="@dimen/default_margin_item_separator"/>
+            android:orientation="vertical"
+            android:padding="@dimen/default_margin_size">
 
-        <RadioButton
-            android:id="@+id/ocr_questionnaire_q1_option2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ocr_questionnaire_q1_option2"
-            android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
-            android:paddingStart="@dimen/default_margin_item_separator"
-            android:paddingEnd="@dimen/default_margin_item_separator"/>
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/ocr_questionnaire_info_title" />
 
-        <RadioButton
-            android:id="@+id/ocr_questionnaire_q1_option3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ocr_questionnaire_q1_option3"
-            android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
-            android:paddingStart="@dimen/default_margin_item_separator"
-            android:paddingEnd="@dimen/default_margin_item_separator"/>
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/ocr_questionnaire_info_message" />
 
-    </RadioGroup>
+            <View style="@style/Widget.View.Divider.Horizontal"
+                android:layout_marginTop="@dimen/default_margin_size"
+                android:layout_marginBottom="@dimen/default_margin_size"/>
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_questionnaire_q2_message" />
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/ocr_questionnaire_title" />
 
-    <RadioGroup
-        android:id="@+id/ocr_questionnaire_q2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator" >
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/ocr_questionnaire_q1_message" />
 
-        <RadioButton
-            android:id="@+id/ocr_questionnaire_q2_option1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ocr_questionnaire_q2_option1"
-            android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
-            android:paddingStart="@dimen/default_margin_item_separator"
-            android:paddingEnd="@dimen/default_margin_item_separator"/>
+            <RadioGroup
+                android:id="@+id/ocr_questionnaire_q1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator" >
 
-        <RadioButton
-            android:id="@+id/ocr_questionnaire_q2_option2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ocr_questionnaire_q2_option2"
-            android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
-            android:paddingStart="@dimen/default_margin_item_separator"
-            android:paddingEnd="@dimen/default_margin_item_separator"/>
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q1_option1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q1_option1"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
 
-    </RadioGroup>
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q1_option2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q1_option2"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
 
-    <Button style="@style/Widget.SmartReceipts.Button.Tertiary"
-        android:id="@+id/ocr_questionnaire_email_us"
-        android:text="@string/ocr_questionnaire_email_us"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q1_option3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q1_option3"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
+
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q1_option4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q1_option4"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
+
+            </RadioGroup>
+
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/ocr_questionnaire_q2_message" />
+
+            <RadioGroup
+                android:id="@+id/ocr_questionnaire_q2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator" >
+
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q2_option1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q2_option1"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
+
+                <RadioButton
+                    android:id="@+id/ocr_questionnaire_q2_option2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ocr_questionnaire_q2_option2"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Body1"
+                    android:paddingStart="@dimen/default_margin_item_separator"
+                    android:paddingEnd="@dimen/default_margin_item_separator"/>
+
+            </RadioGroup>
+
+            <Button style="@style/Widget.SmartReceipts.Button.Tertiary"
+                android:id="@+id/ocr_questionnaire_email_us"
+                android:text="@string/ocr_questionnaire_email_us"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

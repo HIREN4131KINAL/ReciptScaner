@@ -1,6 +1,5 @@
 package co.smartreceipts.android.ocr.info;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -55,12 +54,15 @@ public class OcrInformationalInteractor {
 
     public void toggleQuestionnaireResponse(@IdRes int questionaireRes) {
         if (questionaireRes == R.id.ocr_questionnaire_q1_option1) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerReceipt;
+            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerReceipt20;
         } else if (questionaireRes == R.id.ocr_questionnaire_q1_option2) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerMonth;
+            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerReceipt15;
         } else if (questionaireRes == R.id.ocr_questionnaire_q1_option3) {
+            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1TooMuch;
+        } else if (questionaireRes == R.id.ocr_questionnaire_q1_option4) {
             mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1NotInterested;
         }
+
 
         if (questionaireRes == R.id.ocr_questionnaire_q2_option1) {
             mQuestion2Event = Events.Ocr.OcrQuestionnaireQuestion2DelaysOkay;

@@ -30,6 +30,7 @@ import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
+import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.imports.FileImportListener;
 import co.smartreceipts.android.model.Receipt;
@@ -38,6 +39,9 @@ import co.smartreceipts.android.persistence.database.controllers.impl.StubTableE
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.utils.log.Logger;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
 import wb.android.google.camera.Util;
 import wb.android.storage.StorageManager;
 import wb.android.ui.PinchToZoomImageView;
@@ -53,8 +57,10 @@ public class ReceiptImageFragment extends WBFragment {
     private Toolbar mToolbar;
 
     private Receipt mReceipt;
+    private ActivityFileResultImporter mActivityFileResultImporter;
     private NavigationHandler mNavigationHandler;
     private ImageUpdatedListener mImageUpdatedListener;
+    private CompositeSubscription mCompositeSubscription;
     private boolean mIsRotateOngoing;
     private Uri mImageUri;
 
@@ -75,6 +81,7 @@ public class ReceiptImageFragment extends WBFragment {
             mReceipt = savedInstanceState.getParcelable(KEY_OUT_RECEIPT);
         }
         mIsRotateOngoing = false;
+        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mReceipt.getTrip(), getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mImageUpdatedListener = new ImageUpdatedListener();
         setHasOptionsMenu(true);
@@ -142,25 +149,13 @@ public class ReceiptImageFragment extends WBFragment {
         final Uri cachedImageSaveLocation = mImageUri;
         mImageUri = null;
 
-        final ActivityFileResultImporter importer = new ActivityFileResultImporter(getActivity(), mReceipt.getTrip(), getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
-        importer.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation, new FileImportListener() {
-            @Override
-            public void onImportSuccess(@NonNull File file, int requestCode, int resultCode) {
-                final Receipt retakeReceipt = new ReceiptBuilderFactory(mReceipt).setFile(file).build();
-                getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt, new DatabaseOperationMetadata());
-            }
-
-            @Override
-            public void onImportFailed(@Nullable Throwable e, int requestCode, int resultCode) {
-                mProgress.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-            }
-        });
+        mActivityFileResultImporter.onActivityResult(requestCode, resultCode, data, cachedImageSaveLocation);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        mCompositeSubscription = new CompositeSubscription();
         ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -169,10 +164,33 @@ public class ReceiptImageFragment extends WBFragment {
             actionBar.setTitle(mReceipt.getName());
         }
         getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().subscribe(mImageUpdatedListener);
+        mCompositeSubscription.add(mActivityFileResultImporter.getResultStream()
+                .subscribe(new Action1<ActivityFileResultImporterResponse>() {
+                    @Override
+                    public void call(ActivityFileResultImporterResponse response) {
+                        final Receipt retakeReceipt = new ReceiptBuilderFactory(mReceipt).setFile(response.getFile()).build();
+                        getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, retakeReceipt, new DatabaseOperationMetadata());
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+                        mProgress.setVisibility(View.GONE);
+                        mActivityFileResultImporter.dispose();
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        mProgress.setVisibility(View.GONE);
+                        mActivityFileResultImporter.dispose();
+                    }
+                }));
     }
 
     @Override
     public void onPause() {
+        mCompositeSubscription.unsubscribe();
+        mCompositeSubscription = null;
         getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().unsubscribe(mImageUpdatedListener);
         super.onPause();
     }

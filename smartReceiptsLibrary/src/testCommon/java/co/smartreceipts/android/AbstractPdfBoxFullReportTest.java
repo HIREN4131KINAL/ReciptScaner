@@ -49,6 +49,7 @@ public abstract class AbstractPdfBoxFullReportTest {
     protected static final int NUM_IMAGES = 5;
     protected static final String OUTPUT_FILE = "report.pdf";
     private static final int NUM_DISTANCES = 2;
+    private static final int NUM_PDF = 2;
 
     protected Context mContext;
 
@@ -84,6 +85,8 @@ public abstract class AbstractPdfBoxFullReportTest {
             File file = null;
             if (i < NUM_IMAGES) {
                 file = getImageFile(String.valueOf(i + 1) + ".jpg");
+            } else if (i < NUM_IMAGES + NUM_PDF) {
+                file = getImageFile(String.valueOf(i - NUM_IMAGES + 1) + ".pdf");
             }
 
 

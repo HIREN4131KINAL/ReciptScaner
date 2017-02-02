@@ -217,10 +217,20 @@ public class PdfBoxWriter {
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {
-                PDDocument document = PDDocument.load(image);
-                PDFRenderer renderer = new PDFRenderer(document);
-                Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
-                ximage = JPEGFactory.createFromImage(doc, bitmap);
+                PDDocument document = null;
+                try {
+                    document = PDDocument.load(image);
+                    PDFRenderer renderer = new PDFRenderer(document);
+                    Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
+                    ximage = JPEGFactory.createFromImage(doc, bitmap);
+                } catch (IOException e) {
+                    // TODO
+                    ximage = null;
+                } finally {
+                    if (document != null) {
+                        document.close();
+                    }
+                }
             } else {
                 // TODO UNRECOGNIZED IMAGE
                 return;
@@ -233,10 +243,12 @@ public class PdfBoxWriter {
             PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
                     availableWidth, availableHeight);
 
-            PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
+            if (ximage != null) {
+                PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
 
-            contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
-                    resizedRec.getWidth(), resizedRec.getHeight());
+                contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
+                        resizedRec.getWidth(), resizedRec.getHeight());
+            }
         }
     }
 

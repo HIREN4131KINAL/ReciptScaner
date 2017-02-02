@@ -2,6 +2,11 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.graphics.pdf.PdfRenderer;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -21,6 +26,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
@@ -217,25 +223,22 @@ public class PdfBoxWriter {
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
                 ximage = LosslessFactory.createFromImage(doc, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {
-                PDDocument document = null;
-                try {
-                    document = PDDocument.load(image);
-                    PDFRenderer renderer = new PDFRenderer(document);
-                    Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.RGB_565);
-                    ximage = JPEGFactory.createFromImage(doc, bitmap);
-                } catch (IOException e) {
-                    // TODO
-                    ximage = null;
-                } finally {
-                    if (document != null) {
-                        document.close();
-                    }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    ximage = getXImageNative(image);
+                } else {
+                    ximage = getXImagePdfBox(image);
                 }
             } else {
                 // TODO UNRECOGNIZED IMAGE
                 return;
             }
 
+            if (ximage == null) {
+                // TODO
+                // print something
+                // add metric
+                return;
+            }
 
             float availableHeight = cell.getHeight() - 2 * cell.getCellPadding();
             float availableWidth = cell.getWidth() - 2 * cell.getCellPadding();
@@ -243,13 +246,59 @@ public class PdfBoxWriter {
             PDRectangle rectangle = new PDRectangle(xCell + cell.getCellPadding(), yCell - cell.getHeight() + cell.getCellPadding(),
                     availableWidth, availableHeight);
 
-            if (ximage != null) {
-                PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
+            PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(ximage, rectangle);
 
-                contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
-                        resizedRec.getWidth(), resizedRec.getHeight());
+            contentStream.drawImage(ximage, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(),
+                    resizedRec.getWidth(), resizedRec.getHeight());
+        }
+    }
+
+    private PDImageXObject getXImagePdfBox(File image) {
+        PDDocument document = null;
+        try {
+            document = PDDocument.load(image);
+            PDFRenderer renderer = new PDFRenderer(document);
+            Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.ARGB_8888);
+            return JPEGFactory.createFromImage(doc, bitmap);
+        } catch (IOException e) {
+            Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
+            return null;
+        } finally {
+            if (document != null) {
+                try {
+                    document.close();
+                } catch (IOException e) {
+                    // we can ignore this
+                }
             }
         }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private PDImageXObject getXImageNative(File image) {
+        PdfRenderer renderer = null;
+        try {
+            renderer = new PdfRenderer(ParcelFileDescriptor.open(image, ParcelFileDescriptor.MODE_READ_ONLY));
+            PdfRenderer.Page page = renderer.openPage(0);
+            int h = 300 / 72 * page.getHeight();
+            int w = 300 / 72 * page.getWidth();
+
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Rect rect = new Rect(0, 0, w, h);
+            page.render(bitmap, rect, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            page.close();
+
+            return JPEGFactory.createFromImage(doc, bitmap);
+        } catch (IOException e) {
+            Logger.error(this, "Error while rendering PDF using native renderer", e);
+            return null;
+        } finally {
+            if (renderer != null) {
+                renderer.close();
+            }
+        }
+
     }
 
 

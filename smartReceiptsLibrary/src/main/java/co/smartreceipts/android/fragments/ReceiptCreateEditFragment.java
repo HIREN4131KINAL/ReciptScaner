@@ -27,9 +27,15 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
@@ -47,6 +53,8 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
+import co.smartreceipts.android.model.utils.ModelUtils;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
@@ -71,12 +79,14 @@ import wb.android.autocomplete.AutoCompleteAdapter;
 public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener, DatabaseHelper.ReceiptAutoCompleteListener {
 
     private static final String ARG_FILE = "arg_file";
+    private static final String ARG_OCR = "arg_ocr";
     private static final String KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE = "key_is_exchange_rate_visible";
 
     // Metadata
     private Trip mTrip;
     private Receipt mReceipt;
     private File mFile;
+    private OcrResponse mOcrResponse;
 
     // Views
     private AutoCompleteTextView nameBox;
@@ -121,8 +131,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
      * @param file - the file associated with this receipt or null if we do not have one
      * @return the new instance of this fragment
      */
-    public static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable File file) {
-        return newInstance(trip, null, file);
+    public static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable File file, @Nullable OcrResponse ocrResponse) {
+        return newInstance(trip, null, file, ocrResponse);
     }
 
     /**
@@ -133,15 +143,16 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
      * @return the new instance of this fragment
      */
     public static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @NonNull Receipt receiptToEdit) {
-        return newInstance(trip, receiptToEdit, null);
+        return newInstance(trip, receiptToEdit, null, null);
     }
 
-    private static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable Receipt receiptToEdit, @Nullable File file) {
+    private static ReceiptCreateEditFragment newInstance(@NonNull Trip trip, @Nullable Receipt receiptToEdit, @Nullable File file, @Nullable OcrResponse ocrResponse) {
         final ReceiptCreateEditFragment fragment = new ReceiptCreateEditFragment();
         final Bundle args = new Bundle();
         args.putParcelable(Trip.PARCEL_KEY, trip);
         args.putParcelable(Receipt.PARCEL_KEY, receiptToEdit);
         args.putSerializable(ARG_FILE, file);
+        args.putSerializable(ARG_OCR, ocrResponse);
         fragment.setArguments(args);
         return fragment;
     }
@@ -152,6 +163,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mFile = (File) getArguments().getSerializable(ARG_FILE);
+        mOcrResponse = (OcrResponse) getArguments().getSerializable(ARG_OCR);
         mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
@@ -278,7 +290,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferenceManager(), getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.DefaultTaxPercentage)));
             }
         }
-
     }
 
     @Override
@@ -326,6 +337,31 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     configureExchangeRateField(mReceiptInputCache.getCachedCurrency());
                 }
                 fullpage.setChecked(preferences.get(UserPreference.Receipts.DefaultToFullPage));
+
+                if (mOcrResponse != null) {
+                    if (mOcrResponse.getMerchant() != null && mOcrResponse.getMerchant().getName() != null) {
+                        nameBox.setText(mOcrResponse.getMerchant().getName());
+                    }
+                    if (mOcrResponse.getTotalAmount() != null && mOcrResponse.getTotalAmount().getData() != null) {
+                        priceBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(mOcrResponse.getTotalAmount().getData())));
+                    }
+                    if (mOcrResponse.getTaxAmount() != null && mOcrResponse.getTaxAmount().getData() != null) {
+                        taxBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(mOcrResponse.getTaxAmount().getData())));
+                    }
+                    if (mOcrResponse.getDate() != null && mOcrResponse.getDate().getData() != null) {
+                        try {
+                            TimeZone utc = TimeZone.getTimeZone("UTC");
+                            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+                            f.setTimeZone(utc);
+                            GregorianCalendar cal = new GregorianCalendar(utc);
+                            cal.setTime(f.parse(mOcrResponse.getDate().getData()));
+                            dateBox.date = new Date(cal.getTime().getTime());
+                            dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
+                        } catch (ParseException e) {
+                            Logger.error(this, "Failed to parse OCR Date.", e);
+                        }
+                    }
+                }
 
             } else {
                 nameBox.setText(mReceipt.getName());

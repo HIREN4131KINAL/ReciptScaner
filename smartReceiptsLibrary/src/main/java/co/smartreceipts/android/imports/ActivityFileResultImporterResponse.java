@@ -6,14 +6,18 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
+
 public class ActivityFileResultImporterResponse {
 
     private final File file;
+    private final OcrResponse ocrResponse;
     private final int requestCode;
     private final int resultCode;
 
-    public ActivityFileResultImporterResponse(@NonNull File file, int requestCode, int resultCode) {
+    public ActivityFileResultImporterResponse(@NonNull File file, @NonNull OcrResponse ocrResponse, int requestCode, int resultCode) {
         this.file = Preconditions.checkNotNull(file);
+        this.ocrResponse = Preconditions.checkNotNull(ocrResponse);
         this.requestCode = requestCode;
         this.resultCode = resultCode;
     }
@@ -24,6 +28,14 @@ public class ActivityFileResultImporterResponse {
     @NonNull
     public File getFile() {
         return file;
+    }
+
+    /**
+     * @return the OCR scan response
+     */
+    @NonNull
+    public OcrResponse getOcrResponse() {
+        return ocrResponse;
     }
 
     /**

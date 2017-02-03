@@ -3,6 +3,9 @@ package co.smartreceipts.android.apis.hosts;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+
 import java.security.cert.CertificateException;
 
 import javax.net.ssl.HostnameVerifier;
@@ -12,10 +15,17 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
+
+    private final SmartReceiptsGsonBuilder mSmartReceiptsGsonBuilder;
+
+    public BetaSmartReceiptsHostConfiguration(@NonNull SmartReceiptsGsonBuilder smartReceiptsGsonBuilder) {
+        mSmartReceiptsGsonBuilder = Preconditions.checkNotNull(smartReceiptsGsonBuilder);
+    }
 
     @NonNull
     @Override
@@ -23,10 +33,16 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
         return "https://beta.smartreceipts.co";
     }
 
-    @Nullable
+    @NonNull
     @Override
     public OkHttpClient getClient() {
         return getUnsafeOkHttpClient();
+    }
+
+    @NonNull
+    @Override
+    public Gson getGson() {
+        return mSmartReceiptsGsonBuilder.create();
     }
 
     /**

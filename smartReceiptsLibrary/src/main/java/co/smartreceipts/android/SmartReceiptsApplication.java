@@ -86,7 +86,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
-        mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
+        mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex))));
         mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
 
         PDFBoxResourceLoader.init(getApplicationContext());

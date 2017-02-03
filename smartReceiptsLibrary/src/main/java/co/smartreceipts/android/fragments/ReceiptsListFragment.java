@@ -180,7 +180,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             case RequestCodes.IMPORT_GALLERY_IMAGE:
                             case RequestCodes.IMPORT_GALLERY_PDF:
                             case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                                mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, response.getFile());
+                                mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, response.getFile(), response.getOcrResponse());
                                 break;
                             case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
                                 final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(response.getFile()).build();
@@ -263,7 +263,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addTextReceipt() {
-        mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, null);
+        mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, null, null);
     }
 
     private void importReceipt() {

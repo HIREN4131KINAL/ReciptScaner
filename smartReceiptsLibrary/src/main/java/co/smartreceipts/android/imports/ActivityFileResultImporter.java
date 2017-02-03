@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
@@ -35,21 +37,26 @@ public class ActivityFileResultImporter {
 
     private static final String TAG = ActivityFileResultImporter.class.getSimpleName();
 
+    private final Context context;
     private final FileImportProcessorFactory factory;
     private final Analytics analytics;
     private final ActivityImporterHeadlessFragment headlessFragment;
+    private final OcrInteractor ocrInteractor;
     private final Scheduler subscribeOnScheduler;
     private final Scheduler observeOnScheduler;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
                                       @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, Schedulers.io(), AndroidSchedulers.mainThread());
+        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, new OcrInteractor(context), Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
-    public ActivityFileResultImporter(@NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
-                                      @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+    public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
+                                      @NonNull Analytics analytics, @NonNull OcrInteractor ocrInteractor,
+                                      @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+        this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.factory = Preconditions.checkNotNull(factory);
         this.analytics = Preconditions.checkNotNull(analytics);
+        this.ocrInteractor = Preconditions.checkNotNull(ocrInteractor);
         this.subscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
         this.observeOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         
@@ -81,10 +88,16 @@ public class ActivityFileResultImporter {
                         return factory.get(requestCode).process(uri);
                     }
                 })
-                .map(new Func1<File, ActivityFileResultImporterResponse>() {
+                .flatMap(new Func1<File, Observable<ActivityFileResultImporterResponse>>() {
                     @Override
-                    public ActivityFileResultImporterResponse call(@NonNull File file) {
-                        return new ActivityFileResultImporterResponse(file, requestCode, resultCode);
+                    public Observable<ActivityFileResultImporterResponse> call(final File file) {
+                        return ocrInteractor.scan(file)
+                                .map(new Func1<OcrResponse, ActivityFileResultImporterResponse>() {
+                                    @Override
+                                    public ActivityFileResultImporterResponse call(OcrResponse ocrResponse) {
+                                        return new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, resultCode);
+                                    }
+                                });
                     }
                 })
                 .doOnError(new Action1<Throwable>() {

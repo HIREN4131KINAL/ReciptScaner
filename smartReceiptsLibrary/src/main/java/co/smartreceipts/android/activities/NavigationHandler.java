@@ -23,6 +23,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.settings.widget.PreferenceHeaderReportOutputFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.settings.widget.SettingsActivity;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
@@ -74,11 +75,11 @@ public class NavigationHandler {
         }
     }
 
-    public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file) {
+    public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file, @Nullable OcrResponse ocrResponse) {
         if (mIsDualPane) {
-            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_details, R.anim.enter_from_bottom, DO_NOT_ANIM);
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file, ocrResponse), R.id.content_details, R.anim.enter_from_bottom, DO_NOT_ANIM);
         } else {
-            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file, ocrResponse), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
         }
     }
 

@@ -5,7 +5,8 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
-import co.smartreceipts.android.identity.widget.LoginFragment;
+import co.smartreceipts.android.identity.widget.LoginFragment;;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
 import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
@@ -47,8 +48,8 @@ public class FragmentProvider {
      * @return the new instance of this fragment
      */
     @NonNull
-    public ReceiptCreateEditFragment newCreateReceiptFragment(@NonNull Trip trip, @Nullable File file) {
-        return ReceiptCreateEditFragment.newInstance(trip, file);
+    public ReceiptCreateEditFragment newCreateReceiptFragment(@NonNull Trip trip, @Nullable File file, @Nullable OcrResponse ocrResponse) {
+        return ReceiptCreateEditFragment.newInstance(trip, file, ocrResponse);
     }
 
     /**

@@ -1,8 +1,8 @@
 package co.smartreceipts.android.utils;
 
-public enum FeatureFlags {
+public enum FeatureFlags implements Feature {
 
-    SmartReceiptsLogin(true);
+    SmartReceiptsLogin(true), Ocr(true);
 
     private final boolean isEnabled;
 
@@ -10,6 +10,7 @@ public enum FeatureFlags {
         this.isEnabled = isEnabled;
     }
 
+    @Override
     public boolean isEnabled() {
         return isEnabled;
     }

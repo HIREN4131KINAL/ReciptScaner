@@ -25,19 +25,13 @@ public class ServiceManager {
     private final Retrofit mRetrofit;
     private final Map<Class<?>, Object> mCachedServiceMap = new HashMap<>();
 
-    public ServiceManager(@NonNull SmartReceiptsGsonBuilder gsonBuilder) {
-        this(new SmartReceiptsHostConfiguration(), gsonBuilder);
-    }
-
-    public ServiceManager(@NonNull HostConfiguration defaultHostConfiguration, @NonNull SmartReceiptsGsonBuilder gsonBuilder) {
+    public ServiceManager(@NonNull HostConfiguration defaultHostConfiguration) {
         Preconditions.checkNotNull(defaultHostConfiguration);
 
         final Retrofit.Builder builder = new Retrofit.Builder();
         builder.baseUrl(defaultHostConfiguration.getBaseUrl());
-        if (defaultHostConfiguration.getClient() != null) {
-            builder.client(defaultHostConfiguration.getClient());
-        }
-        builder.addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()));
+        builder.client(defaultHostConfiguration.getClient());
+        builder.addConverterFactory(GsonConverterFactory.create(defaultHostConfiguration.getGson()));
         builder.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
 
         mRetrofit = builder.build();

@@ -13,12 +13,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
@@ -47,6 +50,12 @@ public class ActivityFileResultImporterTest {
     Analytics analytics;
 
     @Mock
+    OcrInteractor ocrInteractor;
+
+    @Mock
+    OcrResponse ocrResponse;
+
+    @Mock
     Intent intent;
 
     @Before
@@ -54,9 +63,10 @@ public class ActivityFileResultImporterTest {
         MockitoAnnotations.initMocks(this);
 
         when(factory.get(anyInt())).thenReturn(processor);
+        when(ocrInteractor.scan(any(File.class))).thenReturn(Observable.just(ocrResponse));
         FragmentActivity activity = Robolectric.buildActivity(FragmentActivity.class).create().get();
 
-        fileResultImporter = new ActivityFileResultImporter(activity.getSupportFragmentManager(), factory, analytics, Schedulers.immediate(), Schedulers.immediate());
+        fileResultImporter = new ActivityFileResultImporter(RuntimeEnvironment.application, activity.getSupportFragmentManager(), factory, analytics, ocrInteractor, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @Test
@@ -186,7 +196,7 @@ public class ActivityFileResultImporterTest {
         fileResultImporter.getResultStream().subscribe(testSubscriber);
         fileResultImporter.onActivityResult(requestCode, responseCode, intent, null);
 
-        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, requestCode, responseCode));
+        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, responseCode));
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
     }
@@ -205,7 +215,7 @@ public class ActivityFileResultImporterTest {
         fileResultImporter.onActivityResult(requestCode, responseCode, intent, null);
         fileResultImporter.getResultStream().subscribe(testSubscriber);
 
-        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, requestCode, responseCode));
+        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, responseCode));
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
     }
@@ -222,7 +232,7 @@ public class ActivityFileResultImporterTest {
         fileResultImporter.getResultStream().subscribe(testSubscriber);
         fileResultImporter.onActivityResult(requestCode, responseCode, null, uri);
 
-        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, requestCode, responseCode));
+        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, responseCode));
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
     }
@@ -240,7 +250,7 @@ public class ActivityFileResultImporterTest {
         fileResultImporter.onActivityResult(requestCode, responseCode, null, uri);
         fileResultImporter.getResultStream().subscribe(testSubscriber);
 
-        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, requestCode, responseCode));
+        testSubscriber.assertValue(new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, responseCode));
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
     }

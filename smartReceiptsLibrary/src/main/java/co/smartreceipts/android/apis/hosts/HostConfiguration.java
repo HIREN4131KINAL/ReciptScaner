@@ -3,6 +3,8 @@ package co.smartreceipts.android.apis.hosts;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.gson.Gson;
+
 import okhttp3.OkHttpClient;
 
 public interface HostConfiguration {
@@ -14,8 +16,14 @@ public interface HostConfiguration {
     String getBaseUrl();
 
     /**
-     * @return a custom {@link OkHttpClient} or {@code null} if the default one should be used
+     * @return the desired {@link OkHttpClient}
      */
-    @Nullable
+    @NonNull
     OkHttpClient getClient();
+
+    /**
+     * @return the desired {@link Gson} for response parsing
+     */
+    @NonNull
+    Gson getGson();
 }

@@ -25,7 +25,7 @@ import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
-public class    ManualRestoreTask {
+public class ManualRestoreTask {
 
     private final PersistenceManager mPersistenceManager;
     private final Context mContext;

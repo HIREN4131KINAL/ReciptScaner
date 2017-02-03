@@ -3,9 +3,19 @@ package co.smartreceipts.android.apis.hosts;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
+
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import okhttp3.OkHttpClient;
 
 public class SmartReceiptsHostConfiguration implements HostConfiguration {
+
+    private final SmartReceiptsGsonBuilder mSmartReceiptsGsonBuilder;
+
+    public SmartReceiptsHostConfiguration(@NonNull SmartReceiptsGsonBuilder smartReceiptsGsonBuilder) {
+        mSmartReceiptsGsonBuilder = Preconditions.checkNotNull(smartReceiptsGsonBuilder);
+    }
 
     @NonNull
     @Override
@@ -13,9 +23,15 @@ public class SmartReceiptsHostConfiguration implements HostConfiguration {
         return "https://smartreceipts.co";
     }
 
-    @Nullable
+    @NonNull
     @Override
     public OkHttpClient getClient() {
-        return null;
+        return new OkHttpClient();
+    }
+
+    @NonNull
+    @Override
+    public Gson getGson() {
+        return mSmartReceiptsGsonBuilder.create();
     }
 }

@@ -81,18 +81,18 @@ public final class Events {
     }
 
     public static final class Ocr {
-        public static final Event OcrQuestionnaireTooltipShown = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipShown");
-        public static final Event OcrQuestionnaireTooltipOpen = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipOpen");
-        public static final Event OcrQuestionnaireTooltipDismiss = new DefaultEvent(Category.Sync, "OcrQuestionnaireTooltipDismiss");
-        public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Sync, "OcrQuestionnaireSubmit");
-        public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Sync, "OcrQuestionnaireDismiss");
-        public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Sync, "OcrQuestionnaireEmailUs");
-        public static final Event OcrQuestionnaireQuestion1PerReceipt20 = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt20");
-        public static final Event OcrQuestionnaireQuestion1PerReceipt15 = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1PerReceipt15");
-        public static final Event OcrQuestionnaireQuestion1TooMuch = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1TooMuch");
-        public static final Event OcrQuestionnaireQuestion1NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion1NotInterested");
-        public static final Event OcrQuestionnaireQuestion2DelaysOkay = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2DelaysOkay");
-        public static final Event OcrQuestionnaireQuestion2NotInterested = new DefaultEvent(Category.Sync, "OcrQuestionnaireQuestion2NotInterested");
+        public static final Event OcrQuestionnaireTooltipShown = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipShown");
+        public static final Event OcrQuestionnaireTooltipOpen = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipOpen");
+        public static final Event OcrQuestionnaireTooltipDismiss = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipDismiss");
+        public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Ocr, "OcrQuestionnaireSubmit");
+        public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Ocr, "OcrQuestionnaireDismiss");
+        public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Ocr, "OcrQuestionnaireEmailUs");
+        public static final Event OcrQuestionnaireQuestion1PerReceipt20 = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1PerReceipt20");
+        public static final Event OcrQuestionnaireQuestion1PerReceipt15 = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1PerReceipt15");
+        public static final Event OcrQuestionnaireQuestion1TooMuch = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1TooMuch");
+        public static final Event OcrQuestionnaireQuestion1NotInterested = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1NotInterested");
+        public static final Event OcrQuestionnaireQuestion2DelaysOkay = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion2DelaysOkay");
+        public static final Event OcrQuestionnaireQuestion2NotInterested = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion2NotInterested");
     }
 
 }

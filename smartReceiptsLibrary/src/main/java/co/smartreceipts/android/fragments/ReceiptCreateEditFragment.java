@@ -161,12 +161,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
         mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
         setHasOptionsMenu(true);
-
-        if (savedInstanceState == null) {
-            if (mReceipt == null) {
-                getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new OcrInformationalTooltipFragment()).commit();
-            }
-        }
     }
 
     @Nullable
@@ -178,6 +172,13 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onViewCreated(View rootView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(rootView, savedInstanceState);
+
+        if (savedInstanceState == null) {
+            if (mReceipt == null) {
+                getChildFragmentManager().beginTransaction().replace(R.id.update_receipt_tooltip, new OcrInformationalTooltipFragment()).commit();
+            }
+        }
+
         this.nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_NAME);
         this.priceBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
         this.taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);

@@ -6,7 +6,7 @@
     <include android:id="@+id/toolbar"
         layout="@layout/toolbar" />
     <FrameLayout
-        android:id="@+id/top_tooltip"
+        android:id="@+id/update_receipt_tooltip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <ScrollView

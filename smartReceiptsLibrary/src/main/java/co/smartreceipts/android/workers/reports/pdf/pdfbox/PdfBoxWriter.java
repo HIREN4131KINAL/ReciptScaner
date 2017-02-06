@@ -238,9 +238,6 @@ public class PdfBoxWriter {
             }
 
             if (ximage == null) {
-                ((SmartReceiptsApplication) (context.getAndroidContext().getApplicationContext()))
-                        .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
-
                 FixedWidthTextCell textCell = new FixedWidthTextCell(cell.getWidth(), cell.getCellPadding(),
                         context.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
                         context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
@@ -271,6 +268,9 @@ public class PdfBoxWriter {
             return JPEGFactory.createFromImage(doc, bitmap);
         } catch (IOException e) {
             Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
+            ((SmartReceiptsApplication) (context.getAndroidContext().getApplicationContext()))
+                    .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
+
             return null;
         } finally {
             if (document != null) {

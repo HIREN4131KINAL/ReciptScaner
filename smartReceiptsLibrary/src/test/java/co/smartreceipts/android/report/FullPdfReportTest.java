@@ -82,4 +82,9 @@ public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
     public void testPdfGeneration() throws Exception {
         super.testPdfGeneration();
     }
+
+    @Override
+    protected boolean useBuiltinFonts() {
+        return true;
+    }
 }

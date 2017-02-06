@@ -5,6 +5,7 @@ import android.content.Context;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
@@ -30,7 +31,20 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final Preferences preferences;
     private List<PdfBoxSection> sections;
 
+
     public PdfBoxReportFile(Context androidContext, Preferences preferences) throws IOException {
+        this(androidContext, preferences, false);
+
+    }
+
+
+    /**
+     * @param androidContext
+     * @param preferences
+     * @param useBuiltinFonts Ugly parameter so that in the tests we can avoid loading the custom fonts
+     * @throws IOException
+     */
+    public PdfBoxReportFile(Context androidContext, Preferences preferences, boolean useBuiltinFonts) throws IOException {
         this.preferences = preferences;
         doc = new PDDocument();
         sections = new ArrayList<>();
@@ -41,13 +55,14 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
 //        PDFont MAIN_FONT = PDType1Font.HELVETICA;
 //        PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;
-        PDFont MAIN_FONT = PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
-        PDFont BOLD_FONT = PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
+
+        PDFont MAIN_FONT = useBuiltinFonts ? PDType1Font.HELVETICA : PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
+        PDFont BOLD_FONT = useBuiltinFonts ? PDType1Font.HELVETICA_BOLD : PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
         int DEFAULT_SIZE = 12;
         int TITLE_SIZE = 14;
         int SMALL_SIZE = 10;
 
-        Map<String,PdfBoxContext.FontSpec> fonts = new HashMap<>();
+        Map<String, PdfBoxContext.FontSpec> fonts = new HashMap<>();
         fonts.put(DefaultPdfBoxContext.FONT_DEFAULT, new PdfBoxContext.FontSpec(MAIN_FONT, DEFAULT_SIZE));
         fonts.put(DefaultPdfBoxContext.FONT_TITLE, new PdfBoxContext.FontSpec(BOLD_FONT, TITLE_SIZE));
         fonts.put(DefaultPdfBoxContext.FONT_SMALL, new PdfBoxContext.FontSpec(MAIN_FONT, SMALL_SIZE));

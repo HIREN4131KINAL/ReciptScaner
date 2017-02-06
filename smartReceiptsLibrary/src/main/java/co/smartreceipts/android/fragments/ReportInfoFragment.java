@@ -70,9 +70,6 @@ public class ReportInfoFragment extends WBFragment {
         mLastTripController = new LastTripController(getActivity());
         mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), getConfigurationManager());
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
-        if (savedInstanceState == null) {
-            getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new SyncErrorFragment()).commit();
-        }
     }
 
 
@@ -86,6 +83,11 @@ public class ReportInfoFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        if (savedInstanceState == null) {
+            getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new SyncErrorFragment()).commit();
+        }
+
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
         mPagerSlidingTabStrip = (PagerSlidingTabStrip) view.findViewById(R.id.tabs);
         mViewPager.setAdapter(mFragmentPagerAdapter);

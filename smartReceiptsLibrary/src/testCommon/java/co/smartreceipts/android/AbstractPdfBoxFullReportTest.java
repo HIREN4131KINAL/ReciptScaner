@@ -40,7 +40,7 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 /**
  * Base abstract test class that can be extended and run as a Unit test or an
  * Instrumentation test.
- *
+ * <p>
  * This class resides in the common test folder, so it doesn't has access to the junit
  * or mockito dependencies.
  */
@@ -49,7 +49,7 @@ public abstract class AbstractPdfBoxFullReportTest {
     protected static final int NUM_IMAGES = 5;
     protected static final String OUTPUT_FILE = "report.pdf";
     private static final int NUM_DISTANCES = 2;
-    private static final int NUM_PDF = 2;
+    private static final int NUM_PDF = 0;
 
     protected Context mContext;
 
@@ -91,15 +91,12 @@ public abstract class AbstractPdfBoxFullReportTest {
 
 
             factory.setIsFullPage(i == 1);
-            factory.setIsReimbursable( i%2 == 0);
+            factory.setIsReimbursable(i % 2 == 0);
             Receipt receipt = createReceipt(
                     factory,
                     i + 1,
                     trip,
-                    i == 2
-                            ? "Receipt with a long long " +
-                            "long long long long long description " + (i + 1)
-                            : "Receipt " + (i + 1),
+                    getReceiptTitle(i),
                     "Comment " + (i + 1),
                     file);
 
@@ -118,12 +115,12 @@ public abstract class AbstractPdfBoxFullReportTest {
 
         List<Distance> distances = new ArrayList<>();
         DistanceBuilderFactory distanceFactory = new DistanceBuilderFactory();
-        for (int i=0; i<NUM_DISTANCES; i++) {
+        for (int i = 0; i < NUM_DISTANCES; i++) {
             distanceFactory.setTrip(trip);
             distanceFactory.setRate(20);
             distanceFactory.setDistance(10);
             distanceFactory.setCurrency(WBCurrency.getInstance("USD"));
-            distanceFactory.setLocation("Location " + String.valueOf(i+1));
+            distanceFactory.setLocation("Location " + String.valueOf(i + 1));
 
             distances.add(distanceFactory.build());
         }
@@ -152,12 +149,27 @@ public abstract class AbstractPdfBoxFullReportTest {
         os.close();
     }
 
+    private String getReceiptTitle(int i) {
+        if (i == 2) {
+            return "Receipt with a long long " +
+                    "long long long long long description " + (i + 1);
+        } else if (i == 4) {
+            return "Recibo en español con tildes: éó?¿¡" + (i + 1);
+        } else if (i == 7) {
+            return "Απόδειξη ελληνική. Κεφαλαίο Όνομα" + (i + 1);
+//        } else if (i == 8) {
+//            return "Korean: ㅇㅋㅊ";
+        } else {
+            return "Receipt " + (i + 1);
+        }
+    }
+
     protected abstract Context getContext();
 
     /**
      * Method to be overridden by the subclasses, that should specify how the image files
      * should be read.
-     *
+     * <p>
      * TODO currently the files are duplicated. Try to store them in one place (and maybe
      * copy them over to the target directories using gradle).
      *
@@ -171,6 +183,7 @@ public abstract class AbstractPdfBoxFullReportTest {
     /**
      * Method to be overridden by subclasses, that should specify where and how the
      * output file should be created.
+     *
      * @return
      * @throws IOException
      */

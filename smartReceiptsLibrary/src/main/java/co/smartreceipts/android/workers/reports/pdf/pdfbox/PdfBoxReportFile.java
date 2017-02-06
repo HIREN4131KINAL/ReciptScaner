@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
+import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
@@ -30,16 +30,19 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final Preferences preferences;
     private List<PdfBoxSection> sections;
 
-    public PdfBoxReportFile(Context androidContext, Preferences preferences) {
+    public PdfBoxReportFile(Context androidContext, Preferences preferences) throws IOException {
         this.preferences = preferences;
+        doc = new PDDocument();
         sections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();
         colors.put(DefaultPdfBoxContext.COLOR_DARK_BLUE, new AWTColor(0, 122, 255));
         colors.put(DefaultPdfBoxContext.COLOR_HEADER, new AWTColor(204, 228, 255));
         colors.put(DefaultPdfBoxContext.COLOR_CELL, new AWTColor(239, 239, 244));
 
-        PDFont MAIN_FONT = PDType1Font.HELVETICA;
-        PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;
+//        PDFont MAIN_FONT = PDType1Font.HELVETICA;
+//        PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;
+        PDFont MAIN_FONT = PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
+        PDFont BOLD_FONT = PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
         int DEFAULT_SIZE = 12;
         int TITLE_SIZE = 14;
         int SMALL_SIZE = 10;
@@ -54,7 +57,6 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
         context = new DefaultPdfBoxContext(androidContext, preferences);
         context.setColors(colors);
         context.setFonts(fonts);
-        doc = new PDDocument();
     }
 
 

@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
 
@@ -26,6 +27,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
@@ -234,9 +238,14 @@ public class PdfBoxWriter {
             }
 
             if (ximage == null) {
-                // TODO
-                // print something
-                // add metric
+                ((SmartReceiptsApplication) (context.getAndroidContext().getApplicationContext()))
+                        .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
+
+                FixedWidthTextCell textCell = new FixedWidthTextCell(cell.getWidth(), cell.getCellPadding(),
+                        context.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
+                        context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                        AWTColor.BLACK);
+                printTextCellContent(textCell, xCell, yCell, height);
                 return;
             }
 
@@ -275,6 +284,7 @@ public class PdfBoxWriter {
     }
 
 
+    @Nullable
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private PDImageXObject getXImageNative(File image) {
         PdfRenderer renderer = null;
@@ -290,6 +300,9 @@ public class PdfBoxWriter {
             page.close();
 
             return JPEGFactory.createFromImage(doc, bitmap);
+        } catch (SecurityException e) {
+            Logger.error(this, "PDF file is password-protected", e);
+            return null;
         } catch (IOException e) {
             Logger.error(this, "Error while rendering PDF using native renderer", e);
             return null;
@@ -306,8 +319,8 @@ public class PdfBoxWriter {
      * Prints the cell content centering the contents vertically and horizontally.
      *
      * @param cell
-     * @param xCell
-     * @param yCell
+     * @param xCell     x-coordinate of the upper-left corner
+     * @param yCell     y-coordinate of the upper-left corner
      * @param rowHeight @throws IOException
      */
     private void printTextCellContent(FixedWidthTextCell cell,

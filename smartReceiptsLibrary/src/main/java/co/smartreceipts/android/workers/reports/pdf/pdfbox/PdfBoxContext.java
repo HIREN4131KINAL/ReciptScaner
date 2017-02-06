@@ -19,7 +19,7 @@ public interface PdfBoxContext {
      *
      * @return
      */
-    Context getApplicationContext();
+    Context getAndroidContext();
 
     /**
      * A {@link PDRectangle} that represents the full page size, eg A4 etc.

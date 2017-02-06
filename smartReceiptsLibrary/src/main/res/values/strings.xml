@@ -201,6 +201,7 @@
     <string name="toast_error_category_exists">Error: An category with that name already exists</string>
     <string name="toast_error_invalid_input">Invalid Input</string>
     <string name="toast_error_password_protected_pdf">Error: Password-Protected PDF files cannot be included.</string>
+    <string name="report_file_could_not_be_rendered">File could not be rendered</string>
 
     <!-- ============== Toast Messages ================= -->
     <string name="toast_receipt_copy">Successfully copied the receipt</string>

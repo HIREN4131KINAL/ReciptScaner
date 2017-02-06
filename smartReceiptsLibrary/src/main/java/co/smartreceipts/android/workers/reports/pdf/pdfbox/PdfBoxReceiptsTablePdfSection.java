@@ -140,10 +140,10 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         );
 
         String fromToPeriod = context.getString(R.string.report_header_from,
-                trip.getFormattedStartDate(context.getApplicationContext(), preferences.getDateSeparator()))
+                trip.getFormattedStartDate(context.getAndroidContext(), preferences.getDateSeparator()))
                 + " "
                 + context.getString(R.string.report_header_to,
-                trip.getFormattedEndDate(context.getApplicationContext(), preferences.getDateSeparator()));
+                trip.getFormattedEndDate(context.getAndroidContext(), preferences.getDateSeparator()));
 
         writer.writeNewLine(context.getFont("FONT_DEFAULT"),
                 fromToPeriod);
@@ -171,7 +171,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
         if (preferences.getPrintDistanceAsDailyReceipt()) {
             receiptsTableList.addAll(
-                    new DistanceToReceiptsConverter(context.getApplicationContext(), preferences)
+                    new DistanceToReceiptsConverter(context.getAndroidContext(), preferences)
                     .convert(distances));
             Collections.sort(receiptsTableList, new ReceiptDateComparator());
         }

@@ -72,7 +72,11 @@ public class FixedWidthTextCell implements FixedWidthCell {
 
     }
 
-    public List<String> getLines() {
+    public List<String> getLines() throws IOException {
+        // TODO, that's not very cool... Should we initialize lines in the constructor?
+        if (lines == null) {
+            breakUpString(text);
+        }
         return lines;
     }
 

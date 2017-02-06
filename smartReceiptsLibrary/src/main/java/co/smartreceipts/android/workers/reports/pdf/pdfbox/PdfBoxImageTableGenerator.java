@@ -119,7 +119,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                 ? SEP + receipt.getComment()
                 : "";
         return num + SEP + receipt.getName() + SEP
-                + receipt.getFormattedDate(context.getApplicationContext(),
+                + receipt.getFormattedDate(context.getAndroidContext(),
                 preferences.getDateSeparator()) + extra;
     }
 }

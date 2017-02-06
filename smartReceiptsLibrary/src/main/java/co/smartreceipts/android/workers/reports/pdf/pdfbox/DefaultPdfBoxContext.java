@@ -75,7 +75,7 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     }
 
     @Override
-    public Context getApplicationContext() {
+    public Context getAndroidContext() {
         return context;
     }
 

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.identity;
+package co.smartreceipts.android.identity.store;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -6,7 +6,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-final class IdentityStore {
+public final class IdentityStore {
 
     private static final String KEY_EMAIL = "identity_email_address";
     private static final String KEY_TOKEN = "identity_token";

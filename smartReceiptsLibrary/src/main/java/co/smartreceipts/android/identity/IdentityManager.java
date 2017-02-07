@@ -11,15 +11,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
-import co.smartreceipts.android.apis.login.LoginParams;
-import co.smartreceipts.android.apis.login.LoginPayload;
-import co.smartreceipts.android.apis.login.LoginResponse;
-import co.smartreceipts.android.apis.login.LoginService;
-import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.apis.me.MeResponse;
-import co.smartreceipts.android.apis.me.MeService;
-import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
-import co.smartreceipts.android.apis.organizations.OrganizationsService;
+import co.smartreceipts.android.identity.apis.login.LoginParams;
+import co.smartreceipts.android.identity.apis.login.LoginPayload;
+import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.apis.login.LoginService;
+import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.identity.apis.me.MeResponse;
+import co.smartreceipts.android.identity.apis.me.MeService;
+import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
+import co.smartreceipts.android.identity.apis.organizations.OrganizationsService;
+import co.smartreceipts.android.identity.store.EmailAddress;
+import co.smartreceipts.android.identity.store.IdentityStore;
+import co.smartreceipts.android.identity.store.Token;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.subjects.AsyncSubject;
@@ -88,6 +91,7 @@ public class IdentityManager {
         mLoginMap.remove(login);
     }
 
+    @NonNull
     public Observable<MeResponse> getMe() {
         if (mIdentityStore.getEmail() != null && mIdentityStore.getToken() != null) {
             return mServiceManager.getService(MeService.class).me(mIdentityStore.getEmail(), mIdentityStore.getToken());
@@ -96,6 +100,7 @@ public class IdentityManager {
         }
     }
 
+    @NonNull
     public Observable<OrganizationsResponse> getOrganizations() {
         if (mIdentityStore.getEmail() != null && mIdentityStore.getToken() != null) {
             return mServiceManager.getService(OrganizationsService.class).organizations(mIdentityStore.getEmail(), mIdentityStore.getToken());

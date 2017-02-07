@@ -1,8 +1,7 @@
-package co.smartreceipts.android.apis.me;
+package co.smartreceipts.android.identity.apis.me;
 
 import android.support.annotation.NonNull;
 
-import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 import rx.Observable;

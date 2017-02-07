@@ -1,7 +1,4 @@
-package co.smartreceipts.android.apis.organizations;
-
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+package co.smartreceipts.android.identity.apis.organizations;
 
 import com.google.gson.annotations.SerializedName;
 

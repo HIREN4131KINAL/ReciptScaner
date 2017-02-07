@@ -1,4 +1,4 @@
-package co.smartreceipts.android.apis.login;
+package co.smartreceipts.android.identity.apis.login;
 
 import android.os.Parcel;
 import android.support.annotation.NonNull;

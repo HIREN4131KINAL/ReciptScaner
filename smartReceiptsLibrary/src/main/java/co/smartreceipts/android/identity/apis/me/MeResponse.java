@@ -1,4 +1,4 @@
-package co.smartreceipts.android.apis.me;
+package co.smartreceipts.android.identity.apis.me;
 
 import android.support.annotation.Nullable;
 

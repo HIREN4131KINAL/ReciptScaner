@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.identity.widget;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,9 +18,10 @@ import android.widget.Toast;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.apis.login.LoginResponse;
-import co.smartreceipts.android.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.apis.organizations.OrganizationsResponse;
+import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;

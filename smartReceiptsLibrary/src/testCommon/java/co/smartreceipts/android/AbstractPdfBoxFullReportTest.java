@@ -45,7 +45,7 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
  * or mockito dependencies.
  */
 public abstract class AbstractPdfBoxFullReportTest {
-    protected static final int NUM_RECEIPTS = 48;
+    protected static final int NUM_RECEIPTS = 8;
     protected static final int NUM_IMAGES = 5;
     protected static final String OUTPUT_FILE = "report.pdf";
     private static final int NUM_DISTANCES = 2;
@@ -120,7 +120,7 @@ public abstract class AbstractPdfBoxFullReportTest {
             distanceFactory.setRate(20);
             distanceFactory.setDistance(10);
             distanceFactory.setCurrency(WBCurrency.getInstance("USD"));
-            distanceFactory.setLocation("Location " + String.valueOf(i + 1));
+            distanceFactory.setLocation(i==0 ? "Loc 1" : "Location Location Location " + String.valueOf(i + 1));
 
             distances.add(distanceFactory.build());
         }
@@ -153,7 +153,8 @@ public abstract class AbstractPdfBoxFullReportTest {
 
     private String getReceiptTitle(int i) {
         if (i == 2) {
-            return "Receipt with a long long " +
+            return "Receipt with a long long long " +
+//                    "description "  + (i + 1);
                     "long long long long long description " + (i + 1);
         } else if (i == 4 && !useBuiltinFonts()) {
             return "Recibo en español con tildes: éó?¿¡" + (i + 1);

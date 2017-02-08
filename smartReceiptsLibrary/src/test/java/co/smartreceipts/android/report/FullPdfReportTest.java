@@ -44,7 +44,7 @@ public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
         when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
         when(mPreferences.getPdfFooterText()).thenReturn("FOOTER");
         when(mPreferences.getPrintDistanceTable()).thenReturn(true);
-        when(mPreferences.isReceiptsTableLandscapeMode()).thenReturn(true);
+        when(mPreferences.isReceiptsTableLandscapeMode()).thenReturn(false);
     }
 
 

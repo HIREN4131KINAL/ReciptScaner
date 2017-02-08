@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
     private final boolean mPrintHeaders;
     private final boolean mPrintFooters;
     private float topPadding = 40;
-    private float cellPadding = 4;
+    private float cellPadding = 6;
 
     public PdfBoxTableGenerator(PdfBoxContext context,
                                 List<Column<DataType>> columns,
@@ -48,8 +49,15 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         float xEnd = context.getPageSize().getWidth() - context.getPageMarginHorizontal();
 
         // calculate column widths
-        float[] colWidths = calculateColumnWidths(colCount, xEnd - xStart);
-
+        float[] colWidths;
+        try {
+            colWidths = newCalculateColumnWidths(list, mColumns, xEnd - xStart,
+                    context.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
+                    context.getFont(DefaultPdfBoxContext.FONT_DEFAULT)
+            );
+        } catch (IOException ex) {
+            colWidths = calculateColumnWidths(colCount, xEnd - xStart);
+        }
 
         float tableWidth = xEnd - xStart;
 
@@ -115,6 +123,17 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         }
         return new PdfBoxTable(rows, headerRow, footerRow);
     }
+
+
+    private float[] newCalculateColumnWidths(List<DataType> list,
+                                             List<Column<DataType>> mColumns,
+                                             float availableWidth,
+                                             PdfBoxContext.FontSpec fontHeader,
+                                             PdfBoxContext.FontSpec fontContent) throws IOException {
+        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator(list, mColumns, availableWidth, cellPadding, fontHeader, fontContent);
+        return columnWidthCalculator.calculate();
+    }
+
 
 
     private float[] calculateColumnWidths(int columnCount, float availableWidth) {

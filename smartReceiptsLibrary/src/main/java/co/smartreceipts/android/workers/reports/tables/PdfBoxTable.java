@@ -7,9 +7,9 @@ import android.support.annotation.Nullable;
 import java.util.List;
 
 public class PdfBoxTable {
-    private List<PdfBoxTableRow> mRows;
-    private PdfBoxTableRow mHeaderRow;
-    private PdfBoxTableRow mFooterRow;
+    private final List<PdfBoxTableRow> mRows;
+    private final PdfBoxTableRow mHeaderRow;
+    private final PdfBoxTableRow mFooterRow;
 
     public PdfBoxTable(@NonNull List<PdfBoxTableRow> rows,
                        @Nullable PdfBoxTableRow headerRow,

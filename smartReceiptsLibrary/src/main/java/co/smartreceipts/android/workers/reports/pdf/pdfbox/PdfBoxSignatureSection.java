@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
 import java.io.File;
@@ -8,20 +10,20 @@ import co.smartreceipts.android.model.Trip;
 
 public class PdfBoxSignatureSection extends PdfBoxSection {
 
-    private File signature;
+    private final File mSignature;
 
 
 
-    protected PdfBoxSignatureSection(PdfBoxContext context,
-                                     Trip doc,
-                                     File signature) {
+    protected PdfBoxSignatureSection(@NonNull PdfBoxContext context,
+                                     @NonNull Trip doc,
+                                     @NonNull File signature) {
         super(context, doc);
-        this.signature = signature;
+        mSignature = signature;
     }
 
 
     @Override
-    public void writeSection(PDDocument doc) {
-        // TODO
+    public void writeSection(@NonNull PDDocument doc) {
+        throw new UnsupportedOperationException("Signature section is not implemented yet");
     }
 }

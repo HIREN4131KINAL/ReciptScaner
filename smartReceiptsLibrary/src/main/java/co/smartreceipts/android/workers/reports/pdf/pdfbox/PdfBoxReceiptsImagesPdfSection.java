@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
 import java.io.IOException;
@@ -14,36 +16,36 @@ import co.smartreceipts.android.persistence.Preferences;
 public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
 
-    private PdfBoxWriter writer;
-    private final Preferences preferences;
-    private final List<Receipt> receipts;
+    private final Preferences mPreferences;
+    private final List<Receipt> mReceipts;
 
 
-    public PdfBoxReceiptsImagesPdfSection(PdfBoxContext context, Trip trip, List<Receipt> receipts) {
+    public PdfBoxReceiptsImagesPdfSection(@NonNull PdfBoxContext context, @NonNull Trip trip,
+                                          @NonNull List<Receipt> receipts) {
         super(context, trip);
-        this.preferences = context.getPreferences();
-        this.receipts = receipts;
+        mPreferences = context.getPreferences();
+        mReceipts = receipts;
     }
 
     @Override
-    public void writeSection(PDDocument doc) throws IOException {
+    public void writeSection(@NonNull PDDocument doc) throws IOException {
 
-        DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(context);
-        writer = new PdfBoxWriter(doc, context, pageDecorations);
+        DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(mContext);
+        PdfBoxWriter writer = new PdfBoxWriter(doc, mContext, pageDecorations);
 
-        float availableWidth = context.getPageSize().getWidth()
-                - 2*context.getPageMarginHorizontal();
-        float availableHeight = context.getPageSize().getHeight()
-                - 2*context.getPageMarginVertical()
+        float availableWidth = mContext.getPageSize().getWidth()
+                - 2* mContext.getPageMarginHorizontal();
+        float availableHeight = mContext.getPageSize().getHeight()
+                - 2* mContext.getPageMarginVertical()
                 - pageDecorations.getHeaderHeight()
                 - pageDecorations.getFooterHeight();
 
 
         PdfBoxImageTableGenerator pdfImageTableGenerator =
-                new PdfBoxImageTableGenerator(context, new LegacyReceiptFilter(preferences),
+                new PdfBoxImageTableGenerator(mContext, new LegacyReceiptFilter(mPreferences),
                         availableWidth, availableHeight);
 
-        PdfBoxImageTable table = pdfImageTableGenerator.generate(receipts);
+        PdfBoxImageTable table = pdfImageTableGenerator.generate(mReceipts);
         writer.writeTable(table);
 
 

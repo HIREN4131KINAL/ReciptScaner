@@ -91,7 +91,7 @@ public class ColumnWidthCalculator<DataType> {
         // Wrap titles (maintaining content unwrapped)
         for (int i = 0; i < attrs.size(); i++) {
             // The second condition defensively wraps the title (not necessarilly to the minimum
-            // header mWidth, but just up to the content's max mWidth)
+            // header width, but just up to the content's max width)
             if (attrs.get(i).isHeaderBreakable
                     && attrs.get(i).contentMaxWidth < attrs.get(i).headerMaxWidth) {
                 float m = Math.max(attrs.get(i).headerMinWidth, attrs.get(i).contentMaxWidth);

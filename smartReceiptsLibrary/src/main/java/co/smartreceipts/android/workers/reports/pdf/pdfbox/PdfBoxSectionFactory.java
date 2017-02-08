@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import java.io.File;
 import java.util.List;
 
@@ -10,11 +12,20 @@ import co.smartreceipts.android.model.Trip;
 
 public interface PdfBoxSectionFactory {
 
+    @NonNull
     PdfBoxReceiptsTablePdfSection createReceiptsTableSection(
-            Trip trip, List<Receipt> receipts, List<Column<Receipt>> distances, List<Distance> columns, List<Column<Distance>> distanceColumns);
+            @NonNull Trip trip,
+            @NonNull List<Receipt> receipts,
+            @NonNull List<Column<Receipt>> distances,
+            @NonNull List<Distance> columns,
+            @NonNull List<Column<Distance>> distanceColumns);
 
-    PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(Trip trip, List<Receipt> receipts);
+    @NonNull
+    PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(@NonNull Trip trip,
+                                                               @NonNull List<Receipt> receipts);
 
-    PdfBoxSignatureSection createSignatureSection(Trip trip, File signature);
+    @NonNull
+    PdfBoxSignatureSection createSignatureSection(@NonNull Trip trip,
+                                                  @NonNull File signature);
 
 }

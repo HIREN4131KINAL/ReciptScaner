@@ -7,9 +7,9 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 public class PdfBoxTableRow {
 
-    private FixedWidthCell[] mCells;
-    private AWTColor mBackgroundColor;
-    private float mWidth;
+    private final FixedWidthCell[] mCells;
+    private final AWTColor mBackgroundColor;
+    private final float mWidth;
 
 
     public PdfBoxTableRow(@NonNull FixedWidthCell[] cells,

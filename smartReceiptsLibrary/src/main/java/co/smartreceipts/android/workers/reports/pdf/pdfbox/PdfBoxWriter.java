@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
@@ -45,23 +46,23 @@ import wb.android.storage.StorageManager;
  * Keeps track of the y position on the page and handles pagination if required.
  */
 public class PdfBoxWriter {
-    private PDDocument doc;
-    private PdfBoxContext context;
-    private List<PDPage> pages;
+    private final PDDocument mDocument;
+    private final PdfBoxContext mContext;
+    private final PdfBoxPageDecorations mPageDecorations;
+    private final List<PDPage> mPages;
+
     private float currentYPosition;
     private PDPageContentStream contentStream;
     private boolean inTextBlock;
-    private PdfBoxPageDecorations pageDecorations;
-    private boolean landscapeMode = true;
 
 
-    public PdfBoxWriter(PDDocument doc,
-                        PdfBoxContext context,
-                        PdfBoxPageDecorations pageDecorations) throws IOException {
-        this.doc = doc;
-        this.context = context;
-        this.pageDecorations = pageDecorations;
-        pages = new ArrayList<>();
+    public PdfBoxWriter(@NonNull PDDocument doc,
+                        @NonNull PdfBoxContext context,
+                        @NonNull PdfBoxPageDecorations pageDecorations) throws IOException {
+        mDocument = doc;
+        mContext = context;
+        mPageDecorations = pageDecorations;
+        mPages = new ArrayList<>();
         newPage();
     }
 
@@ -71,49 +72,49 @@ public class PdfBoxWriter {
             contentStream.close();
         }
 
-        PDPage page = new PDPage(context.getPageSize());
-        pages.add(page);
-        contentStream = new PDPageContentStream(doc, page);
-        pageDecorations.writeHeader(contentStream);
+        PDPage page = new PDPage(mContext.getPageSize());
+        mPages.add(page);
+        contentStream = new PDPageContentStream(mDocument, page);
+        mPageDecorations.writeHeader(contentStream);
         currentYPosition = page.getMediaBox().getHeight()
-                - context.getPageMarginVertical()
-                - pageDecorations.getHeaderHeight();
+                - mContext.getPageMarginVertical()
+                - mPageDecorations.getHeaderHeight();
 
-        pageDecorations.writeFooter(contentStream);
+        mPageDecorations.writeFooter(contentStream);
     }
 
 
-    public void openTextBlock() throws IOException {
+    void openTextBlock() throws IOException {
         inTextBlock = true;
         contentStream.beginText();
         contentStream.newLineAtOffset(
-                context.getPageMarginHorizontal(), currentYPosition);
+                mContext.getPageMarginHorizontal(), currentYPosition);
     }
 
-    public void closeTextBlock() throws IOException {
+    void closeTextBlock() throws IOException {
         inTextBlock = false;
         contentStream.endText();
     }
 
 
-    public void writeNewLine(PdfBoxContext.FontSpec spec,
-                             @StringRes int resId,
-                             Object... args) throws IOException {
+    void writeNewLine(@NonNull PdfBoxContext.FontSpec spec,
+                      @StringRes int resId,
+                      Object... args) throws IOException {
         if (resId != 0) {
-            writeNewLine(spec, context.getString(resId, args));
+            writeNewLine(spec, mContext.getString(resId, args));
         }
     }
 
 
-    public void writeNewLine(PdfBoxContext.FontSpec spec,
-                             String str) throws IOException {
+    void writeNewLine(PdfBoxContext.FontSpec spec,
+                      String str) throws IOException {
         if (!inTextBlock) {
             throw new IllegalStateException("Tried to write out text, without opening a text block first");
         }
         // set the font
         contentStream.setFont(spec.getFont(), spec.getSize());
         // calculate dy (font size + line spacing)
-        float dy = spec.getSize() + context.getLineSpacing();
+        float dy = spec.getSize() + mContext.getLineSpacing();
         // move the cursor by dy and update the currentYPosition
         contentStream.newLineAtOffset(0, -dy);
         currentYPosition -= dy;
@@ -121,17 +122,17 @@ public class PdfBoxWriter {
         contentStream.showText(str);
     }
 
-    public void writeAndClose() throws IOException {
+    void writeAndClose() throws IOException {
         if (contentStream != null) {
             contentStream.close();
         }
 
-        for (PDPage page : pages) {
-            doc.addPage(page);
+        for (PDPage page : mPages) {
+            mDocument.addPage(page);
         }
     }
 
-    public void writeTable(PdfBoxTable table) throws IOException {
+    void writeTable(@NonNull PdfBoxTable table) throws IOException {
 
         if (table.getHeaderRow() != null) {
             printRow(table.getHeaderRow());
@@ -159,7 +160,7 @@ public class PdfBoxWriter {
         }
     }
 
-    public void verticalJump(float dy) {
+    void verticalJump(float dy) {
         currentYPosition -= dy;
     }
 
@@ -169,13 +170,14 @@ public class PdfBoxWriter {
      * the page has no more vertical space available).
      * @throws IOException
      */
-    private boolean printRow(PdfBoxTableRow row) throws IOException {
+    private boolean printRow(@NonNull PdfBoxTableRow row) throws IOException {
         // Line break if required
-        if (currentYPosition - row.getHeight() < context.getPageMarginVertical() + pageDecorations.getFooterHeight()) {
+        if (currentYPosition - row.getHeight() <
+                mContext.getPageMarginVertical() + mPageDecorations.getFooterHeight()) {
             return false;
         }
 
-        float x = context.getPageMarginHorizontal();
+        float x = mContext.getPageMarginHorizontal();
         if (row.getBackgroundColor() != null) {
             PDRectangle rect = new PDRectangle(
                     x,
@@ -194,16 +196,15 @@ public class PdfBoxWriter {
         return true;
     }
 
-    void printRowContents(PdfBoxTableRow row, float x, float y) throws IOException {
+    private void printRowContents(@NonNull PdfBoxTableRow row, float x, float y) throws IOException {
         float xCell = x;
-        float yCell = y;
         for (FixedWidthCell cell : row.getCells()) {
             if (cell != null) {
                 if (cell instanceof FixedWidthTextCell) {
-                    printTextCellContent((FixedWidthTextCell) cell, xCell, yCell, row.getHeight());
+                    printTextCellContent((FixedWidthTextCell) cell, xCell, y, row.getHeight());
 
                 } else if (cell instanceof FixedSizeImageCell) {
-                    printImageCellContent((FixedSizeImageCell) cell, xCell, yCell, row.getHeight());
+                    printImageCellContent((FixedSizeImageCell) cell, xCell, y, row.getHeight());
                 }
                 xCell += cell.getWidth();
             }
@@ -222,10 +223,10 @@ public class PdfBoxWriter {
             PDImageXObject ximage;
             if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
                     || fileExtension.toLowerCase().equals("jpeg")) {
-                ximage = JPEGFactory.createFromStream(doc, in);
+                ximage = JPEGFactory.createFromStream(mDocument, in);
             } else if (fileExtension.toLowerCase().equals("png")) {
                 Bitmap bitmap = BitmapFactory.decodeStream(in);
-                ximage = LosslessFactory.createFromImage(doc, bitmap);
+                ximage = LosslessFactory.createFromImage(mDocument, bitmap);
             } else if (fileExtension.toLowerCase().equals("pdf")) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     ximage = getXImageNative(image);
@@ -239,8 +240,8 @@ public class PdfBoxWriter {
 
             if (ximage == null) {
                 FixedWidthTextCell textCell = new FixedWidthTextCell(cell.getWidth(), cell.getCellPadding(),
-                        context.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
-                        context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                        mContext.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
+                        mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
                         AWTColor.BLACK);
                 printTextCellContent(textCell, xCell, yCell, height);
                 return;
@@ -265,10 +266,10 @@ public class PdfBoxWriter {
             document = PDDocument.load(image);
             PDFRenderer renderer = new PDFRenderer(document);
             Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.ARGB_8888);
-            return JPEGFactory.createFromImage(doc, bitmap);
+            return JPEGFactory.createFromImage(mDocument, bitmap);
         } catch (IOException e) {
             Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
-            ((SmartReceiptsApplication) (context.getAndroidContext().getApplicationContext()))
+            ((SmartReceiptsApplication) (mContext.getAndroidContext().getApplicationContext()))
                     .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
 
             return null;
@@ -299,7 +300,7 @@ public class PdfBoxWriter {
             page.render(bitmap, rect, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
             page.close();
 
-            return JPEGFactory.createFromImage(doc, bitmap);
+            return JPEGFactory.createFromImage(mDocument, bitmap);
         } catch (SecurityException e) {
             Logger.error(this, "PDF file is password-protected", e);
             return null;
@@ -355,11 +356,4 @@ public class PdfBoxWriter {
 
     }
 
-    public boolean isLandscapeMode() {
-        return landscapeMode;
-    }
-
-    public void setLandscapeMode(boolean landscapeMode) {
-        this.landscapeMode = landscapeMode;
-    }
 }

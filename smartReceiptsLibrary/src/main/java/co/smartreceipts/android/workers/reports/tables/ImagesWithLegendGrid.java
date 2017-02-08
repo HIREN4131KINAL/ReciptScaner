@@ -18,19 +18,19 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
  */
 public class ImagesWithLegendGrid {
 
-    List<FixedWidthCell> mTextCells;
-    List<FixedWidthCell> mImageCells;
+    private final List<FixedWidthCell> mTextCells;
+    private final List<FixedWidthCell> mImageCells;
 
     private final float mWidth;
     private final float mHeight;
     private final int mRows;
     private final int mCols;
 
-    private float mCellPadding;
+    private final float mCellPadding;
     private int nItems;
 
-    private List<PdfBoxTableRow> rows = new ArrayList<>();
-    private PdfBoxContext mContext;
+    private final List<PdfBoxTableRow> rows = new ArrayList<>();
+    private final PdfBoxContext mContext;
 
     /**
      * @param context     The {@link PdfBoxContext}
@@ -59,7 +59,7 @@ public class ImagesWithLegendGrid {
     }
 
 
-    public void addImageAndLegend(String text, File image) {
+    public void addImageAndLegend(String text, @NonNull File image) {
 
         FixedWidthTextCell textCell = new FixedWidthTextCell(mWidth / mCols, mCellPadding, text,
                 mContext.getFont(DefaultPdfBoxContext.FONT_SMALL),

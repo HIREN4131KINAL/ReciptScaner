@@ -1,6 +1,8 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 
 import java.io.IOException;
@@ -17,7 +19,7 @@ public interface PdfBoxPageDecorations {
      * @param contentStream
      * @throws IOException
      */
-    void writeHeader(PDPageContentStream contentStream) throws IOException;
+    void writeHeader(@NonNull PDPageContentStream contentStream) throws IOException;
 
     /**
      * Writes the page footer in the <code>contentStream</code> passed
@@ -25,7 +27,7 @@ public interface PdfBoxPageDecorations {
      * @param contentStream
      * @throws IOException
      */
-    void writeFooter(PDPageContentStream contentStream) throws IOException;
+    void writeFooter(@NonNull PDPageContentStream contentStream) throws IOException;
 
     /**
      * Returns the amount of space that should be reserved for the header

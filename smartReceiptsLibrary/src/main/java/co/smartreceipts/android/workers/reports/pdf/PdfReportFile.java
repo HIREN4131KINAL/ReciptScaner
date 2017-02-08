@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -17,7 +19,7 @@ public interface PdfReportFile {
      * @return
      * @throws ReportGenerationException
      */
-    void writeFile(OutputStream outStream, Trip trip)
+    void writeFile(@NonNull OutputStream outStream, @NonNull Trip trip)
             throws IOException;
 
 

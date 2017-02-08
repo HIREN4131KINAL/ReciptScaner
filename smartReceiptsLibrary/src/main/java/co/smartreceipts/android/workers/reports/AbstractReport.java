@@ -3,7 +3,6 @@ package co.smartreceipts.android.workers.reports;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
@@ -51,24 +50,6 @@ abstract class AbstractReport implements Report {
 
     protected final Flex getFlex() {
         return mFlex;
-    }
-
-    /**
-     * Applies a particular filter to determine whether or not this receipt should be
-     * generated for this report
-     *
-     * @param receipt - The particular receipt
-     * @return {@code true} if if should be filtered out, {@code false} otherwise
-     */
-    @Deprecated
-    protected final boolean filterOutReceipt(Receipt receipt) {
-        if (mPreferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
-            return true;
-        } else if (receipt.getPrice().getPriceAsFloat() < mPreferences.getMinimumReceiptPriceToIncludeInReports()) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
 }

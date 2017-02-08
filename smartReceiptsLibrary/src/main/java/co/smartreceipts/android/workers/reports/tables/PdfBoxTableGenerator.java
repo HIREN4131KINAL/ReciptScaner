@@ -22,8 +22,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
     private final Filter<DataType> mFilter;
     private final boolean mPrintHeaders;
     private final boolean mPrintFooters;
-    private float mTopPadding = 40;
-    private float mCellPadding = 6;
+    private final float mCellPadding = 6;
 
     public PdfBoxTableGenerator(@NonNull PdfBoxContext context,
                                 @NonNull List<Column<DataType>> columns,
@@ -131,7 +130,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                              float availableWidth,
                                              PdfBoxContext.FontSpec fontHeader,
                                              PdfBoxContext.FontSpec fontContent) throws IOException {
-        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator(list, mColumns, availableWidth, mCellPadding, fontHeader, fontContent);
+        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator<>(list, mColumns, availableWidth, mCellPadding, fontHeader, fontContent);
         return columnWidthCalculator.calculate();
     }
 

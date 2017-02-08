@@ -28,7 +28,7 @@ public class PdfBoxUtils {
      * @return
      * @throws IOException
      */
-    public static float getFontHeight(@NonNull PdfBoxContext.FontSpec fontSpec) throws IOException {
+    public static float getFontHeight(@NonNull PdfBoxContext.FontSpec fontSpec) {
         return fontSpec.getFont().getFontDescriptor().getFontBoundingBox().getHeight() / 1000
                 * fontSpec.getSize();
     }
@@ -41,8 +41,7 @@ public class PdfBoxUtils {
      * @return
      * @throws IOException
      */
-    public static float getFontAboveBaselineHeight(@NonNull PdfBoxContext.FontSpec fontSpec)
-            throws IOException {
+    public static float getFontAboveBaselineHeight(@NonNull PdfBoxContext.FontSpec fontSpec) {
         return (fontSpec.getFont().getFontDescriptor().getFontBoundingBox().getHeight()
                 + fontSpec.getFont().getFontDescriptor().getDescent()) //descent is negative
                 / 1000 * fontSpec.getSize();

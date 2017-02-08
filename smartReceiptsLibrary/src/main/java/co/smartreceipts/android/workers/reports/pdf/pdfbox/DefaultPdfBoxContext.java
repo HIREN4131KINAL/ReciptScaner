@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
@@ -25,28 +26,29 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     public static final String COLOR_CELL = "CELL";
 
 
-    private Context context;
-    private Map<String, AWTColor> colors;
+    private final Context mContext;
+    private final Preferences mPreferences;
 
-    private Map<String, FontSpec> fonts;
-    private Preferences preferences;
-    private PDRectangle pageSize = PDRectangle.A4;
+    private Map<String, AWTColor> mColors;
+    private Map<String, FontSpec> mFonts;
+    private PDRectangle mPageSize = PDRectangle.A4;
 
-    public DefaultPdfBoxContext(Context context, Preferences preferences) {
-        this.context = context;
-        this.preferences = preferences;
+    public DefaultPdfBoxContext(@NonNull Context context,
+                                @NonNull Preferences preferences) {
+        mContext = context;
+        mPreferences = preferences;
     }
 
 
 
     @Override
     public FontSpec getFont(String name) {
-        return fonts.get(name);
+        return mFonts.get(name);
     }
 
     @Override
     public AWTColor getColor(String name) {
-        return colors.get(name);
+        return mColors.get(name);
     }
 
     @Override
@@ -66,35 +68,38 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
     @Override
     public String getString(@StringRes int resId, Object... args) {
-        return context.getString(resId, args);
+        return mContext.getString(resId, args);
     }
 
     @Override
     public void setPageSize(PDRectangle rectangle) {
-        pageSize = rectangle;
+        mPageSize = rectangle;
     }
 
+    @NonNull
     @Override
     public Context getAndroidContext() {
-        return context;
+        return mContext;
     }
 
+    @NonNull
     @Override
     public PDRectangle getPageSize() {
-        return pageSize;
+        return mPageSize;
     }
 
+    @NonNull
     @Override
     public Preferences getPreferences() {
-        return preferences;
+        return mPreferences;
     }
 
 
     public void setColors(Map<String, AWTColor> colors) {
-        this.colors = colors;
+        this.mColors = colors;
     }
 
     public void setFonts(Map<String, FontSpec> fonts) {
-        this.fonts = fonts;
+        this.mFonts = fonts;
     }
 }

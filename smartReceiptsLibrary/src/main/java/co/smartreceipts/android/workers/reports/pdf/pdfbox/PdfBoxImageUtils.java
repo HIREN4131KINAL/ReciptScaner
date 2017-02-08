@@ -1,10 +1,12 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 
-public class PdfBoxImageUtils {
+class PdfBoxImageUtils {
 
 
     /**
@@ -16,7 +18,9 @@ public class PdfBoxImageUtils {
      * @param rectangle
      * @return
      */
-    public static PDRectangle scaleImageInsideRectangle(PDImageXObject ximage, PDRectangle rectangle) {
+    @NonNull
+    static PDRectangle scaleImageInsideRectangle(@NonNull PDImageXObject ximage,
+                                                 @NonNull PDRectangle rectangle) {
 
         float imageRatio = ((float) ximage.getWidth())/((float) ximage.getHeight());
         float rectRatio = rectangle.getWidth()/rectangle.getHeight();

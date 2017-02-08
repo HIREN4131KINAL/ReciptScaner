@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
@@ -19,13 +21,13 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
     private static final float FOOTER_HEIGHT = 24.0f;
 
 
-    private final PdfBoxContext context;
-    private String footerText;
+    private final PdfBoxContext mContext;
+    private final String mFooterText;
 
 
-    public DefaultPdfBoxPageDecorations(PdfBoxContext context) {
-        this.context = context;
-        footerText = context.getPreferences().getPdfFooterText();
+    DefaultPdfBoxPageDecorations(@NonNull PdfBoxContext context) {
+        mContext = context;
+        mFooterText = context.getPreferences().getPdfFooterText();
     }
 
     /**
@@ -38,17 +40,17 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
      * @throws IOException
      */
     @Override
-    public void writeHeader(PDPageContentStream contentStream) throws IOException {
+    public void writeHeader(@NonNull PDPageContentStream contentStream) throws IOException {
 
         PDRectangle rect = new PDRectangle(
-                context.getPageMarginHorizontal(),
-                context.getPageSize().getHeight()
-                        - context.getPageMarginVertical()
+                mContext.getPageMarginHorizontal(),
+                mContext.getPageSize().getHeight()
+                        - mContext.getPageMarginVertical()
                         - HEADER_LINE_HEIGHT,
-                context.getPageSize().getWidth() - 2 * context.getPageMarginHorizontal(),
+                mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
                 HEADER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+        contentStream.setNonStrokingColor(mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
         contentStream.setNonStrokingColor(AWTColor.BLACK);
@@ -65,24 +67,24 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
     @Override
     public void writeFooter(PDPageContentStream contentStream) throws IOException {
         PDRectangle rect = new PDRectangle(
-                context.getPageMarginHorizontal(),
-                context.getPageMarginVertical()
+                mContext.getPageMarginHorizontal(),
+                mContext.getPageMarginVertical()
                         + FOOTER_HEIGHT
                         - FOOTER_LINE_HEIGHT
                         - FOOTER_PADDING,
-                context.getPageSize().getWidth() - 2 * context.getPageMarginHorizontal(),
+                mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
                 FOOTER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+        contentStream.setNonStrokingColor(mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
         contentStream.setNonStrokingColor(AWTColor.BLACK);
 
 
         contentStream.beginText();
-        contentStream.newLineAtOffset(context.getPageMarginHorizontal(), context.getPageMarginVertical());
+        contentStream.newLineAtOffset(mContext.getPageMarginHorizontal(), mContext.getPageMarginVertical());
         contentStream.setFont(PDType1Font.HELVETICA_OBLIQUE, 12);
-        contentStream.showText(footerText);
+        contentStream.showText(mFooterText);
         contentStream.endText();
     }
 

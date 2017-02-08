@@ -1,6 +1,8 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
@@ -26,15 +28,15 @@ import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
 
 public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
-    private final DefaultPdfBoxContext context;
-    private final PDDocument doc;
-    private final Preferences preferences;
-    private List<PdfBoxSection> sections;
+    private final DefaultPdfBoxContext mContext;
+    private final PDDocument mDocument;
+    private final List<PdfBoxSection> mSections;
+    private final Preferences mPreferences;
 
 
-    public PdfBoxReportFile(Context androidContext, Preferences preferences) throws IOException {
+    public PdfBoxReportFile(@NonNull Context androidContext,
+                            @NonNull Preferences preferences) throws IOException {
         this(androidContext, preferences, false);
-
     }
 
 
@@ -44,20 +46,19 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
      * @param useBuiltinFonts Ugly parameter so that in the tests we can avoid loading the custom fonts
      * @throws IOException
      */
-    public PdfBoxReportFile(Context androidContext, Preferences preferences, boolean useBuiltinFonts) throws IOException {
-        this.preferences = preferences;
-        doc = new PDDocument();
-        sections = new ArrayList<>();
+    @VisibleForTesting
+    public PdfBoxReportFile(@NonNull Context androidContext, @NonNull Preferences preferences,
+                            boolean useBuiltinFonts) throws IOException {
+        this.mPreferences = preferences;
+        mDocument = new PDDocument();
+        mSections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();
         colors.put(DefaultPdfBoxContext.COLOR_DARK_BLUE, new AWTColor(0, 122, 255));
         colors.put(DefaultPdfBoxContext.COLOR_HEADER, new AWTColor(204, 228, 255));
         colors.put(DefaultPdfBoxContext.COLOR_CELL, new AWTColor(239, 239, 244));
 
-//        PDFont MAIN_FONT = PDType1Font.HELVETICA;
-//        PDFont BOLD_FONT = PDType1Font.HELVETICA_BOLD;
-
-        PDFont MAIN_FONT = useBuiltinFonts ? PDType1Font.HELVETICA : PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
-        PDFont BOLD_FONT = useBuiltinFonts ? PDType1Font.HELVETICA_BOLD : PDType0Font.load(doc, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
+        PDFont MAIN_FONT = useBuiltinFonts ? PDType1Font.HELVETICA : PDType0Font.load(mDocument, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
+        PDFont BOLD_FONT = useBuiltinFonts ? PDType1Font.HELVETICA_BOLD : PDType0Font.load(mDocument, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
         int DEFAULT_SIZE = 12;
         int TITLE_SIZE = 14;
         int SMALL_SIZE = 10;
@@ -69,25 +70,23 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
         fonts.put(DefaultPdfBoxContext.FONT_TABLE_HEADER, new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
 
 
-        context = new DefaultPdfBoxContext(androidContext, preferences);
-        context.setColors(colors);
-        context.setFonts(fonts);
+        mContext = new DefaultPdfBoxContext(androidContext, preferences);
+        mContext.setColors(colors);
+        mContext.setFonts(fonts);
     }
 
 
     @Override
-    public void writeFile(OutputStream outStream, Trip trip) throws IOException {
+    public void writeFile(@NonNull OutputStream outStream, @NonNull Trip trip) throws IOException {
         try {
-            for (PdfBoxSection section : sections) {
-                section.writeSection(doc);
+            for (PdfBoxSection section : mSections) {
+                section.writeSection(mDocument);
             }
 
-            doc.save(outStream);
-        } catch (IOException e) {
-            throw e;
+            mDocument.save(outStream);
         } finally {
             try {
-                doc.close();
+                mDocument.close();
             } catch (IOException e) {
                 Logger.error(this, e);
             }
@@ -95,22 +94,27 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     }
 
     public void addSection(PdfBoxSection section) {
-        sections.add(section);
+        mSections.add(section);
     }
 
+    @NonNull
     @Override
-    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(Trip trip, List<Receipt> receipts, List<Column<Receipt>> columns, List<Distance> distances, List<Column<Distance>> distanceColumns) {
-        return new PdfBoxReceiptsTablePdfSection(context, trip, receipts, columns, distances, distanceColumns);
+    public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(
+            @NonNull Trip trip, @NonNull List<Receipt> receipts, @NonNull List<Column<Receipt>> columns,
+            @NonNull List<Distance> distances, @NonNull List<Column<Distance>> distanceColumns) {
+        return new PdfBoxReceiptsTablePdfSection(mContext, trip, receipts, columns, distances, distanceColumns);
     }
 
+    @NonNull
     @Override
-    public PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(Trip trip, List<Receipt> receipts) {
-        return new PdfBoxReceiptsImagesPdfSection(context, trip, receipts);
+    public PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(@NonNull Trip trip, @NonNull List<Receipt> receipts) {
+        return new PdfBoxReceiptsImagesPdfSection(mContext, trip, receipts);
     }
 
+    @NonNull
     @Override
-    public PdfBoxSignatureSection createSignatureSection(Trip trip, File signature) {
-        return new PdfBoxSignatureSection(context, trip, signature);
+    public PdfBoxSignatureSection createSignatureSection(@NonNull Trip trip, @NonNull File signature) {
+        return new PdfBoxSignatureSection(mContext, trip, signature);
     }
 
 }

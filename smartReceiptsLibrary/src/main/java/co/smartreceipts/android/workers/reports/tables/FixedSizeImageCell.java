@@ -21,7 +21,7 @@ public class FixedSizeImageCell implements FixedWidthCell {
     public FixedSizeImageCell(float width,
                               float height,
                               float cellPadding,
-                              File image) {
+                              @NonNull File image) {
         mWidth = width;
         mHeight = height;
         mCellPadding = cellPadding;

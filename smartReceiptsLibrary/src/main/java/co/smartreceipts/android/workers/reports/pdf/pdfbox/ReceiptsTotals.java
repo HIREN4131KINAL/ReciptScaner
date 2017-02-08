@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
+import android.support.annotation.NonNull;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,30 +20,24 @@ import co.smartreceipts.android.persistence.Preferences;
  */
 public class ReceiptsTotals {
 
-    final ArrayList<Price> netTotal;
-    final ArrayList<Price> receiptTotal;
-    final ArrayList<Price> reimbursableTotal;
-    final ArrayList<Price> noTaxesTotal;
-    final ArrayList<Price> taxesTotal;
-    final ArrayList<Price> distanceTotal;
-    public final Price netPrice;
-    public final Price receiptsPrice;
-    public final Price reimbursablePrice;
-    public final Price noTaxPrice;
-    public final Price taxPrice;
-    public final Price distancePrice;
+    public final Price mNetPrice;
+    public final Price mReceiptsPrice;
+    public final Price mReimbursablePrice;
+    public final Price mNoTaxPrice;
+    public final Price mTaxPrice;
+    public final Price mDistancePrice;
 
-    public ReceiptsTotals(Trip trip,
-                          List<Receipt> receipts,
-                          List<Distance> distances,
-                          Preferences preferences) {
+    public ReceiptsTotals(@NonNull Trip trip,
+                          @NonNull List<Receipt> receipts,
+                          @NonNull List<Distance> distances,
+                          @NonNull Preferences preferences) {
 
-        netTotal = new ArrayList<>(receipts.size());
-        receiptTotal = new ArrayList<>(receipts.size());
-        reimbursableTotal = new ArrayList<>(receipts.size());
-        noTaxesTotal = new ArrayList<>(receipts.size() * 2);
-        taxesTotal = new ArrayList<>(receipts.size() * 2);
-        distanceTotal = new ArrayList<>(distances.size());
+        ArrayList<Price> netTotal = new ArrayList<>(receipts.size());
+        ArrayList<Price> receiptTotal = new ArrayList<>(receipts.size());
+        ArrayList<Price> reimbursableTotal = new ArrayList<>(receipts.size());
+        ArrayList<Price> noTaxesTotal = new ArrayList<>(receipts.size() * 2);
+        ArrayList<Price> taxesTotal = new ArrayList<>(receipts.size() * 2);
+        ArrayList<Price> distanceTotal = new ArrayList<>(distances.size());
 
         // Sum up our receipt totals for various conditions
         final int len = receipts.size();
@@ -72,12 +68,12 @@ public class ReceiptsTotals {
 
 
         final WBCurrency tripCurrency = trip.getTripCurrency();
-        netPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
-        receiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
-        reimbursablePrice = new PriceBuilderFactory().setPrices(reimbursableTotal, tripCurrency).build();
-        noTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal, tripCurrency).build();
-        taxPrice = new PriceBuilderFactory().setPrices(taxesTotal, tripCurrency).build();
-        distancePrice = new PriceBuilderFactory().setPrices(distanceTotal, tripCurrency).build();
+        mNetPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
+        mReceiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
+        mReimbursablePrice = new PriceBuilderFactory().setPrices(reimbursableTotal, tripCurrency).build();
+        mNoTaxPrice = new PriceBuilderFactory().setPrices(noTaxesTotal, tripCurrency).build();
+        mTaxPrice = new PriceBuilderFactory().setPrices(taxesTotal, tripCurrency).build();
+        mDistancePrice = new PriceBuilderFactory().setPrices(distanceTotal, tripCurrency).build();
 
 
     }

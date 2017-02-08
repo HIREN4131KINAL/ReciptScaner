@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
@@ -12,21 +14,22 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 public class FixedWidthTextCell implements FixedWidthCell {
 
-    private final float width;
-    private final String text;
-    private final PdfBoxContext.FontSpec fontSpec;
-    private final AWTColor color;
+    private final float mWidth;
+    private final String mText;
+    private final PdfBoxContext.FontSpec mFontSpec;
+    private final AWTColor mColor;
+    private final float mCellPadding;
+
     private List<String> lines;
-    private float cellPadding;
 
     public FixedWidthTextCell(float width, float cellPadding, String text,
-                              PdfBoxContext.FontSpec fontSpec,
-                              AWTColor color) {
-        this.width = width;
-        this.cellPadding = cellPadding;
-        this.text = text;
-        this.fontSpec = fontSpec;
-        this.color = color;
+                              @NonNull PdfBoxContext.FontSpec fontSpec,
+                              @NonNull AWTColor color) {
+        mWidth = width;
+        mCellPadding = cellPadding;
+        mText = text;
+        mFontSpec = fontSpec;
+        mColor = color;
     }
 
     private void breakUpString(String text) throws IOException {
@@ -38,7 +41,7 @@ public class FixedWidthTextCell implements FixedWidthCell {
             String token = tokenizer.nextToken();
             sb.append(token).append(" ");
             String currentLine = sb.toString();
-            if (PdfBoxUtils.getStringWidth(currentLine, fontSpec) > width) {
+            if (PdfBoxUtils.getStringWidth(currentLine, mFontSpec) > mWidth) {
                 if (sb.indexOf(token) > 0) {
                     lines.add(sb.substring(0, sb.indexOf(token)));
                     sb = new StringBuilder();
@@ -55,16 +58,15 @@ public class FixedWidthTextCell implements FixedWidthCell {
     }
 
 
-    @Override
     public float getWidth() {
-        return width;
+        return mWidth;
     }
 
     @Override
     public float getHeight() {
         try {
-            breakUpString(text);
-            return PdfBoxUtils.getFontHeight(fontSpec) * lines.size() + 2 * cellPadding;
+            breakUpString(mText);
+            return PdfBoxUtils.getFontHeight(mFontSpec) * lines.size() + 2 * mCellPadding;
         } catch (IOException e) {
             e.printStackTrace();
             return 0;
@@ -75,21 +77,21 @@ public class FixedWidthTextCell implements FixedWidthCell {
     public List<String> getLines() throws IOException {
         // TODO, that's not very cool... Should we initialize lines in the constructor?
         if (lines == null) {
-            breakUpString(text);
+            breakUpString(mText);
         }
         return lines;
     }
 
     public PdfBoxContext.FontSpec getFontSpec() {
-        return fontSpec;
+        return mFontSpec;
     }
 
     public AWTColor getColor() {
-        return color;
+        return mColor;
     }
 
     @Override
     public float getCellPadding() {
-        return cellPadding;
+        return mCellPadding;
     }
 }

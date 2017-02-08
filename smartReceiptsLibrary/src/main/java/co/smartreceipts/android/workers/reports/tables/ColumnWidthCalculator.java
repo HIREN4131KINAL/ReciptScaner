@@ -59,7 +59,7 @@ public class ColumnWidthCalculator<DataType> {
         }
 
         // TOO MANY COLUMNS CHECK
-        // If columns do not fit with their min width, abort
+        // If columns do not fit with their min mWidth, abort
         float sumCheck = 0.0f;
         for (int i = 0; i < attrs.size(); i++) {
             float m = Math.max(attrs.get(i).headerMinWidth, attrs.get(i).contentMinWidth);
@@ -72,7 +72,7 @@ public class ColumnWidthCalculator<DataType> {
 
 
         // FIRST ATTEMPT
-        // If all columns fit with their max width, assign maxWidth
+        // If all columns fit with their max mWidth, assign maxWidth
         // and then redistribute evenly
         for (int i = 0; i < attrs.size(); i++) {
             float m = Math.max(attrs.get(i).headerMaxWidth, attrs.get(i).contentMaxWidth);
@@ -91,7 +91,7 @@ public class ColumnWidthCalculator<DataType> {
         // Wrap titles (maintaining content unwrapped)
         for (int i = 0; i < attrs.size(); i++) {
             // The second condition defensively wraps the title (not necessarilly to the minimum
-            // header width, but just up to the content's max width)
+            // header mWidth, but just up to the content's max mWidth)
             if (attrs.get(i).isHeaderBreakable
                     && attrs.get(i).contentMaxWidth < attrs.get(i).headerMaxWidth) {
                 float m = Math.max(attrs.get(i).headerMinWidth, attrs.get(i).contentMaxWidth);
@@ -191,8 +191,8 @@ public class ColumnWidthCalculator<DataType> {
             headerMinWidth = PdfBoxUtils.getMaxWordWidth(header, fontHeader);
 
 
-            float maxOfAllStringWidths = 0.0f;  // the max string width of all values (without breaking up the string)
-            float minOfAllStringWidths = Float.MAX_VALUE;  // the min string width of all values (without breaking up the string)
+            float maxOfAllStringWidths = 0.0f;  // the max string mWidth of all values (without breaking up the string)
+            float minOfAllStringWidths = Float.MAX_VALUE;  // the min string mWidth of all values (without breaking up the string)
             float maxOfMaxWordWidths = 0.0f;    // the global max of the
 
 

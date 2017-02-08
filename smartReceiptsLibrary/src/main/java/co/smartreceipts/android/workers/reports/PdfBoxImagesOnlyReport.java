@@ -16,16 +16,21 @@ import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
 public class PdfBoxImagesOnlyReport extends PdfBoxAbstractReport {
-    public PdfBoxImagesOnlyReport(Context context, PersistenceManager persistenceManager, Flex flex) {
+    public PdfBoxImagesOnlyReport(@NonNull Context context,
+                                  @NonNull PersistenceManager persistenceManager,
+                                  @NonNull Flex flex) {
         super(context, persistenceManager, flex);
     }
 
-    public PdfBoxImagesOnlyReport(Context context, DatabaseHelper db, Preferences preferences, StorageManager storageManager, Flex flex) {
+    public PdfBoxImagesOnlyReport(@NonNull Context context, @NonNull DatabaseHelper db,
+                                  @NonNull Preferences preferences,
+                                  @NonNull StorageManager storageManager,
+                                  @NonNull Flex flex) {
         super(context, db, preferences, storageManager, flex);
     }
 
     @Override
-    public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile) {
+    public void createSections(@NonNull Trip trip, @NonNull PdfBoxReportFile pdfBoxReportFile) {
         final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
 
         pdfBoxReportFile.addSection(

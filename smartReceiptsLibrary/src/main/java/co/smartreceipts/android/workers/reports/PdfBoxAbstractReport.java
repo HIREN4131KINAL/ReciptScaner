@@ -17,11 +17,18 @@ import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
 public abstract class PdfBoxAbstractReport extends AbstractReport {
-    public PdfBoxAbstractReport(Context context, PersistenceManager persistenceManager, Flex flex) {
+
+    public PdfBoxAbstractReport(@NonNull Context context,
+                                @NonNull PersistenceManager persistenceManager,
+                                @NonNull Flex flex) {
         super(context, persistenceManager, flex);
     }
 
-    public PdfBoxAbstractReport(Context context, DatabaseHelper db, Preferences preferences, StorageManager storageManager, Flex flex) {
+    public PdfBoxAbstractReport(@NonNull Context context,
+                                @NonNull DatabaseHelper db,
+                                @NonNull Preferences preferences,
+                                @NonNull StorageManager storageManager,
+                                @NonNull Flex flex) {
         super(context, db, preferences, storageManager, flex);
     }
 

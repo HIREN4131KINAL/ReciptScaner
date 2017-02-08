@@ -1,5 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
+import android.support.annotation.NonNull;
+
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
@@ -11,61 +13,66 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 /**
  * Represents a grid of images with their legends. The size of the grid can be specified with the
- * params <code>nRows</code> and <code>nCols</code> (and can be 1x1 for full page images).
+ * params <code>mRows</code> and <code>mCols</code> (and can be 1x1 for full page images).
  * Each cell of the grid will contain two {@link FixedWidthCell}
  */
 public class ImagesWithLegendGrid {
 
-    List<FixedWidthCell> textCells;
-    List<FixedWidthCell> imageCells;
+    List<FixedWidthCell> mTextCells;
+    List<FixedWidthCell> mImageCells;
 
-    float width;
-    float height;
-    private final int nRows;
-    private final int nCols;
+    private final float mWidth;
+    private final float mHeight;
+    private final int mRows;
+    private final int mCols;
+
+    private float mCellPadding;
+    private int nItems;
 
     private List<PdfBoxTableRow> rows = new ArrayList<>();
-    private float cellPadding;
-    private PdfBoxContext context;
-    private int nItems;
+    private PdfBoxContext mContext;
 
     /**
      * @param context     The {@link PdfBoxContext}
-     * @param width       The width of the area that we have available in the pdf
+     * @param width       The mWidth of the area that we have available in the pdf
      *                    page to paint the grid
-     * @param height      The width of the area that we have available in the pdf
+     * @param height      The mWidth of the area that we have available in the pdf
      *                    page to paint the grid
      * @param cellPadding The padding that will be applied to all cells of the grid
      * @param nRows       The number of rows the grid will have
      * @param nCols       The number of columns the grid will have
      */
-    public ImagesWithLegendGrid(PdfBoxContext context, float width,
-                                float height, float cellPadding, int nRows, int nCols) {
-        this.context = context;
-        this.width = width;
-        this.height = height;
-        this.cellPadding = cellPadding;
-        this.nRows = nRows;
-        this.nCols = nCols;
-        textCells = new ArrayList<>();
-        imageCells = new ArrayList<>();
+    public ImagesWithLegendGrid(@NonNull PdfBoxContext context,
+                                float width,
+                                float height,
+                                float cellPadding,
+                                int nRows,
+                                int nCols) {
+        mContext = context;
+        mWidth = width;
+        mHeight = height;
+        mCellPadding = cellPadding;
+        mRows = nRows;
+        mCols = nCols;
+        mTextCells = new ArrayList<>();
+        mImageCells = new ArrayList<>();
     }
 
 
     public void addImageAndLegend(String text, File image) {
 
-        FixedWidthTextCell textCell = new FixedWidthTextCell(width / nCols, cellPadding, text,
-                context.getFont(DefaultPdfBoxContext.FONT_SMALL),
+        FixedWidthTextCell textCell = new FixedWidthTextCell(mWidth / mCols, mCellPadding, text,
+                mContext.getFont(DefaultPdfBoxContext.FONT_SMALL),
                 AWTColor.BLACK);
 
         // leave height empty, we will calculate it later.
-        FixedSizeImageCell imageCell = new FixedSizeImageCell(width / nCols, 0,
-                cellPadding,
+        FixedSizeImageCell imageCell = new FixedSizeImageCell(mWidth / mCols, 0,
+                mCellPadding,
                 image
         );
 
-        textCells.add(textCell);
-        imageCells.add(imageCell);
+        mTextCells.add(textCell);
+        mImageCells.add(imageCell);
 
         nItems++;
     }
@@ -75,7 +82,7 @@ public class ImagesWithLegendGrid {
     }
 
     public boolean isComplete() {
-        return nItems == nCols * nRows;
+        return nItems == mCols * mRows;
     }
 
     /**
@@ -84,28 +91,29 @@ public class ImagesWithLegendGrid {
      * {@link PdfBoxTableRow}s, one for the legends, and another one for the images.
      * @return
      */
+    @NonNull
     public List<PdfBoxTableRow> getRows() {
         // Fill in the grid with dummy elements if required
-        for (int k = nItems; k < nCols * nRows; k++) {
+        for (int k = nItems; k < mCols * mRows; k++) {
             addImageAndLegend("", null);
         }
 
-        for (int i = 0; i < nRows; i++) {
-            FixedWidthCell[] rowTextCells = new FixedWidthCell[nCols];
-            FixedWidthCell[] rowImageCells = new FixedWidthCell[nCols];
+        for (int i = 0; i < mRows; i++) {
+            FixedWidthCell[] rowTextCells = new FixedWidthCell[mCols];
+            FixedWidthCell[] rowImageCells = new FixedWidthCell[mCols];
 
-            for (int j = 0; j < nCols; j++) {
-                rowTextCells[j] = textCells.get(i * nCols + j);
-                rowImageCells[j] = imageCells.get(i * nCols + j);
+            for (int j = 0; j < mCols; j++) {
+                rowTextCells[j] = mTextCells.get(i * mCols + j);
+                rowImageCells[j] = mImageCells.get(i * mCols + j);
             }
 
-            PdfBoxTableRow textRow = new PdfBoxTableRow(rowTextCells, width, null);
-            PdfBoxTableRow imageRow = new PdfBoxTableRow(rowImageCells, width, null);
+            PdfBoxTableRow textRow = new PdfBoxTableRow(rowTextCells, mWidth, null);
+            PdfBoxTableRow imageRow = new PdfBoxTableRow(rowImageCells, mWidth, null);
 
             // Now set the height of the image cell, by subtracting the textRow height
             // from the available space that we have in each cell of the grid.
-            for (int j = 0; j < nCols; j++) {
-                ((FixedSizeImageCell) rowImageCells[i]).setHeight(height / nRows - textRow.getHeight());
+            for (int j = 0; j < mCols; j++) {
+                ((FixedSizeImageCell) rowImageCells[i]).setHeight(mHeight / mRows - textRow.getHeight());
             }
 
             rows.add(textRow);

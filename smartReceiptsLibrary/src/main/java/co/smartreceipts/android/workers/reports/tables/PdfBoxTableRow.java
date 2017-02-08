@@ -1,44 +1,47 @@
 package co.smartreceipts.android.workers.reports.tables;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 public class PdfBoxTableRow {
-    private FixedWidthCell[] cells;
 
-    private AWTColor backgroundColor;
-    private float width;
+    private FixedWidthCell[] mCells;
+    private AWTColor mBackgroundColor;
+    private float mWidth;
 
 
-    public PdfBoxTableRow() {
+    public PdfBoxTableRow(@NonNull FixedWidthCell[] cells,
+                          @NonNull float width,
+                          @Nullable AWTColor backgroundColor) {
+        mCells = cells;
+        mWidth = width;
+        mBackgroundColor = backgroundColor;
     }
 
-    public PdfBoxTableRow(FixedWidthCell[] cells, float width, AWTColor backgroundColor) {
-        this.cells = cells;
-        this.width = width;
-        this.backgroundColor = backgroundColor;
-    }
-
+    @Nullable
     public AWTColor getBackgroundColor() {
-        return backgroundColor;
+        return mBackgroundColor;
     }
 
 
     public float getWidth() {
-        return width;
+        return mWidth;
     }
 
     public float getHeight() {
         float rowHeight = 0;
-        for (int i = 0; i < cells.length; i++) {
-            if (cells[i] != null) {
-                rowHeight = Math.max(cells[i].getHeight(), rowHeight);
+        for (int i = 0; i < mCells.length; i++) {
+            if (mCells[i] != null) {
+                rowHeight = Math.max(mCells[i].getHeight(), rowHeight);
             }
         }
         return rowHeight;
     }
 
-
+    @NonNull
     public FixedWidthCell[] getCells() {
-        return cells;
+        return mCells;
     }
 }

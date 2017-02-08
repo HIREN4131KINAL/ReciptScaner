@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
@@ -16,20 +17,20 @@ import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTable, DataType> {
 
-    private final PdfBoxContext context;
+    private final PdfBoxContext mContext;
     private final List<Column<DataType>> mColumns;
     private final Filter<DataType> mFilter;
     private final boolean mPrintHeaders;
     private final boolean mPrintFooters;
-    private float topPadding = 40;
-    private float cellPadding = 6;
+    private float mTopPadding = 40;
+    private float mCellPadding = 6;
 
-    public PdfBoxTableGenerator(PdfBoxContext context,
-                                List<Column<DataType>> columns,
-                                Filter<DataType> receiptFilter,
+    public PdfBoxTableGenerator(@NonNull PdfBoxContext context,
+                                @NonNull List<Column<DataType>> columns,
+                                @Nullable  Filter<DataType> receiptFilter,
                                 boolean printHeaders,
                                 boolean printFooters) {
-        this.context = context;
+        mContext = context;
         mColumns = columns;
         mFilter = receiptFilter;
         mPrintHeaders = printHeaders;
@@ -45,15 +46,15 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         final int colCount = mColumns.size();
         final List<DataType> filteredList = new ArrayList<>(list.size());
 
-        float xStart = context.getPageMarginHorizontal();
-        float xEnd = context.getPageSize().getWidth() - context.getPageMarginHorizontal();
+        float xStart = mContext.getPageMarginHorizontal();
+        float xEnd = mContext.getPageSize().getWidth() - mContext.getPageMarginHorizontal();
 
         // calculate column widths
         float[] colWidths;
         try {
             colWidths = newCalculateColumnWidths(list, mColumns, xEnd - xStart,
-                    context.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
-                    context.getFont(DefaultPdfBoxContext.FONT_DEFAULT)
+                    mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
+                    mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT)
             );
         } catch (IOException ex) {
             colWidths = calculateColumnWidths(colCount, xEnd - xStart);
@@ -67,15 +68,15 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
             for (int i = 0; i < colCount; i++) {
                 FixedWidthTextCell cell = new FixedWidthTextCell(
                         colWidths[i],
-                        cellPadding,
+                        mCellPadding,
                         mColumns.get(i).getHeader(),
-                        context.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
-                        context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+                        mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
+                        mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
 
             headerRow = new PdfBoxTableRow(cells, tableWidth,
-                    context.getColor(DefaultPdfBoxContext.COLOR_HEADER));
+                    mContext.getColor(DefaultPdfBoxContext.COLOR_HEADER));
 
         }
 
@@ -90,15 +91,15 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                     for (int i = 0; i < colCount; i++) {
                         FixedWidthTextCell cell = new FixedWidthTextCell(
                                 colWidths[i],
-                                cellPadding,
+                                mCellPadding,
                                 mColumns.get(i).getValue(data),
-                                context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                                mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
                                 AWTColor.BLACK);
                         cells[i] = cell;
                     }
 
                     PdfBoxTableRow row = new PdfBoxTableRow(cells, tableWidth, j % 2 == 0 ? null :
-                            context.getColor(DefaultPdfBoxContext.COLOR_CELL));
+                            mContext.getColor(DefaultPdfBoxContext.COLOR_CELL));
 
                     rows.add(row);
                     filteredList.add(data);
@@ -112,14 +113,14 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
             for (int i = 0; i < colCount; i++) {
                 FixedWidthTextCell cell = new FixedWidthTextCell(
                         colWidths[i],
-                        cellPadding,
+                        mCellPadding,
                         mColumns.get(i).getFooter(filteredList),
-                        context.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
-                        context.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+                        mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                        mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
             footerRow = new PdfBoxTableRow(cells, tableWidth,
-                    context.getColor(DefaultPdfBoxContext.COLOR_HEADER));
+                    mContext.getColor(DefaultPdfBoxContext.COLOR_HEADER));
         }
         return new PdfBoxTable(rows, headerRow, footerRow);
     }
@@ -130,7 +131,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                              float availableWidth,
                                              PdfBoxContext.FontSpec fontHeader,
                                              PdfBoxContext.FontSpec fontContent) throws IOException {
-        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator(list, mColumns, availableWidth, cellPadding, fontHeader, fontContent);
+        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator(list, mColumns, availableWidth, mCellPadding, fontHeader, fontContent);
         return columnWidthCalculator.calculate();
     }
 

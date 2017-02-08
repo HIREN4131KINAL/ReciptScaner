@@ -10,26 +10,20 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
-import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
+import rx.subscriptions.CompositeSubscription;
 
 public class LoginFragment extends WBFragment {
 
@@ -37,19 +31,12 @@ public class LoginFragment extends WBFragment {
 
     private static final String OUT_LOGIN_PARAMS = "out_login_params";
 
-    private NavigationHandler mNavigationHandler;
-    private IdentityManager mIdentityManager;
+    private LoginPresenter loginPresenter;
+    private LoginInteractor loginInteractor;
+    private NavigationHandler navigationHandler;
 
-    private SmartReceiptsUserLogin mLoginParams;
-    private Subscription mSubscription;
-
-    private EditText mEmailInput;
-    private EditText mPasswordInput;
-    private Button mLoginButton;
-
-    private TextView mDebug1;
-    private TextView mDebug2;
-    private TextView mDebug3;
+    private LoginParams cachedLoginParams;
+    private CompositeSubscription compositeSubscription;
 
     @NonNull
     public static LoginFragment newInstance() {
@@ -60,8 +47,8 @@ public class LoginFragment extends WBFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        mIdentityManager = getSmartReceiptsApplication().getIdentityManager();
+        this.navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
+        this.loginInteractor = new LoginInteractor(getFragmentManager(), getSmartReceiptsApplication().getIdentityManager(), getSmartReceiptsApplication().getAnalyticsManager());
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
             if (loginParams != null) {
@@ -79,22 +66,7 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mEmailInput = (EditText) view.findViewById(R.id.login_email);
-        mPasswordInput = (EditText) view.findViewById(R.id.login_password);
-        mLoginButton = (Button) view.findViewById(R.id.login_button);
-        mLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final String email = mEmailInput.getText().toString();
-                final String password = mPasswordInput.getText().toString();
-                logIn(new SmartReceiptsUserLogin(email, password));
-            }
-        });
-
-        mDebug1 = (TextView) view.findViewById(R.id.login_debug_is_logged_in);
-        mDebug2 = (TextView) view.findViewById(R.id.login_debug_email);
-        mDebug3 = (TextView) view.findViewById(R.id.login_debug_token);
-        showDebugText();
+        this.loginPresenter = new LoginPresenter(view);
     }
 
     @Override
@@ -107,7 +79,7 @@ public class LoginFragment extends WBFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            mNavigationHandler.navigateUpToTripsFragment();
+            this.navigationHandler.navigateUpToTripsFragment();
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -117,22 +89,26 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onResume() {
         super.onResume();
-        final ActionBar actionBar = getSupportActionBar();
+        Logger.debug(this, "onResume");
+
+        final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null) {
-            if (!mNavigationHandler.isDualPane()) {
-                actionBar.setHomeButtonEnabled(true);
-                actionBar.setDisplayHomeAsUpEnabled(true);
-            } else {
-                actionBar.setHomeButtonEnabled(false);
-                actionBar.setDisplayHomeAsUpEnabled(false);
-            }
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        if (this.compositeSubscription == null) {
+            this.compositeSubscription = new CompositeSubscription();
+        }
+        this.loginPresenter.onResume();
     }
 
     @Override
     public void onPause() {
-        if (mSubscription != null) {
-            mSubscription.unsubscribe();
+        Logger.debug(this, "onPause");
+        this.loginPresenter.onPause();
+        if (compositeSubscription != null) {
+            compositeSubscription.unsubscribe();
+            compositeSubscription = null;
         }
         super.onPause();
     }
@@ -141,54 +117,34 @@ public class LoginFragment extends WBFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Logger.debug(this, "onSaveInstanceState");
-        if (mLoginParams != null) {
-            outState.putParcelable(OUT_LOGIN_PARAMS, mLoginParams);
-        }
+        outState.putParcelable(OUT_LOGIN_PARAMS, this.cachedLoginParams);
     }
 
-    private void logIn(@NonNull SmartReceiptsUserLogin loginParams) {
-        mLoginParams = loginParams;
-        mSubscription = mIdentityManager.logIn(loginParams)
-                .flatMap(new Func1<LoginResponse, Observable<OrganizationsResponse>>() {
-                    @Override
-                    public Observable<OrganizationsResponse> call(LoginResponse loginResponse) {
-                        return mIdentityManager.getOrganizations();
-                    }
-                })
+    private void logIn(@NonNull LoginParams loginParams) {
+        this.cachedLoginParams = loginParams;
+        if (this.compositeSubscription == null) {
+            this.compositeSubscription = new CompositeSubscription();
+        }
+        this.compositeSubscription.add(this.loginInteractor.login(loginParams)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe(new Action0() {
+                .subscribe(new Action1<LoginResponse>() {
                     @Override
-                    public void call() {
-                        mLoginButton.setEnabled(false);
-                    }
-                })
-                .subscribe(new Action1<OrganizationsResponse>() {
-                    @Override
-                    public void call(OrganizationsResponse org) {
-                        Toast.makeText(getContext(), "Login Success", Toast.LENGTH_SHORT).show();
-                        showDebugText();
+                    public void call(LoginResponse org) {
+                        loginPresenter.presentLoginSuccess();
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mIdentityManager.markLoginComplete(mLoginParams);
-                        mLoginParams = null;
-                        mLoginButton.setEnabled(true);
-                        Toast.makeText(getContext(), "Login Failed", Toast.LENGTH_SHORT).show();
+                        loginPresenter.presentLoginFailure();
+                        loginInteractor.onLoginResultsConsumed(cachedLoginParams);
+                        cachedLoginParams = null;
                     }
                 }, new Action0() {
                     @Override
                     public void call() {
-                        mIdentityManager.markLoginComplete(mLoginParams);
-                        mLoginParams = null;
-                        mLoginButton.setEnabled(true);
+                        loginInteractor.onLoginResultsConsumed(cachedLoginParams);
+                        cachedLoginParams = null;
                     }
-                });
-    }
-
-    private void showDebugText() {
-        mDebug1.setText("Is logged in == " + mIdentityManager.isLoggedIn());
-        mDebug2.setText("Email: " + mIdentityManager.getEmail());
-        mDebug3.setText("Token: " + mIdentityManager.getToken());
+                }));
     }
 }

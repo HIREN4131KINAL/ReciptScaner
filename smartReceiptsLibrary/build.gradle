@@ -24,6 +24,7 @@ dependencies {
     compile "com.squareup.retrofit2:adapter-rxjava:$RETROFIT_VERSION"
     compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
+    compile "com.jakewharton.rxbinding:rxbinding:$RX_BINDING_VERSION"
 
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"

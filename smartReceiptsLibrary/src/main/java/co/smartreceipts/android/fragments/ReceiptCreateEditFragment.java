@@ -57,6 +57,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
@@ -175,7 +176,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         if (savedInstanceState == null) {
             if (mReceipt == null) {
-                getChildFragmentManager().beginTransaction().replace(R.id.update_receipt_tooltip, new OcrInformationalTooltipFragment()).commit();
+                new ChildFragmentNavigationHandler(this).addChild(new OcrInformationalTooltipFragment(), R.id.update_receipt_tooltip);
             }
         }
 

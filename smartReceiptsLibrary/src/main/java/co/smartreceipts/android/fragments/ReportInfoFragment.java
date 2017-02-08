@@ -85,7 +85,7 @@ public class ReportInfoFragment extends WBFragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (savedInstanceState == null) {
-            getChildFragmentManager().beginTransaction().replace(R.id.top_tooltip, new SyncErrorFragment()).commit();
+            new ChildFragmentNavigationHandler(this).addChild(new SyncErrorFragment(), R.id.top_tooltip);
         }
 
         mViewPager = (ViewPager) view.findViewById(R.id.pager);

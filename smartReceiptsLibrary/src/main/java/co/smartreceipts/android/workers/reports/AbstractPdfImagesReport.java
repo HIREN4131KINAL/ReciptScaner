@@ -120,7 +120,7 @@ abstract class AbstractPdfImagesReport extends AbstractReport {
                 try {
                     document.close();
                 } catch (Exception e) {
-                    Logger.error(this, "We may be trying to close an empty document.", e);
+                    Logger.error(this, "We may be trying to close an empty document.");
                 }
             }
             if (pdfStream != null) {

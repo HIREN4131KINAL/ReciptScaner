@@ -2,6 +2,7 @@ package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -18,5 +19,5 @@ public interface TableGenerator<TableType, DataType> {
      * @return a table of type {@link TableType}, which can be provided to the upperLeftY user via a report in some fashion
      */
     @NonNull
-    TableType generate(@NonNull List<DataType> list);
+    TableType generate(@NonNull List<DataType> list) throws IOException;
 }

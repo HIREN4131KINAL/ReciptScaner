@@ -26,7 +26,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
     public PdfBoxTableGenerator(@NonNull PdfBoxContext context,
                                 @NonNull List<Column<DataType>> columns,
-                                @Nullable  Filter<DataType> receiptFilter,
+                                @Nullable Filter<DataType> receiptFilter,
                                 boolean printHeaders,
                                 boolean printFooters) {
         mContext = context;
@@ -38,7 +38,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
     @NonNull
     @Override
-    public PdfBoxTable generate(@NonNull List<DataType> list) {
+    public PdfBoxTable generate(@NonNull List<DataType> list) throws IOException {
         List<PdfBoxTableRow> rows = new ArrayList<>();
         PdfBoxTableRow footerRow = null;
         PdfBoxTableRow headerRow = null;
@@ -50,14 +50,10 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
 
         // calculate column widths
         float[] colWidths;
-        try {
-            colWidths = newCalculateColumnWidths(list, mColumns, xEnd - xStart,
-                    mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
-                    mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT)
-            );
-        } catch (IOException ex) {
-            colWidths = calculateColumnWidths(colCount, xEnd - xStart);
-        }
+        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator<>(
+                list, mColumns, xEnd - xStart, mCellPadding, mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
+                mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT));
+        colWidths = columnWidthCalculator.calculate();
 
         float tableWidth = xEnd - xStart;
 
@@ -123,43 +119,5 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         }
         return new PdfBoxTable(rows, headerRow, footerRow);
     }
-
-
-    private float[] newCalculateColumnWidths(List<DataType> list,
-                                             List<Column<DataType>> mColumns,
-                                             float availableWidth,
-                                             PdfBoxContext.FontSpec fontHeader,
-                                             PdfBoxContext.FontSpec fontContent) throws IOException {
-        ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator<>(list, mColumns, availableWidth, mCellPadding, fontHeader, fontContent);
-        return columnWidthCalculator.calculate();
-    }
-
-
-
-    private float[] calculateColumnWidths(int columnCount, float availableWidth) {
-        float[] colWidths = new float[columnCount];
-        int[] colWeights = new int[columnCount];
-
-        for (int i = 0; i < columnCount; i++) {
-            String name = mColumns.get(i).getName();
-            if (name.equals("Name") || name.contains("Comment") || name.contains("Location")) {
-                colWeights[i] = 3;
-            } else {
-                colWeights[i] = 1;
-            }
-        }
-
-        int weightSum = 0;
-        for (int i = 0; i < columnCount; i++) {
-            weightSum += colWeights[i];
-        }
-        float unitWidth = availableWidth / weightSum;
-        for (int i = 0; i < columnCount; i++) {
-            colWidths[i] = colWeights[i] * unitWidth;
-        }
-
-        return colWidths;
-    }
-
 
 }

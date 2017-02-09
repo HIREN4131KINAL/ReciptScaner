@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.workers.reports.ReportGenerationException;
 
 public interface PdfReportFile {
 
@@ -17,7 +16,7 @@ public interface PdfReportFile {
      * @param outStream
      * @param trip
      * @return
-     * @throws ReportGenerationException
+     * @throws IOException
      */
     void writeFile(@NonNull OutputStream outStream, @NonNull Trip trip)
             throws IOException;

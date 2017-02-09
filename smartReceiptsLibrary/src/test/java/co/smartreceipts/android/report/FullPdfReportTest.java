@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
  *
  */
 @RunWith(RobolectricTestRunner.class)
-//@Ignore
+@Ignore
 public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
 
 

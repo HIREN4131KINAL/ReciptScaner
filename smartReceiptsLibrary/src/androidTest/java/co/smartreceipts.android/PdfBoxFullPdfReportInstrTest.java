@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
  *
  * TODO cleanup files on <code>@After</code>
  */
-//@Ignore
+@Ignore
 public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
 
     @Before

@@ -96,6 +96,11 @@
     <string name="report_header_gross_total">Gross Total: %s</string>
     <string name="report_header_cost_center">Cost Center: %s</string>
     <string name="report_header_comment">Report Comment: %s</string>
+    <string name="report_pdf_generation_error">There was an error generating the report</string>
+    <string name="report_pdf_error_too_many_columns_title">Too many columns</string>
+    <string name="report_pdf_error_too_many_columns_message">There is not enough space to fit all the columns in the report. Please try limiting the number of columns in Settings.</string>
+    <string name="report_pdf_error_too_many_columns_message_landscape">There is not enough space to fit all the columns in the report. Please try limiting the number of columns in Settings or use landscape mode.</string>
+    <string name="report_pdf_error_go_to_settings">Go to settings</string>
 
     <!-- ===================== ocr ======================== -->
     <string name="ocr_informational_tooltip_text">Interested in Automatic Scans? Tap here.</string>

@@ -16,6 +16,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
 import java.io.File;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -45,6 +47,7 @@ import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
+import co.smartreceipts.android.workers.reports.tables.TooManyColumnsException;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
@@ -200,24 +203,26 @@ public class EmailAssistant {
 
     public static final class WriterResults {
         public boolean didPDFFailCompletely = false;
-        public boolean didPDFFailParitially = false;
+        public boolean didPDFFailPartially = false;
+        public boolean didPDFFailTooManyColumns = false;
         public boolean didSimplePDFFailCompletely = false;
-        public boolean didSimplePDFFailParitially = false;
+        public boolean didSimplePDFFailPartially = false;
         public boolean didCSVFailCompletely = false;
-        public boolean didCSVFailParitially = false;
+        public boolean didCSVFailPartially = false;
         public boolean didZIPFailCompletely = false;
-        public boolean didZIPFailParitially = false;
+        public boolean didZIPFailPartially = false;
 
         public static final WriterResults getFullFailureInstance() {
             WriterResults result = new WriterResults();
             result.didPDFFailCompletely = true;
-            result.didPDFFailParitially = true;
+            result.didPDFFailPartially = true;
+            result.didPDFFailTooManyColumns = true;
             result.didSimplePDFFailCompletely = true;
-            result.didSimplePDFFailParitially = true;
+            result.didSimplePDFFailPartially = true;
             result.didCSVFailCompletely = true;
-            result.didCSVFailParitially = true;
+            result.didCSVFailPartially = true;
             result.didZIPFailCompletely = true;
-            result.didZIPFailParitially = true;
+            result.didZIPFailPartially = true;
             return result;
         }
     }
@@ -272,6 +277,9 @@ public class EmailAssistant {
                 try {
                     mFiles[EmailOptions.PDF_FULL.getIndex()] = pdfFullReport.generate(trip);
                 } catch (ReportGenerationException e) {
+                    if (e.getCause() instanceof TooManyColumnsException) {
+                        results.didPDFFailTooManyColumns = true;
+                    }
                     results.didPDFFailCompletely = true;
                 }
             }
@@ -477,12 +485,41 @@ public class EmailAssistant {
 
         @Override
         protected void onPostExecute(WriterResults result) {
-            //TODO: Use result!
-            EmailAssistant.this.onAttachmentsCreated(mFiles);
             ProgressDialog dialog = mProgressDialog.get();
-            if (dialog != null) {
-                dialog.dismiss();
-                dialog = null;
+
+            //TODO: Check the other properties of result if necessary...
+            if (result.didPDFFailCompletely) {
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+                if (result.didPDFFailTooManyColumns) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle(R.string.report_pdf_error_too_many_columns_title)
+                            .setMessage(
+                                    mPreferences.isReceiptsTableLandscapeMode()
+                                    ? mContext.getString(R.string.report_pdf_error_too_many_columns_message)
+                            : mContext.getString(R.string.report_pdf_error_too_many_columns_message_landscape) )
+                            .setPositiveButton(R.string.report_pdf_error_go_to_settings, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                    NavigationHandler navigationHandler = new NavigationHandler((FragmentActivity) mContext);
+                                    navigationHandler.navigateToSettingsScrollToReportSection();
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .show();
+
+                } else {
+                    Toast.makeText(mContext, R.string.report_pdf_generation_error, Toast.LENGTH_SHORT).show();
+                }
+            } else {
+
+                EmailAssistant.this.onAttachmentsCreated(mFiles);
+                if (dialog != null) {
+                    dialog.dismiss();
+                    dialog = null;
+                }
             }
         }
 

@@ -42,9 +42,9 @@ dependencies {
     testCompile "junit:junit:$JUNIT_VERSION"
     testCompile "org.mockito:mockito-all:$MOCKITO_VERSION"
 
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile "com.android.support.test:runner:$TEST_RUNNER_VERSION"
+    androidTestCompile "com.google.dexmaker:dexmaker-mockito:$DEXMAKER_VERSION"
+    androidTestCompile "com.google.dexmaker:dexmaker:$DEXMAKER_VERSION"
     androidTestCompile "org.mockito:mockito-core:$MOCKITO_VERSION"
 }
 

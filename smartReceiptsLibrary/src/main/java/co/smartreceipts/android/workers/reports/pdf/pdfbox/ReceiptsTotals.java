@@ -10,7 +10,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
 
@@ -67,7 +67,7 @@ public class ReceiptsTotals {
         }
 
 
-        final WBCurrency tripCurrency = trip.getTripCurrency();
+        final PriceCurrency tripCurrency = trip.getTripCurrency();
         mNetPrice = new PriceBuilderFactory().setPrices(netTotal, tripCurrency).build();
         mReceiptsPrice = new PriceBuilderFactory().setPrices(receiptTotal, tripCurrency).build();
         mReimbursablePrice = new PriceBuilderFactory().setPrices(reimbursableTotal, tripCurrency).build();

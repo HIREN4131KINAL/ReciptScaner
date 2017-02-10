@@ -29,6 +29,7 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.rating.AppRating;
 
@@ -133,6 +134,10 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         // If we disabled settings in our config, let's remove it
         if (!getSmartReceiptsApplication().getConfigurationManager().isSettingsMenuAvailable()) {
             menu.removeItem(R.id.menu_main_settings);
+        }
+
+        if (!FeatureFlags.SmartReceiptsLogin.isEnabled()) {
+            menu.removeItem(R.id.menu_main_my_account);
         }
 
         return super.onCreateOptionsMenu(menu);

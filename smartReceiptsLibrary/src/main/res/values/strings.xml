@@ -12,6 +12,7 @@
     <string name="menu_main_categories">Categories</string>
     <string name="menu_main_csv">Customize CSV Output</string>
     <string name="menu_main_pdf">Customize PDF Output</string>
+    <string name="menu_main_my_account">My Account</string>
     <string name="menu_main_export">Backup</string>
     <string name="menu_main_about">About</string>
 

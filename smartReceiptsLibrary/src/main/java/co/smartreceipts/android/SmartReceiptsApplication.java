@@ -90,7 +90,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
-        mIdentityManager = new IdentityManager(this, mServiceManager);
+        mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
         

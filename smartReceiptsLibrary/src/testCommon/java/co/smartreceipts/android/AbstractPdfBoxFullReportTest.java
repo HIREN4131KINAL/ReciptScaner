@@ -14,7 +14,7 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.WBCurrency;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.distance.DistanceCommentColumn;
@@ -119,7 +119,7 @@ public abstract class AbstractPdfBoxFullReportTest {
             distanceFactory.setTrip(trip);
             distanceFactory.setRate(20);
             distanceFactory.setDistance(10);
-            distanceFactory.setCurrency(WBCurrency.getInstance("USD"));
+            distanceFactory.setCurrency(PriceCurrency.getInstance("USD"));
             distanceFactory.setLocation(i==0 ? "Loc 1" : "Location Location Location " + String.valueOf(i + 1));
 
             distances.add(distanceFactory.build());

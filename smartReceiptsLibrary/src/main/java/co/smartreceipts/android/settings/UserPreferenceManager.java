@@ -20,6 +20,13 @@ public class UserPreferenceManager {
         this.preferences = context.getSharedPreferences(Preferences.SMART_PREFS, 0);
     }
 
+    public void todo() {
+        // TODO: Custom initiailization
+        // Minimum Receipt Price set as minimum price
+        // initDefaultDateSeparator
+        // initDefaultCurrency
+    }
+
     @NonNull
     public <T> T get(UserPreference<T> preference) {
         return null;

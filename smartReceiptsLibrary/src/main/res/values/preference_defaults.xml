@@ -3,11 +3,22 @@
     <!-- ============= Preference General ================= -->
     <integer name="pref_general_trip_duration_defaultValue">3</integer>
     <string name="pref_general_default_currency_defaultValue" />
+    <string name="pref_general_default_date_separator_defaultValue" />
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============== Preference Receipt ================ -->
+    <bool name="pref_receipt_predict_categories_defaultValue">true</bool>
+    <bool name="pref_receipt_match_name_to_category_defaultValue">false</bool>
+    <bool name="pref_receipt_match_comment_to_category_defaultValue">false</bool>
+    <bool name="pref_receipt_reimbursable_only_defaultValue">false</bool>
     <bool name="pref_receipt_reimbursable_default_defaultValue">true</bool>
     <bool name="pref_receipt_include_tax_field_defaultValue">false</bool>
+    <item name="pref_receipt_tax_percent_defaultValue" format="float" type="dimen">0.0</item>
+    <bool name="pref_receipt_pre_tax_defaultValue">true</bool>
+    <bool name="pref_receipt_enable_autocomplete_defaultValue">true</bool>
+    <bool name="pref_receipt_default_to_report_start_date_defaultValue">false</bool>
+    <bool name="pref_receipt_show_id_defaultValue">false</bool>
+    <bool name="pref_receipt_full_page_defaultValue">false</bool>
     <bool name="pref_receipt_use_payment_methods_defaultValue">false</bool>
 
     <!-- ============= Preference Output ================= -->

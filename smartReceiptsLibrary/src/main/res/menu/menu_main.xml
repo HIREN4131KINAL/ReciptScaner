@@ -5,7 +5,7 @@
         android:title="@string/menu_main_settings"
         app:showAsAction="never" />
     <item android:id="@+id/menu_main_my_account"
-          android:title="@string/menu_main_export"
+          android:title="@string/menu_main_my_account"
           app:showAsAction="never" />
     <item android:id="@+id/menu_main_export"
         android:title="@string/menu_main_export"

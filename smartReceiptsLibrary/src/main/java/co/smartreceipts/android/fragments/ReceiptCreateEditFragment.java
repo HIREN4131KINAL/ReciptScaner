@@ -678,14 +678,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     private void saveReceipt() {
-        final String name = nameBox.getText().toString();
+        final String name = TextUtils.isEmpty(nameBox.getText().toString()) ? "" : nameBox.getText().toString();
         final Category category = mCategoriesAdpater.getItem(categoriesSpinner.getSelectedItemPosition());
         final String currency = currencySpinner.getSelectedItem().toString();
-
-        if (name.length() == 0) {
-            Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_MISSING_NAME), Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         if (dateBox.date == null) {
             Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();

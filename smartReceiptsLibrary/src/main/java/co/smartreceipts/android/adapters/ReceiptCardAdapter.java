@@ -2,6 +2,7 @@ package co.smartreceipts.android.adapters;
 
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,7 +37,12 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	
 	@Override
 	protected void setNameTextView(TextView textView, Receipt data) {
-		textView.setText(data.getName());
+        if (TextUtils.isEmpty(data.getName())) {
+            textView.setVisibility(View.GONE);
+        } else {
+            textView.setText(data.getName());
+            textView.setVisibility(View.VISIBLE);
+        }
 	}
 	
 	@Override

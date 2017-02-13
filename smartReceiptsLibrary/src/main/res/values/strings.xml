@@ -331,7 +331,6 @@
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE">Create</string>
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE">Update</string>
     <string name="DIALOG_RECEIPTMENU_NEGATIVE_BUTTON">Cancel</string>
-    <string name="DIALOG_RECEIPTMENU_TOAST_MISSING_NAME">Please provide a name for this receipt</string>
     <string name="DIALOG_RECEIPTMENU_TOAST_BAD_DATE">Warning: This Receipt\'s Date falls outside the specified range for this Report</string>
 
     <!-- ==================== dialog export / import ====================== -->

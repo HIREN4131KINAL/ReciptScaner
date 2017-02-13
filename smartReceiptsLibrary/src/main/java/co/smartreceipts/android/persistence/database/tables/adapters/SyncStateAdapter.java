@@ -81,6 +81,7 @@ public class SyncStateAdapter {
         values.put(AbstractSqlTable.COLUMN_DRIVE_SYNC_ID, (String) null);
         values.put(AbstractSqlTable.COLUMN_DRIVE_IS_SYNCED, false);
         values.put(AbstractSqlTable.COLUMN_DRIVE_MARKED_FOR_DELETION, false);
+        values.put(AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME, System.currentTimeMillis());
         return values;
     }
 

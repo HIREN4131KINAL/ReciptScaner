@@ -358,7 +358,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
         // Next - update all items that currently contain sync data (to remove it)
         final ContentValues contentValues = new SyncStateAdapter().deleteSyncData(syncProvider);
-        getWritableDatabase().update(getTableName(), contentValues, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(1) });
+        getWritableDatabase().update(getTableName(), contentValues, null, null);
 
         // Lastly - let's clear out all cached data
         if (mCachedResults != null) {

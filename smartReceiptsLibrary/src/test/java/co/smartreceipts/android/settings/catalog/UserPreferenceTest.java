@@ -6,7 +6,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
@@ -41,6 +40,11 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Receipts.UsePreTaxPrice));
         Assert.assertTrue(userPreferences.contains(UserPreference.Receipts.DefaultToFullPage));
         Assert.assertTrue(userPreferences.contains(UserPreference.Receipts.UsePaymentMethods));
+        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.UserId));
+        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.IncludeCsvHeaders));
+        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintUserIdByPdfPhoto));
+        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto));
+        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptsTableInLandscape));
     }
 
     @Test
@@ -119,6 +123,29 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Receipts.UsePaymentMethods.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Receipts.UsePaymentMethods), "UsePaymentMethods");
         Assert.assertEquals(UserPreference.Receipts.UsePaymentMethods.getDefaultValue(), R.bool.pref_receipt_use_payment_methods_defaultValue);
+    }
+
+    @Test
+    public void output() {
+        Assert.assertEquals(UserPreference.ReportOutput.UserId.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.ReportOutput.UserId), "UserName");
+        Assert.assertEquals(UserPreference.ReportOutput.UserId.getDefaultValue(), R.string.pref_output_username_defaultValue);
+
+        Assert.assertEquals(UserPreference.ReportOutput.IncludeCsvHeaders.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.ReportOutput.IncludeCsvHeaders), "IncludeCSVHeaders");
+        Assert.assertEquals(UserPreference.ReportOutput.IncludeCsvHeaders.getDefaultValue(), R.bool.pref_output_csv_header_defaultValue);
+
+        Assert.assertEquals(UserPreference.ReportOutput.PrintUserIdByPdfPhoto.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.ReportOutput.PrintUserIdByPdfPhoto), "PrintByIDPhotoKey");
+        Assert.assertEquals(UserPreference.ReportOutput.PrintUserIdByPdfPhoto.getDefaultValue(), R.bool.pref_output_print_receipt_id_by_photo_defaultValue);
+
+        Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto), "PrintCommentByPhoto");
+        Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto.getDefaultValue(), R.bool.pref_output_print_receipt_comment_by_photo_defaultValue);
+
+        Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptsTableInLandscape.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.ReportOutput.PrintReceiptsTableInLandscape), "ReceiptsTableLandscape");
+        Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptsTableInLandscape.getDefaultValue(), R.bool.pref_output_receipts_landscape_defaultValue);
 
     }
 

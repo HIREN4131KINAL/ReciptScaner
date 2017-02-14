@@ -6,6 +6,7 @@ import android.support.annotation.StringRes;
 
 import com.google.common.base.Preconditions;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,14 @@ public final class UserPreference<T> {
         public static final UserPreference<Boolean> UsePreTaxPrice = new UserPreference<>(Boolean.class, R.string.pref_receipt_pre_tax_key, R.bool.pref_receipt_pre_tax_defaultValue);
         public static final UserPreference<Boolean> DefaultToFullPage = new UserPreference<>(Boolean.class, R.string.pref_receipt_full_page_key, R.bool.pref_receipt_full_page_defaultValue);
         public static final UserPreference<Boolean> UsePaymentMethods = new UserPreference<>(Boolean.class, R.string.pref_receipt_use_payment_methods_key, R.bool.pref_receipt_use_payment_methods_defaultValue);
+    }
+
+    public static final class ReportOutput {
+        public static final UserPreference<String> UserId = new UserPreference<>(String.class, R.string.pref_output_username_key, R.string.pref_output_username_defaultValue);
+        public static final UserPreference<Boolean> IncludeCsvHeaders = new UserPreference<>(Boolean.class, R.string.pref_output_csv_header_key, R.bool.pref_output_csv_header_defaultValue);
+        public static final UserPreference<Boolean> PrintUserIdByPdfPhoto = new UserPreference<>(Boolean.class, R.string.pref_output_print_receipt_id_by_photo_key, R.bool.pref_output_print_receipt_id_by_photo_defaultValue);
+        public static final UserPreference<Boolean> PrintReceiptCommentByPdfPhoto = new UserPreference<>(Boolean.class, R.string.pref_output_print_receipt_comment_by_photo_key, R.bool.pref_output_print_receipt_comment_by_photo_defaultValue);
+        public static final UserPreference<Boolean> PrintReceiptsTableInLandscape = new UserPreference<>(Boolean.class, R.string.pref_output_receipts_landscape_key, R.bool.pref_output_receipts_landscape_defaultValue);
     }
 
     private static List<UserPreference<?>> CACHED_VALUES;

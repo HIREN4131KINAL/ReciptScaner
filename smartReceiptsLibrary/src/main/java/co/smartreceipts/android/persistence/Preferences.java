@@ -42,8 +42,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Output Preferences
     private String mUserID;
-    private File mSignaturePhoto;
-    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mOptimizePDFSpace, mShowSignature, mReceiptsLandscapeMode;
+    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mReceiptsLandscapeMode;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -189,24 +188,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mIncludeCommentByReceiptPhoto = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_comment_by_photo_key), mContext.getResources().getBoolean(R.bool.pref_output_print_receipt_comment_by_photo_defaultValue));
     }
 
-    private void initOptimizeSpaceForPDFOutput(SharedPreferences prefs) {
-        this.mOptimizePDFSpace = prefs.getBoolean(mContext.getString(R.string.pref_output_optimize_space_key), true);
-    }
-
-    private void initShowBlankSignature(SharedPreferences prefs) {
-        this.mShowSignature = prefs.getBoolean(mContext.getString(R.string.pref_output_blank_signature_key), mContext.getResources().getBoolean(R.bool.pref_output_blank_signature_defaultValue));
-    }
-
-    private void initSignaturePhoto(SharedPreferences prefs) {
-        final String filename = prefs.getString(mContext.getString(R.string.pref_output_signature_picture_key), mContext.getString(R.string.pref_output_signature_picture_defaultValue));
-        final File signatureFile = mStorageManager.getFile(getPreferencesFolder(), filename);
-        if (!signatureFile.exists() || !signatureFile.isFile()) {
-            mSignaturePhoto = null;
-        } else {
-            mSignaturePhoto = signatureFile;
-        }
-    }
-
     private void initEmailTo(SharedPreferences prefs) {
         this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), mContext.getString(R.string.pref_email_default_email_to_defaultValue));
     }
@@ -318,9 +299,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initIncludeCSVHeaders(prefs);
         this.initIncludeReceiptIdNotIndex(prefs);
         this.initIncludeCommentByReceiptPhoto(prefs);
-        this.initOptimizeSpaceForPDFOutput(prefs);
-        this.initShowBlankSignature(prefs);
-        this.initSignaturePhoto(prefs);
 
         // Email Preferences
         this.initEmailTo(prefs);
@@ -462,17 +440,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     public boolean getIncludeCommentByReceiptPhoto() { return this.mIncludeCommentByReceiptPhoto; }
-
-    public boolean isBlankSignatureShownForPdfs() {
-        return this.mShowSignature;
-    }
-
-    /**
-     * @return - the {@link java.io.File} containing the signature file only if a photo has been set of exists. {@code null} will be returned otherwise.s
-     */
-    public File getSignaturePhoto() {
-        return this.mSignaturePhoto;
-    }
 
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;

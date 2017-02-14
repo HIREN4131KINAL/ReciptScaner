@@ -97,17 +97,6 @@
     <string name="pref_output_print_receipt_comment_by_photo_title">Print Receipt Comment By Photo</string>
     <string name="pref_output_print_receipt_comment_by_photo_summaryOn">Shows the Receipt comment above PDF photos</string>
     <string name="pref_output_print_receipt_comment_by_photo_summaryOff">Hide the Receipt comment above PDF photos</string>
-    <string name="pref_output_optimize_space_key" translatable="false">OptimizeSpace</string>
-    <string name="pref_output_optimize_space_title">Optimize Receipt Space</string>
-    <string name="pref_output_optimize_space_summaryOn">Attempt to reduce the number of PDF pages</string>
-    <string name="pref_output_optimize_space_summaryOff">Keep exact receipt order</string>
-    <string name="pref_output_blank_signature_key" translatable="false">BlankSignature</string>
-    <string name="pref_output_blank_signature_title">Include Signature Field</string>
-    <string name="pref_output_blank_signature_summaryOn">Includes an empty signature field on PDFs.</string>
-    <string name="pref_output_blank_signature_summaryOff">Does not include an empty signature field on PDFs.</string>
-    <string name="pref_output_signature_picture_key" translatable="false">SignaturePicture</string>
-    <string name="pref_output_signature_picture_title">Scanned Signature Photo</string>
-    <string name="pref_output_signature_picture_emptyValue">Attach a scanned signature to PDF reports.</string>
     <string name="pref_output_receipts_landscape_key" translatable="false">ReceiptsTableLandscape</string>
     <string name="pref_output_receipts_landscape_title">Print receipts table in landscape mode</string>
     <string name="pref_output_receipts_landscape_on">Receipts table is printed in landscape mode</string>

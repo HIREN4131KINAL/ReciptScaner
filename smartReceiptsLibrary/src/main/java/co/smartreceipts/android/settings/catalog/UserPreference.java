@@ -50,6 +50,13 @@ public final class UserPreference<T> {
         public static final UserPreference<Boolean> PrintReceiptsTableInLandscape = new UserPreference<>(Boolean.class, R.string.pref_output_receipts_landscape_key, R.bool.pref_output_receipts_landscape_defaultValue);
     }
 
+    public static final class Email {
+        public static final UserPreference<String> ToAddresses = new UserPreference<>(String.class, R.string.pref_email_default_email_to_key, R.string.pref_email_default_email_to_defaultValue);
+        public static final UserPreference<String> CcAddresses = new UserPreference<>(String.class, R.string.pref_email_default_email_cc_key, R.string.pref_email_default_email_cc_defaultValue);
+        public static final UserPreference<String> BccAddresses = new UserPreference<>(String.class, R.string.pref_email_default_email_bcc_key, R.string.pref_email_default_email_bcc_defaultValue);
+        public static final UserPreference<String> Subject = new UserPreference<>(String.class, R.string.pref_email_default_email_subject_key, R.string.EMAIL_DATA_SUBJECT);
+    }
+
     private static List<UserPreference<?>> CACHED_VALUES;
 
     private final Class<T> type;

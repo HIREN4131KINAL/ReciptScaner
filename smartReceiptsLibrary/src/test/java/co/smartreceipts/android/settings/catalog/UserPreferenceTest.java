@@ -45,6 +45,10 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintUserIdByPdfPhoto));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptsTableInLandscape));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Email.ToAddresses));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Email.CcAddresses));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Email.BccAddresses));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Email.Subject));
     }
 
     @Test
@@ -126,7 +130,7 @@ public class UserPreferenceTest {
     }
 
     @Test
-    public void output() {
+    public void reportOutput() {
         Assert.assertEquals(UserPreference.ReportOutput.UserId.getType(), String.class);
         Assert.assertEquals(name(UserPreference.ReportOutput.UserId), "UserName");
         Assert.assertEquals(UserPreference.ReportOutput.UserId.getDefaultValue(), R.string.pref_output_username_defaultValue);
@@ -146,6 +150,25 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptsTableInLandscape.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.ReportOutput.PrintReceiptsTableInLandscape), "ReceiptsTableLandscape");
         Assert.assertEquals(UserPreference.ReportOutput.PrintReceiptsTableInLandscape.getDefaultValue(), R.bool.pref_output_receipts_landscape_defaultValue);
+    }
+
+    @Test
+    public void emails() {
+        Assert.assertEquals(UserPreference.Email.ToAddresses.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.Email.ToAddresses), "EmailTo");
+        Assert.assertEquals(UserPreference.Email.ToAddresses.getDefaultValue(), R.string.pref_email_default_email_to_defaultValue);
+
+        Assert.assertEquals(UserPreference.Email.CcAddresses.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.Email.CcAddresses), "EmailCC");
+        Assert.assertEquals(UserPreference.Email.CcAddresses.getDefaultValue(), R.string.pref_email_default_email_cc_defaultValue);
+
+        Assert.assertEquals(UserPreference.Email.BccAddresses.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.Email.BccAddresses), "EmailBCC");
+        Assert.assertEquals(UserPreference.Email.BccAddresses.getDefaultValue(), R.string.pref_email_default_email_bcc_defaultValue);
+
+        Assert.assertEquals(UserPreference.Email.Subject.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.Email.Subject), "EmailSubject");
+        Assert.assertEquals(UserPreference.Email.Subject.getDefaultValue(), R.string.EMAIL_DATA_SUBJECT);
 
     }
 

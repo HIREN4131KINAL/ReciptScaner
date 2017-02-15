@@ -49,6 +49,9 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.CcAddresses));
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.BccAddresses));
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.Subject));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Camera.UseNativeCamera));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Camera.SaveImagesInGrayScale));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Camera.AutomaticallyRotateImages));
     }
 
     @Test
@@ -153,7 +156,7 @@ public class UserPreferenceTest {
     }
 
     @Test
-    public void emails() {
+    public void email() {
         Assert.assertEquals(UserPreference.Email.ToAddresses.getType(), String.class);
         Assert.assertEquals(name(UserPreference.Email.ToAddresses), "EmailTo");
         Assert.assertEquals(UserPreference.Email.ToAddresses.getDefaultValue(), R.string.pref_email_default_email_to_defaultValue);
@@ -169,7 +172,21 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Email.Subject.getType(), String.class);
         Assert.assertEquals(name(UserPreference.Email.Subject), "EmailSubject");
         Assert.assertEquals(UserPreference.Email.Subject.getDefaultValue(), R.string.EMAIL_DATA_SUBJECT);
+    }
 
+    @Test
+    public void camera() {
+        Assert.assertEquals(UserPreference.Camera.UseNativeCamera.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Camera.UseNativeCamera), "UseNativeCamera");
+        Assert.assertEquals(UserPreference.Camera.UseNativeCamera.getDefaultValue(), R.bool.pref_camera_use_native_camera_defaultValue);
+
+        Assert.assertEquals(UserPreference.Camera.SaveImagesInGrayScale.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Camera.SaveImagesInGrayScale), "SaveBW");
+        Assert.assertEquals(UserPreference.Camera.SaveImagesInGrayScale.getDefaultValue(), R.bool.pref_camera_bw_defaultValue);
+
+        Assert.assertEquals(UserPreference.Camera.AutomaticallyRotateImages.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Camera.AutomaticallyRotateImages), "Camera_Rotate");
+        Assert.assertEquals(UserPreference.Camera.AutomaticallyRotateImages.getDefaultValue(), R.bool.pref_camera_rotate_defaultValue);
     }
 
     @NonNull

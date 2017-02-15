@@ -213,7 +213,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     }
 
     private void initRotateImages(SharedPreferences prefs) {
-        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_rotate_key_defaultValue));
+        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_rotate_defaultValue));
     }
 
     private void initShowDate(SharedPreferences prefs) {

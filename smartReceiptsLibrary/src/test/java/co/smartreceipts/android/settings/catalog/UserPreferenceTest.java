@@ -55,6 +55,11 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptDateInLayout));
         Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptCategoryInLayout));
         Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptFileMarkerInLayout));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Distance.DefaultDistanceRate));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Distance.PrintDistanceTableInReports));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Distance.IncludeDistancePriceInReports));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Distance.ShowDistanceAsPriceInSubtotal));
     }
 
     @Test
@@ -205,7 +210,29 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Layout.IncludeReceiptFileMarkerInLayout.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Layout.IncludeReceiptFileMarkerInLayout), "LayoutIncludeReceiptPicture");
         Assert.assertEquals(UserPreference.Layout.IncludeReceiptFileMarkerInLayout.getDefaultValue(), R.bool.pref_layout_display_photo_defaultValue);
+    }
 
+    @Test
+    public void distance() {
+        Assert.assertEquals(UserPreference.Distance.DefaultDistanceRate.getType(), Float.class);
+        Assert.assertEquals(name(UserPreference.Distance.DefaultDistanceRate), "MileageRate");
+        Assert.assertEquals(UserPreference.Distance.DefaultDistanceRate.getDefaultValue(), R.dimen.pref_distance_rate_defaultValue);
+
+        Assert.assertEquals(UserPreference.Distance.PrintDistanceTableInReports.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Distance.PrintDistanceTableInReports), "MileagePrintTable");
+        Assert.assertEquals(UserPreference.Distance.PrintDistanceTableInReports.getDefaultValue(), R.bool.pref_distance_print_table_defaultValue);
+
+        Assert.assertEquals(UserPreference.Distance.IncludeDistancePriceInReports.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Distance.IncludeDistancePriceInReports), "MileageTotalInReport");
+        Assert.assertEquals(UserPreference.Distance.IncludeDistancePriceInReports.getDefaultValue(), R.bool.pref_distance_include_price_in_report_defaultValue);
+
+        Assert.assertEquals(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports), "MileageAddToPDF");
+        Assert.assertEquals(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports.getDefaultValue(), R.bool.pref_distance_print_daily_defaultValue);
+
+        Assert.assertEquals(UserPreference.Distance.ShowDistanceAsPriceInSubtotal.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Distance.ShowDistanceAsPriceInSubtotal), "DistanceAsPrice");
+        Assert.assertEquals(UserPreference.Distance.ShowDistanceAsPriceInSubtotal.getDefaultValue(), R.bool.pref_distance_as_price_defaultValue);
     }
 
     @NonNull

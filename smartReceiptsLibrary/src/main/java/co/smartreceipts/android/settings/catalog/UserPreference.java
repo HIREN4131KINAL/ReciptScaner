@@ -69,6 +69,14 @@ public final class UserPreference<T> {
         public static final UserPreference<Boolean> IncludeReceiptFileMarkerInLayout = new UserPreference<>(Boolean.class, R.string.pref_layout_display_photo_key, R.bool.pref_layout_display_photo_defaultValue);
     }
 
+    public static final class Distance {
+        public static final UserPreference<Float> DefaultDistanceRate = new UserPreference<>(Float.class, R.string.pref_distance_rate_key, R.dimen.pref_distance_rate_defaultValue);
+        public static final UserPreference<Boolean> PrintDistanceTableInReports = new UserPreference<>(Boolean.class, R.string.pref_distance_print_table_key, R.bool.pref_distance_print_table_defaultValue);
+        public static final UserPreference<Boolean> IncludeDistancePriceInReports = new UserPreference<>(Boolean.class, R.string.pref_distance_include_price_in_report_key, R.bool.pref_distance_include_price_in_report_defaultValue);
+        public static final UserPreference<Boolean> PrintDistanceAsDailyReceiptInReports = new UserPreference<>(Boolean.class, R.string.pref_distance_print_daily_key, R.bool.pref_distance_print_daily_defaultValue);
+        public static final UserPreference<Boolean> ShowDistanceAsPriceInSubtotal = new UserPreference<>(Boolean.class, R.string.pref_distance_as_price_key, R.bool.pref_distance_as_price_defaultValue);
+    }
+
     private static List<UserPreference<?>> CACHED_VALUES;
 
     private final Class<T> type;

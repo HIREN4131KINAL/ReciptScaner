@@ -158,7 +158,7 @@
     <string name="pref_distance_as_price_summaryOn">Show distance price total in app subtitle</string>
     <string name="pref_distance_as_price_summaryOff">Show distance travelled in app subtitle</string>
 
-    <!-- ================= Preference Pro ================== -->
+    <!-- ================= Preference Plus ================== -->
     <string name="pref_pro_pdf_footer_key" translatable="false">PdfFooterString</string>
     <string name="pref_pro_pdf_footer_title">PDF Footer Text</string>
 

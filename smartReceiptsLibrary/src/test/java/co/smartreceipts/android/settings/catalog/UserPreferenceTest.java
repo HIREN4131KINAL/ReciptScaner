@@ -1,6 +1,7 @@
 package co.smartreceipts.android.settings.catalog;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 
 import junit.framework.Assert;
 
@@ -60,6 +61,7 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.IncludeDistancePriceInReports));
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports));
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.ShowDistanceAsPriceInSubtotal));
+        Assert.assertTrue(userPreferences.contains(UserPreference.PlusSubscription.PdfFooterString));
     }
 
     @Test
@@ -233,6 +235,13 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Distance.ShowDistanceAsPriceInSubtotal.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Distance.ShowDistanceAsPriceInSubtotal), "DistanceAsPrice");
         Assert.assertEquals(UserPreference.Distance.ShowDistanceAsPriceInSubtotal.getDefaultValue(), R.bool.pref_distance_as_price_defaultValue);
+    }
+
+    @Test
+    public void plus() {
+        Assert.assertEquals(UserPreference.PlusSubscription.PdfFooterString.getType(), String.class);
+        Assert.assertEquals(name(UserPreference.PlusSubscription.PdfFooterString), "PdfFooterString");
+        Assert.assertEquals(UserPreference.PlusSubscription.PdfFooterString.getDefaultValue(), R.string.pref_pro_pdf_footer_defaultValue);
     }
 
     @NonNull

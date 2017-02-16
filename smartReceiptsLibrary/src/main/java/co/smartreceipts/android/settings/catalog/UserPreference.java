@@ -77,6 +77,10 @@ public final class UserPreference<T> {
         public static final UserPreference<Boolean> ShowDistanceAsPriceInSubtotal = new UserPreference<>(Boolean.class, R.string.pref_distance_as_price_key, R.bool.pref_distance_as_price_defaultValue);
     }
 
+    public static final class PlusSubscription {
+        public static final UserPreference<String> PdfFooterString = new UserPreference<>(String.class, R.string.pref_pro_pdf_footer_key, R.string.pref_pro_pdf_footer_defaultValue);
+    }
+
     private static List<UserPreference<?>> CACHED_VALUES;
 
     private final Class<T> type;

@@ -18,6 +18,7 @@ import co.smartreceipts.android.utils.log.Logger;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
+@Deprecated
 public class Preferences implements OnSharedPreferenceChangeListener {
 
     //Preference Identifiers - Global

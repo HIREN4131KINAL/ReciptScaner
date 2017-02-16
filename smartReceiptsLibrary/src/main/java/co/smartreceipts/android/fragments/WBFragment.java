@@ -72,7 +72,7 @@ public class WBFragment extends Fragment {
 
 	protected DateManager getDateManager() {
 		if (mDateManager == null) {
-			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferences());
+			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager());
 		}
 		return mDateManager;
 	}

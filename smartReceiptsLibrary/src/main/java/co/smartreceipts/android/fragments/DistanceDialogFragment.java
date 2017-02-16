@@ -287,7 +287,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
 
     private DateManager getDateManager() {
         if (mDateManager == null) {
-            mDateManager = new DateManager(getActivity(), ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferences());
+            mDateManager = new DateManager(getActivity(), ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferenceManager());
         }
         return mDateManager;
     }

@@ -26,11 +26,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private static final String INT_VERSION_CODE = "VersionCode";
 
-    // General Preferences
-    private int mDefaultTripDuration;
-    private String mDefaultCurrency, mDateSeparator;
-    private boolean mIncludeCostCenter;
-
     // No Category
     private boolean mAutoBackupOnWifiOnly;
 
@@ -39,47 +34,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     //Other Instance Variables
     private final Context mContext;
-    private final Flex mFlex;
-    private final StorageManager mStorageManager;
-
 
     public interface VersionUpgradeListener {
         public void onVersionUpgrade(int oldVersion, int newVersion);
-    }
-
-    private void initDefaultTripDuration(SharedPreferences prefs) {
-        this.mDefaultTripDuration = prefs.getInt(mContext.getString(R.string.pref_general_trip_duration_key), mContext.getResources().getInteger(R.integer.pref_general_trip_duration_defaultValue));
-    }
-
-    private void initDefaultDateSeparator(SharedPreferences prefs) {
-        final String localeDefault = DateUtils.getDateSeparator(mContext);
-        this.mDateSeparator = prefs.getString(mContext.getString(R.string.pref_general_default_date_separator_key), localeDefault);
-        if (TextUtils.isEmpty(mDateSeparator)) {
-            mDateSeparator = localeDefault;
-        }
-    }
-
-    private void initDefaultCurrency(SharedPreferences prefs) {
-        try {
-            final String assignedPreferenceCurrencyCode = mContext.getString(R.string.pref_general_default_currency_defaultValue);
-            final String currencyCode;
-            if (TextUtils.isEmpty(assignedPreferenceCurrencyCode)) {
-                currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
-            } else {
-                currencyCode = assignedPreferenceCurrencyCode;
-            }
-            mDefaultCurrency = prefs.getString(mContext.getString(R.string.pref_general_default_currency_key), currencyCode);
-            if (TextUtils.isEmpty(mDefaultCurrency)) {
-                this.mDefaultCurrency = currencyCode;
-            }
-
-        } catch (IllegalArgumentException ex) {
-            this.mDefaultCurrency = "USD";
-        }
-    }
-
-    private void initIncludeCostCenter(SharedPreferences prefs) {
-        this.mIncludeCostCenter = prefs.getBoolean(mContext.getString(R.string.pref_general_track_cost_center_key), mContext.getResources().getBoolean(R.bool.pref_general_track_cost_center_defaultValue));
     }
 
     private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
@@ -89,8 +46,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     @VisibleForTesting
     public Preferences(Context context, Flex flex, StorageManager storageManager) {
         this.mContext = context;
-        this.mFlex = flex;
-        this.mStorageManager = storageManager;
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         prefs.registerOnSharedPreferenceChangeListener(this);
         initAllPreferences(prefs);
@@ -98,11 +53,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initAllPreferences(SharedPreferences prefs) {
         Logger.debug(this, "Initializing Shared Preferences");
-        // General Preferences
-        this.initDefaultTripDuration(prefs);
-        this.initDefaultDateSeparator(prefs);
-        this.initDefaultCurrency(prefs);
-        this.initIncludeCostCenter(prefs);
 
         // No Category
         this.initAutoBackupOnWifiOnly(prefs);
@@ -127,17 +77,10 @@ public class Preferences implements OnSharedPreferenceChangeListener {
                 }
             } catch (NameNotFoundException e) {
                 Logger.error(this, e);
-            } catch (RuntimeException e) {
-                // Only intended for RoboE
-                Logger.error(this, e);
             }
         } else {
             Logger.error(this, "A null VersionUpgradeListener was provided. Updates will not be registered");
         }
-    }
-
-    public SharedPreferences getSharedPreferences() {
-        return mContext.getSharedPreferences(SMART_PREFS, 0);
     }
 
     @Override
@@ -146,22 +89,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
             return; // Exit early if bad key
         }
         initAllPreferences(prefs);
-    }
-
-    public String getDefaultCurreny() {
-        return mDefaultCurrency;
-    }
-
-    public int getDefaultTripDuration() {
-        return mDefaultTripDuration;
-    }
-
-    public String getDateSeparator() {
-        return mDateSeparator;
-    }
-
-    public boolean getIncludeCostCenter() {
-        return mIncludeCostCenter;
     }
 
     public boolean getAutoBackupOnWifiOnly() {

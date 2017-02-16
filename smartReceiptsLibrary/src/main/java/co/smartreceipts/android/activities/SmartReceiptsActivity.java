@@ -19,6 +19,7 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
@@ -96,7 +97,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             if (attachment.requiresStoragePermissions() && !hasStoragePermission) {
                 ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
             } else if (attachment.isDirectlyAttachable()) {
-                final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
+                final UserPreferenceManager preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager();
                 if (InformAboutPdfImageAttachmentDialogFragment.shouldInformAboutPdfImageAttachmentDialogFragment(preferences)) {
                     mNavigationHandler.showDialog(InformAboutPdfImageAttachmentDialogFragment.newInstance(attachment));
                 } else {

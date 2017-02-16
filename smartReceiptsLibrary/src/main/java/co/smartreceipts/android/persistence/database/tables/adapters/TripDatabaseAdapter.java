@@ -14,6 +14,8 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.SyncState;
 import wb.android.storage.StorageManager;
 
@@ -23,14 +25,14 @@ import wb.android.storage.StorageManager;
 public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryKey<Trip, String>> {
 
     private final StorageManager mStorageManager;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final SyncStateAdapter mSyncStateAdapter;
 
     public TripDatabaseAdapter(@NonNull PersistenceManager persistenceManager) {
-        this(persistenceManager.getStorageManager(), persistenceManager.getPreferences(), new SyncStateAdapter());
+        this(persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), new SyncStateAdapter());
     }
 
-    public TripDatabaseAdapter(@NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull SyncStateAdapter syncStateAdapter) {
+    public TripDatabaseAdapter(@NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull SyncStateAdapter syncStateAdapter) {
         mStorageManager = Preconditions.checkNotNull(storageManager);
         mPreferences = Preconditions.checkNotNull(preferences);
         mSyncStateAdapter = Preconditions.checkNotNull(syncStateAdapter);
@@ -65,7 +67,7 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
                 .setEndTimeZone(toTimeZone)
                 .setComment(comment)
                 .setCostCenter(costCenter)
-                .setDefaultCurrency(defaultCurrency, mPreferences.getDefaultCurreny())
+                .setDefaultCurrency(defaultCurrency, mPreferences.get(UserPreference.General.DefaultCurrency))
                 .setSourceAsCache()
                 .setSyncState(syncState)
                 .build();

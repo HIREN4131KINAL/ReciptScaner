@@ -320,7 +320,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             } else {
                 nameBox.setText(mReceipt.getName());
                 priceBox.setText(mReceipt.getPrice().getDecimalFormattedPrice());
-                dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+                dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
                 dateBox.date = mReceipt.getDate();
                 commentBox.setText(mReceipt.getComment());
                 taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());

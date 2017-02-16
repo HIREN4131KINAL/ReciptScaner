@@ -72,7 +72,7 @@ public class WBListFragment extends ListFragment {
 
 	protected DateManager getDateManager() {
 		if (mDateManager == null) {
-			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferences());
+			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager());
 		}
 		return mDateManager;
 	}

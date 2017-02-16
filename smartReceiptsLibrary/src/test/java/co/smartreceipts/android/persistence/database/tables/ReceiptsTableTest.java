@@ -34,6 +34,8 @@ import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -98,7 +100,7 @@ public class ReceiptsTableTest {
     StorageManager mStorageManager;
 
     @Mock
-    Preferences mPreferences;
+    UserPreferenceManager mPreferences;
 
     @Mock
     Trip mTrip1;
@@ -147,9 +149,9 @@ public class ReceiptsTableTest {
         when(mCategoryTable.findByPrimaryKey(anyString())).thenReturn(Observable.just(mCategory));
         when(mPaymentMethodTable.findByPrimaryKey(anyInt())).thenReturn(Observable.just(mPaymentMethod));
 
-        when(mPersistenceManager.getPreferences()).thenReturn(mPreferences);
+        when(mPersistenceManager.getPreferenceManager()).thenReturn(mPreferences);
         when(mPersistenceManager.getStorageManager()).thenReturn(mStorageManager);
-        when(mPreferences.getDefaultCurreny()).thenReturn(CURRENCY_CODE);
+        when(mPreferences.get(UserPreference.General.DefaultCurrency)).thenReturn(CURRENCY_CODE);
 
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         mReceiptsTable = new ReceiptsTable(mSQLiteOpenHelper, mTripsTable, mPaymentMethodTable, mCategoryTable, mPersistenceManager);

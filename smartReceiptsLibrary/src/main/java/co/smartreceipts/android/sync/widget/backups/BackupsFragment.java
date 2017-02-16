@@ -129,7 +129,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mWifiOnlyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                getPersistenceManager().getPreferences().getSharedPreferences().edit().putBoolean(getString(R.string.pref_no_category_auto_backup_wifi_only_key), checked).apply();
+                getPersistenceManager().getPreferenceManager().getSharedPreferences().edit().putBoolean(getString(R.string.pref_no_category_auto_backup_wifi_only_key), checked).apply();
                 mBackupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
             }
         });
@@ -139,7 +139,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager));
     }
 
     @Override
@@ -226,7 +226,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                             } else {
                                 mExistingBackupsSection.setVisibility(View.VISIBLE);
                             }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager, remoteBackupMetadatas);
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager, remoteBackupMetadatas);
                             mRecyclerView.setAdapter(remoteBackupsListAdapter);
                         }
                     }));

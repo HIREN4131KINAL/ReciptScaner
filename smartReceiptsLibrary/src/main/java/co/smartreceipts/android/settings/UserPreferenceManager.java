@@ -95,6 +95,11 @@ public class UserPreferenceManager {
     }
 
     @NonNull
+    public SharedPreferences getSharedPreferences() {
+        return preferences;
+    }
+
+    @NonNull
     public <T> Observable<T> getObservable(final UserPreference<T> preference) {
         return Observable.create(new Observable.OnSubscribe<T>() {
             @Override

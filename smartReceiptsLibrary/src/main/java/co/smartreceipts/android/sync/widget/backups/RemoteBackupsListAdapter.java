@@ -24,6 +24,8 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -37,18 +39,18 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
     private final View mHeaderView;
     private final FragmentActivity mFragmentActivity;
     private final BackupProvidersManager mBackupProvidersManager;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final NetworkManager mNetworkManager;
     private final List<RemoteBackupMetadata> mBackupMetadataList;
 
     public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
-                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
+                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull UserPreferenceManager preferences,
                                     @NonNull NetworkManager networkManager) {
         this(headerView, fragmentActivity, backupProvidersManager, preferences, networkManager, Collections.<RemoteBackupMetadata>emptyList());
     }
 
     public RemoteBackupsListAdapter(@NonNull View headerView, @NonNull FragmentActivity fragmentActivity,
-                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull Preferences preferences,
+                                    @NonNull BackupProvidersManager backupProvidersManager, @NonNull UserPreferenceManager preferences,
                                     @NonNull NetworkManager networkManager, @NonNull List<RemoteBackupMetadata> backupMetadataList) {
         mHeaderView = Preconditions.checkNotNull(headerView);
         mFragmentActivity = Preconditions.checkNotNull(fragmentActivity);
@@ -80,7 +82,7 @@ public class RemoteBackupsListAdapter extends RecyclerView.Adapter<RecyclerView.
                 itemHolder.backupDeviceNameTextView.setText(metadata.getSyncDeviceName());
             }
             itemHolder.backupProviderTextView.setText(R.string.auto_backup_source_google_drive);
-            itemHolder.backupDateTextView.setText(ModelUtils.getFormattedDate(metadata.getLastModifiedDate(), TimeZone.getDefault(), context, mPreferences.getDateSeparator()));
+            itemHolder.backupDateTextView.setText(ModelUtils.getFormattedDate(metadata.getLastModifiedDate(), TimeZone.getDefault(), context, mPreferences.get(UserPreference.General.DateSeparator)));
             final View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

@@ -264,24 +264,24 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         currencyList.toArray(currencyArray);
 
         // Get the date separator list
-        final String defaultSepartor = persistenceManager.getPreferences().getDateSeparator();
-        final CharSequence[] dateSeparators = getDateSeparatorOptions(persistenceManager.getPreferences());
+        final String defaultSepartor = persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator);
+        final CharSequence[] dateSeparators = getDateSeparatorOptions(persistenceManager.getPreferenceManager());
 
         // Set up the ListPreference data
         ListPreference currencyPreference = (ListPreference) universal.findPreference(R.string.pref_general_default_currency_key);
         currencyPreference.setEntries(currencyArray);
         currencyPreference.setEntryValues(currencyArray);
-        currencyPreference.setValue(persistenceManager.getPreferences().getDefaultCurreny());
+        currencyPreference.setValue(persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
         ListPreference dateSeparatorPreference = (ListPreference) universal.findPreference(R.string.pref_general_default_date_separator_key);
         dateSeparatorPreference.setEntries(dateSeparators);
         dateSeparatorPreference.setEntryValues(dateSeparators);
         dateSeparatorPreference.setValue(defaultSepartor);
     }
 
-    private CharSequence[] getDateSeparatorOptions(Preferences preferences) {
+    private CharSequence[] getDateSeparatorOptions(UserPreferenceManager preferences) {
         final int definedDateSeparatorCount = 3;
         CharSequence[] dateSeparators;
-        final String defaultSepartor = preferences.getDateSeparator();
+        final String defaultSepartor = preferences.get(UserPreference.General.DateSeparator);
         if (!defaultSepartor.equals("-") && !defaultSepartor.equals("/")) {
             dateSeparators = new CharSequence[definedDateSeparatorCount + 1];
             dateSeparators[definedDateSeparatorCount] = defaultSepartor;

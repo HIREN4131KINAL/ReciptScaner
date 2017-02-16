@@ -3,6 +3,8 @@ package co.smartreceipts.android.date;
 import java.sql.Date;
 
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -15,10 +17,10 @@ public class DateManager {
 	private Context mContext;
 	private Date mDate;
 	private DateEditTextListener mDateEditTextListener;
-	private Preferences mPreferences;
+	private UserPreferenceManager mPreferences;
 	private MyCalendarDialog.Listener mListener;
 	
-	public DateManager(Context context, Preferences preferences) {
+	public DateManager(Context context, UserPreferenceManager preferences) {
 		mContext = context;
 		mPreferences = preferences;
 	}
@@ -44,7 +46,7 @@ public class DateManager {
 		MyCalendarDialog calendar = new MyCalendarDialog(mContext, this);
 		calendar.set(start.date);
 		calendar.setEditText(start);
-		calendar.setEnd(end, mPreferences.getDefaultTripDuration());
+		calendar.setEnd(end, mPreferences.get(UserPreference.General.DefaultReportDuration));
 		calendar.buildDialog(mContext).show();
     }
     

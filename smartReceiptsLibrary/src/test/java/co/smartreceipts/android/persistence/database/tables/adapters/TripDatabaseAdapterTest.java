@@ -23,6 +23,8 @@ import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.SyncState;
 import wb.android.storage.StorageManager;
 
@@ -62,7 +64,7 @@ public class TripDatabaseAdapterTest {
     StorageManager mStorageManager;
 
     @Mock
-    Preferences mPreferences;
+    UserPreferenceManager mPreferences;
 
     @Mock
     SyncStateAdapter mSyncStateAdapter;
@@ -114,7 +116,7 @@ public class TripDatabaseAdapterTest {
 
         when(mPrimaryKey.getPrimaryKeyValue(mTrip)).thenReturn(PRIMARY_KEY_NAME);
 
-        when(mPreferences.getDefaultCurreny()).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
+        when(mPreferences.get(UserPreference.General.DefaultCurrency)).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
         when(mStorageManager.getFile(NAME)).thenReturn(new File(NAME));
         when(mStorageManager.getFile(PRIMARY_KEY_NAME)).thenReturn(new File(PRIMARY_KEY_NAME));
         when(mStorageManager.mkdir(NAME)).thenReturn(new File(NAME));
@@ -135,7 +137,7 @@ public class TripDatabaseAdapterTest {
                 .setEndTimeZone(END_TIMEZONE)
                 .setComment(COMMENT)
                 .setCostCenter(COST_CENTER)
-                .setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny())
+                .setDefaultCurrency(CURRENCY_CODE, mPreferences.get(UserPreference.General.DefaultCurrency))
                 .setSourceAsCache()
                 .setSyncState(mSyncState)
                 .build();
@@ -199,7 +201,7 @@ public class TripDatabaseAdapterTest {
                 .setEndTimeZone(END_TIMEZONE)
                 .setComment(COMMENT)
                 .setCostCenter(COST_CENTER)
-                .setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny())
+                .setDefaultCurrency(CURRENCY_CODE, mPreferences.get(UserPreference.General.DefaultCurrency))
                 .setSourceAsCache()
                 .setSyncState(mGetSyncState)
                 .build();

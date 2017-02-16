@@ -40,6 +40,7 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
@@ -238,7 +239,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 prices.add(distance);
@@ -265,7 +266,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 if (DateUtils.isToday(distance.getDate())) {

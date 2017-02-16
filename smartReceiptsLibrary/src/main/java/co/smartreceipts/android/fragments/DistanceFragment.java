@@ -26,6 +26,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
@@ -129,7 +130,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
-                if (getPersistenceManager().getPreferences().getShowDistanceAsPriceInSubtotal()) {
+                if (getPersistenceManager().getPreferenceManager().get(UserPreference.Distance.ShowDistanceAsPriceInSubtotal)) {
                     final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
                     getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
                 } else {

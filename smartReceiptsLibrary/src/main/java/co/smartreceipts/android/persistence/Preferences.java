@@ -38,10 +38,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
-    // Distance Preferences
-    private float mDefaultDistanceRate;
-    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mShowDistanceAsPriceInSubtotal;
-
     // No Category
     private boolean mAutoBackupOnWifiOnly;
 
@@ -145,24 +141,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), mContext.getResources().getBoolean(R.bool.pref_receipt_use_payment_methods_defaultValue));
     }
 
-    private void initDefaultMileageRate(SharedPreferences prefs) {
-        final TypedValue typedValue = new TypedValue();
-        mContext.getResources().getValue(R.dimen.pref_distance_rate_defaultValue, typedValue, true);
-        this.mDefaultDistanceRate = prefs.getFloat(mContext.getString(R.string.pref_distance_rate_key), typedValue.getFloat());
-    }
-
-    private void initPrintDistanceTable(SharedPreferences prefs) {
-        this.mPrintDistanceTable = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_table_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_table_defaultValue));
-    }
-
-    private void initShouldDistancePriceBeIncludedInReports(SharedPreferences prefs) {
-        this.mShouldDistancePriceBeIncludedInReports = prefs.getBoolean(mContext.getString(R.string.pref_distance_include_price_in_report_key), mContext.getResources().getBoolean(R.bool.pref_distance_include_price_in_report_defaultValue));
-    }
-
-    private void initShowDistanceAsPriceInSubtotal(SharedPreferences prefs) {
-        this.mShowDistanceAsPriceInSubtotal = prefs.getBoolean(mContext.getString(R.string.pref_distance_as_price_key), mContext.getResources().getBoolean(R.bool.pref_distance_as_price_defaultValue));
-    }
-
     private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
         this.mAutoBackupOnWifiOnly = prefs.getBoolean(mContext.getString(R.string.pref_no_category_auto_backup_wifi_only_key), mContext.getResources().getBoolean(R.bool.pref_no_category_auto_backup_wifi_only_defaultValue));
     }
@@ -199,12 +177,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initUsePreTaxPrice(prefs);
         this.initDefaultToFullPage(prefs);
         this.initUsePaymentMethods(prefs);
-
-        // Distance Preferences
-        this.initShouldDistancePriceBeIncludedInReports(prefs);
-        this.initDefaultMileageRate(prefs);
-        this.initPrintDistanceTable(prefs);
-        this.initShowDistanceAsPriceInSubtotal(prefs);
 
         // No Category
         this.initAutoBackupOnWifiOnly(prefs);
@@ -314,31 +286,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return this.mUsePreTaxPrice;
     }
 
-    public boolean hasDefaultDistanceRate() {
-        return this.mDefaultDistanceRate > 0;
-    }
-
-    public float getDefaultDistanceRate() {
-        return this.mDefaultDistanceRate;
-    }
-
-    public boolean getPrintDistanceTable() {
-        return mPrintDistanceTable;
-    }
-
-    public boolean getShowDistanceAsPriceInSubtotal() {
-        return mShowDistanceAsPriceInSubtotal;
-    }
-
     public boolean getIncludeCostCenter() {
         return mIncludeCostCenter;
-    }
-
-    /**
-     * @return - a folder in which preference files (e.g. images) can be stored
-     */
-    public boolean getShouldTheDistancePriceBeIncludedInReports() {
-        return mShouldDistancePriceBeIncludedInReports;
     }
 
     public boolean getAutoBackupOnWifiOnly() {

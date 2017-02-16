@@ -301,7 +301,7 @@ public class EmailAssistant {
                 final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().toBlocking().first();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferenceManager), true, false);
                 String data = csvTableGenerator.generate(receipts);
-                if (mPreferences.getPrintDistanceTable()) {
+                if (mPreferenceManager.get(UserPreference.Distance.PrintDistanceTableInReports)) {
                     final List<Distance> distances = new ArrayList<>(mDB.getDistanceTable().getBlocking(trip, false));
                     if (!distances.isEmpty()) {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first

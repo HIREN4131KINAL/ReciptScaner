@@ -22,6 +22,7 @@ public class UserPreferenceManager {
 
     public void todo() {
         // TODO: Custom initiailization
+        // All floats b/c no default_value in settings options
         // Minimum Receipt Price set as minimum price
         // initDefaultDateSeparator
         // initDefaultCurrency

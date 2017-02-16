@@ -24,35 +24,18 @@
 	   <wb.android.preferences.EmptyValueSummaryEditTextPreference
 	       android:key="@string/pref_output_username_key"
 	       android:title="@string/pref_output_username_title"
+           android:defaultValue="@string/pref_output_username_defaultValue"
 	       wb:emptyValue="@string/pref_output_username_emptyValue" />
 		<CheckBoxPreference
             android:key="@string/pref_output_print_receipt_id_by_photo_key"
             android:title="@string/pref_output_print_receipt_id_by_photo_title"
             android:summary="@string/pref_output_print_receipt_id_by_photo_summary"
-            android:defaultValue="false "/>
+            android:defaultValue="@bool/pref_output_print_receipt_id_by_photo_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_output_print_receipt_comment_by_photo_key"
             android:title="@string/pref_output_print_receipt_comment_by_photo_title"
             android:summaryOn="@string/pref_output_print_receipt_comment_by_photo_summaryOn"
             android:summaryOff="@string/pref_output_print_receipt_comment_by_photo_summaryOff"
             android:defaultValue="@bool/pref_output_print_receipt_comment_by_photo_defaultValue"/>
-		<!-- 
-		<CheckBoxPreference
-            android:key="@string/pref_output_optimize_space_key"
-            android:title="@string/pref_output_optimize_space_title"
-            android:summaryOn="@string/pref_output_optimize_space_summaryOn"
-            android:summaryOff="@string/pref_output_optimize_space_summaryOff"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="@string/pref_output_blank_signature_key"
-            android:title="@string/pref_output_blank_signature_title"
-            android:summaryOn="@string/pref_output_blank_signature_summaryOn"
-            android:summaryOff="@string/pref_output_blank_signature_summaryOff"
-            android:defaultValue="@bool/pref_output_blank_signature_defaultValue"/>
-        <wb.android.preferences.EmptyValueSummaryPreference
-            android:key="@string/pref_output_signature_picture_key"
-            android:title="@string/pref_output_signature_picture_title"
-            wb:emptyValue="@string/pref_output_signature_picture_emptyValue" />
-            -->
 	</PreferenceCategory>
 </PreferenceScreen>

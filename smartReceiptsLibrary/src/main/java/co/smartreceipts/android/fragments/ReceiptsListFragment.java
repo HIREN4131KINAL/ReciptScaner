@@ -54,10 +54,6 @@ import wb.android.dialog.BetterDialogBuilder;
 
 public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
 
-    // Permissions Request Ints
-    private static final int PERMISSION_CAMERA_REQUEST = 21;
-    private static final int PERMISSION_STORAGE_REQUEST = 22;
-
     // Outstate
     private static final String OUT_HIGHLIGHTED_RECEIPT = "out_highlighted_receipt";
     private static final String OUT_IMAGE_URI = "out_image_uri";
@@ -266,36 +262,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     public final void addPictureReceipt() {
         mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_CAMERA_REQUEST) {
-            Logger.info(this, "Received response for Camera permission request.");
-
-            // Check if the only required permission has been granted
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Logger.info(this, "CAMERA permission has now been granted.");
-            } else {
-                Logger.info(this, "CAMERA permission was NOT granted.");
-                getPersistenceManager().getPreferences().setUseNativeCamera(true);
-            }
-            // Retry add now with either native camera or now granted way
-            addPictureReceipt();
-        } else if (requestCode == PERMISSION_STORAGE_REQUEST) {
-            Logger.info(this, "Received response for storage permission request.");
-
-            // Check if the only required permission has been granted
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Logger.info(this, "STORAGE permission has now been granted.");
-            } else {
-                Logger.info(this, "STORAGE permission was NOT granted.");
-                getPersistenceManager().getPreferences().setUseNativeCamera(true);
-            }
-            // Retry add now with either native camera or now granted way
-            addPictureReceipt();
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     public final void addTextReceipt() {

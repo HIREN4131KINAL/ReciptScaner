@@ -176,13 +176,13 @@ public class EmailAssistant {
         }
 
         final Intent emailIntent = IntentUtils.getSendIntent(mContext, files);
-        final String[] to = mPersistenceManager.getPreferences().getEmailTo().split(";");
-        final String[] cc = mPersistenceManager.getPreferences().getEmailCC().split(";");
-        final String[] bcc = mPersistenceManager.getPreferences().getEmailBCC().split(";");
+        final String[] to = mPersistenceManager.getPreferenceManager().get(UserPreference.Email.ToAddresses).split(";");
+        final String[] cc = mPersistenceManager.getPreferenceManager().get(UserPreference.Email.CcAddresses).split(";");
+        final String[] bcc = mPersistenceManager.getPreferenceManager().get(UserPreference.Email.BccAddresses).split(";");
         emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
         emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
         emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferences().getEmailSubject(), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferenceManager().get(UserPreference.Email.Subject), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
         emailIntent.putExtra(Intent.EXTRA_TEXT, body);
 
         Logger.debug(this, "Built the send intent {} with extras {}.", emailIntent, emailIntent.getExtras());

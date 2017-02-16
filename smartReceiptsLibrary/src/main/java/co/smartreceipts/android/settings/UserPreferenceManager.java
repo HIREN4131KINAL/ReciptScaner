@@ -2,6 +2,7 @@ package co.smartreceipts.android.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -73,6 +75,11 @@ public class UserPreferenceManager {
                                         final float defaultMinimumReceiptPrice = -Float.MAX_VALUE;
                                         preferences.edit().putFloat(preferenceName, defaultMinimumReceiptPrice).apply();
                                         Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, defaultMinimumReceiptPrice);
+                                    }
+                                } else if (UserPreference.Camera.UseNativeCamera.equals(userPreference)) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        preferences.edit().putBoolean(preferenceName, true).apply();
+                                        Logger.debug(UserPreferenceManager.this, "We always use the native camera for M+");
                                     }
                                 } else if (Float.class.equals(userPreference.getType())) {
                                     final TypedValue typedValue = new TypedValue();

@@ -20,6 +20,8 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
@@ -28,13 +30,13 @@ public class CameraInteractionController {
 
     private final Context mContext;
     private final WeakReference<Fragment> mFragmentReference;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
     public CameraInteractionController(@NonNull Fragment fragment, @NonNull PersistenceManager persistenceManager) {
-        this(fragment, persistenceManager.getPreferences());
+        this(fragment, persistenceManager.getPreferenceManager());
     }
 
-    public CameraInteractionController(@NonNull Fragment fragment, @NonNull Preferences preferences) {
+    public CameraInteractionController(@NonNull Fragment fragment, @NonNull UserPreferenceManager preferences) {
         mContext = Preconditions.checkNotNull(fragment.getContext()).getApplicationContext();
         mFragmentReference = new WeakReference<>(Preconditions.checkNotNull(fragment));
         mPreferences = Preconditions.checkNotNull(preferences);
@@ -82,7 +84,7 @@ public class CameraInteractionController {
 
         final boolean hasCameraPermission = ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         final boolean hasWritePermission = ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        if (mPreferences.useNativeCamera() || !hasCameraPermission || !hasWritePermission) {
+        if (mPreferences.get(UserPreference.Camera.UseNativeCamera) || !hasCameraPermission || !hasWritePermission) {
             final Intent intent = IntentUtils.getImageCaptureIntent(fragment.getActivity(), saveLocation);
             fragment.startActivityForResult(intent, nativeCameraRequestCode);
             final Uri uri = intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT);

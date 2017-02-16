@@ -22,6 +22,7 @@ import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
@@ -45,16 +46,16 @@ public class ActivityFileResultImporter {
     private final ActivityImporterHeadlessFragment mHeadlessFragment;
     private final Trip mTrip;
     private final StorageManager mStorageManager;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final Analytics mAnalytics;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
                                       @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(context, fragmentManager, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferences(), analytics);
+        this(context, fragmentManager, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), analytics);
     }
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
-                                      @NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull Analytics analytics) {
+                                      @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull Analytics analytics) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mTrip = Preconditions.checkNotNull(trip);
         mStorageManager = Preconditions.checkNotNull(storageManager);

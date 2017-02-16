@@ -28,6 +28,8 @@ import java.io.IOException;
 import co.smartreceipts.android.TestResourceReader;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import wb.android.storage.StorageManager;
@@ -74,7 +76,7 @@ public class ImageImportProcessorTest {
     StorageManager mStorageManner;
 
     @Mock
-    Preferences mPreferences;
+    UserPreferenceManager mPreferences;
 
     @Mock
     ContentResolver mContentResolver;
@@ -92,6 +94,7 @@ public class ImageImportProcessorTest {
 
         when(mTrip.getDirectory()).thenReturn(mContext.getCacheDir());
         when(mStorageManner.getFile(any(File.class), anyString())).thenReturn(mDestination);
+        when(mPreferences.get(UserPreference.Camera.SaveImagesInGrayScale)).thenReturn(false);
 
         mImportProcessor = new ImageImportProcessor(mTrip, mStorageManner, mPreferences, mContext, mContentResolver);
     }
@@ -120,6 +123,7 @@ public class ImageImportProcessorTest {
     public void importUriWhenSaveFails() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(false);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);
@@ -131,7 +135,7 @@ public class ImageImportProcessorTest {
     public void importUriWithoutAlterations() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG);
-        when(mPreferences.getRotateImages()).thenReturn(false);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);
@@ -149,7 +153,7 @@ public class ImageImportProcessorTest {
     public void importExifUriWithoutAlterations() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG_WITH_EXIF);
-        when(mPreferences.getRotateImages()).thenReturn(false);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);
@@ -169,7 +173,7 @@ public class ImageImportProcessorTest {
     public void importUriScalesDownSizes() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG_BIG);
-        when(mPreferences.getRotateImages()).thenReturn(false);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);
@@ -188,7 +192,7 @@ public class ImageImportProcessorTest {
     public void importUriWithRotateOn() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG);
-        when(mPreferences.getRotateImages()).thenReturn(true);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(true);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);
@@ -206,7 +210,7 @@ public class ImageImportProcessorTest {
     public void importExifUriWithRotateOn() throws Exception {
         final Uri uri = Uri.fromFile(mDestination);
         configureUriForStream(uri, SAMPLE_JPG_WITH_EXIF);
-        when(mPreferences.getRotateImages()).thenReturn(true);
+        when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(true);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
         final Observable<File> resultObservable = mImportProcessor.process(uri);

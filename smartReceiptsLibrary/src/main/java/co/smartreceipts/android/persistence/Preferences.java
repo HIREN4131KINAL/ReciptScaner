@@ -45,12 +45,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private String mUserID;
     private boolean mReceiptsLandscapeMode;
 
-    // Email Preferences
-    private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
-
-    // Camera Preferences
-    private boolean mUseNativeCamera, mCameraGrayScale, mRotateImages;
-
     // Layout Preferences
     private boolean mShowDate, mShowCategory, mShowPhotoPDFMarker;
 
@@ -68,7 +62,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private final Context mContext;
     private final Flex mFlex;
     private final StorageManager mStorageManager;
-    private final File mPreferenceFolder;
 
 
     public interface VersionUpgradeListener {
@@ -170,34 +163,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mReceiptsLandscapeMode = prefs.getBoolean(mContext.getString(R.string.pref_output_receipts_landscape_key), mContext.getResources().getBoolean(R.bool.pref_output_receipts_landscape_defaultValue));
     }
 
-    private void initEmailTo(SharedPreferences prefs) {
-        this.mEmailTo = prefs.getString(mContext.getString(R.string.pref_email_default_email_to_key), mContext.getString(R.string.pref_email_default_email_to_defaultValue));
-    }
-
-    private void initEmailCC(SharedPreferences prefs) {
-        this.mEmailCC = prefs.getString(mContext.getString(R.string.pref_email_default_email_cc_key), "");
-    }
-
-    private void initEmailBCC(SharedPreferences prefs) {
-        this.mEmailBCC = prefs.getString(mContext.getString(R.string.pref_email_default_email_bcc_key), "");
-    }
-
-    private void initEmailSubject(SharedPreferences prefs) {
-        this.mEmailSubject = prefs.getString(mContext.getString(R.string.pref_email_default_email_subject_key), mFlex.getString(mContext, R.string.EMAIL_DATA_SUBJECT));
-    }
-
-    private void initUseNativeCamera(SharedPreferences prefs) {
-        this.mUseNativeCamera = prefs.getBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), false);
-    }
-
-    private void initCameraGrayScale(SharedPreferences prefs) {
-        this.mCameraGrayScale = prefs.getBoolean(mContext.getString(R.string.pref_camera_bw_key), false);
-    }
-
-    private void initRotateImages(SharedPreferences prefs) {
-        this.mRotateImages = prefs.getBoolean(mContext.getString(R.string.pref_camera_rotate_key), mContext.getResources().getBoolean(R.bool.pref_camera_rotate_defaultValue));
-    }
-
     private void initShowDate(SharedPreferences prefs) {
         this.mShowDate = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_date_key), true);
     }
@@ -237,7 +202,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mContext = context;
         this.mFlex = flex;
         this.mStorageManager = storageManager;
-        mPreferenceFolder = this.mStorageManager.mkdir(PREFERENCES_FOLDER_NAME);
         SharedPreferences prefs = mContext.getSharedPreferences(SMART_PREFS, 0);
         prefs.registerOnSharedPreferenceChangeListener(this);
         initAllPreferences(prefs);
@@ -269,17 +233,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         // Output Preferences
         this.initUserID(prefs);
         this.initReceiptsLandscapeMode(prefs);
-
-        // Email Preferences
-        this.initEmailTo(prefs);
-        this.initEmailCC(prefs);
-        this.initEmailBCC(prefs);
-        this.initEmailSubject(prefs);
-
-        // Camera Preferences
-        this.initUseNativeCamera(prefs);
-        this.initCameraGrayScale(prefs);
-        this.initRotateImages(prefs);
 
         // Layout Preferences
         this.initShowDate(prefs);
@@ -348,15 +301,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mMatchNameCats;
     }
 
-    public boolean useNativeCamera() {
-        return mUseNativeCamera;
-    }
-
-    public void setUseNativeCamera(boolean useNativeCamera) {
-        this.mUseNativeCamera = useNativeCamera;
-        getSharedPreferences().edit().putBoolean(mContext.getString(R.string.pref_camera_use_native_camera_key), true).apply();
-    }
-
     public boolean onlyIncludeReimbursableReceiptsInReports() {
         return mOnlyIncludeReimbursable;
     }
@@ -371,10 +315,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public boolean enableAutoCompleteSuggestions() {
         return mEnableAutoCompleteSuggestions;
-    }
-
-    public String getEmailTo() {
-        return mEmailTo;
     }
 
     public String getDefaultCurreny() {
@@ -407,26 +347,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public float getDefaultTaxPercentage() {
         return mDefaultTaxPercentage;
-    }
-
-    public String getEmailCC() {
-        return mEmailCC;
-    }
-
-    public String getEmailBCC() {
-        return mEmailBCC;
-    }
-
-    public String getEmailSubject() {
-        return mEmailSubject;
-    }
-
-    public boolean isCameraGrayScale() {
-        return mCameraGrayScale;
-    }
-
-    public boolean getRotateImages() {
-        return mRotateImages;
     }
 
     public boolean isShowDate() {

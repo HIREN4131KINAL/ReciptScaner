@@ -80,7 +80,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         Logger.debug(this, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
         mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
-        mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
+        mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
         if (savedInstanceState == null) {
             mNavigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);
         } else {

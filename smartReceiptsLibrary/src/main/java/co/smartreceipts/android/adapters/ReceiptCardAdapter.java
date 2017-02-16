@@ -12,6 +12,8 @@ import com.squareup.picasso.Picasso;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.widget.backups.AutomaticBackupsInfoDialogFragment;
@@ -20,7 +22,7 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 
     private final FragmentActivity mFragmentActivity;
 
-	public ReceiptCardAdapter(FragmentActivity fragmentActivity, Preferences preferences, BackupProvidersManager backupProvidersManager) {
+	public ReceiptCardAdapter(FragmentActivity fragmentActivity, UserPreferenceManager preferences, BackupProvidersManager backupProvidersManager) {
 		super(fragmentActivity, preferences, backupProvidersManager);
         mFragmentActivity = fragmentActivity;
 	}
@@ -47,9 +49,9 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	
 	@Override
 	protected void setDateTextView(TextView textView, Receipt data) {
-		if (getPreferences().isShowDate()) {
+		if (getPreferences().get(UserPreference.Layout.IncludeReceiptDateInLayout)) {
 			textView.setVisibility(View.VISIBLE);
-			textView.setText(data.getFormattedDate(getContext(), getPreferences().getDateSeparator()));
+			textView.setText(data.getFormattedDate(getContext(), getPreferences().get(UserPreference.General.DateSeparator)));
 		}
 		else {
 			textView.setVisibility(View.GONE);
@@ -58,7 +60,7 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	
 	@Override
 	protected void setCategory(TextView textView, Receipt data) {
-		if (getPreferences().isShowCategory()) {
+		if (getPreferences().get(UserPreference.Layout.IncludeReceiptCategoryInLayout)) {
 			textView.setVisibility(View.VISIBLE);
 			textView.setText(data.getCategory().getName());
 		}
@@ -69,7 +71,7 @@ public class ReceiptCardAdapter extends CardAdapter<Receipt> {
 	
 	@Override
 	protected void setMarker(TextView textView, Receipt data) {
-		if (getPreferences().isShowPhotoPDFMarker()) {
+		if (getPreferences().get(UserPreference.Layout.IncludeReceiptFileMarkerInLayout)) {
 			textView.setVisibility(View.VISIBLE);
 			textView.setText(data.getMarkerAsString(getContext()));
 		}

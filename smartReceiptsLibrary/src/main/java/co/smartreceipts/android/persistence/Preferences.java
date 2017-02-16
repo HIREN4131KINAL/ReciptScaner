@@ -26,9 +26,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private static final String INT_VERSION_CODE = "VersionCode";
 
-    //Preference Folder
-    private static final String PREFERENCES_FOLDER_NAME = ".prefs_file";
-
     // General Preferences
     private int mDefaultTripDuration;
     private String mDefaultCurrency, mDateSeparator;
@@ -40,13 +37,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mReceiptsDefaultAsReimbursable, mDefaultToFirstReportDate,
             mMatchNameCats, mMatchCommentCats, mShowReceiptID, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
-
-    // Output Preferences
-    private String mUserID;
-    private boolean mReceiptsLandscapeMode;
-
-    // Layout Preferences
-    private boolean mShowDate, mShowCategory, mShowPhotoPDFMarker;
 
     // Distance Preferences
     private float mDefaultDistanceRate;
@@ -155,26 +145,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), mContext.getResources().getBoolean(R.bool.pref_receipt_use_payment_methods_defaultValue));
     }
 
-    private void initUserID(SharedPreferences prefs) {
-        this.mUserID = prefs.getString(mContext.getString(R.string.pref_output_username_key), "");
-    }
-
-    private void initReceiptsLandscapeMode(SharedPreferences prefs) {
-        this.mReceiptsLandscapeMode = prefs.getBoolean(mContext.getString(R.string.pref_output_receipts_landscape_key), mContext.getResources().getBoolean(R.bool.pref_output_receipts_landscape_defaultValue));
-    }
-
-    private void initShowDate(SharedPreferences prefs) {
-        this.mShowDate = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_date_key), true);
-    }
-
-    private void initShowCategory(SharedPreferences prefs) {
-        this.mShowCategory = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_category_key), false);
-    }
-
-    private void initShowPhotoPDFMarker(SharedPreferences prefs) {
-        this.mShowPhotoPDFMarker = prefs.getBoolean(mContext.getString(R.string.pref_layout_display_photo_key), false);
-    }
-
     private void initDefaultMileageRate(SharedPreferences prefs) {
         final TypedValue typedValue = new TypedValue();
         mContext.getResources().getValue(R.dimen.pref_distance_rate_defaultValue, typedValue, true);
@@ -229,15 +199,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initUsePreTaxPrice(prefs);
         this.initDefaultToFullPage(prefs);
         this.initUsePaymentMethods(prefs);
-
-        // Output Preferences
-        this.initUserID(prefs);
-        this.initReceiptsLandscapeMode(prefs);
-
-        // Layout Preferences
-        this.initShowDate(prefs);
-        this.initShowCategory(prefs);
-        this.initShowPhotoPDFMarker(prefs);
 
         // Distance Preferences
         this.initShouldDistancePriceBeIncludedInReports(prefs);
@@ -321,10 +282,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mDefaultCurrency;
     }
 
-    public String getUserID() {
-        return mUserID;
-    }
-
     public int getDefaultTripDuration() {
         return mDefaultTripDuration;
     }
@@ -337,28 +294,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mDefaultToFirstReportDate;
     }
 
-    public boolean isReceiptsTableLandscapeMode() {
-        return mReceiptsLandscapeMode;
-    }
-
     public boolean isShowReceiptID() {
         return mShowReceiptID;
     }
 
     public float getDefaultTaxPercentage() {
         return mDefaultTaxPercentage;
-    }
-
-    public boolean isShowDate() {
-        return mShowDate;
-    }
-
-    public boolean isShowCategory() {
-        return mShowCategory;
-    }
-
-    public boolean isShowPhotoPDFMarker() {
-        return mShowPhotoPDFMarker;
     }
 
     public boolean getUsesPaymentMethods() {

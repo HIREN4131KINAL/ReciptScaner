@@ -45,7 +45,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
-        mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
+        mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
         mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
     }
 

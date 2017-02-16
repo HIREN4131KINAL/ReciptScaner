@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 
 public class SmartReceiptsFormattableString {
 
@@ -16,9 +18,9 @@ public class SmartReceiptsFormattableString {
     private final String mString;
     private final Context mContext;
     private final Trip mTrip;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
-    public SmartReceiptsFormattableString(@NonNull String string, @NonNull Context context, @NonNull Trip trip, @NonNull Preferences preferences) {
+    public SmartReceiptsFormattableString(@NonNull String string, @NonNull Context context, @NonNull Trip trip, @NonNull UserPreferenceManager preferences) {
         mString = string;
         mContext = context;
         mTrip = trip;
@@ -27,6 +29,6 @@ public class SmartReceiptsFormattableString {
 
     @Override
     public String toString() {
-        return mString.replace(REPORT_NAME, mTrip.getName()).replace(USER_ID, mPreferences.getUserID()).replace(REPORT_START, mTrip.getFormattedStartDate(mContext, mPreferences.getDateSeparator())).replace(REPORT_END, mTrip.getFormattedEndDate(mContext, mPreferences.getDateSeparator()));
+        return mString.replace(REPORT_NAME, mTrip.getName()).replace(USER_ID, mPreferences.get(UserPreference.ReportOutput.UserId)).replace(REPORT_START, mTrip.getFormattedStartDate(mContext, mPreferences.get(UserPreference.General.DateSeparator))).replace(REPORT_END, mTrip.getFormattedEndDate(mContext, mPreferences.get(UserPreference.General.DateSeparator)));
     }
 }

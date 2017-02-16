@@ -182,7 +182,7 @@ public class EmailAssistant {
         emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, to);
         emailIntent.putExtra(android.content.Intent.EXTRA_CC, cc);
         emailIntent.putExtra(android.content.Intent.EXTRA_BCC, bcc);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferenceManager().get(UserPreference.Email.Subject), mContext, mTrip, mPersistenceManager.getPreferences()).toString());
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, new SmartReceiptsFormattableString(mPersistenceManager.getPreferenceManager().get(UserPreference.Email.Subject), mContext, mTrip, mPersistenceManager.getPreferenceManager()).toString());
         emailIntent.putExtra(Intent.EXTRA_TEXT, body);
 
         Logger.debug(this, "Built the send intent {} with extras {}.", emailIntent, emailIntent.getExtras());
@@ -500,7 +500,7 @@ public class EmailAssistant {
                     AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                     builder.setTitle(R.string.report_pdf_error_too_many_columns_title)
                             .setMessage(
-                                    mPreferences.isReceiptsTableLandscapeMode()
+                                    mPreferenceManager.get(UserPreference.ReportOutput.PrintReceiptsTableInLandscape)
                                     ? mContext.getString(R.string.report_pdf_error_too_many_columns_message)
                             : mContext.getString(R.string.report_pdf_error_too_many_columns_message_landscape) )
                             .setPositiveButton(R.string.report_pdf_error_go_to_settings, new DialogInterface.OnClickListener() {

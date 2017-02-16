@@ -50,15 +50,14 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
@@ -295,19 +294,19 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
                 dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
 
-                final Preferences preferences = getPersistenceManager().getPreferences();
-                reimbursable.setChecked(preferences.doReceiptsDefaultAsReimbursable());
-                if (preferences.matchCommentToCategory() && preferences.matchNameToCategory()) {
+                final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+                reimbursable.setChecked(preferences.get(UserPreference.Receipts.ReceiptsDefaultAsReimbursable));
+                if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) && preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                     if (mFocusedView == null) {
                         mFocusedView = priceBox;
                     }
-                } else if (preferences.matchNameToCategory()) {
+                } else if (preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                     if (mFocusedView == null) {
                         mFocusedView = priceBox;
                     }
                 }
 
-                int idx = mCurrenciesAdapter.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.getDefaultCurreny());
+                int idx = mCurrenciesAdapter.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.get(UserPreference.General.DefaultCurrency));
                 int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrenciesAdapter.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
                 idx = (cachedIdx >= 0) ? cachedIdx : idx;
                 if (idx >= 0) {
@@ -316,7 +315,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 if (!mTrip.getDefaultCurrencyCode().equals(mReceiptInputCache.getCachedCurrency())) {
                     configureExchangeRateField(mReceiptInputCache.getCachedCurrency());
                 }
-                fullpage.setChecked(preferences.shouldDefaultToFullPage());
+                fullpage.setChecked(preferences.get(UserPreference.Receipts.DefaultToFullPage));
 
             } else {
                 nameBox.setText(mReceipt.getName());
@@ -374,12 +373,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     categoriesSpinner.setAdapter(mCategoriesAdpater);
 
                     if (mReceipt == null) {
-                        final Preferences preferences = getPersistenceManager().getPreferences();
-                        if (preferences.matchCommentToCategory() || preferences.matchNameToCategory()) {
+                        final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+                        if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) || preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                             categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener());
                         }
 
-                        if (preferences.predictCategories()) { // Predict Breakfast, Lunch, Dinner by the hour
+                        if (preferences.get(UserPreference.Receipts.PredictCategories)) { // Predict Breakfast, Lunch, Dinner by the hour
                             if (mReceiptInputCache.getCachedCategory() == null) {
                                 final Time now = new Time();
                                 now.setToNow();
@@ -419,7 +418,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
                     mPaymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     paymentMethodsSpinner.setAdapter(mPaymentMethodsAdapter);
-                    if (getPersistenceManager().getPreferences().getUsesPaymentMethods()) {
+                    if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods)) {
                         mPaymentMethodsContainer.setVisibility(View.VISIBLE);
                         if (mReceipt != null) {
                             final PaymentMethod oldPaymentMethod = mReceipt.getPaymentMethod();
@@ -450,7 +449,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
         } else {
-            if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
                 title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
             } else {
                 title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
@@ -466,7 +465,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             actionBar.setSubtitle("");
         }
 
-        if (isNewReceipt && getPersistenceManager().getPreferences().isShowReceiptID()) {
+        if (isNewReceipt && getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
             mIdSubscription = getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdHelper()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -485,7 +484,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().enableAutoCompleteSuggestions()) {
+            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
                 final DatabaseHelper db = getPersistenceManager().getDatabase();
                 if (mReceiptsNameAutoCompleteAdapter == null) {
                     mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
@@ -711,7 +710,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         builderFactory.setCategory(category);
         builderFactory.setCurrency(currency);
         builderFactory.setComment(commentBox.getText().toString());
-        builderFactory.setPaymentMethod((PaymentMethod) (getPersistenceManager().getPreferences().getUsesPaymentMethods() ? paymentMethodsSpinner.getSelectedItem() : null));
+        builderFactory.setPaymentMethod((PaymentMethod) (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods) ? paymentMethodsSpinner.getSelectedItem() : null));
         builderFactory.setIsReimbursable(reimbursable.isChecked());
         builderFactory.setIsFullPage(fullpage.isChecked());
         builderFactory.setExtraEditText1((extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString());
@@ -745,11 +744,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         @Override
         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-            final Preferences preferences = getPersistenceManager().getPreferences();
-            if (preferences.matchNameToCategory()) {
+            final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+            if (preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                 nameBox.setText(mCategoriesAdpater.getItem(position).getName());
             }
-            if (preferences.matchCommentToCategory()) {
+            if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory)) {
                 commentBox.setText(mCategoriesAdpater.getItem(position).getName());
             }
         }

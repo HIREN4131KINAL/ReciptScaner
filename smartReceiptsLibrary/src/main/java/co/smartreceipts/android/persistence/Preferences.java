@@ -34,9 +34,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     // Receipt Preferences
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mReceiptsDefaultAsReimbursable, mDefaultToFirstReportDate,
-            mMatchNameCats, mMatchCommentCats, mShowReceiptID, mUsePreTaxPrice, mDefaultToFullPage,
-            mUsePaymentMethods;
+    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mDefaultToFirstReportDate,
+            mShowReceiptID, mUsePreTaxPrice;
 
     // No Category
     private boolean mAutoBackupOnWifiOnly;
@@ -109,20 +108,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mOnlyIncludeReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_only_key), false);
     }
 
-    private void initReceiptsDefaultAsReimbursable(SharedPreferences prefs) {
-        this.mReceiptsDefaultAsReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_default_key), mContext.getResources().getBoolean(R.bool.pref_receipt_reimbursable_default_defaultValue));
-    }
-
     private void initDefaultToFirstReportDate(SharedPreferences prefs) {
         this.mDefaultToFirstReportDate = prefs.getBoolean(mContext.getString(R.string.pref_receipt_default_to_report_start_date_key), false);
-    }
-
-    private void initMatchNameCats(SharedPreferences prefs) {
-        this.mMatchNameCats = prefs.getBoolean(mContext.getString(R.string.pref_receipt_match_name_to_category_key), false);
-    }
-
-    private void initMatchCommentCats(SharedPreferences prefs) {
-        this.mMatchCommentCats = prefs.getBoolean(mContext.getString(R.string.pref_receipt_match_comment_to_category_key), false);
     }
 
     private void initShowReceiptID(SharedPreferences prefs) {
@@ -131,14 +118,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initUsePreTaxPrice(SharedPreferences prefs) {
         this.mUsePreTaxPrice = prefs.getBoolean(mContext.getString(R.string.pref_receipt_pre_tax_key), true);
-    }
-
-    private void initDefaultToFullPage(SharedPreferences prefs) {
-        this.mDefaultToFullPage = prefs.getBoolean(mContext.getString(R.string.pref_receipt_full_page_key), false);
-    }
-
-    private void initUsePaymentMethods(SharedPreferences prefs) {
-        this.mUsePaymentMethods = prefs.getBoolean(mContext.getString(R.string.pref_receipt_use_payment_methods_key), mContext.getResources().getBoolean(R.bool.pref_receipt_use_payment_methods_defaultValue));
     }
 
     private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
@@ -169,14 +148,9 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initPredictCategories(prefs);
         this.initEnableAutoCompleteSuggestions(prefs);
         this.initOnlyIncludeReimbursable(prefs);
-        this.initReceiptsDefaultAsReimbursable(prefs);
         this.initDefaultToFirstReportDate(prefs);
-        this.initMatchNameCats(prefs);
-        this.initMatchCommentCats(prefs);
         this.initShowReceiptID(prefs);
         this.initUsePreTaxPrice(prefs);
-        this.initDefaultToFullPage(prefs);
-        this.initUsePaymentMethods(prefs);
 
         // No Category
         this.initAutoBackupOnWifiOnly(prefs);
@@ -226,24 +200,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPredictCategories;
     }
 
-    public boolean matchCommentToCategory() {
-        return mMatchCommentCats;
-    }
-
-    public boolean matchNameToCategory() {
-        return mMatchNameCats;
-    }
-
     public boolean onlyIncludeReimbursableReceiptsInReports() {
         return mOnlyIncludeReimbursable;
-    }
-
-    public boolean doReceiptsDefaultAsReimbursable() {
-        return mReceiptsDefaultAsReimbursable;
-    }
-
-    public boolean shouldDefaultToFullPage() {
-        return this.mDefaultToFullPage;
     }
 
     public boolean enableAutoCompleteSuggestions() {
@@ -272,10 +230,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     public float getDefaultTaxPercentage() {
         return mDefaultTaxPercentage;
-    }
-
-    public boolean getUsesPaymentMethods() {
-        return this.mUsePaymentMethods;
     }
 
     public String getDateSeparator() {

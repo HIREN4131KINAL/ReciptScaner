@@ -11,12 +11,13 @@ import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 
 public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
 
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final List<Receipt> mReceipts;
 
 

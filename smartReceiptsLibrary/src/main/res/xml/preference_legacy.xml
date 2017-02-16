@@ -132,11 +132,6 @@
             android:summaryOn="@string/pref_output_receipts_landscape_on"
             android:summaryOff="@string/pref_output_receipts_landscape_off"
             android:defaultValue="@bool/pref_output_receipts_landscape_defaultValue" />
-        <CheckBoxPreference
-            android:key="@string/pref_output_csv_header_key"
-            android:title="@string/pref_output_csv_header_title"
-            android:summary="@string/pref_output_csv_header_summary"
-            android:defaultValue="@bool/pref_output_csv_header_defaultValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_output_username_key"
             android:title="@string/pref_output_username_title"

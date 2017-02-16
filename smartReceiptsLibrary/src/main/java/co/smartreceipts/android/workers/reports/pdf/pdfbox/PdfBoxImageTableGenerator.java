@@ -10,6 +10,8 @@ import java.util.List;
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.tables.TableGenerator;
@@ -35,7 +37,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
      */
     private final float mAvailableHeight;
 
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
     private final float mCellPadding = 4;
     private static final int NCOLS = 2;
@@ -43,7 +45,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
 
     /**
      * @param context
-     * @param mFilter
+     * @param filter
      * @param availableWidth
      * @param availableHeight
      */
@@ -115,14 +117,14 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
 
     @NonNull
     private String buildLegendForImage(@NonNull Receipt receipt) {
-        final int num = (mPreferences.includeReceiptIdInsteadOfIndexByPhoto())
+        final int num = (mPreferences.get(UserPreference.ReportOutput.PrintUserIdByPdfPhoto))
                 ? receipt.getId() : receipt.getIndex();
-        final String extra = (mPreferences.getIncludeCommentByReceiptPhoto()
+        final String extra = (mPreferences.get(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto)
                 && !TextUtils.isEmpty(receipt.getComment()))
                 ? SEP + receipt.getComment()
                 : "";
         return num + SEP + receipt.getName() + SEP
                 + receipt.getFormattedDate(mContext.getAndroidContext(),
-                mPreferences.getDateSeparator()) + extra;
+                mPreferences.get(UserPreference.General.DateSeparator)) + extra;
     }
 }

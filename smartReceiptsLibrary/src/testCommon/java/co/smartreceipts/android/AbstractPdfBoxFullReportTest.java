@@ -32,6 +32,7 @@ import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
@@ -55,7 +56,7 @@ public abstract class AbstractPdfBoxFullReportTest {
 
     protected PersistenceManager mPersistenceManager;
 
-    protected Preferences mPreferences;
+    protected UserPreferenceManager mPreferences;
 
     /**
      * Base method, to be overridden by subclasses. The subclass must annotate the method

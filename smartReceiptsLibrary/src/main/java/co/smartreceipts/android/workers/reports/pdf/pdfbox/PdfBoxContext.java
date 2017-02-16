@@ -11,6 +11,7 @@ import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public interface PdfBoxContext {
 
@@ -32,7 +33,7 @@ public interface PdfBoxContext {
     PDRectangle getPageSize();
 
     @NonNull
-    Preferences getPreferences();
+    UserPreferenceManager getPreferences();
 
     @Nullable
     FontSpec getFont(String name);

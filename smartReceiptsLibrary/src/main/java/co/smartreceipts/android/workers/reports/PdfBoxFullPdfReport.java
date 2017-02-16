@@ -15,6 +15,8 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
@@ -25,7 +27,7 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
         super(context, persistenceManager, flex);
     }
 
-    protected PdfBoxFullPdfReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, @NonNull StorageManager storageManager, Flex flex) {
+    protected PdfBoxFullPdfReport(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull UserPreferenceManager preferences, @NonNull StorageManager storageManager, Flex flex) {
         super(context, db, preferences, storageManager, flex);
     }
 
@@ -38,7 +40,7 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
         List<Distance> distances = null;
         List<Column<Distance>> distanceColumns = null;
 
-        if (getPreferences().getPrintDistanceTable()) {
+        if (getPreferences().get(UserPreference.Distance.PrintDistanceTableInReports)) {
             distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
 
             final ColumnDefinitions<Distance> distanceColumnDefinitions

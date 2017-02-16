@@ -15,6 +15,8 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 
 /**
  * An implementation of the {@link co.smartreceipts.android.model.converters.ModelConverter} contract, which
@@ -32,10 +34,10 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
      * Convenience constructor for this class.
      *
      * @param context - the current application {@link android.content.Context}
-     * @param preferences - the user's {@link co.smartreceipts.android.persistence.Preferences}
+     * @param preferences - the user's {@link UserPreferenceManager}
      */
-    public DistanceToReceiptsConverter(@NonNull Context context, @NonNull Preferences preferences) {
-        this(context, preferences.getDateSeparator());
+    public DistanceToReceiptsConverter(@NonNull Context context, @NonNull UserPreferenceManager preferences) {
+        this(context, preferences.get(UserPreference.General.DateSeparator));
     }
 
     /**

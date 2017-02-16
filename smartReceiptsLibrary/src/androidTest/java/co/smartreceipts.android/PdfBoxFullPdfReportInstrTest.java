@@ -18,6 +18,8 @@ import java.io.OutputStream;
 
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 
 import static org.mockito.Mockito.when;
 
@@ -36,16 +38,15 @@ public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
     public void setup() {
         super.setup();
         mPersistenceManager = Mockito.mock(PersistenceManager.class);
-        mPreferences = Mockito.mock(Preferences.class);
+        mPreferences = Mockito.mock(UserPreferenceManager.class);
 
-        when(mPersistenceManager.getPreferences()).thenReturn(mPreferences);
+        when(mPersistenceManager.getPreferenceManager()).thenReturn(mPreferences);
 
-        when(mPreferences.getDateSeparator()).thenReturn("/");
-        when(mPreferences.getIncludeCommentByReceiptPhoto()).thenReturn(true);
-//        when(mPreferences.onlyIncludeReimbursableReceiptsInReports()).thenReturn(true);
-        when(mPreferences.getPdfFooterText()).thenReturn("Custom Footer!!!");
-        when(mPreferences.getPrintDistanceAsDailyReceipt()).thenReturn(false);
-        when(mPreferences.getPrintDistanceTable()).thenReturn(false);
+        when(mPreferences.get(UserPreference.General.DateSeparator)).thenReturn("/");
+        when(mPreferences.get(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto)).thenReturn(true);
+        when(mPreferences.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("Custom Footer!!!");
+        when(mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports)).thenReturn(false);
+        when(mPreferences.get(UserPreference.ReportOutput.PrintReceiptsTableInLandscape)).thenReturn(false);
     }
 
     @Override

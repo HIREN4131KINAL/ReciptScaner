@@ -42,7 +42,6 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Receipts.DefaultToFullPage));
         Assert.assertTrue(userPreferences.contains(UserPreference.Receipts.UsePaymentMethods));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.UserId));
-        Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.IncludeCsvHeaders));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintUserIdByPdfPhoto));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto));
         Assert.assertTrue(userPreferences.contains(UserPreference.ReportOutput.PrintReceiptsTableInLandscape));
@@ -147,10 +146,6 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.ReportOutput.UserId.getType(), String.class);
         Assert.assertEquals(name(UserPreference.ReportOutput.UserId), "UserName");
         Assert.assertEquals(UserPreference.ReportOutput.UserId.getDefaultValue(), R.string.pref_output_username_defaultValue);
-
-        Assert.assertEquals(UserPreference.ReportOutput.IncludeCsvHeaders.getType(), Boolean.class);
-        Assert.assertEquals(name(UserPreference.ReportOutput.IncludeCsvHeaders), "IncludeCSVHeaders");
-        Assert.assertEquals(UserPreference.ReportOutput.IncludeCsvHeaders.getDefaultValue(), R.bool.pref_output_csv_header_defaultValue);
 
         Assert.assertEquals(UserPreference.ReportOutput.PrintUserIdByPdfPhoto.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.ReportOutput.PrintUserIdByPdfPhoto), "PrintByIDPhotoKey");

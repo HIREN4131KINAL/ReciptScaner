@@ -23,6 +23,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
 
@@ -31,11 +32,10 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final DefaultPdfBoxContext mContext;
     private final PDDocument mDocument;
     private final List<PdfBoxSection> mSections;
-    private final Preferences mPreferences;
 
 
     public PdfBoxReportFile(@NonNull Context androidContext,
-                            @NonNull Preferences preferences) throws IOException {
+                            @NonNull UserPreferenceManager preferences) throws IOException {
         this(androidContext, preferences, false);
     }
 
@@ -47,9 +47,8 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
      * @throws IOException
      */
     @VisibleForTesting
-    public PdfBoxReportFile(@NonNull Context androidContext, @NonNull Preferences preferences,
+    public PdfBoxReportFile(@NonNull Context androidContext, @NonNull UserPreferenceManager preferences,
                             boolean useBuiltinFonts) throws IOException {
-        this.mPreferences = preferences;
         mDocument = new PDDocument();
         mSections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();

@@ -57,6 +57,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
@@ -228,7 +229,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
 
         // Set-up tax layers
-        if (getPersistenceManager().getPreferences().includeTaxField()) {
+        if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
             priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
             taxBox.setVisibility(View.VISIBLE);
         }
@@ -265,7 +266,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         // Lastly, preset adapters for "new" receipts
         final boolean isNewReceipt = mReceipt == null;
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferences().includeTaxField()) {
+            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
                 taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
             }
         }

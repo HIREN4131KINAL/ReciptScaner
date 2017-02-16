@@ -39,6 +39,8 @@ import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefini
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.PdfBoxFullPdfReport;
@@ -232,6 +234,7 @@ public class EmailAssistant {
         private final StorageManager mStorageManager;
         private final DatabaseHelper mDB;
         private final Preferences mPreferences;
+        private final UserPreferenceManager mPreferenceManager;
         private final WeakReference<ProgressDialog> mProgressDialog;
         private final File[] mFiles;
         private final EnumSet<EmailOptions> mOptions;
@@ -243,6 +246,7 @@ public class EmailAssistant {
             mStorageManager = persistenceManager.getStorageManager();
             mDB = persistenceManager.getDatabase();
             mPreferences = persistenceManager.getPreferences();
+            mPreferenceManager = persistenceManager.getPreferenceManager();
             mProgressDialog = new WeakReference<>(dialog);
             mOptions = options;
             mFiles = new File[]{null, null, null, null};
@@ -295,7 +299,7 @@ public class EmailAssistant {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
                 final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().toBlocking().first();
-                final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferences), true, false);
+                final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferenceManager), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferences.getPrintDistanceTable()) {
                     final List<Distance> distances = new ArrayList<>(mDB.getDistanceTable().getBlocking(trip, false));
@@ -303,7 +307,7 @@ public class EmailAssistant {
                         Collections.reverse(distances); // Reverse the list, so we print the most recent one first
 
                         // CSVs cannot print special characters
-                        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferences, mFlex, true);
+                        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(mContext, mDB, mPreferenceManager, mFlex, true);
                         final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
                         data += "\n\n";
                         data += new CsvTableGenerator<>(distanceColumns, true, true).generate(distances);
@@ -415,7 +419,7 @@ public class EmailAssistant {
 
                 // Set up the number of items to draw
                 int num = 5;
-                if (mPreferences.includeTaxField()) {
+                if (mPreferenceManager.get(UserPreference.Receipts.IncludeTaxField)) {
                     num++;
                 }
                 if (receipt.hasExtraEditText1()) {
@@ -438,7 +442,7 @@ public class EmailAssistant {
                 y += spacing;
                 canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_PRICE) + ": " + receipt.getPrice().getDecimalFormattedPrice() + " " + receipt.getPrice().getCurrencyCode(), xPad / 2, y, brush);
                 y += spacing;
-                if (mPreferences.includeTaxField()) {
+                if (mPreferenceManager.get(UserPreference.Receipts.IncludeTaxField)) {
                     canvas.drawText(mFlex.getString(mContext, R.string.RECEIPTMENU_FIELD_TAX) + ": " + receipt.getTax().getDecimalFormattedPrice() + " " + receipt.getPrice().getCurrencyCode(), xPad / 2, y, brush);
                     y += spacing;
                 }

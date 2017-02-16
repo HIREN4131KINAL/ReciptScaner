@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.impl.columns.SettingUserIdColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import wb.android.flex.Flex;
@@ -96,15 +97,15 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     private final Context mContext;
     private final DatabaseHelper mDB;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final Flex mFlex;
     private final ActualDefinition[] mActualDefinitions;
 
     public ReceiptColumnDefinitions(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex) {
-        this(context, persistenceManager.getDatabase(), persistenceManager.getPreferences(), flex);
+        this(context, persistenceManager.getDatabase(), persistenceManager.getPreferenceManager(), flex);
     }
 
-    public ReceiptColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, Flex flex) {
+    public ReceiptColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull UserPreferenceManager preferences, Flex flex) {
         mContext = context;
         mDB = db;
         mPreferences = preferences;

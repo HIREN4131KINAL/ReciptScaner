@@ -13,6 +13,7 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
+import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
@@ -20,6 +21,8 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableGenerator;
 
@@ -34,7 +37,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private final List<Column<Distance>> mDistanceColumns;
 
     private PdfBoxWriter mWriter;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
     protected PdfBoxReceiptsTablePdfSection(@NonNull PdfBoxContext context,
                                             @NonNull Trip trip,
@@ -55,11 +58,10 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     @Override
     public void writeSection(@NonNull PDDocument doc) throws IOException {
 
-        ReceiptsTotals totals = new ReceiptsTotals(mTrip,
-                mReceipts, mDistances, mPreferences);
+        final ReceiptsTotals totals = new ReceiptsTotals(mTrip, mReceipts, mDistances, mPreferences);
 
         // switch to landscape mode
-        if (mPreferences.isReceiptsTableLandscapeMode()) {
+        if (mPreferences.get(UserPreference.ReportOutput.PrintReceiptsTableInLandscape)) {
             mContext.setPageSize(new PDRectangle(mContext.getPageSize().getHeight(),
                     mContext.getPageSize().getWidth()));
         }
@@ -72,7 +74,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         writeReceiptsTable(mReceipts);
 
-        if (mPreferences.getPrintDistanceTable() && mDistances != null && !mDistances.isEmpty()) {
+        if (mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports) && mDistances != null && !mDistances.isEmpty()) {
             mWriter.verticalJump(60);
 
             writeDistancesTable(mDistances);
@@ -81,7 +83,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         mWriter.writeAndClose();
 
         // reset the page size if necessary
-        if (mPreferences.isReceiptsTableLandscapeMode()) {
+        if (mPreferences.get(UserPreference.ReportOutput.PrintReceiptsTableInLandscape)) {
             mContext.setPageSize(new PDRectangle(mContext.getPageSize().getHeight(),
                     mContext.getPageSize().getWidth()));
         }
@@ -103,8 +105,8 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             );
         }
 
-        if (mPreferences.includeTaxField()) {
-            if (mPreferences.usePreTaxPrice() && data.mTaxPrice.getPriceAsFloat() > EPSILON) {
+        if (mPreferences.get(UserPreference.Receipts.IncludeTaxField)) {
+            if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice) && data.mTaxPrice.getPriceAsFloat() > EPSILON) {
                 mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
                         R.string.report_header_receipts_total_tax,
                         data.mTaxPrice.getCurrencyFormattedPrice()
@@ -119,7 +121,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             }
         }
 
-        if (!mPreferences.onlyIncludeReimbursableReceiptsInReports() &&
+        if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) &&
                 !data.mReimbursablePrice.equals(data.mReceiptsPrice)) {
             mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
                     R.string.report_header_receipts_total_reimbursable,
@@ -139,16 +141,16 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         );
 
         String fromToPeriod = mContext.getString(R.string.report_header_from,
-                trip.getFormattedStartDate(mContext.getAndroidContext(), mPreferences.getDateSeparator()))
+                trip.getFormattedStartDate(mContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)))
                 + " "
                 + mContext.getString(R.string.report_header_to,
-                trip.getFormattedEndDate(mContext.getAndroidContext(), mPreferences.getDateSeparator()));
+                trip.getFormattedEndDate(mContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)));
 
         mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
                 fromToPeriod);
 
 
-        if (mPreferences.getIncludeCostCenter() && !TextUtils.isEmpty(trip.getCostCenter())) {
+        if (mPreferences.get(UserPreference.General.IncludeCostCenter) && !TextUtils.isEmpty(trip.getCostCenter())) {
             mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
                     R.string.report_header_cost_center,
                     trip.getCostCenter()
@@ -168,7 +170,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private void writeReceiptsTable(@NonNull List<Receipt> receipts) throws IOException {
 
         final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
-        if (mPreferences.getPrintDistanceAsDailyReceipt()) {
+        if (mPreferences.get(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports)) {
             receiptsTableList.addAll(
                     new DistanceToReceiptsConverter(mContext.getAndroidContext(), mPreferences)
                     .convert(mDistances));

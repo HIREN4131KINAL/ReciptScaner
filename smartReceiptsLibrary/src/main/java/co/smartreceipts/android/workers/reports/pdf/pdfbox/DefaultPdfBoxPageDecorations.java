@@ -9,6 +9,8 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
 
+import co.smartreceipts.android.settings.catalog.UserPreference;
+
 
 public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
@@ -27,7 +29,7 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
     DefaultPdfBoxPageDecorations(@NonNull PdfBoxContext context) {
         mContext = context;
-        mFooterText = context.getPreferences().getPdfFooterText();
+        mFooterText = context.getPreferences().get(UserPreference.PlusSubscription.PdfFooterString);
     }
 
     /**
@@ -65,7 +67,7 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
      * @throws IOException
      */
     @Override
-    public void writeFooter(PDPageContentStream contentStream) throws IOException {
+    public void writeFooter(@NonNull PDPageContentStream contentStream) throws IOException {
         PDRectangle rect = new PDRectangle(
                 mContext.getPageMarginHorizontal(),
                 mContext.getPageMarginVertical()

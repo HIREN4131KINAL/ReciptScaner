@@ -3,6 +3,8 @@ package co.smartreceipts.android.model.impl.columns;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.SyncState;
 
 /**
@@ -10,16 +12,16 @@ import co.smartreceipts.android.sync.model.SyncState;
  */
 public final class SettingUserIdColumn<T> extends AbstractColumnImpl<T> {
 
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
-    public SettingUserIdColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Preferences preferences) {
+    public SettingUserIdColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull UserPreferenceManager preferences) {
         super(id, name, syncState);
         mPreferences = preferences;
     }
 
     @Override
     public String getValue(@NonNull T rowItem) {
-        return mPreferences.getUserID();
+        return mPreferences.get(UserPreference.ReportOutput.UserId);
     }
 
 }

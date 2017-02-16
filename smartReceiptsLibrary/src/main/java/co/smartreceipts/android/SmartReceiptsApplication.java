@@ -87,7 +87,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
         // in onVersionUpgrade
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
-        mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
+        mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferenceManager(), mFlex));
         mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);

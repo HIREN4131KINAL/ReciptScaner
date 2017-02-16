@@ -10,6 +10,7 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 import java.util.Map;
 
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class DefaultPdfBoxContext implements PdfBoxContext {
 
@@ -27,14 +28,14 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
 
     private final Context mContext;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
     private Map<String, AWTColor> mColors;
     private Map<String, FontSpec> mFonts;
     private PDRectangle mPageSize = PDRectangle.A4;
 
     public DefaultPdfBoxContext(@NonNull Context context,
-                                @NonNull Preferences preferences) {
+                                @NonNull UserPreferenceManager preferences) {
         mContext = context;
         mPreferences = preferences;
     }
@@ -90,7 +91,7 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
 
     @NonNull
     @Override
-    public Preferences getPreferences() {
+    public UserPreferenceManager getPreferences() {
         return mPreferences;
     }
 

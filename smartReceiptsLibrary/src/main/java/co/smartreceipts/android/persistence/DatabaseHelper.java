@@ -109,7 +109,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         mContext = application.getApplicationContext();
         mFlex = application.getFlex();
         mPersistenceManager = persistenceManager;
-        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
+        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferenceManager(), mFlex);
         mCustomizations = new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
 
         // Tables:

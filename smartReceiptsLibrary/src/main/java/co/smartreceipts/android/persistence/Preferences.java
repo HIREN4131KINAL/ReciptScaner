@@ -38,12 +38,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private float mMinReceiptPrice;
     private float mDefaultTaxPercentage;
     private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mReceiptsDefaultAsReimbursable, mDefaultToFirstReportDate,
-            mMatchNameCats, mMatchCommentCats, mShowReceiptID, mIncludeTaxField, mUsePreTaxPrice, mDefaultToFullPage,
+            mMatchNameCats, mMatchCommentCats, mShowReceiptID, mUsePreTaxPrice, mDefaultToFullPage,
             mUsePaymentMethods;
 
     // Output Preferences
     private String mUserID;
-    private boolean mIncludeCSVHeaders, mIncludeIDNotIndex, mIncludeCommentByReceiptPhoto, mReceiptsLandscapeMode;
+    private boolean mReceiptsLandscapeMode;
 
     // Email Preferences
     private String mEmailTo, mEmailCC, mEmailBCC, mEmailSubject;
@@ -56,10 +56,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     // Distance Preferences
     private float mDefaultDistanceRate;
-    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mPrintDistanceAsDailyReceipt, mShowDistanceAsPriceInSubtotal;
-
-    // Pro Preferences
-    private String mPdfFooterText;
+    private boolean mShouldDistancePriceBeIncludedInReports, mPrintDistanceTable, mShowDistanceAsPriceInSubtotal;
 
     // No Category
     private boolean mAutoBackupOnWifiOnly;
@@ -153,10 +150,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mShowReceiptID = prefs.getBoolean(mContext.getString(R.string.pref_receipt_show_id_key), false);
     }
 
-    private void initIncludeTaxField(SharedPreferences prefs) {
-        this.mIncludeTaxField = prefs.getBoolean(mContext.getString(R.string.pref_receipt_include_tax_field_key), mContext.getResources().getBoolean(R.bool.pref_receipt_include_tax_field_defaultValue));
-    }
-
     private void initUsePreTaxPrice(SharedPreferences prefs) {
         this.mUsePreTaxPrice = prefs.getBoolean(mContext.getString(R.string.pref_receipt_pre_tax_key), true);
     }
@@ -175,18 +168,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
 
     private void initReceiptsLandscapeMode(SharedPreferences prefs) {
         this.mReceiptsLandscapeMode = prefs.getBoolean(mContext.getString(R.string.pref_output_receipts_landscape_key), mContext.getResources().getBoolean(R.bool.pref_output_receipts_landscape_defaultValue));
-    }
-
-    private void initIncludeCSVHeaders(SharedPreferences prefs) {
-        this.mIncludeCSVHeaders = prefs.getBoolean(mContext.getString(R.string.pref_output_csv_header_key), mContext.getResources().getBoolean(R.bool.pref_output_csv_header_defaultValue));
-    }
-
-    private void initIncludeReceiptIdNotIndex(SharedPreferences prefs) {
-        this.mIncludeIDNotIndex = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_id_by_photo_key), false);
-    }
-
-    private void initIncludeCommentByReceiptPhoto(SharedPreferences prefs) {
-        this.mIncludeCommentByReceiptPhoto = prefs.getBoolean(mContext.getString(R.string.pref_output_print_receipt_comment_by_photo_key), mContext.getResources().getBoolean(R.bool.pref_output_print_receipt_comment_by_photo_defaultValue));
     }
 
     private void initEmailTo(SharedPreferences prefs) {
@@ -243,16 +224,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mShouldDistancePriceBeIncludedInReports = prefs.getBoolean(mContext.getString(R.string.pref_distance_include_price_in_report_key), mContext.getResources().getBoolean(R.bool.pref_distance_include_price_in_report_defaultValue));
     }
 
-    private void initPrintDistanceAsDailyReceipt(SharedPreferences prefs) {
-        this.mPrintDistanceAsDailyReceipt = prefs.getBoolean(mContext.getString(R.string.pref_distance_print_daily_key), mContext.getResources().getBoolean(R.bool.pref_distance_print_daily_defaultValue));
-    }
-
     private void initShowDistanceAsPriceInSubtotal(SharedPreferences prefs) {
         this.mShowDistanceAsPriceInSubtotal = prefs.getBoolean(mContext.getString(R.string.pref_distance_as_price_key), mContext.getResources().getBoolean(R.bool.pref_distance_as_price_defaultValue));
-    }
-
-    private void initPdfFooterText(SharedPreferences prefs) {
-        this.mPdfFooterText = prefs.getString(mContext.getString(R.string.pref_pro_pdf_footer_key), mContext.getString(R.string.pref_pro_pdf_footer_defaultValue));
     }
 
     private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
@@ -289,7 +262,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initMatchNameCats(prefs);
         this.initMatchCommentCats(prefs);
         this.initShowReceiptID(prefs);
-        this.initIncludeTaxField(prefs);
         this.initUsePreTaxPrice(prefs);
         this.initDefaultToFullPage(prefs);
         this.initUsePaymentMethods(prefs);
@@ -297,9 +269,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         // Output Preferences
         this.initUserID(prefs);
         this.initReceiptsLandscapeMode(prefs);
-        this.initIncludeCSVHeaders(prefs);
-        this.initIncludeReceiptIdNotIndex(prefs);
-        this.initIncludeCommentByReceiptPhoto(prefs);
 
         // Email Preferences
         this.initEmailTo(prefs);
@@ -321,11 +290,7 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initShouldDistancePriceBeIncludedInReports(prefs);
         this.initDefaultMileageRate(prefs);
         this.initPrintDistanceTable(prefs);
-        this.initPrintDistanceAsDailyReceipt(prefs);
         this.initShowDistanceAsPriceInSubtotal(prefs);
-
-        // Pro Preferences
-        this.initPdfFooterText(prefs);
 
         // No Category
         this.initAutoBackupOnWifiOnly(prefs);
@@ -400,14 +365,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mReceiptsDefaultAsReimbursable;
     }
 
-    public boolean includeTaxField() {
-        return mIncludeTaxField;
-    }
-
-    public boolean usePreTaxPrice() {
-        return this.mUsePreTaxPrice;
-    }
-
     public boolean shouldDefaultToFullPage() {
         return this.mDefaultToFullPage;
     }
@@ -436,22 +393,12 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mMinReceiptPrice;
     }
 
-    public boolean includeReceiptIdInsteadOfIndexByPhoto() {
-        return this.mIncludeIDNotIndex;
-    }
-
-    public boolean getIncludeCommentByReceiptPhoto() { return this.mIncludeCommentByReceiptPhoto; }
-
     public boolean defaultToFirstReportDate() {
         return mDefaultToFirstReportDate;
     }
 
     public boolean isReceiptsTableLandscapeMode() {
         return mReceiptsLandscapeMode;
-    }
-
-    public boolean includeCSVHeaders() {
-        return mIncludeCSVHeaders;
     }
 
     public boolean isShowReceiptID() {
@@ -518,10 +465,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mPrintDistanceTable;
     }
 
-    public boolean getPrintDistanceAsDailyReceipt() {
-        return mPrintDistanceAsDailyReceipt;
-    }
-
     public boolean getShowDistanceAsPriceInSubtotal() {
         return mShowDistanceAsPriceInSubtotal;
     }
@@ -533,16 +476,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     /**
      * @return - a folder in which preference files (e.g. images) can be stored
      */
-    public File getPreferencesFolder() {
-        return mPreferenceFolder;
-    }
-
     public boolean getShouldTheDistancePriceBeIncludedInReports() {
         return mShouldDistancePriceBeIncludedInReports;
-    }
-
-    public String getPdfFooterText() {
-        return mPdfFooterText;
     }
 
     public boolean getAutoBackupOnWifiOnly() {

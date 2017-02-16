@@ -13,6 +13,8 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 
 /**
  * Encapsulates the calculations and data of receipts totals.
@@ -30,7 +32,7 @@ public class ReceiptsTotals {
     public ReceiptsTotals(@NonNull Trip trip,
                           @NonNull List<Receipt> receipts,
                           @NonNull List<Distance> distances,
-                          @NonNull Preferences preferences) {
+                          @NonNull UserPreferenceManager preferences) {
 
         ArrayList<Price> netTotal = new ArrayList<>(receipts.size());
         ArrayList<Price> receiptTotal = new ArrayList<>(receipts.size());
@@ -43,14 +45,14 @@ public class ReceiptsTotals {
         final int len = receipts.size();
         for (int i = 0; i < len; i++) {
             final Receipt receipt = receipts.get(i);
-            if (!preferences.onlyIncludeReimbursableReceiptsInReports() || receipt.isReimbursable()) {
+            if (!preferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) || receipt.isReimbursable()) {
                 netTotal.add(receipt.getPrice());
                 receiptTotal.add(receipt.getPrice());
                 // Treat taxes as negative prices for the sake of this conversion
                 noTaxesTotal.add(receipt.getPrice());
                 noTaxesTotal.add(new PriceBuilderFactory().setCurrency(receipt.getTax().getCurrency()).setPrice(receipt.getTax().getPrice().multiply(new BigDecimal(-1))).build());
                 taxesTotal.add(receipt.getTax());
-                if (preferences.usePreTaxPrice()) {
+                if (preferences.get(UserPreference.Receipts.UsePreTaxPrice)) {
                     netTotal.add(receipt.getTax());
                 }
                 if (receipt.isReimbursable()) {

@@ -327,7 +327,7 @@ public class EmailAssistant {
                 mStorageManager.delete(dir, dir.getName() + ".zip");
                 dir = mStorageManager.mkdir(trip.getDirectory(), trip.getName());
                 for (int i = 0; i < len; i++) {
-                    if (!filterOutReceipt(mPreferences, receipts.get(i)) && receipts.get(i).hasImage()) {
+                    if (!filterOutReceipt(mPreferenceManager, receipts.get(i)) && receipts.get(i).hasImage()) {
                         try {
                             Bitmap b = stampImage(trip, receipts.get(i), Bitmap.Config.ARGB_8888);
                             if (b != null) {
@@ -368,10 +368,10 @@ public class EmailAssistant {
          * @param receipt     - The particular receipt
          * @return true if if should be filtered out, false otherwise
          */
-        private boolean filterOutReceipt(Preferences preferences, Receipt receipt) {
-            if (preferences.onlyIncludeReimbursableReceiptsInReports() && !receipt.isReimbursable()) {
+        private boolean filterOutReceipt(UserPreferenceManager preferences, Receipt receipt) {
+            if (preferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !receipt.isReimbursable()) {
                 return true;
-            } else if (receipt.getPrice().getPriceAsFloat() < preferences.getMinimumReceiptPriceToIncludeInReports()) {
+            } else if (receipt.getPrice().getPriceAsFloat() < preferences.get(UserPreference.Receipts.MinimumReceiptPrice)) {
                 return true;
             } else {
                 return false;

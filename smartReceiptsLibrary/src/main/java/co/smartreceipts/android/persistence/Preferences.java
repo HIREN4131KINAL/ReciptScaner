@@ -31,12 +31,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
     private String mDefaultCurrency, mDateSeparator;
     private boolean mIncludeCostCenter;
 
-    // Receipt Preferences
-    private float mMinReceiptPrice;
-    private float mDefaultTaxPercentage;
-    private boolean mPredictCategories, mEnableAutoCompleteSuggestions, mOnlyIncludeReimbursable, mDefaultToFirstReportDate,
-            mShowReceiptID, mUsePreTaxPrice;
-
     // No Category
     private boolean mAutoBackupOnWifiOnly;
 
@@ -88,38 +82,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.mIncludeCostCenter = prefs.getBoolean(mContext.getString(R.string.pref_general_track_cost_center_key), mContext.getResources().getBoolean(R.bool.pref_general_track_cost_center_defaultValue));
     }
 
-    private void initMinReceiptPrice(SharedPreferences prefs) {
-        this.mMinReceiptPrice = prefs.getFloat(mContext.getString(R.string.pref_receipt_minimum_receipts_price_key), -Float.MAX_VALUE);
-    }
-
-    private void initDefaultTaxPercentage(SharedPreferences prefs) {
-        this.mDefaultTaxPercentage = prefs.getFloat(mContext.getString(R.string.pref_receipt_tax_percent_key), 0f);
-    }
-
-    private void initPredictCategories(SharedPreferences prefs) {
-        this.mPredictCategories = prefs.getBoolean(mContext.getString(R.string.pref_receipt_predict_categories_key), true);
-    }
-
-    private void initEnableAutoCompleteSuggestions(SharedPreferences prefs) {
-        this.mEnableAutoCompleteSuggestions = prefs.getBoolean(mContext.getString(R.string.pref_receipt_enable_autocomplete_key), true);
-    }
-
-    private void initOnlyIncludeReimbursable(SharedPreferences prefs) {
-        this.mOnlyIncludeReimbursable = prefs.getBoolean(mContext.getString(R.string.pref_receipt_reimbursable_only_key), false);
-    }
-
-    private void initDefaultToFirstReportDate(SharedPreferences prefs) {
-        this.mDefaultToFirstReportDate = prefs.getBoolean(mContext.getString(R.string.pref_receipt_default_to_report_start_date_key), false);
-    }
-
-    private void initShowReceiptID(SharedPreferences prefs) {
-        this.mShowReceiptID = prefs.getBoolean(mContext.getString(R.string.pref_receipt_show_id_key), false);
-    }
-
-    private void initUsePreTaxPrice(SharedPreferences prefs) {
-        this.mUsePreTaxPrice = prefs.getBoolean(mContext.getString(R.string.pref_receipt_pre_tax_key), true);
-    }
-
     private void initAutoBackupOnWifiOnly(SharedPreferences prefs) {
         this.mAutoBackupOnWifiOnly = prefs.getBoolean(mContext.getString(R.string.pref_no_category_auto_backup_wifi_only_key), mContext.getResources().getBoolean(R.bool.pref_no_category_auto_backup_wifi_only_defaultValue));
     }
@@ -141,16 +103,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         this.initDefaultDateSeparator(prefs);
         this.initDefaultCurrency(prefs);
         this.initIncludeCostCenter(prefs);
-
-        // Receipt Preferences
-        this.initMinReceiptPrice(prefs);
-        this.initDefaultTaxPercentage(prefs);
-        this.initPredictCategories(prefs);
-        this.initEnableAutoCompleteSuggestions(prefs);
-        this.initOnlyIncludeReimbursable(prefs);
-        this.initDefaultToFirstReportDate(prefs);
-        this.initShowReceiptID(prefs);
-        this.initUsePreTaxPrice(prefs);
 
         // No Category
         this.initAutoBackupOnWifiOnly(prefs);
@@ -196,18 +148,6 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         initAllPreferences(prefs);
     }
 
-    public boolean predictCategories() {
-        return mPredictCategories;
-    }
-
-    public boolean onlyIncludeReimbursableReceiptsInReports() {
-        return mOnlyIncludeReimbursable;
-    }
-
-    public boolean enableAutoCompleteSuggestions() {
-        return mEnableAutoCompleteSuggestions;
-    }
-
     public String getDefaultCurreny() {
         return mDefaultCurrency;
     }
@@ -216,28 +156,8 @@ public class Preferences implements OnSharedPreferenceChangeListener {
         return mDefaultTripDuration;
     }
 
-    public float getMinimumReceiptPriceToIncludeInReports() {
-        return mMinReceiptPrice;
-    }
-
-    public boolean defaultToFirstReportDate() {
-        return mDefaultToFirstReportDate;
-    }
-
-    public boolean isShowReceiptID() {
-        return mShowReceiptID;
-    }
-
-    public float getDefaultTaxPercentage() {
-        return mDefaultTaxPercentage;
-    }
-
     public String getDateSeparator() {
         return mDateSeparator;
-    }
-
-    public boolean getUsesPreTaxPrice() {
-        return this.mUsePreTaxPrice;
     }
 
     public boolean getIncludeCostCenter() {

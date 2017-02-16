@@ -266,7 +266,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         final boolean isNewReceipt = mReceipt == null;
         if (isNewReceipt) {
             if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
-                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferences(), getPersistenceManager().getPreferences().getDefaultTaxPercentage()));
+                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferenceManager(), getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.DefaultTaxPercentage)));
             }
         }
 
@@ -284,7 +284,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 final Time now = new Time();
                 now.setToNow();
                 if (mReceiptInputCache.getCachedDate() == null) {
-                    if (getPersistenceManager().getPreferences().defaultToFirstReportDate()) {
+                    if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ReceiptDateDefaultsToReportStartDate)) {
                         dateBox.date = mTrip.getStartDate();
                     } else {
                         dateBox.date = new Date(now.toMillis(false));

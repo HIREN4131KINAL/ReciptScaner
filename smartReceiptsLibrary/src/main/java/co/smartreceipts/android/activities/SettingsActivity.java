@@ -48,6 +48,8 @@ import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.rating.AppRating;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -298,11 +300,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_receipt_payment_methods_key).setOnPreferenceClickListener(this);
 
         // Here we restore our current values (easier than getting the FloatEditText stuff to work)
-        Preferences preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences();
+        UserPreferenceManager preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferenceManager();
         DefaultTaxPercentagePreference taxPercentagePreference = (DefaultTaxPercentagePreference) universal.findPreference(R.string.pref_receipt_tax_percent_key);
-        taxPercentagePreference.setText(Float.toString(preferences.getDefaultTaxPercentage()));
+        taxPercentagePreference.setText(Float.toString(preferences.get(UserPreference.Receipts.DefaultTaxPercentage)));
         MinimumPriceEditTextPreference minimumPriceEditTextPreference = (MinimumPriceEditTextPreference) universal.findPreference(R.string.pref_receipt_minimum_receipts_price_key);
-        minimumPriceEditTextPreference.setText(Float.toString(preferences.getMinimumReceiptPriceToIncludeInReports()));
+        minimumPriceEditTextPreference.setText(Float.toString(preferences.get(UserPreference.Receipts.MinimumReceiptPrice)));
 
     }
 

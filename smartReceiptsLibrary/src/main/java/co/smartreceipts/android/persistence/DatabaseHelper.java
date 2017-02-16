@@ -230,7 +230,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -255,7 +255,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripDailyPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -915,7 +915,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         if (tag == TAG_RECEIPTS_NAME) {
             String category = null, price = null, tmp = null;
             // If we're not predicting, return
-            if (!mPersistenceManager.getPreferences().predictCategories()) {
+            if (!mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.PredictCategories)) {
                 // price = null;
                 // category = null
             } else {

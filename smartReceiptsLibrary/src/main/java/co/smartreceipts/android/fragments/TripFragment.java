@@ -42,6 +42,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -180,7 +181,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
         // Fill Out Fields
         if (newTrip) {
-            if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
+            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
                 final DatabaseHelper db = getPersistenceManager().getDatabase();
                 if (mNameAutoCompleteAdapter == null) {
                     mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);

@@ -1,14 +1,10 @@
 package co.smartreceipts.android.fragments;
 
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
-
-import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -42,7 +38,7 @@ public class ReceiptsFragment extends WBListFragment {
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null && getUserVisibleHint()) {
             if (updateSubtitle) {
-                if (getPersistenceManager().getPreferences().isShowReceiptID()) {
+                if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
                     mIdSubscription = getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdHelper()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())

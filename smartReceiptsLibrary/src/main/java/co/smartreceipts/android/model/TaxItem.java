@@ -6,6 +6,8 @@ import java.text.DecimalFormat;
 
 import android.text.TextUtils;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class TaxItem {
@@ -17,24 +19,24 @@ public class TaxItem {
 	private BigDecimal mPrice, mTax;
 	private boolean mUsePreTaxPrice;
 	
-	public TaxItem(String percent, Preferences preferences) {
+	public TaxItem(String percent, UserPreferenceManager preferences) {
 		try {
 			mPercent = new BigDecimal(percent);
 		}
 		catch (NumberFormatException e) {
 			mPercent = null;
 		}
-		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
 	}
 	
-	public TaxItem(float percent, Preferences preferences) {
+	public TaxItem(float percent, UserPreferenceManager preferences) {
 		mPercent = new BigDecimal(percent);
-		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
 	}
 	
-	public TaxItem(BigDecimal percent, Preferences preferences) {
+	public TaxItem(BigDecimal percent, UserPreferenceManager preferences) {
 		mPercent = percent;
-		mUsePreTaxPrice = (preferences == null) ? true : preferences.getUsesPreTaxPrice();
+		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
 	}
 	
 	public TaxItem(BigDecimal percent, boolean usePreTaxPrice) {

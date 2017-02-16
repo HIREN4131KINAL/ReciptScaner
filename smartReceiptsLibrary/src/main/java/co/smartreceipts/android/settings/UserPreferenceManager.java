@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import rx.Observable;
 
 public class UserPreferenceManager {
 
@@ -31,6 +32,11 @@ public class UserPreferenceManager {
     @NonNull
     public <T> T get(UserPreference<T> preference) {
         return null;
+    }
+
+    @NonNull
+    public <T> Observable<T> getObservable(UserPreference<T> preference) {
+        return Observable.empty();
     }
 
 }

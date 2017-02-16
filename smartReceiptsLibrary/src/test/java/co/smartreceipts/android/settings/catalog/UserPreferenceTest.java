@@ -52,6 +52,9 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Camera.UseNativeCamera));
         Assert.assertTrue(userPreferences.contains(UserPreference.Camera.SaveImagesInGrayScale));
         Assert.assertTrue(userPreferences.contains(UserPreference.Camera.AutomaticallyRotateImages));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptDateInLayout));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptCategoryInLayout));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptFileMarkerInLayout));
     }
 
     @Test
@@ -187,6 +190,22 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Camera.AutomaticallyRotateImages.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Camera.AutomaticallyRotateImages), "Camera_Rotate");
         Assert.assertEquals(UserPreference.Camera.AutomaticallyRotateImages.getDefaultValue(), R.bool.pref_camera_rotate_defaultValue);
+    }
+
+    @Test
+    public void layout() {
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptDateInLayout.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Layout.IncludeReceiptDateInLayout), "LayoutIncludeReceiptDate");
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptDateInLayout.getDefaultValue(), R.bool.pref_layout_display_date_defaultValue);
+
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptCategoryInLayout.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Layout.IncludeReceiptCategoryInLayout), "LayoutIncludeReceiptCategory");
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptCategoryInLayout.getDefaultValue(), R.bool.pref_layout_display_category_defaultValue);
+
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptFileMarkerInLayout.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Layout.IncludeReceiptFileMarkerInLayout), "LayoutIncludeReceiptPicture");
+        Assert.assertEquals(UserPreference.Layout.IncludeReceiptFileMarkerInLayout.getDefaultValue(), R.bool.pref_layout_display_photo_defaultValue);
+
     }
 
     @NonNull

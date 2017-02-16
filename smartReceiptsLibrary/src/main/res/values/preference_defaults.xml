@@ -39,6 +39,13 @@
     <bool name="pref_camera_bw_defaultValue">false</bool>
     <bool name="pref_camera_rotate_defaultValue">true</bool>
 
+    <!-- ============= Preference Layout ================= -->
+    _defaultValue
+    <bool name="pref_layout_display_date_defaultValue">true</bool>
+    <bool name="pref_layout_display_category_defaultValue">false</bool>
+    <bool name="pref_layout_display_photo_defaultValue">false</bool>
+
+
     <!-- ============= Preference Distance ================= -->
     <bool name="pref_distance_include_price_in_report_defaultValue">false</bool>
     <item name="pref_distance_rate_defaultValue" format="float" type="dimen">0.0</item>

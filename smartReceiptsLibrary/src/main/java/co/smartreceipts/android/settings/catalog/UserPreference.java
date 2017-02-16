@@ -63,6 +63,12 @@ public final class UserPreference<T> {
         public static final UserPreference<Boolean> AutomaticallyRotateImages = new UserPreference<>(Boolean.class, R.string.pref_camera_rotate_key, R.bool.pref_camera_rotate_defaultValue);
     }
 
+    public static final class Layout {
+        public static final UserPreference<Boolean> IncludeReceiptDateInLayout = new UserPreference<>(Boolean.class, R.string.pref_layout_display_date_key, R.bool.pref_layout_display_date_defaultValue);
+        public static final UserPreference<Boolean> IncludeReceiptCategoryInLayout = new UserPreference<>(Boolean.class, R.string.pref_layout_display_category_key, R.bool.pref_layout_display_category_defaultValue);
+        public static final UserPreference<Boolean> IncludeReceiptFileMarkerInLayout = new UserPreference<>(Boolean.class, R.string.pref_layout_display_photo_key, R.bool.pref_layout_display_photo_defaultValue);
+    }
+
     private static List<UserPreference<?>> CACHED_VALUES;
 
     private final Class<T> type;

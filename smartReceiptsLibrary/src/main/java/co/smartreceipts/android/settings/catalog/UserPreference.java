@@ -16,8 +16,6 @@ import co.smartreceipts.android.utils.log.Logger;
 
 public final class UserPreference<T> {
 
-    public static final int UNKNOWN_RES = -1;
-
     public static final class General {
         public static final UserPreference<Integer> DefaultReportDuration = new UserPreference<>(Integer.class, R.string.pref_general_trip_duration_key, R.integer.pref_general_trip_duration_defaultValue);
         public static final UserPreference<String> DefaultCurrency = new UserPreference<>(String.class, R.string.pref_general_default_currency_key, R.string.pref_general_default_currency_defaultValue);
@@ -26,7 +24,7 @@ public final class UserPreference<T> {
     }
 
     public static final class Receipts {
-        public static final UserPreference<Float> MinimumReceiptPrice = new UserPreference<>(Float.class, R.string.pref_receipt_minimum_receipts_price_key);
+        public static final UserPreference<Float> MinimumReceiptPrice = new UserPreference<>(Float.class, R.string.pref_receipt_minimum_receipts_price_key, R.dimen.pref_receipt_minimum_receipts_price_defaultValue);
         public static final UserPreference<Float> DefaultTaxPercentage = new UserPreference<>(Float.class, R.string.pref_receipt_tax_percent_key, R.dimen.pref_receipt_tax_percent_defaultValue);
         public static final UserPreference<Boolean> PredictCategories = new UserPreference<>(Boolean.class, R.string.pref_receipt_predict_categories_key, R.bool.pref_receipt_predict_categories_defaultValue);
         public static final UserPreference<Boolean> EnableAutoCompleteSuggestions = new UserPreference<>(Boolean.class, R.string.pref_receipt_enable_autocomplete_key, R.bool.pref_receipt_enable_autocomplete_defaultValue);
@@ -86,10 +84,6 @@ public final class UserPreference<T> {
     private final Class<T> type;
     private final int name;
     private final int defaultValue;
-
-    private UserPreference(@NonNull Class<T> type, @StringRes int name) {
-        this(type, name, UNKNOWN_RES);
-    }
 
     private UserPreference(@NonNull Class<T> type, @StringRes int name, @AnyRes int defaultValue) {
         this.type = Preconditions.checkNotNull(type);

@@ -7,6 +7,7 @@
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============== Preference Receipt ================ -->
+    <item name="pref_receipt_minimum_receipts_price_defaultValue" format="float" type="dimen">0.0</item>
     <bool name="pref_receipt_predict_categories_defaultValue">true</bool>
     <bool name="pref_receipt_match_name_to_category_defaultValue">false</bool>
     <bool name="pref_receipt_match_comment_to_category_defaultValue">false</bool>

@@ -87,7 +87,7 @@ public class UserPreferenceTest {
     public void receipts() {
         Assert.assertEquals(UserPreference.Receipts.MinimumReceiptPrice.getType(), Float.class);
         Assert.assertEquals(name(UserPreference.Receipts.MinimumReceiptPrice), "MinReceiptPrice");
-        Assert.assertEquals(UserPreference.Receipts.MinimumReceiptPrice.getDefaultValue(), UserPreference.UNKNOWN_RES);
+        Assert.assertEquals(UserPreference.Receipts.MinimumReceiptPrice.getDefaultValue(), R.dimen.pref_receipt_minimum_receipts_price_defaultValue);
 
         Assert.assertEquals(UserPreference.Receipts.DefaultTaxPercentage.getType(), Float.class);
         Assert.assertEquals(name(UserPreference.Receipts.DefaultTaxPercentage), "TaxPercentage");

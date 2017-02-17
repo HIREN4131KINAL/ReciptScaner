@@ -10,7 +10,7 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class WhiteLabelFriendlyTableDefaultsCustomizer implements TableDefaultsCustomizer {
-    
+
     private final TableDefaultsCustomizer mTableDefaultsCustomizer;
 
     public WhiteLabelFriendlyTableDefaultsCustomizer(@NonNull SmartReceiptsApplication smartReceiptsApplication,

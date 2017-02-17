@@ -110,10 +110,6 @@ public class WBListFragment extends ListFragment {
 					throw new RuntimeException("The Application must be an instance a SmartReceiptsApplication");
 				}
 			}
-			else {
-				// We're in a weird state and probably will crash soon... But just in case
-				mApplication = SmartReceiptsApplication.getInstance();
-			}
 		}
 		return mApplication;
 	}

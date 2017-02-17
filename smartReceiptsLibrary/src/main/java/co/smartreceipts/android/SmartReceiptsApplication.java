@@ -59,11 +59,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private ServiceManager mServiceManager;
     private boolean mDeferFirstRunDialog;
 
-    /**
-     * The {@link Application} class is a singleton, so we can cache it here for emergency restoration
-     */
-    private static SmartReceiptsApplication sApplication;
-
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -77,8 +72,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         WBUncaughtExceptionHandler.initialize();
 
         Logger.debug(this, "\n\n\n\n Launching App...");
-
-        sApplication = this;
+        
         mDeferFirstRunDialog = false;
         mFlex = instantiateFlex();
         mConfigurationManager = instantiateConfigurationManager();
@@ -107,11 +101,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath() ;
         System.setProperty("LOG_DIR", logDirPath);
-    }
-
-    @Deprecated
-    public static SmartReceiptsApplication getInstance() {
-        return sApplication;
     }
 
     @Override

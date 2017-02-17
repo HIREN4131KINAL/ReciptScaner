@@ -37,13 +37,9 @@ public abstract class AbstractPreferenceHeaderFragment extends android.preferenc
         mSettingsActivity.setFragmentHeaderIsShowing(true);
         setHasOptionsMenu(true); // Required to simulate up navigation
         getPreferenceManager().setSharedPreferencesName(UserPreferenceManager.PREFERENCES_FILE_NAME);
-        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferences());
-
 
         addPreferencesFromResource(getPreferencesResourceId());
         configurePreferences();
-
-
     }
 
     @Override

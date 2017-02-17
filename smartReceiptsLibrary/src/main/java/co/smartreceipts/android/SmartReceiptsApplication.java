@@ -35,7 +35,6 @@ import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
-import wb.android.google.camera.app.GalleryAppImpl;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
@@ -44,7 +43,7 @@ import wb.android.storage.StorageManager;
  *
  * @author WRB
  */
-public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, VersionUpgradedListener {
+public class SmartReceiptsApplication extends Application implements Flexable, VersionUpgradedListener {
 
     private WorkerManager mWorkerManager;
     private PersistenceManager mPersistenceManager;

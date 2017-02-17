@@ -9,8 +9,6 @@ import android.graphics.Paint;
 import android.media.ExifInterface;
 import android.util.Log;
 
-import wb.android.BuildConfig;
-
 public class ImageUtils {
 
     private static final String TAG = ImageUtils.class.getSimpleName();
@@ -110,9 +108,7 @@ public class ImageUtils {
             bitmap.recycle();
             return bmRotated;
         } catch (OutOfMemoryError e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, e.toString());
-            }
+            Log.e(TAG, e.toString());
             return bitmap;
         }
     }

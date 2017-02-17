@@ -30,7 +30,6 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
-import wb.android.google.camera.PhotoModule;
 import wb.android.storage.StorageManager;
 
 public class ActivityFileResultImporter {
@@ -173,8 +172,6 @@ public class ActivityFileResultImporter {
                             subscriber.onCompleted();
                         }
                     }
-                } else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-                    subscriber.onError(new FileNotFoundException("Failed to save request " + requestCode + " with result " + resultCode));
                 } else {
                     Logger.warn(ActivityFileResultImporter.this, "Unknown activity result code (likely user cancelled): {} ", resultCode);
                     subscriber.onCompleted();

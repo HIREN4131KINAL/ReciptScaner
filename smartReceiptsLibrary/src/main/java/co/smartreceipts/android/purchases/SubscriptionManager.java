@@ -30,7 +30,6 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
-import wb.android.google.camera.data.Log;
 
 public final class SubscriptionManager {
 

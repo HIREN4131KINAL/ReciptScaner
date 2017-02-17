@@ -7,18 +7,16 @@ import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
-import wb.android.google.camera.data.Log;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class WhiteLabelFriendlyTableDefaultsCustomizer implements TableDefaultsCustomizer {
-
-    private static final String TAG = WhiteLabelFriendlyTableDefaultsCustomizer.class.getSimpleName();
-
+    
     private final TableDefaultsCustomizer mTableDefaultsCustomizer;
 
     public WhiteLabelFriendlyTableDefaultsCustomizer(@NonNull SmartReceiptsApplication smartReceiptsApplication,
                                                      @NonNull TableDefaultsCustomizer tableDefaultsCustomizer) {
         if (smartReceiptsApplication instanceof TableDefaultsCustomizer) {
-            Log.w(TAG, "Using a white labeled set of table defaults");
+            Logger.warn(this, "Using a white labeled set of table defaults");
             mTableDefaultsCustomizer = (TableDefaultsCustomizer) smartReceiptsApplication;
         } else {
             mTableDefaultsCustomizer = tableDefaultsCustomizer;

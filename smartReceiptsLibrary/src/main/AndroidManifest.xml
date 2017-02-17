@@ -79,14 +79,6 @@
             android:configChanges="orientation|keyboardHidden|screenSize" >
         </activity>
 
-        <activity android:name="wb.android.google.camera.CameraActivity"
-                  android:taskAffinity="wb.android.google.camera.CameraActivity"
-                  android:theme="@style/Theme.Camera"
-                  android:configChanges="orientation|screenSize|keyboardHidden"
-                  android:clearTaskOnLaunch="true"
-                  android:screenOrientation="portrait"
-                  android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
-
         <service android:name=".sync.drive.services.DriveCompletionEventService" android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.drive.events.HANDLE_EVENT"/>

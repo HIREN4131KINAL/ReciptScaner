@@ -129,4 +129,31 @@ public class UserPreferenceManager {
         }
     }
 
+    @NonNull
+    public <T> Observable<T> setObservable(final UserPreference<T> preference, final T t) {
+        return Observable.create(new Observable.OnSubscribe<T>() {
+            @Override
+            public void call(Subscriber<? super T> subscriber) {
+                set(preference, t);
+                subscriber.onNext(t);
+                subscriber.onCompleted();
+            }
+        });
+    }
+
+    public <T> void set(UserPreference<T> preference, T t) {
+        final String name = context.getString(preference.getName());
+        if (Boolean.class.equals(preference.getType())) {
+            preferences.edit().putBoolean(name, (Boolean) t).apply();
+        } else if (String.class.equals(preference.getType())) {
+            preferences.edit().putString(name, (String) t).apply();
+        } else if (Float.class.equals(preference.getType())) {
+            preferences.edit().putFloat(name, (Float) t).apply();
+        } else if (Integer.class.equals(preference.getType())) {
+            preferences.edit().putInt(name, (Integer) t).apply();
+        }  else {
+            throw new IllegalArgumentException("Unsupported preference type: " + preference.getType());
+        }
+    }
+
 }

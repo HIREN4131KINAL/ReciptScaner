@@ -105,4 +105,64 @@ public class UserPreferenceManagerTest {
         testSubscriber.assertNoErrors();
     }
 
+    @Test
+    public void setInteger() {
+        final UserPreference<Integer> intPreference = UserPreference.General.DefaultReportDuration;
+        final int intVal = 999;
+
+        userPreferenceManager.set(intPreference, 999);
+        assertEquals(intVal, (long) userPreferenceManager.get(intPreference));
+
+        final TestSubscriber<Integer> testSubscriber = new TestSubscriber<>();
+        userPreferenceManager.setObservable(intPreference, intVal).subscribe(testSubscriber);
+        testSubscriber.assertValue(intVal);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
+    @Test
+    public void setBoolean() {
+        final UserPreference<Boolean> booleanPreference = UserPreference.Receipts.UsePaymentMethods;
+        final boolean boolVal = true;
+
+        userPreferenceManager.set(booleanPreference, boolVal);
+        assertEquals(boolVal, userPreferenceManager.get(booleanPreference));
+
+        final TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
+        userPreferenceManager.setObservable(booleanPreference, boolVal).subscribe(testSubscriber);
+        testSubscriber.assertValue(boolVal);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
+    @Test
+    public void setString() {
+        final UserPreference<String> stringPreference = UserPreference.PlusSubscription.PdfFooterString;
+        final String stringVal = "test";
+
+        userPreferenceManager.set(stringPreference, stringVal);
+        assertEquals(stringVal, userPreferenceManager.get(stringPreference));
+
+        final TestSubscriber<String> testSubscriber = new TestSubscriber<>();
+        userPreferenceManager.setObservable(stringPreference, stringVal).subscribe(testSubscriber);
+        testSubscriber.assertValue(stringVal);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
+    @Test
+    public void setFloat() {
+        final UserPreference<Float> floatPreference = UserPreference.Receipts.DefaultTaxPercentage;
+        final float floatVal = 55.5f;
+
+        userPreferenceManager.set(floatPreference, floatVal);
+        assertEquals(floatVal, userPreferenceManager.get(floatPreference), TestUtils.EPSILON);
+
+        final TestSubscriber<Float> testSubscriber = new TestSubscriber<>();
+        userPreferenceManager.setObservable(floatPreference, floatVal).subscribe(testSubscriber);
+        testSubscriber.assertValue(floatVal);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
 }

@@ -84,7 +84,7 @@ public final class UserPreference<T> {
     private final int name;
     private final int defaultValue;
 
-    private UserPreference(@NonNull Class<T> type, @StringRes int name, @AnyRes int defaultValue) {
+    public UserPreference(@NonNull Class<T> type, @StringRes int name, @AnyRes int defaultValue) {
         this.type = Preconditions.checkNotNull(type);
         this.name = name;
         this.defaultValue = defaultValue;

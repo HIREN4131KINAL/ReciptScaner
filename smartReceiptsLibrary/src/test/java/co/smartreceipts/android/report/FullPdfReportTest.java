@@ -2,7 +2,6 @@ package co.smartreceipts.android.report;
 
 
 import android.content.Context;
-import android.preference.PreferenceManager;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -16,7 +15,6 @@ import java.io.File;
 
 import co.smartreceipts.android.AbstractPdfBoxFullReportTest;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 

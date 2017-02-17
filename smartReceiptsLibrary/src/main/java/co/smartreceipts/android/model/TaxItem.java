@@ -5,7 +5,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 import android.text.TextUtils;
-import co.smartreceipts.android.persistence.Preferences;
+
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;

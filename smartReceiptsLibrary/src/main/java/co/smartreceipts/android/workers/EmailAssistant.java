@@ -38,7 +38,6 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.impl.columns.distance.DistanceColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;
@@ -233,7 +232,6 @@ public class EmailAssistant {
 
         private final StorageManager mStorageManager;
         private final DatabaseHelper mDB;
-        private final Preferences mPreferences;
         private final UserPreferenceManager mPreferenceManager;
         private final WeakReference<ProgressDialog> mProgressDialog;
         private final File[] mFiles;
@@ -245,7 +243,6 @@ public class EmailAssistant {
                                      EnumSet<EmailOptions> options) {
             mStorageManager = persistenceManager.getStorageManager();
             mDB = persistenceManager.getDatabase();
-            mPreferences = persistenceManager.getPreferences();
             mPreferenceManager = persistenceManager.getPreferenceManager();
             mProgressDialog = new WeakReference<>(dialog);
             mOptions = options;

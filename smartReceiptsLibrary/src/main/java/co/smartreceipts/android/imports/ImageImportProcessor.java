@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;

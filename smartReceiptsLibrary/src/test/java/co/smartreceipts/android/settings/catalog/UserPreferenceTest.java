@@ -61,6 +61,7 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports));
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.ShowDistanceAsPriceInSubtotal));
         Assert.assertTrue(userPreferences.contains(UserPreference.PlusSubscription.PdfFooterString));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Misc.AutoBackupOnWifiOnly));
     }
 
     @Test
@@ -237,6 +238,13 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.PlusSubscription.PdfFooterString.getType(), String.class);
         Assert.assertEquals(name(UserPreference.PlusSubscription.PdfFooterString), "PdfFooterString");
         Assert.assertEquals(UserPreference.PlusSubscription.PdfFooterString.getDefaultValue(), R.string.pref_pro_pdf_footer_defaultValue);
+    }
+
+    @Test
+    public void misc() {
+        Assert.assertEquals(UserPreference.Misc.AutoBackupOnWifiOnly.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Misc.AutoBackupOnWifiOnly), "AutoBackupWifiOnly");
+        Assert.assertEquals(UserPreference.Misc.AutoBackupOnWifiOnly.getDefaultValue(), R.bool.pref_no_category_auto_backup_wifi_only_defaultValue);
     }
 
     @NonNull

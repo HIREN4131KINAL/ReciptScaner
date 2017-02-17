@@ -2,7 +2,6 @@ package co.smartreceipts.android.date;
 
 import java.sql.Date;
 
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 

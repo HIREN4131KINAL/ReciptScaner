@@ -78,13 +78,17 @@ public final class UserPreference<T> {
         public static final UserPreference<String> PdfFooterString = new UserPreference<>(String.class, R.string.pref_pro_pdf_footer_key, R.string.pref_pro_pdf_footer_defaultValue);
     }
 
+    public static final class Misc {
+        public static final UserPreference<Boolean> AutoBackupOnWifiOnly = new UserPreference<>(Boolean.class, R.string.pref_no_category_auto_backup_wifi_only_key, R.bool.pref_no_category_auto_backup_wifi_only_defaultValue);
+    }
+
     private static List<UserPreference<?>> CACHED_VALUES;
 
     private final Class<T> type;
     private final int name;
     private final int defaultValue;
 
-    public UserPreference(@NonNull Class<T> type, @StringRes int name, @AnyRes int defaultValue) {
+    private UserPreference(@NonNull Class<T> type, @StringRes int name, @AnyRes int defaultValue) {
         this.type = Preconditions.checkNotNull(type);
         this.name = name;
         this.defaultValue = defaultValue;

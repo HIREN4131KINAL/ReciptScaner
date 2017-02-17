@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;

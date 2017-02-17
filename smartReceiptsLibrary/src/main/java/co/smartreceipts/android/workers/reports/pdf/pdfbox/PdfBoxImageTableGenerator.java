@@ -9,7 +9,6 @@ import java.util.List;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;

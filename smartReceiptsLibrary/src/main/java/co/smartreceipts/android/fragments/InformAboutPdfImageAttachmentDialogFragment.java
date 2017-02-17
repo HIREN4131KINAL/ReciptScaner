@@ -14,9 +14,7 @@ import com.google.common.base.Preconditions;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
-import co.smartreceipts.android.settings.catalog.UserPreference;
 
 public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 

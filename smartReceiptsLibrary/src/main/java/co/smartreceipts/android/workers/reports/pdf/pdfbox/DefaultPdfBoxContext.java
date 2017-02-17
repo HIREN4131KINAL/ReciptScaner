@@ -9,7 +9,6 @@ import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.util.Map;
 
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class DefaultPdfBoxContext implements PdfBoxContext {

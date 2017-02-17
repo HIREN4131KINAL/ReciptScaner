@@ -1,7 +1,6 @@
 package co.smartreceipts.android.imports;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,9 +16,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;

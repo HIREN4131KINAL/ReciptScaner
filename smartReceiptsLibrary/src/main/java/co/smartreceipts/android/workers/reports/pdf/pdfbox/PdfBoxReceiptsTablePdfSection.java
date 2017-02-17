@@ -13,14 +13,12 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
-import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;

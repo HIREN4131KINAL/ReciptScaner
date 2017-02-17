@@ -3,7 +3,6 @@ package co.smartreceipts.android.imports;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.RectF;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
@@ -17,7 +16,6 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
-import org.robolectric.internal.Shadow;
 import org.robolectric.shadows.ShadowBitmap;
 import org.robolectric.shadows.ShadowMatrix;
 
@@ -27,7 +25,6 @@ import java.io.IOException;
 
 import co.smartreceipts.android.TestResourceReader;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import rx.Observable;

@@ -11,7 +11,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -25,7 +24,6 @@ import com.google.common.base.Preconditions;
 import com.squareup.picasso.Picasso;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.Syncable;

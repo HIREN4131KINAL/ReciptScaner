@@ -23,7 +23,6 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;

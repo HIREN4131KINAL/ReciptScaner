@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;

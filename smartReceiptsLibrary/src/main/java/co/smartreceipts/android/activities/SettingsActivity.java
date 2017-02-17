@@ -40,7 +40,6 @@ import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePrefer
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;

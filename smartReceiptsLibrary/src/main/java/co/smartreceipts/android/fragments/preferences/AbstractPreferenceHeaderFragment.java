@@ -10,7 +10,6 @@ import android.view.MenuItem;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.SettingsActivity;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public abstract class AbstractPreferenceHeaderFragment extends android.preference.PreferenceFragment implements UniversalPreferences {

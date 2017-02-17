@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Locale;
 
 import co.smartreceipts.android.date.DateUtils;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
@@ -95,7 +94,12 @@ public class UserPreferenceManager {
                 });
     }
 
+    /**
+     * @return the current {@link SharedPreferences} implementation. This is now deprecated, and users
+     * should prefer the {@link #set(UserPreference, Object)} method instead to interact with this component
+     */
     @NonNull
+    @Deprecated
     public SharedPreferences getSharedPreferences() {
         return preferences;
     }

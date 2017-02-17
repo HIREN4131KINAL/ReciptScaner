@@ -11,7 +11,6 @@ import com.squareup.picasso.Picasso;
 
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;

@@ -22,10 +22,11 @@ import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.settings.versions.AppVersionManager;
+import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
@@ -43,7 +44,7 @@ import wb.android.storage.StorageManager;
  *
  * @author WRB
  */
-public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener {
+public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, VersionUpgradedListener {
 
     private WorkerManager mWorkerManager;
     private PersistenceManager mPersistenceManager;
@@ -83,12 +84,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         mConfigurationManager = instantiateConfigurationManager();
         mWorkerManager = instantiateWorkerManager();
         mPersistenceManager = instantiatePersistenceManager();
-        mPersistenceManager.initDatabase(); // TODO: Fix anti-pattern
-        mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
-        // in onVersionUpgrade
+        mPersistenceManager.initialize(); // TODO: Fix this circular injection pattern
+
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
         mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferenceManager(), mFlex));
-        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
+        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferenceManager());
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
@@ -97,8 +97,11 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
         PDFBoxResourceLoader.init(getApplicationContext());
         
-	// Clear our cache
+	    // Clear our cache
         new SmartReceiptsTemporaryFileCache(this).resetCache();
+
+        // Check if a new version is available
+        new AppVersionManager(this, mPersistenceManager.getPreferenceManager()).onLaunch(this);
     }
 
     private void configureLog() {
@@ -203,9 +206,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
                     if (sdDB.exists()) {
                         sdDB.delete();
                     }
-                    if (BuildConfig.DEBUG) {
-                        Logger.debug(this, "Copying the database file from {} to {}", db.getAbsolutePath(), sdDB.getAbsolutePath());
-                    }
+                    Logger.debug(this, "Copying the database file from {} to {}", db.getAbsolutePath(), sdDB.getAbsolutePath());
                     try {
                         external.copy(db, sdDB, true);
                     } catch (IOException e) {
@@ -214,7 +215,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
                 }
             } catch (SDCardStateException e) {
             }
-            oldVersion++;
         }
     }
 

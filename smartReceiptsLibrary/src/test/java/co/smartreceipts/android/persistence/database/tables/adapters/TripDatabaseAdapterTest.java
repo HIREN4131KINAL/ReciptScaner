@@ -14,12 +14,9 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;

@@ -14,10 +14,9 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
@@ -28,12 +27,14 @@ import rx.schedulers.Schedulers;
 
 public class UserPreferenceManager {
 
+    public static final String PREFERENCES_FILE_NAME = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
+
     private final Context context;
     private final SharedPreferences preferences;
     private final Scheduler initializationScheduler;
 
     public UserPreferenceManager(@NonNull Context context) {
-        this(context.getApplicationContext(), context.getSharedPreferences(Preferences.SMART_PREFS, 0), Schedulers.io());
+        this(context.getApplicationContext(), context.getSharedPreferences(PREFERENCES_FILE_NAME, 0), Schedulers.io());
     }
 
     @VisibleForTesting

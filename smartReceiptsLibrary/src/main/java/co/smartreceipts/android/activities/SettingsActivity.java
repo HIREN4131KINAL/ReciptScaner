@@ -79,7 +79,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
         if (!mIsUsingHeaders) {
             // Load the legacy preferences headers
-            getPreferenceManager().setSharedPreferencesName(Preferences.SMART_PREFS);
+            getPreferenceManager().setSharedPreferencesName(UserPreferenceManager.PREFERENCES_FILE_NAME);
             getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences());
             addPreferencesFromResource(R.xml.preference_legacy);
             configurePreferencesGeneral(this);

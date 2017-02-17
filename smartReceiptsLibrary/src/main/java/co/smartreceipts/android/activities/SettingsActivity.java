@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -356,6 +357,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_help_send_feedback_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_send_love_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_support_email_key).setOnPreferenceClickListener(this);
+        universal.findPreference(R.string.pref_about_privacy_policy_key).setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesAbout(UniversalPreferences universal) {
@@ -405,6 +407,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }
+            return true;
+        } else if (key.equals(getString(R.string.pref_about_privacy_policy_key))) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.smartreceipts.co/privacy")));
             return true;
         } else {
             return false;

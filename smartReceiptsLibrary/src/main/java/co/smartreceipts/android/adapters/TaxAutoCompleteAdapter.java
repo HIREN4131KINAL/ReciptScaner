@@ -18,7 +18,8 @@ import co.smartreceipts.android.model.TaxItem;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements TextWatcher, View.OnFocusChangeListener {
-	
+
+    private static final BigDecimal VAT_0 = BigDecimal.ZERO;
 	private static final BigDecimal VAT_5_5 = new BigDecimal(5.5f);
 	private static final BigDecimal VAT_10 = new BigDecimal(10);
 	private static final BigDecimal VAT_20 = new BigDecimal(20);
@@ -39,7 +40,7 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, UserPreferenceManager preferences, float defaultValue) {
 		super(context, android.R.layout.two_line_list_item);
 		mInflater = LayoutInflater.from(context);
-		mData = new Vector<TaxItem>();
+		mData = new Vector<>();
 		mListItemId = android.R.layout.two_line_list_item;
 		mDefaultValue = new TaxItem(defaultValue, preferences);
 		mPriceBox = new WeakReference<>(priceBox);
@@ -117,6 +118,7 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 				if (this.hasDefaultValue()) {
 					mData.add(mDefaultValue);
 				}
+                mData.add(new TaxItem(VAT_0, mPreferences));
 				mData.add(new TaxItem(VAT_5_5, mPreferences));
 				mData.add(new TaxItem(VAT_10, mPreferences));
 				mData.add(new TaxItem(VAT_20, mPreferences));

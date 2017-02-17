@@ -215,6 +215,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         this.currencySpinner.setOnFocusChangeListener(this);
         this.dateBox.setOnFocusChangeListener(this);
         this.commentBox.setOnFocusChangeListener(this);
+        this.paymentMethodsSpinner.setOnFocusChangeListener(this);
 
         // Custom view properties
         exchangeRateBox.setFailedHint(R.string.DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED);
@@ -223,6 +224,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
         currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        paymentMethodsSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
 
         // Show default dictionary with auto-complete
         nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));

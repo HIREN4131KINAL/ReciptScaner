@@ -72,7 +72,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
         WBUncaughtExceptionHandler.initialize();
 
         Logger.debug(this, "\n\n\n\n Launching App...");
-        
+
         mDeferFirstRunDialog = false;
         mFlex = instantiateFlex();
         mConfigurationManager = instantiateConfigurationManager();

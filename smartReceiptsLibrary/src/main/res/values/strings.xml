@@ -357,7 +357,7 @@
     <!-- ===================== backup menu ======================== -->
     <string name="backups">Backups</string>
     <string name="manual_backup_title">Manual Backups:</string>
-    <string name="manual_backup_description">Back up your data to keep your receipts safe! You can restore your data by importing the SmartReceipts.SMR backup file, which is generated via the "Export" button below.</string>
+    <string name="manual_backup_description">Back up your data to keep your receipts safe! You can restore your data by importing the SmartReceipts.SMR backup file, which is generated via the "Backup" button below.</string>
     <string name="manual_backup_export">Backup</string>
     <string name="manual_backup_import">Import</string>
     <string name="auto_backup_title">Automatic Backups [BETA]:</string>

@@ -180,11 +180,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             case RequestCodes.IMPORT_GALLERY_IMAGE:
                             case RequestCodes.IMPORT_GALLERY_PDF:
                             case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                            case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
                                 mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, response.getFile());
                                 break;
                             case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
-                            case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
                                 final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(response.getFile()).build();
                                 mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
                                 break;
@@ -261,7 +259,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addPictureReceipt() {
-        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto();
+        mImageUri = new CameraInteractionController(this).takePhoto();
     }
 
     public final void addTextReceipt() {
@@ -352,7 +350,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             mNavigationHandler.navigateToEditReceiptFragment(mTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
-                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto();
+                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this).addPhoto();
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
                                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);

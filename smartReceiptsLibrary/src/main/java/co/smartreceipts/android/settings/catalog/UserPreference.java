@@ -55,7 +55,6 @@ public final class UserPreference<T> {
     }
 
     public static final class Camera {
-        public static final UserPreference<Boolean> UseNativeCamera = new UserPreference<>(Boolean.class, R.string.pref_camera_use_native_camera_key, R.bool.pref_camera_use_native_camera_defaultValue);
         public static final UserPreference<Boolean> SaveImagesInGrayScale = new UserPreference<>(Boolean.class, R.string.pref_camera_bw_key, R.bool.pref_camera_bw_defaultValue);
         public static final UserPreference<Boolean> AutomaticallyRotateImages = new UserPreference<>(Boolean.class, R.string.pref_camera_rotate_key, R.bool.pref_camera_rotate_defaultValue);
     }

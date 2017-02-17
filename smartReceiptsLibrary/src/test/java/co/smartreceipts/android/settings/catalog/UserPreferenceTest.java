@@ -49,7 +49,6 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.CcAddresses));
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.BccAddresses));
         Assert.assertTrue(userPreferences.contains(UserPreference.Email.Subject));
-        Assert.assertTrue(userPreferences.contains(UserPreference.Camera.UseNativeCamera));
         Assert.assertTrue(userPreferences.contains(UserPreference.Camera.SaveImagesInGrayScale));
         Assert.assertTrue(userPreferences.contains(UserPreference.Camera.AutomaticallyRotateImages));
         Assert.assertTrue(userPreferences.contains(UserPreference.Layout.IncludeReceiptDateInLayout));
@@ -182,10 +181,6 @@ public class UserPreferenceTest {
 
     @Test
     public void camera() {
-        Assert.assertEquals(UserPreference.Camera.UseNativeCamera.getType(), Boolean.class);
-        Assert.assertEquals(name(UserPreference.Camera.UseNativeCamera), "UseNativeCamera");
-        Assert.assertEquals(UserPreference.Camera.UseNativeCamera.getDefaultValue(), R.bool.pref_camera_use_native_camera_defaultValue);
-
         Assert.assertEquals(UserPreference.Camera.SaveImagesInGrayScale.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Camera.SaveImagesInGrayScale), "SaveBW");
         Assert.assertEquals(UserPreference.Camera.SaveImagesInGrayScale.getDefaultValue(), R.bool.pref_camera_bw_defaultValue);

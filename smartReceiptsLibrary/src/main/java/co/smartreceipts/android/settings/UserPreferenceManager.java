@@ -76,11 +76,6 @@ public class UserPreferenceManager {
                                         preferences.edit().putFloat(preferenceName, defaultMinimumReceiptPrice).apply();
                                         Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, defaultMinimumReceiptPrice);
                                     }
-                                } else if (UserPreference.Camera.UseNativeCamera.equals(userPreference)) {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                        preferences.edit().putBoolean(preferenceName, true).apply();
-                                        Logger.debug(UserPreferenceManager.this, "We always use the native camera for M+");
-                                    }
                                 } else if (Float.class.equals(userPreference.getType())) {
                                     final TypedValue typedValue = new TypedValue();
                                     context.getResources().getValue(userPreference.getDefaultValue(), typedValue, true);

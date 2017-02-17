@@ -111,9 +111,6 @@
     <string name="pref_email_default_email_subject_title">Default Email Subject</string>
 
     <!-- ============= Preference Camera ================= -->
-    <string name="pref_camera_use_native_camera_key" translatable="false">UseNativeCamera</string>
-    <string name="pref_camera_use_native_camera_title">Use Native Camera</string>
-    <string name="pref_camera_use_native_camera_summary">Use the Built-In Device Camera</string>
     <string name="pref_camera_bw_key" translatable="false">SaveBW</string>
     <string name="pref_camera_bw_title">Convert to Grayscale</string>
     <string name="pref_camera_bw_summary">Saves image in black and white</string>

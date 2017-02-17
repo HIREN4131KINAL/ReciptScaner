@@ -110,7 +110,7 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onClick(View view) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRetakePhoto);
-                mImageUri = new CameraInteractionController(ReceiptImageFragment.this, getPersistenceManager()).retakePhoto(mReceipt);
+                mImageUri = new CameraInteractionController(ReceiptImageFragment.this).retakePhoto(mReceipt);
             }
         });
         rotateCW.setOnClickListener(new View.OnClickListener() {

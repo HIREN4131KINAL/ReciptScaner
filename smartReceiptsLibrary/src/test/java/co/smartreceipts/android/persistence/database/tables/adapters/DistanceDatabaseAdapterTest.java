@@ -137,9 +137,15 @@ public class DistanceDatabaseAdapterTest {
     }
 
     @Test
-    public void readForSelection() throws Exception {
+    public void readForSelectionDescending() throws Exception {
         final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
-        assertEquals(distance, mDistanceDatabaseAdapter.readForSelection(mCursor, mTrip));
+        assertEquals(distance, mDistanceDatabaseAdapter.readForSelection(mCursor, mTrip, true));
+    }
+
+    @Test
+    public void readForSelectionAscending() throws Exception {
+        final Distance distance = new DistanceBuilderFactory(ID).setTrip(mTrip).setLocation(LOCATION).setDistance(DISTANCE).setDate(DATE).setTimezone(TIMEZONE).setRate(RATE).setCurrency(CURRENCY_CODE).setComment(COMMENT).setSyncState(mSyncState).build();
+        assertEquals(distance, mDistanceDatabaseAdapter.readForSelection(mCursor, mTrip, false));
     }
 
     @Test

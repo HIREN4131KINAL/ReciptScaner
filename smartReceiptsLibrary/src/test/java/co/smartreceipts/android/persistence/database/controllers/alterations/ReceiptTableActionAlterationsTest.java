@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.controllers.alterations;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,11 +22,13 @@ import co.smartreceipts.android.model.factory.BuilderFactory1;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import rx.Observable;
+import rx.observers.TestSubscriber;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -41,6 +44,10 @@ public class ReceiptTableActionAlterationsTest {
 
     // Class under test
     ReceiptTableActionAlterations mReceiptTableActionAlterations;
+
+    File file1;
+
+    File file2;
 
     @Mock
     ReceiptsTable mReceiptsTable;
@@ -98,6 +105,17 @@ public class ReceiptTableActionAlterationsTest {
         mReceiptTableActionAlterations = new ReceiptTableActionAlterations(mReceiptsTable, mStorageManager, mReceiptBuilderFactoryFactory);
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @After
+    public void tearDown() throws Exception {
+        if (file1 != null) {
+            file1.delete();
+        }
+        if (file2 != null) {
+            file2.delete();
+        }
+    }
+
     @Test
     public void preInsertWithoutFile() {
         final String name = "name";
@@ -138,6 +156,120 @@ public class ReceiptTableActionAlterationsTest {
     public void receiptNameWithIllegalCharacters() {
         final List<Receipt> receiptsInTrip = Arrays.asList(mock(Receipt.class), mock(Receipt.class), mock(Receipt.class));
         when(mReceiptsTable.get(mTrip)).thenReturn(Observable.just(receiptsInTrip));
+    }
+
+    @Test
+    public void preUpdateWithoutFile() {
+        final Receipt oldReceipt = mock(Receipt.class);
+        when(mReceipt.getFile()).thenReturn(null);
+        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
+
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
+        testSubscriber.assertValue(mReceipt);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
+    @Test
+    public void preUpdateWithBrandNewFile() {
+        final String name = "name";
+        final Receipt oldReceipt = mock(Receipt.class);
+        when(oldReceipt.getFile()).thenReturn(null);
+        when(mReceipt.getIndex()).thenReturn(4);
+        when(mReceipt.getName()).thenReturn(name);
+        when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
+        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
+
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
+        assertNotNull(onNextResults);
+        assertTrue(onNextResults.size() == 1);
+        final Receipt result = onNextResults.get(0);
+        assertEquals(new File("4_name.jpg"), result.getFile());
+    }
+
+    @Test
+    public void preUpdateWithUpdatedFile() throws Exception {
+        this.file1 = new File("1_name.jpg");
+        this.file2 = new File("12345.jpg");
+        assertTrue(this.file1.createNewFile());
+        assertTrue(this.file2.createNewFile());
+
+        final String name = "name";
+        final Receipt oldReceipt = mock(Receipt.class);
+        when(oldReceipt.getIndex()).thenReturn(1);
+        when(oldReceipt.getName()).thenReturn(name);
+        when(oldReceipt.getFile()).thenReturn(file1);
+        when(mReceipt.getIndex()).thenReturn(1);
+        when(mReceipt.getName()).thenReturn(name);
+        when(mReceipt.getFile()).thenReturn(file2);
+        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
+
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
+        assertNotNull(onNextResults);
+        assertTrue(onNextResults.size() == 1);
+        final Receipt result = onNextResults.get(0);
+        assertNotNull(result.getFile());
+        assertEquals("1_name.jpg", result.getFile().getName());
+    }
+
+    @Test
+    public void preUpdateWithUpdatedFileAndFileType() throws Exception {
+        this.file1 = new File("1_name.jpg");
+        this.file2 = new File("12345.pdf");
+        assertTrue(this.file1.createNewFile());
+        assertTrue(this.file2.createNewFile());
+
+        final String name = "name";
+        final Receipt oldReceipt = mock(Receipt.class);
+        when(oldReceipt.getIndex()).thenReturn(1);
+        when(oldReceipt.getName()).thenReturn(name);
+        when(oldReceipt.getFile()).thenReturn(file1);
+        when(mReceipt.getIndex()).thenReturn(1);
+        when(mReceipt.getName()).thenReturn(name);
+        when(mReceipt.getFile()).thenReturn(file2);
+        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
+
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
+        assertNotNull(onNextResults);
+        assertTrue(onNextResults.size() == 1);
+        final Receipt result = onNextResults.get(0);
+        assertNotNull(result.getFile());
+        assertEquals("1_name.pdf", result.getFile().getName());
+    }
+
+    @Test
+    public void preUpdateWithNewIndex() {
+        final String name = "name";
+        final Receipt oldReceipt = mock(Receipt.class);
+        when(oldReceipt.getIndex()).thenReturn(1);
+        when(oldReceipt.getName()).thenReturn(name);
+        when(oldReceipt.getFile()).thenReturn(new File("1_name.jpg"));
+        when(mReceipt.getIndex()).thenReturn(4);
+        when(mReceipt.getName()).thenReturn(name);
+        when(mReceipt.getFile()).thenReturn(new File("1_name.jpg"));
+        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
+
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
+        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
+        assertNotNull(onNextResults);
+        assertTrue(onNextResults.size() == 1);
+        final Receipt result = onNextResults.get(0);
+        assertEquals(new File("4_name.jpg"), result.getFile());
     }
 
     @Test

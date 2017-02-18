@@ -202,23 +202,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     public synchronized void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Logger.info(this, "#update: {}; {}", oldModelType, newModelType);
         final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTableActionAlterations.preUpdate(oldModelType, newModelType)
-                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
-                    @Override
-                    public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.update(oldModelType, modelType, databaseOperationMetadata);
-                    }
-                })
-                .doOnNext(new Action1<ModelType>() {
-                    @Override
-                    public void call(ModelType modelType) {
-                        try {
-                            mTableActionAlterations.postUpdate(oldModelType, modelType);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
-                    }
-                })
+        final Subscription subscription = updateObservable(oldModelType, newModelType, databaseOperationMetadata)
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
                 .subscribe(new Action1<ModelType>() {
@@ -255,6 +239,26 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 });
         subscriptionRef.set(subscription);
         mCompositeSubscription.add(subscription);
+    }
+
+    protected synchronized Observable<ModelType> updateObservable(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return mTableActionAlterations.preUpdate(oldModelType, newModelType)
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
+                    @Override
+                    public Observable<ModelType> call(ModelType modelType) {
+                        return mTable.update(oldModelType, modelType, databaseOperationMetadata);
+                    }
+                })
+                .doOnNext(new Action1<ModelType>() {
+                    @Override
+                    public void call(ModelType modelType) {
+                        try {
+                            mTableActionAlterations.postUpdate(oldModelType, modelType);
+                        } catch (Exception e) {
+                            throw Exceptions.propagate(e);
+                        }
+                    }
+                });
     }
 
     @Override

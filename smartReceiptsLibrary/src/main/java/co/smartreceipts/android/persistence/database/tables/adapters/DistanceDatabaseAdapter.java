@@ -7,12 +7,8 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 
 import java.math.BigDecimal;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
-import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -45,13 +41,13 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
     public Distance read(@NonNull Cursor cursor) {
         final int parentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
         final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
-        return readForSelection(cursor, trip);
+        return readForSelection(cursor, trip, true);
     }
 
 
     @NonNull
     @Override
-    public Distance readForSelection(@NonNull Cursor cursor, @NonNull Trip trip) {
+    public Distance readForSelection(@NonNull Cursor cursor, @NonNull Trip trip, boolean isDescending) {
         final int idIndex = cursor.getColumnIndex(DistanceTable.COLUMN_ID);
         final int locationIndex = cursor.getColumnIndex(DistanceTable.COLUMN_LOCATION);
         final int distanceIndex = cursor.getColumnIndex(DistanceTable.COLUMN_DISTANCE);

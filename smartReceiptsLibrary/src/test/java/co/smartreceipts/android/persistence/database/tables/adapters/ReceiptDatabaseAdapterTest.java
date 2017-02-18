@@ -62,7 +62,9 @@ public class ReceiptDatabaseAdapterTest {
     private static final String COMMENT = "Comment";
     private static final boolean REIMBURSABLE = true;
     private static final int PAYMENT_METHOD_ID = 2;
-    private static final int INDEX = 3;
+    private static final int DESCENDING_INDEX = 3;
+    private static final int ASCENDING_INDEX = 2;
+    private static final int CURSOR_COUNT = 4;
     private static final PaymentMethod PAYMENT_METHOD = new ImmutablePaymentMethodImpl(PAYMENT_METHOD_ID, "method");
     private static final boolean FULL_PAGE = true;
     private static final String EXTRA1 = "extra1";
@@ -166,7 +168,8 @@ public class ReceiptDatabaseAdapterTest {
         when(mCursor.getString(extraEdittext1Index)).thenReturn(EXTRA1);
         when(mCursor.getString(extraEdittext2Index)).thenReturn(EXTRA2);
         when(mCursor.getString(extraEdittext3Index)).thenReturn(EXTRA3);
-        when(mCursor.getPosition()).thenReturn(INDEX - 1);
+        when(mCursor.getCount()).thenReturn(CURSOR_COUNT);
+        when(mCursor.getPosition()).thenReturn(ASCENDING_INDEX - 1);
 
         when(mReceipt.getId()).thenReturn(ID);
         when(mReceipt.getFile()).thenReturn(new File(PATH));
@@ -184,7 +187,7 @@ public class ReceiptDatabaseAdapterTest {
         when(mReceipt.getExtraEditText1()).thenReturn(EXTRA1);
         when(mReceipt.getExtraEditText2()).thenReturn(EXTRA2);
         when(mReceipt.getExtraEditText3()).thenReturn(EXTRA3);
-        when(mReceipt.getIndex()).thenReturn(INDEX);
+        when(mReceipt.getIndex()).thenReturn(DESCENDING_INDEX);
         when(mReceipt.getSource()).thenReturn(Source.Undefined);
         when(mReceipt.getSyncState()).thenReturn(mSyncState);
 
@@ -232,7 +235,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(!FULL_PAGE)
-                .setIndex(INDEX)
+                .setIndex(DESCENDING_INDEX)
                 .setPaymentMethod(PAYMENT_METHOD)
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
@@ -243,7 +246,7 @@ public class ReceiptDatabaseAdapterTest {
     }
 
     @Test
-    public void readForSelection() throws Exception {
+    public void readForSelectionDescending() throws Exception {
         // Note: Full page is backwards in the database
         final Receipt receipt = new ReceiptBuilderFactory(ID)
                 .setTrip(mTrip)
@@ -259,14 +262,41 @@ public class ReceiptDatabaseAdapterTest {
                 .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(!FULL_PAGE)
-                .setIndex(INDEX)
+                .setIndex(DESCENDING_INDEX)
                 .setPaymentMethod(PAYMENT_METHOD)
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)
                 .setExtraEditText3(EXTRA3)
                 .setSyncState(mSyncState)
                 .build();
-        assertEquals(receipt, mReceiptDatabaseAdapter.readForSelection(mCursor, mTrip));
+        assertEquals(receipt, mReceiptDatabaseAdapter.readForSelection(mCursor, mTrip, true));
+    }
+
+    @Test
+    public void readForSelectionAscending() throws Exception {
+        // Note: Full page is backwards in the database
+        final Receipt receipt = new ReceiptBuilderFactory(ID)
+                .setTrip(mTrip)
+                .setName(NAME)
+                .setPrice(PRICE)
+                .setTax(TAX)
+                .setExchangeRate(EXCHANGE_RATE)
+                .setCategory(CATEGORY)
+                .setFile(new File(PATH))
+                .setDate(DATE)
+                .setTimeZone(TIMEZONE)
+                .setComment(COMMENT)
+                .setIsReimbursable(REIMBURSABLE)
+                .setCurrency(CURRENCY_CODE)
+                .setIsFullPage(!FULL_PAGE)
+                .setIndex(ASCENDING_INDEX)
+                .setPaymentMethod(PAYMENT_METHOD)
+                .setExtraEditText1(EXTRA1)
+                .setExtraEditText2(EXTRA2)
+                .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
+                .build();
+        assertEquals(receipt, mReceiptDatabaseAdapter.readForSelection(mCursor, mTrip, false));
     }
 
     @Test
@@ -347,7 +377,7 @@ public class ReceiptDatabaseAdapterTest {
                 .setIsReimbursable(REIMBURSABLE)
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(FULL_PAGE)
-                .setIndex(INDEX)
+                .setIndex(DESCENDING_INDEX)
                 .setPaymentMethod(PAYMENT_METHOD)
                 .setExtraEditText1(EXTRA1)
                 .setExtraEditText2(EXTRA2)

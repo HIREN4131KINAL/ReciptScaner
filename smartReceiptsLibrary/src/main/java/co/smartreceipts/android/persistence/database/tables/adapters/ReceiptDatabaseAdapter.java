@@ -58,13 +58,13 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
     public Receipt read(@NonNull Cursor cursor) {
         final int parentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
         final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
-        return readForSelection(cursor, trip);
+        return readForSelection(cursor, trip, true);
     }
 
 
     @NonNull
     @Override
-    public Receipt readForSelection(@NonNull Cursor cursor, @NonNull Trip trip) {
+    public Receipt readForSelection(@NonNull Cursor cursor, @NonNull Trip trip, boolean isDescending) {
 
         final int idIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_ID);
         final int pathIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PATH);
@@ -88,7 +88,6 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final String path = cursor.getString(pathIndex);
         final String name = cursor.getString(nameIndex);
 
-        // TODO: Join category with categories table
         final String category = cursor.getString(categoryIndex);
         final double priceDouble = cursor.getDouble(priceIndex);
         final double taxDouble = cursor.getDouble(taxIndex);
@@ -102,7 +101,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final boolean reimbursable = cursor.getInt(reimbursableIndex) > 0;
         final String currency = cursor.getString(currencyIndex);
         final boolean fullpage = !(cursor.getInt(fullpageIndex) > 0);
-        final int paymentMethodId = cursor.getInt(paymentMethodIdIndex); // TODO: How to use JOINs w/o blocking
+        final int paymentMethodId = cursor.getInt(paymentMethodIdIndex);
         final String extra_edittext_1 = cursor.getString(extra_edittext_1_Index);
         final String extra_edittext_2 = cursor.getString(extra_edittext_2_Index);
         final String extra_edittext_3 = cursor.getString(extra_edittext_3_Index);
@@ -111,10 +110,14 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
             file = mStorageManager.getFile(trip.getDirectory(), path);
         }
         final SyncState syncState = mSyncStateAdapter.read(cursor);
+
+        // TODO: How to use JOINs w/o blocking
         Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).toBlocking().first();
         if (categoryImpl == null) {
             categoryImpl = new ImmutableCategoryImpl(category, category);
         }
+
+        final int index = isDescending ? cursor.getCount() - cursor.getPosition() : cursor.getPosition() + 1;
 
         final ReceiptBuilderFactory builder = new ReceiptBuilderFactory(id);
         builder.setTrip(trip)
@@ -127,7 +130,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setIsReimbursable(reimbursable)
                 .setCurrency(currency)
                 .setIsFullPage(fullpage)
-                .setIndex(cursor.getPosition() + 1)
+                .setIndex(index)
                 .setPaymentMethod(mPaymentMethodTable.findByPrimaryKey(paymentMethodId).toBlocking().first())
                 .setExtraEditText1(extra_edittext_1)
                 .setExtraEditText2(extra_edittext_2)

@@ -360,13 +360,13 @@ public final class DefaultReceiptImpl implements Receipt {
     public String toString() {
         return "DefaultReceiptImpl{" +
                 "mId=" + mId +
-                ", mTrip=" + mTrip +
+                ", mName='" + mName + '\'' +
+                ", mTrip=" + mTrip.getName() +
                 ", mPaymentMethod=" + mPaymentMethod +
                 ", mIndex=" + mIndex +
-                ", mName='" + mName + '\'' +
                 ", mComment='" + mComment + '\'' +
                 ", mCategory=" + mCategory +
-                ", mPrice=" + mPrice +
+                ", mPrice=" + mPrice.getCurrencyFormattedPrice() +
                 ", mTax=" + mTax +
                 ", mDate=" + mDate +
                 ", mTimeZone=" + mTimeZone +

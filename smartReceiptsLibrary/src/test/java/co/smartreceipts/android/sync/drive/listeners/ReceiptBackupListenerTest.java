@@ -84,4 +84,44 @@ public class ReceiptBackupListenerTest {
         verify(mDriveReceiptsManager, never()).handleDelete(any(Receipt.class));
     }
 
+    @Test
+    public void onMoveSuccess() {
+        mListener.onMoveSuccess(mOldReceipt, mReceipt);
+        verify(mDriveDatabaseManager).syncDatabase();
+        verify(mDriveReceiptsManager).handleInsertOrUpdate(mReceipt);
+    }
+
+    @Test
+    public void onMoveFailure() {
+        mListener.onMoveFailure(mOldReceipt, new Exception());
+        verify(mDriveDatabaseManager, never()).syncDatabase();
+        verify(mDriveReceiptsManager, never()).handleInsertOrUpdate(mReceipt);
+    }
+
+    @Test
+    public void onCopySuccess() {
+        mListener.onCopySuccess(mOldReceipt, mReceipt);
+        verify(mDriveDatabaseManager).syncDatabase();
+        verify(mDriveReceiptsManager).handleInsertOrUpdate(mReceipt);
+    }
+
+    @Test
+    public void onCopyFailure() {
+        mListener.onCopyFailure(mOldReceipt, new Exception());
+        verify(mDriveDatabaseManager, never()).syncDatabase();
+        verify(mDriveReceiptsManager, never()).handleInsertOrUpdate(mReceipt);
+    }
+
+    @Test
+    public void onSwapSuccess() {
+        mListener.onSwapSuccess();
+        verify(mDriveReceiptsManager).initialize();
+    }
+
+    @Test
+    public void onSwapFailure() {
+        mListener.onSwapFailure(new Exception());
+        verify(mDriveReceiptsManager, never()).initialize();
+    }
+
 }

@@ -1,17 +1,17 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import co.smartreceipts.android.R;
 
-public class PreferenceHeaderProFragment extends
+public class PreferenceHeaderCameraFragment extends
         AbstractPreferenceHeaderFragment {
 
     @Override
     public int getPreferencesResourceId() {
-        return R.xml.preferences_pro;
+        return R.xml.preferences_camera;
     }
 
     @Override
     public void configurePreferences() {
-        mSettingsActivity.configureProPreferences(this);
+        mSettingsActivity.configurePreferencesCamera(this);
     }
 }

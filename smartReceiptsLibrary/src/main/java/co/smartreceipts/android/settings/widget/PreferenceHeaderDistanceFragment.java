@@ -1,17 +1,17 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import co.smartreceipts.android.R;
 
-public class PreferenceHeaderAboutFragment extends
+public class PreferenceHeaderDistanceFragment extends
         AbstractPreferenceHeaderFragment {
 
     @Override
     public int getPreferencesResourceId() {
-        return R.xml.preferences_about;
+        return R.xml.preferences_distance;
     }
 
     @Override
     public void configurePreferences() {
-        mSettingsActivity.configurePreferencesAbout(this);
+        mSettingsActivity.configurePreferencesDistance(this);
     }
 }

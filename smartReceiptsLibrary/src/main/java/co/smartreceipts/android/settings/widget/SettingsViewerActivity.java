@@ -1,11 +1,8 @@
-package co.smartreceipts.android.activities;
+package co.smartreceipts.android.settings.widget;
 
 import android.os.Bundle;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.fragments.preferences.CSVColumnsListFragment;
-import co.smartreceipts.android.fragments.preferences.CategoriesListFragment;
-import co.smartreceipts.android.fragments.preferences.PDFColumnsListFragment;
-import co.smartreceipts.android.fragments.preferences.PaymentMethodsListFragment;
+import co.smartreceipts.android.activities.WBActivity;
 
 public class SettingsViewerActivity extends WBActivity {
 	

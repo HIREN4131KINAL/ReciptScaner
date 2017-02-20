@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -8,8 +8,6 @@ import android.support.annotation.XmlRes;
 import android.view.MenuItem;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.activities.SettingsActivity;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public abstract class AbstractPreferenceHeaderFragment extends android.preference.PreferenceFragment implements UniversalPreferences {

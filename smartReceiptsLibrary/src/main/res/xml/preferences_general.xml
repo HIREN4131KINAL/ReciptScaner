@@ -3,7 +3,7 @@
     <PreferenceCategory 
         android:title="@string/pref_general_header"
         android:key="pref_general_category_key">
-        <co.smartreceipts.android.fragments.preferences.DefaultDurationEditTextPreference  
+        <co.smartreceipts.android.settings.widget.DefaultDurationEditTextPreference
             android:key="@string/pref_general_trip_duration_key"
             android:title="@string/pref_general_trip_duration_title"
             android:inputType="number"

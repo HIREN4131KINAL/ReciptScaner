@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import android.support.v7.app.ActionBar;
 

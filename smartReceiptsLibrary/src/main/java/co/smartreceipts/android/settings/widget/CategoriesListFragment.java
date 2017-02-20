@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import java.util.ArrayList;
 import java.util.List;

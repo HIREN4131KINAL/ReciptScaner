@@ -67,12 +67,12 @@
         </activity>
 
         <activity
-            android:name="co.smartreceipts.android.activities.SettingsActivity"
+            android:name="co.smartreceipts.android.settings.widget.SettingsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" >
         </activity>
 
         <activity
-            android:name="co.smartreceipts.android.activities.SettingsViewerActivity"
+            android:name="co.smartreceipts.android.settings.widget.SettingsViewerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize" >
         </activity>
 

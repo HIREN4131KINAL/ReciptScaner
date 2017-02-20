@@ -1,12 +1,8 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import android.support.v7.app.ActionBar;
 
-import java.util.List;
-
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.controllers.impl.ColumnTableController;
 
 public class PDFColumnsListFragment extends ColumnsListFragment {

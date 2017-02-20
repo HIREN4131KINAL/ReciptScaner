@@ -1,17 +1,17 @@
-package co.smartreceipts.android.fragments.preferences;
+package co.smartreceipts.android.settings.widget;
 
 import co.smartreceipts.android.R;
 
-public class PreferenceHeaderEmailFragment extends
+public class PreferenceHeaderHelpFragment extends
         AbstractPreferenceHeaderFragment {
 
     @Override
     public int getPreferencesResourceId() {
-        return R.xml.preferences_email;
+        return R.xml.preferences_help;
     }
 
     @Override
     public void configurePreferences() {
-        mSettingsActivity.configurePreferencesEmail(this);
+        mSettingsActivity.configurePreferencesHelp(this);
     }
 }

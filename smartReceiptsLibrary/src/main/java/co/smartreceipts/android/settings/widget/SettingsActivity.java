@@ -1,4 +1,4 @@
-package co.smartreceipts.android.activities;
+package co.smartreceipts.android.settings.widget;
 
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
@@ -33,13 +33,11 @@ import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.activities.AppCompatPreferenceActivity;
+import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.fragments.preferences.AbstractPreferenceHeaderFragment;
-import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference;
-import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
-import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;

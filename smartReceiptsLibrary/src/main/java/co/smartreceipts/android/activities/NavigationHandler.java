@@ -20,9 +20,10 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.fragments.preferences.PreferenceHeaderReportOutputFragment;
+import co.smartreceipts.android.settings.widget.PreferenceHeaderReportOutputFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.settings.widget.SettingsActivity;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
 

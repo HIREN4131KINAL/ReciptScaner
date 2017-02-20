@@ -51,7 +51,7 @@
 	        android:title="@string/pref_receipt_full_page_title"
 	        android:summary="@string/pref_receipt_full_page_summary"
 	        android:defaultValue="@bool/pref_receipt_full_page_defaultValue"/>
-	    <co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference
+	    <co.smartreceipts.android.settings.widget.MinimumPriceEditTextPreference
 	        android:key="@string/pref_receipt_minimum_receipts_price_key"
 	        android:title="@string/pref_receipt_minimum_receipts_price_title"
 	        android:inputType="number" />
@@ -60,7 +60,7 @@
 	        android:title="@string/pref_receipt_include_tax_field_title"
 	        android:summary="@string/pref_receipt_include_tax_field_summary"
             android:defaultValue="@bool/pref_receipt_include_tax_field_defaultValue"/>
-	    <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
+	    <co.smartreceipts.android.settings.widget.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"
             android:inputType="number|numberDecimal" />

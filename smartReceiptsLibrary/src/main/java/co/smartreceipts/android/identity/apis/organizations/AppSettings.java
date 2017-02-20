@@ -2,6 +2,7 @@ package co.smartreceipts.android.identity.apis.organizations;
 
 import android.support.annotation.Nullable;
 
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class AppSettings {
     @SerializedName("Configurations")
     private Configurations configurations;
     @SerializedName("Settings")
-    private String settings;
+    private JsonObject settings;
     @SerializedName("Categories")
     private List<Category> categories;
     @SerializedName("PaymentMethods")
@@ -32,7 +33,7 @@ public class AppSettings {
     }
 
     @Nullable
-    public String getSettings() {
+    public JsonObject getSettings() {
         return settings;
     }
 

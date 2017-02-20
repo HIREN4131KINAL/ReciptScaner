@@ -22,6 +22,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class UserPreferenceManager {
@@ -44,13 +45,13 @@ public class UserPreferenceManager {
     }
 
     public void initialize() {
-        Observable.just(UserPreference.values())
+        getUserPreferencesObservable()
                 .subscribeOn(this.initializationScheduler)
                 .subscribe(new Action1<List<UserPreference<?>>>() {
                     @Override
                     public void call(List<UserPreference<?>> userPreferences) {
                         for (final UserPreference<?> userPreference : userPreferences) {
-                            final String preferenceName = context.getString(userPreference.getName());
+                            final String preferenceName = getName(userPreference);
                             if (!preferences.contains(preferenceName)) {
                                 // In here - we assign values that don't allow for preference_defaults.xml definitions (e.g. Locale Based Setings)
                                 // Additionally, we set all float fields, which don't don't allow for 'android:defaultValue' settings
@@ -92,16 +93,6 @@ public class UserPreferenceManager {
                         Logger.debug(UserPreferenceManager.this, "Completed user preference initialization");
                     }
                 });
-    }
-
-    /**
-     * @return the current {@link SharedPreferences} implementation. This is now deprecated, and users
-     * should prefer the {@link #set(UserPreference, Object)} method instead to interact with this component
-     */
-    @NonNull
-    @Deprecated
-    public SharedPreferences getSharedPreferences() {
-        return preferences;
     }
 
     @NonNull
@@ -159,6 +150,32 @@ public class UserPreferenceManager {
         }  else {
             throw new IllegalArgumentException("Unsupported preference type: " + preference.getType());
         }
+    }
+
+    @NonNull
+    public Observable<List<UserPreference<?>>> getUserPreferencesObservable() {
+        return Observable.create(new Observable.OnSubscribe<List<UserPreference<?>>>() {
+                    @Override
+                    public void call(Subscriber<? super List<UserPreference<?>>> subscriber) {
+                        subscriber.onNext(UserPreference.values());
+                        subscriber.onCompleted();
+                    }
+                });
+    }
+
+    @NonNull
+    public String getName(@NonNull UserPreference<?> preference) {
+        return context.getString(preference.getName());
+    }
+
+    /**
+     * @return the current {@link SharedPreferences} implementation. This is now deprecated, and users
+     * should prefer the {@link #set(UserPreference, Object)} method instead to interact with this component
+     */
+    @NonNull
+    @Deprecated
+    public SharedPreferences getSharedPreferences() {
+        return preferences;
     }
 
 }

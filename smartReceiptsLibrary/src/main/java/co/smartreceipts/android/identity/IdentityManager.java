@@ -103,14 +103,20 @@ public class IdentityManager {
                     .doOnError(new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            Logger.info(this, "Failed to complete the login request");
+                            Logger.error(this, "Failed to complete the login request", throwable);
                             analytics.record(Events.Identity.UserLoginFailure);
                         }
                     })
                     .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
                         @Override
                         public Observable<LoginResponse> call(final LoginResponse loginResponse) {
-                            return Observable.just(loginResponse);
+                            return organizationManager.getOrganizations()
+                                    .flatMap(new Func1<OrganizationsResponse, Observable<LoginResponse>>() {
+                                        @Override
+                                        public Observable<LoginResponse> call(OrganizationsResponse response) {
+                                            return Observable.just(loginResponse);
+                                        }
+                                    });
                         }
                     })
                     .doOnCompleted(new Action0() {

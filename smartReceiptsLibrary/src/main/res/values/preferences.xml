@@ -87,9 +87,6 @@
     <string name="pref_output_username_key" translatable="false">UserName</string>
     <string name="pref_output_username_title">User ID</string>
     <string name="pref_output_username_emptyValue">Used as a Custom Output Field</string>
-    <string name="pref_output_csv_header_key" translatable="false">IncludeCSVHeaders</string>
-    <string name="pref_output_csv_header_title">Show CSV Headers</string>
-    <string name="pref_output_csv_header_summary">Prints a CSV header row</string>
     <string name="pref_output_print_receipt_id_by_photo_key" translatable="false">PrintByIDPhotoKey</string>
     <string name="pref_output_print_receipt_id_by_photo_title">Print ID By Photo</string>
     <string name="pref_output_print_receipt_id_by_photo_summary">Shows the Receipt ID instead of Index</string>
@@ -97,17 +94,10 @@
     <string name="pref_output_print_receipt_comment_by_photo_title">Print Receipt Comment By Photo</string>
     <string name="pref_output_print_receipt_comment_by_photo_summaryOn">Shows the Receipt comment above PDF photos</string>
     <string name="pref_output_print_receipt_comment_by_photo_summaryOff">Hide the Receipt comment above PDF photos</string>
-    <string name="pref_output_optimize_space_key" translatable="false">OptimizeSpace</string>
-    <string name="pref_output_optimize_space_title">Optimize Receipt Space</string>
-    <string name="pref_output_optimize_space_summaryOn">Attempt to reduce the number of PDF pages</string>
-    <string name="pref_output_optimize_space_summaryOff">Keep exact receipt order</string>
-    <string name="pref_output_blank_signature_key" translatable="false">BlankSignature</string>
-    <string name="pref_output_blank_signature_title">Include Signature Field</string>
-    <string name="pref_output_blank_signature_summaryOn">Includes an empty signature field on PDFs.</string>
-    <string name="pref_output_blank_signature_summaryOff">Does not include an empty signature field on PDFs.</string>
-    <string name="pref_output_signature_picture_key" translatable="false">SignaturePicture</string>
-    <string name="pref_output_signature_picture_title">Scanned Signature Photo</string>
-    <string name="pref_output_signature_picture_emptyValue">Attach a scanned signature to PDF reports.</string>
+    <string name="pref_output_receipts_landscape_key" translatable="false">ReceiptsTableLandscape</string>
+    <string name="pref_output_receipts_landscape_title">Print receipts table in landscape mode</string>
+    <string name="pref_output_receipts_landscape_on">Receipts table is printed in landscape mode</string>
+    <string name="pref_output_receipts_landscape_off">Receipts table is printed in portrait mode</string>
 
     <!-- ============== Preference Email ================= -->
     <string name="pref_email_default_email_to_key" translatable="false">EmailTo</string>
@@ -121,9 +111,6 @@
     <string name="pref_email_default_email_subject_title">Default Email Subject</string>
 
     <!-- ============= Preference Camera ================= -->
-    <string name="pref_camera_use_native_camera_key" translatable="false">UseNativeCamera</string>
-    <string name="pref_camera_use_native_camera_title">Use Native Camera</string>
-    <string name="pref_camera_use_native_camera_summary">Use the Built-In Device Camera</string>
     <string name="pref_camera_bw_key" translatable="false">SaveBW</string>
     <string name="pref_camera_bw_title">Convert to Grayscale</string>
     <string name="pref_camera_bw_summary">Saves image in black and white</string>
@@ -165,7 +152,7 @@
     <string name="pref_distance_as_price_summaryOn">Show distance price total in app subtitle</string>
     <string name="pref_distance_as_price_summaryOff">Show distance travelled in app subtitle</string>
 
-    <!-- ================= Preference Pro ================== -->
+    <!-- ================= Preference Plus ================== -->
     <string name="pref_pro_pdf_footer_key" translatable="false">PdfFooterString</string>
     <string name="pref_pro_pdf_footer_title">PDF Footer Text</string>
 
@@ -186,6 +173,8 @@
     <string name="pref_about_terms_key" translatable="false">TermsOfUse</string>
     <string name="pref_about_terms_title">Terms of Use</string>
     <string name="pref_about_terms_dialogMessage">This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.\n\nYou can view a copy of the GNU Affero General Public License at http://www.gnu.org/licenses/.</string>
+    <string name="pref_about_privacy_policy_key" translatable="false">PrivacyPolicy</string>
+    <string name="pref_about_privacy_policy_title">Privacy Policy</string>
 
     <!-- =============== Preference Misc =================== -->
     <string name="pref_no_category_auto_backup_wifi_only_key" translatable="false">AutoBackupWifiOnly</string>

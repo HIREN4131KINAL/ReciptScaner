@@ -42,6 +42,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -80,7 +81,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         Logger.debug(this, "onCreate");
         mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
         mTripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
-        mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
+        mAdapter = new TripCardAdapter(getActivity(), getPersistenceManager().getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
         if (savedInstanceState == null) {
             mNavigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);
         } else {
@@ -168,7 +169,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_currency);
         final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_comment);
         final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) scrollView.findViewById(R.id.dialog_tripmenu_cost_center);
-        costCenterBox.setVisibility(getPersistenceManager().getPreferences().getIncludeCostCenter() ? View.VISIBLE : View.GONE);
+        costCenterBox.setVisibility(getPersistenceManager().getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
 
         final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
         currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -180,7 +181,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
         // Fill Out Fields
         if (newTrip) {
-            if (persistenceManager.getPreferences().enableAutoCompleteSuggestions()) {
+            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
                 final DatabaseHelper db = getPersistenceManager().getDatabase();
                 if (mNameAutoCompleteAdapter == null) {
                     mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);
@@ -197,7 +198,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
             }
             startBox.setFocusableInTouchMode(false);
             startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));
-            int idx = currenices.getPosition(getPersistenceManager().getPreferences().getDefaultCurreny());
+            int idx = currenices.getPosition(getPersistenceManager().getPreferenceManager().get(UserPreference.General.DefaultCurrency));
             if (idx > 0) {
                 currencySpinner.setSelection(idx);
             }
@@ -206,11 +207,11 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
                 nameBox.setText(trip.getName());
             }
             if (trip.getStartDate() != null) {
-                startBox.setText(trip.getFormattedStartDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+                startBox.setText(trip.getFormattedStartDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
                 startBox.date = trip.getStartDate();
             }
             if (trip.getEndDate() != null) {
-                endBox.setText(trip.getFormattedEndDate(getActivity(), getPersistenceManager().getPreferences().getDateSeparator()));
+                endBox.setText(trip.getFormattedEndDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
                 endBox.date = trip.getEndDate();
             }
             if (!TextUtils.isEmpty(trip.getComment())) {

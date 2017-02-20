@@ -71,8 +71,7 @@
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE">Créer</string>
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE">Editer</string>
     <string name="DIALOG_RECEIPTMENU_NEGATIVE_BUTTON">Annuler</string>
-    <string name="DIALOG_RECEIPTMENU_TOAST_MISSING_NAME">Merci de choisir un nom pour cette note de frais</string>
-    
+
     <!-- ==================== DIALOG_ABOUT ====================== -->
     <string name="DIALOG_ABOUT_TITLE">A Propos</string>
     

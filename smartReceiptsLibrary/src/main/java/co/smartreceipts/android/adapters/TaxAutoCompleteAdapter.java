@@ -15,10 +15,11 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import co.smartreceipts.android.model.TaxItem;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements TextWatcher, View.OnFocusChangeListener {
-	
+
+    private static final BigDecimal VAT_0 = BigDecimal.ZERO;
 	private static final BigDecimal VAT_5_5 = new BigDecimal(5.5f);
 	private static final BigDecimal VAT_10 = new BigDecimal(10);
 	private static final BigDecimal VAT_20 = new BigDecimal(20);
@@ -28,26 +29,22 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	private final TaxItem mDefaultValue;
 	private final WeakReference<TextView> mPriceBox;
 	private final WeakReference<AutoCompleteTextView> mTaxBox;
-	private final Preferences mPreferences;
+	private final UserPreferenceManager mPreferences;
 	
 	/**
-	 * The internal {@link List<T>} that the {@link ArrayAdapter<T>} uses to track entries caused
-	 * some synchronization issues. I used a {@link Vector<T>} to resolve this.
+	 * The internal {@link java.util.List} that the {@link ArrayAdapter} uses to track entries caused
+	 * some synchronization issues. I used a {@link Vector} to resolve this.
 	 */
 	private final Vector<TaxItem> mData;
 	
-	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox) {
-		this(context, priceBox, taxBox, null, 0);
-	}
-	
-	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, Preferences preferences, float defaultValue) {
+	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, UserPreferenceManager preferences, float defaultValue) {
 		super(context, android.R.layout.two_line_list_item);
 		mInflater = LayoutInflater.from(context);
-		mData = new Vector<TaxItem>();
+		mData = new Vector<>();
 		mListItemId = android.R.layout.two_line_list_item;
 		mDefaultValue = new TaxItem(defaultValue, preferences);
-		mPriceBox = new WeakReference<TextView>(priceBox);
-		mTaxBox = new WeakReference<AutoCompleteTextView>(taxBox);
+		mPriceBox = new WeakReference<>(priceBox);
+		mTaxBox = new WeakReference<>(taxBox);
 		mPreferences = preferences;
 		priceBox.addTextChangedListener(this);
 		taxBox.setOnFocusChangeListener(this);
@@ -121,6 +118,7 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 				if (this.hasDefaultValue()) {
 					mData.add(mDefaultValue);
 				}
+                mData.add(new TaxItem(VAT_0, mPreferences));
 				mData.add(new TaxItem(VAT_5_5, mPreferences));
 				mData.add(new TaxItem(VAT_10, mPreferences));
 				mData.add(new TaxItem(VAT_20, mPreferences));

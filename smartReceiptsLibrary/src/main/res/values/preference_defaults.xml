@@ -3,29 +3,49 @@
     <!-- ============= Preference General ================= -->
     <integer name="pref_general_trip_duration_defaultValue">3</integer>
     <string name="pref_general_default_currency_defaultValue" />
+    <string name="pref_general_default_date_separator_defaultValue" />
     <bool name="pref_general_track_cost_center_defaultValue">false</bool>
 
     <!-- ============== Preference Receipt ================ -->
+    <item name="pref_receipt_minimum_receipts_price_defaultValue" format="float" type="dimen">-1000.0</item>
+    <bool name="pref_receipt_predict_categories_defaultValue">true</bool>
+    <bool name="pref_receipt_match_name_to_category_defaultValue">false</bool>
+    <bool name="pref_receipt_match_comment_to_category_defaultValue">false</bool>
+    <bool name="pref_receipt_reimbursable_only_defaultValue">false</bool>
     <bool name="pref_receipt_reimbursable_default_defaultValue">true</bool>
     <bool name="pref_receipt_include_tax_field_defaultValue">false</bool>
+    <item name="pref_receipt_tax_percent_defaultValue" format="float" type="dimen">0.0</item>
+    <bool name="pref_receipt_pre_tax_defaultValue">true</bool>
+    <bool name="pref_receipt_enable_autocomplete_defaultValue">true</bool>
+    <bool name="pref_receipt_default_to_report_start_date_defaultValue">false</bool>
+    <bool name="pref_receipt_show_id_defaultValue">false</bool>
+    <bool name="pref_receipt_full_page_defaultValue">false</bool>
     <bool name="pref_receipt_use_payment_methods_defaultValue">false</bool>
 
     <!-- ============= Preference Output ================= -->
-    <bool name="pref_output_csv_header_defaultValue">false</bool>
+    <string name="pref_output_username_defaultValue" />
+    <bool name="pref_output_print_receipt_id_by_photo_defaultValue">false</bool>
     <bool name="pref_output_print_receipt_comment_by_photo_defaultValue">false</bool>
-    <bool name="pref_output_blank_signature_defaultValue">false</bool>
-    <string name="pref_output_signature_picture_defaultValue"/>
+    <bool name="pref_output_receipts_landscape_defaultValue">false</bool>
 
     <!-- ============== Preference Email ================= -->
     <string name="pref_email_default_email_to_defaultValue" />
+    <string name="pref_email_default_email_cc_defaultValue" />
+    <string name="pref_email_default_email_bcc_defaultValue" />
     <string name="EMAIL_DATA_SUBJECT">SmartReceipts - %REPORT_NAME%</string> <!-- Note: The item should be "pref_email_default_email_subject_defaultValue" but cannot for legacy flex reasons -->
 
     <!-- ============= Preference Camera ================= -->
-    <bool name="pref_camera_rotate_key_defaultValue">true</bool>
+    <bool name="pref_camera_bw_defaultValue">false</bool>
+    <bool name="pref_camera_rotate_defaultValue">true</bool>
 
+    <!-- ============= Preference Layout ================= -->
+    <bool name="pref_layout_display_date_defaultValue">true</bool>
+    <bool name="pref_layout_display_category_defaultValue">false</bool>
+    <bool name="pref_layout_display_photo_defaultValue">false</bool>
+    
     <!-- ============= Preference Distance ================= -->
-    <bool name="pref_distance_include_price_in_report_defaultValue">false</bool>
     <item name="pref_distance_rate_defaultValue" format="float" type="dimen">0.0</item>
+    <bool name="pref_distance_include_price_in_report_defaultValue">false</bool>
     <bool name="pref_distance_print_table_defaultValue">true</bool>
     <bool name="pref_distance_print_daily_defaultValue">false</bool>
     <bool name="pref_distance_as_price_defaultValue">true</bool>

@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -199,12 +200,8 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 })
                 .flatMap(new Func1<List<? extends Map.Entry<Receipt, Receipt>>, Observable<Boolean>>() {
                     @Override
-                    public Observable<Boolean> call(List<? extends Map.Entry<Receipt, Receipt>> entries) {
-                        boolean success = true;
-                        for (final Map.Entry<Receipt, Receipt> entry : entries) {
-                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata()).toBlocking().first() != null;
-                        }
-                        return Observable.just(success);
+                    public Observable<Boolean> call(final List<? extends Map.Entry<Receipt, Receipt>> entries) {
+                        return swapReceiptsObservable(entries);
                     }
                 })
                 .subscribeOn(mSubscribeOnScheduler)
@@ -258,11 +255,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 .flatMap(new Func1<List<? extends Map.Entry<Receipt, Receipt>>, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(List<? extends Map.Entry<Receipt, Receipt>> entries) {
-                        boolean success = true;
-                        for (final Map.Entry<Receipt, Receipt> entry : entries) {
-                            success &= mTripForeignKeyTable.update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata()).toBlocking().first() != null;
-                        }
-                        return Observable.just(success);
+                        return swapReceiptsObservable(entries);
                     }
                 })
                 .subscribeOn(mSubscribeOnScheduler)
@@ -301,5 +294,30 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 });
         subscriptionRef.set(subscription);
         mCompositeSubscription.add(subscription);
+    }
+
+    private Observable<Boolean> swapReceiptsObservable(final List<? extends Map.Entry<Receipt, Receipt>> entries) {
+        return Observable.from(entries)
+                .flatMap(new Func1<Map.Entry<Receipt, Receipt>, Observable<Receipt>>() {
+                    @Override
+                    public Observable<Receipt> call(Map.Entry<Receipt, Receipt> entry) {
+                        return updateObservable(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata());
+                    }
+                })
+                .filter(new Func1<Receipt, Boolean>() {
+                    @Override
+                    public Boolean call(Receipt receipt) {
+                        return receipt != null;
+                    }
+                })
+                .toList()
+                .flatMap(new Func1<List<Receipt>, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(List<Receipt> updatedReceipts) {
+                        return Observable.just(entries.size() == updatedReceipts.size());
+                    }
+                }).delay(100, TimeUnit.MILLISECONDS);
+        // TODO: Refactor this to actually fix the timing issue w/o the delay
+        // TODO: A real solution should use proper sorting indices instead of relying in the dates (hence why I'm allowing this hack)
     }
 }

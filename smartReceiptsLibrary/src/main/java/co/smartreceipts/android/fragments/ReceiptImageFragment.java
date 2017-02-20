@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.media.ExifInterface;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -41,7 +42,7 @@ import co.smartreceipts.android.utils.log.Logger;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
-import wb.android.google.camera.Util;
+import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
 import wb.android.ui.PinchToZoomImageView;
 
@@ -103,21 +104,21 @@ public class ReceiptImageFragment extends WBFragment {
             @Override
             public void onClick(View view) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCcw);
-                rotate(-90);
+                rotate(ExifInterface.ORIENTATION_ROTATE_270);
             }
         });
         retakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRetakePhoto);
-                mImageUri = new CameraInteractionController(ReceiptImageFragment.this, getPersistenceManager()).retakePhoto(mReceipt);
+                mImageUri = new CameraInteractionController(ReceiptImageFragment.this).retakePhoto(mReceipt);
             }
         });
         rotateCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCw);
-                rotate(90);
+                rotate(ExifInterface.ORIENTATION_ROTATE_90);
             }
         });
         return rootView;
@@ -288,7 +289,7 @@ public class ReceiptImageFragment extends WBFragment {
                 File root = mImg.getParentFile();
                 String filename = mImg.getName();
                 Bitmap bitmap = storage.getBitmap(root, filename);
-                bitmap = Util.rotate(bitmap, mOrientation);
+                bitmap = ImageUtils.rotateBitmap(bitmap, mOrientation);
                 storage.writeBitmap(root, bitmap, filename, CompressFormat.JPEG, 85);
                 return bitmap;
             } catch (Exception e) {

@@ -54,10 +54,6 @@ import wb.android.dialog.BetterDialogBuilder;
 
 public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTableEventsListener {
 
-    // Permissions Request Ints
-    private static final int PERMISSION_CAMERA_REQUEST = 21;
-    private static final int PERMISSION_STORAGE_REQUEST = 22;
-
     // Outstate
     private static final String OUT_HIGHLIGHTED_RECEIPT = "out_highlighted_receipt";
     private static final String OUT_IMAGE_URI = "out_image_uri";
@@ -94,7 +90,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         mReceiptTableController = getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController();
-        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferences(), getSmartReceiptsApplication().getBackupProvidersManager());
+        mAdapter = new ReceiptCardAdapter(getActivity(), getPersistenceManager().getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
         mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
@@ -184,11 +180,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             case RequestCodes.IMPORT_GALLERY_IMAGE:
                             case RequestCodes.IMPORT_GALLERY_PDF:
                             case RequestCodes.NATIVE_NEW_RECEIPT_CAMERA_REQUEST:
-                            case RequestCodes.NEW_RECEIPT_CAMERA_REQUEST:
                                 mNavigationHandler.navigateToCreateNewReceiptFragment(mTrip, response.getFile());
                                 break;
                             case RequestCodes.NATIVE_ADD_PHOTO_CAMERA_REQUEST:
-                            case RequestCodes.ADD_PHOTO_CAMERA_REQUEST:
                                 final Receipt updatedReceipt = new ReceiptBuilderFactory(mHighlightedReceipt).setImage(response.getFile()).build();
                                 mReceiptTableController.update(mHighlightedReceipt, updatedReceipt, new DatabaseOperationMetadata());
                                 break;
@@ -265,37 +259,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     }
 
     public final void addPictureReceipt() {
-        mImageUri = new CameraInteractionController(this, getPersistenceManager()).takePhoto();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_CAMERA_REQUEST) {
-            Logger.info(this, "Received response for Camera permission request.");
-
-            // Check if the only required permission has been granted
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Logger.info(this, "CAMERA permission has now been granted.");
-            } else {
-                Logger.info(this, "CAMERA permission was NOT granted.");
-                getPersistenceManager().getPreferences().setUseNativeCamera(true);
-            }
-            // Retry add now with either native camera or now granted way
-            addPictureReceipt();
-        } else if (requestCode == PERMISSION_STORAGE_REQUEST) {
-            Logger.info(this, "Received response for storage permission request.");
-
-            // Check if the only required permission has been granted
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Logger.info(this, "STORAGE permission has now been granted.");
-            } else {
-                Logger.info(this, "STORAGE permission was NOT granted.");
-                getPersistenceManager().getPreferences().setUseNativeCamera(true);
-            }
-            // Retry add now with either native camera or now granted way
-            addPictureReceipt();
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mImageUri = new CameraInteractionController(this).takePhoto();
     }
 
     public final void addTextReceipt() {
@@ -386,7 +350,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             mNavigationHandler.navigateToEditReceiptFragment(mTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
-                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this, getPersistenceManager()).addPhoto();
+                            mImageUri = new CameraInteractionController(ReceiptsListFragment.this).addPhoto();
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
                                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);

@@ -14,7 +14,7 @@ import com.google.common.base.Preconditions;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
@@ -24,7 +24,7 @@ public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment 
     @StringRes
     private int contentTypeStringResId;
 
-    public static boolean shouldInformAboutPdfImageAttachmentDialogFragment(@NonNull Preferences preferences) {
+    public static boolean shouldInformAboutPdfImageAttachmentDialogFragment(@NonNull UserPreferenceManager preferences) {
         return Preconditions.checkNotNull(preferences).getSharedPreferences().getBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, true);
     }
 
@@ -59,7 +59,7 @@ public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_NEGATIVE) {
-            final Preferences preferences = ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager().getPreferences();
+            final UserPreferenceManager preferences = ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager().getPreferenceManager();
             preferences.getSharedPreferences().edit().putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, false).apply();
         }
         dismiss();

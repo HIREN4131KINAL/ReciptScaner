@@ -10,7 +10,7 @@ import android.view.MenuItem;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.SettingsActivity;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public abstract class AbstractPreferenceHeaderFragment extends android.preference.PreferenceFragment implements UniversalPreferences {
 
@@ -36,14 +36,10 @@ public abstract class AbstractPreferenceHeaderFragment extends android.preferenc
         super.onCreate(savedInstanceState);
         mSettingsActivity.setFragmentHeaderIsShowing(true);
         setHasOptionsMenu(true); // Required to simulate up navigation
-        getPreferenceManager().setSharedPreferencesName(Preferences.SMART_PREFS);
-        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferences());
-
+        getPreferenceManager().setSharedPreferencesName(UserPreferenceManager.PREFERENCES_FILE_NAME);
 
         addPreferencesFromResource(getPreferencesResourceId());
         configurePreferences();
-
-
     }
 
     @Override

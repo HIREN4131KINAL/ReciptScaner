@@ -11,7 +11,7 @@ This repository contains the source code and all relevant resources that were us
 
 The following resources were used to develop this application:
 
-- [iTextPDF](http://itextpdf.com/). The iTextPDF library was used to generate all PDF reports.
+- [Apache PDFBox](https://pdfbox.apache.org/). The Apache PDF library was used to generate all PDF reports.
 - [ActionBarSherlock](http://actionbarsherlock.com/). The Action Bar Sherlock library provides cross-platform ActionBar support.
 - [AndroidCamera](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/AndroidCamera). This library is a modified version of the Camera & Galler3d applications, which are included as part of the Android Open Source Project. A number of changes were made to optimize it for receipt scanning usage.
 - [SmartReceiptsLibrary](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/SmartReceiptsLibrary). A library projects that contains all relevant implementation for the free and paid versions of Smart Receipts.

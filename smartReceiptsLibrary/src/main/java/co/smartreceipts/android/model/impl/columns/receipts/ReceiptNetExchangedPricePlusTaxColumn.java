@@ -8,7 +8,8 @@ import java.util.Arrays;
 import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.SyncState;
 
 /**
@@ -16,9 +17,9 @@ import co.smartreceipts.android.sync.model.SyncState;
  */
 public final class ReceiptNetExchangedPricePlusTaxColumn extends AbstractExchangedPriceColumn {
 
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
-    public ReceiptNetExchangedPricePlusTaxColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context, @NonNull Preferences preferences) {
+    public ReceiptNetExchangedPricePlusTaxColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context, @NonNull UserPreferenceManager preferences) {
         super(id, name, syncState, context);
         mPreferences = preferences;
     }
@@ -26,7 +27,7 @@ public final class ReceiptNetExchangedPricePlusTaxColumn extends AbstractExchang
     @NonNull
     @Override
     protected Price getPrice(@NonNull Receipt receipt) {
-        if (mPreferences.usePreTaxPrice()) {
+        if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice)) {
             final PriceBuilderFactory factory = new PriceBuilderFactory();
             factory.setPrices(Arrays.asList(receipt.getPrice(), receipt.getTax()), receipt.getTrip().getTripCurrency());
             return factory.build();

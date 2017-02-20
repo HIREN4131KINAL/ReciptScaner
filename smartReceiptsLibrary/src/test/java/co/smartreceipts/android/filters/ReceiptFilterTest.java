@@ -1,9 +1,13 @@
 package co.smartreceipts.android.filters;
 
+import android.content.Context;
+
 import org.json.JSONException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -31,10 +35,18 @@ public class ReceiptFilterTest {
     private static final Date FUTURE = new Date(MILLIS + 1000);
     private static final Date PAST = new Date(MILLIS - 1000);
 
+    private static Context context;
+
+    @Before
+    public void setUp() {
+        context = RuntimeEnvironment.application;
+    }
+
+
     @Test
     public void receiptCategoryFilterTest() throws JSONException {
-        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
-        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory("BAD Category").build();
+        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).build();
+        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setCategory("BAD Category").build();
         final ReceiptCategoryFilter filter = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         assertTrue(filter.accept(receipt1));
         assertFalse(filter.accept(receipt2));
@@ -45,8 +57,8 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptIsReimbursableFilterTest() throws JSONException {
-        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsReimbursable(true).build();
-        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsReimbursable(false).build();
+        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setIsReimbursable(true).build();
+        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setIsReimbursable(false).build();
         final ReceiptIsReimbursableFilter filter = new ReceiptIsReimbursableFilter();
 
         assertTrue(filter.accept(receipt1));
@@ -58,8 +70,8 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptIsSelectedFilterTest() throws JSONException {
-        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsSelected(true).build();
-        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setIsSelected(false).build();
+        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setIsSelected(true).build();
+        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setIsSelected(false).build();
         final ReceiptSelectedFilter filter = new ReceiptSelectedFilter();
 
         assertTrue(filter.accept(receipt1));
@@ -71,9 +83,9 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptMinimumPriceFilterTest() throws JSONException {
-        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_NORMAL).build();
-        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_HIGH).build();
-        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_LOW).build();
+        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_NORMAL).build();
+        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_HIGH).build();
+        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_LOW).build();
 
         final ReceiptMinimumPriceFilter filter = new ReceiptMinimumPriceFilter(
                 Float.parseFloat(PRICE_NORMAL), ReceiptUtils.Constants.CURRENCY_CODE);
@@ -88,9 +100,9 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptMaximumPriceFilterTest() throws JSONException {
-        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_NORMAL).build();
-        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_HIGH).build();
-        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_LOW).build();
+        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_NORMAL).build();
+        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_HIGH).build();
+        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_LOW).build();
 
         final ReceiptMaximumPriceFilter filter = new ReceiptMaximumPriceFilter(
                 Float.parseFloat(PRICE_NORMAL), ReceiptUtils.Constants.CURRENCY_CODE);
@@ -105,9 +117,9 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptOnOrAfterDayFilterTest() throws JSONException {
-        final Receipt receiptNow = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(NOW).build();
-        final Receipt receiptFuture = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(FUTURE).build();
-        final Receipt receiptPast = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(PAST).build();
+        final Receipt receiptNow = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(NOW).build();
+        final Receipt receiptFuture = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(FUTURE).build();
+        final Receipt receiptPast = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(PAST).build();
         final ReceiptOnOrAfterDayFilter filter = new ReceiptOnOrAfterDayFilter(NOW, TZ);
 
         assertTrue(filter.accept(receiptNow));
@@ -120,9 +132,9 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptOnOrBeforeDayFilterTest() throws JSONException {
-        final Receipt receiptNow = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(NOW).build();
-        final Receipt receiptFuture = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(FUTURE).build();
-        final Receipt receiptPast = ReceiptUtils.newDefaultReceiptBuilderFactory().setDate(PAST).build();
+        final Receipt receiptNow = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(NOW).build();
+        final Receipt receiptFuture = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(FUTURE).build();
+        final Receipt receiptPast = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setDate(PAST).build();
         final ReceiptOnOrBeforeDayFilter filter = new ReceiptOnOrBeforeDayFilter(NOW, TZ);
 
         assertTrue(filter.accept(receiptNow));
@@ -136,9 +148,9 @@ public class ReceiptFilterTest {
     @Test
     public void receiptOrFilterTest() throws JSONException {
         final String category2 = "cat2";
-        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
-        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory(category2).build();
-        final Receipt receipt3 = ReceiptUtils.newDefaultReceiptBuilderFactory().setCategory("BAD Category").build();
+        final Receipt receipt1 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).build();
+        final Receipt receipt2 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setCategory(category2).build();
+        final Receipt receipt3 = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setCategory("BAD Category").build();
         final ReceiptCategoryFilter filter1 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter(category2);
         final ReceiptOrFilter orFilter = new ReceiptOrFilter();
@@ -154,7 +166,7 @@ public class ReceiptFilterTest {
 
     @Test
     public void receiptAndFilterTest() throws JSONException {
-        final Receipt receipt = ReceiptUtils.newDefaultReceiptBuilderFactory().build();
+        final Receipt receipt = ReceiptUtils.newDefaultReceiptBuilderFactory(context).build();
 
         final ReceiptIsReimbursableFilter trueFilter1 = new ReceiptIsReimbursableFilter();
         final ReceiptCategoryFilter trueFilter2 = new ReceiptCategoryFilter(ReceiptUtils.Constants.CATEGORY.getName());
@@ -179,9 +191,9 @@ public class ReceiptFilterTest {
         // accept rule: NOT (price <= normal)
         // equivalent to: (price > normal)
 
-        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_NORMAL).build();
-        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_HIGH).build();
-        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory().setPrice(PRICE_LOW).build();
+        final Receipt receiptNormal = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_NORMAL).build();
+        final Receipt receiptHigh = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_HIGH).build();
+        final Receipt receiptLow = ReceiptUtils.newDefaultReceiptBuilderFactory(context).setPrice(PRICE_LOW).build();
 
         final ReceiptMaximumPriceFilter priceFilter = new ReceiptMaximumPriceFilter(Float.parseFloat(PRICE_NORMAL), ReceiptUtils.Constants.CURRENCY_CODE);
         final ReceiptNotFilter notFilter = new ReceiptNotFilter(priceFilter);

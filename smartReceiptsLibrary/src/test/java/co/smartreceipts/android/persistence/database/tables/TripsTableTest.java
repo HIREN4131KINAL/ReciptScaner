@@ -26,9 +26,10 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertNull;
@@ -81,7 +82,7 @@ public class TripsTableTest {
     StorageManager mStorageManager;
     
     @Mock
-    Preferences mPreferences;
+    UserPreferenceManager mPreferences;
 
     @Captor
     ArgumentCaptor<String> mSqlCaptor;
@@ -101,21 +102,21 @@ public class TripsTableTest {
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         
         when(mPersistenceManager.getStorageManager()).thenReturn(mStorageManager);
-        when(mPersistenceManager.getPreferences()).thenReturn(mPreferences);
+        when(mPersistenceManager.getPreferenceManager()).thenReturn(mPreferences);
         when(mStorageManager.getFile(NAME_1)).thenReturn(new File(NAME_1));
         when(mStorageManager.getFile(NAME_2)).thenReturn(new File(NAME_2));
         when(mStorageManager.getFile(NAME_3)).thenReturn(new File(NAME_3));
         when(mStorageManager.mkdir(NAME_1)).thenReturn(new File(NAME_1));
         when(mStorageManager.mkdir(NAME_2)).thenReturn(new File(NAME_2));
         when(mStorageManager.mkdir(NAME_3)).thenReturn(new File(NAME_3));
-        when(mPreferences.getDefaultCurreny()).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
+        when(mPreferences.get(UserPreference.General.DefaultCurrency)).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
         
         mTripsTable = new TripsTable(mSQLiteOpenHelper, mPersistenceManager);
 
         // Now create the table and insert some defaults
         mTripsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
         mBuilder = new TripBuilderFactory();
-        mBuilder.setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.getDefaultCurreny());
+        mBuilder.setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.get(UserPreference.General.DefaultCurrency));
         mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build(), new DatabaseOperationMetadata()).toBlocking().first();
         mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build(), new DatabaseOperationMetadata()).toBlocking().first();
     }

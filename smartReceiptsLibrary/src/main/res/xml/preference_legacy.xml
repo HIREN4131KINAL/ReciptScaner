@@ -11,11 +11,11 @@
     *********************************************
     *********************************************	    
      -->
-     
-    <PreferenceCategory 
+
+    <PreferenceCategory
         android:title="@string/pref_general_header"
         android:key="pref_general_category_key">
-        <co.smartreceipts.android.fragments.preferences.DefaultDurationEditTextPreference  
+        <co.smartreceipts.android.fragments.preferences.DefaultDurationEditTextPreference
             android:key="@string/pref_general_trip_duration_key"
             android:title="@string/pref_general_trip_duration_title"
             android:inputType="number"
@@ -23,39 +23,41 @@
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_currency_key"
             android:title="@string/pref_general_default_currency_title"
-            android:defaultValue="@string/pref_general_default_currency_defaultValue" />
+            android:defaultValue="@string/pref_general_default_currency_defaultValue"/>
         <wb.android.preferences.SummaryListPreference
             android:key="@string/pref_general_default_date_separator_key"
-            android:title="@string/pref_general_default_date_separator_title" />
+            android:title="@string/pref_general_default_date_separator_title"
+            android:defaultValue="@string/pref_general_default_date_separator_key" />
         <CheckBoxPreference
             android:key="@string/pref_general_track_cost_center_key"
             android:title="@string/pref_general_track_cost_center_title"
             android:summaryOn="@string/pref_general_track_cost_center_summaryOn"
             android:summaryOff="@string/pref_general_track_cost_center_summaryOff"
             android:defaultValue="@bool/pref_general_track_cost_center_defaultValue"/>
-	</PreferenceCategory>
-	
-    <PreferenceCategory 
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/pref_receipt_header"
         android:key="pref_receipt_category_key">
-		<Preference android:key="@string/pref_receipt_customize_categories_key" 
-			android:title="@string/pref_receipt_customize_categories_title"
-			android:summary="@string/pref_receipt_customize_categories_summary" />
+        <Preference
+            android:key="@string/pref_receipt_customize_categories_key"
+            android:title="@string/pref_receipt_customize_categories_title"
+            android:summary="@string/pref_receipt_customize_categories_summary" />
         <CheckBoxPreference
             android:key="@string/pref_receipt_predict_categories_key"
             android:title="@string/pref_receipt_predict_categories_title"
             android:summary="@string/pref_receipt_predict_categories_summary"
-            android:defaultValue="true"/>
+            android:defaultValue="@bool/pref_receipt_predict_categories_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_receipt_enable_autocomplete_key"
             android:title="@string/pref_receipt_enable_autocomplete_title"
             android:summary="@string/pref_receipt_enable_autocomplete_summary"
-            android:defaultValue="true"/>
+            android:defaultValue="@bool/pref_receipt_enable_autocomplete_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_receipt_reimbursable_only_key"
             android:title="@string/pref_receipt_reimbursable_only_title"
             android:summary="@string/pref_receipt_reimbursable_only_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_reimbursable_only_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_receipt_reimbursable_default_key"
             android:title="@string/pref_receipt_reimbursable_default_title"
@@ -64,32 +66,32 @@
             android:key="@string/pref_receipt_default_to_report_start_date_key"
             android:title="@string/pref_receipt_default_to_report_start_date_title"
             android:summary="@string/pref_receipt_default_to_report_start_date_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_default_to_report_start_date_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_receipt_match_name_to_category_key"
             android:title="@string/pref_receipt_match_name_to_category_title"
             android:summary="@string/pref_receipt_match_name_to_category_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_match_name_to_category_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_receipt_match_comment_to_category_key"
             android:title="@string/pref_receipt_match_comment_to_category_title"
             android:summary="@string/pref_receipt_match_comment_to_category_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_receipt_match_comment_to_category_defaultValue"/>
         <CheckBoxPreference
-	        android:key="@string/pref_receipt_show_id_key"
-	        android:title="@string/pref_receipt_show_id_title"
-	        android:summary="@string/pref_receipt_show_id_summary"
-	        android:defaultValue="false"/>
+            android:key="@string/pref_receipt_show_id_key"
+            android:title="@string/pref_receipt_show_id_title"
+            android:summary="@string/pref_receipt_show_id_summary"
+            android:defaultValue="@bool/pref_receipt_show_id_defaultValue"/>
         <CheckBoxPreference
-	        android:key="@string/pref_receipt_full_page_key"
-	        android:title="@string/pref_receipt_full_page_title"
-	        android:summary="@string/pref_receipt_full_page_summary"
-	        android:defaultValue="false"/>
+            android:key="@string/pref_receipt_full_page_key"
+            android:title="@string/pref_receipt_full_page_title"
+            android:summary="@string/pref_receipt_full_page_summary"
+            android:defaultValue="@bool/pref_receipt_full_page_defaultValue"/>
         <co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference
             android:key="@string/pref_receipt_minimum_receipts_price_key"
             android:title="@string/pref_receipt_minimum_receipts_price_title"
             android:inputType="number" />
-		<CheckBoxPreference
+        <CheckBoxPreference
             android:key="@string/pref_receipt_include_tax_field_key"
             android:title="@string/pref_receipt_include_tax_field_title"
             android:summary="@string/pref_receipt_include_tax_field_summary"
@@ -97,118 +99,99 @@
         <co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePreference
             android:key="@string/pref_receipt_tax_percent_key"
             android:title="@string/pref_receipt_tax_percent_title"
-            android:inputType="number|numberDecimal"
-            android:defaultValue="0" />
+            android:inputType="number|numberDecimal" />
         <CheckBoxPreference
             android:key="@string/pref_receipt_pre_tax_key"
             android:title="@string/pref_receipt_pre_tax_title"
             android:summaryOn="@string/pref_receipt_pre_tax_summary_on"
             android:summaryOff="@string/pref_receipt_pre_tax_summary_off"
-            android:defaultValue="true"/>
-		<CheckBoxPreference
-	        android:key="@string/pref_receipt_use_payment_methods_key"
-	        android:title="@string/pref_receipt_use_payment_methods_title"
-	        android:summary="@string/pref_receipt_use_payment_methods_summary"
-	        android:defaultValue="@bool/pref_receipt_use_payment_methods_defaultValue"/>
-     	<Preference 
-		    android:key="@string/pref_receipt_payment_methods_key" 
-			android:title="@string/pref_receipt_payment_methods_title"
-			android:summary="@string/pref_receipt_payment_methods_summary" />
-    </PreferenceCategory>
-    
-    <PreferenceCategory 
-        android:title="@string/pref_output_header"
-        android:key="@string/pref_output_header_key">
-        <Preference android:key="@string/pref_output_custom_csv_key" 
-			android:title="@string/pref_output_custom_csv_title" />
-	    <Preference android:key="@string/pref_output_custom_pdf_key" 
-			android:title="@string/pref_output_custom_pdf_key" />
+            android:defaultValue="@bool/pref_receipt_pre_tax_defaultValue"/>
         <CheckBoxPreference
-            android:key="@string/pref_output_csv_header_key"
-            android:title="@string/pref_output_csv_header_title"
-            android:summary="@string/pref_output_csv_header_summary"
-            android:defaultValue="@bool/pref_output_csv_header_defaultValue" />
+            android:key="@string/pref_receipt_use_payment_methods_key"
+            android:title="@string/pref_receipt_use_payment_methods_title"
+            android:summary="@string/pref_receipt_use_payment_methods_summary"
+            android:defaultValue="@bool/pref_receipt_use_payment_methods_defaultValue" />
+        <Preference
+            android:key="@string/pref_receipt_payment_methods_key"
+            android:title="@string/pref_receipt_payment_methods_title"
+            android:summary="@string/pref_receipt_payment_methods_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_output_header"
+        android:key="pref_output_category_key">
+        <Preference
+            android:key="@string/pref_output_custom_csv_key"
+            android:title="@string/pref_output_custom_csv_title" />
+        <Preference
+            android:key="@string/pref_output_custom_pdf_key"
+            android:title="@string/pref_output_custom_pdf_key" />
+        <CheckBoxPreference
+            android:key="@string/pref_output_receipts_landscape_key"
+            android:title="@string/pref_output_receipts_landscape_title"
+            android:summaryOn="@string/pref_output_receipts_landscape_on"
+            android:summaryOff="@string/pref_output_receipts_landscape_off"
+            android:defaultValue="@bool/pref_output_receipts_landscape_defaultValue" />
         <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_output_username_key"
             android:title="@string/pref_output_username_title"
+            android:defaultValue="@string/pref_output_username_defaultValue"
             wb:emptyValue="@string/pref_output_username_emptyValue" />
         <CheckBoxPreference
             android:key="@string/pref_output_print_receipt_id_by_photo_key"
             android:title="@string/pref_output_print_receipt_id_by_photo_title"
             android:summary="@string/pref_output_print_receipt_id_by_photo_summary"
-            android:defaultValue="false "/>
+            android:defaultValue="@bool/pref_output_print_receipt_id_by_photo_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_output_print_receipt_comment_by_photo_key"
             android:title="@string/pref_output_print_receipt_comment_by_photo_title"
             android:summaryOn="@string/pref_output_print_receipt_comment_by_photo_summaryOn"
             android:summaryOff="@string/pref_output_print_receipt_comment_by_photo_summaryOff"
             android:defaultValue="@bool/pref_output_print_receipt_comment_by_photo_defaultValue"/>
-        <!-- 
-        <CheckBoxPreference
-            android:key="@string/pref_output_optimize_space_key"
-            android:title="@string/pref_output_optimize_space_title"
-            android:summaryOn="@string/pref_output_optimize_space_summaryOn"
-            android:summaryOff="@string/pref_output_optimize_space_summaryOff"
-            android:defaultValue="true"/>
+    </PreferenceCategory>
 
-        <CheckBoxPreference
-            android:key="@string/pref_output_blank_signature_key"
-            android:title="@string/pref_output_blank_signature_title"
-            android:summaryOn="@string/pref_output_blank_signature_summaryOn"
-            android:summaryOff="@string/pref_output_blank_signature_summaryOff"
-            android:defaultValue="@bool/pref_output_blank_signature_defaultValue"/>
-        <wb.android.preferences.EmptyValueSummaryPreference
-            android:key="@string/pref_output_signature_picture_key"
-            android:title="@string/pref_output_signature_picture_title"
-            wb:emptyValue="@string/pref_output_signature_picture_emptyValue" />
-            -->
-	</PreferenceCategory>
-    
-    <PreferenceCategory 
+    <PreferenceCategory
         android:title="@string/pref_email_header"
         android:key="pref_email_category_key">
-        <wb.android.preferences.EmptyValueSummaryEditTextPreference  
+        <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_email_default_email_to_key"
             android:title="@string/pref_email_default_email_to_title"
             android:inputType="textEmailAddress"
             android:defaultValue="@string/pref_email_default_email_to_defaultValue"
             wb:emptyValue="@string/pref_email_default_email_emptyValue" />
-        <wb.android.preferences.EmptyValueSummaryEditTextPreference  
+        <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_email_default_email_cc_key"
             android:title="@string/pref_email_default_email_cc_title"
             android:inputType="textEmailAddress"
+            android:defaultValue="@string/pref_email_default_email_cc_defaultValue"
             wb:emptyValue="@string/pref_email_default_email_emptyValue" />
-        <wb.android.preferences.EmptyValueSummaryEditTextPreference  
+        <wb.android.preferences.EmptyValueSummaryEditTextPreference
             android:key="@string/pref_email_default_email_bcc_key"
             android:title="@string/pref_email_default_email_bcc_title"
             android:inputType="textEmailAddress"
+            android:defaultValue="@string/pref_email_default_email_bcc_defaultValue"
             wb:emptyValue="@string/pref_email_default_email_emptyValue" />
-        <wb.android.preferences.SummaryEditTextPreference  
-	        android:key="@string/pref_email_default_email_subject_key"
-	        android:title="@string/pref_email_default_email_subject_title"
-	        android:inputType="text"
-	        android:defaultValue="@string/EMAIL_DATA_SUBJECT" />
-	</PreferenceCategory>
+        <wb.android.preferences.SummaryEditTextPreference
+            android:key="@string/pref_email_default_email_subject_key"
+            android:title="@string/pref_email_default_email_subject_title"
+            android:inputType="text"
+            android:defaultValue="@string/EMAIL_DATA_SUBJECT" />
+    </PreferenceCategory>
 	
     <PreferenceCategory 
         android:title="@string/pref_camera_header"
         android:key="@string/pref_camera_header_key">
         <CheckBoxPreference
-            android:key="@string/pref_camera_use_native_camera_key"
-            android:title="@string/pref_camera_use_native_camera_title"
-            android:summary="@string/pref_camera_use_native_camera_summary"
-            android:defaultValue="false"/>
-        <CheckBoxPreference
             android:key="@string/pref_camera_bw_key"
             android:title="@string/pref_camera_bw_title"
             android:summary="@string/pref_camera_bw_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_camera_bw_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_camera_rotate_key"
             android:title="@string/pref_camera_rotate_title"
             android:summaryOn="@string/pref_camera_rotate_summaryOn"
             android:summaryOff="@string/pref_camera_rotate_summaryOff"
-            android:defaultValue="@bool/pref_camera_rotate_key_defaultValue"/>
+            android:defaultValue="@bool/pref_camera_rotate_defaultValue"/>
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
@@ -218,17 +201,17 @@
             android:key="@string/pref_layout_display_date_key"
             android:title="@string/pref_layout_display_date_title"
             android:summary="@string/pref_layout_display_date_summary"
-            android:defaultValue="true"/>
+            android:defaultValue="@bool/pref_layout_display_date_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_layout_display_category_key"
             android:title="@string/pref_layout_display_category_title"
             android:summary="@string/pref_layout_display_category_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_layout_display_category_defaultValue"/>
         <CheckBoxPreference
             android:key="@string/pref_layout_display_photo_key"
             android:title="@string/pref_layout_display_photo_title"
             android:summary="@string/pref_layout_display_photo_summary"
-            android:defaultValue="false"/>
+            android:defaultValue="@bool/pref_layout_display_photo_defaultValue"/>
 	</PreferenceCategory>
 
     <PreferenceCategory
@@ -298,5 +281,7 @@
             android:title="@string/pref_about_terms_title"
             android:dialogTitle="@string/pref_about_terms_title"
             android:dialogMessage="@string/pref_about_terms_dialogMessage" />
+        <Preference android:key="@string/pref_about_privacy_policy_key"
+                    android:title="@string/pref_about_privacy_policy_title" />
 	</PreferenceCategory>
 </PreferenceScreen>

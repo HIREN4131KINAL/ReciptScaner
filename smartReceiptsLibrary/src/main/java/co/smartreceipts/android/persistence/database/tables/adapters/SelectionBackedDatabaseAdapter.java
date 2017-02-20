@@ -17,9 +17,10 @@ public interface SelectionBackedDatabaseAdapter<ModelType, KeyType, SelectionMod
      *
      * @param cursor the {@link Cursor} connection to the database
      * @param selectionModelType the {@link SelectionModelType} that was treated as the parent for this {@link ModelType}
+     * @param isDescending {@code true} for descending order, {@code false} for ascending
      * @return an object of type {@link ModelType}, that is represented by the current row of the cursor
      */
     @NonNull
-    ModelType readForSelection(@NonNull Cursor cursor, @NonNull SelectionModelType selectionModelType);
+    ModelType readForSelection(@NonNull Cursor cursor, @NonNull SelectionModelType selectionModelType, boolean isDescending);
 
 }

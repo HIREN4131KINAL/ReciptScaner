@@ -14,27 +14,22 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
-import wb.android.google.camera.PhotoModule;
-import wb.android.google.camera.data.Log;
 import wb.android.storage.StorageManager;
 
 public class ActivityFileResultImporter {
@@ -45,16 +40,16 @@ public class ActivityFileResultImporter {
     private final ActivityImporterHeadlessFragment mHeadlessFragment;
     private final Trip mTrip;
     private final StorageManager mStorageManager;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final Analytics mAnalytics;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
                                       @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(context, fragmentManager, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferences(), analytics);
+        this(context, fragmentManager, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), analytics);
     }
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
-                                      @NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull Analytics analytics) {
+                                      @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull Analytics analytics) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mTrip = Preconditions.checkNotNull(trip);
         mStorageManager = Preconditions.checkNotNull(storageManager);
@@ -177,8 +172,6 @@ public class ActivityFileResultImporter {
                             subscriber.onCompleted();
                         }
                     }
-                } else if (resultCode == PhotoModule.RESULT_SAVE_FAILED) {
-                    subscriber.onError(new FileNotFoundException("Failed to save request " + requestCode + " with result " + resultCode));
                 } else {
                     Logger.warn(ActivityFileResultImporter.this, "Unknown activity result code (likely user cancelled): {} ", resultCode);
                     subscriber.onCompleted();

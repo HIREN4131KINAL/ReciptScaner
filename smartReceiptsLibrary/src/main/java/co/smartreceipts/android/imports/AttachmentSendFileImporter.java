@@ -14,10 +14,9 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import rx.Observable;
 import rx.functions.Action1;
 import wb.android.storage.StorageManager;
@@ -29,17 +28,17 @@ public class AttachmentSendFileImporter {
     private final Context mContext;
     private final Trip mTrip;
     private final StorageManager mStorageManager;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final ReceiptTableController mReceiptTableController;
     private final Analytics mAnalytics;
 
     public AttachmentSendFileImporter(@NonNull Context context, @NonNull Trip trip, @NonNull PersistenceManager persistenceManager,
                                       @NonNull ReceiptTableController receiptTableController, @NonNull Analytics analytics) {
-        this(context, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferences(), receiptTableController, analytics);
+        this(context, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), receiptTableController, analytics);
     }
 
     public AttachmentSendFileImporter(@NonNull Context context, @NonNull Trip trip, @NonNull StorageManager storageManager,
-                                      @NonNull Preferences preferences, @NonNull ReceiptTableController receiptTableController,
+                                      @NonNull UserPreferenceManager preferences, @NonNull ReceiptTableController receiptTableController,
                                       @NonNull Analytics analytics) {
         mContext = Preconditions.checkNotNull(context.getApplicationContext());
         mTrip = Preconditions.checkNotNull(trip);

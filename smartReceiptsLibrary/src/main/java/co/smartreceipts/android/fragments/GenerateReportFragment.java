@@ -30,7 +30,6 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     private CheckBox mZipStampedImagesCheckbox;
 
     private Trip mTrip;
-
     private NavigationHandler mNavigationHandler;
 
     @NonNull

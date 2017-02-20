@@ -22,6 +22,7 @@ import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCusto
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.ReceiptDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryKey;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -61,7 +62,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
 
     public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull Table<Category, String> categoryTable, @NonNull PersistenceManager persistenceManager) {
         super(sqLiteOpenHelper, TABLE_NAME, new ReceiptDatabaseAdapter(tripsTable, paymentMethodTable, categoryTable, persistenceManager), new ReceiptPrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
-        mDefaultCurrencyCode = persistenceManager.getPreferences().getDefaultCurreny();
+        mDefaultCurrencyCode = persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency);
     }
 
     @Override

@@ -12,6 +12,7 @@
     <string name="menu_main_categories">Categories</string>
     <string name="menu_main_csv">Customize CSV Output</string>
     <string name="menu_main_pdf">Customize PDF Output</string>
+    <string name="menu_main_my_account">My Account</string>
     <string name="menu_main_export">Backup</string>
     <string name="menu_main_about">About</string>
 
@@ -96,6 +97,11 @@
     <string name="report_header_gross_total">Gross Total: %s</string>
     <string name="report_header_cost_center">Cost Center: %s</string>
     <string name="report_header_comment">Report Comment: %s</string>
+    <string name="report_pdf_generation_error">There was an error generating the report</string>
+    <string name="report_pdf_error_too_many_columns_title">Too many columns</string>
+    <string name="report_pdf_error_too_many_columns_message">There is not enough space to fit all the columns in the report. Please try limiting the number of columns in Settings.</string>
+    <string name="report_pdf_error_too_many_columns_message_landscape">There is not enough space to fit all the columns in the report. Please try limiting the number of columns in Settings or use landscape mode.</string>
+    <string name="report_pdf_error_go_to_settings">Go to settings</string>
 
     <!-- ===================== ocr ======================== -->
     <string name="ocr_informational_tooltip_text">Interested in Automatic Scans? Tap here.</string>
@@ -201,6 +207,7 @@
     <string name="toast_error_category_exists">Error: An category with that name already exists</string>
     <string name="toast_error_invalid_input">Invalid Input</string>
     <string name="toast_error_password_protected_pdf">Error: Password-Protected PDF files cannot be included.</string>
+    <string name="report_file_could_not_be_rendered">File could not be rendered</string>
 
     <!-- ============== Toast Messages ================= -->
     <string name="toast_receipt_copy">Successfully copied the receipt</string>
@@ -324,7 +331,6 @@
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE">Create</string>
     <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE">Update</string>
     <string name="DIALOG_RECEIPTMENU_NEGATIVE_BUTTON">Cancel</string>
-    <string name="DIALOG_RECEIPTMENU_TOAST_MISSING_NAME">Please provide a name for this receipt</string>
     <string name="DIALOG_RECEIPTMENU_TOAST_BAD_DATE">Warning: This Receipt\'s Date falls outside the specified range for this Report</string>
 
     <!-- ==================== dialog export / import ====================== -->
@@ -351,7 +357,7 @@
     <!-- ===================== backup menu ======================== -->
     <string name="backups">Backups</string>
     <string name="manual_backup_title">Manual Backups:</string>
-    <string name="manual_backup_description">Back up your data to keep your receipts safe! You can restore your data by importing the SmartReceipts.SMR backup file, which is generated via the "Export" button below.</string>
+    <string name="manual_backup_description">Back up your data to keep your receipts safe! You can restore your data by importing the SmartReceipts.SMR backup file, which is generated via the "Backup" button below.</string>
     <string name="manual_backup_export">Backup</string>
     <string name="manual_backup_import">Import</string>
     <string name="auto_backup_title">Automatic Backups [BETA]:</string>

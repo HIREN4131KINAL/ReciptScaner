@@ -19,16 +19,17 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.rating.AppRating;
 
@@ -95,7 +96,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             if (attachment.requiresStoragePermissions() && !hasStoragePermission) {
                 ActivityCompat.requestPermissions(this, new String[] { READ_EXTERNAL_STORAGE }, STORAGE_PERMISSION_REQUEST);
             } else if (attachment.isDirectlyAttachable()) {
-                final Preferences preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferences();
+                final UserPreferenceManager preferences = getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager();
                 if (InformAboutPdfImageAttachmentDialogFragment.shouldInformAboutPdfImageAttachmentDialogFragment(preferences)) {
                     mNavigationHandler.showDialog(InformAboutPdfImageAttachmentDialogFragment.newInstance(attachment));
                 } else {
@@ -133,6 +134,10 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         // If we disabled settings in our config, let's remove it
         if (!getSmartReceiptsApplication().getConfigurationManager().isSettingsMenuAvailable()) {
             menu.removeItem(R.id.menu_main_settings);
+        }
+
+        if (!FeatureFlags.SmartReceiptsLogin.isEnabled()) {
+            menu.removeItem(R.id.menu_main_my_account);
         }
 
         return super.onCreateOptionsMenu(menu);

@@ -40,6 +40,7 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
@@ -109,13 +110,13 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         mContext = application.getApplicationContext();
         mFlex = application.getFlex();
         mPersistenceManager = persistenceManager;
-        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferences(), mFlex);
+        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferenceManager(), mFlex);
         mCustomizations = new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
 
         // Tables:
         mTables = new ArrayList<>();
         mTripsTable = new TripsTable(this, mPersistenceManager);
-        mDistanceTable = new DistanceTable(this, mTripsTable, mPersistenceManager.getPreferences().getDefaultCurreny());
+        mDistanceTable = new DistanceTable(this, mTripsTable, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
         mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
@@ -229,7 +230,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -238,7 +239,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 prices.add(distance);
@@ -254,7 +255,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripDailyPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferences().onlyIncludeReimbursableReceiptsInReports();
+        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -265,7 +266,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferences().getShouldTheDistancePriceBeIncludedInReports()) {
+        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 if (DateUtils.isToday(distance.getDate())) {
@@ -430,7 +431,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final String filters = getString(c, filtersIndex, "");
                             final String costCenter = getString(c, costCenterIndex, "");
                             final String processingStatus = getString(c, processingStatusIndex, "");
-                            final String defaultCurrency = getString(c, defaultCurrencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
+                            final String defaultCurrency = getString(c, defaultCurrencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
                             ContentValues values = new ContentValues(10);
                             values.put(TripsTable.COLUMN_NAME, name);
                             values.put(TripsTable.COLUMN_FROM, from);
@@ -520,7 +521,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final long date = getLong(c, dateIndex, 0L);
                             final String comment = getString(c, commentIndex, "");
                             final boolean reimbursable = getBoolean(c, reimbursableIndex, true);
-                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
+                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
                             final boolean fullpage = getBoolean(c, fullpageIndex, false);
                             final String extra_edittext_1 = getString(c, extra_edittext_1_Index, null);
                             final String extra_edittext_2 = getString(c, extra_edittext_2_Index, null);
@@ -728,7 +729,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final String location = getString(c, locationIndex, "");
                             final BigDecimal distance = getDecimal(c, distanceIndex);
                             final BigDecimal rate = getDecimal(c, rateIndex);
-                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferences().getDefaultCurreny());
+                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
                             final long date = getLong(c, dateIndex, 0L);
                             final String timezone = getString(c, timezoneIndex, TimeZone.getDefault().getID());
                             final String comment = getString(c, commentIndex, "");
@@ -914,7 +915,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         if (tag == TAG_RECEIPTS_NAME) {
             String category = null, price = null, tmp = null;
             // If we're not predicting, return
-            if (!mPersistenceManager.getPreferences().predictCategories()) {
+            if (!mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.PredictCategories)) {
                 // price = null;
                 // category = null
             } else {

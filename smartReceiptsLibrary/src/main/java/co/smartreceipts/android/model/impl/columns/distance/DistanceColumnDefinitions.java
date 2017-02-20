@@ -14,7 +14,7 @@ import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import wb.android.flex.Flex;
@@ -50,16 +50,16 @@ public final class DistanceColumnDefinitions implements ColumnDefinitions<Distan
 
     private final Context mContext;
     private final DatabaseHelper mDB;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final Flex mFlex;
     private final ActualDefinition[] mActualDefinitions;
     private final boolean mAllowSpecialCharacters;
 
     public DistanceColumnDefinitions(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex, boolean allowSpecialCharacters) {
-        this(context, persistenceManager.getDatabase(), persistenceManager.getPreferences(), flex, allowSpecialCharacters);
+        this(context, persistenceManager.getDatabase(), persistenceManager.getPreferenceManager(), flex, allowSpecialCharacters);
     }
 
-    public DistanceColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull Preferences preferences, Flex flex, boolean allowSpecialCharacters) {
+    public DistanceColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull UserPreferenceManager preferences, Flex flex, boolean allowSpecialCharacters) {
         mContext = context;
         mDB = db;
         mPreferences = preferences;

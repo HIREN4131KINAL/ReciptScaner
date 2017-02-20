@@ -72,7 +72,7 @@ public class WBListFragment extends ListFragment {
 
 	protected DateManager getDateManager() {
 		if (mDateManager == null) {
-			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferences());
+			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager());
 		}
 		return mDateManager;
 	}
@@ -109,10 +109,6 @@ public class WBListFragment extends ListFragment {
 				else {
 					throw new RuntimeException("The Application must be an instance a SmartReceiptsApplication");
 				}
-			}
-			else {
-				// We're in a weird state and probably will crash soon... But just in case
-				mApplication = SmartReceiptsApplication.getInstance();
 			}
 		}
 		return mApplication;

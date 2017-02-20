@@ -3,7 +3,7 @@ package co.smartreceipts.android.analytics.events;
 public final class Events {
 
     private enum Category implements Event.Category {
-        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings, Informational, Sync, Ocr
+        Purchases, Navigation, Reports, Receipts, Distance, Generate, Ratings, Informational, Sync, Ocr, Identity
     }
 
     public static final class Purchases {
@@ -62,6 +62,7 @@ public final class Events {
         public static final Event ImagesPdfReport = new DefaultEvent(Category.Generate, "ImagesPdfReport");
         public static final Event CsvReport = new DefaultEvent(Category.Generate, "CsvReport");
         public static final Event StampedZipReport = new DefaultEvent(Category.Generate, "StampedZipReport");
+        public static final Event ReportPdfRenderingError = new DefaultEvent(Category.Generate, "ReportPdfRenderingError");
     }
 
     public static final class Ratings {
@@ -78,6 +79,12 @@ public final class Events {
     public static final class Sync {
         public static final Event DisplaySyncError = new DefaultEvent(Category.Sync, "DisplaySyncError");
         public static final Event ClickSyncError = new DefaultEvent(Category.Sync, "ClickSyncError");
+    }
+
+    public static final class Identity {
+        public static final Event UserLogin = new DefaultEvent(Category.Identity, "UserLogin");
+        public static final Event UserLoginSuccess = new DefaultEvent(Category.Identity, "UserLoginSuccess");
+        public static final Event UserLoginFailure = new DefaultEvent(Category.Identity, "UserLoginFailure");
     }
 
     public static final class Ocr {

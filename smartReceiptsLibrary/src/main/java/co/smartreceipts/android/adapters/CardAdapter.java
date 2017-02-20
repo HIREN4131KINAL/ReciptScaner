@@ -11,7 +11,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -25,7 +24,7 @@ import com.google.common.base.Preconditions;
 import com.squareup.picasso.Picasso;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.Syncable;
 import co.smartreceipts.android.sync.provider.SyncProvider;
@@ -42,18 +41,18 @@ public class CardAdapter<T> extends BaseAdapter {
     protected final Drawable mSyncedDrawable;
 
 	private final LayoutInflater mInflater;
-	private final Preferences mPreferences;
+	private final UserPreferenceManager mPreferences;
 	private final Context mContext;
 	private final float mCardPriceTextSize;
 
     private List<T> mData;
     private int mMinPriceWidth, mMaxPriceWidth, mCurrentPriceWidth;
 	
-	public CardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+	public CardAdapter(@NonNull Context context, @NonNull UserPreferenceManager preferences, @NonNull BackupProvidersManager backupProvidersManager) {
 		this(context, preferences, backupProvidersManager, Collections.<T>emptyList());
 	}
 
-    public CardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager, @NonNull List<T> data) {
+    public CardAdapter(@NonNull Context context, @NonNull UserPreferenceManager preferences, @NonNull BackupProvidersManager backupProvidersManager, @NonNull List<T> data) {
         mInflater = LayoutInflater.from(context);
         mPreferences = preferences;
         mContext = context;
@@ -98,7 +97,7 @@ public class CardAdapter<T> extends BaseAdapter {
 		return mContext;
 	}
 	
-	public final Preferences getPreferences() {
+	public final UserPreferenceManager getPreferences() {
 		return mPreferences;
 	}
 	

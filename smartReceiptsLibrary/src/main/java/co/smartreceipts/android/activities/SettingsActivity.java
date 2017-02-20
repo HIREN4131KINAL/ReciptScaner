@@ -2,13 +2,10 @@ package co.smartreceipts.android.activities;
 
 import android.annotation.TargetApi;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,14 +23,11 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,23 +41,21 @@ import co.smartreceipts.android.fragments.preferences.DefaultTaxPercentagePrefer
 import co.smartreceipts.android.fragments.preferences.MinimumPriceEditTextPreference;
 import co.smartreceipts.android.fragments.preferences.UniversalPreferences;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.rating.AppRating;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.preferences.SummaryEditTextPreference;
-import wb.android.storage.StorageManager;
-import co.smartreceipts.android.rating.AppRating;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
-
-    private static final int GET_SIGNATURE_PHOTO_REQUEST_CODE = 1;
 
     public static final String EXTRA_GO_TO_CATEGORY = "GO_TO_CATEGORY";
 
@@ -87,8 +79,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
         if (!mIsUsingHeaders) {
             // Load the legacy preferences headers
-            getPreferenceManager().setSharedPreferencesName(Preferences.SMART_PREFS);
-            getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences());
+            getPreferenceManager().setSharedPreferencesName(UserPreferenceManager.PREFERENCES_FILE_NAME);
             addPreferencesFromResource(R.xml.preference_legacy);
             configurePreferencesGeneral(this);
             configurePreferencesReceipts(this);
@@ -238,18 +229,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            if (requestCode == GET_SIGNATURE_PHOTO_REQUEST_CODE) {
-                final StorageManager storageManager = mApp.getPersistenceManager().getStorageManager();
-                final Preferences preferences = mApp.getPersistenceManager().getPreferences();
-                new CopySignatureImageClass(getContentResolver(), data, preferences, storageManager, getSharedPreferences(Preferences.SMART_PREFS, 0), getString(R.string.pref_output_signature_picture_key)).execute();
-            } else {
-                super.onActivityResult(requestCode, resultCode, data);
-            }
-        } else {
-            if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
-                super.onActivityResult(requestCode, resultCode, data);
-            }
+        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -282,24 +263,24 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         currencyList.toArray(currencyArray);
 
         // Get the date separator list
-        final String defaultSepartor = persistenceManager.getPreferences().getDateSeparator();
-        final CharSequence[] dateSeparators = getDateSeparatorOptions(persistenceManager.getPreferences());
+        final String defaultSepartor = persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator);
+        final CharSequence[] dateSeparators = getDateSeparatorOptions(persistenceManager.getPreferenceManager());
 
         // Set up the ListPreference data
         ListPreference currencyPreference = (ListPreference) universal.findPreference(R.string.pref_general_default_currency_key);
         currencyPreference.setEntries(currencyArray);
         currencyPreference.setEntryValues(currencyArray);
-        currencyPreference.setValue(persistenceManager.getPreferences().getDefaultCurreny());
+        currencyPreference.setValue(persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
         ListPreference dateSeparatorPreference = (ListPreference) universal.findPreference(R.string.pref_general_default_date_separator_key);
         dateSeparatorPreference.setEntries(dateSeparators);
         dateSeparatorPreference.setEntryValues(dateSeparators);
         dateSeparatorPreference.setValue(defaultSepartor);
     }
 
-    private CharSequence[] getDateSeparatorOptions(Preferences preferences) {
+    private CharSequence[] getDateSeparatorOptions(UserPreferenceManager preferences) {
         final int definedDateSeparatorCount = 3;
         CharSequence[] dateSeparators;
-        final String defaultSepartor = preferences.getDateSeparator();
+        final String defaultSepartor = preferences.get(UserPreference.General.DateSeparator);
         if (!defaultSepartor.equals("-") && !defaultSepartor.equals("/")) {
             dateSeparators = new CharSequence[definedDateSeparatorCount + 1];
             dateSeparators[definedDateSeparatorCount] = defaultSepartor;
@@ -318,11 +299,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_receipt_payment_methods_key).setOnPreferenceClickListener(this);
 
         // Here we restore our current values (easier than getting the FloatEditText stuff to work)
-        Preferences preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences();
+        UserPreferenceManager preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferenceManager();
         DefaultTaxPercentagePreference taxPercentagePreference = (DefaultTaxPercentagePreference) universal.findPreference(R.string.pref_receipt_tax_percent_key);
-        taxPercentagePreference.setText(Float.toString(preferences.getDefaultTaxPercentage()));
+        taxPercentagePreference.setText(Float.toString(preferences.get(UserPreference.Receipts.DefaultTaxPercentage)));
         MinimumPriceEditTextPreference minimumPriceEditTextPreference = (MinimumPriceEditTextPreference) universal.findPreference(R.string.pref_receipt_minimum_receipts_price_key);
-        minimumPriceEditTextPreference.setText(Float.toString(preferences.getMinimumReceiptPriceToIncludeInReports()));
+        minimumPriceEditTextPreference.setText(Float.toString(preferences.get(UserPreference.Receipts.MinimumReceiptPrice)));
 
     }
 
@@ -330,10 +311,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         // Set on Preference Click Listeners for all that require it
         universal.findPreference(R.string.pref_output_custom_csv_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_output_custom_pdf_key).setOnPreferenceClickListener(this);
-        final Preference signaturePreference = universal.findPreference(R.string.pref_output_signature_picture_key);
-        if (signaturePreference != null) {
-            signaturePreference.setOnPreferenceClickListener(this);
-        }
     }
 
     private void scrollToCategory(UniversalPreferences universal, String sectionHeader) {
@@ -357,15 +334,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configurePreferencesCamera(UniversalPreferences universal) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // We always use the native camera for M+
-            ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferences().setUseNativeCamera(true);
-            final PreferenceCategory cameraCategory = (PreferenceCategory) universal.findPreference(R.string.pref_camera_header_key);
-            if (cameraCategory != null) {
-                final Preference nativeCameraPreference = universal.findPreference(R.string.pref_camera_use_native_camera_key);
-                cameraCategory.removePreference(nativeCameraPreference);
-            }
-        }
+
     }
 
     public void configurePreferencesLayoutCustomizations(UniversalPreferences universal) {
@@ -388,6 +357,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_help_send_feedback_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_send_love_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_support_email_key).setOnPreferenceClickListener(this);
+        universal.findPreference(R.string.pref_about_privacy_policy_key).setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesAbout(UniversalPreferences universal) {
@@ -426,12 +396,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                     getString(R.string.support, getString(R.string.sr_app_name)), getDebugScreen(), files);
             startActivity(Intent.createChooser(intent, getResources().getString(R.string.send_email)));
             return true;
-        } else if (key.equals(getString(R.string.pref_output_signature_picture_key))) {
-            final Intent intent = new Intent();
-            intent.setType("image/*");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(intent, GET_SIGNATURE_PHOTO_REQUEST_CODE);
-            throw new UnsupportedOperationException("Not supported in production at the moment");
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
             final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
@@ -443,6 +407,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }
+            return true;
+        } else if (key.equals(getString(R.string.pref_about_privacy_policy_key))) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.smartreceipts.co/privacy")));
             return true;
         } else {
             return false;
@@ -528,62 +495,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                 "Manufacturer: " + Build.MANUFACTURER + "\n" +
                 "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" +
                 "Two-Paned: " + mIsUsingHeaders;
-    }
-
-    private static class CopySignatureImageClass extends AsyncTask<Void, Void, Boolean> {
-
-        private final ContentResolver mContentResolver;
-        private final Intent mIntent;
-        private final Preferences mPreferences;
-        private final StorageManager mStorageManager;
-        private final SharedPreferences mSharedPreferences;
-        private final String mKey;
-
-        public CopySignatureImageClass(ContentResolver contentResolver, Intent intent, Preferences preferences, StorageManager storageManager, SharedPreferences sharedPreferences, String key) {
-            mContentResolver = contentResolver;
-            mIntent = intent;
-            mPreferences = preferences;
-            mStorageManager = storageManager;
-            mSharedPreferences = sharedPreferences;
-            mKey = key;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            if (mIntent == null || mIntent.getData() == null) {
-                return false;
-            }
-            final Uri uri = mIntent.getData();
-            InputStream inputStream = null;
-            try {
-                final MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-                final String extension = mimeTypeMap.getExtensionFromMimeType(mContentResolver.getType(uri));
-                final String filename = "signature." + extension;
-                final File destination = mStorageManager.getFile(mPreferences.getPreferencesFolder(), filename);
-                inputStream = mContentResolver.openInputStream(uri);
-                mStorageManager.copy(inputStream, destination, true);
-                mSharedPreferences.edit().putString(mKey, filename).apply();
-                return true;
-            } catch (IOException e) {
-                Logger.error(this, "Failed to save signature image in onActivityResult", e);
-                return false;
-            } finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) { /* Intentional Stub */ }
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean success) {
-            if (success) {
-                // TODO: Toast Yay
-            } else {
-                // TODO: Toast Booo
-            }
-        }
     }
 
 }

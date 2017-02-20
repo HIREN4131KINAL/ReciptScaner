@@ -5,7 +5,8 @@ import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.SyncState;
 
 /**
@@ -14,9 +15,9 @@ import co.smartreceipts.android.sync.model.SyncState;
 public final class ReportEndDateColumn extends AbstractColumnImpl<Receipt> {
 
     private final Context mContext;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
-    public ReportEndDateColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context, @NonNull Preferences preferences) {
+    public ReportEndDateColumn(int id, @NonNull String name, @NonNull SyncState syncState, @NonNull Context context, @NonNull UserPreferenceManager preferences) {
         super(id, name, syncState);
         mContext = context;
         mPreferences = preferences;
@@ -24,6 +25,6 @@ public final class ReportEndDateColumn extends AbstractColumnImpl<Receipt> {
 
     @Override
     public String getValue(@NonNull Receipt receipt) {
-        return receipt.getTrip().getFormattedEndDate(mContext, mPreferences.getDateSeparator());
+        return receipt.getTrip().getFormattedEndDate(mContext, mPreferences.get(UserPreference.General.DateSeparator));
     }
 }

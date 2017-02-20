@@ -90,7 +90,7 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             cursor = getReadableDatabase().query(getTableName(), null, mTripForeignKeyReferenceColumnName + "= ? AND " + COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ trip.getName(), Integer.toString(0) }, null, null, new OrderBy(mSortingOrderColumn, isDescending).getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip));
+                    results.add(mSelectionBackedDatabaseAdapter.readForSelection(cursor, trip, isDescending));
                 }
                 while (cursor.moveToNext());
             }

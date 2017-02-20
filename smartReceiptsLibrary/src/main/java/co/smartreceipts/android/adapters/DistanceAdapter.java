@@ -7,12 +7,13 @@ import android.view.View;
 import android.widget.TextView;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 
 public class DistanceAdapter extends CardAdapter<Distance> {
 
-    public DistanceAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+    public DistanceAdapter(@NonNull Context context, @NonNull UserPreferenceManager preferences, @NonNull BackupProvidersManager backupProvidersManager) {
         super(context, preferences, backupProvidersManager);
     }
 
@@ -41,7 +42,7 @@ public class DistanceAdapter extends CardAdapter<Distance> {
 
     @Override
     protected void setCategory(TextView textView, Distance data) {
-        textView.setText(data.getFormattedDate(getContext(), getPreferences().getDateSeparator()));
+        textView.setText(data.getFormattedDate(getContext(), getPreferences().get(UserPreference.General.DateSeparator)));
     }
 
     @Override

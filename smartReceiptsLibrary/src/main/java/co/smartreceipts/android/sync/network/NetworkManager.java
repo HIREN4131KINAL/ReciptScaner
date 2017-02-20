@@ -5,20 +5,21 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class NetworkManager extends CompositeNetworkProviderImpl {
 
     private final NetworkProviderFactory mNetworkProviderFactory;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
 
-    public NetworkManager(@NonNull Context context, @NonNull Preferences preferences) {
+    public NetworkManager(@NonNull Context context, @NonNull UserPreferenceManager preferences) {
         this(new NetworkProviderFactory(context), preferences);
     }
 
-    public NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull Preferences preferences) {
-        super(networkProviderFactory.get(preferences.getAutoBackupOnWifiOnly() ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks));
+    public NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull UserPreferenceManager preferences) {
+        super(networkProviderFactory.get(preferences.get(UserPreference.Misc.AutoBackupOnWifiOnly) ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks));
         mNetworkProviderFactory = Preconditions.checkNotNull(networkProviderFactory);
         mPreferences = Preconditions.checkNotNull(preferences);
         initialize();
@@ -50,7 +51,7 @@ public class NetworkManager extends CompositeNetworkProviderImpl {
 
     @NonNull
     public synchronized SupportedNetworkType getSupportedNetworkType() {
-        return mPreferences.getAutoBackupOnWifiOnly() ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks;
+        return mPreferences.get(UserPreference.Misc.AutoBackupOnWifiOnly) ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks;
     }
 
 }

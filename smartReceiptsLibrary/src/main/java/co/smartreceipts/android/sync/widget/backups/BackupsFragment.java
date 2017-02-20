@@ -30,6 +30,7 @@ import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
@@ -42,6 +43,7 @@ import rx.subscriptions.CompositeSubscription;
 public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
+
 
     private BackupProvidersManager mBackupProvidersManager;
     private NetworkManager mNetworkManager;
@@ -125,11 +127,11 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 }
             }
         });
-        mWifiOnlyCheckbox.setChecked(getPersistenceManager().getPreferences().getAutoBackupOnWifiOnly());
+        mWifiOnlyCheckbox.setChecked(getPersistenceManager().getPreferenceManager().get(UserPreference.Misc.AutoBackupOnWifiOnly));
         mWifiOnlyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                getPersistenceManager().getPreferences().getSharedPreferences().edit().putBoolean(getString(R.string.pref_no_category_auto_backup_wifi_only_key), checked).apply();
+                getPersistenceManager().getPreferenceManager().set(UserPreference.Misc.AutoBackupOnWifiOnly, checked);
                 mBackupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
             }
         });
@@ -139,7 +141,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager));
+        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager));
     }
 
     @Override
@@ -226,7 +228,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                             } else {
                                 mExistingBackupsSection.setVisibility(View.VISIBLE);
                             }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferences(), mNetworkManager, remoteBackupMetadatas);
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager, remoteBackupMetadatas);
                             mRecyclerView.setAdapter(remoteBackupsListAdapter);
                         }
                     }));

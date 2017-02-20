@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Date;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
@@ -63,36 +64,43 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         return Observable.create(new Observable.OnSubscribe<Receipt>() {
             @Override
             public void call(Subscriber<? super Receipt> subscriber) {
-                if (newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
-                    // If we changed the receipt file, rename it to our naming schema
-                    if (oldReceipt.getFile() != null) {
-                        final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
-                        final String oldExtension = "." + StorageManager.getExtension(oldReceipt.getFile());
-                        final String newExtension = "." + StorageManager.getExtension(newReceipt.getFile());
-                        if (newExtension.equals(oldExtension)) {
-                            if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
-                                // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
-                                factory.setFile(oldReceipt.getFile());
+                if (newReceipt.getFile() != null) {
+                    if (!newReceipt.getFile().equals(oldReceipt.getFile())) {
+                        // If we changed the receipt file, replace the old file name
+                        if (oldReceipt.getFile() != null) {
+                            final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
+                            final String oldExtension = "." + StorageManager.getExtension(oldReceipt.getFile());
+                            final String newExtension = "." + StorageManager.getExtension(newReceipt.getFile());
+                            if (newExtension.equals(oldExtension)) {
+                                if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
+                                    // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
+                                    factory.setFile(oldReceipt.getFile());
+                                }
+                            } else {
+                                final String renamedNewFileName = oldReceipt.getFile().getName().replace(oldExtension, newExtension);
+                                final String renamedNewFilePath = newReceipt.getFile().getAbsolutePath().replace(newReceipt.getFile().getName(), renamedNewFileName);
+                                final File renamedNewFile = new File(renamedNewFilePath);
+                                if (newReceipt.getFile().renameTo(renamedNewFile)) {
+                                    factory.setFile(renamedNewFile);
+                                }
                             }
+                            subscriber.onNext(factory.build());
+                            subscriber.onCompleted();
                         } else {
-                            final String renamedNewFileName = oldReceipt.getFile().getName().replace(oldExtension, newExtension);
-                            final String renamedNewFilePath = newReceipt.getFile().getAbsolutePath().replace(newReceipt.getFile().getName(), renamedNewFileName);
-                            final File renamedNewFile = new File(renamedNewFilePath);
-                            if (newReceipt.getFile().renameTo(renamedNewFile)) {
-                                factory.setFile(renamedNewFile);
-                            }
+                            subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
+                            subscriber.onCompleted();
                         }
-                        subscriber.onNext(factory.build());
+                    } else if (newReceipt.getIndex() != oldReceipt.getIndex()) {
+                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
                         subscriber.onCompleted();
                     } else {
-                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
+                        subscriber.onNext(newReceipt);
                         subscriber.onCompleted();
                     }
                 } else {
                     subscriber.onNext(newReceipt);
                     subscriber.onCompleted();
                 }
-                newReceipt.getFile();
             }
         });
 
@@ -161,7 +169,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
             return Observable.error(new RuntimeException("This receipt is at the start of the list already"));
         } else {
             final Receipt swappingWith = receipts.get(indexToSwapWith);
-            return Observable.<List<? extends Map.Entry<Receipt, Receipt>>>just(swapDates(receiptToSwapUp, swappingWith));
+            return Observable.<List<? extends Map.Entry<Receipt, Receipt>>>just(swapDates(receiptToSwapUp, swappingWith, true));
         }
     }
 
@@ -172,7 +180,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
             return Observable.error(new RuntimeException("This receipt is at the end of the list already"));
         } else {
             final Receipt swappingWith = receipts.get(indexToSwapWith);
-            return Observable.<List<? extends Map.Entry<Receipt, Receipt>>>just(swapDates(receiptToSwapDown, swappingWith));
+            return Observable.<List<? extends Map.Entry<Receipt, Receipt>>>just(swapDates(receiptToSwapDown, swappingWith, false));
         }
     }
 
@@ -214,12 +222,19 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     @NonNull
-    private List<? extends Map.Entry<Receipt, Receipt>> swapDates(@NonNull Receipt receipt1, @NonNull Receipt receipt2) {
+    private List<? extends Map.Entry<Receipt, Receipt>> swapDates(@NonNull Receipt receipt1, @NonNull Receipt receipt2, boolean isSwappingUp) {
         final ReceiptBuilderFactory builder1 = mReceiptBuilderFactoryFactory.build(receipt1);
         final ReceiptBuilderFactory builder2 = mReceiptBuilderFactoryFactory.build(receipt2);
-        builder1.setDate(receipt2.getDate());
+        long dateShift = 0;
+        if (receipt1.getDate().equals(receipt2.getDate())) {
+            // We shift this way to avoid possible issues wrt sorting order if these are identical
+            dateShift = isSwappingUp ? 1 : -1;
+        }
+        builder1.setDate(new Date(receipt2.getDate().getTime() + dateShift));
+        builder1.setIndex(receipt2.getIndex());
         builder2.setDate(receipt1.getDate());
-        return Arrays.asList(new AbstractMap.SimpleImmutableEntry<>(receipt1, builder1.build()), new AbstractMap.SimpleImmutableEntry<>(receipt2, builder2.build()));
+        builder2.setIndex(receipt1.getIndex());
+        return Arrays.asList(new AbstractMap.SimpleImmutableEntry<>(receipt2, builder2.build()), new AbstractMap.SimpleImmutableEntry<>(receipt1, builder1.build()));
     }
 
     private int getNextReceiptIndex(@NonNull Receipt receipt) {

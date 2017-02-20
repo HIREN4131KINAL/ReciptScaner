@@ -6,8 +6,17 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 
-import java.io.File;
+import org.apache.commons.io.IOUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
 
 /** 
@@ -21,13 +30,34 @@ public class ContentUriProvider {
     private static final String HUAWEI_MANUFACTURER = "Huawei";
 
     public static Uri getUriForFile(@NonNull Context context, @NonNull String authority, @NonNull File file) {
-        if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER) && Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            Logger.warn(ContentUriProvider.class, "Using a Huawei device on pre-N. Increased likelihood of failure...");
+        if (HUAWEI_MANUFACTURER.equalsIgnoreCase(Build.MANUFACTURER)) {
+            Logger.warn(ContentUriProvider.class, "Using a Huawei device Increased likelihood of failure...");
             try {
                 return FileProvider.getUriForFile(context, authority, file);
             } catch (IllegalArgumentException e) {
-                Logger.warn(ContentUriProvider.class, "Returning Uri.fromFile to avoid Huawei 'external-files-path' bug", e);
-                return Uri.fromFile(file);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    Logger.warn(ContentUriProvider.class, "Returning Uri.fromFile to avoid Huawei 'external-files-path' bug for pre-N devices", e);
+                    return Uri.fromFile(file);
+                } else {
+                    Logger.warn(ContentUriProvider.class, "ANR Risk -- Copying the file the location cache to avoid Huawei 'external-files-path' bug for N+ devices", e);
+                    final SmartReceiptsTemporaryFileCache temporaryFileCache = new SmartReceiptsTemporaryFileCache(context);
+                    final File cacheLocation = temporaryFileCache.getFile(file.getName());
+                    InputStream in = null;
+                    OutputStream out = null;
+                    try {
+                        in = new FileInputStream(file);
+                        out = new FileOutputStream(cacheLocation); // appending output stream
+                        IOUtils.copy(in, out);
+                        Logger.info(ContentUriProvider.class, "Completed Android N+ Huawei file copy. Attempting to return the cached file");
+                        return FileProvider.getUriForFile(context, authority, cacheLocation);
+                    } catch (IOException e1) {
+                        Logger.error(ContentUriProvider.class, "Failed to copy the Huawei file. Re-throwing exception", e1);
+                        throw new IllegalArgumentException("Huawei devices are unsupported for Android N", e1);
+                    } finally {
+                        IOUtils.closeQuietly(in);
+                        IOUtils.closeQuietly(out);
+                    }
+                }
             }
         } else {
             return FileProvider.getUriForFile(context, authority, file);

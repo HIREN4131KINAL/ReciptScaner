@@ -5,12 +5,13 @@ import android.support.annotation.NonNull;
 import android.widget.TextView;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 
 public class TripCardAdapter extends CardAdapter<Trip> {
 
-	public TripCardAdapter(@NonNull Context context, @NonNull Preferences preferences, @NonNull BackupProvidersManager backupProvidersManager) {
+	public TripCardAdapter(@NonNull Context context, @NonNull UserPreferenceManager preferences, @NonNull BackupProvidersManager backupProvidersManager) {
 		super(context, preferences, backupProvidersManager);
 	}
 	
@@ -31,7 +32,7 @@ public class TripCardAdapter extends CardAdapter<Trip> {
 	
 	@Override
 	protected void setDateTextView(TextView textView, Trip data) {
-		final String dateSeparator = getPreferences().getDateSeparator();
+		final String dateSeparator = getPreferences().get(UserPreference.General.DateSeparator);
 		final String from = data.getFormattedStartDate(getContext(), dateSeparator);
 		final String to = data.getFormattedEndDate(getContext(), dateSeparator);
 		textView.setText(from + getContext().getString(R.string.trip_adapter_list_item_to) + to);

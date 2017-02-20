@@ -6,6 +6,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 
+import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -20,10 +22,11 @@ import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.Preferences;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.settings.versions.AppVersionManager;
+import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
@@ -32,8 +35,6 @@ import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
-import wb.android.google.camera.app.GalleryAppImpl;
-import wb.android.google.camera.data.Log;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
@@ -42,7 +43,7 @@ import wb.android.storage.StorageManager;
  *
  * @author WRB
  */
-public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable, Preferences.VersionUpgradeListener {
+public class SmartReceiptsApplication extends Application implements Flexable, VersionUpgradedListener {
 
     private WorkerManager mWorkerManager;
     private PersistenceManager mPersistenceManager;
@@ -56,11 +57,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
     private IdentityManager mIdentityManager;
     private ServiceManager mServiceManager;
     private boolean mDeferFirstRunDialog;
-
-    /**
-     * The {@link Application} class is a singleton, so we can cache it here for emergency restoration
-     */
-    private static SmartReceiptsApplication sApplication;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -76,36 +72,34 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
 
         Logger.debug(this, "\n\n\n\n Launching App...");
 
-        sApplication = this;
         mDeferFirstRunDialog = false;
         mFlex = instantiateFlex();
         mConfigurationManager = instantiateConfigurationManager();
         mWorkerManager = instantiateWorkerManager();
         mPersistenceManager = instantiatePersistenceManager();
-        mPersistenceManager.initDatabase(); // TODO: Fix anti-pattern
-        mPersistenceManager.getPreferences().setVersionUpgradeListener(this); // Done so mPersistenceManager is not null
-        // in onVersionUpgrade
+        mPersistenceManager.initialize(); // TODO: Fix this circular injection pattern
+
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
-        mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferences(), mFlex));
-        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferences());
+        mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferenceManager(), mFlex));
+        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferenceManager());
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(), new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex)));
-        mIdentityManager = new IdentityManager(this, mServiceManager);
+        mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager);
 
-        // Clear our cache
+        PDFBoxResourceLoader.init(getApplicationContext());
+        
+	    // Clear our cache
         new SmartReceiptsTemporaryFileCache(this).resetCache();
+
+        // Check if a new version is available
+        new AppVersionManager(this, mPersistenceManager.getPreferenceManager()).onLaunch(this);
     }
 
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath() ;
         System.setProperty("LOG_DIR", logDirPath);
-    }
-
-    @Deprecated
-    public static SmartReceiptsApplication getInstance() {
-        return sApplication;
     }
 
     @Override
@@ -200,9 +194,7 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
                     if (sdDB.exists()) {
                         sdDB.delete();
                     }
-                    if (BuildConfig.DEBUG) {
-                        Logger.debug(this, "Copying the database file from {} to {}", db.getAbsolutePath(), sdDB.getAbsolutePath());
-                    }
+                    Logger.debug(this, "Copying the database file from {} to {}", db.getAbsolutePath(), sdDB.getAbsolutePath());
                     try {
                         external.copy(db, sdDB, true);
                     } catch (IOException e) {
@@ -211,7 +203,6 @@ public class SmartReceiptsApplication extends GalleryAppImpl implements Flexable
                 }
             } catch (SDCardStateException e) {
             }
-            oldVersion++;
         }
     }
 

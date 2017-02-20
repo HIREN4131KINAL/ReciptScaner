@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.Preferences;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
@@ -35,15 +36,15 @@ public class ImageImportProcessor implements FileImportProcessor {
 
     private final Trip mTrip;
     private final StorageManager mStorageManner;
-    private final Preferences mPreferences;
+    private final UserPreferenceManager mPreferences;
     private final Context mContext;
     private final ContentResolver mContentResolver;
 
-    public ImageImportProcessor(@NonNull Trip trip, @NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull Context context) {
+    public ImageImportProcessor(@NonNull Trip trip, @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull Context context) {
         this(trip, storageManager, preferences, context, context.getContentResolver());
     }
 
-    public ImageImportProcessor(@NonNull Trip trip, @NonNull StorageManager storageManager, @NonNull Preferences preferences, @NonNull Context context, @NonNull ContentResolver contentResolver) {
+    public ImageImportProcessor(@NonNull Trip trip, @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull Context context, @NonNull ContentResolver contentResolver) {
         mTrip = Preconditions.checkNotNull(trip);
         mStorageManner = Preconditions.checkNotNull(storageManager);
         mPreferences = Preconditions.checkNotNull(preferences);
@@ -69,11 +70,11 @@ public class ImageImportProcessor implements FileImportProcessor {
                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, smallerOpts);
 
                         // Perform image processing
-                        if (mPreferences.isCameraGrayScale()) {
+                        if (mPreferences.get(UserPreference.Camera.SaveImagesInGrayScale)) {
                             bitmap = ImageUtils.convertToGrayScale(bitmap);
                         }
 
-                        if (mPreferences.getRotateImages()) {
+                        if (mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)) {
                             Logger.debug(ImageImportProcessor.this, "Configured for auto-rotation. Attempting to determine the orientation");
                             int orientation = getOrientationFromMediaStore(uri);
 

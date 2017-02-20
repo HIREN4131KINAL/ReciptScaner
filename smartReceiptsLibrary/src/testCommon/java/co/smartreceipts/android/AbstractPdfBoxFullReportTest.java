@@ -104,7 +104,7 @@ public abstract class AbstractPdfBoxFullReportTest {
         }
 
 
-        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(mContext, mPreferences, useBuiltinFonts());
+        PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(mContext, mPreferences);
         ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
         columns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));
@@ -149,16 +149,14 @@ public abstract class AbstractPdfBoxFullReportTest {
         os.close();
     }
 
-    protected abstract boolean useBuiltinFonts();
-
     private String getReceiptTitle(int i) {
         if (i == 2) {
             return "Receipt with a long long long " +
 //                    "description "  + (i + 1);
                     "long long long long long description " + (i + 1);
-        } else if (i == 4 && !useBuiltinFonts()) {
+        } else if (i == 4) {
             return "Recibo en español con tildes: éó?¿¡" + (i + 1);
-        } else if (i == 7 && !useBuiltinFonts()) {
+        } else if (i == 7) {
             return "Απόδειξη ελληνική. Κεφαλαίο Όνομα" + (i + 1);
 //        } else if (i == 8) {
 //            return "Korean: ㅇㅋㅊ";

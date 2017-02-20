@@ -21,6 +21,7 @@ import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.tables.PdfBoxTableGenerator;
 
@@ -72,7 +73,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         writeReceiptsTable(mReceipts);
 
-        if (mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports) && mDistances != null && !mDistances.isEmpty()) {
+        if (mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports) && !mDistances.isEmpty()) {
             mWriter.verticalJump(60);
 
             writeDistancesTable(mDistances);
@@ -90,53 +91,28 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     private void writeHeader(@NonNull Trip trip, @NonNull ReceiptsTotals data) throws IOException {
 
         mWriter.openTextBlock();
-
-        mWriter.writeNewLine(mContext.getFont("FONT_TITLE"),
-                trip.getName()
-        );
-
-
+        mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Title), trip.getName());
+        
         if (!data.mReceiptsPrice.equals(data.mNetPrice)) {
-            mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                    R.string.report_header_receipts_total,
-                    data.mReceiptsPrice.getCurrencyFormattedPrice()
-            );
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total, data.mReceiptsPrice.getCurrencyFormattedPrice());
         }
 
         if (mPreferences.get(UserPreference.Receipts.IncludeTaxField)) {
             if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice) && data.mTaxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                        R.string.report_header_receipts_total_tax,
-                        data.mTaxPrice.getCurrencyFormattedPrice()
-                );
-
-            } else if (!data.mNoTaxPrice.equals(data.mReceiptsPrice) &&
-                    data.mNoTaxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                        R.string.report_header_receipts_total_no_tax,
-                        data.mNoTaxPrice.getCurrencyFormattedPrice()
-                );
+                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_tax, data.mTaxPrice.getCurrencyFormattedPrice());
+            } else if (!data.mNoTaxPrice.equals(data.mReceiptsPrice) && data.mNoTaxPrice.getPriceAsFloat() > EPSILON) {
+                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_no_tax, data.mNoTaxPrice.getCurrencyFormattedPrice());
             }
         }
 
-        if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) &&
-                !data.mReimbursablePrice.equals(data.mReceiptsPrice)) {
-            mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                    R.string.report_header_receipts_total_reimbursable,
-                    data.mReimbursablePrice.getCurrencyFormattedPrice()
-            );
+        if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !data.mReimbursablePrice.equals(data.mReceiptsPrice)) {
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_reimbursable, data.mReimbursablePrice.getCurrencyFormattedPrice());
         }
         if (mDistances.size() > 0) {
-            mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                    R.string.report_header_distance_total,
-                    data.mDistancePrice.getCurrencyFormattedPrice()
-            );
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_distance_total, data.mDistancePrice.getCurrencyFormattedPrice());
         }
 
-        mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
-                R.string.report_header_gross_total,
-                data.mNetPrice.getCurrencyFormattedPrice()
-        );
+        mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_gross_total, data.mNetPrice.getCurrencyFormattedPrice());
 
         String fromToPeriod = mContext.getString(R.string.report_header_from,
                 trip.getFormattedStartDate(mContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)))
@@ -144,19 +120,19 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 + mContext.getString(R.string.report_header_to,
                 trip.getFormattedEndDate(mContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)));
 
-        mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
+        mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default),
                 fromToPeriod);
 
 
         if (mPreferences.get(UserPreference.General.IncludeCostCenter) && !TextUtils.isEmpty(trip.getCostCenter())) {
-            mWriter.writeNewLine(mContext.getFont("FONT_DEFAULT"),
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default),
                     R.string.report_header_cost_center,
                     trip.getCostCenter()
             );
         }
         if (!TextUtils.isEmpty(trip.getComment())) {
             mWriter.writeNewLine(
-                    mContext.getFont("FONT_DEFAULT"),
+                    mContext.getFontManager().getFont(PdfFontStyle.Default),
                     R.string.report_header_comment,
                     trip.getComment()
             );

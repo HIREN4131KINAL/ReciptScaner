@@ -25,6 +25,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontManager;
 
 public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
@@ -33,21 +34,7 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     private final List<PdfBoxSection> mSections;
 
 
-    public PdfBoxReportFile(@NonNull Context androidContext,
-                            @NonNull UserPreferenceManager preferences) throws IOException {
-        this(androidContext, preferences, false);
-    }
-
-
-    /**
-     * @param androidContext
-     * @param preferences
-     * @param useBuiltinFonts Ugly parameter so that in the tests we can avoid loading the custom fonts
-     * @throws IOException
-     */
-    @VisibleForTesting
-    public PdfBoxReportFile(@NonNull Context androidContext, @NonNull UserPreferenceManager preferences,
-                            boolean useBuiltinFonts) throws IOException {
+    public PdfBoxReportFile(@NonNull Context androidContext, @NonNull UserPreferenceManager preferences) throws IOException {
         mDocument = new PDDocument();
         mSections = new ArrayList<>();
         Map<String, AWTColor> colors = new HashMap<>();
@@ -55,22 +42,11 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
         colors.put(DefaultPdfBoxContext.COLOR_HEADER, new AWTColor(204, 228, 255));
         colors.put(DefaultPdfBoxContext.COLOR_CELL, new AWTColor(239, 239, 244));
 
-        PDFont MAIN_FONT = useBuiltinFonts ? PDType1Font.HELVETICA : PDType0Font.load(mDocument, androidContext.getAssets().open("NotoSerif-Regular.ttf"));
-        PDFont BOLD_FONT = useBuiltinFonts ? PDType1Font.HELVETICA_BOLD : PDType0Font.load(mDocument, androidContext.getAssets().open("NotoSerif-Bold.ttf"));
-        int DEFAULT_SIZE = 12;
-        int TITLE_SIZE = 14;
-        int SMALL_SIZE = 10;
+        final PdfFontManager fontManager = new PdfFontManager(androidContext, mDocument);
+        fontManager.initialize();
 
-        Map<String, PdfBoxContext.FontSpec> fonts = new HashMap<>();
-        fonts.put(DefaultPdfBoxContext.FONT_DEFAULT, new PdfBoxContext.FontSpec(MAIN_FONT, DEFAULT_SIZE));
-        fonts.put(DefaultPdfBoxContext.FONT_TITLE, new PdfBoxContext.FontSpec(BOLD_FONT, TITLE_SIZE));
-        fonts.put(DefaultPdfBoxContext.FONT_SMALL, new PdfBoxContext.FontSpec(MAIN_FONT, SMALL_SIZE));
-        fonts.put(DefaultPdfBoxContext.FONT_TABLE_HEADER, new PdfBoxContext.FontSpec(BOLD_FONT, SMALL_SIZE));
-
-
-        mContext = new DefaultPdfBoxContext(androidContext, preferences);
+        mContext = new DefaultPdfBoxContext(androidContext, fontManager, preferences);
         mContext.setColors(colors);
-        mContext.setFonts(fonts);
     }
 
 

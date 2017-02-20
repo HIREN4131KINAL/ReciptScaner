@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 @Ignore
 public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
 
-
     @Before
     public void setup() {
         super.setup();
@@ -84,8 +83,4 @@ public class FullPdfReportTest extends AbstractPdfBoxFullReportTest {
         super.testPdfGeneration();
     }
 
-    @Override
-    protected boolean useBuiltinFonts() {
-        return true;
-    }
 }

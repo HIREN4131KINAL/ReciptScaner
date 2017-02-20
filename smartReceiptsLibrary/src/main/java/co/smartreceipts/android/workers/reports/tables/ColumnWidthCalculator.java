@@ -6,6 +6,7 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 
@@ -17,8 +18,8 @@ public class ColumnWidthCalculator<DataType> {
     private final List<Column<DataType>> mColumns;
     private final float mAvailableWidth;
     private final float mCellPadding;
-    private final PdfBoxContext.FontSpec mFontHeader;
-    private final PdfBoxContext.FontSpec mFontContent;
+    private final PdfFontSpec mFontHeader;
+    private final PdfFontSpec mFontContent;
 
 
     /**
@@ -32,8 +33,8 @@ public class ColumnWidthCalculator<DataType> {
                                  List<Column<DataType>> columns,
                                  float availableWidth,
                                  float cellPadding,
-                                 PdfBoxContext.FontSpec fontHeader,
-                                 PdfBoxContext.FontSpec fontContent) {
+                                 PdfFontSpec fontHeader,
+                                 PdfFontSpec fontContent) {
 
         mList = list;
         mColumns = columns;

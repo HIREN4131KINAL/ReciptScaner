@@ -10,20 +10,21 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 public class FixedWidthTextCell implements FixedWidthCell {
 
     private final float mWidth;
     private final String mText;
-    private final PdfBoxContext.FontSpec mFontSpec;
+    private final PdfFontSpec mFontSpec;
     private final AWTColor mColor;
     private final float mCellPadding;
 
     private List<String> lines;
 
     public FixedWidthTextCell(float width, float cellPadding, String text,
-                              @NonNull PdfBoxContext.FontSpec fontSpec,
+                              @NonNull PdfFontSpec fontSpec,
                               @NonNull AWTColor color) {
         mWidth = width;
         mCellPadding = cellPadding;
@@ -82,7 +83,7 @@ public class FixedWidthTextCell implements FixedWidthCell {
         return lines;
     }
 
-    public PdfBoxContext.FontSpec getFontSpec() {
+    public PdfFontSpec getFontSpec() {
         return mFontSpec;
     }
 

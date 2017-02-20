@@ -10,7 +10,10 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
+import java.util.Map;
+
 import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontManager;
 
 public interface PdfBoxContext {
 
@@ -34,8 +37,9 @@ public interface PdfBoxContext {
     @NonNull
     UserPreferenceManager getPreferences();
 
-    @Nullable
-    FontSpec getFont(String name);
+    @NonNull
+    PdfFontManager getFontManager();
+
     @Nullable
     AWTColor getColor(String name);
 
@@ -48,25 +52,6 @@ public interface PdfBoxContext {
 
     void setPageSize(@NonNull PDRectangle rectangle);
 
+    void setColors(Map<String, AWTColor> colors);
 
-    class FontSpec {
-        private final PDFont font;
-
-        private final int size;
-
-        public FontSpec(@NonNull PDFont font, int size) {
-            this.font = font;
-            this.size = size;
-        }
-
-        @NonNull
-        public PDFont getFont() {
-            return font;
-        }
-
-        public int getSize() {
-            return size;
-        }
-
-    }
 }

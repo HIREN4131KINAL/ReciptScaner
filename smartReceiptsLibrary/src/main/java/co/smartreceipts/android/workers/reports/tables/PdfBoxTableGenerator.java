@@ -11,6 +11,7 @@ import java.util.List;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.DefaultPdfBoxContext;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
@@ -51,8 +52,8 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
         // calculate column widths
         float[] colWidths;
         ColumnWidthCalculator columnWidthCalculator = new ColumnWidthCalculator<>(
-                list, mColumns, xEnd - xStart, mCellPadding, mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
-                mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT));
+                list, mColumns, xEnd - xStart, mCellPadding, mContext.getFontManager().getFont(PdfFontStyle.TableHeader),
+                mContext.getFontManager().getFont(PdfFontStyle.Default));
         colWidths = columnWidthCalculator.calculate();
 
         float tableWidth = xEnd - xStart;
@@ -65,7 +66,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         colWidths[i],
                         mCellPadding,
                         mColumns.get(i).getHeader(),
-                        mContext.getFont(DefaultPdfBoxContext.FONT_TABLE_HEADER),
+                        mContext.getFontManager().getFont(PdfFontStyle.TableHeader),
                         mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }
@@ -88,7 +89,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                 colWidths[i],
                                 mCellPadding,
                                 mColumns.get(i).getValue(data),
-                                mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                                mContext.getFontManager().getFont(PdfFontStyle.Default),
                                 AWTColor.BLACK);
                         cells[i] = cell;
                     }
@@ -110,7 +111,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         colWidths[i],
                         mCellPadding,
                         mColumns.get(i).getFooter(filteredList),
-                        mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                        mContext.getFontManager().getFont(PdfFontStyle.Default),
                         mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
                 cells[i] = cell;
             }

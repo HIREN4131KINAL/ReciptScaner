@@ -55,11 +55,6 @@ public class PdfBoxFullPdfReportInstrTest extends AbstractPdfBoxFullReportTest {
     }
 
     @Override
-    protected boolean useBuiltinFonts() {
-        return false;
-    }
-
-    @Override
     protected Context getContext() {
         return InstrumentationRegistry.getContext();
     }

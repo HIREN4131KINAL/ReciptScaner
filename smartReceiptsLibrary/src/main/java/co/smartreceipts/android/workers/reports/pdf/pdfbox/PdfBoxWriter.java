@@ -33,6 +33,8 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
@@ -97,7 +99,7 @@ public class PdfBoxWriter {
     }
 
 
-    void writeNewLine(@NonNull PdfBoxContext.FontSpec spec,
+    void writeNewLine(@NonNull PdfFontSpec spec,
                       @StringRes int resId,
                       Object... args) throws IOException {
         if (resId != 0) {
@@ -106,8 +108,7 @@ public class PdfBoxWriter {
     }
 
 
-    void writeNewLine(PdfBoxContext.FontSpec spec,
-                      String str) throws IOException {
+    void writeNewLine(PdfFontSpec spec, String str) throws IOException {
         if (!inTextBlock) {
             throw new IllegalStateException("Tried to write out text, without opening a text block first");
         }
@@ -241,7 +242,7 @@ public class PdfBoxWriter {
             if (ximage == null) {
                 FixedWidthTextCell textCell = new FixedWidthTextCell(cell.getWidth(), cell.getCellPadding(),
                         mContext.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
-                        mContext.getFont(DefaultPdfBoxContext.FONT_DEFAULT),
+                        mContext.getFontManager().getFont(PdfFontStyle.Default),
                         AWTColor.BLACK);
                 printTextCellContent(textCell, xCell, yCell, height);
                 return;
@@ -331,7 +332,7 @@ public class PdfBoxWriter {
 
         List<String> lines = cell.getLines();
 
-        PdfBoxContext.FontSpec fontSpec = cell.getFontSpec();
+        PdfFontSpec fontSpec = cell.getFontSpec();
 
         // unused space above and below the lines, excluding
         float unusedSpace = (rowHeight - 2 * cell.getCellPadding() - (lines.size()) * PdfBoxUtils.getFontHeight(fontSpec));

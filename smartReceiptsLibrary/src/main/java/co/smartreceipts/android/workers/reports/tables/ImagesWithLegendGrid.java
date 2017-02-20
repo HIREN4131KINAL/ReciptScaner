@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.DefaultPdfBoxContext;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 /**
@@ -62,7 +62,7 @@ public class ImagesWithLegendGrid {
     public void addImageAndLegend(String text, @NonNull File image) {
 
         FixedWidthTextCell textCell = new FixedWidthTextCell(mWidth / mCols, mCellPadding, text,
-                mContext.getFont(DefaultPdfBoxContext.FONT_SMALL),
+                mContext.getFontManager().getFont(PdfFontStyle.Small),
                 AWTColor.BLACK);
 
         // leave height empty, we will calculate it later.

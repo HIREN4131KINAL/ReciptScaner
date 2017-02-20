@@ -5,12 +5,16 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
 
+import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+
+import java.util.Locale;
 
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.TestUtils;
@@ -27,8 +31,11 @@ public class UserPreferenceManagerTest {
 
     SharedPreferences preferences;
 
+    Locale defaultLocale;
+
     @Before
     public void setUp() {
+        defaultLocale = Locale.getDefault();
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
         userPreferenceManager = new UserPreferenceManager(RuntimeEnvironment.application, preferences, Schedulers.immediate());
     }
@@ -36,6 +43,7 @@ public class UserPreferenceManagerTest {
     @SuppressLint("CommitPrefEdits")
     @After
     public void tearDown() {
+        Locale.setDefault(defaultLocale);
         preferences.edit().clear().commit();
     }
 
@@ -48,6 +56,16 @@ public class UserPreferenceManagerTest {
         assertTrue(preferences.contains(RuntimeEnvironment.application.getString(UserPreference.General.DefaultCurrency.getName())));
         assertTrue(preferences.contains(RuntimeEnvironment.application.getString(UserPreference.Receipts.MinimumReceiptPrice.getName())));
         assertEquals(-Float.MAX_VALUE, preferences.getFloat(RuntimeEnvironment.application.getString(UserPreference.Receipts.MinimumReceiptPrice.getName()), 0), TestUtils.EPSILON);
+    }
+
+    @Test
+    public void initializeForBadLocale() {
+        Locale.setDefault(new Locale(""));
+        userPreferenceManager.initialize();
+
+        // Just confirm that we properly apply the default values for these special cases
+        assertTrue(preferences.contains(RuntimeEnvironment.application.getString(UserPreference.General.DefaultCurrency.getName())));
+        assertEquals("USD", preferences.getString(RuntimeEnvironment.application.getString(UserPreference.General.DefaultCurrency.getName()), null));
     }
 
     @Test

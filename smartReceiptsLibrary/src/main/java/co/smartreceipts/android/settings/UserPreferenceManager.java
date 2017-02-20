@@ -64,9 +64,14 @@ public class UserPreferenceManager {
                                 } else if (UserPreference.General.DefaultCurrency.equals(userPreference)) {
                                     final String assignedCurrencyCode = context.getString(UserPreference.General.DefaultCurrency.getDefaultValue());
                                     if (TextUtils.isEmpty(assignedCurrencyCode)) {
-                                        final String currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
-                                        preferences.edit().putString(preferenceName, currencyCode).apply();
-                                        Logger.debug(UserPreferenceManager.this, "Assigned locale default currency code {}", currencyCode);
+                                        try {
+                                            final String currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
+                                            preferences.edit().putString(preferenceName, currencyCode).apply();
+                                            Logger.debug(UserPreferenceManager.this, "Assigned locale default currency code {}", currencyCode);
+                                        } catch (IllegalArgumentException e) {
+                                            preferences.edit().putString(preferenceName, "USD").apply();
+                                            Logger.warn(UserPreferenceManager.this, "Failed to find this Locale's currency code. Defaulting to USD", e);
+                                        }
                                     }
                                 } else if (UserPreference.Receipts.MinimumReceiptPrice.equals(userPreference)) {
                                     final TypedValue typedValue = new TypedValue();

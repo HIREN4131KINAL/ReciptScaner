@@ -65,7 +65,7 @@ public abstract class PdfBoxAbstractReport extends AbstractReport {
 
     public abstract void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile);
 
-    private String getFileName(Trip trip) {
+    protected String getFileName(Trip trip) {
         return trip.getDirectory().getName() + ".pdf";
     }
 }

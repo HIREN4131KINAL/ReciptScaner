@@ -4,12 +4,18 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.persistence.database.controllers.results.DeleteResult;
+import co.smartreceipts.android.persistence.database.controllers.results.GetResult;
+import co.smartreceipts.android.persistence.database.controllers.results.InsertResult;
+import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
@@ -26,6 +32,9 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
+import rx.subjects.SerializedSubject;
+import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
 
 /**
@@ -38,11 +47,17 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     protected final String TAG = getClass().getSimpleName();
 
     private final Table<ModelType, ?> mTable;
+    protected final ConcurrentHashMap<TableEventsListener<ModelType>, BridgingTableEventsListener<ModelType>> mBridgingTableEventsListeners = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
     protected final Analytics mAnalytics;
     protected final Scheduler mSubscribeOnScheduler;
     protected final Scheduler mObserveOnScheduler;
+
+    private final Subject<GetResult<ModelType>, GetResult<ModelType>> getStreamSubject = new SerializedSubject<>(PublishSubject.<GetResult<ModelType>>create());
+    private final Subject<InsertResult<ModelType>, InsertResult<ModelType>> insertStreamSubject = new SerializedSubject<>(PublishSubject.<InsertResult<ModelType>>create());
+    private final Subject<UpdateResult<ModelType>, UpdateResult<ModelType>> updateStreamSubject = new SerializedSubject<>(PublishSubject.<UpdateResult<ModelType>>create());
+    private final Subject<DeleteResult<ModelType>, DeleteResult<ModelType>> deleteStreamSubject = new SerializedSubject<>(PublishSubject.<DeleteResult<ModelType>>create());
 
     protected CompositeSubscription mCompositeSubscription = new CompositeSubscription();
 
@@ -66,25 +81,28 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
 
     @Override
     public synchronized void subscribe(@NonNull TableEventsListener<ModelType> tableEventsListener) {
-        if (mTableEventsListeners.isEmpty()) {
-            mCompositeSubscription = new CompositeSubscription();
-        }
+        final BridgingTableEventsListener<ModelType> bridge = new BridgingTableEventsListener<>(this, tableEventsListener, mObserveOnScheduler);
+        mBridgingTableEventsListeners.put(tableEventsListener, bridge);
         mTableEventsListeners.add(tableEventsListener);
+        bridge.subscribe();
     }
 
     @Override
     public synchronized void unsubscribe(@NonNull TableEventsListener<ModelType> tableEventsListener) {
         mTableEventsListeners.remove(tableEventsListener);
-        if (mTableEventsListeners.isEmpty()) {
-            mCompositeSubscription.unsubscribe();
+        final BridgingTableEventsListener<ModelType> bridge = mBridgingTableEventsListeners.get(tableEventsListener);
+        if (bridge != null) {
+            bridge.unsubscribe();
         }
     }
 
+    @NonNull
     @Override
-    public synchronized void get() {
+    public Observable<List<ModelType>> get() {
         Logger.info(this, "#get");
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTableActionAlterations.preGet()
+        final Subject<List<ModelType>, List<ModelType>> getSubject = PublishSubject.create();
+        mTableActionAlterations.preGet()
+                .subscribeOn(mSubscribeOnScheduler)
                 .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
                     @Override
                     public Observable<List<ModelType>> call(Void oVoid) {
@@ -101,175 +119,141 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<List<ModelType>>() {
+                .doOnNext(new Action1<List<ModelType>>() {
                     @Override
                     public void call(List<ModelType> modelTypes) {
-                        if (modelTypes != null) {
-                            Logger.debug(AbstractTableController.this, "#onGetSuccess - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onGetSuccess(modelTypes);
-                            }
-                        } else {
-                            Logger.debug(AbstractTableController.this, "#onGetFailure - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onGetFailure(null);
-                            }
-                        }
+                        Logger.debug(AbstractTableController.this, "#onGetSuccess - onNext");
+                        getStreamSubject.onNext(new GetResult<>(modelTypes));
                     }
-                }, new Action1<Throwable>() {
+                })
+                .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Logger.error(AbstractTableController.this, "#onGetFailure - onError", throwable);
-                        for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onGetFailure(throwable);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
+                        getStreamSubject.onNext(new GetResult<ModelType>(throwable));
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(AbstractTableController.this, "#get - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
-                });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+                })
+                .subscribe(getSubject);
+        return getSubject.asObservable();
     }
 
+    @NonNull
     @Override
-    public synchronized void insert(@NonNull final ModelType insertModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        Logger.info(this, "#insert: {}", insertModelType);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTableActionAlterations.preInsert(insertModelType)
+    public Observable<GetResult<ModelType>> getStream() {
+        return getStreamSubject.asObservable();
+    }
+
+    @NonNull
+    @Override
+    public Observable<ModelType> insert(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        Logger.info(this, "#insert: {}", modelType);
+        final Subject<ModelType, ModelType> insertSubject = PublishSubject.create();
+        mTableActionAlterations.preInsert(modelType)
+                .subscribeOn(mSubscribeOnScheduler)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.insert(modelType, databaseOperationMetadata);
+                    public Observable<ModelType> call(ModelType insertedItem) {
+                        return mTable.insert(insertedItem, databaseOperationMetadata);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
                     @Override
-                    public void call(ModelType modelType) {
+                    public void call(ModelType insertedItem) {
                         try {
-                            mTableActionAlterations.postInsert(modelType);
+                            mTableActionAlterations.postInsert(insertedItem);
                         } catch (Exception e) {
                             throw Exceptions.propagate(e);
                         }
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<ModelType>() {
+                .doOnNext(new Action1<ModelType>() {
                     @Override
-                    public void call(ModelType modelType) {
-                        if (modelType != null) {
-                            Logger.debug(AbstractTableController.this, "#onInsertSuccess - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertSuccess(modelType, databaseOperationMetadata);
-                            }
-                        } else {
-                            Logger.debug(AbstractTableController.this, "#onInsertFailure - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onInsertFailure(insertModelType, null, databaseOperationMetadata);
-                            }
-                        }
+                    public void call(ModelType insertedItem) {
+                        Logger.debug(AbstractTableController.this, "#onInsertSuccess - onNext");
+                        insertStreamSubject.onNext(new InsertResult<>(insertedItem, databaseOperationMetadata));
                     }
-                }, new Action1<Throwable>() {
+                })
+                .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Logger.error(AbstractTableController.this, "#onInsertFailure - onError", throwable);
-                        for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onInsertFailure(insertModelType, throwable, databaseOperationMetadata);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
+                        insertStreamSubject.onNext(new InsertResult<>(modelType, throwable, databaseOperationMetadata));
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(AbstractTableController.this, "#insert - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
-                });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+                })
+                .subscribe(insertSubject);
+        return insertSubject.asObservable();
     }
 
+    @NonNull
     @Override
-    public synchronized void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+    public Observable<InsertResult<ModelType>> insertStream() {
+        return insertStreamSubject.asObservable();
+    }
+
+    @NonNull
+    @Override
+    public Observable<ModelType> update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Logger.info(this, "#update: {}; {}", oldModelType, newModelType);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = updateObservable(oldModelType, newModelType, databaseOperationMetadata)
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<ModelType>() {
+        final Subject<ModelType, ModelType> updateSubject = PublishSubject.create();
+        mTableActionAlterations.preUpdate(oldModelType, newModelType)
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public void call(ModelType modelType) {
-                        if (modelType != null) {
-                            Logger.debug(AbstractTableController.this, "#onUpdateSuccess - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateSuccess(oldModelType, modelType, databaseOperationMetadata);
-                            }
-                        } else {
-                            Logger.debug(AbstractTableController.this, "#onUpdateFailure - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onUpdateFailure(oldModelType, null, databaseOperationMetadata);
-                            }
+                    public Observable<ModelType> call(ModelType updatedItem) {
+                        return mTable.update(oldModelType, updatedItem, databaseOperationMetadata);
+                    }
+                })
+                .doOnNext(new Action1<ModelType>() {
+                    @Override
+                    public void call(ModelType updatedItem) {
+                        try {
+                            mTableActionAlterations.postUpdate(oldModelType, updatedItem);
+                        } catch (Exception e) {
+                            throw Exceptions.propagate(e);
                         }
                     }
-                }, new Action1<Throwable>() {
+                })
+                .doOnNext(new Action1<ModelType>() {
+                    @Override
+                    public void call(ModelType updatedItem) {
+                        Logger.debug(AbstractTableController.this, "#onUpdateSuccess - onNext");
+                        updateStreamSubject.onNext(new UpdateResult<>(oldModelType, updatedItem, databaseOperationMetadata));
+                    }
+                })
+                .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Logger.error(AbstractTableController.this, "#onUpdateFailure - onError", throwable);
-                        for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onUpdateFailure(oldModelType, throwable, databaseOperationMetadata);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
+                        updateStreamSubject.onNext(new UpdateResult<>(oldModelType, null, throwable, databaseOperationMetadata));
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(AbstractTableController.this, "#update - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
-                });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+                })
+                .subscribe(updateSubject);
+        return updateSubject.asObservable();
+    }
+
+    @NonNull
+    @Override
+    public Observable<UpdateResult<ModelType>> updateStream() {
+        return updateStreamSubject.asObservable();
     }
 
     protected synchronized Observable<ModelType> updateObservable(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return mTableActionAlterations.preUpdate(oldModelType, newModelType)
-                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
-                    @Override
-                    public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.update(oldModelType, modelType, databaseOperationMetadata);
-                    }
-                })
-                .doOnNext(new Action1<ModelType>() {
-                    @Override
-                    public void call(ModelType modelType) {
-                        try {
-                            mTableActionAlterations.postUpdate(oldModelType, modelType);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
-                    }
-                });
+        throw new UnsupportedOperationException("Fix me");
     }
 
+    @NonNull
     @Override
-    public synchronized void delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+    public synchronized Observable<ModelType> delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Logger.info(this, "#delete: {}", modelType);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTableActionAlterations.preDelete(modelType)
+        final Subject<ModelType, ModelType> deleteSubject = PublishSubject.create();
+        mTableActionAlterations.preDelete(modelType)
+                .subscribeOn(mSubscribeOnScheduler)
                 .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public Observable<ModelType> call(ModelType modelType) {
-                        return mTable.delete(modelType, databaseOperationMetadata);
+                    public Observable<ModelType> call(ModelType deletedItem) {
+                        return mTable.delete(deletedItem, databaseOperationMetadata);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
@@ -282,42 +266,29 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         }
                     }
                 })
-                .subscribeOn(mSubscribeOnScheduler)
-                .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<ModelType>() {
+                .doOnNext(new Action1<ModelType>() {
                     @Override
-                    public void call(ModelType deleteItem) {
-                        if (deleteItem != null) {
-                            Logger.debug(AbstractTableController.this, "#onDeleteSuccess - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteSuccess(deleteItem, databaseOperationMetadata);
-                            }
-                        } else {
-                            Logger.debug(AbstractTableController.this, "#onDeleteFailure - onNext");
-                            for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                                tableEventsListener.onDeleteFailure(modelType, null, databaseOperationMetadata);
-                            }
-                        }
+                    public void call(ModelType deletedItem) {
+                        Logger.debug(AbstractTableController.this, "#onDeleteSuccess - onNext");
+                        deleteStreamSubject.onNext(new DeleteResult<>(deletedItem, databaseOperationMetadata));
                     }
-                }, new Action1<Throwable>() {
+                })
+                .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
                         Logger.error(AbstractTableController.this, "#onDeleteFailure - onError", throwable);
-                        for (final TableEventsListener<ModelType> tableEventsListener : mTableEventsListeners) {
-                            tableEventsListener.onDeleteFailure(modelType, throwable, databaseOperationMetadata);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                        mAnalytics.record(new ErrorEvent(AbstractTableController.this, throwable));
+                        deleteStreamSubject.onNext(new DeleteResult<>(modelType, throwable, databaseOperationMetadata));
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(AbstractTableController.this, "#delete - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
-                });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+                })
+                .subscribe(deleteSubject);
+        return deleteSubject.asObservable();
+    }
+
+    @NonNull
+    @Override
+    public Observable<DeleteResult<ModelType>> deleteStream() {
+        return deleteStreamSubject.asObservable();
     }
 
     protected void unsubscribeReference(@NonNull AtomicReference<Subscription> subscriptionReference) {

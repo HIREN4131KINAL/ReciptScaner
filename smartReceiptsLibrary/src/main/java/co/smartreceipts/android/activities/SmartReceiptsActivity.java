@@ -157,6 +157,10 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
+        } else if (item.getItemId() == R.id.menu_main_my_account) {
+            mNavigationHandler.navigateToLoginScreen();
+            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }

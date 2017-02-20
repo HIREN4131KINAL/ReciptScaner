@@ -100,6 +100,13 @@ public class LoginFragment extends WBFragment {
             this.compositeSubscription = new CompositeSubscription();
         }
         this.loginPresenter.onResume();
+        this.compositeSubscription.add(this.loginPresenter.getLoginParamsStream()
+            .subscribe(new Action1<LoginParams>() {
+                @Override
+                public void call(LoginParams loginParams) {
+                    logIn(loginParams);
+                }
+            }));
     }
 
     @Override

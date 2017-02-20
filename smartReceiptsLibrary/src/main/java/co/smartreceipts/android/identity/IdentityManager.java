@@ -24,6 +24,7 @@ import co.smartreceipts.android.identity.apis.organizations.OrganizationsService
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.Token;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.functions.Action0;
@@ -38,17 +39,26 @@ public class IdentityManager {
     private final ServiceManager serviceManager;
     private final Analytics analytics;
     private final IdentityStore identityStore;
+    private final OrganizationManager organizationManager;
     private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
-    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics) {
-        this(context, serviceManager, analytics, new IdentityStore(context));
+    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
+                           @NonNull UserPreferenceManager userPreferenceManager) {
+        this(context, serviceManager, analytics, new IdentityStore(context), userPreferenceManager);
     }
 
-    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics, @NonNull IdentityStore identityStore) {
+    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
+                           @NonNull IdentityStore identityStore, @NonNull UserPreferenceManager userPreferenceManager) {
+        this(context, serviceManager, analytics, identityStore, new OrganizationManager(serviceManager, identityStore, userPreferenceManager));
+    }
+
+    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
+                           @NonNull IdentityStore identityStore, @NonNull OrganizationManager organizationManager) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.serviceManager = Preconditions.checkNotNull(serviceManager);
         this.analytics = Preconditions.checkNotNull(analytics);
         this.identityStore = Preconditions.checkNotNull(identityStore);
+        this.organizationManager = Preconditions.checkNotNull(organizationManager);
     }
 
     public boolean isLoggedIn() {
@@ -97,6 +107,12 @@ public class IdentityManager {
                             analytics.record(Events.Identity.UserLoginFailure);
                         }
                     })
+                    .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
+                        @Override
+                        public Observable<LoginResponse> call(final LoginResponse loginResponse) {
+                            return Observable.just(loginResponse);
+                        }
+                    })
                     .doOnCompleted(new Action0() {
                         @Override
                         public void call() {
@@ -125,10 +141,6 @@ public class IdentityManager {
 
     @NonNull
     public Observable<OrganizationsResponse> getOrganizations() {
-        if (identityStore.getEmail() != null && identityStore.getToken() != null) {
-            return serviceManager.getService(OrganizationsService.class).organizations(identityStore.getEmail(), identityStore.getToken());
-        } else {
-            return Observable.error(new IllegalStateException("Cannot fetch the user's organizations until we're logged in"));
-        }
+        return organizationManager.getOrganizations();
     }
 }

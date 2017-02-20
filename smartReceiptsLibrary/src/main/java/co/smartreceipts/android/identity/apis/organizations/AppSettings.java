@@ -14,26 +14,17 @@ import co.smartreceipts.android.model.Receipt;
 public class AppSettings {
 
     @SerializedName("Configurations")
-    private final Configurations configurations;
+    private Configurations configurations;
     @SerializedName("Settings")
-    private final RemoteSettingsDefinitions mRemoteSettingsDefinitions;
+    private String settings;
     @SerializedName("Categories")
-    private final List<Category> categories;
+    private List<Category> categories;
     @SerializedName("PaymentMethods")
-    private final List<PaymentMethod> paymentMethods;
+    private List<PaymentMethod> paymentMethods;
     @SerializedName("CSVColumns")
-    private final List<Column<Receipt>> csvColumns;
+    private List<Column<Receipt>> csvColumns;
     @SerializedName("PDFColumns")
-    private final List<Column<Receipt>> pdfColumns;
-
-    public AppSettings(Configurations configurations, RemoteSettingsDefinitions remoteSettingsDefinitions, List<Category> categories, List<PaymentMethod> paymentMethods, List<Column<Receipt>> csvColumns, List<Column<Receipt>> pdfColumns) {
-        this.configurations = configurations;
-        this.mRemoteSettingsDefinitions = remoteSettingsDefinitions;
-        this.categories = categories;
-        this.paymentMethods = paymentMethods;
-        this.csvColumns = csvColumns;
-        this.pdfColumns = pdfColumns;
-    }
+    private List<Column<Receipt>> pdfColumns;
 
     @Nullable
     public Configurations getConfigurations() {
@@ -41,8 +32,8 @@ public class AppSettings {
     }
 
     @Nullable
-    public RemoteSettingsDefinitions getRemoteSettingsDefinitions() {
-        return mRemoteSettingsDefinitions;
+    public String getSettings() {
+        return settings;
     }
 
     @Nullable

@@ -25,6 +25,8 @@ dependencies {
     compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
     compile "com.jakewharton.rxbinding:rxbinding:$RX_BINDING_VERSION"
 
+    compile "commons-io:commons-io:$IO_UTILS_VERSION"
+
     compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
     compile "com.github.clans:fab:$FAB_MENU_VERSION"
 

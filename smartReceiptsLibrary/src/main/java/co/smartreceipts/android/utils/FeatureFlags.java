@@ -2,7 +2,7 @@ package co.smartreceipts.android.utils;
 
 public enum FeatureFlags {
 
-    SmartReceiptsLogin(true);
+    SmartReceiptsLogin(false);
 
     private final boolean isEnabled;
 

@@ -31,9 +31,9 @@ public class PdfFontManager {
         final PDFont defaultFont = fontLoader.load("NotoSerif-Regular.ttf");
         final PDFont boldFont = fontLoader.load("NotoSerif-Bold.ttf");
 
-        final int titleSize = 14;
-        final int defaultSize = 12;
-        final int smallSize = 10;
+        final int titleSize = 13;
+        final int defaultSize = 11;
+        final int smallSize = 9;
 
         fontMap.put(PdfFontStyle.Title, new PdfFontSpec(boldFont, titleSize));
         fontMap.put(PdfFontStyle.Default, new PdfFontSpec(defaultFont, defaultSize));

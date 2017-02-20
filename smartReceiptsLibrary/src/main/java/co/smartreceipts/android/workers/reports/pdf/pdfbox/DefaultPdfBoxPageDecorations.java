@@ -4,12 +4,13 @@ import android.support.annotation.NonNull;
 
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
 
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
+import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 
 
 public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
@@ -82,10 +83,10 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
         contentStream.fill();
         contentStream.setNonStrokingColor(AWTColor.BLACK);
 
-
+        final PdfFontSpec fontSpec = mContext.getFontManager().getFont(PdfFontStyle.Default);
         contentStream.beginText();
         contentStream.newLineAtOffset(mContext.getPageMarginHorizontal(), mContext.getPageMarginVertical());
-        contentStream.setFont(PDType1Font.HELVETICA_OBLIQUE, 12);
+        contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
         contentStream.showText(mFooterText);
         contentStream.endText();
     }

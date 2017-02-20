@@ -4,11 +4,11 @@ import android.support.annotation.NonNull;
 
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
 
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 
@@ -53,10 +53,10 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
                 mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
                 HEADER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Outline));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
-        contentStream.setNonStrokingColor(AWTColor.BLACK);
+        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
     }
 
 
@@ -78,10 +78,10 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
                 mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
                 FOOTER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Outline));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
-        contentStream.setNonStrokingColor(AWTColor.BLACK);
+        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
 
         final PdfFontSpec fontSpec = mContext.getFontManager().getFont(PdfFontStyle.Default);
         contentStream.beginText();

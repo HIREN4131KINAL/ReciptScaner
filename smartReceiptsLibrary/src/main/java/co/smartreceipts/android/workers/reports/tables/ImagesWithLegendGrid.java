@@ -2,12 +2,11 @@ package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
 
-import com.tom_roush.pdfbox.util.awt.AWTColor;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
@@ -63,7 +62,7 @@ public class ImagesWithLegendGrid {
 
         FixedWidthTextCell textCell = new FixedWidthTextCell(mWidth / mCols, mCellPadding, text,
                 mContext.getFontManager().getFont(PdfFontStyle.Small),
-                AWTColor.BLACK);
+                mContext.getColorManager().getColor(PdfColorStyle.Default));
 
         // leave height empty, we will calculate it later.
         FixedSizeImageCell imageCell = new FixedSizeImageCell(mWidth / mCols, 0,

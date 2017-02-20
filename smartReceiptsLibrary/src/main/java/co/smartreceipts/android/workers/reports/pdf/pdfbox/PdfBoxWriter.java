@@ -19,7 +19,6 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.rendering.PDFRenderer;
-import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +32,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
@@ -188,7 +188,7 @@ public class PdfBoxWriter {
             contentStream.setNonStrokingColor(row.getBackgroundColor());
             contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
             contentStream.fill();
-            contentStream.setNonStrokingColor(AWTColor.BLACK);
+            contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
         }
 
         // draw the cells contents
@@ -243,7 +243,7 @@ public class PdfBoxWriter {
                 FixedWidthTextCell textCell = new FixedWidthTextCell(cell.getWidth(), cell.getCellPadding(),
                         mContext.getAndroidContext().getResources().getString(R.string.report_file_could_not_be_rendered),
                         mContext.getFontManager().getFont(PdfFontStyle.Default),
-                        AWTColor.BLACK);
+                        mContext.getColorManager().getColor(PdfColorStyle.Default));
                 printTextCellContent(textCell, xCell, yCell, height);
                 return;
             }

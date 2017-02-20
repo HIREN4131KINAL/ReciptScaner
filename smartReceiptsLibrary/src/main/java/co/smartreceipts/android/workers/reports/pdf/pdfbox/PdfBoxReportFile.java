@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +20,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.PdfReportFile;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorManager;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontManager;
 
 public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
@@ -33,16 +33,12 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     public PdfBoxReportFile(@NonNull Context androidContext, @NonNull UserPreferenceManager preferences) throws IOException {
         mDocument = new PDDocument();
         mSections = new ArrayList<>();
-        Map<String, AWTColor> colors = new HashMap<>();
-        colors.put(DefaultPdfBoxContext.COLOR_DARK_BLUE, new AWTColor(0, 122, 255));
-        colors.put(DefaultPdfBoxContext.COLOR_HEADER, new AWTColor(204, 228, 255));
-        colors.put(DefaultPdfBoxContext.COLOR_CELL, new AWTColor(239, 239, 244));
 
+        final PdfColorManager colorManager = new PdfColorManager();
         final PdfFontManager fontManager = new PdfFontManager(androidContext, mDocument);
         fontManager.initialize();
 
-        mContext = new DefaultPdfBoxContext(androidContext, fontManager, preferences);
-        mContext.setColors(colors);
+        mContext = new DefaultPdfBoxContext(androidContext, fontManager, colorManager, preferences);
     }
 
 

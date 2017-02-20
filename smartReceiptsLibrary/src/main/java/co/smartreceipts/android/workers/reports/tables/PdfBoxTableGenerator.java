@@ -3,16 +3,14 @@ package co.smartreceipts.android.workers.reports.tables;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.tom_roush.pdfbox.util.awt.AWTColor;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.DefaultPdfBoxContext;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 
@@ -67,12 +65,12 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         mCellPadding,
                         mColumns.get(i).getHeader(),
                         mContext.getFontManager().getFont(PdfFontStyle.TableHeader),
-                        mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+                        mContext.getColorManager().getColor(PdfColorStyle.Outline));
                 cells[i] = cell;
             }
 
             headerRow = new PdfBoxTableRow(cells, tableWidth,
-                    mContext.getColor(DefaultPdfBoxContext.COLOR_HEADER));
+                    mContext.getColorManager().getColor(PdfColorStyle.TableHeader));
 
         }
 
@@ -90,12 +88,12 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                                 mCellPadding,
                                 mColumns.get(i).getValue(data),
                                 mContext.getFontManager().getFont(PdfFontStyle.Default),
-                                AWTColor.BLACK);
+                                mContext.getColorManager().getColor(PdfColorStyle.Default));
                         cells[i] = cell;
                     }
 
                     PdfBoxTableRow row = new PdfBoxTableRow(cells, tableWidth, j % 2 == 0 ? null :
-                            mContext.getColor(DefaultPdfBoxContext.COLOR_CELL));
+                            mContext.getColorManager().getColor(PdfColorStyle.TableCell));
 
                     rows.add(row);
                     filteredList.add(data);
@@ -112,11 +110,11 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         mCellPadding,
                         mColumns.get(i).getFooter(filteredList),
                         mContext.getFontManager().getFont(PdfFontStyle.Default),
-                        mContext.getColor(DefaultPdfBoxContext.COLOR_DARK_BLUE));
+                        mContext.getColorManager().getColor(PdfColorStyle.Outline));
                 cells[i] = cell;
             }
             footerRow = new PdfBoxTableRow(cells, tableWidth,
-                    mContext.getColor(DefaultPdfBoxContext.COLOR_HEADER));
+                    mContext.getColorManager().getColor(PdfColorStyle.TableHeader));
         }
         return new PdfBoxTable(rows, headerRow, footerRow);
     }

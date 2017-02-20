@@ -11,7 +11,6 @@ import java.util.StringTokenizer;
 
 import co.smartreceipts.android.workers.reports.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 
 public class FixedWidthTextCell implements FixedWidthCell {
 

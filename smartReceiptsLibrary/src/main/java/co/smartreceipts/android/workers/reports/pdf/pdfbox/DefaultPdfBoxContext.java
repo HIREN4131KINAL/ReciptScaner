@@ -6,42 +6,28 @@ import android.support.annotation.StringRes;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.util.awt.AWTColor;
-
-import java.util.Map;
 
 import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorManager;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontManager;
 
 public class DefaultPdfBoxContext implements PdfBoxContext {
 
-    /**
-     * TODO
-     * move all these to {@link PdfBoxContext} or to the appropriate section??
-     */
-    public static final String COLOR_DARK_BLUE = "DARK_BLUE";
-    public static final String COLOR_HEADER = "HEADER";
-    public static final String COLOR_CELL = "CELL";
-
     private final Context mContext;
     private final PdfFontManager fontManager;
+    private final PdfColorManager colorManager;
     private final UserPreferenceManager mPreferences;
 
-    private Map<String, AWTColor> mColors;
     private PDRectangle mPageSize = PDRectangle.A4;
 
     public DefaultPdfBoxContext(@NonNull Context context,
                                 @NonNull PdfFontManager fontManager,
+                                @NonNull PdfColorManager colorManager,
                                 @NonNull UserPreferenceManager preferences) {
         mContext = context;
         this.fontManager = Preconditions.checkNotNull(fontManager);
+        this.colorManager = Preconditions.checkNotNull(colorManager);
         mPreferences = preferences;
-    }
-
-
-    @Override
-    public AWTColor getColor(String name) {
-        return mColors.get(name);
     }
 
     @Override
@@ -59,14 +45,15 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
         return 24;
     }
 
+    @NonNull
     @Override
     public String getString(@StringRes int resId, Object... args) {
         return mContext.getString(resId, args);
     }
 
     @Override
-    public void setPageSize(PDRectangle rectangle) {
-        mPageSize = rectangle;
+    public void setPageSize(@NonNull PDRectangle rectangle) {
+        mPageSize = Preconditions.checkNotNull(rectangle);
     }
 
     @NonNull
@@ -93,9 +80,10 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
         return fontManager;
     }
 
-
-    public void setColors(Map<String, AWTColor> colors) {
-        this.mColors = colors;
+    @NonNull
+    @Override
+    public PdfColorManager getColorManager() {
+        return colorManager;
     }
 
 }

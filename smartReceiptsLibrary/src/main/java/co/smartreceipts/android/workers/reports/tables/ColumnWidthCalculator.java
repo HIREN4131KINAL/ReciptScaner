@@ -83,7 +83,7 @@ public class ColumnWidthCalculator<DataType> {
         // SECOND ATTEMPT
         // Wrap titles (maintaining content unwrapped)
         for (int i = 0; i < attrs.size(); i++) {
-            // The second condition defensively wraps the title (not necessarilly to the minimum
+            // The second condition defensively wraps the title (not necessarily to the minimum
             // header width, but just up to the content's max width)
             if (attrs.get(i).mHeaderBreakable
                     && attrs.get(i).mContentMaxWidth < attrs.get(i).mHeaderMaxWidth) {
@@ -168,10 +168,11 @@ public class ColumnWidthCalculator<DataType> {
 
 
             for (DataType dataType : list) {
-                String v = mColumns.get(i).getValue(dataType);
+                final String columnValue = mColumns.get(i).getValue(dataType);
+                final String value = columnValue != null ? columnValue : "";
 
-                float vWidth = PdfBoxUtils.getStringWidth(v, mFontContent);
-                float vMaxWordWidth = PdfBoxUtils.getMaxWordWidth(v, mFontContent);
+                float vWidth = PdfBoxUtils.getStringWidth(value, mFontContent);
+                float vMaxWordWidth = PdfBoxUtils.getMaxWordWidth(value, mFontContent);
 
                 if (vWidth > maxOfAllStringWidths) {
                     maxOfAllStringWidths = vWidth;

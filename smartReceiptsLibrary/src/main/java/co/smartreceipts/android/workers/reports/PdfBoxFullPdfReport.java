@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;
@@ -36,23 +37,20 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
         final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
 
 
-        List<Distance> distances = null;
-        List<Column<Distance>> distanceColumns = null;
+        final List<Distance> distances;
+        final List<Column<Distance>> distanceColumns;
 
         if (getPreferences().get(UserPreference.Distance.PrintDistanceTableInReports)) {
+            final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
             distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
-
-            final ColumnDefinitions<Distance> distanceColumnDefinitions
-                    = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
             distanceColumns = distanceColumnDefinitions.getAllColumns();
+        } else {
+            distances = Collections.emptyList();
+            distanceColumns = Collections.emptyList();
         }
 
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsTableSection(trip, receipts, columns, distances,
-                        distanceColumns));
-
-        pdfBoxReportFile.addSection(
-                pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
+        pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsTableSection(trip, receipts, columns, distances, distanceColumns));
+        pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
     }
 
 }

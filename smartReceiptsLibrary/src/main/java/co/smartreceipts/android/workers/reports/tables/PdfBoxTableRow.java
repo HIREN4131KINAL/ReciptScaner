@@ -3,6 +3,7 @@ package co.smartreceipts.android.workers.reports.tables;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 public class PdfBoxTableRow {
@@ -12,10 +13,8 @@ public class PdfBoxTableRow {
     private final float mWidth;
 
 
-    public PdfBoxTableRow(@NonNull FixedWidthCell[] cells,
-                          @NonNull float width,
-                          @Nullable AWTColor backgroundColor) {
-        mCells = cells;
+    public PdfBoxTableRow(@NonNull FixedWidthCell[] cells, float width, @Nullable AWTColor backgroundColor) {
+        mCells = Preconditions.checkNotNull(cells);
         mWidth = width;
         mBackgroundColor = backgroundColor;
     }

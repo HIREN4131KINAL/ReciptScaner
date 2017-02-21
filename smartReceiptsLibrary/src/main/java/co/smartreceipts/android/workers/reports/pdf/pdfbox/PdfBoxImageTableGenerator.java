@@ -76,7 +76,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                 final Receipt receipt = list.get(j);
 
                 // If filter rejects image or no image, skip
-                if (!mFilter.accept(receipt) || !receipt.hasFile()) {
+                if (!mFilter.accept(receipt) || receipt.getFile() == null) {
                     continue;
                 }
 

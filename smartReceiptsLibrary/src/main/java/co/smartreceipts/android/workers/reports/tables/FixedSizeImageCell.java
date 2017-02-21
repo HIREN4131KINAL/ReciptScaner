@@ -1,6 +1,6 @@
 package co.smartreceipts.android.workers.reports.tables;
 
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 
@@ -16,12 +16,8 @@ public class FixedSizeImageCell implements FixedWidthCell {
     private final File mImage;
     private float mHeight;
 
-
-
-    public FixedSizeImageCell(float width,
-                              float height,
-                              float cellPadding,
-                              @NonNull File image) {
+    // TODO: Refactor to ensure that the image file is always @NonNull for this
+    public FixedSizeImageCell(float width, float height, float cellPadding, @Nullable File image) {
         mWidth = width;
         mHeight = height;
         mCellPadding = cellPadding;
@@ -36,8 +32,7 @@ public class FixedSizeImageCell implements FixedWidthCell {
     @Override
     public float getHeight() {
         if (mHeight < 0) {
-            throw new IllegalArgumentException("Height for " + FixedSizeImageCell.class.getName() +
-                    " has not been set");
+            throw new IllegalArgumentException("Height for " + FixedSizeImageCell.class.getName() + " has not been set");
         }
         return mHeight;
     }
@@ -47,7 +42,7 @@ public class FixedSizeImageCell implements FixedWidthCell {
         return mCellPadding;
     }
 
-    @NonNull
+    @Nullable
     public File getImage() {
         return mImage;
     }

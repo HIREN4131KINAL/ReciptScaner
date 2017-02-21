@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.tables;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,17 +59,14 @@ public class ImagesWithLegendGrid {
     }
 
 
-    public void addImageAndLegend(String text, @NonNull File image) {
+    public void addImageAndLegend(String text, @Nullable File image) {
 
         FixedWidthTextCell textCell = new FixedWidthTextCell(mWidth / mCols, mCellPadding, text,
                 mContext.getFontManager().getFont(PdfFontStyle.Small),
                 mContext.getColorManager().getColor(PdfColorStyle.Default));
 
         // leave height empty, we will calculate it later.
-        FixedSizeImageCell imageCell = new FixedSizeImageCell(mWidth / mCols, 0,
-                mCellPadding,
-                image
-        );
+        FixedSizeImageCell imageCell = new FixedSizeImageCell(mWidth / mCols, 0, mCellPadding, image);
 
         mTextCells.add(textCell);
         mImageCells.add(imageCell);

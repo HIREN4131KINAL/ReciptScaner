@@ -3,6 +3,7 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 
@@ -45,11 +46,11 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                                             @NonNull List<Distance> distances,
                                             @NonNull List<Column<Distance>> distanceColumns) {
         super(context, trip);
-        mReceipts = receipts;
-        mDistances = distances;
-        mReceiptColumns = receiptColumns;
-        mPreferences = context.getPreferences();
-        mDistanceColumns = distanceColumns;
+        mReceipts = Preconditions.checkNotNull(receipts);
+        mDistances = Preconditions.checkNotNull(distances);
+        mReceiptColumns = Preconditions.checkNotNull(receiptColumns);
+        mPreferences = Preconditions.checkNotNull(context.getPreferences());
+        mDistanceColumns = Preconditions.checkNotNull(distanceColumns);
     }
 
 
@@ -93,26 +94,26 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         mWriter.openTextBlock();
         mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Title), trip.getName());
         
-        if (!data.mReceiptsPrice.equals(data.mNetPrice)) {
-            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total, data.mReceiptsPrice.getCurrencyFormattedPrice());
+        if (!data.receiptsPrice.equals(data.netPrice)) {
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total, data.receiptsPrice.getCurrencyFormattedPrice());
         }
 
         if (mPreferences.get(UserPreference.Receipts.IncludeTaxField)) {
-            if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice) && data.mTaxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_tax, data.mTaxPrice.getCurrencyFormattedPrice());
-            } else if (!data.mNoTaxPrice.equals(data.mReceiptsPrice) && data.mNoTaxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_no_tax, data.mNoTaxPrice.getCurrencyFormattedPrice());
+            if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice) && data.taxPrice.getPriceAsFloat() > EPSILON) {
+                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_tax, data.taxPrice.getCurrencyFormattedPrice());
+            } else if (!data.noTaxPrice.equals(data.receiptsPrice) && data.noTaxPrice.getPriceAsFloat() > EPSILON) {
+                mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_no_tax, data.noTaxPrice.getCurrencyFormattedPrice());
             }
         }
 
-        if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !data.mReimbursablePrice.equals(data.mReceiptsPrice)) {
-            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_reimbursable, data.mReimbursablePrice.getCurrencyFormattedPrice());
+        if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !data.reimbursablePrice.equals(data.receiptsPrice)) {
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_reimbursable, data.reimbursablePrice.getCurrencyFormattedPrice());
         }
         if (mDistances.size() > 0) {
-            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_distance_total, data.mDistancePrice.getCurrencyFormattedPrice());
+            mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_distance_total, data.distancePrice.getCurrencyFormattedPrice());
         }
 
-        mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_gross_total, data.mNetPrice.getCurrencyFormattedPrice());
+        mWriter.writeNewLine(mContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_gross_total, data.netPrice.getCurrencyFormattedPrice());
 
         String fromToPeriod = mContext.getString(R.string.report_header_from,
                 trip.getFormattedStartDate(mContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)))

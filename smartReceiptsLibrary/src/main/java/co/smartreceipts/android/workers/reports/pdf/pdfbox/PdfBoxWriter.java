@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
+import android.text.TextUtils;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
@@ -19,6 +20,8 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.rendering.PDFRenderer;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -222,20 +225,24 @@ public class PdfBoxWriter {
             String fileExtension = StorageManager.getExtension(image);
 
             PDImageXObject ximage;
-            if (!fileExtension.isEmpty() && fileExtension.toLowerCase().equals("jpg")
-                    || fileExtension.toLowerCase().equals("jpeg")) {
-                ximage = JPEGFactory.createFromStream(mDocument, in);
-            } else if (fileExtension.toLowerCase().equals("png")) {
-                Bitmap bitmap = BitmapFactory.decodeStream(in);
-                ximage = LosslessFactory.createFromImage(mDocument, bitmap);
-            } else if (fileExtension.toLowerCase().equals("pdf")) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    ximage = getXImageNative(image);
+            if (!TextUtils.isEmpty(fileExtension)) {
+                if (fileExtension.toLowerCase().equals("jpg") || fileExtension.toLowerCase().equals("jpeg")) {
+                    ximage = JPEGFactory.createFromStream(mDocument, in);
+                } else if (fileExtension.toLowerCase().equals("png")) {
+                    Bitmap bitmap = BitmapFactory.decodeStream(in);
+                    ximage = LosslessFactory.createFromImage(mDocument, bitmap);
+                } else if (fileExtension.toLowerCase().equals("pdf")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        ximage = getXImageNative(image);
+                    } else {
+                        ximage = getXImagePdfBox(image);
+                    }
                 } else {
-                    ximage = getXImagePdfBox(image);
+                    Logger.warn(this, "Unrecognized image extension: {}.", fileExtension);
+                    return;
                 }
             } else {
-                // TODO UNRECOGNIZED IMAGE
+                Logger.warn(this, "Unrecognized image extension: {}.", fileExtension);
                 return;
             }
 

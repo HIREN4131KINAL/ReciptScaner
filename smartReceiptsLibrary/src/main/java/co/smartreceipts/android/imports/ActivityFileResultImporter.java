@@ -14,13 +14,11 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.concurrent.TimeUnit;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
@@ -30,16 +28,13 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import rx.subjects.BehaviorSubject;
 import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
-import wb.android.storage.StorageManager;
 
 public class ActivityFileResultImporter {
 
     private static final String TAG = ActivityFileResultImporter.class.getSimpleName();
 
-    private final Context context;
     private final FileImportProcessorFactory factory;
     private final Analytics analytics;
     private final ActivityImporterHeadlessFragment headlessFragment;
@@ -48,12 +43,11 @@ public class ActivityFileResultImporter {
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
                                       @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, Schedulers.io(), AndroidSchedulers.mainThread());
+        this(fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
-    public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
+    public ActivityFileResultImporter(@NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
                                       @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
-        this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.factory = Preconditions.checkNotNull(factory);
         this.analytics = Preconditions.checkNotNull(analytics);
         this.subscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
@@ -157,15 +151,6 @@ public class ActivityFileResultImporter {
                 }
             }
         });
-    }
-
-    /**
-     * We copy our
-     * @param uri
-     * @param resultantFile
-     */
-    private void postImportCleanUp(@NonNull Uri uri, @Nullable File resultantFile) {
-
     }
 
 }

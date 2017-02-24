@@ -2,7 +2,6 @@ package co.smartreceipts.android.imports;
 
 import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
@@ -36,9 +35,6 @@ public class ActivityFileResultImporterTest {
     ActivityFileResultImporter fileResultImporter;
 
     @Mock
-    Context context;
-
-    @Mock
     ContentResolver contentResolver;
 
     @Mock
@@ -57,12 +53,10 @@ public class ActivityFileResultImporterTest {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(context.getApplicationContext()).thenReturn(context);
-        when(context.getContentResolver()).thenReturn(contentResolver);
         when(factory.get(anyInt())).thenReturn(processor);
         FragmentActivity activity = Robolectric.buildActivity(FragmentActivity.class).create().get();
 
-        fileResultImporter = new ActivityFileResultImporter(context, activity.getSupportFragmentManager(), factory, analytics, Schedulers.immediate(), Schedulers.immediate());
+        fileResultImporter = new ActivityFileResultImporter(activity.getSupportFragmentManager(), factory, analytics, Schedulers.immediate(), Schedulers.immediate());
     }
 
     @Test

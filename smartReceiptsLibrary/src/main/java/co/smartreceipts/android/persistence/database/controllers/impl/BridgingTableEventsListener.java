@@ -35,7 +35,7 @@ public class BridgingTableEventsListener<ModelType> {
     public final void subscribe() {
         compositeSubscription = new CompositeSubscription();
         compositeSubscription.add(this.tableController.getStream()
-                .subscribeOn(observeOnScheduler)
+                .observeOn(observeOnScheduler)
                 .subscribe(new Action1<GetResult<ModelType>>() {
                     @Override
                     public void call(GetResult<ModelType> getResult) {
@@ -47,7 +47,7 @@ public class BridgingTableEventsListener<ModelType> {
                     }
                 }));
         compositeSubscription.add(this.tableController.insertStream()
-                .subscribeOn(observeOnScheduler)
+                .observeOn(observeOnScheduler)
                 .subscribe(new Action1<InsertResult<ModelType>>() {
                     @Override
                     public void call(InsertResult<ModelType> insertResult) {
@@ -59,7 +59,7 @@ public class BridgingTableEventsListener<ModelType> {
                     }
                 }));
         compositeSubscription.add(this.tableController.updateStream()
-                .subscribeOn(observeOnScheduler)
+                .observeOn(observeOnScheduler)
                 .subscribe(new Action1<UpdateResult<ModelType>>() {
                     @Override
                     public void call(UpdateResult<ModelType> updateResult) {
@@ -71,7 +71,7 @@ public class BridgingTableEventsListener<ModelType> {
                     }
                 }));
         compositeSubscription.add(this.tableController.deleteStream()
-                .subscribeOn(observeOnScheduler)
+                .observeOn(observeOnScheduler)
                 .subscribe(new Action1<DeleteResult<ModelType>>() {
                     @Override
                     public void call(DeleteResult<ModelType> deleteResult) {

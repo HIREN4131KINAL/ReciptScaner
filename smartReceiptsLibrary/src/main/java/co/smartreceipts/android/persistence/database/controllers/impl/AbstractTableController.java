@@ -87,7 +87,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     @Override
     public synchronized void unsubscribe(@NonNull TableEventsListener<ModelType> tableEventsListener) {
         mTableEventsListeners.remove(tableEventsListener);
-        final BridgingTableEventsListener<ModelType> bridge = mBridgingTableEventsListeners.get(tableEventsListener);
+        final BridgingTableEventsListener<ModelType> bridge = mBridgingTableEventsListeners.remove(tableEventsListener);
         if (bridge != null) {
             bridge.unsubscribe();
         }

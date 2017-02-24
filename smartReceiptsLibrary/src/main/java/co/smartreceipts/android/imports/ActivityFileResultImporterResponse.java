@@ -41,6 +41,27 @@ public class ActivityFileResultImporterResponse {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ActivityFileResultImporterResponse)) return false;
+
+        ActivityFileResultImporterResponse that = (ActivityFileResultImporterResponse) o;
+
+        if (requestCode != that.requestCode) return false;
+        if (resultCode != that.resultCode) return false;
+        return file.equals(that.file);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = file.hashCode();
+        result = 31 * result + requestCode;
+        result = 31 * result + resultCode;
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "ActivityFileResultImporterResponse{" +
                 "file=" + file +

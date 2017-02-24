@@ -14,6 +14,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
@@ -22,6 +23,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -29,6 +31,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
+import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
 import wb.android.storage.StorageManager;
 
@@ -36,70 +39,50 @@ public class ActivityFileResultImporter {
 
     private static final String TAG = ActivityFileResultImporter.class.getSimpleName();
 
-    private final Context mContext;
-    private final ActivityImporterHeadlessFragment mHeadlessFragment;
-    private final Trip mTrip;
-    private final StorageManager mStorageManager;
-    private final UserPreferenceManager mPreferences;
-    private final Analytics mAnalytics;
+    private final Context context;
+    private final FileImportProcessorFactory factory;
+    private final Analytics analytics;
+    private final ActivityImporterHeadlessFragment headlessFragment;
+    private final Scheduler subscribeOnScheduler;
+    private final Scheduler observeOnScheduler;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
                                       @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(context, fragmentManager, trip, persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), analytics);
+        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
-    public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
-                                      @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull Analytics analytics) {
-        mContext = Preconditions.checkNotNull(context.getApplicationContext());
-        mTrip = Preconditions.checkNotNull(trip);
-        mStorageManager = Preconditions.checkNotNull(storageManager);
-        mPreferences = Preconditions.checkNotNull(preferences);
-        mAnalytics = Preconditions.checkNotNull(analytics);
+    public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
+                                      @NonNull Analytics analytics, @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
+        this.context = Preconditions.checkNotNull(context.getApplicationContext());
+        this.factory = Preconditions.checkNotNull(factory);
+        this.analytics = Preconditions.checkNotNull(analytics);
+        this.subscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
+        this.observeOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         
         Preconditions.checkNotNull(fragmentManager);
         ActivityImporterHeadlessFragment headlessFragment = (ActivityImporterHeadlessFragment) fragmentManager.findFragmentByTag(TAG);
         if (headlessFragment == null) {
             headlessFragment = new ActivityImporterHeadlessFragment();
             fragmentManager.beginTransaction().add(headlessFragment, TAG).commit();
+            headlessFragment.importSubject = ReplaySubject.create(1);
         }
-        mHeadlessFragment = headlessFragment;
+        this.headlessFragment = headlessFragment;
     }
 
     public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable final Uri proposedImageSaveLocation) {
         Logger.info(this, "Performing import of onActivityResult data: {}", data);
 
-        if (mHeadlessFragment.localSubscription != null) {
+        if (headlessFragment.localSubscription != null) {
             Logger.warn(this, "Clearing cached local subscription, a previous request was never fully completed");
-            mHeadlessFragment.localSubscription.unsubscribe();
-            mHeadlessFragment.localSubscription = null;
+            headlessFragment.localSubscription.unsubscribe();
+            headlessFragment.localSubscription = null;
         }
-        mHeadlessFragment.importSubject = BehaviorSubject.create();
-        mHeadlessFragment.localSubscription = getSaveLocation(requestCode, resultCode, data, proposedImageSaveLocation)
-                .subscribeOn(Schedulers.io())
+        headlessFragment.localSubscription = getSaveLocation(requestCode, resultCode, data, proposedImageSaveLocation)
+                .subscribeOn(subscribeOnScheduler)
                 .flatMap(new Func1<Uri, Observable<File>>() {
                     @Override
                     public Observable<File> call(@NonNull final Uri uri) {
-                        final FileImportProcessor importProcessor;
-                        if (RequestCodes.PHOTO_REQUESTS.contains(requestCode)) {
-                            importProcessor = new ImageImportProcessor(mTrip, mStorageManager, mPreferences, mContext);
-                        } else if (RequestCodes.PDF_REQUESTS.contains(requestCode)) {
-                            importProcessor = new GenericFileImportProcessor(mTrip, mStorageManager, mContext);
-                        } else {
-                            importProcessor = new AutoFailImportProcessor();
-                        }
-                        return importProcessor.process(uri)
-                                .doOnNext(new Action1<File>() {
-                                    @Override
-                                    @SuppressWarnings("ResultOfMethodCallIgnored")
-                                    public void call(File file) {
-                                        if (file != null) {
-                                            final File uriLocation = new File(uri.getPath());
-                                            if (!file.equals(uriLocation)) {
-                                                uriLocation.delete(); // Clean up
-                                            }
-                                        }
-                                    }
-                                });
+                        return factory.get(requestCode).process(uri);
                     }
                 })
                 .map(new Func1<File, ActivityFileResultImporterResponse>() {
@@ -112,28 +95,25 @@ public class ActivityFileResultImporter {
                     @Override
                     public void call(Throwable throwable) {
                         Logger.error(ActivityFileResultImporter.this, "Failed to save import result", throwable);
-                        mAnalytics.record(new ErrorEvent(ActivityFileResultImporter.this, throwable));
+                        analytics.record(new ErrorEvent(ActivityFileResultImporter.this, throwable));
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mHeadlessFragment.importSubject);
+                .delay(5, TimeUnit.SECONDS)
+                .observeOn(observeOnScheduler)
+                .subscribe(headlessFragment.importSubject);
     }
 
     public Observable<ActivityFileResultImporterResponse> getResultStream() {
-        if (mHeadlessFragment.importSubject == null) {
-            return Observable.empty();
-        } else {
-            return mHeadlessFragment.importSubject.asObservable();
-        }
+        return headlessFragment.importSubject.asObservable();
     }
 
     public void dispose() {
-        if (mHeadlessFragment.localSubscription != null) {
-            mHeadlessFragment.localSubscription.unsubscribe();
-            mHeadlessFragment.localSubscription = null;
+        if (headlessFragment.localSubscription != null) {
+            headlessFragment.localSubscription.unsubscribe();
+            headlessFragment.localSubscription = null;
         }
-        if (mHeadlessFragment.importSubject != null) {
-            mHeadlessFragment.importSubject = null;
+        if (headlessFragment.importSubject != null) {
+            this.headlessFragment.importSubject = ReplaySubject.create(1);
         }
     }
 
@@ -178,6 +158,15 @@ public class ActivityFileResultImporter {
                 }
             }
         });
+    }
+
+    /**
+     * We copy our
+     * @param uri
+     * @param resultantFile
+     */
+    private void postImportCleanUp(@NonNull Uri uri, @Nullable File resultantFile) {
+
     }
 
 }

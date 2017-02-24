@@ -103,7 +103,7 @@ public class Flex {
 		if (flexFile != null && flexFile.exists()) {
 			Editor editor = prefs.edit();
 			editor.putString(STRING_FLEX_FILE, flexFile.getAbsolutePath());
-			editor.commit();
+			editor.apply();
 			if (D) Log.d(TAG, "Wrote the Flex file to: " + flexFile.getAbsolutePath());
 		}
 	}

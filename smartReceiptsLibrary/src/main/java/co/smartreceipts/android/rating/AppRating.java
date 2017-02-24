@@ -26,7 +26,7 @@ import wb.android.util.Utils;
  * The AppRating class simplifies the process of tracking common rating functionality like the number of launches before
  * prompting for rating, the number of days before prompting for rating, and whether to prompt if the app has previously
  * crashed
- * 
+ *
  * @author Will Baumann
  */
 public class AppRating implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
@@ -77,12 +77,12 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Nested interface to handle callbacks when a rating event is reached
-	 * 
+	 *
 	 */
 	public interface Listener {
 		/**
 		 * Called whenever the user receives a rating event
-		 * 
+		 *
 		 * @param utilities
 		 *            - a {@link AppRating.Utilities} instance to provide useful methods
 		 */
@@ -107,7 +107,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 		/**
 		 * Delays the rating dialog until a future date (during when it is more amenable to the user).
-		 * 
+		 *
 		 * @param launchesUntilRating
 		 *            - the number of launches in the future to wait
 		 */
@@ -126,43 +126,39 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 		}
 
 		@Override
-		@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 		public void doNotShowRatingPromptAgain() {
 			final SharedPreferences sharedPreferences = getSharedPreferences();
 			if (sharedPreferences != null) {
 				final SharedPreferences.Editor editor = sharedPreferences.edit();
 				editor.putBoolean(Keys.KEY_DONT_SHOW, true);
-				if (Utils.ApiHelper.hasGingerbread()) {
-					editor.apply();
-				}
-				else {
-					editor.commit();
-				}
+                editor.apply();
 			}
 		}
 
 		@Override
-		@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 		public void rateLater(int launchesUntilRating) {
 			final SharedPreferences sharedPreferences = getSharedPreferences();
 			if (sharedPreferences != null) {
 				final int newLaunchThreshold = sharedPreferences.getInt(Keys.KEY_LAUNCH_THRESHOLD, mMinimumLaunchesTilPrompt) + launchesUntilRating;
 				final SharedPreferences.Editor editor = sharedPreferences.edit();
 				editor.putInt(Keys.KEY_LAUNCH_THRESHOLD, newLaunchThreshold);
-				if (Utils.ApiHelper.hasGingerbread()) {
-					editor.apply();
-				}
-				else {
-					editor.commit();
-				}
+				editor.apply();
 			}
 		}
 
 	}
 
+	private class RatingEventListener implements Listener {
+
+		@Override
+		public void onRatingEvent(Utilities utilities) {
+		}
+	}
+
 	public AppRating(Context context) {
 		mContext = new WeakReference<>(context);
 		mUtilities = new UtiltiesImpl();
+		mListener = new RatingEventListener();
 		// Set some reasonable defaults below
 		mShowDialog = true;
 		mDialogTitleRes = R.string.apprating_dialog_title;
@@ -175,7 +171,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Instantiates a {@link AppRating} instance
-	 * 
+	 *
 	 * @param context
 	 *            - the current {@link Context}
 	 * @return a new {@link AppRating} instance
@@ -191,7 +187,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Defines how many times the application must be launched until the user is prompted to rate the application
-	 * 
+	 *
 	 * @param minimumLaunchesUntilPrompt
 	 *            - The minimum number of launches until prompt
 	 * @return This {@link AppRating} instance
@@ -203,7 +199,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Defines how many days the user should have the app installed for before prompting them to rate the application
-	 * 
+	 *
 	 * @param minimumDaysUntilPrompt
 	 *            - The minimum number of days until prompt
 	 * @return This {@link AppRating} instance
@@ -215,7 +211,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Defines if the rating dialog should be shown in the event that the app crashed at an earlier point for this user
-	 * 
+	 *
 	 * @param hideIfAppCrashed
 	 *            - <code>true</code> if the rating should not be shown, <code>false</code> otherwise
 	 * @return This {@link AppRating} instance
@@ -228,7 +224,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	/**
 	 * Defines the package name for this application (useful if the provided context does not share the same package
 	 * name as the application)
-	 * 
+	 *
 	 * @param packageName
 	 *            - the name of the application package
 	 * @return This {@link AppRating} instance
@@ -240,7 +236,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 
 	/**
 	 * Defines whether or not the rating dialog should be shown.
-	 * 
+	 *
 	 * @param show
 	 *            - <code>true</code> if the rating dialog should be shown
 	 * @return This {@link AppRating} instance
@@ -254,7 +250,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	 * Sets the string id that will be used to set the application rating dialog prompt via the
 	 * {@link AlertDialog.Builder#setTitle(int)} method. This method also sets {@link AppRating#showDialog(boolean)} to
 	 * <code>true</code>
-	 * 
+	 *
 	 * @param stringId
 	 *            - the string resource Id
 	 * @return This {@link AppRating} instance
@@ -269,7 +265,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	 * Sets the string id that will be used to set the application rating dialog prompt via the
 	 * {@link AlertDialog.Builder#setMessage(int)} method. This method also sets {@link AppRating#showDialog(boolean)}
 	 * to <code>true</code>
-	 * 
+	 *
 	 * @param stringId
 	 *            - the string resource Id
 	 * @return This {@link AppRating} instance
@@ -284,7 +280,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	 * Sets the string id that will be used to set the application rating dialog prompt via the
 	 * {@link AlertDialog.Builder#setPositiveButton(int, android.content.DialogInterface.OnClickListener)} method. This
 	 * method also sets {@link AppRating#showDialog(boolean)} to <code>true</code>
-	 * 
+	 *
 	 * @param stringId
 	 *            - the string resource Id
 	 * @return This {@link AppRating} instance
@@ -299,7 +295,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	 * Sets the string id that will be used to set the application rating dialog prompt via the
 	 * {@link AlertDialog.Builder#setNegativeButton(int, android.content.DialogInterface.OnClickListener)} method. This
 	 * method also sets {@link AppRating#showDialog(boolean)} to <code>true</code>
-	 * 
+	 *
 	 * @param stringId
 	 *            - the string resource Id
 	 * @return This {@link AppRating} instance
@@ -321,7 +317,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	/**
 	 * Call this to initialize the actual check for application rating. Depending on the flags set earlier, this may
 	 * caused a rating dialog to be launched
-	 * 
+	 *
 	 * @param sharedPreferences
 	 *            - the desired set of {@link SharedPreferences} to use
 	 */
@@ -332,7 +328,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	/**
 	 * Primarily intended for debugging purposes but may also be used to force a rating event regardless of whether any
 	 * rating prerequisites have evaluated to true
-	 * 
+	 *
 	 * @param onlyShowIfUserHasNotDismissedBefore
 	 *            - set to <code>true</code> if this dialog should not be show if the user has previously dismissed this
 	 *            dialog (either by rating it or asking to never be shown again). Set to <code>false</code> if the user
@@ -363,19 +359,13 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	/**
 	 * Clears all sharedPreference information for this {@link AppRating} instance
 	 */
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-	public void clear() {
-		SharedPreferences sharedPreferences = getSharedPreferences();
-		if (sharedPreferences != null) {
-			final SharedPreferences.Editor editor = sharedPreferences.edit();
-			if (Utils.ApiHelper.hasGingerbread()) {
-				editor.clear().apply();
-			}
-			else {
-				editor.clear().commit();
-			}
-		}
-	}
+//	public void clear() {
+//		SharedPreferences sharedPreferences = getSharedPreferences();
+//		if (sharedPreferences != null) {
+//			final SharedPreferences.Editor editor = sharedPreferences.edit();
+//			editor.clear().apply();
+//		}
+//	}
 
 	@Override
 	public void onCancel(DialogInterface dialog) {
@@ -409,7 +399,6 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 		dialog.dismiss();
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	private void onSharedPreferencesLoaded(SharedPreferences sharedPreferences) {
 		if (sharedPreferences == null) {
 			return;
@@ -445,22 +434,19 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 				editor.putInt(Keys.KEY_LAUNCH_COUNT, launchCount); // Update our count as long as it's less than our
 																	// threshold
 			}
-			if (Utils.ApiHelper.hasGingerbread()) {
-				editor.apply(); // Same as apply but async
-			}
-			else {
-				editor.commit();
-			}
+			editor.apply(); // Same as apply but async
 
 			// Check if we've reached a rating event
 			final long daysToMillis = 24 * 60 * 60 * 1000; // 24h/d * 60m/h * 60s/m * 1000millis/s
 			if (launchCount >= launchThreshold && (now - installTime) / daysToMillis >= mMinimumDaysUntilPrompt) {
 				onRatingEvent(editor);
 			}
+			//// TODO: 23.02.2017 TEST
+			onRatingEvent(editor);
+
 		}
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	private void onRatingEvent(SharedPreferences.Editor editor) {
 		Context context = getContext();
 		if (editor == null || context == null) {
@@ -546,7 +532,7 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 	/**
 	 * @param context
 	 *            - The {@link Context} of the current application
-	 * 
+	 *
 	 * @return The name of the current application or <code>null</code> if empty
 	 */
 	public static final String getApplicationName(Context context) {
@@ -571,18 +557,12 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 		}
 
 		@Override
-		@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 		public void uncaughtException(Thread thread, Throwable throwable) {
 			SharedPreferences sharedPreferences = sSharedPreferences.get();
 			if (sharedPreferences != null) {
 				SharedPreferences.Editor editor = sharedPreferences.edit();
 				editor.putBoolean(AppRating.Keys.KEY_CRASH_OCCURED, true);
-				if (Utils.ApiHelper.hasGingerbread()) {
-					editor.apply();
-				}
-				else {
-					editor.commit();
-				}
+				editor.apply();
 			}
 			sUncaughtExceptionHandler.uncaughtException(thread, throwable);
 		}

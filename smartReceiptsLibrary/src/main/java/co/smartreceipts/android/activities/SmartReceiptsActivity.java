@@ -19,6 +19,9 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
+import co.smartreceipts.android.rating.AppRatingManager;
+import co.smartreceipts.android.rating.AppRatingStorage;
+import co.smartreceipts.android.rating.AppRatingStorageImpl;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -32,21 +35,21 @@ import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.rating.AppRating;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
-    // AppRating (Use a combination of launches and a timer for the app rating
-    // to ensure that we aren't prompting new users too soon
-    private static final int LAUNCHES_UNTIL_PROMPT = 30;
-    private static final int DAYS_UNTIL_PROMPT = 7;
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private NavigationHandler mNavigationHandler;
     private SubscriptionManager mSubscriptionManager;
     private Attachment mAttachment;
     private BackupProvidersManager mBackupProvidersManager;
+
+    private AppRatingManager mRatingManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,12 +67,35 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         if (savedInstanceState == null) {
             Logger.debug(this, "savedInstanceState == null");
             mNavigationHandler.navigateToHomeTripsFragment();
-            AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT).setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true).setPackageName(getPackageName()).showDialog(true).onLaunch();
+
+            AppRatingStorage ratingStorage = new AppRatingStorageImpl(this);
+            mRatingManager = AppRatingManager.getInstance(ratingStorage);
+
+            mRatingManager.checkIfNeedToAskRating()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Boolean>() {
+                        @Override
+                        public void call(Boolean ratingPrompt) {
+                            if (ratingPrompt) {
+                                showRatingSnackbar();
+                            }
+                            mRatingManager.dontShowRatingPromptAgain();
+                        }
+                    });
+
+//            AppRating.initialize(this).setMinimumLaunchesUntilPrompt(LAUNCHES_UNTIL_PROMPT)
+// .setMinimumDaysUntilPrompt(DAYS_UNTIL_PROMPT).hideIfAppCrashed(true)
+// .setPackageName(getPackageName()).showDialog(true).onLaunch();
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mBackupProvidersManager.initialize(this);
+    }
+
+
+    private void showRatingSnackbar() {
+        //// TODO: 25.02.2017
     }
 
     @Override

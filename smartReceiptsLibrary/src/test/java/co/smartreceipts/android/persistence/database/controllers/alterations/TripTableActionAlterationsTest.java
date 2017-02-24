@@ -10,6 +10,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import co.smartreceipts.android.ImmediateExecutor;
@@ -17,10 +18,12 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import rx.Observable;
+import rx.observers.TestSubscriber;
 import wb.android.storage.StorageManager;
 
 import static org.mockito.Mockito.never;
@@ -63,21 +66,35 @@ public class TripTableActionAlterationsTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mTripTableActionAlterations = new TripTableActionAlterations(mTripsTable, mReceiptsTable, mDistanceTable, mDatabaseHelper, mStorageManager, new ImmediateExecutor());
+        mTripTableActionAlterations = new TripTableActionAlterations(mTripsTable, mReceiptsTable, mDistanceTable, mDatabaseHelper, mStorageManager);
         when(mTrip1.getPrice()).thenReturn(mPrice1);
         when(mTrip1.getDailySubTotal()).thenReturn(mPrice2);
     }
 
     @Test
     public void postGet() throws Exception {
-        mTripTableActionAlterations.postGet(Arrays.asList(mTrip1, mTrip2));
+        final List<Trip> trips = Arrays.asList(mTrip1, mTrip2);
+
+        final TestSubscriber<List<Trip>> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postGet(trips).subscribe(testSubscriber);
+
+        testSubscriber.assertValue(trips);
+        testSubscriber.onCompleted();
+        testSubscriber.assertNoErrors();
+
         verify(mDatabaseHelper).getTripPriceAndDailyPrice(mTrip1);
         verify(mDatabaseHelper).getTripPriceAndDailyPrice(mTrip2);
     }
 
     @Test
     public void postInsertForNullTrip() throws Exception {
-        mTripTableActionAlterations.postInsert(null); // No exceptions
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postInsert(null).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+
         verify(mTripsTable, never()).delete(mTrip1, new DatabaseOperationMetadata());
     }
 
@@ -86,23 +103,43 @@ public class TripTableActionAlterationsTest {
         final String name = "name";
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(new File(name));
-        mTripTableActionAlterations.postInsert(mTrip1); // No exceptions
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postInsert(mTrip1).subscribe(testSubscriber);
+
+        testSubscriber.assertValue(mTrip1);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
         verify(mTripsTable, never()).delete(mTrip1, new DatabaseOperationMetadata());
     }
 
-    @Test (expected = IOException.class)
+    @Test
     public void postInsertForValidTripButIOFails() throws Exception {
+        final DatabaseOperationMetadata metadata = new DatabaseOperationMetadata(OperationFamilyType.Rollback);
         final String name = "name";
         when(mTrip1.getName()).thenReturn(name);
         when(mStorageManager.mkdir(name)).thenReturn(null);
-        when(mTripsTable.delete(mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(mTrip1));
-        mTripTableActionAlterations.postInsert(mTrip1);
-        verify(mTripsTable).delete(mTrip1, new DatabaseOperationMetadata());
+        when(mTripsTable.delete(mTrip1, metadata)).thenReturn(Observable.just(mTrip1));
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postInsert(mTrip1).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(IOException.class);
+
+        verify(mTripsTable).delete(mTrip1, metadata);
     }
 
     @Test
     public void postUpdateForNullTrip() throws Exception {
-        mTripTableActionAlterations.postUpdate(mTrip1, null);
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postUpdate(mTrip1, null).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
     }
 
     @Test
@@ -112,21 +149,34 @@ public class TripTableActionAlterationsTest {
         when(mTrip2.getName()).thenReturn(name);
         when(mTrip1.getDirectory()).thenReturn(new File(name));
         when(mTrip2.getDirectory()).thenReturn(new File(name));
-        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2);
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2).subscribe(testSubscriber);
+
+        testSubscriber.assertValue(mTrip2);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
         verify(mTrip2).setPrice(mPrice1);
         verify(mTrip2).setDailySubTotal(mPrice2);
         verifyZeroInteractions(mStorageManager, mReceiptsTable, mDistanceTable);
     }
 
     @Test
-    public void postUpdateForValidTrip() throws Exception {
+    public void postUpdateForValidTripWithNewName() throws Exception {
         final String name1 = "name1";
         final String name2 = "name2";
         when(mTrip1.getName()).thenReturn(name1);
         when(mTrip2.getName()).thenReturn(name2);
         when(mTrip1.getDirectory()).thenReturn(new File(name1));
         when(mStorageManager.rename(new File(name1), name2)).thenReturn(new File(name2));
-        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2);
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2).subscribe(testSubscriber);
+
+        testSubscriber.assertValue(mTrip2);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
 
         verify(mTrip2).setPrice(mPrice1);
         verify(mTrip2).setDailySubTotal(mPrice2);
@@ -137,7 +187,7 @@ public class TripTableActionAlterationsTest {
         verify(mDistanceTable, never()).updateParentBlocking(mTrip2, mTrip1);
     }
 
-    @Test (expected = IOException.class)
+    @Test
     public void postUpdateForValidTripButIOFails() throws Exception {
         final String name1 = "name1";
         final String name2 = "name2";
@@ -146,7 +196,13 @@ public class TripTableActionAlterationsTest {
         when(mTrip1.getDirectory()).thenReturn(new File(name1));
         when(mStorageManager.rename(new File(name1), name2)).thenReturn(new File(name1));
         when(mTripsTable.update(mTrip2, mTrip1, new DatabaseOperationMetadata())).thenReturn(Observable.just(mTrip1));
-        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2);
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postUpdate(mTrip1, mTrip2).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(IOException.class);
 
         verify(mTrip2).setPrice(mPrice1);
         verify(mTrip2).setDailySubTotal(mPrice2);
@@ -158,8 +214,14 @@ public class TripTableActionAlterationsTest {
     }
 
     @Test
-    public void postDeleteFailed() throws Exception {
-        mTripTableActionAlterations.postDelete(null);
+    public void postDeleteNull() throws Exception {
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postDelete(null).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+
         verifyZeroInteractions(mReceiptsTable, mDistanceTable);
     }
 
@@ -167,7 +229,14 @@ public class TripTableActionAlterationsTest {
     public void postDeleteSuccess() throws Exception {
         final File dir = new File("name");
         when(mTrip1.getDirectory()).thenReturn(dir);
-        mTripTableActionAlterations.postDelete(mTrip1);
+
+        final TestSubscriber<Trip> testSubscriber = new TestSubscriber<>();
+        mTripTableActionAlterations.postDelete(mTrip1).subscribe(testSubscriber);
+
+        testSubscriber.assertValue(mTrip1);
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+
         verify(mReceiptsTable).deleteParentBlocking(mTrip1);
         verify(mDistanceTable).deleteParentBlocking(mTrip1);
         verify(mStorageManager).deleteRecursively(dir);

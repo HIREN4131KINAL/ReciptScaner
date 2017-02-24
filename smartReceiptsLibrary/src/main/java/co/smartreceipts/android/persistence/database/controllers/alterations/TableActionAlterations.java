@@ -20,9 +20,11 @@ public interface TableActionAlterations<T> {
     /**
      * Performs an action following a call to {@link Table#get()}
      *
-     * @param tList the list retrieved via the {@link Table#get()} request
+     * @param list the list retrieved via the {@link Table#get()} request
+     * @return an {@link Observable} that has made any final  modifications
      */
-    void postGet(@NonNull List<T> tList) throws Exception;
+    @NonNull
+    Observable<List<T>> postGet(@NonNull List<T> list);
 
     /**
      * @return an {@link Observable} that should be performed before we call {@link Table#insert(T, DatabaseOperationMetadata)}}
@@ -34,8 +36,10 @@ public interface TableActionAlterations<T> {
      * Performs an action following a call to {@link Table#insert(T, DatabaseOperationMetadata)}
      *
      * @param t the item that was inserted in {@link Table#insert(T, DatabaseOperationMetadata)} or {@code null} if the insert failed
+     * @return an {@link Observable} that has made any final modifications
      */
-    void postInsert(@Nullable T t)  throws Exception;
+    @NonNull
+    Observable<T> postInsert(@Nullable T t);
 
     /**
      * @return an {@link Observable} that should be performed before we call {@link Table#update(T, T, DatabaseOperationMetadata)}
@@ -45,8 +49,11 @@ public interface TableActionAlterations<T> {
 
     /**
      * Performs an action following a call to {@link Table#update(T, T, DatabaseOperationMetadata)}
+     *
+     * @return an {@link Observable} that has made any final  modifications
      */
-    void postUpdate(@NonNull T oldT, @Nullable T newT) throws Exception;
+    @NonNull
+    Observable<T> postUpdate(@NonNull T oldT, @Nullable T newT);
 
     /**
      * @return an {@link Observable} that should be performed before we call {@link Table#delete(T, DatabaseOperationMetadata)}
@@ -58,6 +65,7 @@ public interface TableActionAlterations<T> {
      * Performs an action following a call to {@link Table#delete(T, DatabaseOperationMetadata)}
      *
      * @param t the item that was inserted in {@link Table#delete(T, DatabaseOperationMetadata)} or {@code null} if the delete failed
+     * @return an {@link Observable} that has made any final modifications
      */
-    void postDelete(@Nullable T t) throws Exception;
+    Observable<T> postDelete(@Nullable T t);
 }

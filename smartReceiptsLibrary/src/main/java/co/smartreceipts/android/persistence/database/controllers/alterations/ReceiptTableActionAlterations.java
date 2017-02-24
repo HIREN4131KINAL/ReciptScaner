@@ -106,20 +106,42 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
 
     }
 
+    @NonNull
     @Override
-    public void postUpdate(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
-        if (newReceipt != null) { // i.e. - the update succeeded
-            if (oldReceipt.hasFile() && newReceipt.hasFile() && newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
-                // Only delete the old file if we have a new one now...
-                mStorageManager.delete(oldReceipt.getFile());
-            }
+    public Observable<Receipt> postUpdate(@NonNull final Receipt oldReceipt, @Nullable final Receipt newReceipt) {
+        if (newReceipt == null) {
+            return Observable.error(new Exception("Post update failed due to a null receipt"));
+        } else {
+            return Observable.create(new Observable.OnSubscribe<Receipt>() {
+                @Override
+                public void call(Subscriber<? super Receipt> subscriber) {
+                    if (oldReceipt.getFile() != null && newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+                        // Only delete the old file if we have a new one now...
+                        mStorageManager.delete(oldReceipt.getFile());
+                    }
+                    subscriber.onNext(newReceipt);
+                    subscriber.onCompleted();
+                }
+            });
         }
     }
 
+    @NonNull
     @Override
-    public void postDelete(@Nullable Receipt receipt) throws Exception {
-        if (receipt != null && receipt.hasFile()) {
-            mStorageManager.delete(receipt.getFile());
+    public Observable<Receipt> postDelete(@Nullable final Receipt receipt) {
+        if (receipt == null) {
+            return Observable.error(new Exception("Post delete failed due to a null receipt"));
+        } else {
+            return Observable.create(new Observable.OnSubscribe<Receipt>() {
+                @Override
+                public void call(Subscriber<? super Receipt> subscriber) {
+                    if (receipt.getFile() != null) {
+                        mStorageManager.delete(receipt.getFile());
+                    }
+                    subscriber.onNext(receipt);
+                    subscriber.onCompleted();
+                }
+            });
         }
     }
 

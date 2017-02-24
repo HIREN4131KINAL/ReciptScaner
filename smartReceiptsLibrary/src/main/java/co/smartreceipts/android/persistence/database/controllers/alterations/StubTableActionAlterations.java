@@ -20,9 +20,10 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
         return Observable.just(null);
     }
 
+    @NonNull
     @Override
-    public void postGet(@NonNull List<T> trips) throws Exception {
-
+    public Observable<List<T>> postGet(@NonNull List<T> list) {
+        return Observable.just(list);
     }
 
     @NonNull
@@ -31,9 +32,14 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
         return Observable.just(t);
     }
 
+    @NonNull
     @Override
-    public void postInsert(@Nullable T t) throws Exception {
-
+    public Observable<T> postInsert(@Nullable T t) {
+        if (t != null) {
+            return Observable.just(t);
+        } else {
+            return Observable.error(new Exception("Post insert failed due to a null value"));
+        }
     }
 
     @NonNull
@@ -42,9 +48,14 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
         return Observable.just(newT);
     }
 
+    @NonNull
     @Override
-    public void postUpdate(@NonNull T oldT, @Nullable T newT) throws Exception {
-
+    public Observable<T> postUpdate(@NonNull T oldT, @Nullable T newT) {
+        if (newT != null) {
+            return Observable.just(newT);
+        } else {
+            return Observable.error(new Exception("Post update failed due to a null value"));
+        }
     }
 
     @NonNull
@@ -53,8 +64,13 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
         return Observable.just(t);
     }
 
+    @NonNull
     @Override
-    public void postDelete(@Nullable T t) throws Exception {
-
+    public Observable<T> postDelete(@Nullable T t) {
+        if (t != null) {
+            return Observable.just(t);
+        } else {
+            return Observable.error(new Exception("Post delete failed due to a null value"));
+        }
     }
 }

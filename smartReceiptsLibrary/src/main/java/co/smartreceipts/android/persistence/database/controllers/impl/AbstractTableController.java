@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -12,23 +11,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.alterations.StubTableActionAlterations;
+import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import co.smartreceipts.android.persistence.database.controllers.results.DeleteResult;
 import co.smartreceipts.android.persistence.database.controllers.results.GetResult;
 import co.smartreceipts.android.persistence.database.controllers.results.InsertResult;
 import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import co.smartreceipts.android.persistence.database.controllers.TableController;
-import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.controllers.alterations.StubTableActionAlterations;
-import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.exceptions.Exceptions;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -47,7 +44,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     protected final String TAG = getClass().getSimpleName();
 
     private final Table<ModelType, ?> mTable;
-    protected final ConcurrentHashMap<TableEventsListener<ModelType>, BridgingTableEventsListener<ModelType>> mBridgingTableEventsListeners = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<TableEventsListener<ModelType>, BridgingTableEventsListener<ModelType>> mBridgingTableEventsListeners = new ConcurrentHashMap<>();
     protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
     protected final Analytics mAnalytics;
@@ -109,14 +106,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.get();
                     }
                 })
-                .doOnNext(new Action1<List<ModelType>>() {
+                .flatMap(new Func1<List<ModelType>, Observable<List<ModelType>>>() {
                     @Override
-                    public void call(List<ModelType> modelTypes) {
-                        try {
-                            mTableActionAlterations.postGet(modelTypes);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+                    public Observable<List<ModelType>> call(List<ModelType> list) {
+                        return mTableActionAlterations.postGet(list);
                     }
                 })
                 .doOnNext(new Action1<List<ModelType>>() {
@@ -157,14 +150,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.insert(insertedItem, databaseOperationMetadata);
                     }
                 })
-                .doOnNext(new Action1<ModelType>() {
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public void call(ModelType insertedItem) {
-                        try {
-                            mTableActionAlterations.postInsert(insertedItem);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+                    public Observable<ModelType> call(ModelType insertedItem) {
+                        return mTableActionAlterations.postInsert(insertedItem);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
@@ -204,14 +193,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.update(oldModelType, updatedItem, databaseOperationMetadata);
                     }
                 })
-                .doOnNext(new Action1<ModelType>() {
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public void call(ModelType updatedItem) {
-                        try {
-                            mTableActionAlterations.postUpdate(oldModelType, updatedItem);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+                    public Observable<ModelType> call(ModelType updatedItem) {
+                        return mTableActionAlterations.postUpdate(oldModelType, updatedItem);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {
@@ -256,14 +241,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                         return mTable.delete(deletedItem, databaseOperationMetadata);
                     }
                 })
-                .doOnNext(new Action1<ModelType>() {
+                .flatMap(new Func1<ModelType, Observable<ModelType>>() {
                     @Override
-                    public void call(ModelType deletedItem) {
-                        try {
-                            mTableActionAlterations.postDelete(deletedItem);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+                    public Observable<ModelType> call(ModelType deletedItem) {
+                        return mTableActionAlterations.postDelete(deletedItem);
                     }
                 })
                 .doOnNext(new Action1<ModelType>() {

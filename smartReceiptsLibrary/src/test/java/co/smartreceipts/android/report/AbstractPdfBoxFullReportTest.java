@@ -1,4 +1,4 @@
-package co.smartreceipts.android;
+package co.smartreceipts.android.report;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

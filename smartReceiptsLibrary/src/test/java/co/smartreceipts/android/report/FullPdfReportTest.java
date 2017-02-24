@@ -13,7 +13,6 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 
-import co.smartreceipts.android.AbstractPdfBoxFullReportTest;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;

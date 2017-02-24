@@ -98,7 +98,6 @@ public class ActivityFileResultImporter {
                         analytics.record(new ErrorEvent(ActivityFileResultImporter.this, throwable));
                     }
                 })
-                .delay(5, TimeUnit.SECONDS)
                 .observeOn(observeOnScheduler)
                 .subscribe(headlessFragment.importSubject);
     }

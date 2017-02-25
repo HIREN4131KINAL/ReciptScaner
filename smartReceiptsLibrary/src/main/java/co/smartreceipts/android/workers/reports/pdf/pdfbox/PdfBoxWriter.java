@@ -21,6 +21,8 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.rendering.PDFRenderer;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -272,7 +274,7 @@ public class PdfBoxWriter {
             document = PDDocument.load(image);
             PDFRenderer renderer = new PDFRenderer(document);
             Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.ARGB_8888);
-            return JPEGFactory.createFromImage(mDocument, bitmap);
+            return LosslessFactory.createFromImage(mDocument, bitmap);
         } catch (IOException e) {
             Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
             ((SmartReceiptsApplication) (mContext.getAndroidContext().getApplicationContext()))
@@ -293,20 +295,26 @@ public class PdfBoxWriter {
 
     @Nullable
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private PDImageXObject getXImageNative(File image) {
+    private PDImageXObject getXImageNative(File file) {
+        ParcelFileDescriptor parcelFileDescriptor = null;
         PdfRenderer renderer = null;
         try {
-            renderer = new PdfRenderer(ParcelFileDescriptor.open(image, ParcelFileDescriptor.MODE_READ_ONLY));
-            PdfRenderer.Page page = renderer.openPage(0);
-            int h = 300 / 72 * page.getHeight();
-            int w = 300 / 72 * page.getWidth();
+            parcelFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+            renderer = new PdfRenderer(parcelFileDescriptor);
 
-            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-            Rect rect = new Rect(0, 0, w, h);
-            page.render(bitmap, rect, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-            page.close();
-
-            return JPEGFactory.createFromImage(mDocument, bitmap);
+            PdfRenderer.Page page = null;
+            try {
+                page = renderer.openPage(0);
+                final int height = page.getHeight();
+                final int width = page.getWidth();
+                final Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+                return LosslessFactory.createFromImage(mDocument, bitmap);
+            } finally {
+                if (page != null) {
+                    page.close();
+                }
+            }
         } catch (SecurityException e) {
             Logger.error(this, "PDF file is password-protected", e);
             return null;
@@ -317,6 +325,7 @@ public class PdfBoxWriter {
             if (renderer != null) {
                 renderer.close();
             }
+            IOUtils.closeQuietly(parcelFileDescriptor);
         }
 
     }

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.tables;
+package co.smartreceipts.android.workers.reports.csv;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,6 +8,7 @@ import java.util.List;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.workers.reports.TableGenerator;
 
 /**
  * Implements the {@link TableGenerator} contract to generate

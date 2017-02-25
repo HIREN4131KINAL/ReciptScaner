@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.tables;
+package co.smartreceipts.android.workers.reports.pdf.tables;
 
 
 import android.support.annotation.NonNull;

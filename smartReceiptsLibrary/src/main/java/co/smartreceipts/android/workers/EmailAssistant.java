@@ -42,13 +42,13 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.reports.PdfBoxFullPdfReport;
-import co.smartreceipts.android.workers.reports.PdfBoxImagesOnlyReport;
+import co.smartreceipts.android.workers.reports.pdf.PdfBoxFullPdfReport;
+import co.smartreceipts.android.workers.reports.pdf.PdfBoxImagesOnlyReport;
 import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
-import co.smartreceipts.android.workers.reports.tables.CsvTableGenerator;
-import co.smartreceipts.android.workers.reports.tables.TooManyColumnsException;
+import co.smartreceipts.android.workers.reports.csv.CsvTableGenerator;
+import co.smartreceipts.android.workers.reports.pdf.tables.TooManyColumnsException;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 

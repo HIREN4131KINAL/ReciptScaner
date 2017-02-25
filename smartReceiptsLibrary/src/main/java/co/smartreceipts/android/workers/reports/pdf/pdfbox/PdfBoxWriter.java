@@ -21,8 +21,6 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.rendering.PDFRenderer;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,15 +32,15 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.reports.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
-import co.smartreceipts.android.workers.reports.tables.FixedSizeImageCell;
-import co.smartreceipts.android.workers.reports.tables.FixedWidthCell;
-import co.smartreceipts.android.workers.reports.tables.FixedWidthTextCell;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
+import co.smartreceipts.android.workers.reports.pdf.tables.FixedSizeImageCell;
+import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthCell;
+import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthTextCell;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
 import wb.android.storage.StorageManager;
 
 

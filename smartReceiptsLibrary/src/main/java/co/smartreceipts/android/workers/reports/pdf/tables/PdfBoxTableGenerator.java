@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.tables;
+package co.smartreceipts.android.workers.reports.pdf.tables;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,6 +12,7 @@ import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
+import co.smartreceipts.android.workers.reports.TableGenerator;
 
 
 public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTable, DataType> {

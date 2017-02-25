@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports;
+package co.smartreceipts.android.workers.reports.pdf;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -12,6 +12,8 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.workers.reports.AbstractReport;
+import co.smartreceipts.android.workers.reports.ReportGenerationException;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;

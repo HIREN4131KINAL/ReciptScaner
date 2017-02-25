@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.tables;
+package co.smartreceipts.android.workers.reports.pdf.tables;
 
 public interface PdfBoxCell {
     float getWidth();

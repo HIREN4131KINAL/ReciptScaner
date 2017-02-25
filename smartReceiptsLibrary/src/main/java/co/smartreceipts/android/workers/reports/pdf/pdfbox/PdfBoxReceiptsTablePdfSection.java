@@ -23,8 +23,8 @@ import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTableGenerator;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator;
 
 public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 

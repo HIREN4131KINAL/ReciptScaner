@@ -11,9 +11,9 @@ import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import co.smartreceipts.android.workers.reports.tables.ImagesWithLegendGrid;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
-import co.smartreceipts.android.workers.reports.tables.TableGenerator;
+import co.smartreceipts.android.workers.reports.pdf.tables.ImagesWithLegendGrid;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
+import co.smartreceipts.android.workers.reports.TableGenerator;
 
 
 /**
@@ -21,7 +21,6 @@ import co.smartreceipts.android.workers.reports.tables.TableGenerator;
  */
 public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTable, Receipt> {
 
-    // TODO separator
     private static final String SEP = " - ";
     
     private final PdfBoxContext mContext;
@@ -48,8 +47,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
      * @param availableWidth
      * @param availableHeight
      */
-    public PdfBoxImageTableGenerator(@NonNull PdfBoxContext context, 
-                                     @Nullable Filter<Receipt> filter,
+    public PdfBoxImageTableGenerator(@NonNull PdfBoxContext context, @Nullable Filter<Receipt> filter,
                                      float availableWidth, float availableHeight) {
         mContext = context;
         mFilter = filter;

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.tables;
+package co.smartreceipts.android.workers.reports.pdf.tables;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -42,12 +42,8 @@ public class ImagesWithLegendGrid {
      * @param nRows       The number of rows the grid will have
      * @param nCols       The number of columns the grid will have
      */
-    public ImagesWithLegendGrid(@NonNull PdfBoxContext context,
-                                float width,
-                                float height,
-                                float cellPadding,
-                                int nRows,
-                                int nCols) {
+    public ImagesWithLegendGrid(@NonNull PdfBoxContext context, float width, float height, float cellPadding,
+                                int nRows, int nCols) {
         mContext = context;
         mWidth = width;
         mHeight = height;

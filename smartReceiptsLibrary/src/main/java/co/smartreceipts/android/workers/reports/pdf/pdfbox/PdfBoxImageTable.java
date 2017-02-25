@@ -5,8 +5,8 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTable;
-import co.smartreceipts.android.workers.reports.tables.PdfBoxTableRow;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
 
 public class PdfBoxImageTable extends PdfBoxTable {
 

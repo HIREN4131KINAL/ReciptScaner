@@ -42,13 +42,11 @@ public class AppRatingStorageImpl implements AppRatingStorage {
         private static final String CRASH_OCCURRED = "hide_on_crash";
     }
 
-    // will be called from Activity
     public AppRatingStorageImpl(Context context) {
         mAppContext = context.getApplicationContext();
     }
 
     @Override
-    // next -> Rx
     public Single<AppRatingModel> readAppRatingData() {
         return Single.fromCallable(new Callable<AppRatingModel>() {
             @Override
@@ -58,16 +56,14 @@ public class AppRatingStorageImpl implements AppRatingStorage {
                 // Set up some vars
                 long now = System.currentTimeMillis();
                 // Get our current values
-
                 boolean canShow = !sharedPreferences.getBoolean(Keys.DONT_SHOW, false);
                 boolean crashOccurred = sharedPreferences.getBoolean(Keys.CRASH_OCCURRED, false);
                 int launchCount = sharedPreferences.getInt(Keys.LAUNCH_COUNT, 0) + 1;
                 int additionalLaunchThreshold = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
                 long installTime = sharedPreferences.getLong(Keys.INSTALL_TIME_MILLIS, now);
-                boolean justInstalled = installTime == now;
 
                 return new AppRatingModel(canShow, crashOccurred, launchCount, additionalLaunchThreshold,
-                        installTime, justInstalled);
+                        installTime);
             }
         });
     }
@@ -98,6 +94,15 @@ public class AppRatingStorageImpl implements AppRatingStorage {
     public void crashOccurred() {
         SharedPreferences.Editor editor = getPreferencesEditor();
         editor.putBoolean(Keys.CRASH_OCCURRED, true);
+        editor.apply();
+    }
+
+    @Override
+    public void prorogueRatingPrompt(int prorogueDays) {
+        SharedPreferences sharedPreferences = getSharedPreferences();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int oldAdditionalDays = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
+        editor.putInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, oldAdditionalDays + prorogueDays);
         editor.apply();
     }
 

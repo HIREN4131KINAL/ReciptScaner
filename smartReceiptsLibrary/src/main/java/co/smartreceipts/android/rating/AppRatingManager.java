@@ -1,6 +1,6 @@
 package co.smartreceipts.android.rating;
 
-import java.util.concurrent.Callable;
+import android.support.annotation.VisibleForTesting;
 
 import rx.Single;
 import rx.functions.Action1;
@@ -14,15 +14,15 @@ public class AppRatingManager {
     private static final int LAUNCHES_UNTIL_PROMPT = 15;
     private static final int DAYS_UNTIL_PROMPT = 7;
 
-    private static AppRatingManager mInstance;
+    private static AppRatingManager sInstance;
 
     private AppRatingStorage mAppRatingStorage;
 
     public static AppRatingManager getInstance(AppRatingStorage ratingStorage) {
-        if (mInstance == null) {
-            mInstance = new AppRatingManager(ratingStorage);
+        if (sInstance == null) {
+            sInstance = new AppRatingManager(ratingStorage);
         }
-        return mInstance;
+        return sInstance;
     }
 
     private AppRatingManager(AppRatingStorage appRatingStorage) {
@@ -31,13 +31,18 @@ public class AppRatingManager {
         setCustomUncaughtExceptionHandler();
     }
 
+    @VisibleForTesting
+    public static void clearStateForTesting() {
+        sInstance = null;
+    }
+
     public Single<Boolean> checkIfNeedToAskRating() {
         return mAppRatingStorage.readAppRatingData()
                 .doOnSuccess(new Action1<AppRatingModel>() {
                     @Override
                     public void call(AppRatingModel appRatingModel) {
                         mAppRatingStorage.incrementLaunchCount();
-                        if (appRatingModel.isJustInstalled()) {
+                        if (appRatingModel.getLaunchCount() == 1) {
                             mAppRatingStorage.saveInstallTime();
                         }
                     }
@@ -59,6 +64,10 @@ public class AppRatingManager {
 
     public void dontShowRatingPromptAgain() {
         mAppRatingStorage.setDontShowRatingPromptMore();
+    }
+
+    public void prorogueRatingPrompt() {
+        mAppRatingStorage.prorogueRatingPrompt(DAYS_UNTIL_PROMPT);
     }
 
     private void setCustomUncaughtExceptionHandler() {

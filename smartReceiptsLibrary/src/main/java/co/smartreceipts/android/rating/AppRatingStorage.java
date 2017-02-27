@@ -12,5 +12,7 @@ public interface AppRatingStorage {
 
     void setDontShowRatingPromptMore();
 
+    void prorogueRatingPrompt(int prorogueDays);
+
     void crashOccurred();
 }

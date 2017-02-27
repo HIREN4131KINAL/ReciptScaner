@@ -8,15 +8,12 @@ public class AppRatingModel {
     private long mInstallTime;
     private int mAdditionalLaunchThreshold;
 
-    private boolean mJustInstalled;
-
     public AppRatingModel(boolean canShow, boolean crashOccurred, int launchCount, int additionalLaunchThreshold,
-                          long installTime, boolean justInstalled) {
+                          long installTime) {
         mCanShow = canShow;
         mCrashOccurred = crashOccurred;
         mLaunchCount = launchCount;
         mInstallTime = installTime;
-        mJustInstalled = justInstalled;
         mAdditionalLaunchThreshold = additionalLaunchThreshold;
     }
 
@@ -40,7 +37,4 @@ public class AppRatingModel {
         return mAdditionalLaunchThreshold;
     }
 
-    public boolean isJustInstalled() {
-        return mJustInstalled;
-    }
 }

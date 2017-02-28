@@ -2,36 +2,31 @@ package co.smartreceipts.android.ocr.info.tooltip;
 
 import android.support.annotation.NonNull;
 import android.view.View;
-import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.widget.tooltip.Tooltip;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
-public class OcrInformationalTooltipPresenter implements View.OnClickListener {
+import static android.view.View.*;
+
+public class OcrInformationalTooltipPresenter implements OnClickListener {
 
     private final OcrInformationalTooltipInteractor mInteractor;
 
-    private final View mInfoButton;
-    private final TextView mMessageTextView;
-    private final View mDismissButton;
+    private final Tooltip mTooltip;
     private CompositeSubscription mCompositeSubscription;
 
-    public OcrInformationalTooltipPresenter(@NonNull OcrInformationalTooltipInteractor interactor, @NonNull View infoButton) {
+    public OcrInformationalTooltipPresenter(@NonNull OcrInformationalTooltipInteractor interactor, @NonNull Tooltip tooltip) {
         mInteractor = Preconditions.checkNotNull(interactor);
 
-        mInfoButton = Preconditions.checkNotNull(infoButton);
-        mMessageTextView = Preconditions.checkNotNull((TextView) infoButton.findViewById(R.id.message));
-        mDismissButton = Preconditions.checkNotNull(infoButton.findViewById(R.id.close_icon));
-
-        mMessageTextView.setText(R.string.ocr_informational_tooltip_text);
-        mInfoButton.setVisibility(View.GONE);
-        mInfoButton.setOnClickListener(this);
-        mDismissButton.setOnClickListener(this);
+        mTooltip = Preconditions.checkNotNull(tooltip);
+        mTooltip.setInfo(R.string.ocr_informational_tooltip_text, this, this);
+        mTooltip.setVisibility(GONE);
     }
 
     public void onResume() {
@@ -42,7 +37,7 @@ public class OcrInformationalTooltipPresenter implements View.OnClickListener {
                 @Override
                 public void call(Boolean aBoolean) {
                     Logger.info(OcrInformationalTooltipPresenter.this, "Showing OCR Tooltip");
-                    mInfoButton.setVisibility(View.VISIBLE);
+                    mTooltip.setVisibility(VISIBLE);
                 }
             }));
     }
@@ -54,11 +49,11 @@ public class OcrInformationalTooltipPresenter implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        if (view == mInfoButton) {
+        if (view == mTooltip) {
             mInteractor.showOcrInformation();
-        } else if (view == mDismissButton) {
+        } else if (view.getId() == R.id.tooltip_close_icon) {
             mInteractor.dismissTooltip();
         }
-        mInfoButton.setVisibility(View.GONE);
+        mTooltip.setVisibility(GONE);
     }
 }

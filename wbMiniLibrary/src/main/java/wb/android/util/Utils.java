@@ -110,6 +110,10 @@ public class Utils {
 	    public static boolean hasKitKat() {
 	        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 	    }
+
+		public static boolean hasLollipop() {
+			return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+		}
 	    
 	    public static boolean supportsPreferenceHeaders() {
 	    	return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;

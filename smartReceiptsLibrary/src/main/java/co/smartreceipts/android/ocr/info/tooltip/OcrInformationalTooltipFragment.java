@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.widget.tooltip.Tooltip;
 
 public class OcrInformationalTooltipFragment extends Fragment {
 
@@ -26,13 +27,13 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.information_tooltip, container, false);
+        return new Tooltip(getContext());
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mPresenter = new OcrInformationalTooltipPresenter(mInteractor, view);
+        mPresenter = new OcrInformationalTooltipPresenter(mInteractor, (Tooltip) view);
     }
 
     @Override

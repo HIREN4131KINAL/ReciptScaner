@@ -46,33 +46,22 @@ public class Tooltip extends RelativeLayout {
         setVisibility(VISIBLE);
     }
 
-    public void showErrorWithoutIcon(String errorMessage) {
-        setErrorBackground();
+    public void setError(int messageStringId, OnClickListener closeClickListener) {
+        setViewStateError();
 
-        mMessageText.setVisibility(VISIBLE);
-        mCloseIcon.setVisibility(VISIBLE);
-
-        mButtonNo.setVisibility(GONE);
-        mButtonYes.setVisibility(GONE);
-        mErrorIcon.setVisibility(GONE);
-
-        mMessageText.setText(errorMessage);
+        mMessageText.setText(getContext().getText(messageStringId));
+        mCloseIcon.setOnClickListener(closeClickListener);
     }
 
-    public void showError(String errorMessage) {
-        setErrorBackground();
+    public void setErrorWithoutClose(int messageStringId, OnClickListener tooltipClickListener) {
+        setViewStateError();
+        mCloseIcon.setVisibility(GONE);
 
-        mMessageText.setVisibility(VISIBLE);
-        mCloseIcon.setVisibility(VISIBLE);
-        mErrorIcon.setVisibility(VISIBLE);
-
-        mButtonNo.setVisibility(GONE);
-        mButtonYes.setVisibility(GONE);
-
-        mMessageText.setText(errorMessage);
+        mMessageText.setText(getContext().getText(messageStringId));
+        setOnClickListener(tooltipClickListener);
     }
 
-    public void setInfo(int stringId, OnClickListener tooltipClickListener, OnClickListener closeClickListener) {
+    public void setInfo(int infoStringId, OnClickListener tooltipClickListener, OnClickListener closeClickListener) {
         setInfoBackground();
 
 //        if (Utils.ApiHelper.hasLollipop()) {
@@ -86,13 +75,13 @@ public class Tooltip extends RelativeLayout {
         mButtonNo.setVisibility(GONE);
         mButtonYes.setVisibility(GONE);
 
-        mMessageText.setText(getContext().getText(stringId));
+        mMessageText.setText(getContext().getText(infoStringId));
         setOnClickListener(tooltipClickListener);
         mCloseIcon.setOnClickListener(closeClickListener);
 
     }
 
-    public void showQuestion(String questionText, OnClickListener noClickListener, OnClickListener yesClickListener) {
+    public void showQuestion(int questionStringId, OnClickListener noClickListener, OnClickListener yesClickListener) {
         setInfoBackground();
 
         mMessageText.setVisibility(VISIBLE);
@@ -102,7 +91,7 @@ public class Tooltip extends RelativeLayout {
         mCloseIcon.setVisibility(GONE);
         mErrorIcon.setVisibility(GONE);
 
-        mMessageText.setText(questionText);
+        mMessageText.setText(getContext().getText(questionStringId));
         mButtonNo.setOnClickListener(noClickListener);
         mButtonYes.setOnClickListener(yesClickListener);
     }
@@ -113,6 +102,17 @@ public class Tooltip extends RelativeLayout {
 
     private void setInfoBackground() {
         setBackgroundColor(ContextCompat.getColor(getContext(), R.color.smart_receipts_colorAccent));
+    }
+
+    private void setViewStateError() {
+        setErrorBackground();
+
+        mMessageText.setVisibility(VISIBLE);
+        mCloseIcon.setVisibility(VISIBLE);
+        mErrorIcon.setVisibility(VISIBLE);
+
+        mButtonNo.setVisibility(GONE);
+        mButtonYes.setVisibility(GONE);
     }
 
 

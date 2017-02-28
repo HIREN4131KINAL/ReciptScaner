@@ -20,6 +20,7 @@ import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.widget.tooltip.Tooltip;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
@@ -44,13 +45,13 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.error_information_tooltip, container, false);
+        return new Tooltip(getContext());
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mSyncErrorPresenter = new SyncErrorPresenter(view);
+        mSyncErrorPresenter = new SyncErrorPresenter((Tooltip)view);
     }
 
     @Override

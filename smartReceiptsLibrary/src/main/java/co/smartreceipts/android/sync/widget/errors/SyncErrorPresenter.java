@@ -9,76 +9,59 @@ import com.google.common.base.Preconditions;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import co.smartreceipts.android.widget.tooltip.Tooltip;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
+import static android.view.View.*;
+
 public class SyncErrorPresenter {
 
-    private final View mErrorLayout;
-    private final View mErrorIconView;
-    private final View mCloseIconView;
-    private final TextView mMessageTextView;
+    private final Tooltip mTooltip;
 
     private final PublishSubject<SyncErrorType> mClickStream = PublishSubject.create();
 
     private SyncProvider mSyncProvider = SyncProvider.None;
 
-    public SyncErrorPresenter(@NonNull View view) {
-        mErrorLayout = Preconditions.checkNotNull(view);
-        mErrorIconView = Preconditions.checkNotNull(view.findViewById(R.id.error_icon));
-        mCloseIconView = Preconditions.checkNotNull(view.findViewById(R.id.close_icon));
-        mMessageTextView = Preconditions.checkNotNull((TextView) view.findViewById(R.id.error_message));
-        mErrorLayout.setVisibility(View.GONE);
+    public SyncErrorPresenter(@NonNull Tooltip tooltip) {
+
+        mTooltip = Preconditions.checkNotNull(tooltip);
+        mTooltip.setVisibility(GONE);
     }
 
     public void present(@NonNull final SyncErrorType syncErrorType) {
         if (mSyncProvider == SyncProvider.GoogleDrive) {
             if (syncErrorType == SyncErrorType.UserRevokedRemoteRights) {
-                mErrorLayout.setClickable(true);
-                mErrorIconView.setVisibility(View.VISIBLE);
-                mCloseIconView.setVisibility(View.GONE);
-                mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_no_permissions));
-                mErrorLayout.setOnClickListener(new View.OnClickListener() {
+                mTooltip.setErrorWithoutClose(R.string.drive_sync_error_no_permissions, new OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         mClickStream.onNext(syncErrorType);
                     }
                 });
-                mCloseIconView.setOnClickListener(null);
             } else if (syncErrorType == SyncErrorType.UserDeletedRemoteData) {
-                mErrorLayout.setClickable(true);
-                mErrorIconView.setVisibility(View.VISIBLE);
-                mCloseIconView.setVisibility(View.GONE);
-                mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_lost_data));
-                mErrorLayout.setOnClickListener(new View.OnClickListener() {
+                mTooltip.setErrorWithoutClose(R.string.drive_sync_error_lost_data, new OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        mErrorLayout.setVisibility(View.GONE);
+                        mTooltip.setVisibility(GONE);
                         mClickStream.onNext(syncErrorType);
                     }
                 });
-                mCloseIconView.setOnClickListener(null);
             } else if (syncErrorType == SyncErrorType.NoRemoteDiskSpace) {
-                mErrorLayout.setClickable(false);
-                mErrorIconView.setVisibility(View.VISIBLE);
-                mCloseIconView.setVisibility(View.VISIBLE);
-                mMessageTextView.setText(mMessageTextView.getContext().getText(R.string.drive_sync_error_no_space));
-                mErrorLayout.setOnClickListener(null);
-                mCloseIconView.setOnClickListener(new View.OnClickListener() {
+                mTooltip.setError(R.string.drive_sync_error_no_space, new OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        mErrorLayout.setVisibility(View.GONE);
+                        mTooltip.setVisibility(GONE);
                         mClickStream.onNext(syncErrorType);
                     }
                 });
             }
-            mErrorLayout.setVisibility(View.VISIBLE);
+            mTooltip.setVisibility(VISIBLE);
         }
     }
 
     public void present(@NonNull SyncProvider syncProvider) {
         if (syncProvider == SyncProvider.None) {
-            mErrorLayout.setVisibility(View.GONE);
+            mTooltip.setVisibility(GONE);
         }
         mSyncProvider = syncProvider;
     }

@@ -10,6 +10,7 @@ public class AppRatingManagerShould {
 
     private static final int LAUNCHES_LESS = 5;
     private static final int LAUNCHES_MORE = 16;
+    private static final int LAUNCHES_MACH_MORE = 30;
 
     private static final int NO_ADDITIONAL_THRESHOLD = 0;
     private static final int ADDITIONAL_THRESHOLD = 7;
@@ -152,11 +153,32 @@ public class AppRatingManagerShould {
     }
 
     @Test
+    public void returnFalseIfAddedAdditionalThreshold() {
+        // given
+        AppRatingStorage mockedStorage = Mockito.mock(AppRatingStorage.class);
+
+        AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
+        Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
+
+        // when
+        AppRatingManager.clearStateForTesting();
+        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
+        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
+
+        manager.checkIfNeedToAskRating()
+                .subscribe(testSubscriber);
+
+        // then
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertValue(false);
+    }
+
+    @Test
     public void returnTrueIfAllOkWithAdditionalThreshold() {
         // given
         AppRatingStorage mockedStorage = Mockito.mock(AppRatingStorage.class);
 
-        AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, RECENT_TIME);
+        AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MACH_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
         // when

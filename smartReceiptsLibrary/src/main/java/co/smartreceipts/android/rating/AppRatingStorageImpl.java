@@ -98,11 +98,11 @@ public class AppRatingStorageImpl implements AppRatingStorage {
     }
 
     @Override
-    public void prorogueRatingPrompt(int prorogueDays) {
+    public void prorogueRatingPrompt(int prorogueLaunches) {
         SharedPreferences sharedPreferences = getSharedPreferences();
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        int oldAdditionalDays = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
-        editor.putInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, oldAdditionalDays + prorogueDays);
+        int oldAdditionalLaunches = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
+        editor.putInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, oldAdditionalLaunches + prorogueLaunches);
         editor.apply();
     }
 

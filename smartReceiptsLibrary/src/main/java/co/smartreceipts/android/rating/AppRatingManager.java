@@ -67,7 +67,7 @@ public class AppRatingManager {
     }
 
     public void prorogueRatingPrompt() {
-        mAppRatingStorage.prorogueRatingPrompt(DAYS_UNTIL_PROMPT);
+        mAppRatingStorage.prorogueRatingPrompt(LAUNCHES_UNTIL_PROMPT);
     }
 
     private void setCustomUncaughtExceptionHandler() {

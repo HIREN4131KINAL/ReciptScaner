@@ -1,4 +1,4 @@
-package co.smartreceipts.android.widget.tooltip;
+package co.smartreceipts.android.widget;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
@@ -81,7 +81,7 @@ public class Tooltip extends RelativeLayout {
 
     }
 
-    public void showQuestion(int questionStringId, OnClickListener noClickListener, OnClickListener yesClickListener) {
+    public void setQuestion(int questionStringId, OnClickListener noClickListener, OnClickListener yesClickListener) {
         setInfoBackground();
 
         mMessageText.setVisibility(VISIBLE);

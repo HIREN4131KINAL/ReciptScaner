@@ -441,8 +441,6 @@ public class AppRating implements DialogInterface.OnClickListener, DialogInterfa
 			if (launchCount >= launchThreshold && (now - installTime) / daysToMillis >= mMinimumDaysUntilPrompt) {
 				onRatingEvent(editor);
 			}
-			//// TODO: 23.02.2017 TEST
-			onRatingEvent(editor);
 
 		}
 	}

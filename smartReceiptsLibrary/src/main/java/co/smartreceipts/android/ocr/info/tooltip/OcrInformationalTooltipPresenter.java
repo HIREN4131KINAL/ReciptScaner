@@ -7,14 +7,14 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.widget.tooltip.Tooltip;
+import co.smartreceipts.android.widget.Tooltip;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
 import static android.view.View.*;
 
-public class OcrInformationalTooltipPresenter implements OnClickListener {
+public class OcrInformationalTooltipPresenter{
 
     private final OcrInformationalTooltipInteractor mInteractor;
 
@@ -25,7 +25,19 @@ public class OcrInformationalTooltipPresenter implements OnClickListener {
         mInteractor = Preconditions.checkNotNull(interactor);
 
         mTooltip = Preconditions.checkNotNull(tooltip);
-        mTooltip.setInfo(R.string.ocr_informational_tooltip_text, this, this);
+        mTooltip.setInfo(R.string.ocr_informational_tooltip_text, new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mInteractor.showOcrInformation();
+                mTooltip.setVisibility(GONE);
+            }
+        }, new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mInteractor.dismissTooltip();
+                mTooltip.setVisibility(GONE);
+            }
+        });
         mTooltip.setVisibility(GONE);
     }
 
@@ -45,15 +57,5 @@ public class OcrInformationalTooltipPresenter implements OnClickListener {
     public void onPause() {
         mCompositeSubscription.unsubscribe();
         mCompositeSubscription = null;
-    }
-
-    @Override
-    public void onClick(View view) {
-        if (view == mTooltip) {
-            mInteractor.showOcrInformation();
-        } else if (view.getId() == R.id.tooltip_close_icon) {
-            mInteractor.dismissTooltip();
-        }
-        mTooltip.setVisibility(GONE);
     }
 }

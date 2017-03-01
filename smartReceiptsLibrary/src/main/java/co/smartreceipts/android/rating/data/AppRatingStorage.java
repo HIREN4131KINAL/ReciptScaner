@@ -1,5 +1,6 @@
-package co.smartreceipts.android.rating;
+package co.smartreceipts.android.rating.data;
 
+import co.smartreceipts.android.rating.data.AppRatingModel;
 import rx.Single;
 
 public interface AppRatingStorage {

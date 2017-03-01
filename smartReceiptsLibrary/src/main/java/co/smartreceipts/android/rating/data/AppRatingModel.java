@@ -1,4 +1,4 @@
-package co.smartreceipts.android.rating;
+package co.smartreceipts.android.rating.data;
 
 public class AppRatingModel {
 

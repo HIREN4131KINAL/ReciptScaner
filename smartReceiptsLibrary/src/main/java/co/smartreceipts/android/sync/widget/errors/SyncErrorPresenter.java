@@ -2,14 +2,13 @@ package co.smartreceipts.android.sync.widget.errors;
 
 import android.support.annotation.NonNull;
 import android.view.View;
-import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import co.smartreceipts.android.widget.tooltip.Tooltip;
+import co.smartreceipts.android.widget.Tooltip;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 

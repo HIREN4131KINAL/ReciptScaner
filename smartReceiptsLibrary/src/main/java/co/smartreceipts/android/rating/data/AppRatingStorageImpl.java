@@ -1,10 +1,13 @@
-package co.smartreceipts.android.rating;
+package co.smartreceipts.android.rating.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.util.concurrent.Callable;
 
+import co.smartreceipts.android.rating.AppRating;
+import co.smartreceipts.android.rating.data.AppRatingModel;
+import co.smartreceipts.android.rating.data.AppRatingStorage;
 import rx.Single;
 
 public class AppRatingStorageImpl implements AppRatingStorage {

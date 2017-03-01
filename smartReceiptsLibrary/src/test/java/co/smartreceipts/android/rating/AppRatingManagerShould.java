@@ -3,6 +3,9 @@ package co.smartreceipts.android.rating;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import co.smartreceipts.android.rating.data.AppRatingManager;
+import co.smartreceipts.android.rating.data.AppRatingModel;
+import co.smartreceipts.android.rating.data.AppRatingStorage;
 import rx.Single;
 import rx.observers.TestSubscriber;
 

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.trips;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -34,6 +34,8 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.fragments.ReceiptsFragment;
+import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -42,9 +44,12 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.rating.FeedbackDialogFragment;
+import co.smartreceipts.android.rating.RatingDialogFragment;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.widget.Tooltip;
 import co.smartreceipts.android.workers.EmailAssistant;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.dialog.BetterDialogBuilder;
@@ -55,12 +60,17 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     private static final String ARG_NAVIGATE_TO_VIEW_LAST_TRIP = "arg_nav_to_last_trip";
     private static final String OUT_NAV_TO_LAST_TRIP = "out_nav_to_last_trip";
 
+    private TripFragmentPresenter mPresenter;
+
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
     private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
+
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
     private TripTableController mTripTableController;
+    private Tooltip mTooltip;
+
     private boolean mNavigateToLastTrip;
 
     public static TripFragment newInstance() {
@@ -92,15 +102,17 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Logger.debug(this, "onCreateView");
-        final View rootView = inflater.inflate(getLayoutId(), container, false);
+        final View rootView = inflater.inflate(R.layout.trip_fragment_layout, container, false);
         mProgressDialog = (ProgressBar) rootView.findViewById(R.id.progress);
         mNoDataAlert = (TextView) rootView.findViewById(R.id.no_data);
+        mTooltip = (Tooltip) rootView.findViewById(R.id.trip_tooltip);
         rootView.findViewById(R.id.trip_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 tripMenu(null);
             }
         });
+        mPresenter = new TripFragmentPresenter(this);
         return rootView;
     }
 
@@ -114,10 +126,8 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         if (toolbar != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         }
-    }
 
-    public int getLayoutId() {
-        return R.layout.trip_fragment_layout;
+        mPresenter.checkRating();
     }
 
     @Override
@@ -469,6 +479,26 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     private void viewReceipts(Trip trip) {
         mNavigationHandler.navigateToReportInfoFragment(trip);
+    }
+
+    public void showRatingTooltip() {
+        mTooltip.setQuestion(R.string.rating_tooltip_text, new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mNavigationHandler.showDialog(new FeedbackDialogFragment());
+                mTooltip.hideWithAnimation();
+                mPresenter.dontShowRatingPrompt();
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mNavigationHandler.showDialog(new RatingDialogFragment());
+                mTooltip.hideWithAnimation();
+                mPresenter.dontShowRatingPrompt();
+            }
+        });
+
+        mTooltip.showWithAnimation();
     }
 
 }

@@ -45,9 +45,9 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
-import co.smartreceipts.android.rating.AppRating;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -374,7 +374,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             return true;
         } else if (key.equals(getString(R.string.pref_help_send_love_key))) { // Dark Pattern... Send Love => AppStore.
             // Others for email
-            startActivity(AppRating.getRatingIntent(this, getString(R.string.package_name)));
+            startActivity(IntentUtils.getRatingIntent(this));
             return true;
         } else if (key.equals(getString(R.string.pref_help_send_feedback_key))) {
             final Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.feedback, getString(R.string.sr_app_name)));

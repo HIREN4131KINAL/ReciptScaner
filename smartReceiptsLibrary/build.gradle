@@ -39,6 +39,8 @@ dependencies {
         exclude group: 'com.google.android', module: 'android'
     }
 
+    compile "com.andkulikov:transitionseverywhere:$TRANSITIONS_EVERYWHERE_VERSION"
+
     // Unit Tests
     testCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
     testCompile "junit:junit:$JUNIT_VERSION"

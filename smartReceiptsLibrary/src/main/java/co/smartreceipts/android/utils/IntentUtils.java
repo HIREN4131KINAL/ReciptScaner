@@ -171,4 +171,23 @@ public class IntentUtils {
         return ContentUriProvider.getUriForFile(context, authority, file);
     }
 
+    public static Intent getRatingIntent(Context context) {
+        String GOOGLE = "com.android.vending";
+        String AMAZON = "com.amazon.venezia";
+
+        String packageName = context.getPackageName();
+        String name = context.getPackageManager().getInstallerPackageName(packageName);
+
+        if (GOOGLE.equals(name)) {
+            return new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+        }
+        else if (AMAZON.equals(name)) {
+            return new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.amazon.com/gp/mas/dl/android?p=" + packageName));
+        }
+        else {
+            // Default to Google... May lead to a crash if user does not have this installed
+            return new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+        }
+    }
+
 }

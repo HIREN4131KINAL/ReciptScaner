@@ -5,9 +5,6 @@ import android.content.SharedPreferences;
 
 import java.util.concurrent.Callable;
 
-import co.smartreceipts.android.rating.AppRating;
-import co.smartreceipts.android.rating.data.AppRatingModel;
-import co.smartreceipts.android.rating.data.AppRatingStorage;
 import rx.Single;
 
 public class AppRatingStorageImpl implements AppRatingStorage {
@@ -25,7 +22,7 @@ public class AppRatingStorageImpl implements AppRatingStorage {
         private static final String DONT_SHOW = "dont_show";
 
         /**
-         * Key to track how many times the user has launched the application via the {@link AppRating#onLaunch()} method
+         * Key to track how many times the user has launched the application
          */
         private static final String LAUNCH_COUNT = "launches";
 
@@ -35,7 +32,7 @@ public class AppRatingStorageImpl implements AppRatingStorage {
         private static final String ADDITIONAL_LAUNCH_THRESHOLD = "threshold";
 
         /**
-         * Key to track the first call of {@link AppRating#onLaunch()} method in millis
+         * Key to track the first call of {@link AppRatingStorage#incrementLaunchCount()} method in millis
          */
         private static final String INSTALL_TIME_MILLIS = "days";
 
@@ -61,7 +58,7 @@ public class AppRatingStorageImpl implements AppRatingStorage {
                 // Get our current values
                 boolean canShow = !sharedPreferences.getBoolean(Keys.DONT_SHOW, false);
                 boolean crashOccurred = sharedPreferences.getBoolean(Keys.CRASH_OCCURRED, false);
-                int launchCount = sharedPreferences.getInt(Keys.LAUNCH_COUNT, 0) + 1;
+                int launchCount = sharedPreferences.getInt(Keys.LAUNCH_COUNT, 0);
                 int additionalLaunchThreshold = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
                 long installTime = sharedPreferences.getLong(Keys.INSTALL_TIME_MILLIS, now);
 
@@ -75,14 +72,11 @@ public class AppRatingStorageImpl implements AppRatingStorage {
     public void incrementLaunchCount() {
         SharedPreferences sharedPreferences = getSharedPreferences();
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(Keys.LAUNCH_COUNT, sharedPreferences.getInt(Keys.LAUNCH_COUNT, 0) + 1);
-        editor.apply();
-    }
-
-    @Override
-    public void saveInstallTime() {
-        SharedPreferences.Editor editor = getPreferencesEditor();
-        editor.putLong(Keys.INSTALL_TIME_MILLIS, System.currentTimeMillis());
+        int currentLaunchCount = sharedPreferences.getInt(Keys.LAUNCH_COUNT, 0);
+        if (currentLaunchCount == 0) {
+            editor.putLong(Keys.INSTALL_TIME_MILLIS, System.currentTimeMillis());
+        }
+        editor.putInt(Keys.LAUNCH_COUNT, currentLaunchCount + 1);
         editor.apply();
     }
 
@@ -106,6 +100,7 @@ public class AppRatingStorageImpl implements AppRatingStorage {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         int oldAdditionalLaunches = sharedPreferences.getInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, 0);
         editor.putInt(Keys.ADDITIONAL_LAUNCH_THRESHOLD, oldAdditionalLaunches + prorogueLaunches);
+        editor.putBoolean(Keys.DONT_SHOW, false);
         editor.apply();
     }
 

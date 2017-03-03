@@ -38,28 +38,20 @@ public class AppRatingManager {
 
     public Single<Boolean> checkIfNeedToAskRating() {
         return mAppRatingStorage.readAppRatingData()
-                .doOnSuccess(new Action1<AppRatingModel>() {
+                .map(new Func1<AppRatingModel, Boolean>() {
                     @Override
-                    public void call(AppRatingModel appRatingModel) {
-                        mAppRatingStorage.incrementLaunchCount();
-                        if (appRatingModel.getLaunchCount() == 1) {
-                            mAppRatingStorage.saveInstallTime();
+                    public Boolean call(AppRatingModel appRatingModel) {
+                        if (appRatingModel.canShow() && !appRatingModel.isCrashOccurred()) {
+                            // Check if we've reached a rating event
+                            final long daysToMillis = 24 * 60 * 60 * 1000; // 24h/d * 60m/h * 60s/m * 1000millis/s
+                            if (appRatingModel.getLaunchCount() >= LAUNCHES_UNTIL_PROMPT + appRatingModel.getAdditionalLaunchThreshold() &&
+                                    (System.currentTimeMillis() - appRatingModel.getInstallTime()) / daysToMillis >= DAYS_UNTIL_PROMPT) {
+                                return true;
+                            }
                         }
+                        return false;
                     }
-                }).map(new Func1<AppRatingModel, Boolean>() {
-            @Override
-            public Boolean call(AppRatingModel appRatingModel) {
-                if (appRatingModel.canShow() && !appRatingModel.isCrashOccurred()) {
-                    // Check if we've reached a rating event
-                    final long daysToMillis = 24 * 60 * 60 * 1000; // 24h/d * 60m/h * 60s/m * 1000millis/s
-                    if (appRatingModel.getLaunchCount() >= LAUNCHES_UNTIL_PROMPT + appRatingModel.getAdditionalLaunchThreshold() &&
-                            (System.currentTimeMillis() - appRatingModel.getInstallTime()) / daysToMillis >= DAYS_UNTIL_PROMPT) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }).subscribeOn(Schedulers.io());
+                }).subscribeOn(Schedulers.io());
     }
 
     public void dontShowRatingPromptAgain() {

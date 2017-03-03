@@ -11,14 +11,14 @@ import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
-import co.smartreceipts.android.fragments.TripFragment;
+import co.smartreceipts.android.trips.TripFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 
 public class FragmentProvider {
 
     /**
-     * Creates a {@link co.smartreceipts.android.fragments.TripFragment} instance
+     * Creates a {@link TripFragment} instance
      *
      * @return a new trip fragment
      */

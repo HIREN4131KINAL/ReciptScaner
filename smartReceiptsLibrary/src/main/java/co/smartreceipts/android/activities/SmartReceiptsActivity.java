@@ -66,21 +66,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         if (savedInstanceState == null) {
             Logger.debug(this, "savedInstanceState == null");
             mNavigationHandler.navigateToHomeTripsFragment();
-
-            AppRatingStorage ratingStorage = new AppRatingStorageImpl(this);
-            mRatingManager = AppRatingManager.getInstance(ratingStorage);
-
-            mRatingManager.checkIfNeedToAskRating()
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Boolean>() {
-                        @Override
-                        public void call(Boolean ratingPrompt) {
-                            if (ratingPrompt) {
-                                showRatingSnackbar();
-                            }
-                            mRatingManager.dontShowRatingPromptAgain();
-                        }
-                    });
         }
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
 
@@ -88,10 +73,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         mBackupProvidersManager.initialize(this);
     }
 
-
-    private void showRatingSnackbar() {
-        //// TODO: 25.02.2017 showRatingSnackbar
-    }
 
     @Override
     protected void onStart() {

@@ -18,7 +18,7 @@
         android:padding="@dimen/default_margin_item_separator"
         android:tint="@color/text_primary"
         android:visibility="gone"
-        tools:visibility="visible"
+        tools:visibility="gone"
         app:srcCompat="@drawable/ic_error_outline_24dp"
         />
 
@@ -33,7 +33,7 @@
         android:padding="@dimen/default_margin_size"
         android:tint="@color/text_primary"
         android:visibility="gone"
-        tools:visibility="visible"
+        tools:visibility="gone"
         app:srcCompat="@drawable/ic_clear_24dp"
         />
 
@@ -46,7 +46,7 @@
         android:layout_toStartOf="@+id/tooltip_yes"
         android:text="@string/no"
         android:visibility="gone"
-        tools:visibility="gone"
+        tools:visibility="visible"
         />
 
     <Button
@@ -59,7 +59,7 @@
         android:layout_alignParentEnd="true"
         android:text="@string/yes"
         android:visibility="gone"
-        tools:visibility="gone"
+        tools:visibility="visible"
         />
 
     <TextView

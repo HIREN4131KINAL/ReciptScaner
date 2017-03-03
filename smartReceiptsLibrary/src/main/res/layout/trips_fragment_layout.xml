@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.SmartReceipts.RelativeLayout" >
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.SmartReceipts.RelativeLayout">
 
-    <include layout="@layout/toolbar"
-             android:id="@+id/toolbar"/>
+    <include
+        android:id="@+id/trip_base_layout"
+        layout="@layout/trip_card_list_no_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/trip_tooltip" />
 
-	<include layout="@layout/trip_card_list_no_toolbar"
-             android:id="@+id/trip_base_layout"
-             android:layout_height="match_parent"
-             android:layout_width="match_parent"
-             android:layout_below="@id/toolbar" />
+    <co.smartreceipts.android.widget.Tooltip
+        android:id="@+id/trip_tooltip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/toolbar"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
 
 </RelativeLayout>

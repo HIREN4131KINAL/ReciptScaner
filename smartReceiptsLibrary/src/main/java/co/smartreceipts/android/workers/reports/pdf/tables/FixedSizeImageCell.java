@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 import java.io.File;
 
 /**
- * A cell that holds an mImage. The cell is supposed to have a predetermined size and the mImage should
+ * A cell that holds an file. The cell is supposed to have a predetermined size and the file should
  * be adjusted to match its size (respecting the <code>mCellPadding</code>. The <code>mWidth</code>
  * of the cell must be set in the constructor, but the <code>mHeight</code> can be set later.
  */
@@ -13,7 +13,7 @@ public class FixedSizeImageCell implements FixedWidthCell {
 
     private final float mWidth;
     private final float mCellPadding;
-    private final File mImage;
+    private final File file;
     private float mHeight;
 
     // TODO: Refactor to ensure that the image file is always @NonNull for this
@@ -21,7 +21,7 @@ public class FixedSizeImageCell implements FixedWidthCell {
         mWidth = width;
         mHeight = height;
         mCellPadding = cellPadding;
-        mImage = image;
+        file = image;
     }
 
 
@@ -43,8 +43,8 @@ public class FixedSizeImageCell implements FixedWidthCell {
     }
 
     @Nullable
-    public File getImage() {
-        return mImage;
+    public File getFile() {
+        return file;
     }
 
     public void setHeight(float height) {

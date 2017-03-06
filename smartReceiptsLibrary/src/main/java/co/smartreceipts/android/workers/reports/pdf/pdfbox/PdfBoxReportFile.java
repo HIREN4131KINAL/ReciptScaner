@@ -9,9 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
@@ -25,34 +23,36 @@ import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontManager;
 
 public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
 
-    private final DefaultPdfBoxContext mContext;
-    private final PDDocument mDocument;
-    private final List<PdfBoxSection> mSections;
+    private final DefaultPdfBoxContext pdfBoxContext;
+    private final PDDocument pdDocument;
+    private final List<PdfBoxSection> sections;
 
 
     public PdfBoxReportFile(@NonNull Context androidContext, @NonNull UserPreferenceManager preferences) throws IOException {
-        mDocument = new PDDocument();
-        mSections = new ArrayList<>();
+        pdDocument = new PDDocument();
+        sections = new ArrayList<>();
 
         final PdfColorManager colorManager = new PdfColorManager();
-        final PdfFontManager fontManager = new PdfFontManager(androidContext, mDocument);
+        final PdfFontManager fontManager = new PdfFontManager(androidContext, pdDocument);
         fontManager.initialize();
 
-        mContext = new DefaultPdfBoxContext(androidContext, fontManager, colorManager, preferences);
+        pdfBoxContext = new DefaultPdfBoxContext(androidContext, fontManager, colorManager, preferences);
     }
 
 
     @Override
     public void writeFile(@NonNull OutputStream outStream, @NonNull Trip trip) throws IOException {
         try {
-            for (PdfBoxSection section : mSections) {
-                section.writeSection(mDocument);
+            final PdfBoxWriter writer = new PdfBoxWriter(pdDocument, pdfBoxContext, new DefaultPdfBoxPageDecorations(pdfBoxContext, trip));
+            for (PdfBoxSection section : sections) {
+                section.writeSection(pdDocument, writer);
             }
+            writer.writeAndClose();
 
-            mDocument.save(outStream);
+            pdDocument.save(outStream);
         } finally {
             try {
-                mDocument.close();
+                pdDocument.close();
             } catch (IOException e) {
                 Logger.error(this, e);
             }
@@ -60,7 +60,7 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     }
 
     public void addSection(PdfBoxSection section) {
-        mSections.add(section);
+        sections.add(section);
     }
 
     @NonNull
@@ -68,19 +68,13 @@ public class PdfBoxReportFile implements PdfReportFile, PdfBoxSectionFactory {
     public PdfBoxReceiptsTablePdfSection createReceiptsTableSection(
             @NonNull Trip trip, @NonNull List<Receipt> receipts, @NonNull List<Column<Receipt>> columns,
             @NonNull List<Distance> distances, @NonNull List<Column<Distance>> distanceColumns) {
-        return new PdfBoxReceiptsTablePdfSection(mContext, trip, receipts, columns, distances, distanceColumns);
+        return new PdfBoxReceiptsTablePdfSection(pdfBoxContext, trip, receipts, columns, distances, distanceColumns);
     }
 
     @NonNull
     @Override
     public PdfBoxReceiptsImagesPdfSection createReceiptsImagesSection(@NonNull Trip trip, @NonNull List<Receipt> receipts) {
-        return new PdfBoxReceiptsImagesPdfSection(mContext, trip, receipts);
-    }
-
-    @NonNull
-    @Override
-    public PdfBoxSignatureSection createSignatureSection(@NonNull Trip trip, @NonNull File signature) {
-        return new PdfBoxSignatureSection(mContext, trip, signature);
+        return new PdfBoxReceiptsImagesPdfSection(pdfBoxContext, pdDocument, trip, receipts);
     }
 
 }

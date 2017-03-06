@@ -1,8 +1,9 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
+
+import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,39 +22,33 @@ import co.smartreceipts.android.workers.reports.TableGenerator;
  */
 public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTable, Receipt> {
 
+    private static final int DEFAULT_COLUMN_COUNT = 2;
+    private static final int DEFAULT_ROW_COUNT = 2;
     private static final String SEP = " - ";
     
-    private final PdfBoxContext mContext;
-    private final Filter<Receipt> mFilter;
+    private final PdfBoxContext pdfBoxContext;
+    private final Filter<Receipt> filter;
+    private final UserPreferenceManager userPreferenceManager;
 
     /**
      * The width of the free space that we have in the page for painting the table
      */
-    private final float mAvailableWidth;
+    private final float availableWidth;
     /**
      * The height of the free space that we have in the page for painting the table
      */
-    private final float mAvailableHeight;
+    private final float availableHeight;
 
-    private final UserPreferenceManager mPreferences;
+    private final float cellPadding = 4;
 
-    private final float mCellPadding = 4;
-    private static final int NCOLS = 2;
-    private static final int NROWS = 2;
 
-    /**
-     * @param context
-     * @param filter
-     * @param availableWidth
-     * @param availableHeight
-     */
-    public PdfBoxImageTableGenerator(@NonNull PdfBoxContext context, @Nullable Filter<Receipt> filter,
+    public PdfBoxImageTableGenerator(@NonNull PdfBoxContext context, @NonNull Filter<Receipt> filter,
                                      float availableWidth, float availableHeight) {
-        mContext = context;
-        mFilter = filter;
-        mAvailableWidth = availableWidth;
-        mAvailableHeight = availableHeight;
-        mPreferences = context.getPreferences();
+        this.pdfBoxContext = Preconditions.checkNotNull(context);
+        this.filter = Preconditions.checkNotNull(filter);
+        this.userPreferenceManager = Preconditions.checkNotNull(context.getPreferences());
+        this.availableWidth = availableWidth;
+        this.availableHeight = availableHeight;
     }
 
 
@@ -74,7 +69,7 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                 final Receipt receipt = list.get(j);
 
                 // If filter rejects image or no image, skip
-                if (!mFilter.accept(receipt) || receipt.getFile() == null) {
+                if (!filter.accept(receipt) || receipt.getFile() == null) {
                     continue;
                 }
 
@@ -83,12 +78,15 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
                     if (grid != null && !grid.isEmpty()) {
                         rows.addAll(grid.getRows());
                     }
-                    grid = new ImagesWithLegendGrid(mContext, mAvailableWidth,
-                            mAvailableHeight, mCellPadding, 1, 1);
+                    grid = new ImagesWithLegendGrid(pdfBoxContext, availableWidth, availableHeight, cellPadding, 1, 1);
+
+                    // TODO: If it's a pdf, add multiple instances of these
+                    // TODO: 2 - make Lollipop the minimum version?
+                    // TODO: Each needs it's own 'page' number id in the current formating. Should I re-write? Maybe
                 } else {
                     if (grid == null) {
-                        grid = new ImagesWithLegendGrid(mContext, mAvailableWidth,
-                                mAvailableHeight, mCellPadding, NROWS, NCOLS);
+                        grid = new ImagesWithLegendGrid(pdfBoxContext, availableWidth,
+                                availableHeight, cellPadding, DEFAULT_ROW_COUNT, DEFAULT_COLUMN_COUNT);
                     }
                 }
 
@@ -110,18 +108,18 @@ public class PdfBoxImageTableGenerator implements TableGenerator<PdfBoxImageTabl
         return new PdfBoxImageTable(rows, null, null);
     }
 
-
-
     @NonNull
     private String buildLegendForImage(@NonNull Receipt receipt) {
-        final int num = (mPreferences.get(UserPreference.ReportOutput.PrintUserIdByPdfPhoto))
-                ? receipt.getId() : receipt.getIndex();
-        final String extra = (mPreferences.get(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto)
+        final int num = (userPreferenceManager.get(UserPreference.ReportOutput.PrintUserIdByPdfPhoto)) ?
+                receipt.getId() : receipt.getIndex();
+
+        final String extra = (userPreferenceManager.get(UserPreference.ReportOutput.PrintReceiptCommentByPdfPhoto)
                 && !TextUtils.isEmpty(receipt.getComment()))
                 ? SEP + receipt.getComment()
                 : "";
+
         return num + SEP + receipt.getName() + SEP
-                + receipt.getFormattedDate(mContext.getAndroidContext(),
-                mPreferences.get(UserPreference.General.DateSeparator)) + extra;
+                + receipt.getFormattedDate(pdfBoxContext.getAndroidContext(),
+                userPreferenceManager.get(UserPreference.General.DateSeparator)) + extra;
     }
 }

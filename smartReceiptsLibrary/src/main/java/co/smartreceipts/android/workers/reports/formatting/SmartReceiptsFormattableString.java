@@ -3,6 +3,8 @@ package co.smartreceipts.android.workers.reports.formatting;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -20,10 +22,10 @@ public class SmartReceiptsFormattableString {
     private final UserPreferenceManager mPreferences;
 
     public SmartReceiptsFormattableString(@NonNull String string, @NonNull Context context, @NonNull Trip trip, @NonNull UserPreferenceManager preferences) {
-        mString = string;
-        mContext = context;
-        mTrip = trip;
-        mPreferences = preferences;
+        mString = Preconditions.checkNotNull(string);
+        mContext = Preconditions.checkNotNull(context);
+        mTrip = Preconditions.checkNotNull(trip);
+        mPreferences = Preconditions.checkNotNull(preferences);
     }
 
     @Override

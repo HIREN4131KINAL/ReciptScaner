@@ -361,7 +361,7 @@ public final class DefaultReceiptImpl implements Receipt {
         return "DefaultReceiptImpl{" +
                 "mId=" + mId +
                 ", mName='" + mName + '\'' +
-                ", mTrip=" + mTrip.getName() +
+                ", trip=" + mTrip.getName() +
                 ", mPaymentMethod=" + mPaymentMethod +
                 ", mIndex=" + mIndex +
                 ", mComment='" + mComment + '\'' +

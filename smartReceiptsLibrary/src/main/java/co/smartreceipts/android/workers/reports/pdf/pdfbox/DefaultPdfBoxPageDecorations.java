@@ -2,12 +2,15 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 
 import java.io.IOException;
 
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
@@ -15,22 +18,23 @@ import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 
 public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
-
     private static final float HEADER_HEIGHT = 15.0f;
-    private static final float HEADER_LINE_HEIGHT = 5.0f;
+    private static final float HEADER_LINE_HEIGHT = 4.0f;
 
-    private static final float FOOTER_LINE_HEIGHT = 3.0f;
-    private static final float FOOTER_PADDING = 5.0f;
-    private static final float FOOTER_HEIGHT = 24.0f;
+    private static final float FOOTER_LINE_HEIGHT = 2.0f;
+    private static final float FOOTER_PADDING = 12.0f;
+    private static final float FOOTER_HEIGHT = 15.0f;
 
+    private final PdfBoxContext pdfBoxContext;
+    private final String footerText;
 
-    private final PdfBoxContext mContext;
-    private final String mFooterText;
+    DefaultPdfBoxPageDecorations(@NonNull PdfBoxContext pdfBoxContext, @NonNull Trip trip) {
+        Preconditions.checkNotNull(trip);
+        this.pdfBoxContext = Preconditions.checkNotNull(pdfBoxContext);
 
-
-    DefaultPdfBoxPageDecorations(@NonNull PdfBoxContext context) {
-        mContext = context;
-        mFooterText = context.getPreferences().get(UserPreference.PlusSubscription.PdfFooterString);
+        final SmartReceiptsFormattableString formattableString = new SmartReceiptsFormattableString(pdfBoxContext.getPreferences().get(UserPreference.PlusSubscription.PdfFooterString),
+                pdfBoxContext.getAndroidContext(), trip, pdfBoxContext.getPreferences());
+        footerText = formattableString.toString();
     }
 
     /**
@@ -46,17 +50,15 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
     public void writeHeader(@NonNull PDPageContentStream contentStream) throws IOException {
 
         PDRectangle rect = new PDRectangle(
-                mContext.getPageMarginHorizontal(),
-                mContext.getPageSize().getHeight()
-                        - mContext.getPageMarginVertical()
-                        - HEADER_LINE_HEIGHT,
-                mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
+                pdfBoxContext.getPageMarginHorizontal(),
+                pdfBoxContext.getPageSize().getHeight() - pdfBoxContext.getPageMarginVertical() - HEADER_LINE_HEIGHT,
+                pdfBoxContext.getPageSize().getWidth() - 2 * pdfBoxContext.getPageMarginHorizontal(),
                 HEADER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Outline));
+        contentStream.setNonStrokingColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.Outline));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
-        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
+        contentStream.setNonStrokingColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default));
     }
 
 
@@ -70,24 +72,22 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
     @Override
     public void writeFooter(@NonNull PDPageContentStream contentStream) throws IOException {
         PDRectangle rect = new PDRectangle(
-                mContext.getPageMarginHorizontal(),
-                mContext.getPageMarginVertical()
-                        + FOOTER_HEIGHT
-                        - FOOTER_LINE_HEIGHT
-                        - FOOTER_PADDING,
-                mContext.getPageSize().getWidth() - 2 * mContext.getPageMarginHorizontal(),
+                pdfBoxContext.getPageMarginHorizontal(),
+                pdfBoxContext.getPageMarginVertical() - FOOTER_LINE_HEIGHT,
+                pdfBoxContext.getPageSize().getWidth() - 2 * pdfBoxContext.getPageMarginHorizontal(),
                 FOOTER_LINE_HEIGHT
         );
-        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Outline));
+        contentStream.setNonStrokingColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.Outline));
         contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
         contentStream.fill();
-        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
+        contentStream.setNonStrokingColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default));
 
-        final PdfFontSpec fontSpec = mContext.getFontManager().getFont(PdfFontStyle.Default);
+        final PdfFontSpec fontSpec = pdfBoxContext.getFontManager().getFont(PdfFontStyle.Footer);
         contentStream.beginText();
-        contentStream.newLineAtOffset(mContext.getPageMarginHorizontal(), mContext.getPageMarginVertical());
+        contentStream.newLineAtOffset(pdfBoxContext.getPageMarginHorizontal(),
+                pdfBoxContext.getPageMarginVertical() - FOOTER_PADDING - FOOTER_LINE_HEIGHT);
         contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
-        contentStream.showText(mFooterText);
+        contentStream.showText(footerText);
         contentStream.endText();
     }
 

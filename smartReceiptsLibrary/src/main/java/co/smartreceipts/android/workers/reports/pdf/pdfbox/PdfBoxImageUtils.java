@@ -6,7 +6,7 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 
-class PdfBoxImageUtils {
+public class PdfBoxImageUtils {
 
 
     /**
@@ -19,7 +19,7 @@ class PdfBoxImageUtils {
      * @return
      */
     @NonNull
-    static PDRectangle scaleImageInsideRectangle(@NonNull PDImageXObject ximage,
+    public static PDRectangle scaleImageInsideRectangle(@NonNull PDImageXObject ximage,
                                                  @NonNull PDRectangle rectangle) {
 
         float imageRatio = ((float) ximage.getWidth())/((float) ximage.getHeight());
@@ -64,7 +64,7 @@ class PdfBoxImageUtils {
 
 
         return new PDRectangle(rectangle.getLowerLeftX() + unusedWidth,
-                rectangle.getLowerLeftY() + unusedHeight, scaledImageWidth, scaledImageHeight);
+                rectangle.getLowerLeftY(), scaledImageWidth, scaledImageHeight);
 
     }
 }

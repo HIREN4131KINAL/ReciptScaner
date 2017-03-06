@@ -346,7 +346,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     if (selection != null) {
                         if (selection.equals(receiptActionEdit)) { // Edit Receipt
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuEdit);
-                            // ReceiptsListFragment.this.receiptMenu(mTrip, receipt, null);
+                            // ReceiptsListFragment.this.receiptMenu(trip, receipt, null);
                             mNavigationHandler.navigateToEditReceiptFragment(mTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
                             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);

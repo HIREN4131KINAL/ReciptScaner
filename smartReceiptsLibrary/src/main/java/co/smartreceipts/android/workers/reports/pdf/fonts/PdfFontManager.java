@@ -30,6 +30,7 @@ public class PdfFontManager {
         // Note: We'll want to refactor how these things are defined at some point to allow for font downloads (eg Asian char sets)
         final PDFont defaultFont = fontLoader.load("NotoSerif-Regular.ttf");
         final PDFont boldFont = fontLoader.load("NotoSerif-Bold.ttf");
+        final PDFont italicFont = fontLoader.load("NotoSerif-Italic.ttf");
 
         final int titleSize = 13;
         final int defaultSize = 11;
@@ -39,6 +40,7 @@ public class PdfFontManager {
         fontMap.put(PdfFontStyle.Default, new PdfFontSpec(defaultFont, defaultSize));
         fontMap.put(PdfFontStyle.TableHeader, new PdfFontSpec(boldFont, defaultSize));
         fontMap.put(PdfFontStyle.Small, new PdfFontSpec(defaultFont, smallSize));
+        fontMap.put(PdfFontStyle.Footer, new PdfFontSpec(italicFont, smallSize));
 
         isInitialized = true;
     }

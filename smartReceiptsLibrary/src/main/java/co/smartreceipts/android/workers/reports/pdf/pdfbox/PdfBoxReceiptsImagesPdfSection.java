@@ -2,6 +2,7 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.support.annotation.NonNull;
 
+import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
 import java.io.IOException;
@@ -11,44 +12,43 @@ import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
+import co.smartreceipts.android.workers.reports.pdf.renderer.impl.PdfGridGenerator;
 
 
 public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
+    private final PDDocument pdDocument;
+    private final UserPreferenceManager userPreferenceManager;
+    private final List<Receipt> receipts;
 
-    private final UserPreferenceManager mPreferences;
-    private final List<Receipt> mReceipts;
 
-
-    public PdfBoxReceiptsImagesPdfSection(@NonNull PdfBoxContext context, @NonNull Trip trip,
-                                          @NonNull List<Receipt> receipts) {
+    public PdfBoxReceiptsImagesPdfSection(@NonNull PdfBoxContext context, @NonNull PDDocument pdDocument,
+                                          @NonNull Trip trip, @NonNull List<Receipt> receipts) {
         super(context, trip);
-        mPreferences = context.getPreferences();
-        mReceipts = receipts;
+        this.pdDocument = Preconditions.checkNotNull(pdDocument);
+        this.userPreferenceManager = Preconditions.checkNotNull(context.getPreferences());
+        this.receipts = Preconditions.checkNotNull(receipts);
     }
 
     @Override
-    public void writeSection(@NonNull PDDocument doc) throws IOException {
+    public void writeSection(@NonNull PDDocument doc, @NonNull PdfBoxWriter writer) throws IOException {
 
-        DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(mContext);
-        PdfBoxWriter writer = new PdfBoxWriter(doc, mContext, pageDecorations);
+        DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(pdfBoxContext, trip);
 
-        float availableWidth = mContext.getPageSize().getWidth()
-                - 2* mContext.getPageMarginHorizontal();
-        float availableHeight = mContext.getPageSize().getHeight()
-                - 2* mContext.getPageMarginVertical()
-                - pageDecorations.getHeaderHeight()
-                - pageDecorations.getFooterHeight();
+        float availableWidth = pdfBoxContext.getPageSize().getWidth() - 2 * pdfBoxContext.getPageMarginHorizontal();
+        float availableHeight = pdfBoxContext.getPageSize().getHeight() - 2 * pdfBoxContext.getPageMarginVertical()
+                - pageDecorations.getHeaderHeight() - pageDecorations.getFooterHeight();
 
+        final PdfGridGenerator gridGenerator = new PdfGridGenerator(pdfBoxContext, pdDocument, new LegacyReceiptFilter(userPreferenceManager),
+                pageDecorations, availableWidth, availableHeight);
 
-        PdfBoxImageTableGenerator pdfImageTableGenerator =
-                new PdfBoxImageTableGenerator(mContext, new LegacyReceiptFilter(mPreferences),
-                        availableWidth, availableHeight);
-
-        PdfBoxImageTable table = pdfImageTableGenerator.generate(mReceipts);
-        writer.writeTable(table);
-
-
-        writer.writeAndClose();
+        final List<Renderer> renderers = gridGenerator.generate(receipts);
+        for (final Renderer renderer : renderers) {
+            renderer.measure();
+        }
+        for (final Renderer renderer : renderers) {
+            renderer.render(writer);
+        }
     }
 }

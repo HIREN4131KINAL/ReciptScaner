@@ -2,7 +2,6 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -12,6 +11,7 @@ import android.support.annotation.RequiresApi;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
+import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
@@ -20,6 +20,7 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.rendering.PDFRenderer;
+import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import org.apache.commons.io.IOUtils;
 
@@ -47,8 +48,11 @@ import wb.android.storage.StorageManager;
 
 
 /**
- * Responsible for printing out content (text, tables, images) to a pdf.
- * Keeps track of the y position on the page and handles pagination if required.
+ * This writer class directly interacts with the underlying PdfBox layer in order to abstract that
+ * away and provide simple writing functionality. Please note that by default, PdfBox treats the
+ * coordinate (0, 0) as the bottom-left of the page. Since I find it more meaningful to treat (0, 0)
+ * as the top-left of the page (ie the same as Android), all public methods in this class will
+ * also implicitly handle this translation.
  */
 public class PdfBoxWriter {
     private final PDDocument mDocument;
@@ -57,9 +61,10 @@ public class PdfBoxWriter {
     private final List<PDPage> mPages;
 
     private float currentYPosition;
+    private float topOfPageYPosition = -1;
+    private float leftOfPageXPosition = 0;
     private PDPageContentStream contentStream;
     private boolean inTextBlock;
-
 
     public PdfBoxWriter(@NonNull PDDocument doc,
                         @NonNull PdfBoxContext context,
@@ -68,11 +73,14 @@ public class PdfBoxWriter {
         mContext = context;
         mPageDecorations = pageDecorations;
         mPages = new ArrayList<>();
-        newPage();
     }
 
-
-    private void newPage() throws IOException {
+    /**
+     * Creates a new PDF page with the decorated header and footer
+     *
+     * @throws IOException if this operation fails
+     */
+    public void newPage() throws IOException {
         if (contentStream != null) {
             contentStream.close();
         }
@@ -81,11 +89,46 @@ public class PdfBoxWriter {
         mPages.add(page);
         contentStream = new PDPageContentStream(mDocument, page);
         mPageDecorations.writeHeader(contentStream);
-        currentYPosition = page.getMediaBox().getHeight()
-                - mContext.getPageMarginVertical()
-                - mPageDecorations.getHeaderHeight();
+        currentYPosition = page.getMediaBox().getHeight() - mContext.getPageMarginVertical() - mPageDecorations.getHeaderHeight();
+        leftOfPageXPosition = mContext.getPageMarginHorizontal();
+        topOfPageYPosition = currentYPosition;
 
         mPageDecorations.writeFooter(contentStream);
+    }
+
+    /**
+     * Prints a {@link PDImageXObject} (usually an image or another PDF) inside our PDF
+     *
+     * @param image the {@link PDImageXObject} to print
+     * @param x the x-coordinate location, where 0 is the left of the page
+     * @param y the y-coordinate location, where 0 is the top of the page
+     * @param width the width that this image requires
+     * @param height the height that this image requires
+     *
+     * @throws IOException if something fails during the printing process
+     */
+    public void printPDImageXObject(@NonNull PDImageXObject image, float x, float y, float width, float height) throws IOException {
+        contentStream.drawImage(image, leftOfPageXPosition + x, swapYCoordinate(y) - height, width, height);
+    }
+
+    /**
+     * Prints a given string in the desired font/color combination at the specified x/y coordinates
+     *
+     * @param string the {@link String} to print
+     * @param font the desired {@link PdfFontSpec} to write the text in
+     * @param color the preferred {@link AWTColor} to use
+     * @param x the x-coordinate location, where 0 is the left of the page
+     * @param y the y-coordinate location, where 0 is the top of the page
+     *
+     * @throws IOException if something fails during the printing process
+     */
+    public void printText(@NonNull String string, @NonNull PdfFontSpec font, @NonNull AWTColor color, float x, float y) throws IOException {
+        contentStream.setFont(font.getFont(), font.getSize());
+        contentStream.setNonStrokingColor(color);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(leftOfPageXPosition + x, swapYCoordinate(y));
+        contentStream.showText(string);
+        contentStream.endText();
     }
 
 
@@ -212,17 +255,16 @@ public class PdfBoxWriter {
                 }
                 xCell += cell.getWidth();
             }
-
         }
     }
 
     private void printImageCellContent(FixedSizeImageCell cell, float xCell, float yCell, float height) throws IOException {
 
-        File image = cell.getImage();
-        if (image != null) {
-            InputStream in = new FileInputStream(image);
+        final File file = cell.getFile();
+        if (file != null) {
+            InputStream in = new FileInputStream(file);
 
-            String fileExtension = StorageManager.getExtension(image);
+            final String fileExtension = StorageManager.getExtension(file);
 
             PDImageXObject ximage;
             if (!TextUtils.isEmpty(fileExtension)) {
@@ -232,11 +274,7 @@ public class PdfBoxWriter {
                     Bitmap bitmap = BitmapFactory.decodeStream(in);
                     ximage = LosslessFactory.createFromImage(mDocument, bitmap);
                 } else if (fileExtension.toLowerCase().equals("pdf")) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        ximage = getXImageNative(image);
-                    } else {
-                        ximage = getXImagePdfBox(image);
-                    }
+                    ximage = getXImageNative(file);
                 } else {
                     Logger.warn(this, "Unrecognized image extension: {}.", fileExtension);
                     return;
@@ -294,7 +332,6 @@ public class PdfBoxWriter {
 
 
     @Nullable
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private PDImageXObject getXImageNative(File file) {
         ParcelFileDescriptor parcelFileDescriptor = null;
         PdfRenderer renderer = null;
@@ -327,7 +364,6 @@ public class PdfBoxWriter {
             }
             IOUtils.closeQuietly(parcelFileDescriptor);
         }
-
     }
 
 
@@ -368,7 +404,19 @@ public class PdfBoxWriter {
 
             y -= PdfBoxUtils.getFontHeight(fontSpec);
         }
+    }
 
+    /**
+     * Please note that by default, PdfBox treats the coordinate (0, 0) as the bottom-left of the
+     * page. Since I find it more meaningful to treat (0, 0) as the top-left of the page (ie the
+     * same as Android), we can use this method to perform the internal swap that PDF box requires.
+     *
+     * @param y the y-coordinate location, where 0 is the TOP of the page
+     * @return y the y-coordinate location, where 0 is the BOTTOM of the page
+     */
+    private float swapYCoordinate(float y) {
+        Preconditions.checkArgument(topOfPageYPosition > 0, "You cannot write any values until creating a new page");
+        return topOfPageYPosition - y;
     }
 
 }

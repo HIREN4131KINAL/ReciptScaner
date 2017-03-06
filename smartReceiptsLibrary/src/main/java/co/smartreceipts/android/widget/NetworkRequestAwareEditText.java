@@ -96,7 +96,6 @@ public class NetworkRequestAwareEditText extends EditText {
         init();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public NetworkRequestAwareEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();

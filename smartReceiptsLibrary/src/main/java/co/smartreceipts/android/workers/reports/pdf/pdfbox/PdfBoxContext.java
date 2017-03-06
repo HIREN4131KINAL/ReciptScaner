@@ -45,9 +45,9 @@ public interface PdfBoxContext {
 
     int getLineSpacing();
 
-    int getPageMarginHorizontal();
+    float getPageMarginHorizontal();
 
-    int getPageMarginVertical();
+    float getPageMarginVertical();
 
     @NonNull
     String getString(@StringRes int resId, Object... args);

@@ -36,13 +36,13 @@ public class DefaultPdfBoxContext implements PdfBoxContext {
     }
 
     @Override
-    public int getPageMarginHorizontal() {
-        return 36;
+    public float getPageMarginHorizontal() {
+        return 32;
     }
 
     @Override
-    public int getPageMarginVertical() {
-        return 24;
+    public float getPageMarginVertical() {
+        return 32;
     }
 
     @NonNull

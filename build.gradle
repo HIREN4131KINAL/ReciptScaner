@@ -25,8 +25,8 @@ ext {
     compileSdkVersion = 25
     buildToolsVersion = "25.0.0"
 
-    versionCode = 242
-    versionName = "4.2.0.242"
+    versionCode = 244
+    versionName = "4.2.0.244"
 }
 
 task wrapper(type: Wrapper) {

@@ -64,7 +64,6 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     private NavigationHandler mNavigationHandler;
     private TripCardAdapter mAdapter;
-    private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
 
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
@@ -146,12 +145,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        if (mNameAutoCompleteAdapter != null) {
-            mNameAutoCompleteAdapter.onPause();
-        }
-        if (mCostCenterAutoCompleteAdapter != null) {
-            mCostCenterAutoCompleteAdapter.onPause();
-        }
+
         mTripTableController.unsubscribe(this);
         super.onPause();
     }
@@ -170,196 +164,56 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
             return;
         }
 
-        final boolean newTrip = (trip == null);
-
-        final View scrollView = getFlex().getView(getActivity(), R.layout.dialog_tripmenu);
-        final AutoCompleteTextView nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_name);
-        final DateEditText startBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_start);
-        final DateEditText endBox = (DateEditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_end);
-        final Spinner currencySpinner = (Spinner) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_currency);
-        final EditText commentBox = (EditText) getFlex().getSubView(getActivity(), scrollView, R.id.dialog_tripmenu_comment);
-        final AutoCompleteTextView costCenterBox = (AutoCompleteTextView) scrollView.findViewById(R.id.dialog_tripmenu_cost_center);
-        costCenterBox.setVisibility(getPersistenceManager().getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
-
-        final ArrayAdapter<CharSequence> currenices = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
-        currenices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        currencySpinner.setAdapter(currenices);
-
-        // Show default dictionary with auto-complete
-        TextKeyListener input = TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES);
-        nameBox.setKeyListener(input);
-
-        // Fill Out Fields
-        if (newTrip) {
-            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
-                final DatabaseHelper db = getPersistenceManager().getDatabase();
-                if (mNameAutoCompleteAdapter == null) {
-                    mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);
-                } else {
-                    mNameAutoCompleteAdapter.reset();
-                }
-                if (mCostCenterAutoCompleteAdapter == null) {
-                    mCostCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db);
-                } else {
-                    mCostCenterAutoCompleteAdapter.reset();
-                }
-                nameBox.setAdapter(mNameAutoCompleteAdapter);
-                costCenterBox.setAdapter(mCostCenterAutoCompleteAdapter);
-            }
-            startBox.setFocusableInTouchMode(false);
-            startBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(endBox));
-            int idx = currenices.getPosition(getPersistenceManager().getPreferenceManager().get(UserPreference.General.DefaultCurrency));
-            if (idx > 0) {
-                currencySpinner.setSelection(idx);
-            }
+        if (trip == null) {
+            mNavigationHandler.navigateToCreateTripFragment();
         } else {
-            if (trip.getDirectory() != null) {
-                nameBox.setText(trip.getName());
-            }
-            if (trip.getStartDate() != null) {
-                startBox.setText(trip.getFormattedStartDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
-                startBox.date = trip.getStartDate();
-            }
-            if (trip.getEndDate() != null) {
-                endBox.setText(trip.getFormattedEndDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
-                endBox.date = trip.getEndDate();
-            }
-            if (!TextUtils.isEmpty(trip.getComment())) {
-                commentBox.setText(trip.getComment());
-            }
-            int idx = currenices.getPosition(trip.getDefaultCurrencyCode());
-            if (idx > 0) {
-                currencySpinner.setSelection(idx);
-            }
-            startBox.setFocusableInTouchMode(false);
-            startBox.setOnClickListener(getDateManager().getDateEditTextListener());
-            if (!TextUtils.isEmpty(trip.getCostCenter())) {
-                costCenterBox.setText(trip.getCostCenter());
-            }
-
-            currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    final String newCurrencyCode = currenices.getItem(position).toString();
-                    if (!trip.getDefaultCurrencyCode().equals(newCurrencyCode)) {
-                        Toast.makeText(view.getContext(), R.string.toast_warning_reset_exchange_rate, Toast.LENGTH_LONG).show();
-                    }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    // Intentional no-op
-                }
-            });
+            mNavigationHandler.navigateToEditTripFragment(trip);
         }
-        endBox.setFocusableInTouchMode(false);
-        endBox.setOnClickListener(getDateManager().getDateEditTextListener());
-        nameBox.setSelection(nameBox.getText().length()); // Put the cursor at the end
-
-        // Show the DialogController
-        final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        builder.setTitle((newTrip) ? getFlexString(R.string.DIALOG_TRIPMENU_TITLE_NEW) : getFlexString(R.string.DIALOG_TRIPMENU_TITLE_EDIT)).setCancelable(true).setView(scrollView).setLongLivedPositiveButton((newTrip) ? getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE) : getFlexString(R.string.DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE), new LongLivedOnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String name = nameBox.getText().toString().trim();
-                final String startDate = startBox.getText().toString();
-                final String endDate = endBox.getText().toString();
-                final String defaultCurrencyCode = currencySpinner.getSelectedItem().toString();
-                final String comment = commentBox.getText().toString();
-                final String costCenter = costCenterBox.getText().toString();
-                // Error Checking
-                if (name.length() == 0 || startDate.length() == 0 || endDate.length() == 0) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_TRIPMENU_TOAST_MISSING_FIELD), Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (startBox.date == null || endBox.date == null) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (startBox.date.getTime() > endBox.date.getTime()) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.DURATION_ERROR), Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (name.startsWith(" ")) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.SPACE_ERROR), Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (FileUtils.filenameContainsIllegalCharacter(name)) {
-                    Toast.makeText(getActivity(), getFlexString(R.string.ILLEGAL_CHAR_ERROR), Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                if (newTrip) { // Insert
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistNewReport);
-                    final Trip insertTrip = new TripBuilderFactory()
-                            .setDirectory(persistenceManager.getStorageManager().getFile(name))
-                            .setStartDate(startBox.date)
-                            .setEndDate(endBox.date)
-                            .setComment(comment)
-                            .setCostCenter(costCenter)
-                            .setDefaultCurrency(defaultCurrencyCode)
-                            .build();
-                    mTripTableController.insert(insertTrip, new DatabaseOperationMetadata());
-                    dialog.cancel();
-                } else { // Update
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistUpdateReport);
-                    final Trip updateTrip = new TripBuilderFactory(trip)
-                            .setDirectory(persistenceManager.getStorageManager().getFile(name))
-                            .setStartDate(startBox.date)
-                            .setEndDate(endBox.date)
-                            // TODO: Update trip timezones iff date was changed
-                            .setComment(comment)
-                            .setCostCenter(costCenter)
-                            .setDefaultCurrency(defaultCurrencyCode)
-                            .build();
-                    mTripTableController.update(trip, updateTrip, new DatabaseOperationMetadata());
-                    dialog.cancel();
-                }
-            }
-        }).setNegativeButton(getFlexString(R.string.DIALOG_TRIPMENU_NEGATIVE_BUTTON), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        }).show();
     }
 
     public final boolean editTrip(final Trip trip) {
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
         final String[] editTripItems = getFlex().getStringArray(getActivity(), R.array.EDIT_TRIP_ITEMS);
-        builder.setTitle(trip.getName()).setCancelable(true).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        }).setItems(editTripItems, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int item) {
-                final String selection = editTripItems[item];
-                if (selection == editTripItems[0]) {
-                    TripFragment.this.tripMenu(trip);
-                } else if (selection == editTripItems[1]) {
-                    TripFragment.this.deleteTrip(trip);
-                }
-                dialog.cancel();
-            }
-        }).show();
+        builder.setTitle(trip.getName())
+                .setCancelable(true)
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                })
+                .setItems(editTripItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
+                        final String selection = editTripItems[item];
+                        if (selection == editTripItems[0]) {
+                            TripFragment.this.tripMenu(trip);
+                        } else if (selection == editTripItems[1]) {
+                            TripFragment.this.deleteTrip(trip);
+                        }
+                        dialog.cancel();
+                    }
+                }).show();
         return true;
     }
 
     public final void deleteTrip(final Trip trip) {
         final BetterDialogBuilder builder = new BetterDialogBuilder(getActivity());
-        builder.setTitle(getString(R.string.delete_item, trip.getName())).setMessage(getString(R.string.delete_sync_information)).setCancelable(true).setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                mTripTableController.delete(trip, new DatabaseOperationMetadata());
-            }
-        }).setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        }).show();
+        builder.setTitle(getString(R.string.delete_item, trip.getName()))
+                .setMessage(getString(R.string.delete_sync_information))
+                .setCancelable(true)
+                .setPositiveButton(getFlexString(R.string.DIALOG_TRIP_DELETE_POSITIVE_BUTTON), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        mTripTableController.delete(trip, new DatabaseOperationMetadata());
+                    }
+                })
+                .setNegativeButton(getFlexString(R.string.DIALOG_CANCEL), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                }).show();
     }
 
     @Override
@@ -409,7 +263,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
                         Intent intent = EmailAssistant.getEmailDeveloperIntent(getString(R.string.dialog_sql_corrupt_intent_subject), getString(R.string.dialog_sql_corrupt_intent_text));
                         getActivity().startActivity(Intent.createChooser(intent, getResources().getString(R.string.dialog_sql_corrupt_chooser)));
                         dialog.dismiss();
-                            }
+                    }
                 }).show();
             } else {
                 Toast.makeText(getActivity(), R.string.database_get_error, Toast.LENGTH_LONG).show();
@@ -429,8 +283,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         if (isAdded()) {
             if (ex != null) {
                 Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
             }
         }
@@ -448,8 +301,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         if (isAdded()) {
             if (ex != null) {
                 Toast.makeText(getActivity(), R.string.toast_error_trip_exists, Toast.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 Toast.makeText(getActivity(), getFlexString(R.string.database_error), Toast.LENGTH_LONG).show();
             }
         }
@@ -500,5 +352,6 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
         mTooltip.showWithAnimation();
     }
+
 
 }

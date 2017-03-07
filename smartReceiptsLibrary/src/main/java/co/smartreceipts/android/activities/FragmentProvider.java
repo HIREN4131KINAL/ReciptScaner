@@ -14,6 +14,7 @@ import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.trips.TripFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.trips.editor.TripCreateEditFragment;
 
 public class FragmentProvider {
 
@@ -101,6 +102,27 @@ public class FragmentProvider {
     @NonNull
     public OcrInformationalFragment newOcrInformationalFragment() {
         return OcrInformationalFragment.newInstance();
+    }
+
+    /**
+     * Creates a {@link co.smartreceipts.android.trips.editor.TripCreateEditFragment} for a new trip
+     *
+     * @return the new instance of this fragment
+     */
+    @NonNull
+    public TripCreateEditFragment newCreateTripFragment() {
+        return TripCreateEditFragment.newInstance();
+    }
+
+    /**
+     * Creates a {@link co.smartreceipts.android.trips.editor.TripCreateEditFragment} to edit an existing trip
+     *
+     * @param tripToEdit the trip to edit
+     * @return the new instance of this fragment
+     */
+    @NonNull
+    public TripCreateEditFragment newEditTripFragment(@NonNull Trip tripToEdit) {
+        return TripCreateEditFragment.newInstance(tripToEdit);
     }
 
 }

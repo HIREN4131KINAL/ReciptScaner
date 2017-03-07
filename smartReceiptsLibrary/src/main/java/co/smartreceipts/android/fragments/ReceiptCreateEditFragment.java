@@ -1,7 +1,6 @@
 package co.smartreceipts.android.fragments;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,9 +14,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -59,9 +58,8 @@ import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.widget.HideSoftKeyboardOnTouchListener;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
-import co.smartreceipts.android.widget.ShowSoftKeyboardOnFocusChangeListener;
+import co.smartreceipts.android.utils.SoftKeyboardManager;
 import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -221,10 +219,19 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         exchangeRateBox.setFailedHint(R.string.DIALOG_RECEIPTMENU_HINT_EXCHANGE_RATE_FAILED);
 
         // Set click listeners
-        dateBox.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-        categoriesSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-        currencySpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
-        paymentMethodsSpinner.setOnTouchListener(new HideSoftKeyboardOnTouchListener());
+        View.OnTouchListener hideSoftKeyboardOnTouchListener = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    SoftKeyboardManager.hideKeyboard(view);
+                }
+                return false;
+            }
+        };
+        dateBox.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        categoriesSpinner.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        currencySpinner.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        paymentMethodsSpinner.setOnTouchListener(hideSoftKeyboardOnTouchListener);
 
         // Show default dictionary with auto-complete
         nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
@@ -298,7 +305,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
                 final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
                 reimbursable.setChecked(preferences.get(UserPreference.Receipts.ReceiptsDefaultAsReimbursable));
-                if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) && preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
+                if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) &&
+                        preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                     if (mFocusedView == null) {
                         mFocusedView = priceBox;
                     }
@@ -533,9 +541,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         mFocusedView = hasFocus ? v : null;
-        if (mReceipt == null) {
+        if (mReceipt == null && hasFocus) {
             // Only launch if we have focus and it's a new receipt
-            new ShowSoftKeyboardOnFocusChangeListener().onFocusChange(v, hasFocus);
+            SoftKeyboardManager.showKeyboard(v);
         }
     }
 
@@ -593,14 +601,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         // Dismiss the soft keyboard
-        final InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (inputMethodManager != null) {
-            if (mFocusedView != null) {
-                inputMethodManager.hideSoftInputFromWindow(mFocusedView.getWindowToken(), 0);
-            } else {
-                Logger.warn(this, "Unable to dismiss soft keyboard due to a null view");
-            }
-        }
+        SoftKeyboardManager.hideKeyboard(mFocusedView);
 
         exchangeRateBox.setRetryListener(null);
         getPersistenceManager().getDatabase().unregisterReceiptAutoCompleteListener();

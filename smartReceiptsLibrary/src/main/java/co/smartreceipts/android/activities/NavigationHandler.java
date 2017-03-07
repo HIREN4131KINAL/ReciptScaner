@@ -90,6 +90,24 @@ public class NavigationHandler {
         }
     }
 
+    public void navigateToCreateTripFragment() {
+        if (mIsDualPane) {
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateTripFragment(), R.id.content_details, R.anim.enter_from_bottom, DO_NOT_ANIM);
+        } else {
+            replaceFragmentWithAnimation(mFragmentProvider.newCreateTripFragment(), R.id.content_list, R.anim.enter_from_bottom, DO_NOT_ANIM);
+        }
+    }
+
+    public void navigateToEditTripFragment(@NonNull Trip tripToEdit) {
+        if (mIsDualPane) {
+            replaceFragment(mFragmentProvider.newEditTripFragment(tripToEdit), R.id.content_details);
+        } else {
+            replaceFragment(mFragmentProvider.newEditTripFragment(tripToEdit), R.id.content_list);
+        }
+    }
+
+
+
     public void navigateToOcrInfomationFragment() {
         if (mIsDualPane) {
             replaceFragment(mFragmentProvider.newOcrInformationalFragment(), R.id.content_details);

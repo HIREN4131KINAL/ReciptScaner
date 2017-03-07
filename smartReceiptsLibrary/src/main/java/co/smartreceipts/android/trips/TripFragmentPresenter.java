@@ -22,7 +22,6 @@ public class TripFragmentPresenter {
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean ratingPrompt) {
-                        //// TODO: 02.03.2017 uncomment
                         if (ratingPrompt) {
                             mFragment.showRatingTooltip();
                         }

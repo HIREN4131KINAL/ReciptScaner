@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import rx.Single;
 
-public class AppRatingStorageImpl implements AppRatingStorage {
+public class AppRatingPreferencesStorage implements AppRatingStorage {
 
     private Context mAppContext;
 
@@ -42,7 +42,7 @@ public class AppRatingStorageImpl implements AppRatingStorage {
         private static final String CRASH_OCCURRED = "hide_on_crash";
     }
 
-    public AppRatingStorageImpl(Context context) {
+    public AppRatingPreferencesStorage(Context context) {
         mAppContext = context.getApplicationContext();
     }
 

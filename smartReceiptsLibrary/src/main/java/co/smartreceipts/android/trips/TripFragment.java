@@ -60,14 +60,15 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     private static final String ARG_NAVIGATE_TO_VIEW_LAST_TRIP = "arg_nav_to_last_trip";
     private static final String OUT_NAV_TO_LAST_TRIP = "out_nav_to_last_trip";
 
+    private TripTableController mTripTableController;
     private TripFragmentPresenter mPresenter;
 
     private NavigationHandler mNavigationHandler;
-    private TripCardAdapter mAdapter;
 
+    private TripCardAdapter mAdapter;
     private ProgressBar mProgressDialog;
     private TextView mNoDataAlert;
-    private TripTableController mTripTableController;
+
     private Tooltip mTooltip;
 
     private boolean mNavigateToLastTrip;

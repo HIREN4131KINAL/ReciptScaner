@@ -12,10 +12,10 @@ import android.support.v4.app.DialogFragment;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.rating.data.AppRatingManager;
-import co.smartreceipts.android.rating.data.AppRatingStorageImpl;
+import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.utils.IntentUtils;
 
-//// TODO: 03.03.2017 There was Analytics in the old AppRating class. Is it needed here?
+//// TODO: 03.03.2017 There was Analytics in the old AppRating class but it wasn't used. Is it needed here?
 
 /**
  * Dialog Fragment which asks if user wants to rate the app
@@ -60,7 +60,7 @@ public class RatingDialogFragment extends DialogFragment {
     private void prorogueRatingPrompt() {
         Context context = getContext();
         if (context != null) {
-            AppRatingManager ratingManager = AppRatingManager.getInstance(new AppRatingStorageImpl(context));
+            AppRatingManager ratingManager = AppRatingManager.getInstance(new AppRatingPreferencesStorage(context));
             ratingManager.prorogueRatingPrompt();
         }
     }

@@ -25,7 +25,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
-import co.smartreceipts.android.rating.data.AppRatingStorageImpl;
+import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
 import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -98,7 +98,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         new AppVersionManager(this, mPersistenceManager.getPreferenceManager()).onLaunch(this);
 
         // Add launch count for rating prompt monitoring
-        new AppRatingStorageImpl(getApplicationContext()).incrementLaunchCount();
+        new AppRatingPreferencesStorage(getApplicationContext()).incrementLaunchCount();
     }
 
     private void configureLog() {

@@ -29,12 +29,12 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-//        if (LeakCanary.isInAnalyzerProcess(this)) {
-//            Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
-//            return;
-//        } else {
-//            LeakCanary.install(this);
-//        }
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
+            return;
+        } else {
+            LeakCanary.install(this);
+        }
     }
 
     @Override

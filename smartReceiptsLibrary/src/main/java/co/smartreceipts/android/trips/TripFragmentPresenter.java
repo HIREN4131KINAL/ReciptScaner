@@ -1,7 +1,7 @@
 package co.smartreceipts.android.trips;
 
 import co.smartreceipts.android.rating.data.AppRatingManager;
-import co.smartreceipts.android.rating.data.AppRatingStorageImpl;
+import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 
@@ -13,7 +13,7 @@ public class TripFragmentPresenter {
 
     public TripFragmentPresenter(TripFragment fragment) {
         mFragment = fragment;
-        mRatingManager = AppRatingManager.getInstance(new AppRatingStorageImpl(mFragment.getContext()));
+        mRatingManager = AppRatingManager.getInstance(new AppRatingPreferencesStorage(mFragment.getContext()));
     }
 
     public void checkRating() {

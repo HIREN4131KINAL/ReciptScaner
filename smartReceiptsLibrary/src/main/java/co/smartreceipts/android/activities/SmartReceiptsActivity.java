@@ -20,8 +20,6 @@ import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
 import co.smartreceipts.android.rating.data.AppRatingManager;
-import co.smartreceipts.android.rating.data.AppRatingStorage;
-import co.smartreceipts.android.rating.data.AppRatingStorageImpl;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -34,8 +32,6 @@ import co.smartreceipts.android.purchases.SubscriptionManager;
 import co.smartreceipts.android.purchases.SubscriptionWallet;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 

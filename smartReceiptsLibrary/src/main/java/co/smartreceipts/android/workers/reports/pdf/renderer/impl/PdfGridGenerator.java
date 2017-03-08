@@ -91,13 +91,7 @@ public class PdfGridGenerator implements TableGenerator<List<Renderer>, Receipt>
                     rendererFactory = null;
                 }
 
-                if (receipt.isFullPage()) {
-                    Logger.debug(this, "Creating page for full page receipt.");
-                    final GridReceiptsRendererFactory fullPageFactory = new GridReceiptsRendererFactory(pdfBoxContext.getAndroidContext(),
-                            pdfBoxContext.getPreferences(), pdDocument, decorations, FULL_PAGE_ROWS_COLS, FULL_PAGE_ROWS_COLS);
-                    fullPageFactory.addReceipt(receipt);
-                    constructRendererAndAddToList(fullPageFactory, renderers);
-                } else {
+                if (receipt.hasPDF()) {
                     Logger.debug(this, "Adding existing pdf using the native renderer");
                     final PdfPDImageXFactory pdfFactory = new LollipopPdfPDImageXFactory(pdDocument, receipt.getFile());
                     final ReceiptLabelTextRenderer textRenderer = new ReceiptLabelTextRenderer(receipt, pdfBoxContext.getAndroidContext(), userPreferenceManager, color, fontSpec);
@@ -107,6 +101,12 @@ public class PdfGridGenerator implements TableGenerator<List<Renderer>, Receipt>
                     pdfGridRenderer.addRow(new GridRowRenderer(imageRenderer));
                     pdfGridRenderer.getRenderingFormatting().addFormatting(DEFAULT_PADDING);
                     renderers.add(pdfGridRenderer);
+                } else {
+                    Logger.debug(this, "Creating page for full page receipt.");
+                    final GridReceiptsRendererFactory fullPageFactory = new GridReceiptsRendererFactory(pdfBoxContext.getAndroidContext(),
+                            pdfBoxContext.getPreferences(), pdDocument, decorations, FULL_PAGE_ROWS_COLS, FULL_PAGE_ROWS_COLS);
+                    fullPageFactory.addReceipt(receipt);
+                    constructRendererAndAddToList(fullPageFactory, renderers);
                 }
             } else {
                 if (rendererFactory == null) {

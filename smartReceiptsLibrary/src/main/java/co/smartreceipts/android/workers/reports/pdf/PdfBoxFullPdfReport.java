@@ -36,18 +36,9 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
         final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
         final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
 
-
-        final List<Distance> distances;
-        final List<Column<Distance>> distanceColumns;
-
-        if (getPreferences().get(UserPreference.Distance.PrintDistanceTableInReports)) {
-            final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
-            distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
-            distanceColumns = distanceColumnDefinitions.getAllColumns();
-        } else {
-            distances = Collections.emptyList();
-            distanceColumns = Collections.emptyList();
-        }
+        final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
+        final List<Distance> distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));
+        final List<Column<Distance>> distanceColumns = distanceColumnDefinitions.getAllColumns();
 
         pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsTableSection(trip, receipts, columns, distances, distanceColumns));
         pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));

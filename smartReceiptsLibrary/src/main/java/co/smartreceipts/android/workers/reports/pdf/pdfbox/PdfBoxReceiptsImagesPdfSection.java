@@ -12,6 +12,7 @@ import co.smartreceipts.android.filters.LegacyReceiptFilter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.impl.PdfGridGenerator;
 
@@ -45,9 +46,11 @@ public class PdfBoxReceiptsImagesPdfSection extends PdfBoxSection {
 
         final List<Renderer> renderers = gridGenerator.generate(receipts);
         for (final Renderer renderer : renderers) {
+            Logger.debug(this, "Performing measure of {} at {}.", renderer.getClass().getSimpleName(), System.currentTimeMillis());
             renderer.measure();
         }
         for (final Renderer renderer : renderers) {
+            Logger.debug(this, "Performing render of {} at {}.", renderer.getClass().getSimpleName(), System.currentTimeMillis());
             renderer.render(writer);
         }
     }

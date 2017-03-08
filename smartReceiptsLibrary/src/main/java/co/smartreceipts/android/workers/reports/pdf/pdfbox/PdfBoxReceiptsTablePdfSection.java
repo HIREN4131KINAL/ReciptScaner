@@ -108,7 +108,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !data.reimbursablePrice.equals(data.receiptsPrice)) {
             mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_reimbursable, data.reimbursablePrice.getCurrencyFormattedPrice());
         }
-        if (mDistances.size() > 0) {
+        if (!mDistances.isEmpty()) {
             mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_distance_total, data.distancePrice.getCurrencyFormattedPrice());
         }
 

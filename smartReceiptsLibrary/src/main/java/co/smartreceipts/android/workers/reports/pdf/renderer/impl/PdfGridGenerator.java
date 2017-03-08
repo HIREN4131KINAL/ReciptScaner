@@ -105,6 +105,7 @@ public class PdfGridGenerator implements TableGenerator<List<Renderer>, Receipt>
                     final PdfGridRenderer pdfGridRenderer = new PdfGridRenderer(pdfFactory, availableWidth, availableHeight);
                     pdfGridRenderer.addRow(new GridRowRenderer(textRenderer));
                     pdfGridRenderer.addRow(new GridRowRenderer(imageRenderer));
+                    pdfGridRenderer.getRenderingFormatting().addFormatting(DEFAULT_PADDING);
                     renderers.add(pdfGridRenderer);
                 }
             } else {

@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.imagex;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -9,6 +10,7 @@ import android.support.annotation.RequiresApi;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
+import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
@@ -17,10 +19,14 @@ import org.apache.commons.io.IOUtils;
 import java.io.File;
 import java.io.IOException;
 
+import co.smartreceipts.android.utils.log.Logger;
+
 /**
  * Used to load pdf files via the native Android {@link PdfRenderer} stack
  */
 public class LollipopPdfPDImageXFactory implements PdfPDImageXFactory {
+
+    private static final float IMAGE_QUALITY_SCALING_FACTOR = 2f;
 
     private final PDDocument pdDocument;
     private final File file;
@@ -49,13 +55,17 @@ public class LollipopPdfPDImageXFactory implements PdfPDImageXFactory {
         PdfRenderer.Page page = null;
         Bitmap bitmap = null;
         try {
+            Logger.debug(this, "Beginning the render of PDF page {} at {}", currentPage, System.currentTimeMillis());
             page = pdfRenderer.openPage(currentPage);
-            final int height = page.getHeight();
-            final int width = page.getWidth();
-            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+            final int scaledHeight = (int) IMAGE_QUALITY_SCALING_FACTOR * page.getHeight();
+            final int scaledWidth = (int) IMAGE_QUALITY_SCALING_FACTOR * page.getWidth();
+            final Rect destClip = new Rect(0, 0, scaledWidth, scaledHeight);
+            bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
+            page.render(bitmap, destClip, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            Logger.debug(this, "Creating the bitmap from our lossless factory of PDF page {} at {}", currentPage, System.currentTimeMillis());
             return LosslessFactory.createFromImage(pdDocument, bitmap);
         } finally {
+            Logger.debug(this, "Completing the render of PDF page {} at {}", currentPage, System.currentTimeMillis());
             if (page != null) {
                 page.close();
             }

@@ -57,10 +57,12 @@ public class ActivityFileResultImporter {
         ActivityImporterHeadlessFragment headlessFragment = (ActivityImporterHeadlessFragment) fragmentManager.findFragmentByTag(TAG);
         if (headlessFragment == null) {
             headlessFragment = new ActivityImporterHeadlessFragment();
-            fragmentManager.beginTransaction().add(headlessFragment, TAG).commit();
-            headlessFragment.importSubject = ReplaySubject.create(1);
+            fragmentManager.beginTransaction().add(headlessFragment, TAG).commitNow();
         }
         this.headlessFragment = headlessFragment;
+        if (this.headlessFragment.importSubject == null) {
+            headlessFragment.importSubject = ReplaySubject.create(1);
+        }
     }
 
     public void onActivityResult(final int requestCode, final int resultCode, @Nullable Intent data, @Nullable final Uri proposedImageSaveLocation) {
@@ -112,7 +114,7 @@ public class ActivityFileResultImporter {
 
     public static final class ActivityImporterHeadlessFragment extends Fragment {
         
-        private Subject<ActivityFileResultImporterResponse, ActivityFileResultImporterResponse> importSubject;
+        private Subject<ActivityFileResultImporterResponse, ActivityFileResultImporterResponse> importSubject = ReplaySubject.create(1);
         private Subscription localSubscription;
 
         @Override

@@ -79,8 +79,13 @@ public class PdfGridGenerator implements TableGenerator<List<Renderer>, Receipt>
 
         for (final Receipt receipt : receipts) {
 
-            if (!filter.accept(receipt) || receipt.getFile() == null) {
-                Logger.debug(this, "Skipping {} for receipt table", receipt);
+            if (!filter.accept(receipt) || receipt.getFile() == null || !receipt.hasFile()) {
+                Logger.debug(this, "Filtering out {} from receipt table", receipt);
+                continue;
+            }
+
+            if (!receipt.hasFile()) {
+                Logger.debug(this, "Missing file for {}. Omitting from receipt table", receipt);
                 continue;
             }
 

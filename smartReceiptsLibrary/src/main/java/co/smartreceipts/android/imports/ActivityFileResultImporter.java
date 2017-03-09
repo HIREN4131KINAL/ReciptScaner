@@ -57,7 +57,7 @@ public class ActivityFileResultImporter {
         ActivityImporterHeadlessFragment headlessFragment = (ActivityImporterHeadlessFragment) fragmentManager.findFragmentByTag(TAG);
         if (headlessFragment == null) {
             headlessFragment = new ActivityImporterHeadlessFragment();
-            fragmentManager.beginTransaction().add(headlessFragment, TAG).commitNow();
+            fragmentManager.beginTransaction().add(headlessFragment, TAG).commit();
         }
         this.headlessFragment = headlessFragment;
         if (this.headlessFragment.importSubject == null) {

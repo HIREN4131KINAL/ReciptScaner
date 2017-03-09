@@ -1,5 +1,4 @@
 include ':smartReceiptsFree'
 include ':smartReceiptsPRO'
 include ':wbMiniLibrary'
-include ':androidCamera'
 include ':smartReceiptsLibrary'

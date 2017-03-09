@@ -1,13 +1,24 @@
 package wb.android.image;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import wb.android.storage.StorageManager;
 
 public class ImageUtils {
 
@@ -112,4 +123,100 @@ public class ImageUtils {
             return bitmap;
         }
     }
+
+    /**
+     * When creating a JPG image from a PNG image, Android automatically makes the entire background
+     * black if no background was defined (ie just alpha). This method allows us to force any bitmap
+     * to have a white background, so this oddity will not appear when converting to a format without
+     * alpha support (eg from PNG -> JPG).
+     *
+     * @param source the source {@link Bitmap}, which may have an alpha/transparent background. This
+     *               bitmap will be recycled at the conclusion of this operation
+     * @return the resultant {@link Bitmap}, which will have a white background
+     */
+    @NonNull
+    public static Bitmap applyWhiteBackground(@NonNull Bitmap source) {
+        try {
+            final Bitmap whiteBackgroundBitmap = Bitmap.createBitmap(source.getWidth(), source.getHeight(), source.getConfig());
+            final Canvas canvas = new Canvas(whiteBackgroundBitmap);
+            canvas.drawColor(Color.WHITE);
+            canvas.drawBitmap(source, 0, 0, null);
+            return whiteBackgroundBitmap;
+        } finally {
+            source.recycle();
+        }
+    }
+
+    /**
+     * Write a compressed version of the bitmap to the specified codec (eg from PNG to JPG). If
+     * successful, the source bitmap will be recycled and the resultant one will be returned in the
+     * desired format.
+     *
+     * <p>
+     * Note: not all Formats support all bitmap configs directly, so it is possible that the
+     * returned bitmap from BitmapFactory could be in a different bitdepth, and/or may have lost
+     * per-pixel alpha (e.g. JPEG only supports opaque pixels).
+     * </p>
+     *
+     * @param source the source {@link Bitmap} to use. It will be recycled automatically if the
+     *               conversion succeeds
+     * @param format the format of the compressed image
+     * @param quality hint to the compressor, 0-100. 0 meaning compress for small size, 100 meaning
+     *                compress for max quality. Some formats, like PNG which is lossless, will
+     *                ignore the quality setting
+     * @throws IOException if the conversion fails
+     * @return the new {@link Bitmap}
+     */
+    @NonNull
+    public static Bitmap changeCodec(@NonNull Bitmap source, @NonNull Bitmap.CompressFormat format,
+                                     int quality) throws IOException {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        try {
+            if (source.compress(format, quality, outputStream)) {
+                final byte[] byteArray = outputStream.toByteArray();
+                try {
+                    return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                } finally {
+                    source.recycle();
+                }
+            } else {
+                throw new IOException("Failed to convert the bitmap codec");
+            }
+        } finally {
+            StorageManager.closeQuietly(outputStream);
+        }
+    }
+
+    /**
+     * Write a compressed version of the bitmap to the specified codec (eg from PNG to JPG). If
+     * successful, the source bitmap will be recycled and the resultant one will be returned in the
+     * desired format as an {@link OutputStream}
+     *
+     * <p>
+     * Note: not all Formats support all bitmap configs directly, so it is possible that the
+     * returned bitmap from BitmapFactory could be in a different bitdepth, and/or may have lost
+     * per-pixel alpha (e.g. JPEG only supports opaque pixels).
+     * </p>
+     *
+     * @param source the source {@link Bitmap} to use. It will be recycled automatically if the
+     *               conversion succeeds
+     * @param format the format of the compressed image
+     * @param quality hint to the compressor, 0-100. 0 meaning compress for small size, 100 meaning
+     *                compress for max quality. Some formats, like PNG which is lossless, will
+     *                ignore the quality setting
+     * @throws IOException if the conversion fails
+     * @return an {@link IOException}, containing the bitmap with the converted codec
+     */
+    @NonNull
+    public static OutputStream changeCodecToStream(@NonNull Bitmap source, @NonNull Bitmap.CompressFormat format,
+                                           int quality) throws IOException {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        if (source.compress(format, quality, outputStream)) {
+            return outputStream;
+        } else {
+            throw new IOException("Failed to convert the bitmap codec");
+        }
+    }
+
 }

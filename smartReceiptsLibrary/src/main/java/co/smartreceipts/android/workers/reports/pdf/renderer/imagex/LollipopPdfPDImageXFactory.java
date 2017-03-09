@@ -3,10 +3,8 @@ package co.smartreceipts.android.workers.reports.pdf.renderer.imagex;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
-import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -20,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 
 import co.smartreceipts.android.utils.log.Logger;
+import wb.android.image.ImageUtils;
 
 /**
  * Used to load pdf files via the native Android {@link PdfRenderer} stack
@@ -62,14 +61,23 @@ public class LollipopPdfPDImageXFactory implements PdfPDImageXFactory {
             final Rect destClip = new Rect(0, 0, scaledWidth, scaledHeight);
             bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
             page.render(bitmap, destClip, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
-            Logger.debug(this, "Creating the bitmap from our lossless factory of PDF page {} at {}", currentPage, System.currentTimeMillis());
-            return LosslessFactory.createFromImage(pdDocument, bitmap);
+
+            try {
+                bitmap = ImageUtils.applyWhiteBackground(bitmap);
+                bitmap = ImageUtils.changeCodec(bitmap, Bitmap.CompressFormat.JPEG, 100);
+                Logger.debug(this, "Creating pdf image from converted JPEG to speed up processing time");
+                return JPEGFactory.createFromImage(pdDocument, bitmap);
+            } catch (IOException e) {
+                // For some reason, the Lossless factory takes 15-20s per page whereas JPGs are vastly quicker
+                Logger.warn(this, "Failed to convert to JPG to speed up our processing. Creating the bitmap from our lossless factory of PDF page {} at {}", currentPage, System.currentTimeMillis());
+                return LosslessFactory.createFromImage(pdDocument, bitmap);
+            }
         } finally {
             Logger.debug(this, "Completing the render of PDF page {} at {}", currentPage, System.currentTimeMillis());
             if (page != null) {
                 page.close();
             }
-            if (bitmap != null) {
+            if (bitmap != null && !bitmap.isRecycled()) {
                 bitmap.recycle();
             }
         }

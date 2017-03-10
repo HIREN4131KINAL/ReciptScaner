@@ -1,25 +1,84 @@
-Smart Receipts Library
-==============
+# Smart Receipts
 
-Overview
---------------
+> A Better Receipt Scanner
 
-This repository contains the source code and all relevant resources that were used to build the Smart Receipts application. Both the free and paid versions of the Smart Receipts application derive from this library project; they can be found on the Google Play Store at:
+![SmartReceipts](smartReceiptsLibrary/src/main/res/drawable-xxxhdpi/logo.png)
 
-- https://play.google.com/store/apps/details?id=wb.receipts
-- https://play.google.com/store/apps/details?id=wb.receiptspro
+Turn your phone into a receipt scanner and expense report generator with Smart Receipts! With Smart Receipts, you can track your receipts and easily generate beautiful PDF and CSV reports.
+ 
+Download Smart Receipts on the Google Play Store:
+ 
+ - [Smart Receipts](https://play.google.com/store/apps/details?id=wb.receipts). The free version of the app, but it also supports an in-app purchase subscription.
+ - [Smart Receipts Plus](https://play.google.com/store/apps/details?id=wb.receiptspro). A 'paid' app from back before Google supported in-app purchases.
 
-The following resources were used to develop this application:
+The free and plus versions versions are identical, except the plus version offers the following enhancements:
 
-- [Apache PDFBox](https://pdfbox.apache.org/). The Apache PDF library was used to generate all PDF reports.
-- [ActionBarSherlock](http://actionbarsherlock.com/). The Action Bar Sherlock library provides cross-platform ActionBar support.
-- [AndroidCamera](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/AndroidCamera). This library is a modified version of the Camera & Galler3d applications, which are included as part of the Android Open Source Project. A number of changes were made to optimize it for receipt scanning usage.
-- [SmartReceiptsLibrary](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/SmartReceiptsLibrary). A library projects that contains all relevant implementation for the free and paid versions of Smart Receipts.
-- [SmartReceiptsFree](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/SmartReceiptsFree). This includes the source of the ad-supported version of the Smart Receipts application.
-- [SmartReceiptsPRO](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/SmartReceiptsPRO). This includes the source of the ad-free version of the Smart Receipts application.
-- [WBMiniLibrary](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/wbMiniLibrary). This is a simple library project, which was built for storage, camera, and other utility functions.
-- [MuPDF](https://github.com/wbaumann/SmartReceiptsLibrary/tree/master/mupdf). An open-source (native) PDF viewer library. It is licensed under the Affero General Public License (AGPL) and is copyright by Artifex Software. More details can be found at: http://www.mupdf.com/. 
+- The plus version has no ads
+- The plus version supports automatic backups (Android only - coming to iOS in the next update)
+- The plus version automatically processes exchange rate conversions (with the newest version)
+- The plus version allows you to edit/customize the pdf footer 
+    
+## Table of Contents
 
-License & Copyright
---------------
-As the project contains multiple repositories with different licensing and copyright attributions, please refer to individual module to ascertain the individual requirements. In general, all projects should be licensed at under either the [AGPL](http://www.gnu.org/licenses/agpl.html) or a more permissive license. Unless otherwise mentioned, please assume that all work is copyright by Will Baumann.
+- [Features](#features)
+- [Install](#install)
+- [Contribute](#contribute)
+- [License](#license)
+
+## Features
+- [X] Create expense report "folders" to categorize your receipts
+- [X] Take receipt photos with your camera's phone
+- [X] Import existing pictures on your device
+- [X] Import PDF receipts 
+- [X] Save receipt price, tax, and currency
+- [X] Tag receipt names, categories, payment method, comments, and other metadata 
+- [X] Track distance traveled for mileage reimbursement
+- [X] Automatic exchange rate processing
+- [X] Smart prediction based on past receipts
+- [X] Generate PDF, CSV, & ZIP reports
+- [X] Fully customizable report output
+- [X] Automatic backup support via Google Drive
+- [ ] OCR support for receipt scans
+- [ ] Graphical breakdowns of spending per category
+
+## Install 
+
+Smart Receipts is broken into a few core modules:
+
+- SmartReceiptsFree. An 'application' module, which contains the free version of the app.
+- SmartReceiptsPRO. An 'application' module, which contains the plus version of the app.
+- SmartReceiptsLibrary. All common code between the free and plus versions of the app. Nearly all development work will occur in here
+- WBMiniLibrary. A few legacy items that haven't been moved into the Library module, but it's otherwise unused.
+
+To install, clone or pull down this project. Please note that it will **NOT** work out of the box, so you will need to add the following files to ensure it will compile (if desired):
+  
+- google-services.json. This needs to be added inside of [smartReceiptsFree](smartReceiptsFree/) at it's root level in order for Firebase to function. Please [refer to the Firebase documentation](https://firebase.google.com/) for more details.
+- secrets.xml. You can copy the secrets.xml.sample file and rename the keys inside to achieve this behavior. This is used for low usage keys
+- ads.xml. The ads file in smartReceiptsFree. You can add a key here if you wish to enable ads.
+- analytics.xml. The analytics file in smartReceiptsFree. You can add a key here if you wish to enable Google Analytics.
+
+Generally speaking, it's easier to test against SmartReceiptsPRO (ie Smart Receipts Plus app), since there are less dependencies that have been explicitly gitignored.
+
+## Contribute
+
+Contributions are always welcome! Please [open an issue](https://github.com/wbaumann/SmartReceiptsLibrary/issues/new) to report a bug or file a feature request to get started.  
+
+## License
+```
+The GNU Affero General Public License (AGPL)
+
+Copyright (c) 2012-2017 Smart Receipts LLC (Will Baumann)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```

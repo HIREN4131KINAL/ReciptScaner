@@ -11,8 +11,6 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:exifinterface:$SUPPORT_LIBRARY_VERSION"
 
-    compile "com.android.support:multidex:$MULTIDEX_VERSION"
-
     compile "com.google.android.gms:play-services-drive:$GOOGLE_PLAY_SERVICES_VERSION"
     
     compile "com.squareup.picasso:picasso:$PICASSO_VERSION"

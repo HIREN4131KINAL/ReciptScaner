@@ -2,9 +2,7 @@ package co.smartreceipts.android;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.multidex.MultiDex;
 
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
 
@@ -30,9 +28,9 @@ import co.smartreceipts.android.settings.versions.AppVersionManager;
 import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
@@ -58,12 +56,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     private IdentityManager mIdentityManager;
     private ServiceManager mServiceManager;
     private boolean mDeferFirstRunDialog;
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this);
-    }
 
     @Override
     public void onCreate() {

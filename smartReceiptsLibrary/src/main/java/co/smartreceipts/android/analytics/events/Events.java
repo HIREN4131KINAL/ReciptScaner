@@ -89,6 +89,9 @@ public final class Events {
         public static final Event UserLogin = new DefaultEvent(Category.Identity, "UserLogin");
         public static final Event UserLoginSuccess = new DefaultEvent(Category.Identity, "UserLoginSuccess");
         public static final Event UserLoginFailure = new DefaultEvent(Category.Identity, "UserLoginFailure");
+        public static final Event UserLogout = new DefaultEvent(Category.Identity, "UserLogout");
+        public static final Event UserLogoutSuccess = new DefaultEvent(Category.Identity, "UserLogoutSuccess");
+        public static final Event UserLogoutFailure = new DefaultEvent(Category.Identity, "UserLogoutFailure");
     }
 
     public static final class Ocr {

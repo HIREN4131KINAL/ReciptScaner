@@ -396,6 +396,18 @@
     <string name="drive_sync_error_no_permissions">Tap to Restore Drive Permissions</string>
     <string name="drive_sync_error_lost_data">Drive Configuration Error - Tap to Fix</string>
 
+    <!-- ===================== login in/out ======================= -->
+    <string name="login_toolbar_title">Log-In or Sign-Up</string>
+    <string name="login_field_email_hint">Email Address</string>
+    <string name="login_field_password_hint">Password</string>
+    <string name="login_button_text">Log In</string>
+    <string name="login_fields_hint_email">Please enter a valid email address</string>
+    <string name="login_fields_hint_password">Passwords must be at least 8 characters</string>
+    <string name="login_fields_hint_valid">Tap below to log in</string>
+
+    <string name="my_account_toolbar_title">My Account</string>
+    <string name="my_account_welcome">Welcome %s</string>
+    <string name="my_account_info_message">Your account details can be found below:</string>
 
 
     <!-- ==================== dialog filter ======================= -->

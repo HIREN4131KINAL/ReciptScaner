@@ -9,8 +9,10 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.Subscriber;
 
 public class LoginInteractor {
 
@@ -23,6 +25,21 @@ public class LoginInteractor {
         this.identityManager = Preconditions.checkNotNull(identityManager);
         this.analytics = Preconditions.checkNotNull(analytics);
         Preconditions.checkNotNull(fragmentManager);
+    }
+
+    @NonNull
+    public Observable<EmailAddress> isLoggedIn() {
+        return Observable.create(new Observable.OnSubscribe<EmailAddress>() {
+            @Override
+            public void call(Subscriber<? super EmailAddress> subscriber) {
+                if (identityManager.isLoggedIn()) {
+                    subscriber.onNext(identityManager.getEmail());
+                } else {
+                    subscriber.onNext(null);
+                }
+                subscriber.onCompleted();
+            }
+        });
     }
 
     @NonNull

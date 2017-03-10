@@ -17,6 +17,8 @@ import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginPayload;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.LoginService;
+import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
+import co.smartreceipts.android.identity.apis.logout.LogoutService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.MeService;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
@@ -31,6 +33,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.AsyncSubject;
+import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
 
 public class IdentityManager implements IdentityStore {
@@ -41,6 +44,8 @@ public class IdentityManager implements IdentityStore {
     private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
     private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
+
+    private Subject<LogoutResponse, LogoutResponse> logoutSubject;
 
     public IdentityManager(@NonNull Context context, @NonNull MutableIdentityStore mutableIdentityStore,
                            @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
@@ -76,9 +81,9 @@ public class IdentityManager implements IdentityStore {
     }
 
     public synchronized Observable<LoginResponse> logIn(@NonNull final LoginParams login) {
-        Preconditions.checkNotNull(login.getEmail(), "A valid email must be provided to login");
+        Preconditions.checkNotNull(login.getEmail(), "A valid email must be provided to log-in");
 
-        Logger.info(this, "Initiating user login");
+        Logger.info(this, "Initiating user log-in");
         this.analytics.record(Events.Identity.UserLogin);
 
         final LoginService loginService = serviceManager.getService(LoginService.class);
@@ -92,8 +97,7 @@ public class IdentityManager implements IdentityStore {
                         @Override
                         public Observable<LoginResponse> call(LoginResponse loginResponse) {
                             if (loginResponse.getToken() != null) {
-                                mutableIdentityStore.setEmailAddress(login.getEmail());
-                                mutableIdentityStore.setToken(loginResponse.getToken());
+                                mutableIdentityStore.setEmailAndToken(login.getEmail(), loginResponse.getToken());
                                 return Observable.just(loginResponse);
                             } else {
                                 return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
@@ -103,7 +107,7 @@ public class IdentityManager implements IdentityStore {
                     .doOnError(new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            Logger.error(this, "Failed to complete the login request", throwable);
+                            Logger.error(this, "Failed to complete the log-in request", throwable);
                             analytics.record(Events.Identity.UserLoginFailure);
                         }
                     })
@@ -122,7 +126,7 @@ public class IdentityManager implements IdentityStore {
                     .doOnCompleted(new Action0() {
                         @Override
                         public void call() {
-                            Logger.info(this, "Successfully completed the login request");
+                            Logger.info(this, "Successfully completed the log-in request");
                             analytics.record(Events.Identity.UserLoginSuccess);
                         }
                     })
@@ -134,6 +138,44 @@ public class IdentityManager implements IdentityStore {
 
     public synchronized void markLoginComplete(@NonNull final LoginParams login) {
         loginMap.remove(login);
+    }
+
+    public synchronized Observable<LogoutResponse> logOut() {
+        Logger.info(this, "Initiating user log-out");
+        this.analytics.record(Events.Identity.UserLogout);
+
+        final LogoutService logoutService = serviceManager.getService(LogoutService.class);
+
+        if (logoutSubject == null) {
+            logoutSubject = BehaviorSubject.create();
+            logoutService.logOut()
+                    .doOnNext(new Action1<LogoutResponse>() {
+                        @Override
+                        public void call(LogoutResponse logoutResponse) {
+                            mutableIdentityStore.setEmailAndToken(null, null);
+                        }
+                    })
+                    .doOnError(new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Logger.error(this, "Failed to complete the log-out request", throwable);
+                            analytics.record(Events.Identity.UserLogoutFailure);
+                        }
+                    })
+                    .doOnCompleted(new Action0() {
+                        @Override
+                        public void call() {
+                            Logger.info(this, "Successfully completed the log-out request");
+                            analytics.record(Events.Identity.UserLogoutSuccess);
+                        }
+                    })
+                    .subscribe(logoutSubject);
+        }
+        return logoutSubject;
+    }
+
+    public synchronized void markLogoutComplete() {
+        logoutSubject = null;
     }
 
     @NonNull

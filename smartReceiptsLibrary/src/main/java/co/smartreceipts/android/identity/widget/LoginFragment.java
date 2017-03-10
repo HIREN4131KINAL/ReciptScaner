@@ -19,6 +19,7 @@ import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
+import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -100,11 +101,29 @@ public class LoginFragment extends WBFragment {
             this.compositeSubscription = new CompositeSubscription();
         }
         this.loginPresenter.onResume();
+
         this.compositeSubscription.add(this.loginPresenter.getLoginParamsStream()
             .subscribe(new Action1<LoginParams>() {
                 @Override
                 public void call(LoginParams loginParams) {
                     logIn(loginParams);
+                }
+            }));
+        this.compositeSubscription.add(this.loginInteractor.isLoggedIn()
+            .subscribe(new Action1<EmailAddress>() {
+                @Override
+                public void call(EmailAddress emailAddress) {
+                    if (emailAddress != null) {
+                        if (actionBar != null) {
+                            actionBar.setTitle(R.string.my_account_toolbar_title);
+                        }
+                        loginPresenter.presentExistingUserSignedIn(emailAddress);
+                    } else {
+                        if (actionBar != null) {
+                            actionBar.setTitle(R.string.login_toolbar_title);
+                        }
+                        loginPresenter.presentNoUserSignedIn();
+                    }
                 }
             }));
     }

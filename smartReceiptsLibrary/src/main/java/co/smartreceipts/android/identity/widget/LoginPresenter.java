@@ -1,7 +1,8 @@
 package co.smartreceipts.android.identity.widget;
 
-import android.annotation.SuppressLint;
+import android.graphics.PorterDuff;
 import android.support.annotation.NonNull;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,60 +13,67 @@ import com.google.common.base.Preconditions;
 import com.jakewharton.rxbinding.widget.RxTextView;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.identity.store.EmailAddress;
+import co.smartreceipts.android.utils.SoftKeyboardManager;
 import rx.Observable;
-import rx.Subscription;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.CompositeSubscription;
 
 public class LoginPresenter {
 
-    private static final int MINIMUM_EMAIL_LENGTH = 2;
-    private static final int MINIMUM_PASSWORD_LENGTH = 2;
+    private static final int MINIMUM_EMAIL_LENGTH = 6;
+    private static final int MINIMUM_PASSWORD_LENGTH = 8;
 
+    // Nobody signed in stuff
+    private final View noActiveUserLayout;
+    private final TextView loginFieldsHintMessage;
     private final EditText emailInput;
     private final EditText passwordInput;
     private final Button loginButton;
 
-    private final PublishSubject<LoginParams> loginParamsSubject = PublishSubject.create();
-    private Subscription subscription;
+    // Somebody signed in stuff
+    private final View existingUserLayout;
+    private final TextView myAccountWelcomeMessage;
 
-    private TextView debug1;
-    private TextView debug2;
-    private TextView debug3;
+    private final PublishSubject<LoginParams> loginParamsSubject = PublishSubject.create();
+    private CompositeSubscription compositeSubscription;
 
     public LoginPresenter(@NonNull View view) {
-        emailInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_email));
-        passwordInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_password));
+        noActiveUserLayout = Preconditions.checkNotNull(view.findViewById(R.id.no_active_user_layout));
+        loginFieldsHintMessage = Preconditions.checkNotNull((TextView) view.findViewById(R.id.login_fields_hint));
+        emailInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_field_email));
+        passwordInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_field_password));
         loginButton = Preconditions.checkNotNull((Button) view.findViewById(R.id.login_button));
 
-        // TODO: Delete
-        debug1 = (TextView) view.findViewById(R.id.login_debug_is_logged_in);
-        debug2 = (TextView) view.findViewById(R.id.login_debug_email);
-        debug3 = (TextView) view.findViewById(R.id.login_debug_token);
-        showDebugText();
+        existingUserLayout = Preconditions.checkNotNull(view.findViewById(R.id.existing_user_layout));
+        myAccountWelcomeMessage = Preconditions.checkNotNull((TextView) view.findViewById(R.id.my_account_welcome));
     }
 
     public void onResume() {
-        subscription = new CompositeSubscription();
-        subscription = Observable.combineLatest(
-                RxTextView.textChanges(emailInput),
-                RxTextView.textChanges(passwordInput),
-                new Func2<CharSequence, CharSequence, Boolean>() {
+        compositeSubscription = new CompositeSubscription();
+        compositeSubscription.add(Observable.combineLatest(
+                simpleEmailFieldValidator(),
+                simplePasswordFieldValidator(),
+                new Func2<Boolean, Boolean, Boolean>() {
                     @Override
-                    public Boolean call(CharSequence email, CharSequence password) {
-                        return email != null && email.length() >= MINIMUM_EMAIL_LENGTH && password != null && password.length() >= MINIMUM_PASSWORD_LENGTH;
+                    public Boolean call(Boolean isEmailValid, Boolean isPasswordValid) {
+                        return isEmailValid && isPasswordValid;
                     }
                 }).subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean enableLoginButton) {
-                loginButton.setEnabled(enableLoginButton);
-            }
-        });
+                    @Override
+                    public void call(Boolean enableLoginButton) {
+                        if (enableLoginButton) {
+                            loginFieldsHintMessage.setText(R.string.login_fields_hint_valid);
+                        }
+                        loginButton.setEnabled(enableLoginButton);
+                    }
+                })
+        );
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,9 +87,9 @@ public class LoginPresenter {
     }
 
     public void onPause() {
-        if (subscription != null) {
-            subscription.unsubscribe();
-            subscription = null;
+        if (compositeSubscription != null) {
+            compositeSubscription.unsubscribe();
+            compositeSubscription = null;
         }
     }
 
@@ -90,10 +98,23 @@ public class LoginPresenter {
         return loginParamsSubject.asObservable();
     }
 
+    public void presentNoUserSignedIn() {
+        existingUserLayout.setVisibility(View.GONE);
+        noActiveUserLayout.setVisibility(View.VISIBLE);
+        emailInput.requestFocus();
+        SoftKeyboardManager.showKeyboard(emailInput);
+    }
+
+    public void presentExistingUserSignedIn(@NonNull EmailAddress emailAddress) {
+        existingUserLayout.setVisibility(View.VISIBLE);
+        noActiveUserLayout.setVisibility(View.GONE);
+        emailInput.setText(emailAddress);
+        myAccountWelcomeMessage.setText(myAccountWelcomeMessage.getContext().getString(R.string.my_account_welcome, emailAddress));
+    }
+
     public void presentLoginSuccess() {
         Toast.makeText(loginButton.getContext(), "Login Success", Toast.LENGTH_SHORT).show();
         loginButton.setEnabled(true);
-        showDebugText();
     }
 
     public void presentLoginFailure() {
@@ -101,11 +122,66 @@ public class LoginPresenter {
         loginButton.setEnabled(true);
     }
 
-    @Deprecated
-    private void showDebugText() {
-        final SmartReceiptsApplication application = (SmartReceiptsApplication) this.debug1.getContext().getApplicationContext();
-        debug1.setText("Is logged in == " + application.getIdentityManager().isLoggedIn());
-        debug2.setText("Email: " + application.getIdentityManager().getEmail());
-        debug3.setText("Token: " + application.getIdentityManager().getToken());
+    @NonNull
+    private Observable<Boolean> simpleEmailFieldValidator() {
+        return RxTextView.textChanges(emailInput)
+                .map(new Func1<CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence emailCharSequence) {
+                        if (emailCharSequence != null && emailCharSequence.length() >= MINIMUM_EMAIL_LENGTH) {
+                            final String email = emailCharSequence.toString();
+                            return email.contains("@") && email.contains(".");
+                        } else {
+                            return false;
+                        }
+                    }
+                })
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean isEmailValid) {
+                        if (isEmailValid) {
+                            loginFieldsHintMessage.setText("");
+                            validInputHighlight(emailInput);
+                        } else {
+                            loginFieldsHintMessage.setText(R.string.login_fields_hint_email);
+                            errorInputHighlight(emailInput);
+                        }
+                    }
+                });
     }
+
+    @NonNull
+    private Observable<Boolean> simplePasswordFieldValidator() {
+        return RxTextView.textChanges(passwordInput)
+                .map(new Func1<CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence password) {
+                        return password != null && password.length() >= MINIMUM_PASSWORD_LENGTH;
+                    }
+                })
+                .doOnNext(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean isPasswordValid) {
+                        if (isPasswordValid) {
+                            loginFieldsHintMessage.setText("");
+                            validInputHighlight(passwordInput);
+                        } else {
+                            loginFieldsHintMessage.setText(R.string.login_fields_hint_password);
+                            errorInputHighlight(passwordInput);
+                        }
+                    }
+                });
+    }
+    
+    private void validInputHighlight(@NonNull EditText editText) {
+
+        final int color = ResourcesCompat.getColor(editText.getResources(), R.color.smart_receipts_colorSuccess, editText.getContext().getTheme());
+        editText.getBackground().mutate().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    }
+
+    private void errorInputHighlight(@NonNull EditText editText) {
+        final int color = ResourcesCompat.getColor(editText.getResources(), R.color.smart_receipts_colorAccent, editText.getContext().getTheme());
+        editText.getBackground().mutate().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+    }
+
 }

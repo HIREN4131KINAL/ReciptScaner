@@ -48,20 +48,11 @@ public final class MutableIdentityStore implements IdentityStore {
         return getEmail() != null && getToken() != null;
     }
 
-    public void setEmailAddress(@NonNull EmailAddress emailAddress) {
-        setEmailAddress(emailAddress.getId());
-    }
-
-    public void setEmailAddress(@NonNull String emailAddress) {
-        mSharedPreferences.edit().putString(KEY_EMAIL, emailAddress).apply();
-    }
-
-    public void setToken(@NonNull Token token) {
-        setToken(token.getId());
-    }
-
-    public void setToken(@NonNull String token) {
-        mSharedPreferences.edit().putString(KEY_TOKEN, token).apply();
+    public void setEmailAndToken(@Nullable String emailAddress, @Nullable String token) {
+        final SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putString(KEY_EMAIL, emailAddress);
+        editor.putString(KEY_TOKEN, token);
+        editor.apply();
     }
 
 }

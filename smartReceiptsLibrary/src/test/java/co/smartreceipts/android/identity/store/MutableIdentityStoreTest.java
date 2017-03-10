@@ -39,39 +39,30 @@ public class MutableIdentityStoreTest {
     }
 
     @Test
-    public void setEmailAddress() {
-        final String email = "test@test.com";
-        mutableIdentityStore.setEmailAddress(email);
-
-        assertEquals(false, mutableIdentityStore.isLoggedIn());
-        assertNull(mutableIdentityStore.getToken());
-        assertNotNull(mutableIdentityStore.getEmail());
-        assertEquals(email, mutableIdentityStore.getEmail().getId());
-    }
-
-    @Test
-    public void setToken() {
-        final String token = "token";
-        mutableIdentityStore.setToken(token);
-
-        assertEquals(false, mutableIdentityStore.isLoggedIn());
-        assertNull(mutableIdentityStore.getEmail());
-        assertNotNull(mutableIdentityStore.getToken());
-        assertEquals(token, mutableIdentityStore.getToken().getId());
-    }
-
-    @Test
-    public void setEmailAddressAndToken() {
+    public void setEmailAndToken() {
         final String email = "test@test.com";
         final String token = "token";
-        mutableIdentityStore.setEmailAddress(email);
-        mutableIdentityStore.setToken(token);
+        mutableIdentityStore.setEmailAndToken(email, token);
 
         assertEquals(true, mutableIdentityStore.isLoggedIn());
         assertNotNull(mutableIdentityStore.getEmail());
         assertNotNull(mutableIdentityStore.getToken());
         assertEquals(email, mutableIdentityStore.getEmail().getId());
         assertEquals(token, mutableIdentityStore.getToken().getId());
+    }
+
+    @Test
+    public void nullOutEmailAndToken() {
+        final String email = "test@test.com";
+        final String token = "token";
+        mutableIdentityStore.setEmailAndToken(email, token);
+
+        // Now null out
+        mutableIdentityStore.setEmailAndToken(null, null);
+
+        assertEquals(false, mutableIdentityStore.isLoggedIn());
+        assertNull(mutableIdentityStore.getEmail());
+        assertNull(mutableIdentityStore.getToken());
     }
 
 }

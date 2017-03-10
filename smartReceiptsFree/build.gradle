@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile "com.google.android.gms:play-services-analytics:$GOOGLE_PLAY_SERVICES_VERSION"
-    compile "com.google.android.gms:play-services-ads:$GOOGLE_PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-ads:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-analytics:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
 
     // correct propagation of build-type
     // https://code.google.com/p/android/issues/detail?id=52962#c129
@@ -24,6 +24,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
+        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
     }
     dexOptions {

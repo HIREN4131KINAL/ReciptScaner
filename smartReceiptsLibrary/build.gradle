@@ -11,11 +11,12 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$SUPPORT_LIBRARY_VERSION"
     compile "com.android.support:exifinterface:$SUPPORT_LIBRARY_VERSION"
 
-    compile "com.google.android.gms:play-services-drive:$GOOGLE_PLAY_SERVICES_VERSION"
+    compile "com.google.android.gms:play-services-drive:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
 
-    compile "com.google.firebase:firebase-core:$FIREBASE_VERSION"
-    compile "com.google.firebase:firebase-crash:$FIREBASE_VERSION"
-    
+    compile "com.google.firebase:firebase-core:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
+    compile "com.google.firebase:firebase-crash:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
+    compile "com.google.firebase:firebase-messaging:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
+
     compile "com.squareup.picasso:picasso:$PICASSO_VERSION"
     compile "com.squareup.okhttp3:okhttp:$OK_HTTP_VERSION"
     compile "com.squareup.okhttp3:logging-interceptor:$OK_HTTP_VERSION"
@@ -59,6 +60,7 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
     }
 

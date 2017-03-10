@@ -24,6 +24,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
 import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
 import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
@@ -56,6 +57,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     private NetworkManager mNetworkManager;
     private IdentityManager mIdentityManager;
     private ServiceManager mServiceManager;
+    private PushManager pushManager;
     private boolean mDeferFirstRunDialog;
 
     @Override
@@ -83,6 +85,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
 
         mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex))));
         mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
+        pushManager = new PushManager(this, mServiceManager);
+        pushManager.initialize();
 
         PDFBoxResourceLoader.init(getApplicationContext());
         
@@ -171,6 +175,11 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     @NonNull
     public NetworkManager getNetworkManager() {
         return mNetworkManager;
+    }
+
+    @NonNull
+    public PushManager getPushManager() {
+        return pushManager;
     }
 
     @Override

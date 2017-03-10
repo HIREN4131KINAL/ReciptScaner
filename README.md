@@ -52,7 +52,7 @@ Smart Receipts is broken into a few core modules:
 
 To install, clone or pull down this project. Please note that it will **NOT** work out of the box, so you will need to add the following files to ensure it will compile (if desired):
   
-- google-services.json. This needs to be added inside of [smartReceiptsFree](smartReceiptsFree/) at it's root level in order for Firebase to function. Please [refer to the Firebase documentation](https://firebase.google.com/) for more details.
+- google-services.json. This needs to be added inside of [smartReceiptsFree](smartReceiptsFree/) and [smartReceiptsPlus](smartReceiptsPRO/) at it's root level in order for Firebase to function. Please [refer to the Firebase documentation](https://firebase.google.com/) for more details.
 - secrets.xml. You can copy the secrets.xml.sample file and rename the keys inside to achieve this behavior. This is used for low usage keys
 - ads.xml. The ads file in smartReceiptsFree. You can add a key here if you wish to enable ads.
 - analytics.xml. The analytics file in smartReceiptsFree. You can add a key here if you wish to enable Google Analytics.

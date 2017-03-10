@@ -1,9 +1,10 @@
-package co.smartreceipts.android.analytics;
+package co.smartreceipts.android.analytics.impl.logger;
 
 import android.support.annotation.NonNull;
 
 import java.util.List;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
 import co.smartreceipts.android.utils.log.Logger;

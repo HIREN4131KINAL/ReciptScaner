@@ -1,4 +1,4 @@
-package co.smartreceipts.android.analytics;
+package co.smartreceipts.android.analytics.impl.firebase;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -8,6 +8,7 @@ import com.google.firebase.crash.FirebaseCrash;
 
 import java.util.List;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.analytics.events.Event;

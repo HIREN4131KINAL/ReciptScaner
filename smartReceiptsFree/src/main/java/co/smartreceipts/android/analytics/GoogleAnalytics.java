@@ -1,5 +1,6 @@
 package co.smartreceipts.android.analytics;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -11,10 +12,15 @@ import java.util.List;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
 import co.smartreceipts.android.utils.log.Logger;
+import wb.receipts.R;
 
 public class GoogleAnalytics implements Analytics {
 
     private final Tracker mTracker;
+
+    public GoogleAnalytics(@NonNull Context context) {
+        this(com.google.android.gms.analytics.GoogleAnalytics.getInstance(context).newTracker(R.xml.analytics));
+    }
 
     public GoogleAnalytics(@NonNull Tracker tracker) {
         mTracker = Preconditions.checkNotNull(tracker);

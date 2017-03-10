@@ -23,7 +23,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
-        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -50,3 +49,5 @@ android {
         }
     }
 }
+
+apply plugin: 'com.google.gms.google-services'

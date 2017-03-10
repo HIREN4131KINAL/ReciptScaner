@@ -9,7 +9,8 @@ import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
 import java.io.File;
 import java.io.IOException;
 
-import co.smartreceipts.android.analytics.AnalyticsLogger;
+import co.smartreceipts.android.analytics.impl.firebase.FirebaseAnalytics;
+import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
@@ -73,6 +74,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mPersistenceManager.initialize(); // TODO: Fix this circular injection pattern
 
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
+        mAnalyticsManager.register(new FirebaseAnalytics(this));
+
         mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferenceManager(), mFlex));
         mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferenceManager());
         mNetworkManager.initialize();

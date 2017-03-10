@@ -2,6 +2,9 @@ package co.smartreceipts.android.rating.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
+
+import com.google.common.base.Preconditions;
 
 import java.util.concurrent.Callable;
 
@@ -42,8 +45,8 @@ public class AppRatingPreferencesStorage implements AppRatingStorage {
         private static final String CRASH_OCCURRED = "hide_on_crash";
     }
 
-    public AppRatingPreferencesStorage(Context context) {
-        mAppContext = context.getApplicationContext();
+    public AppRatingPreferencesStorage(@NonNull Context context) {
+        mAppContext = Preconditions.checkNotNull(context.getApplicationContext());
     }
 
     @Override

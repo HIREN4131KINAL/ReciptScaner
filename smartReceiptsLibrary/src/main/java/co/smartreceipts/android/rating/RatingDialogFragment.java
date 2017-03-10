@@ -11,6 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.utils.IntentUtils;
@@ -21,6 +24,9 @@ import co.smartreceipts.android.utils.IntentUtils;
  * Dialog Fragment which asks if user wants to rate the app
  */
 public class RatingDialogFragment extends DialogFragment {
+
+    private Analytics analytics;
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -32,18 +38,21 @@ public class RatingDialogFragment extends DialogFragment {
                 .setNegativeButton(R.string.apprating_dialog_negative, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        analytics.record(Events.Ratings.UserSelectedNever);
                         dismiss();
                     }
                 })
                 .setNeutralButton(R.string.apprating_dialog_neutral, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        analytics.record(Events.Ratings.UserSelectedLater);
                         prorogueRatingPrompt();
                     }
                 })
                 .setPositiveButton(R.string.apprating_dialog_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        analytics.record(Events.Ratings.UserSelectedRate);
                         launchRatingIntent();
                     }
                 });
@@ -75,4 +84,14 @@ public class RatingDialogFragment extends DialogFragment {
         }
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        initAnalytics();
+    }
+
+    private void initAnalytics() {
+        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
+        analytics = smartReceiptsApplication.getAnalyticsManager();
+    }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -115,14 +116,30 @@
                     android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
             </LinearLayout>
 
-            <AutoCompleteTextView
-                android:id="@+id/dialog_tripmenu_cost_center"
-                android:layout_width="fill_parent"
+            <LinearLayout
+                android:id="@+id/dialog_tripmenu_cost_center_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:completionThreshold="1"
-                android:hint="@string/DIALOG_RECEIPTMENU_HINT_COST_CENTER"
-                android:inputType="textCapSentences"
-                android:visibility="gone" />
+                android:layout_marginTop="@dimen/input_item_top_margin"
+                android:minHeight="@dimen/default_input_row_size"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    style="@style/Widget.SmartReceipts.GuideImage"
+                    android:src="@drawable/ic_category" />
+
+
+                <AutoCompleteTextView
+                    android:id="@+id/dialog_tripmenu_cost_center"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:completionThreshold="1"
+                    android:hint="@string/DIALOG_RECEIPTMENU_HINT_COST_CENTER"
+                    android:inputType="textCapSentences"
+                    android:textAppearance="@style/Widget.SmartReceipts.TextView.Subhead" />
+            </LinearLayout>
 
         </LinearLayout>
 

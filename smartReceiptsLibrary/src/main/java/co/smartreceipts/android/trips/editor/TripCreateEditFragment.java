@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
 import android.text.method.TextKeyListener;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,7 +20,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
@@ -153,7 +157,6 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     }
 
     private void initViews(View rootView) {
-//        final View rootView = getFlex().getView(getActivity(), R.layout.update_trip);
         mNameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_name);
         mStartBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_start);
         mEndBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_end);
@@ -161,7 +164,8 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
         mCommentBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_comment);
 
         mCostCenterBox = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_tripmenu_cost_center);
-        mCostCenterBox.setVisibility(getPersistenceManager().getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
+        View costCenterBoxLayout = rootView.findViewById(R.id.dialog_tripmenu_cost_center_layout);
+        costCenterBoxLayout.setVisibility(getPersistenceManager().getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
 
         Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
         if (mNavigationHandler.isDualPane()) {
@@ -198,6 +202,13 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
             }
 
             mStartBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(mEndBox));
+
+            //prefill the dates
+            mStartBox.date = new Date(Calendar.getInstance().getTimeInMillis());
+            mStartBox.setText(DateFormat.getDateFormat(getActivity()).format(mStartBox.date));
+            int defaultTripDuration = persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultReportDuration);
+            mEndBox.date = new Date(mStartBox.date.getTime() + TimeUnit.DAYS.toMillis(defaultTripDuration));
+            mEndBox.setText(DateFormat.getDateFormat(getActivity()).format(mEndBox.date));
 
             currencySpinnerPosition = mCurrencies.getPosition(getPersistenceManager().getPreferenceManager().get(UserPreference.General.DefaultCurrency));
         } else { // edit trip

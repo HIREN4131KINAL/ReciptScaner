@@ -67,6 +67,10 @@ public final class Events {
 
     public static final class Ratings {
         public static final Event RatingPromptShown = new DefaultEvent(Category.Ratings, "RatingPromptShown");
+        public static final Event UserAcceptedRatingPrompt = new DefaultEvent(Category.Ratings, "UserAcceptedRatingPrompt");
+        public static final Event UserDeclinedRatingPrompt = new DefaultEvent(Category.Ratings, "UserDeclinedRatingPrompt");
+        public static final Event UserAcceptedSendingFeedback = new DefaultEvent(Category.Ratings, "UserAcceptedSendingFeedback");
+        public static final Event UserDeclinedSendingFeedback = new DefaultEvent(Category.Ratings, "UserDeclinedSendingFeedback");
         public static final Event UserSelectedRate = new DefaultEvent(Category.Ratings, "UserSelectedRate");
         public static final Event UserSelectedNever = new DefaultEvent(Category.Ratings, "UserSelectedNever");
         public static final Event UserSelectedLater = new DefaultEvent(Category.Ratings, "UserSelectedLater");

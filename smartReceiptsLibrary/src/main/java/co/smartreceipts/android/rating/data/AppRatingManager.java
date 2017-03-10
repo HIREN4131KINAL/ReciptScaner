@@ -2,6 +2,8 @@ package co.smartreceipts.android.rating.data;
 
 import android.support.annotation.VisibleForTesting;
 
+import java.util.concurrent.TimeUnit;
+
 import rx.Single;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -43,7 +45,7 @@ public class AppRatingManager {
                     public Boolean call(AppRatingModel appRatingModel) {
                         if (appRatingModel.canShow() && !appRatingModel.isCrashOccurred()) {
                             // Check if we've reached a rating event
-                            final long daysToMillis = 24 * 60 * 60 * 1000; // 24h/d * 60m/h * 60s/m * 1000millis/s
+                            final long daysToMillis = TimeUnit.DAYS.toMillis(1);
                             if (appRatingModel.getLaunchCount() >= LAUNCHES_UNTIL_PROMPT + appRatingModel.getAdditionalLaunchThreshold() &&
                                     (System.currentTimeMillis() - appRatingModel.getInstallTime()) / daysToMillis >= DAYS_UNTIL_PROMPT) {
                                 return true;

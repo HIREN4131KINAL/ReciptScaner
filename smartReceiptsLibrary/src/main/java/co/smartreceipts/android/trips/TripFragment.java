@@ -29,9 +29,13 @@ import android.widget.Toast;
 import java.util.List;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.events.Event;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.fragments.ReceiptsFragment;
@@ -47,6 +51,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.sync.widget.backups.RemoteBackupsDataCache;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
@@ -62,6 +67,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     private TripTableController mTripTableController;
     private TripFragmentPresenter mPresenter;
+    private Analytics mAnalytics;
 
     private NavigationHandler mNavigationHandler;
 
@@ -126,6 +132,9 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         if (toolbar != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         }
+
+        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
+        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
 
         mPresenter.checkRating();
     }
@@ -338,6 +347,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         mTooltip.setQuestion(R.string.rating_tooltip_text, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mAnalytics.record(Events.Ratings.UserDeclinedRatingPrompt);
                 mNavigationHandler.showDialog(new FeedbackDialogFragment());
                 mTooltip.hideWithAnimation();
                 mPresenter.dontShowRatingPrompt();
@@ -345,6 +355,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         }, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mAnalytics.record(Events.Ratings.UserAcceptedRatingPrompt);
                 mNavigationHandler.showDialog(new RatingDialogFragment());
                 mTooltip.hideWithAnimation();
                 mPresenter.dontShowRatingPrompt();
@@ -352,6 +363,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         });
 
         mTooltip.showWithAnimation();
+        mAnalytics.record(Events.Ratings.RatingPromptShown);
     }
 
 

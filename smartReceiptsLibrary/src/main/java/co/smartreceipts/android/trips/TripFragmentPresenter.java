@@ -1,5 +1,9 @@
 package co.smartreceipts.android.trips;
 
+import android.support.annotation.NonNull;
+
+import com.google.common.base.Preconditions;
+
 import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import rx.android.schedulers.AndroidSchedulers;
@@ -11,8 +15,8 @@ public class TripFragmentPresenter {
 
     private AppRatingManager mRatingManager;
 
-    public TripFragmentPresenter(TripFragment fragment) {
-        mFragment = fragment;
+    public TripFragmentPresenter(@NonNull TripFragment fragment) {
+        mFragment = Preconditions.checkNotNull(fragment);
         mRatingManager = AppRatingManager.getInstance(new AppRatingPreferencesStorage(mFragment.getContext()));
     }
 

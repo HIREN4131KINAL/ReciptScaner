@@ -16,15 +16,15 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
+import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.identity.store.IdentityStore;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 
-public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
+public class BetaSmartReceiptsHostConfiguration extends SmartReceiptsHostConfiguration {
 
-    private final SmartReceiptsGsonBuilder mSmartReceiptsGsonBuilder;
-
-    public BetaSmartReceiptsHostConfiguration(@NonNull SmartReceiptsGsonBuilder smartReceiptsGsonBuilder) {
-        mSmartReceiptsGsonBuilder = Preconditions.checkNotNull(smartReceiptsGsonBuilder);
+    public BetaSmartReceiptsHostConfiguration(@NonNull IdentityStore identityStore, @NonNull SmartReceiptsGsonBuilder smartReceiptsGsonBuilder) {
+        super(identityStore, smartReceiptsGsonBuilder);
     }
 
     @NonNull
@@ -35,14 +35,8 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
 
     @NonNull
     @Override
-    public OkHttpClient getClient() {
+    protected OkHttpClient.Builder okHttpBuilder() {
         return getUnsafeOkHttpClient();
-    }
-
-    @NonNull
-    @Override
-    public Gson getGson() {
-        return mSmartReceiptsGsonBuilder.create();
     }
 
     /**
@@ -50,7 +44,7 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
      *
      * @return an UNSAFE {@link OkHttpClient}
      */
-    private static OkHttpClient getUnsafeOkHttpClient() {
+    private static OkHttpClient.Builder getUnsafeOkHttpClient() {
         try {
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[] {
@@ -89,7 +83,7 @@ public class BetaSmartReceiptsHostConfiguration implements HostConfiguration {
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             builder.addInterceptor(interceptor);
 
-            return builder.build();
+            return builder;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

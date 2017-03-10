@@ -16,6 +16,7 @@ import co.smartreceipts.android.identity.apis.organizations.Organization;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsService;
 import co.smartreceipts.android.identity.store.IdentityStore;
+import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
@@ -61,8 +62,8 @@ public class OrganizationManager {
 
     @NonNull
     private Observable<OrganizationsResponse> getOrganizationsApiRequest() {
-        if (identityStore.getEmail() != null && identityStore.getToken() != null) {
-            return serviceManager.getService(OrganizationsService.class).organizations(identityStore.getEmail(), identityStore.getToken());
+        if (identityStore.isLoggedIn()) {
+            return serviceManager.getService(OrganizationsService.class).organizations();
         } else {
             return Observable.error(new IllegalStateException("Cannot fetch the user's organizations until we're logged in"));
         }

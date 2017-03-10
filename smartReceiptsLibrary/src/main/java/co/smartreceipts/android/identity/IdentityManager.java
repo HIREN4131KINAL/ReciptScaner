@@ -20,9 +20,9 @@ import co.smartreceipts.android.identity.apis.login.LoginService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.MeService;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
-import co.smartreceipts.android.identity.apis.organizations.OrganizationsService;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
+import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.identity.store.Token;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
@@ -33,46 +33,46 @@ import rx.functions.Func1;
 import rx.subjects.AsyncSubject;
 import rx.subjects.Subject;
 
-public class IdentityManager {
+public class IdentityManager implements IdentityStore {
 
     private final Context context;
     private final ServiceManager serviceManager;
     private final Analytics analytics;
-    private final IdentityStore identityStore;
+    private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
     private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
-    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
+    public IdentityManager(@NonNull Context context, @NonNull MutableIdentityStore mutableIdentityStore,
+                           @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
                            @NonNull UserPreferenceManager userPreferenceManager) {
-        this(context, serviceManager, analytics, new IdentityStore(context), userPreferenceManager);
+        this(context, mutableIdentityStore, serviceManager, analytics, new OrganizationManager(serviceManager, mutableIdentityStore, userPreferenceManager));
     }
 
-    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
-                           @NonNull IdentityStore identityStore, @NonNull UserPreferenceManager userPreferenceManager) {
-        this(context, serviceManager, analytics, identityStore, new OrganizationManager(serviceManager, identityStore, userPreferenceManager));
-    }
-
-    public IdentityManager(@NonNull Context context, @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
-                           @NonNull IdentityStore identityStore, @NonNull OrganizationManager organizationManager) {
+    public IdentityManager(@NonNull Context context, @NonNull MutableIdentityStore mutableIdentityStore,
+                           @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
+                           @NonNull OrganizationManager organizationManager) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.serviceManager = Preconditions.checkNotNull(serviceManager);
         this.analytics = Preconditions.checkNotNull(analytics);
-        this.identityStore = Preconditions.checkNotNull(identityStore);
+        this.mutableIdentityStore = Preconditions.checkNotNull(mutableIdentityStore);
         this.organizationManager = Preconditions.checkNotNull(organizationManager);
     }
 
-    public boolean isLoggedIn() {
-        return getEmail() != null && getToken() != null;
-    }
-
     @Nullable
+    @Override
     public EmailAddress getEmail() {
-        return identityStore.getEmail();
+        return mutableIdentityStore.getEmail();
     }
 
     @Nullable
+    @Override
     public Token getToken() {
-        return identityStore.getToken();
+        return mutableIdentityStore.getToken();
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return mutableIdentityStore.isLoggedIn();
     }
 
     public synchronized Observable<LoginResponse> logIn(@NonNull final LoginParams login) {
@@ -92,8 +92,8 @@ public class IdentityManager {
                         @Override
                         public Observable<LoginResponse> call(LoginResponse loginResponse) {
                             if (loginResponse.getToken() != null) {
-                                identityStore.setEmailAddress(login.getEmail());
-                                identityStore.setToken(loginResponse.getToken());
+                                mutableIdentityStore.setEmailAddress(login.getEmail());
+                                mutableIdentityStore.setToken(loginResponse.getToken());
                                 return Observable.just(loginResponse);
                             } else {
                                 return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
@@ -138,8 +138,8 @@ public class IdentityManager {
 
     @NonNull
     public Observable<MeResponse> getMe() {
-        if (identityStore.getEmail() != null && identityStore.getToken() != null) {
-            return serviceManager.getService(MeService.class).me(identityStore.getEmail(), identityStore.getToken());
+        if (isLoggedIn()) {
+            return serviceManager.getService(MeService.class).me();
         } else {
             return Observable.error(new IllegalStateException("Cannot fetch the user's account until we're logged in"));
         }

@@ -1,61 +1,24 @@
 package co.smartreceipts.android.identity.store;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public final class IdentityStore {
+public interface IdentityStore {
 
-    private static final String KEY_EMAIL = "identity_email_address";
-    private static final String KEY_TOKEN = "identity_token";
-
-    private final SharedPreferences mSharedPreferences;
-
-    public IdentityStore(@NonNull Context context) {
-        this(PreferenceManager.getDefaultSharedPreferences(context));
-    }
-
-    public IdentityStore(@NonNull SharedPreferences sharedPreferences) {
-        mSharedPreferences = sharedPreferences;
-    }
-
+    /**
+     * @return the user's {@link EmailAddress} or {@code null} if the user is not currently signed in
+     */
     @Nullable
-    public EmailAddress getEmail() {
-        final String email = mSharedPreferences.getString(KEY_EMAIL, null);
-        if (email != null) {
-            return new EmailAddress(email);
-        } else {
-            return null;
-        }
-    }
+    EmailAddress getEmail();
 
+    /**
+     * @return the user's {@link Token} or {@code null} if the user is not currently signed in
+     */
     @Nullable
-    public Token getToken() {
-        final String token = mSharedPreferences.getString(KEY_TOKEN, null);
-        if (token != null) {
-            return new Token(token);
-        } else {
-            return null;
-        }
-    }
+    Token getToken();
 
-    public void setEmailAddress(@NonNull EmailAddress emailAddress) {
-        setEmailAddress(emailAddress.getId());
-    }
-
-    public void setEmailAddress(@NonNull String emailAddress) {
-        mSharedPreferences.edit().putString(KEY_EMAIL, emailAddress).apply();
-    }
-
-    public void setToken(@NonNull Token token) {
-        setToken(token.getId());
-    }
-
-    public void setToken(@NonNull String token) {
-        mSharedPreferences.edit().putString(KEY_TOKEN, token).apply();
-    }
-
+    /**
+     * @return {@code true} if the user is signed in. {@code false} otherwise
+     */
+    boolean isLoggedIn();
 
 }

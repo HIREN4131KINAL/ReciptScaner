@@ -18,6 +18,8 @@ import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.identity.store.IdentityStore;
+import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
@@ -85,8 +87,9 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
-        mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex))));
-        mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
+        final MutableIdentityStore identityStore = new MutableIdentityStore(this);
+        mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore, new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex))));
+        mIdentityManager = new IdentityManager(this, identityStore, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
         pushManager = new PushManager(this, mServiceManager);
         pushManager.initialize();
 

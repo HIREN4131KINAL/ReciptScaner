@@ -1,9 +1,6 @@
 package co.smartreceipts.android.identity.apis.me;
 
-import android.support.annotation.NonNull;
-
 import retrofit2.http.GET;
-import retrofit2.http.Query;
 import rx.Observable;
 
 /**
@@ -12,6 +9,6 @@ import rx.Observable;
 public interface MeService {
 
     @GET("api/users/me")
-    Observable<MeResponse> me(@NonNull @Query("auth_params[email]") CharSequence email, @NonNull @Query("auth_params[token]") CharSequence token);
+    Observable<MeResponse> me();
 
 }

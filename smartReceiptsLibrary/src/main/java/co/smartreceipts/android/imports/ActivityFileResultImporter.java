@@ -46,8 +46,8 @@ public class ActivityFileResultImporter {
     private final Scheduler observeOnScheduler;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip, 
-                                      @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics) {
-        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, new OcrInteractor(context), Schedulers.io(), AndroidSchedulers.mainThread());
+                                      @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull OcrInteractor ocrInteractor) {
+        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, ocrInteractor, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,

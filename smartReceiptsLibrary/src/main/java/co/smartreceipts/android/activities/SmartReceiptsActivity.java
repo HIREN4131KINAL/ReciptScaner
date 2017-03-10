@@ -44,8 +44,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     private Attachment mAttachment;
     private BackupProvidersManager mBackupProvidersManager;
 
-    private AppRatingManager mRatingManager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

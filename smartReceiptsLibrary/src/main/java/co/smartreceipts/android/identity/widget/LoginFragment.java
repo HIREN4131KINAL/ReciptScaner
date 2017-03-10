@@ -137,7 +137,6 @@ public class LoginFragment extends WBFragment {
                 .subscribe(new Action1<LoginResponse>() {
                     @Override
                     public void call(LoginResponse org) {
-                        loginPresenter.presentLoginSuccess();
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -149,6 +148,7 @@ public class LoginFragment extends WBFragment {
                 }, new Action0() {
                     @Override
                     public void call() {
+                        loginPresenter.presentLoginSuccess();
                         loginInteractor.onLoginResultsConsumed(cachedLoginParams);
                         cachedLoginParams = null;
                     }

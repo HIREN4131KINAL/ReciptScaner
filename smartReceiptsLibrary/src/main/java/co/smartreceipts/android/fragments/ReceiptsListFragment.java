@@ -156,7 +156,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         Logger.debug(this, "onActivityCreated");
         mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
         Preconditions.checkNotNull(mTrip, "A valid trip is required");
-        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mTrip, getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
+        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mTrip, getPersistenceManager(),
+                getSmartReceiptsApplication().getAnalyticsManager(), getSmartReceiptsApplication().getOcrInteractor());
         setListAdapter(mAdapter); // Set this here to ensure this has been laid out already
     }
 

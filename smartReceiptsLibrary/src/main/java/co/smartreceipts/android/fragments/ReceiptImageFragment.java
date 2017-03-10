@@ -83,7 +83,8 @@ public class ReceiptImageFragment extends WBFragment {
             mImageUri = savedInstanceState.getParcelable(KEY_OUT_URI);
         }
         mIsRotateOngoing = false;
-        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mReceipt.getTrip(), getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager());
+        mActivityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), mReceipt.getTrip(),
+                getPersistenceManager(), getSmartReceiptsApplication().getAnalyticsManager(), getSmartReceiptsApplication().getOcrInteractor());
         mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         mImageUpdatedListener = new ImageUpdatedListener();
         setHasOptionsMenu(true);

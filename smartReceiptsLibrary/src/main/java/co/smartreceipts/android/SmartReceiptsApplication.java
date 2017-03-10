@@ -19,6 +19,7 @@ import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
@@ -58,6 +59,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     private IdentityManager mIdentityManager;
     private ServiceManager mServiceManager;
     private PushManager pushManager;
+    private OcrInteractor ocrInteractor;
     private boolean mDeferFirstRunDialog;
 
     @Override
@@ -87,6 +89,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mIdentityManager = new IdentityManager(this, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
         pushManager = new PushManager(this, mServiceManager);
         pushManager.initialize();
+
+        ocrInteractor = new OcrInteractor(this, pushManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
         
@@ -180,6 +184,11 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     @NonNull
     public PushManager getPushManager() {
         return pushManager;
+    }
+
+    @NonNull
+    public OcrInteractor getOcrInteractor() {
+        return ocrInteractor;
     }
 
     @Override

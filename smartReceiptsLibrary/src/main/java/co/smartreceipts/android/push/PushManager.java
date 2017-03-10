@@ -46,11 +46,11 @@ public class PushManager {
                 .flatMap(new Func1<String, Observable<?>>() {
                     @Override
                     public Observable<?> call(String s) {
-                        // TODO: Retrofit request to our services
+                        // TODO: User our identity manager to PUT the token with our APIs
                         return null;
                     }
                 });
-        // TODO: Subscribe
+        // TODO: Subscribe -> Save Store on Results
     }
 
     public void registerReceiver(@NonNull PushMessageReceiver receiver) {

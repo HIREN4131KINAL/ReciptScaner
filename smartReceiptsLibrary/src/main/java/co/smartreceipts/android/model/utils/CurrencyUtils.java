@@ -132,6 +132,7 @@ public class CurrencyUtils {
         iso4217Currencies.add("NAD");
         iso4217Currencies.add("NGN");
         iso4217Currencies.add("NIO");
+        iso4217Currencies.add("NIS");
         iso4217Currencies.add("NOK");
         iso4217Currencies.add("NPR");
         iso4217Currencies.add("NZD");

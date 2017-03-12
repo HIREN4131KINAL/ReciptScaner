@@ -1,6 +1,7 @@
-package wb.receipts.workers;
+package wb.receipts.ad;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.ad.AdManager;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
@@ -10,8 +11,6 @@ import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.AdManager;
-import co.smartreceipts.android.workers.WorkerManager;
 import wb.receipts.R;
 
 import android.app.Activity;
@@ -35,6 +34,10 @@ import com.google.android.gms.ads.NativeExpressAdView;
 import java.lang.ref.WeakReference;
 import java.util.Random;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
 

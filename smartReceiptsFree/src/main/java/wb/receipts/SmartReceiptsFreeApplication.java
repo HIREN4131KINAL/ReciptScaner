@@ -6,8 +6,6 @@ import com.squareup.leakcanary.LeakCanary;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.GoogleAnalytics;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.WorkerManager;
-import wb.receipts.workers.SRFreeWorkerManager;
 
 public class SmartReceiptsFreeApplication extends SmartReceiptsApplication {
 
@@ -23,10 +21,4 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication {
 		BugSenseHandler.initAndStartSession(this, "01de172a");
         getAnalyticsManager().register(new GoogleAnalytics(this));
 	}
-
-	@Override
-	protected WorkerManager instantiateWorkerManager() {
-		return new SRFreeWorkerManager(this);
-	}
-
 }

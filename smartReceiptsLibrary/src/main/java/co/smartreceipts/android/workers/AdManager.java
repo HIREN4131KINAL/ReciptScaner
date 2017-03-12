@@ -34,5 +34,4 @@ public class AdManager extends WorkerChild {
     protected final PurchaseManager getSubscriptionManager() {
         return mPurchaseManager;
     }
-
 }

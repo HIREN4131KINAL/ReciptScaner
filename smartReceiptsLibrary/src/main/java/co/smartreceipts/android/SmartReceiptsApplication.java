@@ -35,7 +35,6 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.WorkerManager;
 import wb.android.flex.Flex;
 import wb.android.flex.Flexable;
 import wb.android.storage.SDCardStateException;
@@ -48,7 +47,6 @@ import wb.android.storage.StorageManager;
  */
 public class SmartReceiptsApplication extends Application implements Flexable, VersionUpgradedListener {
 
-    private WorkerManager mWorkerManager;
     private PersistenceManager mPersistenceManager;
     private Flex mFlex;
     private Activity mCurrentActivity;
@@ -75,7 +73,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mDeferFirstRunDialog = false;
         mFlex = instantiateFlex();
         mConfigurationManager = instantiateConfigurationManager();
-        mWorkerManager = instantiateWorkerManager();
         mPersistenceManager = instantiatePersistenceManager();
         mPersistenceManager.initialize(); // TODO: Fix this circular injection pattern
 
@@ -119,9 +116,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         // Note: This is useful for unit tests but never gets called on actual devices
         mCurrentActivity = null;
         mPersistenceManager.onDestroy();
-        mWorkerManager.onDestroy();
         mPersistenceManager = null;
-        mWorkerManager = null;
         super.onTerminate();
     }
 
@@ -134,11 +129,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
 
     public synchronized Activity getCurrentActivity() {
         return mCurrentActivity;
-    }
-
-    @NonNull
-    public WorkerManager getWorkerManager() {
-        return mWorkerManager;
     }
 
     @NonNull
@@ -249,15 +239,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
 
     protected void showFirstRunDialog() {
 
-    }
-
-    /**
-     * Protected method to enable subclasses to create custom instances
-     *
-     * @return a WorkerManager Instance
-     */
-    protected WorkerManager instantiateWorkerManager() {
-        return new WorkerManager(this);
     }
 
     /**

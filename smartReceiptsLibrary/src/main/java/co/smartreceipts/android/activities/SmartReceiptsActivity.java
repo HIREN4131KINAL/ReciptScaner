@@ -13,8 +13,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.ad.AdManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -31,11 +34,15 @@ import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.AndroidInjection;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
+
+    @Inject
+    AdManager adManager;
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private NavigationHandler mNavigationHandler;
@@ -45,6 +52,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AndroidInjection.inject(this);
+
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
 
@@ -60,7 +69,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             Logger.debug(this, "savedInstanceState == null");
             mNavigationHandler.navigateToHomeTripsFragment();
         }
-        getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mPurchaseManager);
+        //TODO: injection app.getWorkerManager.getAdManager
+        adManager.onActivityCreated(this, mSubscriptionManager);
 
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mBackupProvidersManager.initialize(this);
@@ -102,7 +112,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
                 mNavigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(attachment.getUri()));
             }
         }
-        getSmartReceiptsApplication().getWorkerManager().getAdManager().onResume();
+        adManager.onResume();
     }
 
     @Override
@@ -173,7 +183,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onPause() {
         Logger.info(this, "onPause");
-        getSmartReceiptsApplication().getWorkerManager().getAdManager().onPause();
+        adManager.onPause();
         super.onPause();
     }
 
@@ -187,7 +197,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     protected void onDestroy() {
         Logger.info(this, "onDestroy");
-        getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
+        adManager.onDestroy();
         mPurchaseManager.removeEventListener(this);
         mPurchaseManager.onDestroy();
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
@@ -203,7 +213,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public void setAttachment(Attachment attachment) {
         mAttachment = attachment;
     }
-    
+
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
         Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);

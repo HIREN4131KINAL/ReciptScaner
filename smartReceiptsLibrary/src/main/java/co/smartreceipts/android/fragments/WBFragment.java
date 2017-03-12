@@ -16,7 +16,6 @@ import android.view.View;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.workers.WorkerManager;
 
 public class WBFragment extends Fragment {
 
@@ -92,10 +91,6 @@ public class WBFragment extends Fragment {
 
 	protected PersistenceManager getPersistenceManager() {
 		return getSmartReceiptsApplication().getPersistenceManager();
-	}
-
-	protected WorkerManager getWorkerManager() {
-		return getSmartReceiptsApplication().getWorkerManager();
 	}
 
 	@NonNull

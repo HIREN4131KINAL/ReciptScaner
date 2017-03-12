@@ -1,5 +1,23 @@
 package wb.receiptspro;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+
+import co.smartreceipts.android.purchases.ProSubscriptionCache;
+import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasDispatchingActivityInjector;
+import wb.android.storage.SDCardFileManager;
+import wb.android.storage.SDCardStateException;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import wb.receiptspro.di.AppComponent;
+import wb.receiptspro.di.DaggerAppComponent;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -10,26 +28,24 @@ import android.widget.Toast;
 
 import com.squareup.leakcanary.LeakCanary;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
+import javax.inject.Inject;
 
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.purchases.wallet.ProPurchaseWallet;
-import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
-import co.smartreceipts.android.utils.log.Logger;
-import wb.android.storage.SDCardFileManager;
-import wb.android.storage.SDCardStateException;
-
-public class SmartReceiptsProApplication extends SmartReceiptsApplication {
+public class SmartReceiptsProApplication extends SmartReceiptsApplication
+        implements HasDispatchingActivityInjector {
+    @Inject DispatchingAndroidInjector<Activity> activityInjector;
 
     private WeakReference<ProgressDialog> mProgress;
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        DaggerAppComponent.builder()
+                .appModule(new AppComponent.AppModule(this))
+                .build()
+                .inject(this);
+
+
         if (LeakCanary.isInAnalyzerProcess(this)) {
             Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
             return;
@@ -80,6 +96,11 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
         } catch (NameNotFoundException e) {
             return false;
         }
+    }
+
+    @Override
+    public DispatchingAndroidInjector<Activity> activityInjector() {
+        return activityInjector;
     }
 
     private class QuickImport extends AsyncTask<Void, Void, Boolean> {

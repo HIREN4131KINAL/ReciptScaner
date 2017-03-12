@@ -43,6 +43,11 @@ dependencies {
 
     compile "com.andkulikov:transitionseverywhere:$TRANSITIONS_EVERYWHERE_VERSION"
 
+    // Dagger
+    compile "com.google.dagger:dagger-android-support:$DAGGER_VERSION"
+    compile "com.google.dagger:dagger:$DAGGER_VERSION"
+    annotationProcessor "com.google.dagger:dagger-compiler:$DAGGER_VERSION"
+
     // Unit Tests
     testCompile "org.robolectric:robolectric:$ROBOLECTRIC_VERSION"
     testCompile "junit:junit:$JUNIT_VERSION"

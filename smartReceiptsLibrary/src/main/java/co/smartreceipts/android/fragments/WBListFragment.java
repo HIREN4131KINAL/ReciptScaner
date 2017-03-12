@@ -11,12 +11,10 @@ import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.workers.WorkerManager;
 
 public class WBListFragment extends ListFragment {
 
@@ -79,10 +77,6 @@ public class WBListFragment extends ListFragment {
 
 	protected PersistenceManager getPersistenceManager() {
 		return getSmartReceiptsApplication().getPersistenceManager();
-	}
-
-	protected WorkerManager getWorkerManager() {
-		return getSmartReceiptsApplication().getWorkerManager();
 	}
 
 	@NonNull

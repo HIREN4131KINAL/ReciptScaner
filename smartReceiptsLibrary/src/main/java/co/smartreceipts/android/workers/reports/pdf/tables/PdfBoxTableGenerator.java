@@ -13,6 +13,7 @@ import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
 import co.smartreceipts.android.workers.reports.TableGenerator;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
 public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTable, DataType> {
@@ -87,7 +88,7 @@ public class PdfBoxTableGenerator<DataType> implements TableGenerator<PdfBoxTabl
                         FixedWidthTextCell cell = new FixedWidthTextCell(
                                 colWidths[i],
                                 mCellPadding,
-                                mColumns.get(i).getValue(data),
+                                HeavyHandedReplaceIllegalCharacters.getSafeString(mColumns.get(i).getValue(data)),
                                 mContext.getFontManager().getFont(PdfFontStyle.Default),
                                 mContext.getColorManager().getColor(PdfColorStyle.Default));
                         cells[i] = cell;

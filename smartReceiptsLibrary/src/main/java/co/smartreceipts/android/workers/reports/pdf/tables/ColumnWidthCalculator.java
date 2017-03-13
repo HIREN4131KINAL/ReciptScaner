@@ -7,6 +7,7 @@ import java.util.List;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
 public class ColumnWidthCalculator<DataType> {
@@ -167,8 +168,7 @@ public class ColumnWidthCalculator<DataType> {
 
 
             for (DataType dataType : list) {
-                final String columnValue = mColumns.get(i).getValue(dataType);
-                final String value = columnValue != null ? columnValue : "";
+                final String value = HeavyHandedReplaceIllegalCharacters.getSafeString(mColumns.get(i).getValue(dataType));
 
                 float vWidth = PdfBoxUtils.getStringWidth(value, mFontContent);
                 float vMaxWordWidth = PdfBoxUtils.getMaxWordWidth(value, mFontContent);

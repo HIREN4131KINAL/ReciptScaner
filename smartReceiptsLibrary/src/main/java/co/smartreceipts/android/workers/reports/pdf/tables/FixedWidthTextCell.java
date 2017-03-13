@@ -11,6 +11,7 @@ import java.util.StringTokenizer;
 
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 public class FixedWidthTextCell implements FixedWidthCell {
 
@@ -27,7 +28,7 @@ public class FixedWidthTextCell implements FixedWidthCell {
                               @NonNull AWTColor color) {
         mWidth = width;
         mCellPadding = cellPadding;
-        mText = text;
+        mText = HeavyHandedReplaceIllegalCharacters.getSafeString(text);
         mFontSpec = fontSpec;
         mColor = color;
     }

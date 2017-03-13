@@ -32,6 +32,7 @@ public class PdfFontManager {
         final PDFont boldFont = fontLoader.load("NotoSerif-Bold.ttf");
         final PDFont italicFont = fontLoader.load("NotoSerif-Italic.ttf");
 
+
         final int titleSize = 13;
         final int defaultSize = 11;
         final int smallSize = 9;

@@ -20,20 +20,40 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.TestResourceReader;
+import co.smartreceipts.android.model.Column;
+import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceCommentColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceCurrencyColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceDateColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceDistanceColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceLocationColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistancePriceColumn;
+import co.smartreceipts.android.model.impl.columns.distance.DistanceRateColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsPicturedColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsReimbursableColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
@@ -98,9 +118,31 @@ public class InteractivePdfBoxTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void tearDown() {
         if (outputFile.exists()) {
-            outputFile.delete();
+           outputFile.delete();
         }
     }
+
+    @Test
+    public void createReportWithNonPrintableCharacters() throws Exception {
+
+        // Configure test data
+        final int count = 1;
+        final File imgFile = testResourceReader.openFile(TestResourceReader.LONG_RECEIPT_JPG);
+        final ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory(context);
+        factory.setFile(imgFile);
+        factory.setIsFullPage(true);
+        factory.setName("name\n\twith\r\nnon-printable\tchars");
+        when(userPreferenceManager.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("footer\n\twith\r\nnon-printable\tchars");
+
+        // Write the file
+        writeFullReport(TripUtils.newDefaultTrip(), Collections.singletonList(factory.build()));
+
+        // Verify the results
+        final PDDocument pdDocument = PDDocument.load(outputFile);
+        assertEquals(2, pdDocument.getNumberOfPages());
+        verifyImageCount(pdDocument, count);
+    }
+
 
     @Test
     public void createImageGridWithVarietyOfImages() throws Exception {
@@ -333,6 +375,36 @@ public class InteractivePdfBoxTest {
             receipts.add(factory.build());
         }
         return receipts;
+    }
+
+    private void writeFullReport(@NonNull Trip trip, @NonNull List<Receipt> receipts) throws Exception {
+        final PdfBoxReportFile pdfBoxReportFile = new PdfBoxReportFile(context, userPreferenceManager);
+
+        final ArrayList<Column<Receipt>> receiptColumns = new ArrayList<>();
+        receiptColumns.add(new ReceiptNameColumn(1, "Name", new DefaultSyncState()));
+        receiptColumns.add(new ReceiptPriceColumn(2, "Price", new DefaultSyncState()));
+        receiptColumns.add(new ReceiptDateColumn(3, "Date", new DefaultSyncState(), context, userPreferenceManager));
+        receiptColumns.add(new ReceiptCategoryNameColumn(4, "Category name", new DefaultSyncState()));
+
+        final List<Column<Distance>> distanceColumns = new ArrayList<>();
+        distanceColumns.add(new DistanceLocationColumn(1, "Location", new DefaultSyncState(), context));
+        distanceColumns.add(new DistancePriceColumn(2, "Price", new DefaultSyncState(), false));
+        distanceColumns.add(new DistanceDistanceColumn(3, "Distance", new DefaultSyncState()));
+        distanceColumns.add(new DistanceCurrencyColumn(4, "Currency", new DefaultSyncState()));
+        distanceColumns.add(new DistanceRateColumn(5, "Rate", new DefaultSyncState()));
+        distanceColumns.add(new DistanceDateColumn(6, "Date", new DefaultSyncState(), context, userPreferenceManager));
+        distanceColumns.add(new DistanceCommentColumn(7, "Comment", new DefaultSyncState()));
+
+        pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsTableSection(trip, receipts, receiptColumns, Collections.<Distance>emptyList(), distanceColumns));
+        pdfBoxReportFile.addSection(pdfBoxReportFile.createReceiptsImagesSection(trip, receipts));
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(outputFile);
+            pdfBoxReportFile.writeFile(outputStream, trip);
+        } finally {
+            IOUtils.closeQuietly(outputStream);
+        }
     }
 
     private void writeImagesOnlyReport(@NonNull Trip trip, @NonNull List<Receipt> receipts) throws Exception {

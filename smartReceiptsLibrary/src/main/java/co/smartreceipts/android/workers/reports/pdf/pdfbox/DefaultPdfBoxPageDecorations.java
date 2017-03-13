@@ -14,6 +14,7 @@ import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormatta
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
 public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
@@ -34,7 +35,7 @@ public class DefaultPdfBoxPageDecorations implements PdfBoxPageDecorations {
 
         final SmartReceiptsFormattableString formattableString = new SmartReceiptsFormattableString(pdfBoxContext.getPreferences().get(UserPreference.PlusSubscription.PdfFooterString),
                 pdfBoxContext.getAndroidContext(), trip, pdfBoxContext.getPreferences());
-        footerText = formattableString.toString();
+        footerText = HeavyHandedReplaceIllegalCharacters.getSafeString(formattableString.toString());
     }
 
     /**

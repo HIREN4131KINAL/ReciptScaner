@@ -44,6 +44,7 @@ import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthTextCell;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 import wb.android.storage.StorageManager;
 
 
@@ -127,7 +128,7 @@ public class PdfBoxWriter {
         contentStream.setNonStrokingColor(color);
         contentStream.beginText();
         contentStream.newLineAtOffset(leftOfPageXPosition + x, swapYCoordinate(y));
-        contentStream.showText(string);
+        contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(string));
         contentStream.endText();
     }
 
@@ -166,7 +167,7 @@ public class PdfBoxWriter {
         contentStream.newLineAtOffset(0, -dy);
         currentYPosition -= dy;
         // write the text
-        contentStream.showText(str);
+        contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(str));
     }
 
     void writeAndClose() throws IOException {
@@ -399,7 +400,7 @@ public class PdfBoxWriter {
             contentStream.newLineAtOffset(
                     xCell + dx,
                     y);
-            contentStream.showText(lines.get(i));
+            contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(lines.get(i)));
             contentStream.endText();
 
             y -= PdfBoxUtils.getFontHeight(fontSpec);

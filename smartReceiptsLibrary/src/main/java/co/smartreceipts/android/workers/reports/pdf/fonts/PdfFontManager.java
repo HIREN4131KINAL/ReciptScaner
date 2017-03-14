@@ -28,10 +28,9 @@ public class PdfFontManager {
 
     public void initialize() throws IOException {
         // Note: We'll want to refactor how these things are defined at some point to allow for font downloads (eg Asian char sets)
-        final PDFont defaultFont = fontLoader.load("NotoSerif-Regular.ttf");
-        final PDFont boldFont = fontLoader.load("NotoSerif-Bold.ttf");
-        final PDFont italicFont = fontLoader.load("NotoSerif-Italic.ttf");
-
+        final PDFont defaultFont = fontLoader.load("Roboto-Regular.ttf");
+        final PDFont boldFont = fontLoader.load("Roboto-Bold.ttf");
+        final PDFont italicFont = fontLoader.load("Roboto-Italic.ttf");
 
         final int titleSize = 13;
         final int defaultSize = 11;

@@ -14,6 +14,7 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -56,6 +57,7 @@ import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
+import co.smartreceipts.android.utils.shadows.ShadowFontFileFinder;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
 
 import static junit.framework.Assert.assertEquals;
@@ -72,6 +74,7 @@ import static org.mockito.Mockito.when;
  * </p>
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(shadows = {ShadowFontFileFinder.class})
 public class InteractivePdfBoxTest {
 
     Context context;
@@ -143,6 +146,47 @@ public class InteractivePdfBoxTest {
         verifyImageCount(pdDocument, count);
     }
 
+    @Test
+    public void createReportWithNonWesternCurrencies() throws Exception {
+
+        // Configure test data
+        final int count = 1;
+        final File imgFile = testResourceReader.openFile(TestResourceReader.LONG_RECEIPT_JPG);
+        final ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory(context);
+        factory.setFile(imgFile);
+        factory.setIsFullPage(true);
+        factory.setName("Name with Various Currencies: $£€\u20A3\u20A4\u20A6\u20A7\u20A8\u20A9\u20AA\u20AB\u20AC\u20B1\u20B9\u20BA\u20BC\u20BD.");
+        when(userPreferenceManager.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("Footer with Various Currencies: $£€ \u20A3\u20A4\u20A6\u20A7\u20A8\u20A9\u20AA\u20AB\u20AC\u20B1\u20B9\u20BA\u20BC\u20BD)");
+
+        // Write the file
+        writeFullReport(TripUtils.newDefaultTrip(), Collections.singletonList(factory.build()));
+
+        // Verify the results
+        final PDDocument pdDocument = PDDocument.load(outputFile);
+        assertEquals(2, pdDocument.getNumberOfPages());
+        verifyImageCount(pdDocument, count);
+    }
+
+    @Ignore("Still a WIP")
+    public void createReportWithOtherNonWesternCharacters() throws Exception {
+
+        // Configure test data
+        final int count = 1;
+        final File imgFile = testResourceReader.openFile(TestResourceReader.LONG_RECEIPT_JPG);
+        final ReceiptBuilderFactory factory = ReceiptUtils.newDefaultReceiptBuilderFactory(context);
+        factory.setFile(imgFile);
+        factory.setIsFullPage(true);
+        factory.setName("Name with Non-Western Characters: \uCD9C \uFFE5 \u7172");
+        when(userPreferenceManager.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("Footer with Various Currencies: $£€ \u20A3\u20A4\u20A6\u20A7\u20A8\u20A9\u20AA\u20AB\u20AC\u20B1\u20B9\u20BA\u20BC\u20BD)");
+
+        // Write the file
+        writeFullReport(TripUtils.newDefaultTrip(), Collections.singletonList(factory.build()));
+
+        // Verify the results
+        final PDDocument pdDocument = PDDocument.load(outputFile);
+        assertEquals(2, pdDocument.getNumberOfPages());
+        verifyImageCount(pdDocument, count);
+    }
 
     @Test
     public void createImageGridWithVarietyOfImages() throws Exception {

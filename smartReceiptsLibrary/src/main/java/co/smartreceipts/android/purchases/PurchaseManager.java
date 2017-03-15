@@ -31,11 +31,10 @@ import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
 
-public final class SubscriptionManager {
+public final class PurchaseManager {
 
     public static final int REQUEST_CODE = 5435;
 
-    private static final String TAG = SubscriptionManager.class.getSimpleName();
     private static final int BILLING_RESPONSE_CODE_OK = 0;
     private static final int API_VERSION = 3;
 
@@ -47,7 +46,7 @@ public final class SubscriptionManager {
     private static final String HARDCODED_DEVELOPER_PAYLOAD = "1234567890";
 
     private final Context mContext;
-    private final SubscriptionCache mSubscriptionCache;
+    private final PurchaseCache mPurchaseCache;
     private final AnalyticsManager mAnalyticsManager;
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
@@ -58,13 +57,13 @@ public final class SubscriptionManager {
     private volatile IInAppBillingService mService;
     private volatile PurchaseSource mPurchaseSource;
 
-    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache, @NonNull AnalyticsManager analyticsManager) {
-        this(context, subscriptionCache, analyticsManager, Executors.newSingleThreadExecutor());
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseCache purchaseCache, @NonNull AnalyticsManager analyticsManager) {
+        this(context, purchaseCache, analyticsManager, Executors.newSingleThreadExecutor());
     }
 
-    public SubscriptionManager(@NonNull Context context, @NonNull SubscriptionCache subscriptionCache, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseCache purchaseCache, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
         mContext = context.getApplicationContext();
-        mSubscriptionCache = subscriptionCache;
+        mPurchaseCache = purchaseCache;
         mAnalyticsManager = analyticsManager;
         mServiceConnection = new ServiceConnection() {
             @Override
@@ -128,7 +127,7 @@ public final class SubscriptionManager {
     }
 
     public void queryBuyIntent(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource) {
-        Logger.info(SubscriptionManager.this, "Initiating purchase of {} from {}.", subscription, purchaseSource);
+        Logger.info(PurchaseManager.this, "Initiating purchase of {} from {}.", subscription, purchaseSource);
 
         mAnalyticsManager.record(new DefaultDataPointEvent(Events.Purchases.ShowPurchaseIntent).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         this.queueOrExecuteTask(new Runnable() {
@@ -138,7 +137,7 @@ public final class SubscriptionManager {
                     final String developerPayload = mSessionDeveloperPayload;
                     final IInAppBillingService service = mService;
                     if (service == null) {
-                        Logger.error(SubscriptionManager.this, "Failed to purchase subscription due to unbound service");
+                        Logger.error(PurchaseManager.this, "Failed to purchase subscription due to unbound service");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onPurchaseIntentUnavailable(subscription);
                         }
@@ -153,13 +152,13 @@ public final class SubscriptionManager {
                             listener.onPurchaseIntentAvailable(subscription, pendingIntent, developerPayload);
                         }
                     } else {
-                        Logger.warn(SubscriptionManager.this, "Received an unexpected response code for the buy intent.");
+                        Logger.warn(PurchaseManager.this, "Received an unexpected response code for the buy intent.");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onPurchaseIntentUnavailable(subscription);
                         }
                     }
                 } catch (RemoteException e) {
-                    Logger.error(SubscriptionManager.this, "Failed to get buy intent", e);
+                    Logger.error(PurchaseManager.this, "Failed to get buy intent", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
                         listener.onPurchaseIntentUnavailable(subscription);
                     }
@@ -179,7 +178,7 @@ public final class SubscriptionManager {
             data.putExtra("INAPP_PURCHASE_DATA", json.toString());
             onActivityResult(REQUEST_CODE, Activity.RESULT_OK, data);
         } catch (JSONException e) {
-            Logger.error(SubscriptionManager.this, e.toString());
+            Logger.error(PurchaseManager.this, e.toString());
         }
     }
 
@@ -206,25 +205,25 @@ public final class SubscriptionManager {
                         final String sku = json.getString("productId");
                         final Subscription subscription = Subscription.from(sku);
                         if (subscription != null) {
-                            mSubscriptionCache.addSubscriptionToWallet(subscription);
+                            mPurchaseCache.addSubscriptionToWallet(subscription);
                             for (final SubscriptionEventsListener listener : mListeners) {
-                                listener.onPurchaseSuccess(subscription, purchaseSource, mSubscriptionCache.getSubscriptionWallet());
+                                listener.onPurchaseSuccess(subscription, purchaseSource, mPurchaseCache.getSubscriptionWallet());
                             }
                         } else {
                             for (final SubscriptionEventsListener listener : mListeners) {
                                 listener.onPurchaseFailed(mPurchaseSource);
                             }
-                            Logger.warn(SubscriptionManager.this, "Retrieved an unknown subscription code following a successful purchase: " + sku);
+                            Logger.warn(PurchaseManager.this, "Retrieved an unknown subscription code following a successful purchase: " + sku);
                         }
                     }
                 } catch (JSONException e) {
-                    Logger.error(SubscriptionManager.this, "Failed to find purchase information", e);
+                    Logger.error(PurchaseManager.this, "Failed to find purchase information", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
                         listener.onPurchaseFailed(purchaseSource);
                     }
                 }
             } else {
-                Logger.warn(SubscriptionManager.this, "Unexpected {resultCode, responseCode} pair: {" + resultCode + ", " + responseCode + "}");
+                Logger.warn(PurchaseManager.this, "Unexpected {resultCode, responseCode} pair: {" + resultCode + ", " + responseCode + "}");
                 for (final SubscriptionEventsListener listener : mListeners) {
                     listener.onPurchaseFailed(purchaseSource);
                 }
@@ -246,7 +245,7 @@ public final class SubscriptionManager {
                     // First, let's double check that we're bound
                     final IInAppBillingService service = mService;
                     if (service == null) {
-                        Logger.error(SubscriptionManager.this, "Failed to query subscriptions due to unbound service");
+                        Logger.error(PurchaseManager.this, "Failed to query subscriptions due to unbound service");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onSubscriptionsUnavailable();
                         }
@@ -270,14 +269,14 @@ public final class SubscriptionManager {
                             if (ownedSubscription != null) {
                                 ownedSubscriptions.add(ownedSubscription);
                             } else {
-                                Logger.warn(SubscriptionManager.this, "Unknown sku returned from the owned subscriptions query: " + sku);
+                                Logger.warn(PurchaseManager.this, "Unknown sku returned from the owned subscriptions query: " + sku);
                             }
                         }
 
                         // Now that we successfully got everything, let's save it
-                        mSubscriptionCache.updateSubscriptionsInWallet(ownedSubscriptions);
+                        mPurchaseCache.updateSubscriptionsInWallet(ownedSubscriptions);
                     } else {
-                        Logger.error(SubscriptionManager.this, "Failed to get the user's owned skus");
+                        Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onSubscriptionsUnavailable();
                         }
@@ -285,7 +284,7 @@ public final class SubscriptionManager {
                     }
 
                     // Next, let's figure out what is available for purchase
-                    final SubscriptionWallet subscriptionWallet = mSubscriptionCache.getSubscriptionWallet();
+                    final PurchaseWallet purchaseWallet = mPurchaseCache.getSubscriptionWallet();
                     final List<PurchaseableSubscription> availableSubscriptions = new ArrayList<>();
                     final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), "subs", querySkus);
                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
@@ -296,17 +295,17 @@ public final class SubscriptionManager {
                                 final String sku = object.getString("productId");
                                 final String price = object.getString("price");
                                 final Subscription subscription = Subscription.from(sku);
-                                if (subscription != null && !mSubscriptionCache.getSubscriptionWallet().hasSubscription(subscription)) {
+                                if (subscription != null && !mPurchaseCache.getSubscriptionWallet().hasSubscription(subscription)) {
                                     availableSubscriptions.add(new PurchaseableSubscription(subscription, price));
                                 } else {
-                                    Logger.warn(SubscriptionManager.this, "Unknown sku returned from the available subscriptions query: " + sku);
+                                    Logger.warn(PurchaseManager.this, "Unknown sku returned from the available subscriptions query: " + sku);
                                 }
                             } catch (JSONException e) {
-                                Logger.error(SubscriptionManager.this, "Failed to parse JSON about available skus for purchase", e);
+                                Logger.error(PurchaseManager.this, "Failed to parse JSON about available skus for purchase", e);
                             }
                         }
                     } else {
-                        Logger.error(SubscriptionManager.this, "Failed to get available skus for purchase");
+                        Logger.error(PurchaseManager.this, "Failed to get available skus for purchase");
                         for (final SubscriptionEventsListener listener : mListeners) {
                             listener.onSubscriptionsUnavailable();
                         }
@@ -315,10 +314,10 @@ public final class SubscriptionManager {
 
                     // Lastly, pass this info back to our listeners
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onSubscriptionsAvailable(new PurchaseableSubscriptions(availableSubscriptions), subscriptionWallet);
+                        listener.onSubscriptionsAvailable(new PurchaseableSubscriptions(availableSubscriptions), purchaseWallet);
                     }
                 } catch (RemoteException e) {
-                    Logger.error(SubscriptionManager.this, "Failed to get available skus for purchase", e);
+                    Logger.error(PurchaseManager.this, "Failed to get available skus for purchase", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
                         listener.onSubscriptionsUnavailable();
                     }
@@ -327,8 +326,8 @@ public final class SubscriptionManager {
         });
     }
 
-    public SubscriptionCache getSubscriptionCache() {
-        return mSubscriptionCache;
+    public PurchaseCache getSubscriptionCache() {
+        return mPurchaseCache;
     }
 
     /**

@@ -5,59 +5,57 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-public final class DefaultSubscriptionCache implements SubscriptionCache {
+public final class DefaultPurchaseCache implements PurchaseCache {
 
     private static final String KEY_SKU_SET = "key_sku_set";
 
     private final SharedPreferences mPreferences;
-    private SubscriptionWallet mSubscriptionWallet;
+    private PurchaseWallet mPurchaseWallet;
 
-    public DefaultSubscriptionCache(@NonNull Context context) {
+    public DefaultPurchaseCache(@NonNull Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 
-    public DefaultSubscriptionCache(@NonNull SharedPreferences preferences) {
+    public DefaultPurchaseCache(@NonNull SharedPreferences preferences) {
         mPreferences = preferences;
-        mSubscriptionWallet = restoreWallet();
+        mPurchaseWallet = restoreWallet();
     }
 
 
     @Override
     public synchronized void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions) {
         final Set<Subscription> actualSubscriptionSet = new HashSet<>(subscriptions);
-        final Set<Subscription> knownSubscriptionSet = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
+        final Set<Subscription> knownSubscriptionSet = new HashSet<>(mPurchaseWallet.getOwnedSubscriptions());
         if (!actualSubscriptionSet.equals(knownSubscriptionSet)) {
             // Only update if we actually added something to the underlying set
-            mSubscriptionWallet = new DefaultSubscriptionWallet(actualSubscriptionSet);
-            persistWallet(mSubscriptionWallet);
+            mPurchaseWallet = new DefaultPurchaseWallet(actualSubscriptionSet);
+            persistWallet(mPurchaseWallet);
         }
     }
 
     @NonNull
     @Override
-    public synchronized SubscriptionWallet getSubscriptionWallet() {
-        return mSubscriptionWallet;
+    public synchronized PurchaseWallet getSubscriptionWallet() {
+        return mPurchaseWallet;
     }
 
     @Override
     public synchronized void addSubscriptionToWallet(@NonNull Subscription subscription) {
-        final Set<Subscription> subscriptions = new HashSet<>(mSubscriptionWallet.getOwnedSubscriptions());
+        final Set<Subscription> subscriptions = new HashSet<>(mPurchaseWallet.getOwnedSubscriptions());
         if (!subscriptions.contains(subscription)) {
             subscriptions.add(subscription);
-            mSubscriptionWallet = new DefaultSubscriptionWallet(subscriptions);
-            persistWallet(mSubscriptionWallet);
+            mPurchaseWallet = new DefaultPurchaseWallet(subscriptions);
+            persistWallet(mPurchaseWallet);
         }
     }
 
     @NonNull
-    private SubscriptionWallet restoreWallet() {
+    private PurchaseWallet restoreWallet() {
         final Set<String> skusSet = mPreferences.getStringSet(KEY_SKU_SET, Collections.<String>emptySet());
         final Set<Subscription> subscriptions = new HashSet<>(skusSet.size());
         for (final String sku : skusSet) {
@@ -66,11 +64,11 @@ public final class DefaultSubscriptionCache implements SubscriptionCache {
                 subscriptions.add(subscription);
             }
         }
-        return new DefaultSubscriptionWallet(subscriptions);
+        return new DefaultPurchaseWallet(subscriptions);
     }
 
-    private void persistWallet(@NonNull SubscriptionWallet subscriptionWallet) {
-        final Collection<Subscription> subscriptions = subscriptionWallet.getOwnedSubscriptions();
+    private void persistWallet(@NonNull PurchaseWallet purchaseWallet) {
+        final Collection<Subscription> subscriptions = purchaseWallet.getOwnedSubscriptions();
         final Set<String> skusSet = new HashSet<>(subscriptions.size());
         for (final Subscription subscription : subscriptions) {
             skusSet.add(subscription.getSku());

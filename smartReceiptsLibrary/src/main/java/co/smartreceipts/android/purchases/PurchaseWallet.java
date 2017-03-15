@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 
 import java.util.Collection;
 
-public interface SubscriptionWallet {
+public interface PurchaseWallet {
 
     /**
      * Gets a complete list of all owned subscriptions

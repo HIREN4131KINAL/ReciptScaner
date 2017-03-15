@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultSubscriptionWallet implements SubscriptionWallet {
+public class DefaultPurchaseWallet implements PurchaseWallet {
 
     private final Set<Subscription> mOwnedSubscriptions;
 
-    public DefaultSubscriptionWallet(@NonNull Collection<Subscription> ownedSubscriptions) {
+    public DefaultPurchaseWallet(@NonNull Collection<Subscription> ownedSubscriptions) {
         mOwnedSubscriptions = Collections.unmodifiableSet(new HashSet<>(ownedSubscriptions));
     }
 

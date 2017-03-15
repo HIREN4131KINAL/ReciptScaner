@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-import co.smartreceipts.android.purchases.ProSubscriptionCache;
-import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.purchases.ProPurchaseCache;
+import co.smartreceipts.android.purchases.PurchaseCache;
 import co.smartreceipts.android.utils.log.Logger;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
@@ -128,8 +128,8 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
     }
 
     @Override
-    protected SubscriptionCache instantiateSubscriptionCache() {
-        return new ProSubscriptionCache();
+    protected PurchaseCache instantiateSubscriptionCache() {
+        return new ProPurchaseCache();
     }
 
     /*

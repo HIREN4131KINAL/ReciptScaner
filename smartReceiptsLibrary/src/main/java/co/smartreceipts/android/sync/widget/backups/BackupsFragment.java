@@ -29,7 +29,7 @@ import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFra
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
-import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -112,16 +112,16 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         mBackupConfigButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final SubscriptionManager subscriptionManager;
+                final PurchaseManager purchaseManager;
                 if (getActivity() instanceof SmartReceiptsActivity) {
                     final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) getActivity();
-                    subscriptionManager = smartReceiptsActivity.getSubscriptionManager();
+                    purchaseManager = smartReceiptsActivity.getSubscriptionManager();
                 } else {
-                    subscriptionManager = null;
+                    purchaseManager = null;
                 }
 
-                if (subscriptionManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
-                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
+                if (purchaseManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+                    purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
                     mNavigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
                 }

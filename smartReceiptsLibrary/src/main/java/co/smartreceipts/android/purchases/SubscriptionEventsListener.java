@@ -3,17 +3,15 @@ package co.smartreceipts.android.purchases;
 import android.app.PendingIntent;
 import android.support.annotation.NonNull;
 
-import java.util.List;
-
 public interface SubscriptionEventsListener {
 
     /**
      * Called as soon as we have successfully queried a list of available subscriptions
      *
      * @param purchaseableSubscriptions a list of subscriptions for purchase
-     * @param subscriptionWallet a wallet of owned subscriptions
+     * @param purchaseWallet a wallet of owned subscriptions
      */
-    void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet);
+    void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet);
 
     /**
      * Called if we failed to find to query subscriptions
@@ -41,9 +39,9 @@ public interface SubscriptionEventsListener {
      *
      * @param subscription the new subscription that we purchased
      * @param purchaseSource where the purchase flow was initiated
-     * @param updatedSubscriptionWallet the updated subscription wallet
+     * @param updatedPurchaseWallet the updated subscription wallet
      */
-    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet);
+    void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet);
 
     /**
      * Called if we failed to complete a purchase

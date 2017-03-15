@@ -18,15 +18,14 @@ import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.purchases.DefaultSubscriptionCache;
-import co.smartreceipts.android.purchases.SubscriptionCache;
+import co.smartreceipts.android.purchases.DefaultPurchaseCache;
+import co.smartreceipts.android.purchases.PurchaseCache;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
@@ -276,8 +275,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
      *
      * @return a SubscriptionCache Instance
      */
-    protected SubscriptionCache instantiateSubscriptionCache() {
-        return new DefaultSubscriptionCache(this);
+    protected PurchaseCache instantiateSubscriptionCache() {
+        return new DefaultPurchaseCache(this);
     }
 
     /**

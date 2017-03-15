@@ -9,7 +9,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 
 public class SubscriptionInformationDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
@@ -17,7 +16,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     public static final String TAG = SubscriptionInformationDialogFragment.class.getSimpleName();
 
     private SmartReceiptsActivity mSmartReceiptsActivity;
-    private SubscriptionManager mSubscriptionManager;
+    private PurchaseManager mPurchaseManager;
 
     @Override
     public void onAttach(Activity activity) {
@@ -43,13 +42,13 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mSubscriptionManager = mSmartReceiptsActivity.getSubscriptionManager();
+        mPurchaseManager = mSmartReceiptsActivity.getSubscriptionManager();
     }
 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
-        if (which == AlertDialog.BUTTON_POSITIVE && mSubscriptionManager != null) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
+        if (which == AlertDialog.BUTTON_POSITIVE && mPurchaseManager != null) {
+            mPurchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
         }
         dismiss();
     }

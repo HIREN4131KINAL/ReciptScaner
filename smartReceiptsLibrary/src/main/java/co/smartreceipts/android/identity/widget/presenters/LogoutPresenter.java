@@ -41,6 +41,7 @@ public class LogoutPresenter {
 
     @NonNull
     public Observable<Void> getLogoutStream() {
+        // TODO: Consider using isEnabled to auto-push forward these events on rotation
         return RxView.clicks(logoutButton)
                 .doOnNext(new Action1<Void>() {
                     @Override

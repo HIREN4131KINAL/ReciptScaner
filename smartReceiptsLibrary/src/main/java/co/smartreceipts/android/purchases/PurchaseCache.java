@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 
 import java.util.Collection;
 
-public interface SubscriptionCache {
+public interface PurchaseCache {
 
     /**
      * Gets the subscription wallet that is stored in this cache
@@ -12,7 +12,7 @@ public interface SubscriptionCache {
      * @return the current subscription wallet
      */
     @NonNull
-    SubscriptionWallet getSubscriptionWallet();
+    PurchaseWallet getSubscriptionWallet();
 
     /**
      * Adds a subscriptions to the existing wallet

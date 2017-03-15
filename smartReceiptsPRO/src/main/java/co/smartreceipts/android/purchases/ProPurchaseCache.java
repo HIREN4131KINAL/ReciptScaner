@@ -2,23 +2,21 @@ package co.smartreceipts.android.purchases;
 
 import android.support.annotation.NonNull;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
-public final class ProSubscriptionCache implements SubscriptionCache {
+public final class ProPurchaseCache implements PurchaseCache {
 
-    private final SubscriptionWallet mSubscriptionWallet;
+    private final PurchaseWallet mPurchaseWallet;
 
-    public ProSubscriptionCache() {
-        mSubscriptionWallet = new ProSubscriptionWallet();
+    public ProPurchaseCache() {
+        mPurchaseWallet = new ProPurchaseWallet();
     }
 
 
     @NonNull
     @Override
-    public SubscriptionWallet getSubscriptionWallet() {
-        return mSubscriptionWallet;
+    public PurchaseWallet getSubscriptionWallet() {
+        return mPurchaseWallet;
     }
 
     @Override

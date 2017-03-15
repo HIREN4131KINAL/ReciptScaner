@@ -7,8 +7,8 @@ import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
-import co.smartreceipts.android.purchases.SubscriptionManager;
-import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.WorkerManager;
@@ -16,18 +16,13 @@ import wb.receipts.R;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Point;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
@@ -39,11 +34,6 @@ import com.google.android.gms.ads.NativeExpressAdView;
 
 import java.lang.ref.WeakReference;
 import java.util.Random;
-
-import static android.R.attr.id;
-import static android.R.attr.layout_gravity;
-import static android.R.attr.layout_height;
-import static android.R.attr.layout_width;
 
 
 public class SRFreeAdManager extends AdManager implements SubscriptionEventsListener {
@@ -62,8 +52,8 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
         super(manager);
     }
 
-    public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable SubscriptionManager subscriptionManager) {
-        super.onActivityCreated(activity, subscriptionManager);
+    public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable PurchaseManager purchaseManager) {
+        super.onActivityCreated(activity, purchaseManager);
 
         final ViewGroup container = (ViewGroup) activity.findViewById(R.id.adView_container);
         final Button upsell = (Button) activity.findViewById(R.id.adView_upsell);
@@ -197,7 +187,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     @Override
-    public synchronized void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+    public synchronized void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
         // Refresh our subscriptions now
         final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
@@ -230,7 +220,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     @Override
-    public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
         Logger.info(this, "Received purchase success in our ad manager for: {}", subscription);
         if (Subscription.SmartReceiptsPlus == subscription) {
             final NativeExpressAdView adView = mAdViewReference.get();

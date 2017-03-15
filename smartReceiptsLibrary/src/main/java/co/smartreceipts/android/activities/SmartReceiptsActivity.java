@@ -19,7 +19,6 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
-import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -28,8 +27,8 @@ import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
-import co.smartreceipts.android.purchases.SubscriptionManager;
-import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.PurchaseWallet;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 
@@ -40,7 +39,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private NavigationHandler mNavigationHandler;
-    private SubscriptionManager mSubscriptionManager;
+    private PurchaseManager mPurchaseManager;
     private Attachment mAttachment;
     private BackupProvidersManager mBackupProvidersManager;
 
@@ -50,10 +49,10 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.debug(this, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
-        mSubscriptionManager = new SubscriptionManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
-        mSubscriptionManager.onCreate();
-        mSubscriptionManager.addEventListener(this);
-        mSubscriptionManager.querySubscriptions();
+        mPurchaseManager = new PurchaseManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
+        mPurchaseManager.onCreate();
+        mPurchaseManager.addEventListener(this);
+        mPurchaseManager.querySubscriptions();
 
         setContentView(R.layout.activity_main);
 
@@ -61,7 +60,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             Logger.debug(this, "savedInstanceState == null");
             mNavigationHandler.navigateToHomeTripsFragment();
         }
-        getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mSubscriptionManager);
+        getSmartReceiptsApplication().getWorkerManager().getAdManager().onActivityCreated(this, mPurchaseManager);
 
         mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         mBackupProvidersManager.initialize(this);
@@ -108,7 +107,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!mSubscriptionManager.onActivityResult(requestCode, resultCode, data)) {
+        if (!mPurchaseManager.onActivityResult(requestCode, resultCode, data)) {
             if (!mBackupProvidersManager.onActivityResult(requestCode, resultCode, data)) {
                 super.onActivityResult(requestCode, resultCode, data);
             }
@@ -150,7 +149,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mSubscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            mPurchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
@@ -189,8 +188,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     protected void onDestroy() {
         Logger.info(this, "onDestroy");
         getSmartReceiptsApplication().getWorkerManager().getAdManager().onDestroy();
-        mSubscriptionManager.removeEventListener(this);
-        mSubscriptionManager.onDestroy();
+        mPurchaseManager.removeEventListener(this);
+        mPurchaseManager.onDestroy();
         getSmartReceiptsApplication().getPersistenceManager().getDatabase().onDestroy();
         super.onDestroy();
     }
@@ -206,7 +205,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
     
     @Override
-    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull SubscriptionWallet subscriptionWallet) {
+    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
         Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
         mPurchaseableSubscriptions = purchaseableSubscriptions;
         invalidateOptionsMenu(); // To show the subscription option
@@ -220,7 +219,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
         try {
-            startIntentSenderForResult(pendingIntent.getIntentSender(), SubscriptionManager.REQUEST_CODE, new Intent(), 0, 0, 0);
+            startIntentSenderForResult(pendingIntent.getIntentSender(), PurchaseManager.REQUEST_CODE, new Intent(), 0, 0, 0);
         } catch (IntentSender.SendIntentException e) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -242,7 +241,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource, @NonNull SubscriptionWallet updatedSubscriptionWallet) {
+    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
         getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
@@ -265,7 +264,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Nullable
-    public SubscriptionManager getSubscriptionManager() {
-        return mSubscriptionManager;
+    public PurchaseManager getSubscriptionManager() {
+        return mPurchaseManager;
     }
 }

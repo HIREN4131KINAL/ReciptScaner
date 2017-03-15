@@ -62,7 +62,7 @@ import co.smartreceipts.android.persistence.database.controllers.impl.StubTableE
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.purchases.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
-import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
@@ -593,9 +593,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             final Activity activity = getActivity();
             if (activity instanceof SmartReceiptsActivity) {
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
-                final SubscriptionManager subscriptionManager = smartReceiptsActivity.getSubscriptionManager();
-                if (subscriptionManager != null) {
-                    subscriptionManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
+                final PurchaseManager purchaseManager = smartReceiptsActivity.getSubscriptionManager();
+                if (purchaseManager != null) {
+                    purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
                 }
             }
         }

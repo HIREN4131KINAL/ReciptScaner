@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import java.util.Arrays;
 import java.util.Collection;
 
-public final class ProSubscriptionWallet implements SubscriptionWallet {
+public final class ProPurchaseWallet implements PurchaseWallet {
 
     @NonNull
     @Override

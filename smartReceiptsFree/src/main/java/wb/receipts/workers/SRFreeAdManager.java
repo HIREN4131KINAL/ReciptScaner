@@ -3,12 +3,12 @@ package wb.receipts.workers;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.PurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.AdManager;
 import co.smartreceipts.android.workers.WorkerManager;
@@ -173,7 +173,7 @@ public class SRFreeAdManager extends AdManager implements SubscriptionEventsList
     }
 
     private boolean shouldShowAds(@NonNull NativeExpressAdView adView) {
-        final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean hasProSubscription = getSubscriptionManager() != null && getSubscriptionManager().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
     }

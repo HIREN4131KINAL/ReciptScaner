@@ -1,4 +1,4 @@
-package co.smartreceipts.android.purchases;
+package co.smartreceipts.android.purchases.widget;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -10,6 +10,9 @@ import android.support.v7.app.AlertDialog;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
+import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
+import co.smartreceipts.android.purchases.Subscription;
 
 public class SubscriptionInformationDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 

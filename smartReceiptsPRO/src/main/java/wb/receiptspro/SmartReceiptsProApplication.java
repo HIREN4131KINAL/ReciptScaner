@@ -1,26 +1,27 @@
 package wb.receiptspro;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-
-import co.smartreceipts.android.purchases.ProPurchaseCache;
-import co.smartreceipts.android.purchases.PurchaseCache;
-import co.smartreceipts.android.utils.log.Logger;
-import wb.android.storage.SDCardFileManager;
-import wb.android.storage.SDCardStateException;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.widget.Toast;
 
 import com.squareup.leakcanary.LeakCanary;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.purchases.wallet.ProPurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
+import co.smartreceipts.android.utils.log.Logger;
+import wb.android.storage.SDCardFileManager;
+import wb.android.storage.SDCardStateException;
 
 public class SmartReceiptsProApplication extends SmartReceiptsApplication {
 
@@ -128,8 +129,9 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication {
     }
 
     @Override
-    protected PurchaseCache instantiateSubscriptionCache() {
-        return new ProPurchaseCache();
+    @NonNull
+    protected PurchaseWallet instantiatePurchaseWallet() {
+        return new ProPurchaseWallet();
     }
 
     /*

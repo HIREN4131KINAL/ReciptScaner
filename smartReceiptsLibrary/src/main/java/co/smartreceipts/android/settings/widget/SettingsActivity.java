@@ -39,12 +39,12 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.PurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.IntentUtils;
@@ -92,7 +92,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         }
 
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getApplication());
-        mPurchaseManager = new PurchaseManager(this, app.getPersistenceManager().getSubscriptionCache(), app.getAnalyticsManager());
+        mPurchaseManager = new PurchaseManager(this, app.getPurchaseWallet(), app.getAnalyticsManager());
         mPurchaseManager.onCreate();
         mPurchaseManager.addEventListener(this);
         mPurchaseManager.querySubscriptions();
@@ -344,7 +344,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configureProPreferences(UniversalPreferences universal) {
-        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean hasProSubscription = mApp.getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
         pdfFooterPreference.setAppearsEnabled(hasProSubscription);
         pdfFooterPreference.setOnPreferenceClickListener(this);
@@ -396,7 +396,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             return true;
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
-            final boolean haveProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+            final boolean haveProSubscription = mApp.getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
             final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
             // If we don't already have the pro subscription and it's available, let's buy it
@@ -482,7 +482,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     private String getDebugScreen() {
-        final boolean hasProSubscription = mApp.getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean hasProSubscription = mApp.getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         return "Debug-information: \n" +
                 "Smart Receipts Version: " + getAppVersion() + "\n" +
                 "Package: " + getPackageName() + "\n" +

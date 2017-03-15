@@ -1,18 +1,20 @@
-package co.smartreceipts.android.purchases;
+package co.smartreceipts.android.purchases.wallet;
 
 import android.support.annotation.NonNull;
 
 import java.util.Collection;
 
-public interface PurchaseCache {
+import co.smartreceipts.android.purchases.Subscription;
+
+public interface PurchaseWallet {
 
     /**
-     * Gets the subscription wallet that is stored in this cache
+     * Checks if this user owns a particular subscription for this application
      *
-     * @return the current subscription wallet
+     * @param subscription the subscription to check for
+     * @return {@code true} if it's owned. {@code false} otherwise
      */
-    @NonNull
-    PurchaseWallet getSubscriptionWallet();
+    boolean hasSubscription(@NonNull Subscription subscription);
 
     /**
      * Adds a subscriptions to the existing wallet

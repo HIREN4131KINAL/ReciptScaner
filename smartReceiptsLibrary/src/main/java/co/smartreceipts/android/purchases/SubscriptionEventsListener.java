@@ -3,6 +3,9 @@ package co.smartreceipts.android.purchases;
 import android.app.PendingIntent;
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.purchases.source.PurchaseSource;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
+
 public interface SubscriptionEventsListener {
 
     /**

@@ -60,7 +60,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
@@ -585,7 +585,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onUserRetry() {
-        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
             Logger.info(this, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
@@ -674,7 +674,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
-        if (getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();

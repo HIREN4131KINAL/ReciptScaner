@@ -23,12 +23,12 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragment;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.model.Attachment;
-import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.PurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 
@@ -49,7 +49,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.debug(this, "onCreate");
 
         mNavigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
-        mPurchaseManager = new PurchaseManager(this, getSmartReceiptsApplication().getPersistenceManager().getSubscriptionCache(), getSmartReceiptsApplication().getAnalyticsManager());
+        mPurchaseManager = new PurchaseManager(this, getSmartReceiptsApplication().getPurchaseWallet(), getSmartReceiptsApplication().getAnalyticsManager());
         mPurchaseManager.onCreate();
         mPurchaseManager.addEventListener(this);
         mPurchaseManager.querySubscriptions();
@@ -118,7 +118,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPersistenceManager().getSubscriptionCache().getSubscriptionWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+        final boolean haveProSubscription = ((SmartReceiptsApplication)getApplication()).getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
         final boolean proSubscriptionIsAvailable = mPurchaseableSubscriptions != null && mPurchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option

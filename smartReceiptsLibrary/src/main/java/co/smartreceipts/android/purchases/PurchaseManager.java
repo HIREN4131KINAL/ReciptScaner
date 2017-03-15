@@ -29,6 +29,8 @@ import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 
 public final class PurchaseManager {
@@ -46,7 +48,7 @@ public final class PurchaseManager {
     private static final String HARDCODED_DEVELOPER_PAYLOAD = "1234567890";
 
     private final Context mContext;
-    private final PurchaseCache mPurchaseCache;
+    private final PurchaseWallet purchaseWallet;
     private final AnalyticsManager mAnalyticsManager;
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
@@ -57,13 +59,13 @@ public final class PurchaseManager {
     private volatile IInAppBillingService mService;
     private volatile PurchaseSource mPurchaseSource;
 
-    public PurchaseManager(@NonNull Context context, @NonNull PurchaseCache purchaseCache, @NonNull AnalyticsManager analyticsManager) {
-        this(context, purchaseCache, analyticsManager, Executors.newSingleThreadExecutor());
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull AnalyticsManager analyticsManager) {
+        this(context, purchaseWallet, analyticsManager, Executors.newSingleThreadExecutor());
     }
 
-    public PurchaseManager(@NonNull Context context, @NonNull PurchaseCache purchaseCache, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
         mContext = context.getApplicationContext();
-        mPurchaseCache = purchaseCache;
+        this.purchaseWallet = purchaseWallet;
         mAnalyticsManager = analyticsManager;
         mServiceConnection = new ServiceConnection() {
             @Override
@@ -205,9 +207,9 @@ public final class PurchaseManager {
                         final String sku = json.getString("productId");
                         final Subscription subscription = Subscription.from(sku);
                         if (subscription != null) {
-                            mPurchaseCache.addSubscriptionToWallet(subscription);
+                            purchaseWallet.addSubscriptionToWallet(subscription);
                             for (final SubscriptionEventsListener listener : mListeners) {
-                                listener.onPurchaseSuccess(subscription, purchaseSource, mPurchaseCache.getSubscriptionWallet());
+                                listener.onPurchaseSuccess(subscription, purchaseSource, purchaseWallet);
                             }
                         } else {
                             for (final SubscriptionEventsListener listener : mListeners) {
@@ -274,7 +276,7 @@ public final class PurchaseManager {
                         }
 
                         // Now that we successfully got everything, let's save it
-                        mPurchaseCache.updateSubscriptionsInWallet(ownedSubscriptions);
+                        purchaseWallet.updateSubscriptionsInWallet(ownedSubscriptions);
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
@@ -284,7 +286,6 @@ public final class PurchaseManager {
                     }
 
                     // Next, let's figure out what is available for purchase
-                    final PurchaseWallet purchaseWallet = mPurchaseCache.getSubscriptionWallet();
                     final List<PurchaseableSubscription> availableSubscriptions = new ArrayList<>();
                     final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), "subs", querySkus);
                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
@@ -295,7 +296,7 @@ public final class PurchaseManager {
                                 final String sku = object.getString("productId");
                                 final String price = object.getString("price");
                                 final Subscription subscription = Subscription.from(sku);
-                                if (subscription != null && !mPurchaseCache.getSubscriptionWallet().hasSubscription(subscription)) {
+                                if (subscription != null && !PurchaseManager.this.purchaseWallet.hasSubscription(subscription)) {
                                     availableSubscriptions.add(new PurchaseableSubscription(subscription, price));
                                 } else {
                                     Logger.warn(PurchaseManager.this, "Unknown sku returned from the available subscriptions query: " + sku);
@@ -326,8 +327,9 @@ public final class PurchaseManager {
         });
     }
 
-    public PurchaseCache getSubscriptionCache() {
-        return mPurchaseCache;
+    @NonNull
+    public PurchaseWallet getPurchaseWallet() {
+        return purchaseWallet;
     }
 
     /**

@@ -24,8 +24,8 @@ import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.purchases.DefaultPurchaseCache;
-import co.smartreceipts.android.purchases.PurchaseCache;
+import co.smartreceipts.android.purchases.wallet.DefaultPurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
@@ -61,6 +61,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     private ServiceManager mServiceManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
+    private PurchaseWallet purchaseWallet;
     private boolean mDeferFirstRunDialog;
 
     @Override
@@ -91,6 +92,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         mIdentityManager = new IdentityManager(this, identityStore, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
         pushManager = new PushManager(this, mServiceManager);
         pushManager.initialize();
+
+        purchaseWallet = instantiatePurchaseWallet();
 
         ocrInteractor = new OcrInteractor(this, pushManager);
 
@@ -193,6 +196,11 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         return ocrInteractor;
     }
 
+    @NonNull
+    public PurchaseWallet getPurchaseWallet() {
+        return purchaseWallet;
+    }
+
     @Override
     public int getFleXML() {
         return Flexable.UNDEFINED;
@@ -258,7 +266,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
      * @return a PersistenceManager Instance
      */
     protected PersistenceManager instantiatePersistenceManager() {
-        return new PersistenceManager(this, instantiateSubscriptionCache());
+        return new PersistenceManager(this);
     }
 
     /**
@@ -275,8 +283,9 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
      *
      * @return a SubscriptionCache Instance
      */
-    protected PurchaseCache instantiateSubscriptionCache() {
-        return new DefaultPurchaseCache(this);
+    @NonNull
+    protected PurchaseWallet instantiatePurchaseWallet() {
+        return new DefaultPurchaseWallet(this);
     }
 
     /**

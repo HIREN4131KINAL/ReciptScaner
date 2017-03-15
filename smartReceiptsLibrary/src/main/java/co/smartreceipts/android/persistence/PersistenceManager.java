@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence;
 
 import android.support.annotation.NonNull;
 
-import co.smartreceipts.android.purchases.PurchaseCache;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
@@ -18,12 +17,10 @@ public class PersistenceManager {
 	private SDCardFileManager mExternalStorageManager;
 	private InternalStorageManager mInternalStorageManager;
     private final UserPreferenceManager preferenceManager;
-    private final PurchaseCache mPurchaseCache;
 
-	public PersistenceManager(SmartReceiptsApplication application, PurchaseCache purchaseCache) {
+	public PersistenceManager(@NonNull SmartReceiptsApplication application) {
 		mApplication =  application;
 		mStorageManager = StorageManager.getInstance(application);
-        mPurchaseCache = purchaseCache;
 
         this.preferenceManager = new UserPreferenceManager(application);
 	}
@@ -87,10 +84,6 @@ public class PersistenceManager {
     @NonNull
     public UserPreferenceManager getPreferenceManager() {
         return preferenceManager;
-    }
-
-    public PurchaseCache getSubscriptionCache() {
-        return mPurchaseCache;
     }
 
 }

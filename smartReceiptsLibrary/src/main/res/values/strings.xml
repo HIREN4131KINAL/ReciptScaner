@@ -408,6 +408,7 @@
     <string name="my_account_toolbar_title">My Account</string>
     <string name="my_account_welcome">Welcome %s</string>
     <string name="my_account_info_message">Your account details can be found below:</string>
+    <string name="logout_button_text">Log Out</string>
 
 
     <!-- ==================== dialog filter ======================= -->

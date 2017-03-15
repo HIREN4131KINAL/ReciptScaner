@@ -79,6 +79,13 @@
                 android:layout_marginBottom="@dimen/default_margin_item_separator"
                 android:text="@string/my_account_info_message"/>
 
+            <Button style="@style/Widget.SmartReceipts.Button"
+                    android:id="@+id/logout_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/logout_button_text" />
+
         </LinearLayout>
 
     </RelativeLayout>

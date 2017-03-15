@@ -1,4 +1,4 @@
-package co.smartreceipts.android.identity.widget;
+package co.smartreceipts.android.identity.widget.presenters;
 
 import android.graphics.PorterDuff;
 import android.support.annotation.NonNull;
@@ -36,10 +36,6 @@ public class LoginPresenter {
     private final EditText passwordInput;
     private final Button loginButton;
 
-    // Somebody signed in stuff
-    private final View existingUserLayout;
-    private final TextView myAccountWelcomeMessage;
-
     private final PublishSubject<LoginParams> loginParamsSubject = PublishSubject.create();
     private CompositeSubscription compositeSubscription;
 
@@ -49,9 +45,6 @@ public class LoginPresenter {
         emailInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_field_email));
         passwordInput = Preconditions.checkNotNull((EditText) view.findViewById(R.id.login_field_password));
         loginButton = Preconditions.checkNotNull((Button) view.findViewById(R.id.login_button));
-
-        existingUserLayout = Preconditions.checkNotNull(view.findViewById(R.id.existing_user_layout));
-        myAccountWelcomeMessage = Preconditions.checkNotNull((TextView) view.findViewById(R.id.my_account_welcome));
     }
 
     public void onResume() {
@@ -98,18 +91,14 @@ public class LoginPresenter {
         return loginParamsSubject.asObservable();
     }
 
-    public void presentNoUserSignedIn() {
-        existingUserLayout.setVisibility(View.GONE);
+    public void present() {
         noActiveUserLayout.setVisibility(View.VISIBLE);
         emailInput.requestFocus();
         SoftKeyboardManager.showKeyboard(emailInput);
     }
 
-    public void presentExistingUserSignedIn(@NonNull EmailAddress emailAddress) {
-        existingUserLayout.setVisibility(View.VISIBLE);
+    public void hide() {
         noActiveUserLayout.setVisibility(View.GONE);
-        emailInput.setText(emailAddress);
-        myAccountWelcomeMessage.setText(myAccountWelcomeMessage.getContext().getString(R.string.my_account_welcome, emailAddress));
     }
 
     public void presentLoginSuccess() {
@@ -172,9 +161,8 @@ public class LoginPresenter {
                     }
                 });
     }
-    
-    private void validInputHighlight(@NonNull EditText editText) {
 
+    private void validInputHighlight(@NonNull EditText editText) {
         final int color = ResourcesCompat.getColor(editText.getResources(), R.color.smart_receipts_colorSuccess, editText.getContext().getTheme());
         editText.getBackground().mutate().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
     }
@@ -183,5 +171,4 @@ public class LoginPresenter {
         final int color = ResourcesCompat.getColor(editText.getResources(), R.color.smart_receipts_colorAccent, editText.getContext().getTheme());
         editText.getBackground().mutate().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
     }
-
 }

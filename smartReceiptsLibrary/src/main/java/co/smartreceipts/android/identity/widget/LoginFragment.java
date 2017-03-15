@@ -18,12 +18,15 @@ import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
+import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.store.EmailAddress;
+import co.smartreceipts.android.identity.widget.presenters.MyAccountPresenter;
 import co.smartreceipts.android.utils.log.Logger;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.subscriptions.CompositeSubscription;
 
 public class LoginFragment extends WBFragment {
@@ -32,7 +35,7 @@ public class LoginFragment extends WBFragment {
 
     private static final String OUT_LOGIN_PARAMS = "out_login_params";
 
-    private LoginPresenter loginPresenter;
+    private MyAccountPresenter myAccountPresenter;
     private LoginInteractor loginInteractor;
     private NavigationHandler navigationHandler;
 
@@ -67,7 +70,7 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        this.loginPresenter = new LoginPresenter(view);
+        this.myAccountPresenter = new MyAccountPresenter(view);
     }
 
     @Override
@@ -100,13 +103,32 @@ public class LoginFragment extends WBFragment {
         if (this.compositeSubscription == null) {
             this.compositeSubscription = new CompositeSubscription();
         }
-        this.loginPresenter.onResume();
+        this.myAccountPresenter.onResume();
 
-        this.compositeSubscription.add(this.loginPresenter.getLoginParamsStream()
+        this.compositeSubscription.add(myAccountPresenter.getLoginParamsStream()
             .subscribe(new Action1<LoginParams>() {
                 @Override
                 public void call(LoginParams loginParams) {
                     logIn(loginParams);
+                }
+            }));
+        this.compositeSubscription.add(myAccountPresenter.getLogoutStream()
+            .flatMap(new Func1<Void, Observable<LogoutResponse>>() {
+                @Override
+                public Observable<LogoutResponse> call(Void aVoid) {
+                    return loginInteractor.logOut();
+                }
+            })
+            // TODO: Handle rotation stuff here?
+            .subscribe(new Action1<LogoutResponse>() {
+                @Override
+                public void call(LogoutResponse logoutResponse) {
+                    // TODO: onSuccess
+                }
+            }, new Action1<Throwable>() {
+                @Override
+                public void call(Throwable throwable) {
+                    // TODO: onError
                 }
             }));
         this.compositeSubscription.add(this.loginInteractor.isLoggedIn()
@@ -117,12 +139,12 @@ public class LoginFragment extends WBFragment {
                         if (actionBar != null) {
                             actionBar.setTitle(R.string.my_account_toolbar_title);
                         }
-                        loginPresenter.presentExistingUserSignedIn(emailAddress);
+                        myAccountPresenter.presentExistingUserSignedIn(emailAddress);
                     } else {
                         if (actionBar != null) {
                             actionBar.setTitle(R.string.login_toolbar_title);
                         }
-                        loginPresenter.presentNoUserSignedIn();
+                        myAccountPresenter.presentNoUserSignedIn();
                     }
                 }
             }));
@@ -131,7 +153,7 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        this.loginPresenter.onPause();
+        this.myAccountPresenter.onPause();
         if (compositeSubscription != null) {
             compositeSubscription.unsubscribe();
             compositeSubscription = null;
@@ -152,7 +174,6 @@ public class LoginFragment extends WBFragment {
             this.compositeSubscription = new CompositeSubscription();
         }
         this.compositeSubscription.add(this.loginInteractor.login(loginParams)
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<LoginResponse>() {
                     @Override
                     public void call(LoginResponse org) {
@@ -160,14 +181,14 @@ public class LoginFragment extends WBFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        loginPresenter.presentLoginFailure();
+                        myAccountPresenter.presentLoginFailure();
                         loginInteractor.onLoginResultsConsumed(cachedLoginParams);
                         cachedLoginParams = null;
                     }
                 }, new Action0() {
                     @Override
                     public void call() {
-                        loginPresenter.presentLoginSuccess();
+                        myAccountPresenter.presentLoginSuccess();
                         loginInteractor.onLoginResultsConsumed(cachedLoginParams);
                         cachedLoginParams = null;
                     }

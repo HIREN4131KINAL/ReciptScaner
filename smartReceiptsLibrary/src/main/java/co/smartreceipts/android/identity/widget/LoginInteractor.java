@@ -9,10 +9,12 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class LoginInteractor {
 
@@ -45,11 +47,22 @@ public class LoginInteractor {
     @NonNull
     public Observable<LoginResponse> login(@NonNull LoginParams loginParams) {
         Logger.info(this, "Initiating user login");
-        return this.identityManager.logIn(loginParams);
+        return this.identityManager.logIn(loginParams)
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     public void onLoginResultsConsumed(@NonNull LoginParams loginParams) {
         this.identityManager.markLoginComplete(loginParams);
+    }
+
+    @NonNull
+    public Observable<LogoutResponse> logOut() {
+        return this.identityManager.logOut()
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public void onLogoutResultsConsumed() {
+        this.identityManager.markLogoutComplete();
     }
 
 }

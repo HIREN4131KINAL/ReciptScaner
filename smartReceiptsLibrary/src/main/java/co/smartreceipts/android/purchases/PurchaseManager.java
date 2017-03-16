@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
@@ -49,7 +50,7 @@ public final class PurchaseManager {
 
     private final Context mContext;
     private final PurchaseWallet purchaseWallet;
-    private final AnalyticsManager mAnalyticsManager;
+    private final Analytics mAnalyticsManager;
     private final ServiceConnection mServiceConnection;
     private final ExecutorService mExecutorService;
     private final CopyOnWriteArrayList<SubscriptionEventsListener> mListeners;
@@ -59,14 +60,14 @@ public final class PurchaseManager {
     private volatile IInAppBillingService mService;
     private volatile PurchaseSource mPurchaseSource;
 
-    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull AnalyticsManager analyticsManager) {
-        this(context, purchaseWallet, analyticsManager, Executors.newSingleThreadExecutor());
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull Analytics analytics) {
+        this(context, purchaseWallet, analytics, Executors.newSingleThreadExecutor());
     }
 
-    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull AnalyticsManager analyticsManager, @NonNull ExecutorService backgroundTasksExecutor) {
+    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull Analytics analytics, @NonNull ExecutorService backgroundTasksExecutor) {
         mContext = context.getApplicationContext();
         this.purchaseWallet = purchaseWallet;
-        mAnalyticsManager = analyticsManager;
+        mAnalyticsManager = analytics;
         mServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {

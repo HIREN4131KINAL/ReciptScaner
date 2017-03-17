@@ -11,8 +11,8 @@ import java.sql.Date;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.PriceCurrency;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.impl.ImmutableDistanceImpl;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;

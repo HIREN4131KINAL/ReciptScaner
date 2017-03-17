@@ -18,7 +18,6 @@ import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
@@ -39,8 +38,8 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
     private final SyncStateAdapter mSyncStateAdapter;
 
     public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
-                                  @NonNull Table<Category, String> categoriesTable, @NonNull PersistenceManager persistenceManager) {
-        this(tripsTable, paymentMethodTable, categoriesTable, Preconditions.checkNotNull(persistenceManager).getStorageManager(), new SyncStateAdapter());
+                                  @NonNull Table<Category, String> categoriesTable, @NonNull StorageManager storageManager) {
+        this(tripsTable, paymentMethodTable, categoriesTable, storageManager, new SyncStateAdapter());
     }
 
     public ReceiptDatabaseAdapter(@NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable,

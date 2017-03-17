@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.Configuration;
@@ -22,6 +23,8 @@ import android.widget.Spinner;
 import java.math.BigDecimal;
 import java.sql.Date;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.events.Events;
@@ -32,10 +35,12 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import dagger.android.support.AndroidSupportInjection;
 import wb.android.autocomplete.AutoCompleteAdapter;
 
 public class DistanceDialogFragment extends DialogFragment implements OnClickListener {
@@ -43,18 +48,21 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     public static final String TAG = DistanceDialogFragment.class.getSimpleName();
     private static final String ARG_SUGGESTED_DATE = "arg_suggested_date";
 
-    private EditText mDistance, mRate, mComment;
-    private AutoCompleteTextView mLocation;
-    private DateEditText mDate;
-    private Spinner mCurrency;
-    private Trip mTrip;
-    private Distance mUpdateableDistance;
-    private DatabaseHelper mDB;
-    private UserPreferenceManager mPrefs;
-    private DateManager mDateManager;
-    private AutoCompleteAdapter mLocationAutoCompleteAdapter;
-    private Date mSuggestedDate;
-    private DistanceTableController mDistanceTableController;
+    @Inject
+    PersistenceManager persistenceManager;
+
+    @Inject
+    DateManager dateManager;
+
+    private EditText distance, rate, comment;
+    private AutoCompleteTextView location;
+    private DateEditText date;
+    private Spinner currency;
+    private Trip trip;
+    private Distance updateableDistance;
+    private AutoCompleteAdapter locationAutoCompleteAdapter;
+    private Date suggestedDate;
+    private DistanceTableController distanceTableController;
 
     /**
      * Creates a new instance of a {@link co.smartreceipts.android.fragments.DistanceDialogFragment}, which
@@ -109,18 +117,23 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
-        mDB = app.getPersistenceManager().getDatabase();
-        mDistanceTableController = app.getTableControllerManager().getDistanceTableController();
-        mPrefs = app.getPersistenceManager().getPreferenceManager();
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mUpdateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
+
+        distanceTableController = app.getTableControllerManager().getDistanceTableController();
+        trip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        updateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
         final Time now = new Time();
         now.setToNow();
         // Default to "now" if not suggested date was set
-        mSuggestedDate = new Date(getArguments().getLong(ARG_SUGGESTED_DATE, now.toMillis(false)));
+        suggestedDate = new Date(getArguments().getLong(ARG_SUGGESTED_DATE, now.toMillis(false)));
     }
 
     @Override
@@ -129,43 +142,48 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         final LayoutInflater inflater = LayoutInflater.from(getActivity());
         final View rootView = inflater.inflate(R.layout.dialog_mileage, null);
 
-        mDistance = (EditText) rootView.findViewById(R.id.dialog_mileage_distance);
-        mRate = (EditText) rootView.findViewById(R.id.dialog_mileage_rate);
-        mCurrency = (Spinner) rootView.findViewById(R.id.dialog_mileage_currency);
-        mLocation = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_mileage_location);
-        mComment = (EditText) rootView.findViewById(R.id.dialog_mileage_comment);
-        mDate = (DateEditText) rootView.findViewById(R.id.dialog_mileage_date);
+        distance = (EditText) rootView.findViewById(R.id.dialog_mileage_distance);
+        rate = (EditText) rootView.findViewById(R.id.dialog_mileage_rate);
+        currency = (Spinner) rootView.findViewById(R.id.dialog_mileage_currency);
+        location = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_mileage_location);
+        comment = (EditText) rootView.findViewById(R.id.dialog_mileage_comment);
+        date = (DateEditText) rootView.findViewById(R.id.dialog_mileage_date);
 
-        final ArrayAdapter<CharSequence> currencies = new ArrayAdapter<CharSequence>(getActivity(), android.R.layout.simple_spinner_item, mDB.getCurrenciesList());
+        DatabaseHelper databaseHelper = persistenceManager.getDatabase();
+        UserPreferenceManager prefs = persistenceManager.getPreferenceManager();
+
+        final ArrayAdapter<CharSequence> currencies = new ArrayAdapter<CharSequence>(getActivity(),
+                android.R.layout.simple_spinner_item, databaseHelper.getCurrenciesList());
         currencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mCurrency.setAdapter(currencies);
-        mDate.setOnClickListener(getDateManager().getDateEditTextListener());
-        mDate.setFocusable(false);
-        mDate.setFocusableInTouchMode(false);
+        currency.setAdapter(currencies);
+        date.setOnClickListener(dateManager.getDateEditTextListener());
+        date.setFocusable(false);
+        date.setFocusableInTouchMode(false);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(rootView);
-        if (mUpdateableDistance == null) {
+        if (updateableDistance == null) {
             // New Distance
             builder.setTitle(getString(R.string.dialog_mileage_title_create));
             builder.setPositiveButton(getString(R.string.dialog_mileage_positive_create), this);
-            mDate.date = mSuggestedDate;
-            mDate.setText(DateFormat.getDateFormat(getActivity()).format(mDate.date));
-            int idx = currencies.getPosition(mTrip.getPrice().getCurrencyCode());
+            date.date = suggestedDate;
+            date.setText(DateFormat.getDateFormat(getActivity()).format(date.date));
+            int idx = currencies.getPosition(trip.getPrice().getCurrencyCode());
             if (idx > 0) {
-                mCurrency.setSelection(idx);
+                currency.setSelection(idx);
             }
-            final float distanceRate = mPrefs.get(UserPreference.Distance.DefaultDistanceRate);
+            final float distanceRate = prefs.get(UserPreference.Distance.DefaultDistanceRate);
             if (distanceRate > 0) {
-                mRate.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(distanceRate), Distance.RATE_PRECISION));
+                rate.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(distanceRate), Distance.RATE_PRECISION));
             }
-            if (mLocationAutoCompleteAdapter == null) {
-                mLocationAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_DISTANCE_LOCATION, mDB);
+            if (locationAutoCompleteAdapter == null) {
+                locationAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(),
+                        DatabaseHelper.TAG_DISTANCE_LOCATION, databaseHelper);
             } else {
-                mLocationAutoCompleteAdapter.reset();
+                locationAutoCompleteAdapter.reset();
             }
-            mLocation.setAdapter(mLocationAutoCompleteAdapter);
-            mDistance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            location.setAdapter(locationAutoCompleteAdapter);
+            distance.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
                     if (hasFocus && getActivity() != null && getDialog() != null) {
@@ -180,28 +198,28 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
             builder.setTitle(getString(R.string.dialog_mileage_title_update));
             builder.setPositiveButton(getString(R.string.dialog_mileage_positive_update), this);
             builder.setNeutralButton(getString(R.string.dialog_mileage_neutral_delete), this);
-            mDistance.setText(mUpdateableDistance.getDecimalFormattedDistance());
-            mRate.setText(mUpdateableDistance.getDecimalFormattedRate());
-            mLocation.setText(mUpdateableDistance.getLocation());
-            mComment.setText(mUpdateableDistance.getComment());
-            mDate.setText(mUpdateableDistance.getFormattedDate(getActivity(), mPrefs.get(UserPreference.General.DateSeparator)));
-            mDate.date = mUpdateableDistance.getDate();
-            int idx = currencies.getPosition(mUpdateableDistance.getPrice().getCurrencyCode());
+            distance.setText(updateableDistance.getDecimalFormattedDistance());
+            rate.setText(updateableDistance.getDecimalFormattedRate());
+            location.setText(updateableDistance.getLocation());
+            comment.setText(updateableDistance.getComment());
+            date.setText(updateableDistance.getFormattedDate(getActivity(), prefs.get(UserPreference.General.DateSeparator)));
+            date.date = updateableDistance.getDate();
+            int idx = currencies.getPosition(updateableDistance.getPrice().getCurrencyCode());
             if (idx > 0) {
-                mCurrency.setSelection(idx);
+                currency.setSelection(idx);
             }
         }
         builder.setNegativeButton(android.R.string.cancel, this);
 
         final Dialog dialog = builder.create();
-        getDateManager().setDateEditTextListenerDialogHolder(dialog);
+        dateManager.setDateEditTextListenerDialogHolder(dialog);
         return dialog;
     }
 
     @Override
     public void onPause() {
-        if (mLocationAutoCompleteAdapter != null) {
-            mLocationAutoCompleteAdapter.onPause();
+        if (locationAutoCompleteAdapter != null) {
+            locationAutoCompleteAdapter.onPause();
         }
         super.onPause();
     }
@@ -210,17 +228,17 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
             // Create/Edit
-            final String currency = mCurrency.getSelectedItem().toString();
-            final String location = mLocation.getText().toString();
-            final String comment = mComment.getText().toString();
-            final Date date = mDate.date;
+            final String currency = this.currency.getSelectedItem().toString();
+            final String location = this.location.getText().toString();
+            final String comment = this.comment.getText().toString();
+            final Date date = this.date.date;
 
-            if (mUpdateableDistance == null) {
+            if (updateableDistance == null) {
                 // We're inserting a new one
-                final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), new BigDecimal(0));
-                final BigDecimal rate = getBigDecimalFromString(mRate.getText().toString(), new BigDecimal(0));
+                final BigDecimal distance = getBigDecimalFromString(this.distance.getText().toString(), new BigDecimal(0));
+                final BigDecimal rate = getBigDecimalFromString(this.rate.getText().toString(), new BigDecimal(0));
                 final DistanceBuilderFactory builder = new DistanceBuilderFactory();
-                builder.setTrip(mTrip);
+                builder.setTrip(trip);
                 builder.setLocation(location);
                 builder.setDistance(distance);
                 builder.setDate(date);
@@ -228,12 +246,12 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setCurrency(currency);
                 builder.setComment(comment);
                 ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistNewDistance);
-                mDistanceTableController.insert(builder.build(), new DatabaseOperationMetadata());
+                distanceTableController.insert(builder.build(), new DatabaseOperationMetadata());
             } else {
                 // We're updating
-                final BigDecimal distance = getBigDecimalFromString(mDistance.getText().toString(), mUpdateableDistance.getDistance());
-                final BigDecimal rate = getBigDecimalFromString(mRate.getText().toString(), mUpdateableDistance.getRate());
-                final DistanceBuilderFactory builder = new DistanceBuilderFactory(mUpdateableDistance);
+                final BigDecimal distance = getBigDecimalFromString(this.distance.getText().toString(), updateableDistance.getDistance());
+                final BigDecimal rate = getBigDecimalFromString(this.rate.getText().toString(), updateableDistance.getRate());
+                final DistanceBuilderFactory builder = new DistanceBuilderFactory(updateableDistance);
                 builder.setLocation(location);
                 builder.setDistance(distance);
                 builder.setDate(date);
@@ -241,18 +259,18 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setCurrency(currency);
                 builder.setComment(comment);
                 ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistUpdateDistance);
-                mDistanceTableController.update(mUpdateableDistance, builder.build(), new DatabaseOperationMetadata());
+                distanceTableController.update(updateableDistance, builder.build(), new DatabaseOperationMetadata());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {
             // Delete
             final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(getString(R.string.delete_item, mUpdateableDistance.getLocation()));
+            builder.setTitle(getString(R.string.delete_item, updateableDistance.getLocation()));
             builder.setMessage(R.string.delete_sync_information);
             builder.setCancelable(true);
             builder.setPositiveButton(R.string.delete, new OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    mDistanceTableController.delete(mUpdateableDistance, new DatabaseOperationMetadata());
+                    distanceTableController.delete(updateableDistance, new DatabaseOperationMetadata());
                     dismiss();
                 }
             });
@@ -281,14 +299,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         } catch (NumberFormatException e) {
             return fallback;
         }
-    }
-
-
-    private DateManager getDateManager() {
-        if (mDateManager == null) {
-            mDateManager = new DateManager(getActivity(), ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getPreferenceManager());
-        }
-        return mDateManager;
     }
 
 }

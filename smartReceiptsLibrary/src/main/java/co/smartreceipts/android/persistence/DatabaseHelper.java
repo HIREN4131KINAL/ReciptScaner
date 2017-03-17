@@ -18,17 +18,14 @@ import java.util.List;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.BuildConfig;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.model.utils.CurrencyUtils;
-import co.smartreceipts.android.persistence.database.defaults.TableDefaultCustomizerImpl;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.tables.AbstractSqlTable;
@@ -40,13 +37,13 @@ import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
 import rx.Observable;
 import rx.Subscriber;
 import wb.android.autocomplete.AutoCompleteAdapter;
-import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 
 public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdapter.QueryListener, AutoCompleteAdapter.ItemSelectedListener {
@@ -68,16 +65,16 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     // InstanceVar
     private static DatabaseHelper INSTANCE = null;
 
+
     // Caching Vars
     private ArrayList<CharSequence> mFullCurrencyList;
     private ArrayList<CharSequence> mMostRecentlyUsedCurrencyList;
     private final ReceiptColumnDefinitions mReceiptColumnDefinitions;
 
     // Other vars
-    private final Context mContext;
-    private final Flex mFlex;
-    private final PersistenceManager mPersistenceManager;
     private final TableDefaultsCustomizer mCustomizations;
+    private final UserPreferenceManager mPreferences;
+    private final StorageManager mStorageManager;
 
     // Listeners
     private ReceiptAutoCompleteListener mReceiptAutoCompleteListener;
@@ -103,25 +100,26 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         void onReceiptRowAutoCompleteQueryResult(@Nullable String name, @Nullable String price, @Nullable String category);
     }
 
-    private DatabaseHelper(@NonNull SmartReceiptsApplication application, @NonNull PersistenceManager persistenceManager,
-                           @NonNull String databasePath) {
-        super(application.getApplicationContext(), databasePath, null, DATABASE_VERSION); // Requests the default cursor
-        // factory
-        mContext = application.getApplicationContext();
-        mFlex = application.getFlex();
-        mPersistenceManager = persistenceManager;
-        mReceiptColumnDefinitions = new ReceiptColumnDefinitions(mContext, this, mPersistenceManager.getPreferenceManager(), mFlex);
-        mCustomizations = new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
+    public DatabaseHelper(@NonNull Context context, /*@NonNull PersistenceManager persistenceManager,*/
+                          @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences,
+                          @NonNull String databasePath, ReceiptColumnDefinitions receiptColumnDefinitions,
+                          WhiteLabelFriendlyTableDefaultsCustomizer tableDefaultsCustomizer) {
+        super(context, databasePath, null, DATABASE_VERSION); // Requests the default cursor
+
+        mPreferences = preferences;
+        mStorageManager = storageManager;
+        mReceiptColumnDefinitions = receiptColumnDefinitions; //new ReceiptColumnDefinitions(mContext, mPersistenceManager.getPreferenceManager(), tmpFlex);
+        mCustomizations = tableDefaultsCustomizer; //new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
 
         // Tables:
         mTables = new ArrayList<>();
-        mTripsTable = new TripsTable(this, mPersistenceManager);
-        mDistanceTable = new DistanceTable(this, mTripsTable, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
+        mTripsTable = new TripsTable(this, storageManager, preferences);
+        mDistanceTable = new DistanceTable(this, mTripsTable, preferences.get(UserPreference.General.DefaultCurrency));
         mCategoriesTable = new CategoriesTable(this);
         mCSVTable = new CSVTable(this, mReceiptColumnDefinitions);
         mPDFTable = new PDFTable(this, mReceiptColumnDefinitions);
         mPaymentMethodsTable = new PaymentMethodsTable(this);
-        mReceiptsTable = new ReceiptsTable(this, mTripsTable, mPaymentMethodsTable, mCategoriesTable, mPersistenceManager);
+        mReceiptsTable = new ReceiptsTable(this, mTripsTable, mPaymentMethodsTable, mCategoriesTable, storageManager, preferences);
         mTables.add(mTripsTable);
         mTables.add(mDistanceTable);
         mTables.add(mCategoriesTable);
@@ -133,7 +131,10 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         this.getReadableDatabase(); // Called here, so onCreate gets called on the UI thread
     }
 
-    public static final DatabaseHelper getInstance(SmartReceiptsApplication application, PersistenceManager persistenceManager) {
+    public static final DatabaseHelper getInstance(Context context, StorageManager storageManager,
+                                                   UserPreferenceManager preferences,
+                                                   ReceiptColumnDefinitions receiptColumnDefinitions,
+                                                   WhiteLabelFriendlyTableDefaultsCustomizer tableDefaultsCustomizer) {
         if (INSTANCE == null || !INSTANCE.isOpen()) { // If we don't have an instance or it's closed
             String databasePath = StorageManager.GetRootPath();
             if (BuildConfig.DEBUG) {
@@ -145,7 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 databasePath = databasePath + File.separator;
             }
             databasePath = databasePath + DATABASE_NAME;
-            INSTANCE = new DatabaseHelper(application, persistenceManager, databasePath);
+            INSTANCE = new DatabaseHelper(context, storageManager, preferences, databasePath, receiptColumnDefinitions, tableDefaultsCustomizer);
         }
         return INSTANCE;
     }
@@ -230,7 +231,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
+        final boolean onlyUseReimbursable = mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -239,7 +240,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
+        if (mPreferences.get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 prices.add(distance);
@@ -255,7 +256,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
      * @param trip the trip, which will be updated
      */
     private void queryTripDailyPrice(final Trip trip) {
-        final boolean onlyUseReimbursable = mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.OnlyIncludeReimbursable);
+        final boolean onlyUseReimbursable = mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable);
         final List<Receipt> receipts = mReceiptsTable.getBlocking(trip, true);
         final List<Priceable> prices = new ArrayList<>(receipts.size());
         for (final Receipt receipt : receipts) {
@@ -266,7 +267,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             }
         }
 
-        if (mPersistenceManager.getPreferenceManager().get(UserPreference.Distance.IncludeDistancePriceInReports)) {
+        if (mPreferences.get(UserPreference.Distance.IncludeDistancePriceInReports)) {
             final List<Distance> distances = mDistanceTable.getBlocking(trip, true);
             for (final Distance distance : distances) {
                 if (DateUtils.isToday(distance.getDate())) {
@@ -393,7 +394,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
             Cursor c = null, countCursor = null;
             try {
                 if (dbPath == null) {
-                    Logger.debug(this,  "Null database file");
+                    Logger.debug(this, "Null database file");
                     return false;
                 }
                 currDB = this.getWritableDatabase();
@@ -401,7 +402,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                 // Merge Trips
                 try {
                     Logger.debug(this, "Merging Trips");
-                    Logger.debug(this,  "Merging Trips");
+                    Logger.debug(this, "Merging Trips");
                     c = importDB.query(TripsTable.TABLE_NAME, null, null, null, null, null, TripsTable.COLUMN_TO + " DESC");
                     if (c != null && c.moveToFirst()) {
                         final int nameIndex = c.getColumnIndex(TripsTable.COLUMN_NAME);
@@ -431,7 +432,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final String filters = getString(c, filtersIndex, "");
                             final String costCenter = getString(c, costCenterIndex, "");
                             final String processingStatus = getString(c, processingStatusIndex, "");
-                            final String defaultCurrency = getString(c, defaultCurrencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
+                            final String defaultCurrency = getString(c, defaultCurrencyIndex, mPreferences.get(UserPreference.General.DefaultCurrency));
                             ContentValues values = new ContentValues(10);
                             values.put(TripsTable.COLUMN_NAME, name);
                             values.put(TripsTable.COLUMN_FROM, from);
@@ -469,7 +470,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
 
                 // Merge Receipts
                 Logger.debug(this, "Merging Receipts");
-                Logger.debug(this,  "Merging Receipts");
+                Logger.debug(this, "Merging Receipts");
                 try {
                     final String queryCount = "SELECT COUNT(*), " + ReceiptsTable.COLUMN_ID + " FROM " + ReceiptsTable.TABLE_NAME + " WHERE " + ReceiptsTable.COLUMN_PATH + "=? AND " + ReceiptsTable.COLUMN_NAME + "=? AND " + ReceiptsTable.COLUMN_DATE + "=?";
                     c = importDB.query(ReceiptsTable.TABLE_NAME, null, null, null, null, null, null);
@@ -521,7 +522,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final long date = getLong(c, dateIndex, 0L);
                             final String comment = getString(c, commentIndex, "");
                             final boolean reimbursable = getBoolean(c, reimbursableIndex, true);
-                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
+                            final String currency = getString(c, currencyIndex, mPreferences.get(UserPreference.General.DefaultCurrency));
                             final boolean fullpage = getBoolean(c, fullpageIndex, false);
                             final String extra_edittext_1 = getString(c, extra_edittext_1_Index, null);
                             final String extra_edittext_2 = getString(c, extra_edittext_2_Index, null);
@@ -729,7 +730,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                             final String location = getString(c, locationIndex, "");
                             final BigDecimal distance = getDecimal(c, distanceIndex);
                             final BigDecimal rate = getDecimal(c, rateIndex);
-                            final String currency = getString(c, currencyIndex, mPersistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
+                            final String currency = getString(c, currencyIndex, mPreferences.get(UserPreference.General.DefaultCurrency));
                             final long date = getLong(c, dateIndex, 0L);
                             final String timezone = getString(c, timezoneIndex, TimeZone.getDefault().getID());
                             final String comment = getString(c, commentIndex, "");
@@ -776,7 +777,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                     }
                 }
 
-                Logger.debug(this,  "Success");
+                Logger.debug(this, "Success");
                 return true;
             } catch (Exception e) {
                 Logger.error(this, "Caught fatal db exception during import at [a7]:", e);
@@ -915,7 +916,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         if (tag == TAG_RECEIPTS_NAME) {
             String category = null, price = null, tmp = null;
             // If we're not predicting, return
-            if (!mPersistenceManager.getPreferenceManager().get(UserPreference.Receipts.PredictCategories)) {
+            if (!mPreferences.get(UserPreference.Receipts.PredictCategories)) {
                 // price = null;
                 // category = null
             } else {

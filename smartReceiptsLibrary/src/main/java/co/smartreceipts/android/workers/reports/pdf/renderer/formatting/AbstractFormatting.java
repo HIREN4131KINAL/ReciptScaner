@@ -4,8 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.Constraint;
-
 abstract class AbstractFormatting<T> implements Formatting<T> {
 
     private final T value;

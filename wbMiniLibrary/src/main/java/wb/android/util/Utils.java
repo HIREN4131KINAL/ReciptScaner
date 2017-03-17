@@ -1,13 +1,13 @@
 package wb.android.util;
 
-import java.lang.reflect.Field;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.StrictMode;
 import android.util.DisplayMetrics;
+
+import java.lang.reflect.Field;
 
 public class Utils {
 

@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
-import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import rx.Observable;

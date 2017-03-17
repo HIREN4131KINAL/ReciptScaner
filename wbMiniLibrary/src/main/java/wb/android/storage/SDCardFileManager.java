@@ -1,25 +1,20 @@
 package wb.android.storage;
 
+import android.content.Context;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import wb.android.BuildConfig;
-import wb.android.util.Utils.ApiHelper;
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.SyncStateContract.Constants;
-import android.text.TextUtils;
-import android.util.Log;
 
 public final class SDCardFileManager extends StorageManager {
 	

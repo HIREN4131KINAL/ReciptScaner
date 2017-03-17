@@ -16,7 +16,6 @@ import co.smartreceipts.android.identity.apis.organizations.Organization;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsService;
 import co.smartreceipts.android.identity.store.IdentityStore;
-import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;

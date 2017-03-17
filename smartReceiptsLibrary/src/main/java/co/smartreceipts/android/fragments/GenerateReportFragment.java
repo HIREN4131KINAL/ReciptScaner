@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,23 +15,34 @@ import com.google.common.base.Preconditions;
 
 import java.util.EnumSet;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
+import dagger.android.support.AndroidSupportInjection;
+import wb.android.flex.Flex;
 
 public class GenerateReportFragment extends WBFragment implements View.OnClickListener {
 
-    private CheckBox mPdfFullCheckbox;
-    private CheckBox mPdfImagesCheckbox;
-    private CheckBox mCsvCheckbox;
-    private CheckBox mZipStampedImagesCheckbox;
+    @Inject
+    Flex flex;
 
-    private Trip mTrip;
-    private NavigationHandler mNavigationHandler;
+    @Inject
+    PersistenceManager persistenceManager;
+
+    private CheckBox pdfFullCheckbox;
+    private CheckBox pdfImagesCheckbox;
+    private CheckBox csvCheckbox;
+    private CheckBox zipStampedImagesCheckbox;
+
+    private Trip trip;
+    private NavigationHandler navigationHandler;
 
     @NonNull
     public static GenerateReportFragment newInstance() {
@@ -38,25 +50,31 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mNavigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
+        navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View root = inflater.inflate(R.layout.generate_report_layout, container, false);
-        mPdfFullCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
-        mPdfImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
-        mCsvCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
-        mZipStampedImagesCheckbox = (CheckBox) getFlex().getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
+        pdfFullCheckbox = (CheckBox) flex.getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_PDF_FULL);
+        pdfImagesCheckbox = (CheckBox) flex.getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_PDF_IMAGES);
+        csvCheckbox = (CheckBox) flex.getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_CSV);
+        zipStampedImagesCheckbox = (CheckBox) flex.getSubView(getActivity(), root, R.id.DIALOG_EMAIL_CHECKBOX_ZIP_IMAGES_STAMPED);
         root.findViewById(R.id.receipt_action_send).setOnClickListener(this);
         root.findViewById(R.id.generate_report_tooltip).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getSmartReceiptsApplication().getAnalyticsManager().record(Events.Informational.ConfigureReport);
-                mNavigationHandler.navigateToSettingsScrollToReportSection();
+                navigationHandler.navigateToSettingsScrollToReportSection();
             }
         });
         return root;
@@ -67,8 +85,8 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Logger.debug(this, "onActivityCreated");
-        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
-        Preconditions.checkNotNull(mTrip, "A valid trip is required");
+        trip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(trip, "A valid trip is required");
     }
 
     @Override
@@ -91,53 +109,53 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        if (!mPdfFullCheckbox.isChecked() && !mPdfImagesCheckbox.isChecked() && !mCsvCheckbox.isChecked() && !mZipStampedImagesCheckbox.isChecked()) {
-            Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
+        if (!pdfFullCheckbox.isChecked() && !pdfImagesCheckbox.isChecked() && !csvCheckbox.isChecked() && !zipStampedImagesCheckbox.isChecked()) {
+            Toast.makeText(getActivity(), flex.getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_SELECTION), Toast.LENGTH_SHORT).show();
             return;
         }
 
         getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.GenerateReports);
-        if (mPdfFullCheckbox.isChecked()) {
+        if (pdfFullCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.FullPdfReport);
         }
-        if (mPdfImagesCheckbox.isChecked()) {
+        if (pdfImagesCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.ImagesPdfReport);
         }
-        if (mCsvCheckbox.isChecked()) {
+        if (csvCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.CsvReport);
         }
-        if (mZipStampedImagesCheckbox.isChecked()) {
+        if (zipStampedImagesCheckbox.isChecked()) {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Generate.StampedZipReport);
         }
 
         // TODO: Off the UI thread :/
-        if (getPersistenceManager().getDatabase().getReceiptsTable().getBlocking(mTrip, true).isEmpty()) {
-            if (getPersistenceManager().getDatabase().getDistanceTable().getBlocking(mTrip, true).isEmpty() || !mPdfFullCheckbox.isChecked()) {
+        if (persistenceManager.getDatabase().getReceiptsTable().getBlocking(trip, true).isEmpty()) {
+            if (persistenceManager.getDatabase().getDistanceTable().getBlocking(trip, true).isEmpty() || !pdfFullCheckbox.isChecked()) {
                 // Only allow report processing to continue with no reciepts if we're doing a full pdf report with distances
-                Toast.makeText(getActivity(), getFlex().getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), flex.getString(getActivity(), R.string.DIALOG_EMAIL_TOAST_NO_RECEIPTS), Toast.LENGTH_SHORT).show();
                 return;
             } else {
                 // Uncheck "Illegal" Items
-                mPdfImagesCheckbox.setChecked(false);
-                mCsvCheckbox.setChecked(false);
-                mZipStampedImagesCheckbox.setChecked(false);
+                pdfImagesCheckbox.setChecked(false);
+                csvCheckbox.setChecked(false);
+                zipStampedImagesCheckbox.setChecked(false);
             }
         }
         EnumSet<EmailAssistant.EmailOptions> options = EnumSet.noneOf(EmailAssistant.EmailOptions.class);
-        if (mPdfFullCheckbox.isChecked()) {
+        if (pdfFullCheckbox.isChecked()) {
             options.add(EmailAssistant.EmailOptions.PDF_FULL);
         }
-        if (mPdfImagesCheckbox.isChecked()) {
+        if (pdfImagesCheckbox.isChecked()) {
             options.add(EmailAssistant.EmailOptions.PDF_IMAGES_ONLY);
         }
-        if (mCsvCheckbox.isChecked()) {
+        if (csvCheckbox.isChecked()) {
             options.add(EmailAssistant.EmailOptions.CSV);
         }
-        if (mZipStampedImagesCheckbox.isChecked()) {
+        if (zipStampedImagesCheckbox.isChecked()) {
             options.add(EmailAssistant.EmailOptions.ZIP_IMAGES_STAMPED);
         }
 
-        final EmailAssistant emailAssistant = new EmailAssistant(getActivity(), getFlex(), getPersistenceManager(), mTrip);
+        final EmailAssistant emailAssistant = new EmailAssistant(getActivity(), flex, persistenceManager, trip);
         emailAssistant.emailTrip(options);
     }
 }

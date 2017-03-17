@@ -1,10 +1,11 @@
 package co.smartreceipts.android.filters;
 
+import android.view.LayoutInflater;
+import android.view.View;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.view.LayoutInflater;
-import android.view.View;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 

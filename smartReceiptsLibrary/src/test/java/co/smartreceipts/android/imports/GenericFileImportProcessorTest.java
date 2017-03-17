@@ -12,14 +12,12 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
 import rx.observers.TestSubscriber;
 import wb.android.storage.StorageManager;
 
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;

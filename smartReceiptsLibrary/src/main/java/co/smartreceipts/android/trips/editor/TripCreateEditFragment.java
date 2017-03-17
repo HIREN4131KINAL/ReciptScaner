@@ -1,5 +1,6 @@
 package co.smartreceipts.android.trips.editor;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
@@ -25,34 +26,50 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
+import dagger.android.support.AndroidSupportInjection;
 import wb.android.autocomplete.AutoCompleteAdapter;
+import wb.android.flex.Flex;
 
 public class TripCreateEditFragment extends WBFragment implements View.OnFocusChangeListener {
 
-    private AutoCompleteTextView mNameBox;
-    private DateEditText mStartBox;
-    private Spinner mCurrencySpinner;
-    private EditText mCommentBox;
-    private AutoCompleteTextView mCostCenterBox;
-    private DateEditText mEndBox;
+    // TODO: 17.03.2017 managers should be injected to the presenter, presenter -> to the fragment
+    
+    @Inject
+    Flex flex;
 
-    private View mFocusedView;
+    @Inject
+    DateManager dateManager;
 
-    private NavigationHandler mNavigationHandler;
-    private AutoCompleteAdapter mNameAutoCompleteAdapter, mCostCenterAutoCompleteAdapter;
-    private ArrayAdapter<CharSequence> mCurrencies;
+    @Inject
+    PersistenceManager persistenceManager;
 
-    private TripCreateEditFragmentPresenter mPresenter;
+    private AutoCompleteTextView nameBox;
+    private DateEditText startDateBox;
+    private DateEditText endDateBox;
+    private Spinner currencySpinner;
+    private EditText commentBox;
+    private AutoCompleteTextView costCenterBox;
+
+    private View focusedView;
+
+    private NavigationHandler navigationHandler;
+    private AutoCompleteAdapter nameAutoCompleteAdapter, costCenterAutoCompleteAdapter;
+    private ArrayAdapter<CharSequence> currencies;
+
+    private TripCreateEditFragmentPresenter presenter;
 
     public static TripCreateEditFragment newInstance() {
         return new TripCreateEditFragment();
@@ -70,10 +87,16 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPresenter = new TripCreateEditFragmentPresenter(this);
-        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
+        presenter = new TripCreateEditFragmentPresenter(this);
+        navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
 
         setHasOptionsMenu(true);
     }
@@ -113,7 +136,7 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            mNavigationHandler.navigateToHomeTripsFragment();
+            navigationHandler.navigateToHomeTripsFragment();
             return true;
         }
         if (item.getItemId() == R.id.action_save) {
@@ -136,52 +159,52 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
             actionBar.setSubtitle("");
         }
 
-        if (mFocusedView != null) {
-            mFocusedView.requestFocus(); // Make sure we're focused on the right view
+        if (focusedView != null) {
+            focusedView.requestFocus(); // Make sure we're focused on the right view
         }
     }
 
     @Override
     public void onPause() {
-        if (mNameAutoCompleteAdapter != null) {
-            mNameAutoCompleteAdapter.onPause();
+        if (nameAutoCompleteAdapter != null) {
+            nameAutoCompleteAdapter.onPause();
         }
-        if (mCostCenterAutoCompleteAdapter != null) {
-            mCostCenterAutoCompleteAdapter.onPause();
+        if (costCenterAutoCompleteAdapter != null) {
+            costCenterAutoCompleteAdapter.onPause();
         }
 
         // Dismiss the soft keyboard
-        SoftKeyboardManager.hideKeyboard(mFocusedView);
+        SoftKeyboardManager.hideKeyboard(focusedView);
 
         super.onPause();
     }
 
     private void initViews(View rootView) {
-        mNameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_name);
-        mStartBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_start);
-        mEndBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_end);
-        mCurrencySpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_currency);
-        mCommentBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.dialog_tripmenu_comment);
+        nameBox = (AutoCompleteTextView) flex.getSubView(getActivity(), rootView, R.id.dialog_tripmenu_name);
+        startDateBox = (DateEditText) flex.getSubView(getActivity(), rootView, R.id.dialog_tripmenu_start);
+        endDateBox = (DateEditText) flex.getSubView(getActivity(), rootView, R.id.dialog_tripmenu_end);
+        currencySpinner = (Spinner) flex.getSubView(getActivity(), rootView, R.id.dialog_tripmenu_currency);
+        commentBox = (EditText) flex.getSubView(getActivity(), rootView, R.id.dialog_tripmenu_comment);
 
-        mCostCenterBox = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_tripmenu_cost_center);
+        costCenterBox = (AutoCompleteTextView) rootView.findViewById(R.id.dialog_tripmenu_cost_center);
         View costCenterBoxLayout = rootView.findViewById(R.id.dialog_tripmenu_cost_center_layout);
-        costCenterBoxLayout.setVisibility(getPersistenceManager().getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
+        costCenterBoxLayout.setVisibility(persistenceManager.getPreferenceManager().get(UserPreference.General.IncludeCostCenter) ? View.VISIBLE : View.GONE);
 
         Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        if (mNavigationHandler.isDualPane()) {
+        if (navigationHandler.isDualPane()) {
             toolbar.setVisibility(View.GONE);
         } else {
             setSupportActionBar(toolbar);
         }
 
-        ArrayList<CharSequence> currenciesList = getPersistenceManager().getDatabase().getCurrenciesList();
-        mCurrencies = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, currenciesList);
-        mCurrencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mCurrencySpinner.setAdapter(mCurrencies);
+        ArrayList<CharSequence> currenciesList = persistenceManager.getDatabase().getCurrenciesList();
+        currencies = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, currenciesList);
+        currencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(currencies);
 
         // Show default dictionary with auto-complete
         TextKeyListener input = TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES);
-        mNameBox.setKeyListener(input);
+        nameBox.setKeyListener(input);
 
         setKeyboardRelatedListeners();
     }
@@ -191,70 +214,69 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
 
         if (getTrip() == null) { // new trip
 
-            PersistenceManager persistenceManager = getPersistenceManager();
             if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
-                DatabaseHelper db = getPersistenceManager().getDatabase();
-                mNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);
-                mCostCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db);
+                DatabaseHelper db = persistenceManager.getDatabase();
+                nameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_NAME, db);
+                costCenterAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_TRIPS_COST_CENTER, db);
 
-                mNameBox.setAdapter(mNameAutoCompleteAdapter);
-                mCostCenterBox.setAdapter(mCostCenterAutoCompleteAdapter);
+                nameBox.setAdapter(nameAutoCompleteAdapter);
+                costCenterBox.setAdapter(costCenterAutoCompleteAdapter);
             }
 
-            mStartBox.setOnClickListener(getDateManager().getDurationDateEditTextListener(mEndBox));
+            startDateBox.setOnClickListener(dateManager.getDurationDateEditTextListener(endDateBox));
 
             //prefill the dates
-            mStartBox.date = new Date(Calendar.getInstance().getTimeInMillis());
-            mStartBox.setText(DateFormat.getDateFormat(getActivity()).format(mStartBox.date));
+            startDateBox.date = new Date(Calendar.getInstance().getTimeInMillis());
+            startDateBox.setText(DateFormat.getDateFormat(getActivity()).format(startDateBox.date));
             int defaultTripDuration = persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultReportDuration);
-            mEndBox.date = new Date(mStartBox.date.getTime() + TimeUnit.DAYS.toMillis(defaultTripDuration));
-            mEndBox.setText(DateFormat.getDateFormat(getActivity()).format(mEndBox.date));
+            endDateBox.date = new Date(startDateBox.date.getTime() + TimeUnit.DAYS.toMillis(defaultTripDuration));
+            endDateBox.setText(DateFormat.getDateFormat(getActivity()).format(endDateBox.date));
 
-            currencySpinnerPosition = mCurrencies.getPosition(getPersistenceManager().getPreferenceManager().get(UserPreference.General.DefaultCurrency));
+            currencySpinnerPosition = currencies.getPosition(persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency));
         } else { // edit trip
-            mNameBox.setText(getTrip().getName());
+            nameBox.setText(getTrip().getName());
 
-            mStartBox.setText(getTrip().getFormattedStartDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
-            mStartBox.date = getTrip().getStartDate();
+            startDateBox.setText(getTrip().getFormattedStartDate(getActivity(), persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator)));
+            startDateBox.date = getTrip().getStartDate();
 
-            mEndBox.setText(getTrip().getFormattedEndDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
-            mEndBox.date = getTrip().getEndDate();
+            endDateBox.setText(getTrip().getFormattedEndDate(getActivity(), persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator)));
+            endDateBox.date = getTrip().getEndDate();
 
-            mCommentBox.setText(getTrip().getComment());
+            commentBox.setText(getTrip().getComment());
 
-            currencySpinnerPosition = mCurrencies.getPosition(getTrip().getDefaultCurrencyCode());
+            currencySpinnerPosition = currencies.getPosition(getTrip().getDefaultCurrencyCode());
 
-            mStartBox.setOnClickListener(getDateManager().getDateEditTextListener());
-            mCostCenterBox.setText(getTrip().getCostCenter());
+            startDateBox.setOnClickListener(dateManager.getDateEditTextListener());
+            costCenterBox.setText(getTrip().getCostCenter());
 
-            mCurrencySpinner.setOnItemSelectedListener(new CurrencySpinnerSelectionListener());
+            currencySpinner.setOnItemSelectedListener(new CurrencySpinnerSelectionListener());
 
         }
 
         // Focused View
-        if (mFocusedView == null) {
-            mFocusedView = mNameBox;
+        if (focusedView == null) {
+            focusedView = nameBox;
         }
         // set currency
         if (currencySpinnerPosition > 0) {
-            mCurrencySpinner.setSelection(currencySpinnerPosition);
+            currencySpinner.setSelection(currencySpinnerPosition);
         }
 
-        mStartBox.setFocusableInTouchMode(false);
+        startDateBox.setFocusableInTouchMode(false);
 
-        mEndBox.setFocusableInTouchMode(false);
-        mEndBox.setOnClickListener(getDateManager().getDateEditTextListener());
-        mNameBox.setSelection(mNameBox.getText().length()); // Put the cursor at the end
+        endDateBox.setFocusableInTouchMode(false);
+        endDateBox.setOnClickListener(dateManager.getDateEditTextListener());
+        nameBox.setSelection(nameBox.getText().length()); // Put the cursor at the end
     }
 
     private void setKeyboardRelatedListeners() {
         // Set each focus listener, so we can track the focus view across resume -> pauses
-        mNameBox.setOnFocusChangeListener(this);
-        mStartBox.setOnFocusChangeListener(this);
-        mEndBox.setOnFocusChangeListener(this);
-        mCurrencySpinner.setOnFocusChangeListener(this);
-        mCommentBox.setOnFocusChangeListener(this);
-        mCostCenterBox.setOnFocusChangeListener(this);
+        nameBox.setOnFocusChangeListener(this);
+        startDateBox.setOnFocusChangeListener(this);
+        endDateBox.setOnFocusChangeListener(this);
+        currencySpinner.setOnFocusChangeListener(this);
+        commentBox.setOnFocusChangeListener(this);
+        costCenterBox.setOnFocusChangeListener(this);
 
         // Set click listeners
         View.OnTouchListener hideSoftKeyboardOnTouchListener = new View.OnTouchListener() {
@@ -266,24 +288,24 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
                 return false;
             }
         };
-        mStartBox.setOnTouchListener(hideSoftKeyboardOnTouchListener);
-        mEndBox.setOnTouchListener(hideSoftKeyboardOnTouchListener);
-        mCurrencySpinner.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        startDateBox.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        endDateBox.setOnTouchListener(hideSoftKeyboardOnTouchListener);
+        currencySpinner.setOnTouchListener(hideSoftKeyboardOnTouchListener);
     }
 
     private void saveTripChanges() {
-        String name = mNameBox.getText().toString().trim();
-        final String startDateText = mStartBox.getText().toString();
-        final String endDateText = mEndBox.getText().toString();
-        final String defaultCurrencyCode = mCurrencySpinner.getSelectedItem().toString();
-        final String comment = mCommentBox.getText().toString();
-        final String costCenter = mCostCenterBox.getText().toString();
+        String name = nameBox.getText().toString().trim();
+        final String startDateText = startDateBox.getText().toString();
+        final String endDateText = endDateBox.getText().toString();
+        final String defaultCurrencyCode = currencySpinner.getSelectedItem().toString();
+        final String comment = commentBox.getText().toString();
+        final String costCenter = costCenterBox.getText().toString();
 
-        if (mPresenter.checkTrip(name, startDateText, mStartBox.date, endDateText, mEndBox.date)) {
-            Trip updatedTrip = mPresenter.saveTrip(getPersistenceManager().getStorageManager().getFile(name),
-                    mStartBox.date, mEndBox.date, defaultCurrencyCode, comment, costCenter);
+        if (presenter.checkTrip(name, startDateText, startDateBox.date, endDateText, endDateBox.date)) {
+            Trip updatedTrip = presenter.saveTrip(persistenceManager.getStorageManager().getFile(name),
+                    startDateBox.date, endDateBox.date, defaultCurrencyCode, comment, costCenter);
             // open created/edited trip info
-            mNavigationHandler.navigateToReportInfoFragment(updatedTrip);
+            navigationHandler.navigateToReportInfoFragment(updatedTrip);
         }
     }
 
@@ -309,7 +331,7 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
 
     @Override
     public void onFocusChange(View view, boolean hasFocus) {
-        mFocusedView = hasFocus ? view : null;
+        focusedView = hasFocus ? view : null;
         if (getTrip() == null && hasFocus) {
             SoftKeyboardManager.showKeyboard(view);
         }
@@ -318,7 +340,7 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     private class CurrencySpinnerSelectionListener implements AdapterView.OnItemSelectedListener {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            final String newCurrencyCode = mCurrencies.getItem(position).toString();
+            final String newCurrencyCode = currencies.getItem(position).toString();
 
             if (!getTrip().getDefaultCurrencyCode().equals(newCurrencyCode)) {
                 Toast.makeText(view.getContext(), R.string.toast_warning_reset_exchange_rate, Toast.LENGTH_LONG).show();
@@ -329,5 +351,9 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
         public void onNothingSelected(AdapterView<?> parent) {
             // Intentional no-op
         }
+    }
+
+    private String getFlexString(int id) {
+        return getFlexString(flex, id);
     }
 }

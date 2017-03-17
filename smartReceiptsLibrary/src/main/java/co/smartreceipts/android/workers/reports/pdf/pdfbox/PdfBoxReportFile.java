@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;

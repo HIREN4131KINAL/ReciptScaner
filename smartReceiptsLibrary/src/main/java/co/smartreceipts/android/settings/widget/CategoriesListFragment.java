@@ -1,14 +1,5 @@
 package co.smartreceipts.android.settings.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
-import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import wb.android.dialog.BetterDialogBuilder;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.database.SQLException;
@@ -30,8 +21,18 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.model.Category;
+import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
+import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import wb.android.dialog.BetterDialogBuilder;
 
 public class CategoriesListFragment extends WBFragment implements View.OnClickListener, TableEventsListener<Category> {
 

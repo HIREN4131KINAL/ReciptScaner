@@ -2,7 +2,6 @@ package co.smartreceipts.android.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
@@ -14,6 +13,9 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import co.smartreceipts.android.date.DateUtils;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -22,26 +24,30 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+@Singleton
 public class UserPreferenceManager {
 
     public static final String PREFERENCES_FILE_NAME = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
 
     private final Context context;
+
     private final SharedPreferences preferences;
     private final Scheduler initializationScheduler;
 
-    public UserPreferenceManager(@NonNull Context context) {
+    @Inject
+    UserPreferenceManager(Context context) {
         this(context.getApplicationContext(), context.getSharedPreferences(PREFERENCES_FILE_NAME, 0), Schedulers.io());
     }
 
     @VisibleForTesting
-    UserPreferenceManager(@NonNull Context context, @NonNull SharedPreferences preferences, @NonNull Scheduler initializationScheduler) {
-        this.context = Preconditions.checkNotNull(context);
-        this.preferences = Preconditions.checkNotNull(preferences);
+    UserPreferenceManager(Context context, SharedPreferences preferences, Scheduler initializationScheduler) {
+        this.context = context;
+        this.preferences = preferences;
         this.initializationScheduler = Preconditions.checkNotNull(initializationScheduler);
+
+        initialize();
     }
 
     public void initialize() {

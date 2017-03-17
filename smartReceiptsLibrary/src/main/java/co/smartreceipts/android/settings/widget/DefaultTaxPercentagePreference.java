@@ -1,11 +1,12 @@
 package co.smartreceipts.android.settings.widget;
 
-import java.text.DecimalFormat;
-
-import wb.android.preferences.FloatSummaryEditTextPreference;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+
+import java.text.DecimalFormat;
+
+import wb.android.preferences.FloatSummaryEditTextPreference;
 
 public class DefaultTaxPercentagePreference extends FloatSummaryEditTextPreference {
 

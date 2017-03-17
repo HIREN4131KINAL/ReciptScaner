@@ -1,66 +1,69 @@
 package co.smartreceipts.android.persistence;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
-import co.smartreceipts.android.SmartReceiptsApplication;
 
+@Singleton
 public class PersistenceManager {
 
-	private final SmartReceiptsApplication mApplication;
-	private DatabaseHelper mDatabase;
-	private StorageManager mStorageManager;
+	@Inject
+	Context context;
+	@Inject
+	UserPreferenceManager preferenceManager;
+	@Inject
+	SubscriptionCache subscriptionCache;
+    @Inject
+    StorageManager storageManager;
+	@Inject
+	DatabaseHelper database;
+
 	private SDCardFileManager mExternalStorageManager;
 	private InternalStorageManager mInternalStorageManager;
-    private final UserPreferenceManager preferenceManager;
 
-	public PersistenceManager(@NonNull SmartReceiptsApplication application) {
-		mApplication =  application;
-		mStorageManager = StorageManager.getInstance(application);
-
-        this.preferenceManager = new UserPreferenceManager(application);
+	@Inject
+	public PersistenceManager() {
 	}
 
-    public void initialize() {
-        preferenceManager.initialize();
-
-        // TODO: Fix this anti-pattern with proper dependency injection
-        mDatabase = DatabaseHelper.getInstance(mApplication, this);
-    }
-
 	public void onDestroy() {
-		mDatabase.onDestroy();
-		mStorageManager = null;
+		database.onDestroy();
+		storageManager = null;
 		mExternalStorageManager = null;
 		mInternalStorageManager = null;
-		mDatabase = null;
+		database = null;
 	}
 
 	public DatabaseHelper getDatabase() {
-		if (mDatabase == null || !mDatabase.isOpen()) {
-			mDatabase = DatabaseHelper.getInstance(mApplication, this);
-		}
-		return mDatabase;
+		// TODO: 15.03.2017 check is it necessary
+//		if (database == null || !database.isOpen()) {
+//			database = DatabaseHelper.getInstance(mApplication, this);
+//		}
+		return database;
 	}
 
 	public StorageManager getStorageManager() {
-		return mStorageManager;
+		return storageManager;
 	}
 
 	public SDCardFileManager getExternalStorageManager() throws SDCardStateException {
 		if (mExternalStorageManager == null) {
-			if (mStorageManager == null) {
+			if (storageManager == null) {
 				getStorageManager();
 			}
-			if (mStorageManager instanceof SDCardFileManager) {
-				mExternalStorageManager = (SDCardFileManager) mStorageManager;
+			if (storageManager instanceof SDCardFileManager) {
+				mExternalStorageManager = (SDCardFileManager) storageManager;
 			}
 			else {
-				mExternalStorageManager = StorageManager.getExternalInstance(mApplication);
+				mExternalStorageManager = StorageManager.getExternalInstance(context);
 			}
 		}
 		return mExternalStorageManager;
@@ -68,14 +71,14 @@ public class PersistenceManager {
 
 	public InternalStorageManager getInternalStorageManager() {
 		if (mInternalStorageManager == null) {
-			if (mStorageManager == null) {
+			if (storageManager == null) {
 				getStorageManager();
 			}
-			if (mStorageManager instanceof InternalStorageManager) {
-				mInternalStorageManager = (InternalStorageManager) mStorageManager;
+			if (storageManager instanceof InternalStorageManager) {
+				mInternalStorageManager = (InternalStorageManager) storageManager;
 			}
 			else {
-				mInternalStorageManager = StorageManager.getInternalInstance(mApplication);
+				mInternalStorageManager = StorageManager.getInternalInstance(context);
 			}
 		}
 		return mInternalStorageManager;

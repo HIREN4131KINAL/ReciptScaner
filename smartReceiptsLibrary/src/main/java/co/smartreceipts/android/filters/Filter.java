@@ -1,11 +1,11 @@
 package co.smartreceipts.android.filters;
 
-import java.util.List;
+import android.R.string;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R.string;
+import java.util.List;
 
 
 /**

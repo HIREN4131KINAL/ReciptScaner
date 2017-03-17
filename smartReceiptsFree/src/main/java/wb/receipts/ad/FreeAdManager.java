@@ -1,18 +1,5 @@
 package wb.receipts.ad;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.ad.AdManager;
-import co.smartreceipts.android.analytics.AnalyticsManager;
-import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
-import co.smartreceipts.android.purchases.Subscription;
-import co.smartreceipts.android.purchases.SubscriptionEventsListener;
-import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
-import co.smartreceipts.android.utils.log.Logger;
-import wb.receipts.R;
-
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.res.Resources;
@@ -22,8 +9,6 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-
-import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -36,6 +21,20 @@ import java.util.Random;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.ad.AdManager;
+import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
+import co.smartreceipts.android.purchases.PurchaseSource;
+import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.SubscriptionWallet;
+import co.smartreceipts.android.utils.log.Logger;
+import wb.receipts.R;
 
 @Singleton
 

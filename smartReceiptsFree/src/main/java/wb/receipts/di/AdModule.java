@@ -11,7 +11,7 @@ import wb.receipts.ad.FreeAdManager;
 public class AdModule {
     @Provides
     @Singleton
-    public AdManager provideAdManager(FreeAdManager freeAdManager) {
+    public static AdManager provideAdManager(FreeAdManager freeAdManager) {
         return freeAdManager;
     }
 }

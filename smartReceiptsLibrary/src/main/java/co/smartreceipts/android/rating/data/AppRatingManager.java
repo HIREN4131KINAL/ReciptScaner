@@ -5,7 +5,6 @@ import android.support.annotation.VisibleForTesting;
 import java.util.concurrent.TimeUnit;
 
 import rx.Single;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 

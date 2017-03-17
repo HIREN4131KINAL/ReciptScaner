@@ -6,8 +6,6 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
-import co.smartreceipts.android.utils.log.Logger;
-
 public final class SoftKeyboardManager {
     /**
      * After we resume Smart Receipts after using the camera, the input manager isn't quite ready yet to actually

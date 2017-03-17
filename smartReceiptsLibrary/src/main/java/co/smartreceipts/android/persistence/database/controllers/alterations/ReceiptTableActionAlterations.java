@@ -22,7 +22,6 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.utils.UriUtils;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func0;

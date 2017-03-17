@@ -9,7 +9,8 @@ import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.utils.TestUtils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(RobolectricTestRunner.class)
 public class OcrResponseTest {

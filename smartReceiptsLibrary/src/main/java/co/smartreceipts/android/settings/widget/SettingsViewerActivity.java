@@ -1,6 +1,7 @@
 package co.smartreceipts.android.settings.widget;
 
 import android.os.Bundle;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.WBActivity;
 

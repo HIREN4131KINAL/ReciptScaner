@@ -12,7 +12,6 @@ import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.push.internal.FcmTokenRetriever;
 import co.smartreceipts.android.push.store.PushDataStore;
 import rx.Observable;
-import rx.Subscriber;
 import rx.functions.Func1;
 
 public class PushManager {

@@ -1,18 +1,9 @@
 package co.smartreceipts.android.utils;
 
+import android.support.annotation.NonNull;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
-
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.content.res.Resources;
-import android.os.Build;
-import android.os.StrictMode;
-import android.support.annotation.NonNull;
-import android.util.DisplayMetrics;
-
-import com.google.common.base.Preconditions;
 
 public class ExceptionUtils {
 

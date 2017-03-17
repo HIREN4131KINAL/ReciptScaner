@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.smartreceipts.android.model.Price;
-import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.PriceCurrency;
+import co.smartreceipts.android.model.Priceable;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.impl.ImmutableLegacyNetPriceImpl;
 import co.smartreceipts.android.model.impl.ImmutableNetPriceImpl;

@@ -11,8 +11,6 @@ import java.io.IOException;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthConstraint;
-import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.XPositionConstraint;
-import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.imagex.PdfPDImageXFactory;
 
 public class PdfGridRenderer extends GridRenderer {

@@ -1,7 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import co.smartreceipts.android.config.ConfigurationManager;
-import wb.android.flex.Flex;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,11 +9,11 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.date.DateManager;
-import co.smartreceipts.android.persistence.PersistenceManager;
+import wb.android.flex.Flex;
 
 public class WBFragment extends Fragment {
 
@@ -56,24 +54,13 @@ public class WBFragment extends Fragment {
         }
     }
 
-	protected Flex getFlex() {
-		return getSmartReceiptsApplication().getFlex();
-	}
-
-	protected String getFlexString(int id) {
+	protected String getFlexString(Flex flex, int id) {
 		if (isAdded()) {
-			return getSmartReceiptsApplication().getFlex().getString(getActivity(), id);
+			return flex.getString(getActivity(), id);
 		}
 		else {
 			return "";
 		}
-	}
-
-	protected DateManager getDateManager() {
-		if (mDateManager == null) {
-			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager());
-		}
-		return mDateManager;
 	}
 
     public final void setSupportActionBar(@Nullable Toolbar toolbar) {
@@ -87,10 +74,6 @@ public class WBFragment extends Fragment {
         } else {
             return null;
         }
-	}
-
-	protected PersistenceManager getPersistenceManager() {
-		return getSmartReceiptsApplication().getPersistenceManager();
 	}
 
 	@NonNull

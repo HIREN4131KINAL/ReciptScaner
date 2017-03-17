@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget.backups;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,6 +10,8 @@ import android.support.v4.app.DialogFragment;
 import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
+
+import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -18,6 +21,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import dagger.android.support.AndroidSupportInjection;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -29,14 +33,16 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     private static final String ARG_BACKUP_METADATA = "arg_backup_metadata";
     private static final String ARG_OVERWRITE = "arg_overwrite";
 
-    private RemoteBackupsDataCache mRemoteBackupsDataCache;
-    private Analytics mAnalytics;
-    private Subscription mSubscription;
+    @Inject
+    DatabaseHelper database;
 
-    private RemoteBackupMetadata mBackupMetadata;
-    private TableControllerManager mTableControllerManager;
-    private DatabaseHelper mDatabaseHelper;
-    private boolean mOverwrite;
+    private RemoteBackupsDataCache remoteBackupsDataCache;
+    private Analytics analytics;
+    private Subscription subscription;
+
+    private RemoteBackupMetadata backupMetadata;
+    private TableControllerManager tableControllerManager;
+    private boolean overwrite;
 
     public static ImportRemoteBackupWorkerProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwrite) {
         final ImportRemoteBackupWorkerProgressDialogFragment fragment = new ImportRemoteBackupWorkerProgressDialogFragment();
@@ -48,14 +54,19 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setCancelable(false);
-        mBackupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
-        mOverwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        mTableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
-        mDatabaseHelper = ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getDatabase();
-        Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
+        backupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
+        overwrite = getArguments().getBoolean(ARG_OVERWRITE);
+        tableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
+        Preconditions.checkNotNull(backupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
 
     @NonNull
@@ -72,14 +83,17 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getNetworkManager(), smartReceiptsApplication.getPersistenceManager().getDatabase());
-        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
+        remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
+                smartReceiptsApplication.getBackupProvidersManager(),
+                smartReceiptsApplication.getNetworkManager(),
+                database);
+        analytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mRemoteBackupsDataCache.restoreBackup(mBackupMetadata, mOverwrite)
+        subscription = remoteBackupsDataCache.restoreBackup(backupMetadata, overwrite)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
@@ -87,10 +101,10 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                     public void call(@Nullable Boolean success) {
                         if (success != null && success) {
                             Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : mDatabaseHelper.getTables()) {
+                            for (final Table table : database.getTables()) {
                                 table.clearCache();
                             }
-                            mTableControllerManager.getTripTableController().get();
+                            tableControllerManager.getTripTableController().get();
                             getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
@@ -99,15 +113,15 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
+                        analytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
-                        mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
+                        remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
                         dismiss();
                     }
                 }, new Action0() {
                     @Override
                     public void call() {
-                        mRemoteBackupsDataCache.removeCachedRestoreBackupFor(mBackupMetadata);
+                        remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
                         dismiss();
                     }
                 });
@@ -115,7 +129,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
 
     @Override
     public void onPause() {
-        mSubscription.unsubscribe();
+        subscription.unsubscribe();
         super.onPause();
     }
 }

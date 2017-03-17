@@ -10,9 +10,9 @@ import java.util.List;
 
 import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.Price;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;

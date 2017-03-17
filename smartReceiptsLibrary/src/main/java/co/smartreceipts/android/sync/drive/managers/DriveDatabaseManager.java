@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -21,7 +20,6 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class DriveDatabaseManager {

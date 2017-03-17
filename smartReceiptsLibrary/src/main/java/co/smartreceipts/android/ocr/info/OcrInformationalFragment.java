@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class OcrInformationalFragment extends Fragment {

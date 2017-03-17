@@ -8,10 +8,7 @@ import com.google.android.gms.drive.events.DriveEventService;
 import com.google.common.base.Preconditions;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.utils.log.Logger;
 

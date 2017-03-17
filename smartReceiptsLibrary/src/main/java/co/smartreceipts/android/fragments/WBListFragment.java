@@ -1,7 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import co.smartreceipts.android.config.ConfigurationManager;
-import wb.android.flex.Flex;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,13 +11,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.date.DateManager;
-import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.config.ConfigurationManager;
+import wb.android.flex.Flex;
 
 public class WBListFragment extends ListFragment {
 
 	private SmartReceiptsApplication mApplication;
-	private DateManager mDateManager;
+//	private DateManager mDateManager;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -55,28 +53,13 @@ public class WBListFragment extends ListFragment {
         }
     }
 
-    protected Flex getFlex() {
-		return getSmartReceiptsApplication().getFlex();
-	}
-
-	protected String getFlexString(int id) {
+	protected String getFlexString(Flex flex, int id) {
 		if (isAdded()) {
-			return getSmartReceiptsApplication().getFlex().getString(getActivity(), id);
+			return flex.getString(getActivity(), id);
 		}
 		else {
 			return "";
 		}
-	}
-
-	protected DateManager getDateManager() {
-		if (mDateManager == null) {
-			mDateManager = new DateManager(getActivity(), getSmartReceiptsApplication().getPersistenceManager().getPreferenceManager());
-		}
-		return mDateManager;
-	}
-
-	protected PersistenceManager getPersistenceManager() {
-		return getSmartReceiptsApplication().getPersistenceManager();
 	}
 
 	@NonNull

@@ -4,11 +4,9 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.support.annotation.NonNull;
 
-import com.google.common.base.Preconditions;
-
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+
+import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
@@ -16,23 +14,25 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.CSVTable;
 import co.smartreceipts.android.persistence.database.tables.CategoriesTable;
 import co.smartreceipts.android.persistence.database.tables.PDFTable;
 import co.smartreceipts.android.persistence.database.tables.PaymentMethodsTable;
-import wb.android.flex.Flex;
 
 public class TableDefaultCustomizerImpl implements TableDefaultsCustomizer {
 
-    private final Context mContext;
-    private final ReceiptColumnDefinitions mReceiptColumnDefinitions;
+    @Inject Context mContext;
+    @Inject ReceiptColumnDefinitions mReceiptColumnDefinitions;
 
-    public TableDefaultCustomizerImpl(@NonNull Context context, @NonNull ReceiptColumnDefinitions receiptColumnDefinitions) {
-        mContext = Preconditions.checkNotNull(context.getApplicationContext());
-        mReceiptColumnDefinitions = Preconditions.checkNotNull(receiptColumnDefinitions);
+    @Inject
+    public TableDefaultCustomizerImpl() {
     }
+
+//    public TableDefaultCustomizerImpl(@NonNull Context context, @NonNull ReceiptColumnDefinitions receiptColumnDefinitions) {
+//        mContext = Preconditions.checkNotNull(context.getApplicationContext());
+//        mReceiptColumnDefinitions = Preconditions.checkNotNull(receiptColumnDefinitions);
+//    }
 
     @Override
     public void insertCSVDefaults(@NonNull final CSVTable csvTable) {

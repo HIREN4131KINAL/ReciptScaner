@@ -8,7 +8,6 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.PaymentMethod;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;

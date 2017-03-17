@@ -23,7 +23,6 @@ import java.util.List;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.model.Column;
-import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
@@ -44,17 +43,16 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
     private ArrayAdapter<Column<Receipt>> mSpinnerAdapter;
     private boolean mDisableInsertsAndDeletes = false;
 
-	@Override
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mColumnTableController = getColumnTableController();
         mAdapter = getAdapter();
-        mSpinnerAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getColumnDefinitions().getAllColumns());
+        mSpinnerAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item,
+                getReceiptColumnDefinitions().getAllColumns());
         mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		setHasOptionsMenu(true);
 	}
-
-	public abstract ColumnTableController getColumnTableController();
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -80,6 +78,9 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
         mColumnTableController.subscribe(this);
         mColumnTableController.get();
 	}
+
+    protected abstract ReceiptColumnDefinitions getReceiptColumnDefinitions();
+    protected abstract ColumnTableController getColumnTableController();
 
     @Override
     public void onPause() {
@@ -174,9 +175,9 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
         mDisableInsertsAndDeletes = false;
     }
 
-    protected ColumnDefinitions<Receipt> getColumnDefinitions() {
-        return new ReceiptColumnDefinitions(getActivity(), getPersistenceManager(), getFlex());
-    }
+//    protected ColumnDefinitions<Receipt> getColumnDefinitions() {
+//        return new ReceiptColumnDefinitions(getActivity(), getPersistenceManager(), flex);
+//    }
 
 	protected BaseAdapter getAdapter() {
 		return new SettingsListAdapter(LayoutInflater.from(getActivity()));

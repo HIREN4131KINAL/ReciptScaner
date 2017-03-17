@@ -1,38 +1,48 @@
 package wb.receiptspro;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-
-import co.smartreceipts.android.purchases.ProSubscriptionCache;
-import co.smartreceipts.android.purchases.SubscriptionCache;
-import co.smartreceipts.android.utils.log.Logger;
-import dagger.android.DispatchingAndroidInjector;
-import dagger.android.HasDispatchingActivityInjector;
-import wb.android.storage.SDCardFileManager;
-import wb.android.storage.SDCardStateException;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-import wb.receiptspro.di.AppComponent;
-import wb.receiptspro.di.DaggerAppComponent;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.widget.Toast;
 
 import com.squareup.leakcanary.LeakCanary;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+
 import javax.inject.Inject;
 
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasDispatchingActivityInjector;
+import dagger.android.support.HasDispatchingSupportFragmentInjector;
+import wb.android.storage.SDCardFileManager;
+import wb.android.storage.SDCardStateException;
+import wb.receiptspro.di.AppComponent;
+import wb.receiptspro.di.DaggerAppComponent;
+
 public class SmartReceiptsProApplication extends SmartReceiptsApplication
-        implements HasDispatchingActivityInjector {
-    @Inject DispatchingAndroidInjector<Activity> activityInjector;
+        implements HasDispatchingActivityInjector, HasDispatchingSupportFragmentInjector {
+    @Inject
+    DispatchingAndroidInjector<Activity> activityInjector;
+    @Inject
+    DispatchingAndroidInjector<Fragment> supportFragmentInjector;
+
+    @Inject
+    PersistenceManager persistenceManager;
+
+    @Inject
+    ReceiptColumnDefinitions receiptColumnDefinitions;
 
     private WeakReference<ProgressDialog> mProgress;
 
@@ -52,6 +62,8 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
         } else {
             LeakCanary.install(this);
         }
+
+        super.init();
     }
 
     @Override
@@ -103,12 +115,27 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
         return activityInjector;
     }
 
+    @Override
+    public DispatchingAndroidInjector<Fragment> supportFragmentInjector() {
+        return supportFragmentInjector;
+    }
+
+    @Override
+    protected PersistenceManager getPersistenceManagerInternal() {
+        return persistenceManager;
+    }
+
+    @Override
+    protected ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal() {
+        return receiptColumnDefinitions;
+    }
+
     private class QuickImport extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... arg0) {
             try {
-                SDCardFileManager proManager = getPersistenceManager().getExternalStorageManager();
+                SDCardFileManager proManager = persistenceManager.getExternalStorageManager();
                 File freeRoot = new File(proManager.getRootPath().replace("wb.receiptspro", "wb.receipts"));
                 File freeDb = proManager.getFile(freeRoot, DatabaseHelper.DATABASE_NAME);
                 if (!freeRoot.exists() || !freeDb.exists()) {
@@ -121,7 +148,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
                         proManager.copy(dir, proDir, true);
                     }
                     Logger.debug(this, "Merging Databases");
-                    getPersistenceManager().getDatabase().merge(freeDb.getAbsolutePath(), getPackageName(), true);
+                    persistenceManager.getDatabase().merge(freeDb.getAbsolutePath(), getPackageName(), true);
                     return true;
                 }
             } catch (SDCardStateException e) {
@@ -155,10 +182,4 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
         return new ProPurchaseWallet();
     }
 
-    /*
-    @Override
-	public int getFleXML() {
-		return wb.receiptspro.R.raw.flex;
-	}
-	*/
 }

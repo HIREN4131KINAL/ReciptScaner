@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget.backups;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,14 +12,17 @@ import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
-import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
+import dagger.android.support.AndroidSupportInjection;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -29,14 +33,16 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     private static final String ARG_SMR_URI = "arg_smr_uri";
     private static final String ARG_OVERWRITE = "arg_overwrite";
 
-    private ManualBackupAndRestoreTaskCache mManualBackupAndRestoreTaskCache;
-    private Subscription mSubscription;
-    private DatabaseHelper mDatabaseHelper;
-    private TableControllerManager mTableControllerManager;
-    private Analytics mAnalytics;
+    @Inject
+    PersistenceManager persistenceManager;
 
-    private Uri mUri;
-    private boolean mOverwrite;
+    private ManualBackupAndRestoreTaskCache manualBackupAndRestoreTaskCache;
+    private Subscription subscription;
+    private TableControllerManager tableControllerManager;
+    private Analytics analytics;
+
+    private Uri uri;
+    private boolean overwrite;
 
     public static ImportLocalBackupWorkerProgressDialogFragment newInstance(@NonNull Uri uri, boolean overwrite) {
         final ImportLocalBackupWorkerProgressDialogFragment fragment = new ImportLocalBackupWorkerProgressDialogFragment();
@@ -48,14 +54,19 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setCancelable(false);
-        mUri = getArguments().getParcelable(ARG_SMR_URI);
-        mOverwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        mDatabaseHelper = ((SmartReceiptsApplication) getActivity().getApplication()).getPersistenceManager().getDatabase();
-        mTableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
-        Preconditions.checkNotNull(mUri, "ImportBackupDialogFragment requires a valid SMR Uri");
+        uri = getArguments().getParcelable(ARG_SMR_URI);
+        overwrite = getArguments().getBoolean(ARG_OVERWRITE);
+        tableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
+        Preconditions.checkNotNull(uri, "ImportBackupDialogFragment requires a valid SMR Uri");
     }
 
     @NonNull
@@ -72,23 +83,23 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        mManualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), smartReceiptsApplication.getPersistenceManager(), getContext());
-        mAnalytics = smartReceiptsApplication.getAnalyticsManager();
+        manualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), persistenceManager, getContext());
+        analytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mSubscription = mManualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(mUri, mOverwrite).observeOn(AndroidSchedulers.mainThread())
+        subscription = manualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(uri, overwrite).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(@Nullable Boolean success) {
                         if (success != null && success) {
                             Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : mDatabaseHelper.getTables()) {
+                            for (final Table table : persistenceManager.getDatabase().getTables()) {
                                 table.clearCache();
                             }
-                            mTableControllerManager.getTripTableController().get();
+                            tableControllerManager.getTripTableController().get();
                             getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
@@ -97,7 +108,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
+                        analytics.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         dismiss();
                     }
@@ -111,7 +122,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
 
     @Override
     public void onPause() {
-        mSubscription.unsubscribe();
+        subscription.unsubscribe();
         super.onPause();
     }
 }

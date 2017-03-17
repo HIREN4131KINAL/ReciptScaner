@@ -1,7 +1,5 @@
 package co.smartreceipts.android.date;
 
-import java.sql.Date;
-
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -9,6 +7,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.EditText;
+
+import java.sql.Date;
 
 public class DateEditText extends EditText {
 

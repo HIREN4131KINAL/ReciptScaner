@@ -2,6 +2,7 @@ package co.smartreceipts.android.sync.widget.backups;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,6 +23,8 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
@@ -37,6 +40,7 @@ import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
+import dagger.android.support.AndroidSupportInjection;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
@@ -44,33 +48,42 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     private static final int IMPORT_SMR_REQUEST_CODE = 50;
 
+    @Inject
+    PersistenceManager persistenceManager;
 
-    private BackupProvidersManager mBackupProvidersManager;
-    private NetworkManager mNetworkManager;
-    private RemoteBackupsDataCache mRemoteBackupsDataCache;
-    private CompositeSubscription mCompositeSubscription;
-    private NavigationHandler mNavigationHandler;
+    private BackupProvidersManager backupProvidersManager;
+    private NetworkManager networkManager;
+    private RemoteBackupsDataCache remoteBackupsDataCache;
+    private CompositeSubscription compositeSubscription;
+    private NavigationHandler navigationHandler;
 
-    private Toolbar mToolbar;
-    private View mHeaderView;
-    private View mExportButton;
-    private View mImportButton;
-    private View mBackupConfigButton;
-    private ImageView mBackupConfigButtonImage;
-    private TextView mBackupConfigButtonText;
-    private TextView mWarningTextView;
-    private CheckBox mWifiOnlyCheckbox;
-    private View mExistingBackupsSection;
-    private RecyclerView mRecyclerView;
+    private Toolbar toolbar;
+    private View headerView;
+    private View exportButton;
+    private View importButton;
+    private View backupConfigButton;
+    private ImageView backupConfigButtonImage;
+    private TextView backupConfigButtonText;
+    private TextView warningTextView;
+    private CheckBox wifiOnlyCheckbox;
+    private View existingBackupsSection;
+    private RecyclerView recyclerView;
+
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mBackupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
-        mNetworkManager = getSmartReceiptsApplication().getNetworkManager();
-        mRemoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(), mBackupProvidersManager, mNetworkManager, getPersistenceManager().getDatabase());
-        mNavigationHandler = new NavigationHandler(getActivity());
+        backupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
+        networkManager = getSmartReceiptsApplication().getNetworkManager();
+        remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
+                backupProvidersManager, networkManager, persistenceManager.getDatabase());
+        navigationHandler = new NavigationHandler(getActivity());
     }
 
     @Nullable
@@ -78,25 +91,25 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @SuppressLint("InflateParams")
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.backups_list, container, false);
-        mRecyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
+        recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
 
-        mHeaderView = inflater.inflate(R.layout.backups_header, null);
-        mExportButton = mHeaderView.findViewById(R.id.manual_backup_export);
-        mImportButton = mHeaderView.findViewById(R.id.manual_backup_import);
-        mWarningTextView = (TextView) mHeaderView.findViewById(R.id.auto_backup_warning);
-        mBackupConfigButton = mHeaderView.findViewById(R.id.automatic_backup_config_button);
-        mBackupConfigButtonImage = (ImageView) mHeaderView.findViewById(R.id.automatic_backup_config_button_image);
-        mBackupConfigButtonText = (TextView) mHeaderView.findViewById(R.id.automatic_backup_config_button_text);
-        mWifiOnlyCheckbox = (CheckBox) mHeaderView.findViewById(R.id.auto_backup_wifi_only);
-        mExistingBackupsSection = mHeaderView.findViewById(R.id.existing_backups_section);
+        headerView = inflater.inflate(R.layout.backups_header, null);
+        exportButton = headerView.findViewById(R.id.manual_backup_export);
+        importButton = headerView.findViewById(R.id.manual_backup_import);
+        warningTextView = (TextView) headerView.findViewById(R.id.auto_backup_warning);
+        backupConfigButton = headerView.findViewById(R.id.automatic_backup_config_button);
+        backupConfigButtonImage = (ImageView) headerView.findViewById(R.id.automatic_backup_config_button_image);
+        backupConfigButtonText = (TextView) headerView.findViewById(R.id.automatic_backup_config_button_text);
+        wifiOnlyCheckbox = (CheckBox) headerView.findViewById(R.id.auto_backup_wifi_only);
+        existingBackupsSection = headerView.findViewById(R.id.existing_backups_section);
 
-        mExportButton.setOnClickListener(new View.OnClickListener() {
+        exportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mNavigationHandler.showDialog(new ExportBackupDialogFragment());
+                navigationHandler.showDialog(new ExportBackupDialogFragment());
             }
         });
-        mImportButton.setOnClickListener(new View.OnClickListener() {
+        importButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -109,7 +122,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 }
             }
         });
-        mBackupConfigButton.setOnClickListener(new View.OnClickListener() {
+        backupConfigButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final PurchaseManager purchaseManager;
@@ -123,16 +136,16 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 if (purchaseManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
                     purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
-                    mNavigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
+                    navigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
                 }
             }
         });
-        mWifiOnlyCheckbox.setChecked(getPersistenceManager().getPreferenceManager().get(UserPreference.Misc.AutoBackupOnWifiOnly));
-        mWifiOnlyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        wifiOnlyCheckbox.setChecked(persistenceManager.getPreferenceManager().get(UserPreference.Misc.AutoBackupOnWifiOnly));
+        wifiOnlyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                getPersistenceManager().getPreferenceManager().set(UserPreference.Misc.AutoBackupOnWifiOnly, checked);
-                mBackupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
+                persistenceManager.getPreferenceManager().set(UserPreference.Misc.AutoBackupOnWifiOnly, checked);
+                backupProvidersManager.setAndInitializeNetworkProviderType(checked ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks);
             }
         });
         return rootView;
@@ -141,28 +154,29 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRecyclerView.setAdapter(new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager));
+        recyclerView.setAdapter(new RemoteBackupsListAdapter(headerView, getActivity(),
+                backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager));
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mToolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ((AppCompatActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
         }
-        mCompositeSubscription = new CompositeSubscription();
-        updateViewsForProvider(mBackupProvidersManager.getSyncProvider());
-        mBackupProvidersManager.registerChangeListener(this);
+        compositeSubscription = new CompositeSubscription();
+        updateViewsForProvider(backupProvidersManager.getSyncProvider());
+        backupProvidersManager.registerChangeListener(this);
     }
 
     @Override
@@ -171,7 +185,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == IMPORT_SMR_REQUEST_CODE) {
                 if (data != null) {
-                    mNavigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(data.getData()));
+                    navigationHandler.showDialog(ImportLocalBackupDialogFragment.newInstance(data.getData()));
                 }
             }
         }
@@ -180,7 +194,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            return mNavigationHandler.navigateBack();
+            return navigationHandler.navigateBack();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -188,17 +202,17 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     @Override
     public void onPause() {
-        mBackupProvidersManager.unregisterChangeListener(this);
-        mCompositeSubscription.unsubscribe();
+        backupProvidersManager.unregisterChangeListener(this);
+        compositeSubscription.unsubscribe();
         super.onPause();
     }
 
     @Override
     public void onProviderChanged(@NonNull SyncProvider newProvider) {
         // Clear out any existing subscriptions when we change providers
-        mCompositeSubscription.unsubscribe();
-        mCompositeSubscription = new CompositeSubscription();
-        mRemoteBackupsDataCache.clearGetBackupsResults();
+        compositeSubscription.unsubscribe();
+        compositeSubscription = new CompositeSubscription();
+        remoteBackupsDataCache.clearGetBackupsResults();
 
         updateViewsForProvider(newProvider);
     }
@@ -206,30 +220,32 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     public void updateViewsForProvider(@NonNull SyncProvider syncProvider) {
         if (isResumed()) {
             if (syncProvider == SyncProvider.None) {
-                mWarningTextView.setText(R.string.auto_backup_warning_none);
-                mBackupConfigButtonText.setText(R.string.auto_backup_configure);
-                mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_off_24dp);
-                mWifiOnlyCheckbox.setVisibility(View.GONE);
+                warningTextView.setText(R.string.auto_backup_warning_none);
+                backupConfigButtonText.setText(R.string.auto_backup_configure);
+                backupConfigButtonImage.setImageResource(R.drawable.ic_cloud_off_24dp);
+                wifiOnlyCheckbox.setVisibility(View.GONE);
             } else if (syncProvider == SyncProvider.GoogleDrive) {
-                mWarningTextView.setText(R.string.auto_backup_warning_drive);
-                mBackupConfigButtonText.setText(R.string.auto_backup_source_google_drive);
-                mBackupConfigButtonImage.setImageResource(R.drawable.ic_cloud_done_24dp);
-                mWifiOnlyCheckbox.setVisibility(View.VISIBLE);
+                warningTextView.setText(R.string.auto_backup_warning_drive);
+                backupConfigButtonText.setText(R.string.auto_backup_source_google_drive);
+                backupConfigButtonImage.setImageResource(R.drawable.ic_cloud_done_24dp);
+                wifiOnlyCheckbox.setVisibility(View.VISIBLE);
             } else {
                 throw new IllegalArgumentException("Unsupported sync provider type was specified");
             }
 
-            mCompositeSubscription.add(mRemoteBackupsDataCache.getBackups(syncProvider)
+            compositeSubscription.add(remoteBackupsDataCache.getBackups(syncProvider)
                     .subscribe(new Action1<List<RemoteBackupMetadata>>() {
                         @Override
                         public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
                             if (remoteBackupMetadatas.isEmpty()) {
-                                mExistingBackupsSection.setVisibility(View.GONE);
+                                existingBackupsSection.setVisibility(View.GONE);
                             } else {
-                                mExistingBackupsSection.setVisibility(View.VISIBLE);
+                                existingBackupsSection.setVisibility(View.VISIBLE);
                             }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter = new RemoteBackupsListAdapter(mHeaderView, getActivity(), mBackupProvidersManager, getPersistenceManager().getPreferenceManager(), mNetworkManager, remoteBackupMetadatas);
-                            mRecyclerView.setAdapter(remoteBackupsListAdapter);
+                            final RemoteBackupsListAdapter remoteBackupsListAdapter =
+                                    new RemoteBackupsListAdapter(headerView, getActivity(),
+                                            backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager, remoteBackupMetadatas);
+                            recyclerView.setAdapter(remoteBackupsListAdapter);
                         }
                     }));
         }

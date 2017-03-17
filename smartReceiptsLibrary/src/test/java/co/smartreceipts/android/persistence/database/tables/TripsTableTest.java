@@ -111,7 +111,7 @@ public class TripsTableTest {
         when(mStorageManager.mkdir(NAME_3)).thenReturn(new File(NAME_3));
         when(mPreferences.get(UserPreference.General.DefaultCurrency)).thenReturn(USER_PREFERENCES_CURRENCY_CODE);
         
-        mTripsTable = new TripsTable(mSQLiteOpenHelper, mPersistenceManager);
+        mTripsTable = new TripsTable(mSQLiteOpenHelper, mPersistenceManager.getStorageManager(), mPersistenceManager.getPreferenceManager());
 
         // Now create the table and insert some defaults
         mTripsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);

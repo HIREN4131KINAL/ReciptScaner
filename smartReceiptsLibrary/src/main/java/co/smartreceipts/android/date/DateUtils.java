@@ -1,5 +1,10 @@
 package co.smartreceipts.android.date;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.text.format.DateFormat;
+import android.text.format.Time;
+
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -7,11 +12,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.text.format.DateFormat;
-import android.text.format.Time;
 
 public class DateUtils {
 

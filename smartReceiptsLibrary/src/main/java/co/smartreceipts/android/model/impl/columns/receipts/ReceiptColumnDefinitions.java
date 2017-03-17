@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
@@ -18,8 +20,6 @@ import co.smartreceipts.android.model.comparators.ColumnNameComparator;
 import co.smartreceipts.android.model.impl.columns.AbstractColumnImpl;
 import co.smartreceipts.android.model.impl.columns.BlankColumn;
 import co.smartreceipts.android.model.impl.columns.SettingUserIdColumn;
-import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
@@ -94,24 +94,15 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     }
 
 
-    private final Context mContext;
-    private final DatabaseHelper mDB;
-    private final UserPreferenceManager mPreferences;
-    private final Flex mFlex;
-    private final ActualDefinition[] mActualDefinitions;
+   @Inject Context context;
+   @Inject UserPreferenceManager mPreferences;
+   @Inject Flex flex;
 
-    public ReceiptColumnDefinitions(@NonNull Context context, @NonNull PersistenceManager persistenceManager, Flex flex) {
-        this(context, persistenceManager.getDatabase(), persistenceManager.getPreferenceManager(), flex);
+   private final ActualDefinition[] mActualDefinitions = ActualDefinition.values();
+
+    @Inject
+    public ReceiptColumnDefinitions() {
     }
-
-    public ReceiptColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull UserPreferenceManager preferences, Flex flex) {
-        mContext = context;
-        mDB = db;
-        mPreferences = preferences;
-        mFlex = flex;
-        mActualDefinitions = ActualDefinition.values();
-    }
-
 
     @Nullable
     @Override
@@ -195,9 +186,9 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
             case REPORT_NAME:
                 return new ReportNameColumn(id, definitionName, syncState);
             case REPORT_START_DATE:
-                return new ReportStartDateColumn(id, definitionName, syncState, mContext, mPreferences);
+                return new ReportStartDateColumn(id, definitionName, syncState, context, mPreferences);
             case REPORT_END_DATE:
-                return new ReportEndDateColumn(id, definitionName, syncState, mContext, mPreferences);
+                return new ReportEndDateColumn(id, definitionName, syncState, context, mPreferences);
             case REPORT_COMMENT:
                 return new ReportCommentColumn(id, definitionName, syncState);
             case REPORT_COST_CENTER:
@@ -211,25 +202,25 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
             case CURRENCY:
                 return new ReceiptCurrencyCodeColumn(id, definitionName, syncState);
             case DATE:
-                return new ReceiptDateColumn(id, definitionName, syncState, mContext, mPreferences);
+                return new ReceiptDateColumn(id, definitionName, syncState, context, mPreferences);
             case NAME:
                 return new ReceiptNameColumn(id, definitionName, syncState);
             case PRICE:
                 return new ReceiptPriceColumn(id, definitionName, syncState);
             case PRICE_EXCHANGED:
-                return new ReceiptExchangedPriceColumn(id, definitionName, syncState, mContext);
+                return new ReceiptExchangedPriceColumn(id, definitionName, syncState, context);
             case TAX:
                 return new ReceiptTaxColumn(id, definitionName, syncState);
             case TAX_EXCHANGED:
-                return new ReceiptExchangedTaxColumn(id, definitionName, syncState, mContext);
+                return new ReceiptExchangedTaxColumn(id, definitionName, syncState, context);
             case PRICE_PLUS_TAX_EXCHANGED:
-                return new ReceiptNetExchangedPricePlusTaxColumn(id, definitionName, syncState, mContext, mPreferences);
+                return new ReceiptNetExchangedPricePlusTaxColumn(id, definitionName, syncState, context, mPreferences);
             case EXCHANGE_RATE:
                 return new ReceiptExchangeRateColumn(id, definitionName, syncState);
             case PICTURED:
-                return new ReceiptIsPicturedColumn(id, definitionName, syncState, mContext);
+                return new ReceiptIsPicturedColumn(id, definitionName, syncState, context);
             case REIMBURSABLE:
-                return new ReceiptIsReimbursableColumn(id, definitionName, syncState, mContext);
+                return new ReceiptIsReimbursableColumn(id, definitionName, syncState, context);
             case INDEX:
                 return new ReceiptIndexColumn(id, definitionName, syncState);
             case ID:
@@ -248,10 +239,10 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
     }
 
     private String getColumnNameFromStringResId(int stringResId) {
-        if (mFlex != null) {
-            return mFlex.getString(mContext, stringResId);
+        if (flex != null) {
+            return flex.getString(context, stringResId);
         } else {
-            return mContext.getString(stringResId);
+            return context.getString(stringResId);
         }
     }
 

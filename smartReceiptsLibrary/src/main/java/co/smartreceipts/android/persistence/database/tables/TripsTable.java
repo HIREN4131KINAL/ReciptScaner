@@ -9,12 +9,14 @@ import android.support.annotation.NonNull;
 import java.io.File;
 
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
+import co.smartreceipts.android.persistence.database.tables.adapters.SyncStateAdapter;
 import co.smartreceipts.android.persistence.database.tables.adapters.TripDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.TripPrimaryKey;
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
+import wb.android.storage.StorageManager;
 
 public final class TripsTable extends AbstractSqlTable<Trip, String> {
 
@@ -35,8 +37,9 @@ public final class TripsTable extends AbstractSqlTable<Trip, String> {
     @Deprecated
     private static final String COLUMN_PRICE = "price"; // Once used but keeping to avoid future name conflicts
 
-    public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull PersistenceManager persistenceManager) {
-        super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(persistenceManager), new TripPrimaryKey(), new OrderBy(TripsTable.COLUMN_TO, true));
+    public TripsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences) {
+        super(sqLiteOpenHelper, TABLE_NAME, new TripDatabaseAdapter(storageManager, preferences, new SyncStateAdapter()),
+                new TripPrimaryKey(), new OrderBy(TripsTable.COLUMN_TO, true));
     }
 
     @Override

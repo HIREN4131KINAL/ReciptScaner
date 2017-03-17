@@ -5,17 +5,10 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 
-import com.google.common.base.Preconditions;
-
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.sync.BackupProvidersManager;
-import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
-import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupProgressDialogFragment;
 
 public class DriveRecoveryDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {

@@ -9,9 +9,9 @@ import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
 import java.io.File;
 import java.io.IOException;
 
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.impl.firebase.FirebaseAnalytics;
 import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
-import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
@@ -35,8 +35,6 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
-import wb.android.flex.Flex;
-import wb.android.flex.Flexable;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
@@ -45,10 +43,10 @@ import wb.android.storage.StorageManager;
  *
  * @author WRB
  */
-public class SmartReceiptsApplication extends Application implements Flexable, VersionUpgradedListener {
+public abstract class SmartReceiptsApplication extends Application implements VersionUpgradedListener {
 
-    private PersistenceManager mPersistenceManager;
-    private Flex mFlex;
+//    private PersistenceManager mPersistenceManager;
+//    private Flex mFlex;
     private Activity mCurrentActivity;
     private ConfigurationManager mConfigurationManager;
     private TableControllerManager mTableControllerManager;
@@ -56,7 +54,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     private BackupProvidersManager mBackupProvidersManager;
     private NetworkManager mNetworkManager;
     private IdentityManager mIdentityManager;
-    private ServiceManager mServiceManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
     private PurchaseWallet purchaseWallet;
@@ -69,25 +66,31 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         WBUncaughtExceptionHandler.initialize();
 
         Logger.debug(this, "\n\n\n\n Launching App...");
+    }
+
+    protected void init() {
+        PersistenceManager persistenceManager = getPersistenceManagerInternal();
+        ReceiptColumnDefinitions receiptColumnDefinitions = getReceiptColumnDefinitionsInternal();
 
         mDeferFirstRunDialog = false;
-        mFlex = instantiateFlex();
         mConfigurationManager = instantiateConfigurationManager();
-        mPersistenceManager = instantiatePersistenceManager();
-        mPersistenceManager.initialize(); // TODO: Fix this circular injection pattern
 
         mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
         mAnalyticsManager.register(new FirebaseAnalytics(this));
 
-        mTableControllerManager = new TableControllerManager(mPersistenceManager, mAnalyticsManager, new ReceiptColumnDefinitions(this, mPersistenceManager.getDatabase(), mPersistenceManager.getPreferenceManager(), mFlex));
-        mNetworkManager = new NetworkManager(this, getPersistenceManager().getPreferenceManager());
+
+        mTableControllerManager = new TableControllerManager(persistenceManager, mAnalyticsManager,
+                receiptColumnDefinitions
+                /*new ReceiptColumnDefinitions(this,
+                        persistenceManager.getPreferenceManager(), new Flex(this, tmpFlexable))*/);
+        mNetworkManager = new NetworkManager(this, persistenceManager.getPreferenceManager());
         mNetworkManager.initialize();
-        mBackupProvidersManager = new BackupProvidersManager(this, getPersistenceManager().getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
+        mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
 
         final MutableIdentityStore identityStore = new MutableIdentityStore(this);
-        mServiceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore, new SmartReceiptsGsonBuilder(new ReceiptColumnDefinitions(this, mPersistenceManager, mFlex))));
-        mIdentityManager = new IdentityManager(this, identityStore, mServiceManager, mAnalyticsManager, mPersistenceManager.getPreferenceManager());
-        pushManager = new PushManager(this, mServiceManager);
+        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore, new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
+        mIdentityManager = new IdentityManager(this, identityStore, serviceManager, mAnalyticsManager, persistenceManager.getPreferenceManager());
+        pushManager = new PushManager(this, serviceManager);
         pushManager.initialize();
 
         purchaseWallet = instantiatePurchaseWallet();
@@ -95,16 +98,21 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         ocrInteractor = new OcrInteractor(this, pushManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
-        
-	    // Clear our cache
+
+        // Clear our cache
         new SmartReceiptsTemporaryFileCache(this).resetCache();
 
         // Check if a new version is available
-        new AppVersionManager(this, mPersistenceManager.getPreferenceManager()).onLaunch(this);
+        new AppVersionManager(this, persistenceManager.getPreferenceManager()).onLaunch(this);
 
         // Add launch count for rating prompt monitoring
         new AppRatingPreferencesStorage(getApplicationContext()).incrementLaunchCount();
     }
+
+
+    // TODO: 16.03.2017 temporаry methods, possibly should be removed
+    protected abstract PersistenceManager getPersistenceManagerInternal();
+    protected abstract ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal();
 
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath() ;
@@ -115,8 +123,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     public void onTerminate() {
         // Note: This is useful for unit tests but never gets called on actual devices
         mCurrentActivity = null;
-        mPersistenceManager.onDestroy();
-        mPersistenceManager = null;
+        getPersistenceManagerInternal().onDestroy();
+//        mPersistenceManager = null;
         super.onTerminate();
     }
 
@@ -132,23 +140,8 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     }
 
     @NonNull
-    public PersistenceManager getPersistenceManager() {
-        return mPersistenceManager;
-    }
-
-    @NonNull
     public IdentityManager getIdentityManager() {
         return mIdentityManager;
-    }
-
-    @NonNull
-    public ServiceManager getServiceManager() {
-        return mServiceManager;
-    }
-
-    @NonNull
-    public Flex getFlex() {
-        return mFlex;
     }
 
     @NonNull
@@ -204,7 +197,7 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         Logger.debug(this, "Upgrading the app from version {} to {}", oldVersion, newVersion);
         if (oldVersion <= 78) {
             try {
-                StorageManager external = mPersistenceManager.getExternalStorageManager();
+                StorageManager external = getPersistenceManagerInternal().getExternalStorageManager();
                 File db = this.getDatabasePath(DatabaseHelper.DATABASE_NAME); // Internal db file
                 if (db != null && db.exists()) {
                     File sdDB = external.getFile("receipts.db");
@@ -250,24 +243,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
         return new PersistenceManager(this);
     }
 
-    /**
-     * Protected method to enable subclasses to create custom instances
-     *
-     * @return a Flex Instance
-     */
-    protected Flex instantiateFlex() {
-        return Flex.getInstance(this, this);
-    }
-
-    /**
-     * Protected method to enable subclasses to create custom instances
-     *
-     * @return a SubscriptionCache Instance
-     */
-    @NonNull
-    protected PurchaseWallet instantiatePurchaseWallet() {
-        return new DefaultPurchaseWallet(this);
-    }
 
     /**
      * Protected method to enable subclasses to create custom instances
@@ -277,5 +252,6 @@ public class SmartReceiptsApplication extends Application implements Flexable, V
     protected ConfigurationManager instantiateConfigurationManager() {
         return new DefaultConfigurationManager(this);
     }
+
 
 }

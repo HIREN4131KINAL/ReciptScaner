@@ -1,7 +1,6 @@
 package co.smartreceipts.android.settings.versions;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 

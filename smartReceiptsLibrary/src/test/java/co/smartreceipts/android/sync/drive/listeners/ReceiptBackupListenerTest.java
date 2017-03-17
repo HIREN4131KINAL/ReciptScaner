@@ -12,7 +12,6 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.sync.drive.managers.DriveDatabaseManager;
 import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
-import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;

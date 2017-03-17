@@ -3,6 +3,7 @@ package co.smartreceipts.android.adapters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.widget.TextView;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;

@@ -8,7 +8,6 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.TripsTable;
@@ -27,9 +26,9 @@ public final class TripDatabaseAdapter implements DatabaseAdapter<Trip, PrimaryK
     private final UserPreferenceManager mPreferences;
     private final SyncStateAdapter mSyncStateAdapter;
 
-    public TripDatabaseAdapter(@NonNull PersistenceManager persistenceManager) {
-        this(persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), new SyncStateAdapter());
-    }
+//    public TripDatabaseAdapter(@NonNull PersistenceManager persistenceManager) {
+//        this(persistenceManager.getStorageManager(), persistenceManager.getPreferenceManager(), new SyncStateAdapter());
+//    }
 
     public TripDatabaseAdapter(@NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences, @NonNull SyncStateAdapter syncStateAdapter) {
         mStorageManager = Preconditions.checkNotNull(storageManager);

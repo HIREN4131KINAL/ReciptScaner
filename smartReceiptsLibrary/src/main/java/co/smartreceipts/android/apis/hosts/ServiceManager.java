@@ -3,14 +3,10 @@ package co.smartreceipts.android.apis.hosts;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.GsonBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;

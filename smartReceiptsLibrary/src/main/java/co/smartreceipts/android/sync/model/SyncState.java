@@ -6,8 +6,8 @@ import android.support.annotation.Nullable;
 
 import java.sql.Date;
 
-import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public interface SyncState extends Parcelable {
 

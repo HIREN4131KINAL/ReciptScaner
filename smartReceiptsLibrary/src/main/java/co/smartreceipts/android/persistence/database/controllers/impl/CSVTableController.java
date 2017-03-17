@@ -3,7 +3,6 @@ package co.smartreceipts.android.persistence.database.controllers.impl;
 import android.support.annotation.NonNull;
 
 import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.PersistenceManager;

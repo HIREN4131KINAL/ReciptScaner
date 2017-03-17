@@ -3,10 +3,7 @@ package co.smartreceipts.android.persistence.database.controllers;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.util.List;
-
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.model.Trip;
 
 public interface ReceiptTableEventsListener extends TripForeignKeyTableEventsListener<Receipt> {
 

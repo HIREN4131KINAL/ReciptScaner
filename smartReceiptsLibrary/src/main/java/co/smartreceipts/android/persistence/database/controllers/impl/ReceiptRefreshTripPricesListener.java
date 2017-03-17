@@ -3,8 +3,6 @@ package co.smartreceipts.android.persistence.database.controllers.impl;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.google.common.base.Preconditions;
-
 import java.util.List;
 
 import co.smartreceipts.android.model.Receipt;

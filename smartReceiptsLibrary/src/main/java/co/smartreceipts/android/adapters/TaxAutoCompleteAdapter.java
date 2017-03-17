@@ -1,9 +1,5 @@
 package co.smartreceipts.android.adapters;
 
-import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
-import java.util.Vector;
-
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -14,6 +10,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
+
+import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
+import java.util.Vector;
+
 import co.smartreceipts.android.model.TaxItem;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 

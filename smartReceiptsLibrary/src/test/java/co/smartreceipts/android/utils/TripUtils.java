@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.TimeZone;
 
-import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.PriceCurrency;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutablePriceImpl;

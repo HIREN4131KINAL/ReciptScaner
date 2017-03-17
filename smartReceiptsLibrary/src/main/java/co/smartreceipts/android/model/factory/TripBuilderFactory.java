@@ -10,9 +10,9 @@ import java.io.File;
 import java.sql.Date;
 import java.util.TimeZone;
 
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.impl.DefaultTripImpl;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;

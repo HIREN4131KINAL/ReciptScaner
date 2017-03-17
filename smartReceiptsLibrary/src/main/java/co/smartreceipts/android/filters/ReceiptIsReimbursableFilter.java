@@ -1,9 +1,9 @@
 package co.smartreceipts.android.filters;
 
-import java.util.List;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;

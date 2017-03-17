@@ -18,18 +18,17 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
@@ -51,31 +50,40 @@ import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
+import dagger.android.AndroidInjection;
+import wb.android.flex.Flex;
 import wb.android.preferences.SummaryEditTextPreference;
 
 public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, UniversalPreferences, SubscriptionEventsListener {
 
     public static final String EXTRA_GO_TO_CATEGORY = "GO_TO_CATEGORY";
 
+    @Inject
+    Flex flex;
+
+    @Inject
+    PersistenceManager persistenceManager;
+
     private volatile PurchaseableSubscriptions mPurchaseableSubscriptions;
     private SmartReceiptsApplication mApp;
     private PurchaseManager mPurchaseManager;
-    private boolean mIsUsingHeaders;
+    private boolean isUsingHeaders;
 
     /**
      * Ugly hack to determine if a fragment header is currently showing or not. See if I can replace by counting the
      * fragment manager entries
      */
-    private boolean mIsFragmentHeaderShowing = false;
+    private boolean isFragmentHeaderShowing = false;
 
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mApp = ((SmartReceiptsApplication) getApplication());
-        mIsUsingHeaders = getResources().getBoolean(R.bool.isTablet);
+        AndroidInjection.inject(this);
 
-        if (!mIsUsingHeaders) {
+        super.onCreate(savedInstanceState);
+        isUsingHeaders = getResources().getBoolean(R.bool.isTablet);
+
+        if (!isUsingHeaders) {
             // Load the legacy preferences headers
             getPreferenceManager().setSharedPreferencesName(UserPreferenceManager.PREFERENCES_FILE_NAME);
             addPreferencesFromResource(R.xml.preference_legacy);
@@ -100,7 +108,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
         // Scroll to a predefined preference category (if provided). Only for when not using headers -
         // when we are using headers, selecting the appropriate header is handled by the EXTRA_SHOW_FRAGMENT
-        if (!mIsUsingHeaders) {
+        if (!isUsingHeaders) {
             // For some reason (http://stackoverflow.com/a/8167755)
             // getListView().setSelection() won't work in onCreate, onResume or even onPostResume
             // Only way I got it to work was by postDelaying it
@@ -121,47 +129,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            final LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
-            if (root != null) {
-                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
-                root.addView(toolbar, 0); // insert at top
-                setSupportActionBar(toolbar);
-                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        finish();
-                    }
-                });
-            }
-        } else {
-            final ViewGroup root = (ViewGroup) findViewById(android.R.id.content);
-            if (root != null) {
-                final ListView content = (ListView) root.getChildAt(0);
-                final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
-                root.removeAllViews();
-
-                final int height;
-                final TypedValue tv = new TypedValue();
-                if (getTheme().resolveAttribute(R.attr.actionBarSize, tv, true)) {
-                    height = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics());
-                } else {
-                    height = toolbar.getHeight();
+        final LinearLayout root = (LinearLayout) findViewById(android.R.id.list).getParent().getParent().getParent();
+        if (root != null) {
+            final Toolbar toolbar = (Toolbar) LayoutInflater.from(this).inflate(R.layout.toolbar, root, false);
+            root.addView(toolbar, 0); // insert at top
+            setSupportActionBar(toolbar);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finish();
                 }
-
-                content.setPadding(0, height, 0, 0);
-                root.addView(content);
-                root.addView(toolbar);
-                setSupportActionBar(toolbar);
-                toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        finish();
-                    }
-                });
-            }
+            });
         }
-
     }
 
 
@@ -186,8 +165,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onBuildHeaders(List<Header> target) {
         // Called before onCreate it seems
-        mIsUsingHeaders = getResources().getBoolean(R.bool.isTablet);
-        if (mIsUsingHeaders) {
+        isUsingHeaders = getResources().getBoolean(R.bool.isTablet);
+        if (isUsingHeaders) {
             loadHeadersFromResource(R.xml.preference_headers, target);
         }
     }
@@ -196,7 +175,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     protected boolean isValidFragment(String fragmentName) {
         try {
             return AbstractPreferenceHeaderFragment.class.isAssignableFrom(
-                            Class.forName(fragmentName));
+                    Class.forName(fragmentName));
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -205,7 +184,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mIsFragmentHeaderShowing) { // If we're actively showing a fragment, let it handle the call
+        if (isFragmentHeaderShowing) { // If we're actively showing a fragment, let it handle the call
             return super.onOptionsItemSelected(item);
         }
         if (item.getItemId() == android.R.id.home) {
@@ -240,11 +219,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public boolean isUsingHeaders() {
-        return mIsUsingHeaders;
+        return isUsingHeaders;
     }
 
     public void setFragmentHeaderIsShowing(boolean isShowing) {
-        mIsFragmentHeaderShowing = isShowing;
+        isFragmentHeaderShowing = isShowing;
     }
 
     @Override
@@ -255,7 +234,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     public void configurePreferencesGeneral(UniversalPreferences universal) {
         // Get the currency list
-        PersistenceManager persistenceManager = ((SmartReceiptsApplication) getApplication()).getPersistenceManager();
+//        PersistenceManager persistenceManager = ((SmartReceiptsApplication) getApplication()).getPersistenceManager();
         ArrayList<CharSequence> currencyList = persistenceManager.getDatabase().getCurrenciesList();
         CharSequence[] currencyArray = new CharSequence[currencyList.size()];
         currencyList.toArray(currencyArray);
@@ -297,7 +276,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_receipt_payment_methods_key).setOnPreferenceClickListener(this);
 
         // Here we restore our current values (easier than getting the FloatEditText stuff to work)
-        UserPreferenceManager preferences = ((SmartReceiptsApplication) getApplication()).getPersistenceManager().getPreferenceManager();
+        UserPreferenceManager preferences = persistenceManager.getPreferenceManager();
         DefaultTaxPercentagePreference taxPercentagePreference = (DefaultTaxPercentagePreference) universal.findPreference(R.string.pref_receipt_tax_percent_key);
         taxPercentagePreference.setText(Float.toString(preferences.get(UserPreference.Receipts.DefaultTaxPercentage)));
         MinimumPriceEditTextPreference minimumPriceEditTextPreference = (MinimumPriceEditTextPreference) universal.findPreference(R.string.pref_receipt_minimum_receipts_price_key);
@@ -328,7 +307,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     public void configurePreferencesEmail(UniversalPreferences universal) {
         Preference subjectPreference = universal.findPreference(R.string.pref_email_default_email_subject_key);
-        subjectPreference.setDefaultValue(((SmartReceiptsApplication) getApplication()).getFlex().getString(this, R.string.EMAIL_DATA_SUBJECT));
+        subjectPreference.setDefaultValue(flex.getString(this, R.string.EMAIL_DATA_SUBJECT));
     }
 
     public void configurePreferencesCamera(UniversalPreferences universal) {
@@ -417,7 +396,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @Override
     public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
         Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
-        mPurchaseableSubscriptions = purchaseableSubscriptions;
+        this.purchaseableSubscriptions = purchaseableSubscriptions;
     }
 
     @Override
@@ -492,7 +471,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
                 "Device: " + android.os.Build.DEVICE + "\n" +
                 "Manufacturer: " + Build.MANUFACTURER + "\n" +
                 "Model (and Product): " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")\n" +
-                "Two-Paned: " + mIsUsingHeaders;
+                "Two-Paned: " + isUsingHeaders;
     }
 
 }

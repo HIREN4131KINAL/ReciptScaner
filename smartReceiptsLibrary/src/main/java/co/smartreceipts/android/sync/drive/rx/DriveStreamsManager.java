@@ -19,18 +19,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.error.DriveThrowableToSyncErrorTranslator;
-import co.smartreceipts.android.sync.errors.CriticalSyncError;
-import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
-import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks {

@@ -2,7 +2,6 @@ package co.smartreceipts.android.sync.drive.device;
 
 import android.content.Context;
 import android.os.Build;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 
 import java.util.UUID;

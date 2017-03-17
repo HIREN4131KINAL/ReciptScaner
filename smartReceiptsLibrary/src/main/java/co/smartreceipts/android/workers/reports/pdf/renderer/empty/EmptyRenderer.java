@@ -2,8 +2,6 @@ package co.smartreceipts.android.workers.reports.pdf.renderer.empty;
 
 import android.support.annotation.NonNull;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
 
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;

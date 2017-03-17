@@ -4,13 +4,14 @@ import android.support.v7.app.ActionBar;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-public class ReceiptsFragment extends WBListFragment {
+public abstract class ReceiptsFragment extends WBListFragment {
 
     public static final String TAG = "ReceiptsFragment";
 
@@ -38,8 +39,9 @@ public class ReceiptsFragment extends WBListFragment {
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null && getUserVisibleHint()) {
             if (updateSubtitle) {
-                if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
-                    mIdSubscription = getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdHelper()
+                PersistenceManager persistenceManager = getPersistenceManager();
+                if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
+                    mIdSubscription = persistenceManager.getDatabase().getNextReceiptAutoIncremenetIdHelper()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new Action1<Integer>() {
@@ -59,5 +61,8 @@ public class ReceiptsFragment extends WBListFragment {
             }
         }
     }
+
+    protected abstract PersistenceManager getPersistenceManager();
+
 
 }

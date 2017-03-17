@@ -1,9 +1,5 @@
 package co.smartreceipts.android.fragments;
 
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.filters.Filter;
-import co.smartreceipts.android.filters.ReceiptAndFilter;
-import co.smartreceipts.android.model.Receipt;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -12,6 +8,11 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
+
+import co.smartreceipts.android.R;
+import co.smartreceipts.android.filters.Filter;
+import co.smartreceipts.android.filters.ReceiptAndFilter;
+import co.smartreceipts.android.model.Receipt;
 
 public class FilterDialogFragment extends DialogFragment implements OnClickListener {
 

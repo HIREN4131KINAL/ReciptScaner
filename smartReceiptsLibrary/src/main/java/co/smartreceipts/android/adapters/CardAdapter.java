@@ -1,9 +1,5 @@
 package co.smartreceipts.android.adapters;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Paint;
@@ -22,6 +18,10 @@ import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.settings.UserPreferenceManager;

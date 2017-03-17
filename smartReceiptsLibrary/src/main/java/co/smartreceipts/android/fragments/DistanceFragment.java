@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +17,8 @@ import com.google.common.base.Preconditions;
 import java.math.BigDecimal;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.adapters.DistanceAdapter;
 import co.smartreceipts.android.model.Distance;
@@ -26,28 +29,41 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.support.AndroidSupportInjection;
 
 public class DistanceFragment extends WBListFragment implements TripForeignKeyTableEventsListener<Distance> {
 
-    private Trip mTrip;
-    private DistanceAdapter mAdapter;
-    private View mProgressDialog;
-    private TextView mNoDataAlert;
-    private Distance mLastInsertedDistance;
-    private DistanceTableController mDistanceTableController;
+    @Inject
+    UserPreferenceManager preferenceManager;
+
+    private Trip trip;
+    private DistanceAdapter distanceAdapter;
+    private View progressDialog;
+    private TextView noDataAlert;
+    private Distance lastInsertedDistance;
+    private DistanceTableController distanceTableController;
 
     public static DistanceFragment newInstance() {
         return new DistanceFragment();
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
-        mAdapter = new DistanceAdapter(getActivity(), getPersistenceManager().getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
-        mDistanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
+        distanceAdapter = new DistanceAdapter(getActivity(), preferenceManager,
+                getSmartReceiptsApplication().getBackupProvidersManager());
+        distanceTableController = getSmartReceiptsApplication().getTableControllerManager().getDistanceTableController();
     }
 
 
@@ -55,13 +71,13 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Logger.debug(this, "onCreateView");
         final View view = inflater.inflate(R.layout.report_distance_list, container, false);
-        mProgressDialog = view.findViewById(R.id.progress);
-        mNoDataAlert = (TextView) view.findViewById(R.id.no_data);
-        mNoDataAlert.setText(R.string.distance_no_data);
+        progressDialog = view.findViewById(R.id.progress);
+        noDataAlert = (TextView) view.findViewById(R.id.no_data);
+        noDataAlert.setText(R.string.distance_no_data);
         view.findViewById(R.id.distance_action_new).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final DistanceDialogFragment dialog = (mLastInsertedDistance == null) ? DistanceDialogFragment.newInstance(mTrip) : DistanceDialogFragment.newInstance(mTrip, mLastInsertedDistance.getDate());
+                final DistanceDialogFragment dialog = (lastInsertedDistance == null) ? DistanceDialogFragment.newInstance(trip) : DistanceDialogFragment.newInstance(trip, lastInsertedDistance.getDate());
                 dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
             }
         });
@@ -72,17 +88,17 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Logger.debug(this, "onActivityCreated");
-        mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
-        Preconditions.checkNotNull(mTrip, "A valid trip is required");
-        setListAdapter(mAdapter);
+        trip = ((ReportInfoFragment) getParentFragment()).getTrip();
+        Preconditions.checkNotNull(trip, "A valid trip is required");
+        setListAdapter(distanceAdapter);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Logger.debug(this, "onResume");
-        mDistanceTableController.subscribe(this);
-        mDistanceTableController.get(mTrip);
+        distanceTableController.subscribe(this);
+        distanceTableController.get(trip);
     }
 
     @Override
@@ -90,7 +106,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         super.setUserVisibleHint(isVisibleToUser);
         if (getView() != null && isVisibleToUser) {
             // Refresh as soon as we're visible
-            mDistanceTableController.get(mTrip);
+            distanceTableController.get(trip);
         }
     }
 
@@ -98,7 +114,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     public void onPause() {
         super.onPause();
         Logger.debug(this, "onPause");
-        mDistanceTableController.unsubscribe(this);
+        distanceTableController.unsubscribe(this);
     }
 
     @Override
@@ -109,8 +125,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        final Distance distance = mAdapter.getItem(position);
-        final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(mTrip, distance);
+        final Distance distance = distanceAdapter.getItem(position);
+        final DistanceDialogFragment dialog = DistanceDialogFragment.newInstance(trip, distance);
         dialog.show(getFragmentManager(), DistanceDialogFragment.TAG);
         getFragmentManager().executePendingTransactions();
     }
@@ -118,20 +134,20 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onGetSuccess(@NonNull List<Distance> distances, @NonNull Trip trip) {
         if (isAdded()) {
-            mAdapter.notifyDataSetChanged(distances);
-            mProgressDialog.setVisibility(View.GONE);
+            distanceAdapter.notifyDataSetChanged(distances);
+            progressDialog.setVisibility(View.GONE);
             if (distances.isEmpty()) {
                 getListView().setVisibility(View.GONE);
-                mNoDataAlert.setVisibility(View.VISIBLE);
+                noDataAlert.setVisibility(View.VISIBLE);
             } else {
-                mNoDataAlert.setVisibility(View.GONE);
+                noDataAlert.setVisibility(View.GONE);
                 getListView().setVisibility(View.VISIBLE);
             }
 
             final ActionBar actionBar = getSupportActionBar();
             if (actionBar != null && getUserVisibleHint()) {
-                if (getPersistenceManager().getPreferenceManager().get(UserPreference.Distance.ShowDistanceAsPriceInSubtotal)) {
-                    final Price total = new PriceBuilderFactory().setPriceables(distances, mTrip.getTripCurrency()).build();
+                if (preferenceManager.get(UserPreference.Distance.ShowDistanceAsPriceInSubtotal)) {
+                    final Price total = new PriceBuilderFactory().setPriceables(distances, this.trip.getTripCurrency()).build();
                     getSupportActionBar().setSubtitle(getString(R.string.distance_total_item, total.getCurrencyFormattedPrice()));
                 } else {
                     BigDecimal distanceTotal = new BigDecimal(0);
@@ -162,9 +178,9 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onInsertSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
-            mDistanceTableController.get(mTrip);
+            distanceTableController.get(trip);
         }
-        mLastInsertedDistance = distance;
+        lastInsertedDistance = distance;
     }
 
     @Override
@@ -175,7 +191,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onUpdateSuccess(@NonNull Distance oldDistance, @NonNull Distance newDistance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
-            mDistanceTableController.get(mTrip);
+            distanceTableController.get(trip);
         }
     }
 
@@ -187,7 +203,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Override
     public void onDeleteSuccess(@NonNull Distance distance, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isResumed()) {
-            mDistanceTableController.get(mTrip);
+            distanceTableController.get(trip);
         }
     }
 

@@ -1,29 +1,32 @@
 package co.smartreceipts.android.date;
 
-import java.sql.Date;
-
-import co.smartreceipts.android.settings.UserPreferenceManager;
-import co.smartreceipts.android.settings.catalog.UserPreference;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 
+import java.sql.Date;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
+
+@Singleton
 public class DateManager {
 	
-	private Context mContext;
+	@Inject Context mContext;
+	@Inject UserPreferenceManager mPreferences;
 	private Date mDate;
 	private DateEditTextListener mDateEditTextListener;
-	private UserPreferenceManager mPreferences;
 	private MyCalendarDialog.Listener mListener;
-	
-	public DateManager(Context context, UserPreferenceManager preferences) {
-		mContext = context;
-		mPreferences = preferences;
+
+	@Inject
+	public DateManager() {
 	}
-	
+
 	public final void setCachedDate(Date date) {
 		mDate = date;
 	}

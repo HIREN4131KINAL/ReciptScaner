@@ -1,11 +1,11 @@
 package co.smartreceipts.android.filters;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.sql.Date;
 import java.util.List;
 import java.util.TimeZone;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Trip;

@@ -1,13 +1,14 @@
 package wb.android.ui;
 
-import java.sql.Date;
-
-import wb.android.dialog.CalendarDialog;
 import android.content.Context;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.EditText;
+
+import java.sql.Date;
+
+import wb.android.dialog.CalendarDialog;
 
 public class DateEditText extends EditText {
 

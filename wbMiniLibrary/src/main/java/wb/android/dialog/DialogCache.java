@@ -1,8 +1,8 @@
 package wb.android.dialog;
 
-import java.util.HashMap;
-
 import android.app.Dialog;
+
+import java.util.HashMap;
 
 public class DialogCache {
 	

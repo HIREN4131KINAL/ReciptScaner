@@ -11,9 +11,9 @@ import java.io.File;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
-import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.OcrServiceHostConfiguration;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;

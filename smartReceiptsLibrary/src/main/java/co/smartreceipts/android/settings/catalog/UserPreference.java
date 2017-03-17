@@ -6,7 +6,6 @@ import android.support.annotation.StringRes;
 
 import com.google.common.base.Preconditions;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;

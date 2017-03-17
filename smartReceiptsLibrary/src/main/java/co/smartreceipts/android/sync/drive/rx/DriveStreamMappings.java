@@ -9,13 +9,13 @@ import com.google.common.base.Preconditions;
 import java.sql.Date;
 import java.util.Collections;
 
-import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 
 public class DriveStreamMappings {
 

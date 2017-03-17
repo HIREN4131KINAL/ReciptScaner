@@ -5,8 +5,6 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
 
-import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +19,8 @@ import co.smartreceipts.android.utils.TestUtils;
 import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 public class UserPreferenceManagerTest {

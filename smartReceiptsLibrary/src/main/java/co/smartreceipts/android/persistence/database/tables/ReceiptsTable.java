@@ -17,19 +17,20 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.adapters.ReceiptDatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.ReceiptPrimaryKey;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
+import wb.android.storage.StorageManager;
 
 /**
  * Stores all database operations related to the {@link Receipt} model objects
@@ -60,9 +61,14 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
 
     private final String mDefaultCurrencyCode;
 
-    public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable, @NonNull Table<PaymentMethod, Integer> paymentMethodTable, @NonNull Table<Category, String> categoryTable, @NonNull PersistenceManager persistenceManager) {
-        super(sqLiteOpenHelper, TABLE_NAME, new ReceiptDatabaseAdapter(tripsTable, paymentMethodTable, categoryTable, persistenceManager), new ReceiptPrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
-        mDefaultCurrencyCode = persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency);
+    public ReceiptsTable(@NonNull SQLiteOpenHelper sqLiteOpenHelper, @NonNull Table<Trip, String> tripsTable,
+                         @NonNull Table<PaymentMethod, Integer> paymentMethodTable,
+                         @NonNull Table<Category, String> categoryTable,
+                         @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences) {
+        super(sqLiteOpenHelper, TABLE_NAME, new ReceiptDatabaseAdapter(tripsTable, paymentMethodTable,
+                categoryTable, storageManager), new ReceiptPrimaryKey(), COLUMN_PARENT, COLUMN_DATE);
+
+        mDefaultCurrencyCode = preferences.get(UserPreference.General.DefaultCurrency);
     }
 
     @Override
@@ -221,7 +227,7 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
             final SyncState newSyncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, oldSyncState.getSyncId(SyncProvider.GoogleDrive))),
                     new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
                     new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
-                            new Date(System.currentTimeMillis()));
+                    new Date(System.currentTimeMillis()));
             final Receipt newReceipt = new ReceiptBuilderFactory(receipt).setSyncState(newSyncState).build();
             return super.updateBlocking(receipt, newReceipt, databaseOperationMetadata);
         }

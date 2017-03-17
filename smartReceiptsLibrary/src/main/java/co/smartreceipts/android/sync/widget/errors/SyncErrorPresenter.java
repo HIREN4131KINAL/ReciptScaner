@@ -12,7 +12,9 @@ import co.smartreceipts.android.widget.Tooltip;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-import static android.view.View.*;
+import static android.view.View.GONE;
+import static android.view.View.OnClickListener;
+import static android.view.View.VISIBLE;
 
 public class SyncErrorPresenter {
 

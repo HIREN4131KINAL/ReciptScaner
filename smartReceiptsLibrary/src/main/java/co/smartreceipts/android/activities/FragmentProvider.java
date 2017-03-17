@@ -5,17 +5,19 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
-import co.smartreceipts.android.identity.widget.LoginFragment;;
-import co.smartreceipts.android.ocr.apis.model.OcrResponse;
-import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
-import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
-import co.smartreceipts.android.trips.TripFragment;
+import co.smartreceipts.android.identity.widget.LoginFragment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
+import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
+import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
+import co.smartreceipts.android.trips.TripFragment;
 import co.smartreceipts.android.trips.editor.TripCreateEditFragment;
+
+;
 
 public class FragmentProvider {
 

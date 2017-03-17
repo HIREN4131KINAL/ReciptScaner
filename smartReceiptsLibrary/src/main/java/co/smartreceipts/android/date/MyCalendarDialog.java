@@ -1,10 +1,11 @@
 package co.smartreceipts.android.date;
 
+import android.content.Context;
+import android.text.format.DateFormat;
+
 import java.sql.Date;
 
 import wb.android.dialog.CalendarDialog;
-import android.content.Context;
-import android.text.format.DateFormat;
 
 public class MyCalendarDialog extends CalendarDialog {
 

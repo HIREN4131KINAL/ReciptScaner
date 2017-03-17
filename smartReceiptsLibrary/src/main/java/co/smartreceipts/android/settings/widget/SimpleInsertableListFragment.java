@@ -1,8 +1,5 @@
 package co.smartreceipts.android.settings.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,6 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.persistence.database.controllers.TableController;

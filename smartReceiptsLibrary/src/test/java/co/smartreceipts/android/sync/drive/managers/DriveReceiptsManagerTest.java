@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 import java.util.Arrays;
@@ -23,12 +22,12 @@ import co.smartreceipts.android.persistence.database.controllers.TableController
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
-import co.smartreceipts.android.sync.network.NetworkManager;
-import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamMappings;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
+import co.smartreceipts.android.sync.network.NetworkManager;
+import co.smartreceipts.android.sync.provider.SyncProvider;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 

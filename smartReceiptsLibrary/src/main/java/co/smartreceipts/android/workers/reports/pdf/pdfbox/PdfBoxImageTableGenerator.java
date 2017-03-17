@@ -12,9 +12,9 @@ import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.workers.reports.TableGenerator;
 import co.smartreceipts.android.workers.reports.pdf.tables.ImagesWithLegendGrid;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
-import co.smartreceipts.android.workers.reports.TableGenerator;
 
 
 /**

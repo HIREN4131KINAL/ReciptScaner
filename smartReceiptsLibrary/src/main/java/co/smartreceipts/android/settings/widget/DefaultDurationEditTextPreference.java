@@ -1,10 +1,11 @@
 package co.smartreceipts.android.settings.widget;
 
-import wb.android.preferences.IntegerSummaryEditTextPreference;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+
 import co.smartreceipts.android.R;
+import wb.android.preferences.IntegerSummaryEditTextPreference;
 
 public class DefaultDurationEditTextPreference extends IntegerSummaryEditTextPreference {
 

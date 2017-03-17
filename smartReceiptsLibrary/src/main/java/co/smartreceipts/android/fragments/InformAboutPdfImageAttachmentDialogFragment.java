@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,15 +12,20 @@ import android.support.v4.app.DialogFragment;
 
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.settings.UserPreferenceManager;
+import dagger.android.support.AndroidSupportInjection;
 
 public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
     private static final String ARG_CONTENT_TYPE_STRING_ID = "arg_content_type_string_id";
     private static final String BOOL_ACTION_SEND_SHOW_HELP_DIALOG = "ShowHelpDialog";
+
+    @Inject
+    UserPreferenceManager preferenceManager;
 
     @StringRes
     private int contentTypeStringResId;
@@ -36,6 +42,12 @@ public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment 
         args.putInt(ARG_CONTENT_TYPE_STRING_ID, stringId);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
     }
 
     @Override
@@ -59,8 +71,7 @@ public class InformAboutPdfImageAttachmentDialogFragment extends DialogFragment 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == DialogInterface.BUTTON_NEGATIVE) {
-            final UserPreferenceManager preferences = ((SmartReceiptsApplication)getActivity().getApplication()).getPersistenceManager().getPreferenceManager();
-            preferences.getSharedPreferences().edit().putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, false).apply();
+            preferenceManager.getSharedPreferences().edit().putBoolean(BOOL_ACTION_SEND_SHOW_HELP_DIALOG, false).apply();
         }
         dismiss();
     }

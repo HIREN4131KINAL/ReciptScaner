@@ -8,8 +8,6 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 
 import co.smartreceipts.android.model.Category;
-import co.smartreceipts.android.model.PaymentMethod;
-import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.model.impl.ImmutableCategoryImpl;
 
 public class CategoryGsonAdapter implements GsonAdapter<Category> {

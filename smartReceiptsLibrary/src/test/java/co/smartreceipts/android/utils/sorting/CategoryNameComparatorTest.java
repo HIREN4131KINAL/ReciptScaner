@@ -6,7 +6,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.model.Category;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

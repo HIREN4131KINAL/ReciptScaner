@@ -1,6 +1,7 @@
 package co.smartreceipts.android.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
@@ -46,6 +49,7 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
 import co.smartreceipts.android.date.DateEditText;
+import co.smartreceipts.android.date.DateManager;
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.Receipt;
@@ -57,6 +61,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -65,16 +70,18 @@ import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.utils.SoftKeyboardManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
-import co.smartreceipts.android.utils.SoftKeyboardManager;
 import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
+import dagger.android.support.AndroidSupportInjection;
 import retrofit2.Call;
 import retrofit2.Response;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import wb.android.autocomplete.AutoCompleteAdapter;
+import wb.android.flex.Flex;
 
 public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocusChangeListener, NetworkRequestAwareEditText.RetryListener, DatabaseHelper.ReceiptAutoCompleteListener {
 
@@ -82,11 +89,20 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private static final String ARG_OCR = "arg_ocr";
     private static final String KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE = "key_is_exchange_rate_visible";
 
+    @Inject
+    Flex flex;
+
+    @Inject
+    DateManager dateManager;
+
+    @Inject
+    PersistenceManager persistenceManager;
+
     // Metadata
-    private Trip mTrip;
-    private Receipt mReceipt;
-    private File mFile;
-    private OcrResponse mOcrResponse;
+    private Trip trip;
+    private Receipt receipt;
+    private File file;
+    private OcrResponse ocrResponse;
 
     // Views
     private AutoCompleteTextView nameBox;
@@ -103,26 +119,26 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private EditText extra_edittext_box_1;
     private EditText extra_edittext_box_2;
     private EditText extra_edittext_box_3;
-    private ViewGroup mPaymentMethodsContainer;
-    private ViewGroup mExchangeRateContainer;
-    private Toolbar mToolbar;
-    private View mFocusedView;
+    private ViewGroup paymentMethodsContainer;
+    private ViewGroup exchangeRateContainer;
+    private Toolbar toolbar;
+    private View focusedView;
 
     // Rx
-    private rx.Subscription mIdSubscription;
-    private TableEventsListener<Category> mCategoryTableEventsListener;
-    private TableEventsListener<PaymentMethod> mPaymentMethodTableEventsListener;
+    private rx.Subscription idSubscription;
+    private TableEventsListener<Category> categoryTableEventsListener;
+    private TableEventsListener<PaymentMethod> paymentMethodTableEventsListener;
 
     // Misc
-    private MemoryLeakSafeCallback<ExchangeRate, EditText> mLastExchangeRateFetchCallback;
-    private NavigationHandler mNavigationHandler;
-    private ExchangeRateServiceManager mExchangeRateServiceManager;
-    private ReceiptInputCache mReceiptInputCache;
-    private AutoCompleteAdapter mReceiptsNameAutoCompleteAdapter, mReceiptsCommentAutoCompleteAdapter;
-    private ArrayAdapter<CharSequence> mCurrenciesAdapter;
-    private List<Category> mCategoriesList;
-    private ArrayAdapter<Category> mCategoriesAdpater;
-    private ArrayAdapter<PaymentMethod> mPaymentMethodsAdapter;
+    private MemoryLeakSafeCallback<ExchangeRate, EditText> lastExchangeRateFetchCallback;
+    private NavigationHandler navigationHandler;
+    private ExchangeRateServiceManager exchangeRateServiceManager;
+    private ReceiptInputCache receiptInputCache;
+    private AutoCompleteAdapter receiptsNameAutoCompleteAdapter, receiptsCommentAutoCompleteAdapter;
+    private ArrayAdapter<CharSequence> currenciesAdapter;
+    private List<Category> categoriesList;
+    private ArrayAdapter<Category> categoriesAdpater;
+    private ArrayAdapter<PaymentMethod> paymentMethodsAdapter;
 
     /**
      * Creates a new instance of this fragment for a new receipt
@@ -158,19 +174,26 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mTrip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
-        mFile = (File) getArguments().getSerializable(ARG_FILE);
-        mOcrResponse = (OcrResponse) getArguments().getSerializable(ARG_OCR);
-        mReceiptInputCache = new ReceiptInputCache(getFragmentManager());
-        mNavigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
-        mExchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
-        mCurrenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, getPersistenceManager().getDatabase().getCurrenciesList());
-        mCategoriesList = Collections.emptyList();
-        mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
-        mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
+        trip = getArguments().getParcelable(Trip.PARCEL_KEY);
+        receipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
+        file = (File) getArguments().getSerializable(ARG_FILE);
+        ocrResponse = (OcrResponse) getArguments().getSerializable(ARG_OCR);
+        receiptInputCache = new ReceiptInputCache(getFragmentManager());
+        navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
+        exchangeRateServiceManager = new ExchangeRateServiceManager(getFragmentManager());
+        currenciesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item,
+                persistenceManager.getDatabase().getCurrenciesList());
+        categoriesList = Collections.emptyList();
+        categoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
+        paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
         setHasOptionsMenu(true);
     }
 
@@ -185,37 +208,37 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         super.onViewCreated(rootView, savedInstanceState);
 
         if (savedInstanceState == null) {
-            if (mReceipt == null) {
+            if (receipt == null) {
                 new ChildFragmentNavigationHandler(this).addChild(new OcrInformationalTooltipFragment(), R.id.update_receipt_tooltip);
             }
         }
 
-        this.nameBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_NAME);
-        this.priceBox = (EditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
-        this.taxBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);
-        this.currencySpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
-        this.exchangeRateBox = (NetworkRequestAwareEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXCHANGE_RATE);
-        mExchangeRateContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.exchange_rate_container);
-        this.dateBox = (DateEditText) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
-        this.commentBox = (AutoCompleteTextView) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
-        this.categoriesSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
-        this.reimbursable = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
-        this.fullpage = (CheckBox) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
-        this.paymentMethodsSpinner = (Spinner) getFlex().getSubView(getActivity(), rootView, R.id.dialog_receiptmenu_payment_methods_spinner);
-        mPaymentMethodsContainer = (ViewGroup) getFlex().getSubView(getActivity(), rootView, R.id.payment_methods_container);
+        this.nameBox = (AutoCompleteTextView) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_NAME);
+        this.priceBox = (EditText) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_PRICE);
+        this.taxBox = (AutoCompleteTextView) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_TAX);
+        this.currencySpinner = (Spinner) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CURRENCY);
+        this.exchangeRateBox = (NetworkRequestAwareEditText) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXCHANGE_RATE);
+        exchangeRateContainer = (ViewGroup) flex.getSubView(getActivity(), rootView, R.id.exchange_rate_container);
+        this.dateBox = (DateEditText) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_DATE);
+        this.commentBox = (AutoCompleteTextView) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_COMMENT);
+        this.categoriesSpinner = (Spinner) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_CATEGORY);
+        this.reimbursable = (CheckBox) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXPENSABLE);
+        this.fullpage = (CheckBox) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_FULLPAGE);
+        this.paymentMethodsSpinner = (Spinner) flex.getSubView(getActivity(), rootView, R.id.dialog_receiptmenu_payment_methods_spinner);
+        paymentMethodsContainer = (ViewGroup) flex.getSubView(getActivity(), rootView, R.id.payment_methods_container);
 
         // Extras
-        final LinearLayout extras = (LinearLayout) getFlex().getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
+        final LinearLayout extras = (LinearLayout) flex.getSubView(getActivity(), rootView, R.id.DIALOG_RECEIPTMENU_EXTRAS);
         this.extra_edittext_box_1 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_1));
         this.extra_edittext_box_2 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_2));
         this.extra_edittext_box_3 = (EditText) extras.findViewWithTag(getFlexString(R.string.RECEIPTMENU_TAG_EXTRA_EDITTEXT_3));
 
         // Toolbar stuff
-        mToolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-        if (mNavigationHandler.isDualPane()) {
-            mToolbar.setVisibility(View.GONE);
+        toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        if (navigationHandler.isDualPane()) {
+            toolbar.setVisibility(View.GONE);
         } else {
-            setSupportActionBar(mToolbar);
+            setSupportActionBar(toolbar);
         }
 
         // Set each focus listener, so we can track the focus view across resume -> pauses
@@ -249,27 +272,27 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         nameBox.setKeyListener(TextKeyListener.getInstance(true, TextKeyListener.Capitalize.SENTENCES));
 
         // Set-up tax layers
-        if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
+        if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
             priceBox.setHint(getFlexString(R.string.DIALOG_RECEIPTMENU_HINT_PRICE_SHORT));
             taxBox.setVisibility(View.VISIBLE);
         }
 
         // Configure dropdown defaults for currencies
-        mCurrenciesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        currencySpinner.setAdapter(mCurrenciesAdapter);
+        currenciesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(currenciesAdapter);
 
         // And the exchange rate processing for our currencies
         final boolean exchangeRateIsVisible = savedInstanceState != null && savedInstanceState.getBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE);
         if (exchangeRateIsVisible) {
             // Note: the restoration of selected spinner items (in the currency spinner) is delayed so we use this state tracker to restore immediately
-            mExchangeRateContainer.setVisibility(View.VISIBLE);
+            exchangeRateContainer.setVisibility(View.VISIBLE);
         }
         currencySpinner.setOnItemSelectedListener(new UserSelectionTrackingOnItemSelectedListener() {
 
             @Override
             public void onUserSelectedNewItem(AdapterView<?> parent, View view, int position, long id, int previousPosition) {
                 // Then determine if we should show/hide the box
-                final String baseCurrencyCode = mCurrenciesAdapter.getItem(position).toString();
+                final String baseCurrencyCode = currenciesAdapter.getItem(position).toString();
                 configureExchangeRateField(baseCurrencyCode);
             }
 
@@ -281,13 +304,15 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         // Outline date defaults
         dateBox.setFocusableInTouchMode(false);
-        dateBox.setOnClickListener(getDateManager().getDateEditTextListener());
+        dateBox.setOnClickListener(dateManager.getDateEditTextListener());
 
         // Lastly, preset adapters for "new" receipts
-        final boolean isNewReceipt = mReceipt == null;
+        final boolean isNewReceipt = receipt == null;
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
-                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox, getPersistenceManager().getPreferenceManager(), getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.DefaultTaxPercentage)));
+            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.IncludeTaxField)) {
+                taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox,
+                        persistenceManager.getPreferenceManager(),
+                        persistenceManager.getPreferenceManager().get(UserPreference.Receipts.DefaultTaxPercentage)));
             }
         }
     }
@@ -298,63 +323,63 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         // Configure things if it's not a restored fragment
         if (savedInstanceState == null) {
-            final boolean isNewReceipt = mReceipt == null;
+            final boolean isNewReceipt = receipt == null;
             if (isNewReceipt) {
 
                 final Time now = new Time();
                 now.setToNow();
-                if (mReceiptInputCache.getCachedDate() == null) {
-                    if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ReceiptDateDefaultsToReportStartDate)) {
-                        dateBox.date = mTrip.getStartDate();
+                if (receiptInputCache.getCachedDate() == null) {
+                    if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.ReceiptDateDefaultsToReportStartDate)) {
+                        dateBox.date = trip.getStartDate();
                     } else {
                         dateBox.date = new Date(now.toMillis(false));
                     }
                 } else {
-                    dateBox.date = mReceiptInputCache.getCachedDate();
+                    dateBox.date = receiptInputCache.getCachedDate();
                 }
                 dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
 
-                final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+                final UserPreferenceManager preferences = persistenceManager.getPreferenceManager();
                 reimbursable.setChecked(preferences.get(UserPreference.Receipts.ReceiptsDefaultAsReimbursable));
                 if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) &&
                         preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
-                    if (mFocusedView == null) {
-                        mFocusedView = priceBox;
+                    if (focusedView == null) {
+                        focusedView = priceBox;
                     }
                 } else if (preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
-                    if (mFocusedView == null) {
-                        mFocusedView = priceBox;
+                    if (focusedView == null) {
+                        focusedView = priceBox;
                     }
                 }
 
-                int idx = mCurrenciesAdapter.getPosition((mTrip != null) ? mTrip.getDefaultCurrencyCode() : preferences.get(UserPreference.General.DefaultCurrency));
-                int cachedIdx = (mReceiptInputCache.getCachedCurrency() != null) ? mCurrenciesAdapter.getPosition(mReceiptInputCache.getCachedCurrency()) : -1;
+                int idx = currenciesAdapter.getPosition((trip != null) ? trip.getDefaultCurrencyCode() : preferences.get(UserPreference.General.DefaultCurrency));
+                int cachedIdx = (receiptInputCache.getCachedCurrency() != null) ? currenciesAdapter.getPosition(receiptInputCache.getCachedCurrency()) : -1;
                 idx = (cachedIdx >= 0) ? cachedIdx : idx;
                 if (idx >= 0) {
                     currencySpinner.setSelection(idx);
                 }
-                if (!mTrip.getDefaultCurrencyCode().equals(mReceiptInputCache.getCachedCurrency())) {
-                    configureExchangeRateField(mReceiptInputCache.getCachedCurrency());
+                if (!trip.getDefaultCurrencyCode().equals(receiptInputCache.getCachedCurrency())) {
+                    configureExchangeRateField(receiptInputCache.getCachedCurrency());
                 }
                 fullpage.setChecked(preferences.get(UserPreference.Receipts.DefaultToFullPage));
 
-                if (mOcrResponse != null) {
-                    if (mOcrResponse.getMerchant() != null && mOcrResponse.getMerchant().getName() != null) {
-                        nameBox.setText(mOcrResponse.getMerchant().getName());
+                if (ocrResponse != null) {
+                    if (ocrResponse.getMerchant() != null && ocrResponse.getMerchant().getName() != null) {
+                        nameBox.setText(ocrResponse.getMerchant().getName());
                     }
-                    if (mOcrResponse.getTotalAmount() != null && mOcrResponse.getTotalAmount().getData() != null) {
-                        priceBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(mOcrResponse.getTotalAmount().getData())));
+                    if (ocrResponse.getTotalAmount() != null && ocrResponse.getTotalAmount().getData() != null) {
+                        priceBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(ocrResponse.getTotalAmount().getData())));
                     }
-                    if (mOcrResponse.getTaxAmount() != null && mOcrResponse.getTaxAmount().getData() != null) {
-                        taxBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(mOcrResponse.getTaxAmount().getData())));
+                    if (ocrResponse.getTaxAmount() != null && ocrResponse.getTaxAmount().getData() != null) {
+                        taxBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(ocrResponse.getTaxAmount().getData())));
                     }
-                    if (mOcrResponse.getDate() != null && mOcrResponse.getDate().getData() != null) {
+                    if (ocrResponse.getDate() != null && ocrResponse.getDate().getData() != null) {
                         try {
                             TimeZone utc = TimeZone.getTimeZone("UTC");
                             SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
                             f.setTimeZone(utc);
                             GregorianCalendar cal = new GregorianCalendar(utc);
-                            cal.setTime(f.parse(mOcrResponse.getDate().getData()));
+                            cal.setTime(f.parse(ocrResponse.getDate().getData()));
                             dateBox.date = new Date(cal.getTime().getTime());
                             dateBox.setText(DateFormat.getDateFormat(getActivity()).format(dateBox.date));
                         } catch (ParseException e) {
@@ -364,68 +389,68 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
 
             } else {
-                nameBox.setText(mReceipt.getName());
-                priceBox.setText(mReceipt.getPrice().getDecimalFormattedPrice());
-                dateBox.setText(mReceipt.getFormattedDate(getActivity(), getPersistenceManager().getPreferenceManager().get(UserPreference.General.DateSeparator)));
-                dateBox.date = mReceipt.getDate();
-                commentBox.setText(mReceipt.getComment());
-                taxBox.setText(mReceipt.getTax().getDecimalFormattedPrice());
+                nameBox.setText(receipt.getName());
+                priceBox.setText(receipt.getPrice().getDecimalFormattedPrice());
+                dateBox.setText(receipt.getFormattedDate(getActivity(), persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator)));
+                dateBox.date = receipt.getDate();
+                commentBox.setText(receipt.getComment());
+                taxBox.setText(receipt.getTax().getDecimalFormattedPrice());
 
-                final ExchangeRate exchangeRate = mReceipt.getPrice().getExchangeRate();
-                if (exchangeRate.supportsExchangeRateFor(mTrip.getDefaultCurrencyCode())) {
-                    exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(mTrip.getDefaultCurrencyCode()));
+                final ExchangeRate exchangeRate = receipt.getPrice().getExchangeRate();
+                if (exchangeRate.supportsExchangeRateFor(trip.getDefaultCurrencyCode())) {
+                    exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(trip.getDefaultCurrencyCode()));
                 }
 
-                int idx = mCurrenciesAdapter.getPosition(mReceipt.getPrice().getCurrencyCode());
+                int idx = currenciesAdapter.getPosition(receipt.getPrice().getCurrencyCode());
                 if (idx > 0) {
                     currencySpinner.setSelection(idx);
                 }
 
-                if (mReceipt.getPrice().getCurrency().equals(mTrip.getPrice().getCurrency())) {
-                    mExchangeRateContainer.setVisibility(View.GONE);
+                if (receipt.getPrice().getCurrency().equals(trip.getPrice().getCurrency())) {
+                    exchangeRateContainer.setVisibility(View.GONE);
                 } else {
-                    mExchangeRateContainer.setVisibility(View.VISIBLE);
+                    exchangeRateContainer.setVisibility(View.VISIBLE);
                 }
 
-                reimbursable.setChecked(mReceipt.isReimbursable());
-                fullpage.setChecked(mReceipt.isFullPage());
+                reimbursable.setChecked(receipt.isReimbursable());
+                fullpage.setChecked(receipt.isFullPage());
 
-                if (extra_edittext_box_1 != null && mReceipt.hasExtraEditText1()) {
-                    extra_edittext_box_1.setText(mReceipt.getExtraEditText1());
+                if (extra_edittext_box_1 != null && receipt.hasExtraEditText1()) {
+                    extra_edittext_box_1.setText(receipt.getExtraEditText1());
                 }
-                if (extra_edittext_box_2 != null && mReceipt.hasExtraEditText2()) {
-                    extra_edittext_box_2.setText(mReceipt.getExtraEditText2());
+                if (extra_edittext_box_2 != null && receipt.hasExtraEditText2()) {
+                    extra_edittext_box_2.setText(receipt.getExtraEditText2());
                 }
-                if (extra_edittext_box_3 != null && mReceipt.hasExtraEditText3()) {
-                    extra_edittext_box_3.setText(mReceipt.getExtraEditText3());
+                if (extra_edittext_box_3 != null && receipt.hasExtraEditText3()) {
+                    extra_edittext_box_3.setText(receipt.getExtraEditText3());
                 }
             }
 
             // Focused View
-            if (mFocusedView == null) {
-                mFocusedView = nameBox;
+            if (focusedView == null) {
+                focusedView = nameBox;
             }
 
         }
 
         // Configure items that require callbacks
-        mCategoryTableEventsListener = new StubTableEventsListener<Category>() {
+        categoryTableEventsListener = new StubTableEventsListener<Category>() {
             @Override
             public void onGetSuccess(@NonNull List<Category> list) {
                 if (isAdded()) {
-                    mCategoriesList = list;
-                    mCategoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
-                    mCategoriesAdpater.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    categoriesSpinner.setAdapter(mCategoriesAdpater);
+                    categoriesList = list;
+                    categoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
+                    categoriesAdpater.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    categoriesSpinner.setAdapter(categoriesAdpater);
 
-                    if (mReceipt == null) {
-                        final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+                    if (receipt == null) {
+                        final UserPreferenceManager preferences = persistenceManager.getPreferenceManager();
                         if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory) || preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
                             categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener());
                         }
 
                         if (preferences.get(UserPreference.Receipts.PredictCategories)) { // Predict Breakfast, Lunch, Dinner by the hour
-                            if (mReceiptInputCache.getCachedCategory() == null) {
+                            if (receiptInputCache.getCachedCategory() == null) {
                                 final Time now = new Time();
                                 now.setToNow();
                                 String nameToIndex = null;
@@ -437,39 +462,39 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                                     nameToIndex = getString(R.string.category_dinner);
                                 }
                                 if (nameToIndex != null) {
-                                    for (int i = 0; i < mCategoriesAdpater.getCount(); i++) {
-                                        if (nameToIndex.equals(mCategoriesAdpater.getItem(i).getName())) {
+                                    for (int i = 0; i < categoriesAdpater.getCount(); i++) {
+                                        if (nameToIndex.equals(categoriesAdpater.getItem(i).getName())) {
                                             categoriesSpinner.setSelection(i);
                                             break; // Exit loop now
                                         }
                                     }
                                 }
                             } else {
-                                int idx = mCategoriesAdpater.getPosition(mReceiptInputCache.getCachedCategory());
+                                int idx = categoriesAdpater.getPosition(receiptInputCache.getCachedCategory());
                                 if (idx > 0) {
                                     categoriesSpinner.setSelection(idx);
                                 }
                             }
                         }
                     } else {
-                        categoriesSpinner.setSelection(mCategoriesAdpater.getPosition(mReceipt.getCategory()));
+                        categoriesSpinner.setSelection(categoriesAdpater.getPosition(receipt.getCategory()));
                     }
                 }
             }
         };
-        mPaymentMethodTableEventsListener = new StubTableEventsListener<PaymentMethod>() {
+        paymentMethodTableEventsListener = new StubTableEventsListener<PaymentMethod>() {
             @Override
             public void onGetSuccess(@NonNull List<PaymentMethod> list) {
                 if (isAdded()) {
-                    mPaymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
-                    mPaymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    paymentMethodsSpinner.setAdapter(mPaymentMethodsAdapter);
-                    if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods)) {
-                        mPaymentMethodsContainer.setVisibility(View.VISIBLE);
-                        if (mReceipt != null) {
-                            final PaymentMethod oldPaymentMethod = mReceipt.getPaymentMethod();
+                    paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, list);
+                    paymentMethodsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
+                    if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods)) {
+                        paymentMethodsContainer.setVisibility(View.VISIBLE);
+                        if (receipt != null) {
+                            final PaymentMethod oldPaymentMethod = receipt.getPaymentMethod();
                             if (oldPaymentMethod != null) {
-                                final int paymentIdx = mPaymentMethodsAdapter.getPosition(oldPaymentMethod);
+                                final int paymentIdx = paymentMethodsAdapter.getPosition(oldPaymentMethod);
                                 if (paymentIdx > 0) {
                                     paymentMethodsSpinner.setSelection(paymentIdx);
                                 }
@@ -479,8 +504,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
             }
         };
-        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().subscribe(mCategoryTableEventsListener);
-        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().subscribe(mPaymentMethodTableEventsListener);
+        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().subscribe(categoryTableEventsListener);
+        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().subscribe(paymentMethodTableEventsListener);
         getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().get();
         getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().get();
     }
@@ -489,14 +514,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     public void onResume() {
         super.onResume();
 
-        final boolean isNewReceipt = mReceipt == null;
+        final boolean isNewReceipt = receipt == null;
 
         final String title;
         if (isNewReceipt) {
             title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
         } else {
-            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
-                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), mReceipt.getId());
+            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), receipt.getId());
             } else {
                 title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
             }
@@ -511,8 +536,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             actionBar.setSubtitle("");
         }
 
-        if (isNewReceipt && getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
-            mIdSubscription = getPersistenceManager().getDatabase().getNextReceiptAutoIncremenetIdHelper()
+        if (isNewReceipt && persistenceManager.getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
+            idSubscription = persistenceManager.getDatabase().getNextReceiptAutoIncremenetIdHelper()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Action1<Integer>() {
@@ -530,29 +555,29 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         if (isNewReceipt) {
-            if (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
-                final DatabaseHelper db = getPersistenceManager().getDatabase();
-                if (mReceiptsNameAutoCompleteAdapter == null) {
-                    mReceiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
+            if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions)) {
+                final DatabaseHelper db = persistenceManager.getDatabase();
+                if (receiptsNameAutoCompleteAdapter == null) {
+                    receiptsNameAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_NAME, db, db);
                 } else {
-                    mReceiptsNameAutoCompleteAdapter.reset();
+                    receiptsNameAutoCompleteAdapter.reset();
                 }
-                if (mReceiptsCommentAutoCompleteAdapter == null) {
-                    mReceiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
+                if (receiptsCommentAutoCompleteAdapter == null) {
+                    receiptsCommentAutoCompleteAdapter = AutoCompleteAdapter.getInstance(getActivity(), DatabaseHelper.TAG_RECEIPTS_COMMENT, db);
                 } else {
-                    mReceiptsCommentAutoCompleteAdapter.reset();
+                    receiptsCommentAutoCompleteAdapter.reset();
                 }
-                nameBox.setAdapter(mReceiptsNameAutoCompleteAdapter);
-                commentBox.setAdapter(mReceiptsCommentAutoCompleteAdapter);
+                nameBox.setAdapter(receiptsNameAutoCompleteAdapter);
+                commentBox.setAdapter(receiptsCommentAutoCompleteAdapter);
             }
         }
 
-        if (mFocusedView != null) {
-            mFocusedView.requestFocus(); // Make sure we're focused on the right view
+        if (focusedView != null) {
+            focusedView.requestFocus(); // Make sure we're focused on the right view
         }
 
         exchangeRateBox.setRetryListener(this);
-        getPersistenceManager().getDatabase().registerReceiptAutoCompleteListener(this);
+        persistenceManager.getDatabase().registerReceiptAutoCompleteListener(this);
     }
 
     @Override
@@ -563,7 +588,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            mNavigationHandler.navigateToReportInfoFragment(mTrip);
+            navigationHandler.navigateToReportInfoFragment(trip);
             deleteReceiptFileIfUnused();
             return true;
         }
@@ -576,8 +601,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
-        mFocusedView = hasFocus ? v : null;
-        if (mReceipt == null && hasFocus) {
+        focusedView = hasFocus ? v : null;
+        if (receipt == null && hasFocus) {
             // Only launch if we have focus and it's a new receipt
             SoftKeyboardManager.showKeyboard(v);
         }
@@ -612,9 +637,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 priceBox.setText(price);
             }
             if (categoriesSpinner != null && category != null) {
-                for (int i = 0; i < mCategoriesList.size(); i++) {
-                    if (category.equals(mCategoriesList.get(i).getName())) {
-                        categoriesSpinner.setSelection(mCategoriesList.indexOf(mCategoriesList.get(i)));
+                for (int i = 0; i < categoriesList.size(); i++) {
+                    if (category.equals(categoriesList.get(i).getName())) {
+                        categoriesSpinner.setSelection(categoriesList.indexOf(categoriesList.get(i)));
                         break;
                     }
                 }
@@ -625,22 +650,22 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onPause() {
         // Notify the downstream adapters
-        if (mReceiptsNameAutoCompleteAdapter != null) {
-            mReceiptsNameAutoCompleteAdapter.onPause();
+        if (receiptsNameAutoCompleteAdapter != null) {
+            receiptsNameAutoCompleteAdapter.onPause();
         }
-        if (mReceiptsCommentAutoCompleteAdapter != null) {
-            mReceiptsCommentAutoCompleteAdapter.onPause();
+        if (receiptsCommentAutoCompleteAdapter != null) {
+            receiptsCommentAutoCompleteAdapter.onPause();
         }
-        if (mIdSubscription != null) {
-            mIdSubscription.unsubscribe();
-            mIdSubscription = null;
+        if (idSubscription != null) {
+            idSubscription.unsubscribe();
+            idSubscription = null;
         }
 
         // Dismiss the soft keyboard
-        SoftKeyboardManager.hideKeyboard(mFocusedView);
+        SoftKeyboardManager.hideKeyboard(focusedView);
 
         exchangeRateBox.setRetryListener(null);
-        getPersistenceManager().getDatabase().unregisterReceiptAutoCompleteListener();
+        persistenceManager.getDatabase().unregisterReceiptAutoCompleteListener();
         super.onPause();
     }
 
@@ -649,25 +674,25 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Logger.debug(this, "onSaveInstanceState");
-        if (mExchangeRateContainer != null && outState != null) {
-            outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, mExchangeRateContainer.getVisibility() == View.VISIBLE);
+        if (exchangeRateContainer != null && outState != null) {
+            outState.putBoolean(KEY_OUT_STATE_IS_EXCHANGE_RATE_VISIBLE, exchangeRateContainer.getVisibility() == View.VISIBLE);
         }
     }
 
     @Override
     public void onDestroy() {
-        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().unsubscribe(mCategoryTableEventsListener);
-        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().unsubscribe(mPaymentMethodTableEventsListener);
+        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().unsubscribe(categoryTableEventsListener);
+        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().unsubscribe(paymentMethodTableEventsListener);
         super.onDestroy();
     }
 
     private void configureExchangeRateField(@Nullable String baseCurrencyCode) {
-        final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+        final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
         if (exchangeRateCurrencyCode.equals(baseCurrencyCode) || baseCurrencyCode == null) {
-            mExchangeRateContainer.setVisibility(View.GONE);
+            exchangeRateContainer.setVisibility(View.GONE);
             exchangeRateBox.setText(""); // Clear out if we're hiding the box
         } else {
-            mExchangeRateContainer.setVisibility(View.VISIBLE);
+            exchangeRateContainer.setVisibility(View.VISIBLE);
             submitExchangeRateRequest(baseCurrencyCode);
         }
     }
@@ -677,13 +702,13 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
-            final String exchangeRateCurrencyCode = mTrip.getDefaultCurrencyCode();
+            final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
-            if (mLastExchangeRateFetchCallback != null) {
+            if (lastExchangeRateFetchCallback != null) {
                 // Ignore any outstanding results to not confuse ourselves
-                mLastExchangeRateFetchCallback.ignoreResult();
+                lastExchangeRateFetchCallback.ignoreResult();
             }
-            mLastExchangeRateFetchCallback = new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
+            lastExchangeRateFetchCallback = new MemoryLeakSafeCallback<ExchangeRate, EditText>(exchangeRateBox) {
                 @Override
                 public void success(EditText editText, Call<ExchangeRate> call, Response<ExchangeRate> response) {
                     final ExchangeRate exchangeRate = response.body();
@@ -709,7 +734,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };
-            mExchangeRateServiceManager.getService().getExchangeRate(dateBox.date, getString(R.string.exchange_rate_key), baseCurrencyCode).enqueue(mLastExchangeRateFetchCallback);
+            exchangeRateServiceManager.getService().getExchangeRate(dateBox.date, getString(R.string.exchange_rate_key), baseCurrencyCode).enqueue(lastExchangeRateFetchCallback);
         } else {
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Ready);
             Logger.info(this, "Ignoring exchange rate request, since there is no subscription for it");
@@ -718,38 +743,38 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private void saveReceipt() {
         final String name = TextUtils.isEmpty(nameBox.getText().toString()) ? "" : nameBox.getText().toString();
-        final Category category = mCategoriesAdpater.getItem(categoriesSpinner.getSelectedItemPosition());
+        final Category category = categoriesAdpater.getItem(categoriesSpinner.getSelectedItemPosition());
         final String currency = currencySpinner.getSelectedItem().toString();
 
         if (dateBox.date == null) {
             Toast.makeText(getActivity(), getFlexString(R.string.CALENDAR_TAB_ERROR), Toast.LENGTH_SHORT).show();
             return;
         } else {
-            mReceiptInputCache.setCachedDate((Date) dateBox.date.clone());
+            receiptInputCache.setCachedDate((Date) dateBox.date.clone());
         }
 
-        mReceiptInputCache.setCachedCategory(category);
-        mReceiptInputCache.setCachedCurrency(currency);
+        receiptInputCache.setCachedCategory(category);
+        receiptInputCache.setCachedCurrency(currency);
 
-        if (!mTrip.isDateInsideTripBounds(dateBox.date)) {
+        if (!trip.isDateInsideTripBounds(dateBox.date)) {
             if (isAdded()) {
                 Toast.makeText(getActivity(), getFlexString(R.string.DIALOG_RECEIPTMENU_TOAST_BAD_DATE), Toast.LENGTH_LONG).show();
             }
         }
 
-        final boolean isNewReceipt = mReceipt == null;
+        final boolean isNewReceipt = receipt == null;
 
-        final ReceiptBuilderFactory builderFactory = (isNewReceipt) ? new ReceiptBuilderFactory(-1) : new ReceiptBuilderFactory(mReceipt);
+        final ReceiptBuilderFactory builderFactory = (isNewReceipt) ? new ReceiptBuilderFactory(-1) : new ReceiptBuilderFactory(receipt);
         builderFactory.setName(name);
-        builderFactory.setTrip(mTrip);
+        builderFactory.setTrip(trip);
         builderFactory.setDate((Date) dateBox.date.clone());
         builderFactory.setPrice(priceBox.getText().toString());
         builderFactory.setTax(taxBox.getText().toString());
-        builderFactory.setExchangeRate(new ExchangeRateBuilderFactory().setBaseCurrency(currency).setRate(mTrip.getTripCurrency(), exchangeRateBox.getText().toString()).build());
+        builderFactory.setExchangeRate(new ExchangeRateBuilderFactory().setBaseCurrency(currency).setRate(trip.getTripCurrency(), exchangeRateBox.getText().toString()).build());
         builderFactory.setCategory(category);
         builderFactory.setCurrency(currency);
         builderFactory.setComment(commentBox.getText().toString());
-        builderFactory.setPaymentMethod((PaymentMethod) (getPersistenceManager().getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods) ? paymentMethodsSpinner.getSelectedItem() : null));
+        builderFactory.setPaymentMethod((PaymentMethod) (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.UsePaymentMethods) ? paymentMethodsSpinner.getSelectedItem() : null));
         builderFactory.setIsReimbursable(reimbursable.isChecked());
         builderFactory.setIsFullPage(fullpage.isChecked());
         builderFactory.setExtraEditText1((extra_edittext_box_1 == null) ? null : extra_edittext_box_1.getText().toString());
@@ -758,22 +783,22 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
 
         if (isNewReceipt) {
-            builderFactory.setFile(mFile);
+            builderFactory.setFile(file);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistNewReceipt);
             getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
-            getDateManager().setDateEditTextListenerDialogHolder(null);
+            dateManager.setDateEditTextListenerDialogHolder(null);
         } else {
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistUpdateReceipt);
-            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(mReceipt, builderFactory.build(), new DatabaseOperationMetadata());
-            getDateManager().setDateEditTextListenerDialogHolder(null);
+            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
+            dateManager.setDateEditTextListenerDialogHolder(null);
         }
 
-        mNavigationHandler.navigateToReportInfoFragment(mTrip);
+        navigationHandler.navigateToReportInfoFragment(trip);
     }
 
     private void deleteReceiptFileIfUnused() {
-        if (mReceipt == null && mFile != null) {
-            if (mFile.delete()) {
+        if (receipt == null && file != null) {
+            if (file.delete()) {
                 Logger.info(this, "Deleting receipt file as we're not saving it");
             }
         }
@@ -783,12 +808,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         @Override
         public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-            final UserPreferenceManager preferences = getPersistenceManager().getPreferenceManager();
+            final UserPreferenceManager preferences = persistenceManager.getPreferenceManager();
             if (preferences.get(UserPreference.Receipts.MatchReceiptNameToCategory)) {
-                nameBox.setText(mCategoriesAdpater.getItem(position).getName());
+                nameBox.setText(categoriesAdpater.getItem(position).getName());
             }
             if (preferences.get(UserPreference.Receipts.MatchReceiptCommentToCategory)) {
-                commentBox.setText(mCategoriesAdpater.getItem(position).getName());
+                commentBox.setText(categoriesAdpater.getItem(position).getName());
             }
         }
 
@@ -796,4 +821,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         public void onNothingSelected(AdapterView<?> arg0) {
         }
     }
+
+    private String getFlexString(int id) {
+        return getFlexString(flex, id);
+    }
+
 }

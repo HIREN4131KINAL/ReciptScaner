@@ -13,7 +13,6 @@ import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
-import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import rx.Observable;
 
 /**

@@ -1,7 +1,6 @@
 package co.smartreceipts.android.apis.hosts;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
 

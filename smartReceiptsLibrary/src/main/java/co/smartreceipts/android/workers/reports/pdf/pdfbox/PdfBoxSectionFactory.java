@@ -2,7 +2,6 @@ package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.support.annotation.NonNull;
 
-import java.io.File;
 import java.util.List;
 
 import co.smartreceipts.android.model.Column;

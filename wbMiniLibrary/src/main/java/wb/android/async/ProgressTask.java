@@ -1,10 +1,10 @@
 package wb.android.async;
 
-import java.lang.ref.WeakReference;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+
+import java.lang.ref.WeakReference;
 
 public abstract class ProgressTask<T, V> extends AsyncTask<T, Void, V> {
 

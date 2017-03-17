@@ -1,16 +1,6 @@
 package co.smartreceipts.android.model;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Locale;
-
-import co.smartreceipts.android.utils.UriUtils;
-import co.smartreceipts.android.utils.log.Logger;
-
-import android.content.ContentProvider;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -18,6 +8,14 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Locale;
+
+import co.smartreceipts.android.utils.UriUtils;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class Attachment {
 

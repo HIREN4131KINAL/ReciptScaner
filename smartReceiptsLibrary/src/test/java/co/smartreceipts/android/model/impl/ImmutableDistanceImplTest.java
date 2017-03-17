@@ -14,8 +14,8 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.DefaultObjects;
 import co.smartreceipts.android.model.Distance;
-import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.PriceCurrency;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.sync.model.SyncState;
 
 import static junit.framework.Assert.assertEquals;

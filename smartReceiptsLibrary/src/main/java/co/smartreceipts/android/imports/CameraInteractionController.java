@@ -13,8 +13,6 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 
 import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;

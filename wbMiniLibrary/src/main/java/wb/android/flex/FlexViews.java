@@ -1,13 +1,5 @@
 package wb.android.flex;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +9,14 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Stack;
 
 class FlexViews {
 	

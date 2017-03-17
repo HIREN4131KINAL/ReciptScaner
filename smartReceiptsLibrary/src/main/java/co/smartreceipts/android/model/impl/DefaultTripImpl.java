@@ -16,10 +16,10 @@ import java.util.TimeZone;
 
 import co.smartreceipts.android.filters.Filter;
 import co.smartreceipts.android.model.Price;
+import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.sync.model.SyncState;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
@@ -11,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 import co.smartreceipts.android.purchases.Subscription;
 
@@ -21,10 +24,12 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     private final SharedPreferences sharedPreferences;
     private Set<Subscription> ownedSubscriptions;
 
+    @Inject
     public DefaultPurchaseWallet(@NonNull Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 
+    @VisibleForTesting
     public DefaultPurchaseWallet(@NonNull SharedPreferences preferences) {
         this.sharedPreferences = Preconditions.checkNotNull(preferences);
         ownedSubscriptions = restoreWallet();

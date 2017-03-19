@@ -19,7 +19,7 @@ import wb.receiptspro.SmartReceiptsProApplication;
         GlobalBindingModule.class,
         PresentationModule.class,
         DataModule.class,
-        SubscriptionCacheModule.class
+        PurchaseWalletModule.class
 })
 public interface AppComponent {
 

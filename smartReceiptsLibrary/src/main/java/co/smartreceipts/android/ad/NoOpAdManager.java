@@ -7,7 +7,7 @@ import android.support.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import co.smartreceipts.android.purchases.SubscriptionManager;
+import co.smartreceipts.android.purchases.PurchaseManager;
 
 @Singleton
 public class NoOpAdManager implements AdManager {
@@ -17,7 +17,7 @@ public class NoOpAdManager implements AdManager {
     }
 
     @Override
-    public void onActivityCreated(@NonNull Activity activity, @Nullable SubscriptionManager subscriptionManager) {
+    public void onActivityCreated(@NonNull Activity activity, @Nullable PurchaseManager purchaseManager) {
         /* no-op */
     }
 

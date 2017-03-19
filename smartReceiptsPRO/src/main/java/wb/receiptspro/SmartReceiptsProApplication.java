@@ -33,6 +33,7 @@ import wb.receiptspro.di.DaggerAppComponent;
 
 public class SmartReceiptsProApplication extends SmartReceiptsApplication
         implements HasDispatchingActivityInjector, HasDispatchingSupportFragmentInjector {
+
     @Inject
     DispatchingAndroidInjector<Activity> activityInjector;
     @Inject
@@ -55,6 +56,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
                 .build()
                 .inject(this);
 
+        super.init();
 
         if (LeakCanary.isInAnalyzerProcess(this)) {
             Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
@@ -63,7 +65,6 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
             LeakCanary.install(this);
         }
 
-        super.init();
     }
 
     @Override
@@ -175,11 +176,4 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
         }
 
     }
-
-    @Override
-    @NonNull
-    protected PurchaseWallet instantiatePurchaseWallet() {
-        return new ProPurchaseWallet();
-    }
-
 }

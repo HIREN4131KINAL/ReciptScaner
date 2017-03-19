@@ -30,9 +30,11 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.fragments.WBFragment;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -50,6 +52,9 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     @Inject
     PersistenceManager persistenceManager;
+
+    @Inject
+    PurchaseWallet purchaseWallet;
 
     private BackupProvidersManager backupProvidersManager;
     private NetworkManager networkManager;
@@ -133,7 +138,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                     purchaseManager = null;
                 }
 
-                if (purchaseManager != null && mBackupProvidersManager.getSyncProvider() == SyncProvider.None && !getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+                if (purchaseManager != null && backupProvidersManager.getSyncProvider() == SyncProvider.None
+                        && !purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
                     purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
                     navigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());

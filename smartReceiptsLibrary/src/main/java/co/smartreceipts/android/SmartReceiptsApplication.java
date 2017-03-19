@@ -24,8 +24,6 @@ import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.purchases.wallet.DefaultPurchaseWallet;
-import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
@@ -45,8 +43,6 @@ import wb.android.storage.StorageManager;
  */
 public abstract class SmartReceiptsApplication extends Application implements VersionUpgradedListener {
 
-//    private PersistenceManager mPersistenceManager;
-//    private Flex mFlex;
     private Activity mCurrentActivity;
     private ConfigurationManager mConfigurationManager;
     private TableControllerManager mTableControllerManager;
@@ -56,7 +52,6 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     private IdentityManager mIdentityManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
-    private PurchaseWallet purchaseWallet;
     private boolean mDeferFirstRunDialog;
 
     @Override
@@ -80,9 +75,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
 
 
         mTableControllerManager = new TableControllerManager(persistenceManager, mAnalyticsManager,
-                receiptColumnDefinitions
-                /*new ReceiptColumnDefinitions(this,
-                        persistenceManager.getPreferenceManager(), new Flex(this, tmpFlexable))*/);
+                receiptColumnDefinitions);
         mNetworkManager = new NetworkManager(this, persistenceManager.getPreferenceManager());
         mNetworkManager.initialize();
         mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
@@ -92,8 +85,6 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
         mIdentityManager = new IdentityManager(this, identityStore, serviceManager, mAnalyticsManager, persistenceManager.getPreferenceManager());
         pushManager = new PushManager(this, serviceManager);
         pushManager.initialize();
-
-        purchaseWallet = instantiatePurchaseWallet();
 
         ocrInteractor = new OcrInteractor(this, pushManager);
 
@@ -179,15 +170,6 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
         return ocrInteractor;
     }
 
-    @NonNull
-    public PurchaseWallet getPurchaseWallet() {
-        return purchaseWallet;
-    }
-
-    @Override
-    public int getFleXML() {
-        return Flexable.UNDEFINED;
-    }
 
     // This is called after _sdCard is available but before _db is
     // This was added after version 78 (version 79 is the first "new" one)
@@ -233,16 +215,6 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     protected void showFirstRunDialog() {
 
     }
-
-    /**
-     * Protected method to enable subclasses to create custom instances
-     *
-     * @return a PersistenceManager Instance
-     */
-    protected PersistenceManager instantiatePersistenceManager() {
-        return new PersistenceManager(this);
-    }
-
 
     /**
      * Protected method to enable subclasses to create custom instances

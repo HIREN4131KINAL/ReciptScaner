@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import co.smartreceipts.android.purchases.SubscriptionCache;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
@@ -20,8 +19,6 @@ public class PersistenceManager {
 	Context context;
 	@Inject
 	UserPreferenceManager preferenceManager;
-	@Inject
-	SubscriptionCache subscriptionCache;
     @Inject
     StorageManager storageManager;
 	@Inject

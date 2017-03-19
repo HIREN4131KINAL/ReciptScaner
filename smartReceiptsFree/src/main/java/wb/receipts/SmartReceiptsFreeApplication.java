@@ -12,6 +12,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.GoogleAnalytics;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.purchases.wallet.DefaultPurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasDispatchingActivityInjector;
@@ -30,6 +31,7 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
 
     @Inject PersistenceManager persistenceManager;
     @Inject ReceiptColumnDefinitions receiptColumnDefinitions;
+    @Inject DefaultPurchaseWallet purchaseWallet;
 
 
     @Override
@@ -41,6 +43,8 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
                 .build()
                 .inject(this);
 
+        super.init();
+
         if (LeakCanary.isInAnalyzerProcess(this)) {
             Logger.debug(this, "Ignoring this process as it's the LeakCanary analyzer one...");
             return;
@@ -48,9 +52,9 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
             LeakCanary.install(this);
         }
         BugSenseHandler.initAndStartSession(this, "01de172a");
+
         getAnalyticsManager().register(new GoogleAnalytics(this));
 
-        super.init();
     }
 
     @Override

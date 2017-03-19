@@ -19,7 +19,7 @@ import wb.receipts.SmartReceiptsFreeApplication;
         GlobalBindingModule.class,
         PresentationModule.class,
         DataModule.class,
-        SubscriptionCacheModule.class
+        PurchaseWalletModule.class
 })
 public interface AppComponent {
 
@@ -38,5 +38,6 @@ public interface AppComponent {
         Context provideContext() {
             return application;
         }
+
     }
 }

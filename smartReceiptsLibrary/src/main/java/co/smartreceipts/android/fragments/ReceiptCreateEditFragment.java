@@ -68,6 +68,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.Subscription;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
@@ -97,6 +98,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Inject
     PersistenceManager persistenceManager;
+
+    @Inject
+    PurchaseWallet purchaseWallet;
 
     // Metadata
     private Trip trip;
@@ -610,7 +614,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onUserRetry() {
-        if (getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
             Logger.info(this, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
@@ -699,7 +703,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
-        if (getSmartReceiptsApplication().getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();

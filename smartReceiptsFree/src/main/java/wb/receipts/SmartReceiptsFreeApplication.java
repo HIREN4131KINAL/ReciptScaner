@@ -17,8 +17,8 @@ import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasDispatchingActivityInjector;
 import dagger.android.support.HasDispatchingSupportFragmentInjector;
-import wb.receipts.di.AppComponent;
-import wb.receipts.di.DaggerAppComponent;
+import wb.receipts.di.FreeAppComponent;
+import wb.receipts.di.DaggerFreeAppComponent;
 
 public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
         implements HasDispatchingActivityInjector, HasDispatchingSupportFragmentInjector {
@@ -38,8 +38,8 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
     public void onCreate() {
         super.onCreate();
 
-        DaggerAppComponent.builder()
-                .appModule(new AppComponent.AppModule(this))
+        DaggerFreeAppComponent.builder()
+                .freeAppModule(new FreeAppComponent.FreeAppModule(this))
                 .build()
                 .inject(this);
 

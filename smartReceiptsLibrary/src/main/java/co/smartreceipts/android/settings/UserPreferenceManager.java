@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import co.smartreceipts.android.date.DateUtils;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
@@ -26,7 +26,7 @@ import rx.Subscriber;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-@Singleton
+@ApplicationScope
 public class UserPreferenceManager {
 
     public static final String PREFERENCES_FILE_NAME = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();

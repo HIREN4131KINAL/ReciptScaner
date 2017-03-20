@@ -20,12 +20,12 @@ import java.lang.ref.WeakReference;
 import java.util.Random;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.ad.AdManager;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
@@ -36,8 +36,7 @@ import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import wb.receipts.R;
 
-@Singleton
-
+@ApplicationScope
 public class FreeAdManager implements AdManager, SubscriptionEventsListener {
 
     private static final int RANDOM_MAX = 100;

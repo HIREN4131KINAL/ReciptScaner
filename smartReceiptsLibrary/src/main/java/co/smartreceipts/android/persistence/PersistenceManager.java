@@ -4,15 +4,15 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import wb.android.storage.InternalStorageManager;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
-@Singleton
+@ApplicationScope
 public class PersistenceManager {
 
 	@Inject
@@ -40,7 +40,7 @@ public class PersistenceManager {
 	}
 
 	public DatabaseHelper getDatabase() {
-		// TODO: 15.03.2017 check is it necessary
+		// TODO: 20.03.2017 this check was necessary for testing
 //		if (database == null || !database.isOpen()) {
 //			database = DatabaseHelper.getInstance(mApplication, this);
 //		}

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.di;
+package co.smartreceipts.android.di.scopes;
 
 import javax.inject.Scope;
 

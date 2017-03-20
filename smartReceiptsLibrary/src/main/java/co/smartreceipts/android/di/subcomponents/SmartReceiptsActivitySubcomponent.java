@@ -1,7 +1,7 @@
 package co.smartreceipts.android.di.subcomponents;
 
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
-import co.smartreceipts.android.di.ActivityScope;
+import co.smartreceipts.android.di.scopes.ActivityScope;
 import dagger.Subcomponent;
 import dagger.android.AndroidInjector;
 

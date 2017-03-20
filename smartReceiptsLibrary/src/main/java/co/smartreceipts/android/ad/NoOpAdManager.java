@@ -5,11 +5,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.purchases.PurchaseManager;
 
-@Singleton
+@ApplicationScope
 public class NoOpAdManager implements AdManager {
 
     @Inject

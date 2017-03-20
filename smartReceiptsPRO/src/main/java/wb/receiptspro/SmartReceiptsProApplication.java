@@ -28,8 +28,8 @@ import dagger.android.HasDispatchingActivityInjector;
 import dagger.android.support.HasDispatchingSupportFragmentInjector;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
-import wb.receiptspro.di.AppComponent;
-import wb.receiptspro.di.DaggerAppComponent;
+import wb.receiptspro.di.DaggerProAppComponent;
+import wb.receiptspro.di.ProAppComponent;
 
 public class SmartReceiptsProApplication extends SmartReceiptsApplication
         implements HasDispatchingActivityInjector, HasDispatchingSupportFragmentInjector {
@@ -45,14 +45,14 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
     @Inject
     ReceiptColumnDefinitions receiptColumnDefinitions;
 
-    private WeakReference<ProgressDialog> mProgress;
+    private WeakReference<ProgressDialog> progress;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        DaggerAppComponent.builder()
-                .appModule(new AppComponent.AppModule(this))
+        DaggerProAppComponent.builder()
+                .proAppModule(new ProAppComponent.ProAppModule(this))
                 .build()
                 .inject(this);
 
@@ -77,7 +77,7 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             ProgressDialog progress = new ProgressDialog(getCurrentActivity());
-                            mProgress = new WeakReference<ProgressDialog>(progress);
+                            SmartReceiptsProApplication.this.progress = new WeakReference<ProgressDialog>(progress);
                             progress.setMessage(getString(R.string.progress_import));
                             progress.show();
                             new QuickImport().execute();
@@ -163,9 +163,9 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
 
         @Override
         protected void onPostExecute(Boolean success) {
-            if (mProgress.get() != null) {
-                mProgress.get().dismiss();
-                mProgress.clear();
+            if (progress.get() != null) {
+                progress.get().dismiss();
+                progress.clear();
             }
             if (success) {
                 Toast.makeText(getCurrentActivity(), R.string.toast_import_complete_simple, Toast.LENGTH_LONG).show();

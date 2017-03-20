@@ -101,7 +101,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     }
 
 
-    // TODO: 16.03.2017 temporаry methods, possibly should be removed
+    // TODO: 16.03.2017 temporаry methods, will be removed
     protected abstract PersistenceManager getPersistenceManagerInternal();
     protected abstract ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal();
 

@@ -184,7 +184,7 @@ public class PurchaseManagerTest {
         // TODO: Fix me - Don't trigger if either errors
         verify(purchaseWallet).updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
         verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSkus());
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
     @Test
@@ -213,7 +213,7 @@ public class PurchaseManagerTest {
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
         verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSkus());
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
     @Test
@@ -242,7 +242,7 @@ public class PurchaseManagerTest {
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
         verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSkus());
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
     @Test
@@ -271,7 +271,7 @@ public class PurchaseManagerTest {
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
         verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSkus());
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
     private void verifyInAppBillingServiceConnected() {

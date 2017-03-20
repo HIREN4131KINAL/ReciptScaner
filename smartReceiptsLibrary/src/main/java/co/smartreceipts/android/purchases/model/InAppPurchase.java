@@ -3,21 +3,29 @@ package co.smartreceipts.android.purchases.model;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 
 public enum InAppPurchase {
 
-    SmartReceiptsPlus("pro_sku_3");
+    SmartReceiptsPlus(new Subscription("pro_sku_3")),
+    OcrScans50(new ConsumablePurchase("TODO_OCR_TODO", 50));
 
-    private final String sku;
+    private final ManagedProduct managedProduct;
 
-    InAppPurchase(@NonNull String sku) {
-        this.sku = sku;
+    InAppPurchase(@NonNull ManagedProduct managedProduct) {
+        this.managedProduct = Preconditions.checkNotNull(managedProduct);
     }
 
     @NonNull
     public String getSku() {
-        return sku;
+        return managedProduct.getSku();
+    }
+
+    @NonNull
+    public ManagedProduct getManagedProduct() {
+        return managedProduct;
     }
 
     @Nullable
@@ -31,10 +39,24 @@ public enum InAppPurchase {
     }
 
     @NonNull
-    public static ArrayList<String> getSkus() {
+    public static ArrayList<String> getConsumablePurchaseSkus() {
         final ArrayList<String> skus = new ArrayList<>(values().length);
         for (final InAppPurchase inAppPurchase : values()) {
-            skus.add(inAppPurchase.getSku());
+            if (ConsumablePurchase.class.equals(inAppPurchase.managedProduct.getClass())) {
+                skus.add(inAppPurchase.getSku());
+            }
+        }
+        return skus;
+    }
+
+    @NonNull
+    public static ArrayList<String> getSubscriptionSkus() {
+        final ArrayList<String> skus = new ArrayList<>(values().length);
+        for (final InAppPurchase inAppPurchase : values()) {
+            if (Subscription.class.equals(inAppPurchase.managedProduct.getClass())) {
+                skus.add(inAppPurchase.getSku());
+
+            }
         }
         return skus;
     }

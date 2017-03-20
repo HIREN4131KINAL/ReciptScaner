@@ -239,7 +239,7 @@ public final class PurchaseManager {
 
     public void querySubscriptions() {
         final Bundle querySkus = new Bundle();
-        querySkus.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSkus());
+        querySkus.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSubscriptionSkus());
 
         this.queueOrExecuteTask(new Runnable() {
             @Override

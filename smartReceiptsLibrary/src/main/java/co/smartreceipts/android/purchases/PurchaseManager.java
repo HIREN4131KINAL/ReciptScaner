@@ -30,6 +30,7 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.model.Subscription;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
@@ -131,8 +132,8 @@ public final class PurchaseManager {
 
     public void queryBuyIntent(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
         Logger.info(PurchaseManager.this, "Initiating purchase of {} from {}.", inAppPurchase, purchaseSource);
-
         mAnalyticsManager.record(new DefaultDataPointEvent(Events.Purchases.ShowPurchaseIntent).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+
         this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
@@ -147,7 +148,7 @@ public final class PurchaseManager {
                         return;
                     }
 
-                    final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), inAppPurchase.getSku(), "subs", developerPayload);
+                    final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), inAppPurchase.getSku(), inAppPurchase.getProductType(), developerPayload);
                     final PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                     if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK && pendingIntent != null) {
                         mPurchaseSource = purchaseSource;
@@ -238,9 +239,6 @@ public final class PurchaseManager {
     }
 
     public void querySubscriptions() {
-        final Bundle querySkus = new Bundle();
-        querySkus.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSubscriptionSkus());
-
         this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
@@ -256,7 +254,7 @@ public final class PurchaseManager {
                     }
 
                     // Next, let's query what we already own...
-                    final Bundle ownedItems = service.getPurchases(API_VERSION, mContext.getPackageName(), "subs", null);
+                    final Bundle ownedItems = service.getPurchases(API_VERSION, mContext.getPackageName(), Subscription.GOOGLE_PRODUCT_TYPE, null);
                     if (ownedItems.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
@@ -288,7 +286,9 @@ public final class PurchaseManager {
 
                     // Next, let's figure out what is available for purchase
                     final List<PurchaseableSubscription> availableSubscriptions = new ArrayList<>();
-                    final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), "subs", querySkus);
+                    final Bundle subscriptionsQueryBundle = new Bundle();
+                    subscriptionsQueryBundle.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSubscriptionSkus());
+                    final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), Subscription.GOOGLE_PRODUCT_TYPE, subscriptionsQueryBundle);
                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         final ArrayList<String> responseList = skuDetails.getStringArrayList("DETAILS_LIST");
                         for (final String thisResponse : responseList) {

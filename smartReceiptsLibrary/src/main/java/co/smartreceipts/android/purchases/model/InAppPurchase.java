@@ -27,6 +27,14 @@ public enum InAppPurchase {
     }
 
     /**
+     * @return the unique {@link String} identifier (ie stock keeping unit) for this product
+     */
+    @NonNull
+    public String getSku() {
+        return sku;
+    }
+
+    /**
      * @return the type of {@link ManagedProduct} that this is
      */
     @NonNull
@@ -35,11 +43,15 @@ public enum InAppPurchase {
     }
 
     /**
-     * @return the unique {@link String} identifier (ie stock keeping unit) for this product
+     * @return the {@link String} of the Google product type (ie "inapp" or "subs")
      */
     @NonNull
-    public String getSku() {
-        return sku;
+    public String getProductType() {
+        if (ConsumablePurchase.class.equals(type)) {
+            return ConsumablePurchase.GOOGLE_PRODUCT_TYPE;
+        } else {
+            return Subscription.GOOGLE_PRODUCT_TYPE;
+        }
     }
 
     /**

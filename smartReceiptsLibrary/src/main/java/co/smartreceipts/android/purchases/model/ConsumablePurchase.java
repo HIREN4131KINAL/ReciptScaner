@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 
 public class ConsumablePurchase extends AbstractManagedProduct {
 
+    public static final String GOOGLE_PRODUCT_TYPE = "inapp";
+
     private int remainingCount;
 
     public ConsumablePurchase(@NonNull InAppPurchase inAppPurchase, @NonNull String purchaseToken,

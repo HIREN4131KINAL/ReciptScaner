@@ -83,7 +83,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
         final MutableIdentityStore identityStore = new MutableIdentityStore(this);
         ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore, new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
         mIdentityManager = new IdentityManager(this, identityStore, serviceManager, mAnalyticsManager, persistenceManager.getPreferenceManager());
-        pushManager = new PushManager(this, serviceManager);
+        pushManager = new PushManager(this, mIdentityManager);
         pushManager.initialize();
 
         ocrInteractor = new OcrInteractor(this, pushManager);

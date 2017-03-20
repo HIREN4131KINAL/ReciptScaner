@@ -1,25 +1,52 @@
 package co.smartreceipts.android.identity.apis.me;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
+
 import java.io.Serializable;
+import java.util.List;
 
 public class User implements Serializable {
 
-    private final String id;
-    private final String email;
-    private final long created_at;
-    private final String name;
-    private final String display_name;
-    private final Cognito cognito;
+    private String id;
+    private String email;
 
-    public User(@Nullable String id, @Nullable String email, long created_at, @Nullable String name, @Nullable String display_name, @Nullable Cognito cognito) {
-        this.id = id;
-        this.email = email;
-        this.created_at = created_at;
-        this.name = name;
-        this.display_name = display_name;
-        this.cognito = cognito;
+    private String name;
+    private String display_name;
+    private List<String> registration_ids;
+    private Cognito cognito;
+
+    public User(@NonNull List<String> registrationIds) {
+        this.registration_ids = Preconditions.checkNotNull(registrationIds);
+    }
+
+    @Nullable
+    public String getId() {
+        return id;
+    }
+
+    @Nullable
+    public String getEmail() {
+        return email;
+    }
+
+
+
+    @Nullable
+    public String getName() {
+        return name;
+    }
+
+    @Nullable
+    public String getDisplayName() {
+        return display_name;
+    }
+
+    @Nullable
+    public List<String> getRegistrationIds() {
+        return registration_ids;
     }
 
     @Nullable

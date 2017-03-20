@@ -21,14 +21,17 @@ import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.MeService;
+import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.identity.store.Token;
+import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
+import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -78,6 +81,17 @@ public class IdentityManager implements IdentityStore {
     @Override
     public boolean isLoggedIn() {
         return mutableIdentityStore.isLoggedIn();
+    }
+
+    @NonNull
+    public Observable<Boolean> isLoggedInObservable() {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                subscriber.onNext(isLoggedIn());
+                subscriber.onCompleted();
+            }
+        });
     }
 
     public synchronized Observable<LoginResponse> logIn(@NonNull final LoginParams login) {
@@ -182,6 +196,15 @@ public class IdentityManager implements IdentityStore {
     public Observable<MeResponse> getMe() {
         if (isLoggedIn()) {
             return serviceManager.getService(MeService.class).me();
+        } else {
+            return Observable.error(new IllegalStateException("Cannot fetch the user's account until we're logged in"));
+        }
+    }
+
+    @NonNull
+    public Observable<MeResponse> updateMe(@NonNull UpdatePushTokensRequest request) {
+        if (isLoggedIn()) {
+            return serviceManager.getService(MeService.class).me(request);
         } else {
             return Observable.error(new IllegalStateException("Cannot fetch the user's account until we're logged in"));
         }

@@ -20,7 +20,10 @@ public class FcmTokenRetriever {
         return Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
-                subscriber.onNext(getToken());
+                final String token = getToken();
+                if (token != null) {
+                    subscriber.onNext(token);
+                }
                 subscriber.onCompleted();
             }
         });

@@ -33,17 +33,14 @@ public class PushDataStore {
         return Observable.create(new Observable.OnSubscribe<Boolean>() {
             @Override
             public void call(Subscriber<? super Boolean> subscriber) {
-                if (isRemoteRefreshRequired()) {
-                    // Note: We're only continuing this stream is a refresh is required
-                    subscriber.onNext(true);
-                }
+                subscriber.onNext(isRemoteRefreshRequired());
                 subscriber.onCompleted();
             }
         });
     }
 
     public boolean isRemoteRefreshRequired() {
-        return sharedPreferences.getBoolean(KEY_BOOL_REMOTE_REFRESH_REQUIRED, false);
+        return sharedPreferences.getBoolean(KEY_BOOL_REMOTE_REFRESH_REQUIRED, true);
     }
 
     public void setRemoteRefreshRequired(boolean refreshRequired) {

@@ -2,19 +2,21 @@ package co.smartreceipts.android.purchases;
 
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+
 public class PurchaseableSubscription {
 
-    private final Subscription mSubscription;
+    private final InAppPurchase mInAppPurchase;
     private final String mPriceString;
 
-    public PurchaseableSubscription(@NonNull Subscription subscription, @NonNull String priceString) {
-        mSubscription = subscription;
+    public PurchaseableSubscription(@NonNull InAppPurchase inAppPurchase, @NonNull String priceString) {
+        mInAppPurchase = inAppPurchase;
         mPriceString = priceString;
     }
 
     @NonNull
-    public Subscription getSubscription() {
-        return mSubscription;
+    public InAppPurchase getSubscription() {
+        return mInAppPurchase;
     }
 
     @NonNull
@@ -30,14 +32,14 @@ public class PurchaseableSubscription {
         PurchaseableSubscription that = (PurchaseableSubscription) o;
 
         if (!mPriceString.equals(that.mPriceString)) return false;
-        if (mSubscription != that.mSubscription) return false;
+        if (mInAppPurchase != that.mInAppPurchase) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = mSubscription.hashCode();
+        int result = mInAppPurchase.hashCode();
         result = 31 * result + mPriceString.hashCode();
         return result;
     }
@@ -45,7 +47,7 @@ public class PurchaseableSubscription {
     @Override
     public String toString() {
         return "PurchaseableSubscription{" +
-                "mSubscription=" + mSubscription +
+                "mSubscription=" + mInAppPurchase +
                 ", mPriceString='" + mPriceString + '\'' +
                 '}';
     }

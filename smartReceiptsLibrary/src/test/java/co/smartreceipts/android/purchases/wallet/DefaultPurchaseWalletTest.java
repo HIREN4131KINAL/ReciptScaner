@@ -12,7 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.util.Collections;
 
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 
 import static org.junit.Assert.*;
 
@@ -37,43 +37,43 @@ public class DefaultPurchaseWalletTest {
 
     @Test
     public void emptyPurchases() {
-        assertFalse(defaultPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertFalse(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void singlePurchase() {
-        defaultPurchaseWallet.addSubscriptionToWallet(Subscription.SmartReceiptsPlus);
+        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
 
-        assertTrue(defaultPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void updatePurchases() {
-        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(Subscription.SmartReceiptsPlus));
+        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
 
-        assertTrue(defaultPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void ensureAddedPurchaseIsPersisted() {
-        defaultPurchaseWallet.addSubscriptionToWallet(Subscription.SmartReceiptsPlus);
+        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
         final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
 
-        assertTrue(newWallet.hasSubscription(Subscription.SmartReceiptsPlus));
-        assertTrue(defaultPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertTrue(newWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void ensureUpdatedPurchaseListIsPersisted() {
         // First add it
-        defaultPurchaseWallet.addSubscriptionToWallet(Subscription.SmartReceiptsPlus);
+        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
 
         // Then revoke it
-        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.<Subscription>emptySet());
+        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.<InAppPurchase>emptySet());
         final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
 
-        assertFalse(newWallet.hasSubscription(Subscription.SmartReceiptsPlus));
-        assertFalse(defaultPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertFalse(newWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
 }

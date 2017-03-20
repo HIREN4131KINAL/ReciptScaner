@@ -66,7 +66,7 @@ import co.smartreceipts.android.persistence.database.controllers.TableEventsList
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
@@ -614,7 +614,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onUserRetry() {
-        if (purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus)) {
             Logger.info(this, "Attempting to retry with valid subscription. Submitting request directly");
             submitExchangeRateRequest((String) currencySpinner.getSelectedItem());
         } else {
@@ -624,7 +624,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
                 final PurchaseManager purchaseManager = smartReceiptsActivity.getSubscriptionManager();
                 if (purchaseManager != null) {
-                    purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
+                    purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
                 }
             }
         }
@@ -703,7 +703,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private synchronized void submitExchangeRateRequest(@NonNull String baseCurrencyCode) {
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
-        if (purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus)) {
+        if (purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();

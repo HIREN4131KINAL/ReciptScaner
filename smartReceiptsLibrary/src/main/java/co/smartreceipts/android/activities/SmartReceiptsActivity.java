@@ -25,7 +25,7 @@ import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
@@ -138,8 +138,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        final boolean haveProSubscription = purchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus);
-        final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(Subscription.SmartReceiptsPlus);
+        final boolean haveProSubscription = purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus);
+        final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(InAppPurchase.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
         if (!proSubscriptionIsAvailable || haveProSubscription) {
@@ -169,7 +169,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mPurchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            mPurchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
@@ -237,7 +237,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+    public void onPurchaseIntentAvailable(@NonNull InAppPurchase inAppPurchase, @NonNull PendingIntent pendingIntent, @NonNull String key) {
         try {
             startIntentSenderForResult(pendingIntent.getIntentSender(), PurchaseManager.REQUEST_CODE, new Intent(), 0, 0, 0);
         } catch (IntentSender.SendIntentException e) {
@@ -251,7 +251,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+    public void onPurchaseIntentUnavailable(@NonNull InAppPurchase inAppPurchase) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -261,8 +261,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
-        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+    public void onPurchaseSuccess(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
+        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

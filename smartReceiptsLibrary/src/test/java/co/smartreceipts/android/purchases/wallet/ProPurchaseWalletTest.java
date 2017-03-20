@@ -7,7 +7,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
 
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 
 import static org.junit.Assert.assertTrue;
 
@@ -24,22 +24,22 @@ public class ProPurchaseWalletTest {
     
     @Test
     public void hasPlusSubscription() {
-        assertTrue(proPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void updatePurchasesDoesNotImpactAnything() {
-        proPurchaseWallet.updateSubscriptionsInWallet(Collections.<Subscription>emptyList());
-        assertTrue(proPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        proPurchaseWallet.updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
+        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
 
-        proPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(Subscription.SmartReceiptsPlus));
-        assertTrue(proPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        proPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void addPurchaseDoesNotImpactAnything() {
-        proPurchaseWallet.addSubscriptionToWallet(Subscription.SmartReceiptsPlus);
-        assertTrue(proPurchaseWallet.hasSubscription(Subscription.SmartReceiptsPlus));
+        proPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
+        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
     }
 
 }

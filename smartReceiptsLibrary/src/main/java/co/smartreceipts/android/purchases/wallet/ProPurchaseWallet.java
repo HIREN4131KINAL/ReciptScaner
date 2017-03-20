@@ -6,7 +6,7 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 
 public final class ProPurchaseWallet implements PurchaseWallet {
 
@@ -15,17 +15,17 @@ public final class ProPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
-    public boolean hasSubscription(@NonNull Subscription subscription) {
+    public boolean hasSubscription(@NonNull InAppPurchase inAppPurchase) {
         return true;
     }
 
     @Override
-    public void addSubscriptionToWallet(@NonNull Subscription subscription) {
+    public void addSubscriptionToWallet(@NonNull InAppPurchase inAppPurchase) {
         // No-op
     }
 
     @Override
-    public void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions) {
+    public void updateSubscriptionsInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
         // No-op
     }
 }

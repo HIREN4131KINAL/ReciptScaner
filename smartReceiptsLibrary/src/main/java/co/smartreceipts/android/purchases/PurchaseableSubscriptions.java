@@ -7,13 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+
 /**
  * Encapsulates a list of {@link co.smartreceipts.android.purchases.PurchaseableSubscription} to help avoid
  * situations in which we duplicate logic around checking these
  */
 public class PurchaseableSubscriptions {
 
-    private final Map<Subscription, PurchaseableSubscription> mPurchaseableSubscriptionMap;
+    private final Map<InAppPurchase, PurchaseableSubscription> mPurchaseableSubscriptionMap;
     private final List<PurchaseableSubscription> mPurchaseableSubscriptions;
 
     PurchaseableSubscriptions(@NonNull List<PurchaseableSubscription> purchaseableSubscriptions) {
@@ -28,11 +30,11 @@ public class PurchaseableSubscriptions {
     /**
      * Checks if a particular subscription is available for purchase or not
      *
-     * @param subscription the desired subscription to check
+     * @param inAppPurchase the desired subscription to check
      * @return {@code true} if it is available, {@code false} otherwise
      */
-    public boolean isSubscriptionAvailableForPurchase(@NonNull Subscription subscription) {
-        return mPurchaseableSubscriptionMap.containsKey(subscription);
+    public boolean isSubscriptionAvailableForPurchase(@NonNull InAppPurchase inAppPurchase) {
+        return mPurchaseableSubscriptionMap.containsKey(inAppPurchase);
     }
 
     /**

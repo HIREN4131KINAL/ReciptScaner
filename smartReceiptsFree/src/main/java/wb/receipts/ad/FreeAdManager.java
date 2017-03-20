@@ -29,7 +29,7 @@ import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
@@ -109,7 +109,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
             public void onClick(View view) {
                 if (FreeAdManager.this.purchaseManager != null) {
                     analyticsManager.record(Events.Purchases.AdUpsellTapped);
-                    FreeAdManager.this.purchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.AdBanner);
+                    FreeAdManager.this.purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AdBanner);
                 }
             }
         });
@@ -174,7 +174,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
 
     private boolean shouldShowAds(@NonNull NativeExpressAdView adView) {
         final boolean hasProSubscription = purchaseManager != null
-                && purchaseManager.getPurchaseWallet().hasSubscription(Subscription.SmartReceiptsPlus);
+                && purchaseManager.getPurchaseWallet().hasSubscription(InAppPurchase.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
     }
@@ -211,19 +211,19 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
     }
 
     @Override
-    public synchronized void onPurchaseIntentAvailable(@NonNull Subscription subscription, @NonNull PendingIntent pendingIntent, @NonNull String key) {
+    public synchronized void onPurchaseIntentAvailable(@NonNull InAppPurchase inAppPurchase, @NonNull PendingIntent pendingIntent, @NonNull String key) {
         // Intentional Stub. Handled with parent activity
     }
 
     @Override
-    public synchronized void onPurchaseIntentUnavailable(@NonNull Subscription subscription) {
+    public synchronized void onPurchaseIntentUnavailable(@NonNull InAppPurchase inAppPurchase) {
         // Intentional Stub. Handled with parent activity
     }
 
     @Override
-    public synchronized void onPurchaseSuccess(@NonNull Subscription subscription, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
-        Logger.info(this, "Received purchase success in our ad manager for: {}", subscription);
-        if (Subscription.SmartReceiptsPlus == subscription) {
+    public synchronized void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
+        Logger.info(this, "Received purchase success in our ad manager for: {}", inAppPurchase);
+        if (InAppPurchase.SmartReceiptsPlus == inAppPurchase) {
             final NativeExpressAdView adView = mAdViewReference.get();
             if (adView != null) {
                 adView.post(new Runnable() {

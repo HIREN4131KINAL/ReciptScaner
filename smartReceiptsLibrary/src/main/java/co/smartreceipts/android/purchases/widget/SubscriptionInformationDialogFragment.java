@@ -12,7 +12,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 
 public class SubscriptionInformationDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
@@ -51,7 +51,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == AlertDialog.BUTTON_POSITIVE && mPurchaseManager != null) {
-            mPurchaseManager.queryBuyIntent(Subscription.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
+            mPurchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
         }
         dismiss();
     }

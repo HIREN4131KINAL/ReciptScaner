@@ -26,10 +26,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
@@ -129,10 +129,10 @@ public final class PurchaseManager {
         mExecutorService.shutdown();
     }
 
-    public void queryBuyIntent(@NonNull final Subscription subscription, @NonNull final PurchaseSource purchaseSource) {
-        Logger.info(PurchaseManager.this, "Initiating purchase of {} from {}.", subscription, purchaseSource);
+    public void queryBuyIntent(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
+        Logger.info(PurchaseManager.this, "Initiating purchase of {} from {}.", inAppPurchase, purchaseSource);
 
-        mAnalyticsManager.record(new DefaultDataPointEvent(Events.Purchases.ShowPurchaseIntent).addDataPoint(new DataPoint("sku", subscription.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        mAnalyticsManager.record(new DefaultDataPointEvent(Events.Purchases.ShowPurchaseIntent).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         this.queueOrExecuteTask(new Runnable() {
             @Override
             public void run() {
@@ -142,40 +142,40 @@ public final class PurchaseManager {
                     if (service == null) {
                         Logger.error(PurchaseManager.this, "Failed to purchase subscription due to unbound service");
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onPurchaseIntentUnavailable(subscription);
+                            listener.onPurchaseIntentUnavailable(inAppPurchase);
                         }
                         return;
                     }
 
-                    final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), subscription.getSku(), "subs", developerPayload);
+                    final Bundle buyIntentBundle = service.getBuyIntent(API_VERSION, mContext.getPackageName(), inAppPurchase.getSku(), "subs", developerPayload);
                     final PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                     if (buyIntentBundle.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK && pendingIntent != null) {
                         mPurchaseSource = purchaseSource;
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onPurchaseIntentAvailable(subscription, pendingIntent, developerPayload);
+                            listener.onPurchaseIntentAvailable(inAppPurchase, pendingIntent, developerPayload);
                         }
                     } else {
                         Logger.warn(PurchaseManager.this, "Received an unexpected response code for the buy intent.");
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onPurchaseIntentUnavailable(subscription);
+                            listener.onPurchaseIntentUnavailable(inAppPurchase);
                         }
                     }
                 } catch (RemoteException e) {
                     Logger.error(PurchaseManager.this, "Failed to get buy intent", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onPurchaseIntentUnavailable(subscription);
+                        listener.onPurchaseIntentUnavailable(inAppPurchase);
                     }
                 }
             }
         });
     }
 
-    public void sendMockPurchaseRequest(@NonNull Subscription subscription) {
+    public void sendMockPurchaseRequest(@NonNull InAppPurchase inAppPurchase) {
         try {
             final Intent data = new Intent();
             final JSONObject json = new JSONObject();
             json.put("developerPayload", mSessionDeveloperPayload);
-            json.put("productId", subscription.getSku());
+            json.put("productId", inAppPurchase.getSku());
 
             data.putExtra("RESPONSE_CODE", BILLING_RESPONSE_CODE_OK);
             data.putExtra("INAPP_PURCHASE_DATA", json.toString());
@@ -206,11 +206,11 @@ public final class PurchaseManager {
                     final String actualDeveloperPayload = json.getString("developerPayload");
                     if (mSessionDeveloperPayload.equals(actualDeveloperPayload)) {
                         final String sku = json.getString("productId");
-                        final Subscription subscription = Subscription.from(sku);
-                        if (subscription != null) {
-                            purchaseWallet.addSubscriptionToWallet(subscription);
+                        final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
+                        if (inAppPurchase != null) {
+                            purchaseWallet.addSubscriptionToWallet(inAppPurchase);
                             for (final SubscriptionEventsListener listener : mListeners) {
-                                listener.onPurchaseSuccess(subscription, purchaseSource, purchaseWallet);
+                                listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
                             }
                         } else {
                             for (final SubscriptionEventsListener listener : mListeners) {
@@ -239,7 +239,7 @@ public final class PurchaseManager {
 
     public void querySubscriptions() {
         final Bundle querySkus = new Bundle();
-        querySkus.putStringArrayList("ITEM_ID_LIST", Subscription.getSkus());
+        querySkus.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSkus());
 
         this.queueOrExecuteTask(new Runnable() {
             @Override
@@ -261,23 +261,23 @@ public final class PurchaseManager {
                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
                         final ArrayList<String> signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
-                        final List<Subscription> ownedSubscriptions = new ArrayList<>();
+                        final List<InAppPurchase> ownedInAppPurchases = new ArrayList<>();
                         for (int i = 0; i < purchaseDataList.size(); ++i) {
                             final String purchaseData = purchaseDataList.get(i);
 
                             // TODO: Check signature
                             final String signature = signatureList.get(i);
                             final String sku = ownedSkus.get(i);
-                            final Subscription ownedSubscription = Subscription.from(sku);
-                            if (ownedSubscription != null) {
-                                ownedSubscriptions.add(ownedSubscription);
+                            final InAppPurchase ownedInAppPurchase = InAppPurchase.from(sku);
+                            if (ownedInAppPurchase != null) {
+                                ownedInAppPurchases.add(ownedInAppPurchase);
                             } else {
                                 Logger.warn(PurchaseManager.this, "Unknown sku returned from the owned subscriptions query: " + sku);
                             }
                         }
 
                         // Now that we successfully got everything, let's save it
-                        purchaseWallet.updateSubscriptionsInWallet(ownedSubscriptions);
+                        purchaseWallet.updateSubscriptionsInWallet(ownedInAppPurchases);
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
@@ -296,9 +296,9 @@ public final class PurchaseManager {
                                 final JSONObject object = new JSONObject(thisResponse);
                                 final String sku = object.getString("productId");
                                 final String price = object.getString("price");
-                                final Subscription subscription = Subscription.from(sku);
-                                if (subscription != null && !PurchaseManager.this.purchaseWallet.hasSubscription(subscription)) {
-                                    availableSubscriptions.add(new PurchaseableSubscription(subscription, price));
+                                final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
+                                if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasSubscription(inAppPurchase)) {
+                                    availableSubscriptions.add(new PurchaseableSubscription(inAppPurchase, price));
                                 } else {
                                     Logger.warn(PurchaseManager.this, "Unknown sku returned from the available subscriptions query: " + sku);
                                 }

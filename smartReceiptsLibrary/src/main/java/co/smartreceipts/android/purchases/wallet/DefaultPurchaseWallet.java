@@ -15,14 +15,14 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.purchases.Subscription;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
 
 public class DefaultPurchaseWallet implements PurchaseWallet {
 
     private static final String KEY_SKU_SET = "key_sku_set";
 
     private final SharedPreferences sharedPreferences;
-    private Set<Subscription> ownedSubscriptions;
+    private Set<InAppPurchase> ownedInAppPurchases;
 
     @Inject
     public DefaultPurchaseWallet(@NonNull Context context) {
@@ -32,50 +32,50 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     @VisibleForTesting
     public DefaultPurchaseWallet(@NonNull SharedPreferences preferences) {
         this.sharedPreferences = Preconditions.checkNotNull(preferences);
-        ownedSubscriptions = restoreWallet();
+        ownedInAppPurchases = restoreWallet();
     }
 
     @Override
-    public boolean hasSubscription(@NonNull Subscription subscription) {
-        return ownedSubscriptions.contains(subscription);
+    public boolean hasSubscription(@NonNull InAppPurchase inAppPurchase) {
+        return ownedInAppPurchases.contains(inAppPurchase);
     }
 
     @Override
-    public synchronized void updateSubscriptionsInWallet(@NonNull Collection<Subscription> subscriptions) {
-        final Set<Subscription> actualSubscriptionSet = new HashSet<>(subscriptions);
-        if (!actualSubscriptionSet.equals(ownedSubscriptions)) {
+    public synchronized void updateSubscriptionsInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
+        final Set<InAppPurchase> actualInAppPurchaseSet = new HashSet<>(inAppPurchases);
+        if (!actualInAppPurchaseSet.equals(ownedInAppPurchases)) {
             // Only update if we actually added something to the underlying set
-            ownedSubscriptions = actualSubscriptionSet;
+            ownedInAppPurchases = actualInAppPurchaseSet;
             persistWallet();
         }
     }
 
     @Override
-    public synchronized void addSubscriptionToWallet(@NonNull Subscription subscription) {
-        if (!ownedSubscriptions.contains(subscription)) {
-            ownedSubscriptions.add(subscription);
+    public synchronized void addSubscriptionToWallet(@NonNull InAppPurchase inAppPurchase) {
+        if (!ownedInAppPurchases.contains(inAppPurchase)) {
+            ownedInAppPurchases.add(inAppPurchase);
             persistWallet();
         }
     }
 
     @NonNull
-    private Set<Subscription> restoreWallet() {
+    private Set<InAppPurchase> restoreWallet() {
         final Set<String> skusSet = sharedPreferences.getStringSet(KEY_SKU_SET, Collections.<String>emptySet());
-        final Set<Subscription> subscriptions = new HashSet<>(skusSet.size());
+        final Set<InAppPurchase> inAppPurchases = new HashSet<>(skusSet.size());
         for (final String sku : skusSet) {
-            final Subscription subscription = Subscription.from(sku);
-            if (subscription != null) {
-                subscriptions.add(subscription);
+            final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
+            if (inAppPurchase != null) {
+                inAppPurchases.add(inAppPurchase);
             }
         }
-        return subscriptions;
+        return inAppPurchases;
     }
 
     private void persistWallet() {
-        final Collection<Subscription> subscriptions = ownedSubscriptions;
-        final Set<String> skusSet = new HashSet<>(subscriptions.size());
-        for (final Subscription subscription : subscriptions) {
-            skusSet.add(subscription.getSku());
+        final Collection<InAppPurchase> inAppPurchases = ownedInAppPurchases;
+        final Set<String> skusSet = new HashSet<>(inAppPurchases.size());
+        for (final InAppPurchase inAppPurchase : inAppPurchases) {
+            skusSet.add(inAppPurchase.getSku());
         }
         sharedPreferences.edit().putStringSet(KEY_SKU_SET, skusSet).apply();
     }

@@ -24,22 +24,22 @@ public class ProPurchaseWalletTest {
     
     @Test
     public void hasPlusSubscription() {
-        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(proPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void updatePurchasesDoesNotImpactAnything() {
-        proPurchaseWallet.updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
-        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        proPurchaseWallet.updatePurchasesInWallet(Collections.<InAppPurchase>emptyList());
+        assertTrue(proPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
 
-        proPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        proPurchaseWallet.updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(proPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void addPurchaseDoesNotImpactAnything() {
-        proPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
-        assertTrue(proPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        proPurchaseWallet.addPurchaseToWallet(InAppPurchase.SmartReceiptsPlus);
+        assertTrue(proPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
 }

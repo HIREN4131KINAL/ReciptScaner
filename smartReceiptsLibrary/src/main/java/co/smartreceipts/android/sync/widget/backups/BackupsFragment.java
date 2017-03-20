@@ -140,7 +140,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 }
 
                 if (purchaseManager != null && backupProvidersManager.getSyncProvider() == SyncProvider.None
-                        && !purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus)) {
+                        && !purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
                     purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
                     navigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());

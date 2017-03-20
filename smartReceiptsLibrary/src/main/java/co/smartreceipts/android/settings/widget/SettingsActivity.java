@@ -325,7 +325,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     public void configureProPreferences(UniversalPreferences universal) {
-        final boolean hasProSubscription = purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus);
+        final boolean hasProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
         final SummaryEditTextPreference pdfFooterPreference = (SummaryEditTextPreference) universal.findPreference(R.string.pref_pro_pdf_footer_key);
         pdfFooterPreference.setAppearsEnabled(hasProSubscription);
         pdfFooterPreference.setOnPreferenceClickListener(this);
@@ -377,7 +377,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             return true;
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
-            final boolean haveProSubscription = purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus);
+            final boolean haveProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
             final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null
                     && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(InAppPurchase.SmartReceiptsPlus);
 
@@ -464,7 +464,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     private String getDebugScreen() {
-        final boolean hasProSubscription = purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus);
+        final boolean hasProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
         return "Debug-information: \n" +
                 "Smart Receipts Version: " + getAppVersion() + "\n" +
                 "Package: " + getPackageName() + "\n" +

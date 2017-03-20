@@ -37,43 +37,43 @@ public class DefaultPurchaseWalletTest {
 
     @Test
     public void emptyPurchases() {
-        assertFalse(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void singlePurchase() {
-        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
+        defaultPurchaseWallet.addPurchaseToWallet(InAppPurchase.SmartReceiptsPlus);
 
-        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void updatePurchases() {
-        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        defaultPurchaseWallet.updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
 
-        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void ensureAddedPurchaseIsPersisted() {
-        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
+        defaultPurchaseWallet.addPurchaseToWallet(InAppPurchase.SmartReceiptsPlus);
         final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
 
-        assertTrue(newWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
-        assertTrue(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
     @Test
     public void ensureUpdatedPurchaseListIsPersisted() {
         // First add it
-        defaultPurchaseWallet.addSubscriptionToWallet(InAppPurchase.SmartReceiptsPlus);
+        defaultPurchaseWallet.addPurchaseToWallet(InAppPurchase.SmartReceiptsPlus);
 
         // Then revoke it
-        defaultPurchaseWallet.updateSubscriptionsInWallet(Collections.<InAppPurchase>emptySet());
+        defaultPurchaseWallet.updatePurchasesInWallet(Collections.<InAppPurchase>emptySet());
         final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
 
-        assertFalse(newWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
-        assertFalse(defaultPurchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
     }
 
 }

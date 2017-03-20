@@ -208,7 +208,7 @@ public final class PurchaseManager {
                         final String sku = json.getString("productId");
                         final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                         if (inAppPurchase != null) {
-                            purchaseWallet.addSubscriptionToWallet(inAppPurchase);
+                            purchaseWallet.addPurchaseToWallet(inAppPurchase);
                             for (final SubscriptionEventsListener listener : mListeners) {
                                 listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
                             }
@@ -277,7 +277,7 @@ public final class PurchaseManager {
                         }
 
                         // Now that we successfully got everything, let's save it
-                        purchaseWallet.updateSubscriptionsInWallet(ownedInAppPurchases);
+                        purchaseWallet.updatePurchasesInWallet(ownedInAppPurchases);
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
@@ -297,7 +297,7 @@ public final class PurchaseManager {
                                 final String sku = object.getString("productId");
                                 final String price = object.getString("price");
                                 final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
-                                if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasSubscription(inAppPurchase)) {
+                                if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasActivePurchase(inAppPurchase)) {
                                     availableSubscriptions.add(new PurchaseableSubscription(inAppPurchase, price));
                                 } else {
                                     Logger.warn(PurchaseManager.this, "Unknown sku returned from the available subscriptions query: " + sku);

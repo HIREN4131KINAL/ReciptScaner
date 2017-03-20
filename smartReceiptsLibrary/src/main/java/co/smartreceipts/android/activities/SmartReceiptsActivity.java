@@ -138,7 +138,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        final boolean haveProSubscription = purchaseWallet.hasSubscription(InAppPurchase.SmartReceiptsPlus);
+        final boolean haveProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
         final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(InAppPurchase.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option

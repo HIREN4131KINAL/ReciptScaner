@@ -14,20 +14,20 @@ public interface PurchaseWallet {
      * @param inAppPurchase the subscription to check for
      * @return {@code true} if it's owned. {@code false} otherwise
      */
-    boolean hasSubscription(@NonNull InAppPurchase inAppPurchase);
+    boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase);
 
     /**
      * Adds a subscriptions to the existing wallet
      *
      * @param inAppPurchase the subscription to add
      */
-    void addSubscriptionToWallet(@NonNull InAppPurchase inAppPurchase);
+    void addPurchaseToWallet(@NonNull InAppPurchase inAppPurchase);
 
     /**
      * Updates the list of subscriptions in the existing wallet
      *
      * @param inAppPurchases the subscriptions to add
      */
-    void updateSubscriptionsInWallet(@NonNull Collection<InAppPurchase> inAppPurchases);
+    void updatePurchasesInWallet(@NonNull Collection<InAppPurchase> inAppPurchases);
 
 }

@@ -174,7 +174,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
 
     private boolean shouldShowAds(@NonNull NativeExpressAdView adView) {
         final boolean hasProSubscription = purchaseManager != null
-                && purchaseManager.getPurchaseWallet().hasSubscription(InAppPurchase.SmartReceiptsPlus);
+                && purchaseManager.getPurchaseWallet().hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
     }

@@ -133,8 +133,8 @@ public class PurchaseManagerTest {
         verify(listener1).onSubscriptionsUnavailable();
         verify(listener2).onSubscriptionsUnavailable();
         verifyZeroInteractions(listener3);
-        verify(purchaseWallet, never()).updateSubscriptionsInWallet(anyCollectionOf(InAppPurchase.class));
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(InAppPurchase.class));
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
     }
     
     @Test
@@ -153,8 +153,8 @@ public class PurchaseManagerTest {
         verify(listener1).onSubscriptionsUnavailable();
         verify(listener2).onSubscriptionsUnavailable();
         verifyZeroInteractions(listener3);
-        verify(purchaseWallet, never()).updateSubscriptionsInWallet(anyCollectionOf(InAppPurchase.class));
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(InAppPurchase.class));
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
     }
 
     @Test
@@ -182,8 +182,8 @@ public class PurchaseManagerTest {
         verifyZeroInteractions(listener3);
 
         // TODO: Fix me - Don't trigger if either errors
-        verify(purchaseWallet).updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<InAppPurchase>emptyList());
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
@@ -211,8 +211,8 @@ public class PurchaseManagerTest {
         verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updateSubscriptionsInWallet(Collections.<InAppPurchase>emptyList());
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<InAppPurchase>emptyList());
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
@@ -240,8 +240,8 @@ public class PurchaseManagerTest {
         verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
@@ -269,8 +269,8 @@ public class PurchaseManagerTest {
         verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
         verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updateSubscriptionsInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verify(purchaseWallet, never()).addSubscriptionToWallet(any(InAppPurchase.class));
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 

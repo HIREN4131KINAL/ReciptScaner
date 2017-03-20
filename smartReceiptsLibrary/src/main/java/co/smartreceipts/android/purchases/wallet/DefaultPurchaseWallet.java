@@ -36,12 +36,12 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
-    public boolean hasSubscription(@NonNull InAppPurchase inAppPurchase) {
+    public boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
         return ownedInAppPurchases.contains(inAppPurchase);
     }
 
     @Override
-    public synchronized void updateSubscriptionsInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
+    public synchronized void updatePurchasesInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
         final Set<InAppPurchase> actualInAppPurchaseSet = new HashSet<>(inAppPurchases);
         if (!actualInAppPurchaseSet.equals(ownedInAppPurchases)) {
             // Only update if we actually added something to the underlying set
@@ -51,7 +51,7 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
-    public synchronized void addSubscriptionToWallet(@NonNull InAppPurchase inAppPurchase) {
+    public synchronized void addPurchaseToWallet(@NonNull InAppPurchase inAppPurchase) {
         if (!ownedInAppPurchases.contains(inAppPurchase)) {
             ownedInAppPurchases.add(inAppPurchase);
             persistWallet();

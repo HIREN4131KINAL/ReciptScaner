@@ -15,17 +15,17 @@ public final class ProPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
-    public boolean hasSubscription(@NonNull InAppPurchase inAppPurchase) {
+    public boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
         return true;
     }
 
     @Override
-    public void addSubscriptionToWallet(@NonNull InAppPurchase inAppPurchase) {
+    public void addPurchaseToWallet(@NonNull InAppPurchase inAppPurchase) {
         // No-op
     }
 
     @Override
-    public void updateSubscriptionsInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
+    public void updatePurchasesInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
         // No-op
     }
 }

@@ -6,31 +6,32 @@ import com.google.common.base.Preconditions;
 
 abstract class AbstractManagedProduct implements ManagedProduct {
 
-    private final String sku;
+    private final InAppPurchase inAppPurchase;
+    private final String purchaseToken;
+    private final String inAppDataSignature;
 
-    public AbstractManagedProduct(@NonNull String sku) {
-        this.sku = Preconditions.checkNotNull(sku);
+    public AbstractManagedProduct(@NonNull InAppPurchase inAppPurchase, @NonNull String purchaseToken,
+                                  @NonNull String inAppDataSignature) {
+        this.inAppPurchase = Preconditions.checkNotNull(inAppPurchase);
+        this.purchaseToken = Preconditions.checkNotNull(purchaseToken);
+        this.inAppDataSignature = Preconditions.checkNotNull(inAppDataSignature);
     }
 
     @NonNull
     @Override
-    public String getSku() {
-        return sku;
+    public InAppPurchase getInAppPurchase() {
+        return inAppPurchase;
     }
 
+    @NonNull
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AbstractManagedProduct)) return false;
-
-        AbstractManagedProduct that = (AbstractManagedProduct) o;
-
-        return sku.equals(that.sku);
-
+    public String getPurchaseToken() {
+        return purchaseToken;
     }
 
+    @NonNull
     @Override
-    public int hashCode() {
-        return sku.hashCode();
+    public String getInAppDataSignature() {
+        return inAppDataSignature;
     }
 }

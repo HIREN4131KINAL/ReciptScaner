@@ -15,8 +15,12 @@ public class InAppPurchaseTest {
     @Test
     public void getters() {
         assertEquals(InAppPurchase.SmartReceiptsPlus.getSku(), "pro_sku_3");
+        assertEquals(InAppPurchase.SmartReceiptsPlus.getType(), Subscription.class);
+        assertEquals(InAppPurchase.SmartReceiptsPlus.getPurchaseQuantity(), null);
+
         assertEquals(InAppPurchase.OcrScans50.getSku(), "TODO_OCR_TODO");
-        assertEquals(((ConsumablePurchase) InAppPurchase.OcrScans50.getManagedProduct()).getPurchaseQuantity(), 50);
+        assertEquals(InAppPurchase.OcrScans50.getType(), ConsumablePurchase.class);
+        assertEquals(InAppPurchase.OcrScans50.getPurchaseQuantity(), Integer.valueOf(50));
     }
 
     @Test

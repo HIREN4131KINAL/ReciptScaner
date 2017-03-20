@@ -9,23 +9,45 @@ import java.util.ArrayList;
 
 public enum InAppPurchase {
 
-    SmartReceiptsPlus(new Subscription("pro_sku_3")),
-    OcrScans50(new ConsumablePurchase("TODO_OCR_TODO", 50));
+    SmartReceiptsPlus(Subscription.class, "pro_sku_3"),
+    OcrScans50(ConsumablePurchase.class, "TODO_OCR_TODO", 50);
 
-    private final ManagedProduct managedProduct;
+    private final Class<? extends ManagedProduct> type;
+    private final String sku;
+    private final Integer purchaseQuantity;
 
-    InAppPurchase(@NonNull ManagedProduct managedProduct) {
-        this.managedProduct = Preconditions.checkNotNull(managedProduct);
+    InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku) {
+        this(type, sku, null);
     }
 
+    InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku, @Nullable Integer purchaseQuantity) {
+        this.type = Preconditions.checkNotNull(type);
+        this.sku = Preconditions.checkNotNull(sku);
+        this.purchaseQuantity = purchaseQuantity;
+    }
+
+    /**
+     * @return the type of {@link ManagedProduct} that this is
+     */
+    @NonNull
+    public Class<? extends ManagedProduct> getType() {
+        return type;
+    }
+
+    /**
+     * @return the unique {@link String} identifier (ie stock keeping unit) for this product
+     */
     @NonNull
     public String getSku() {
-        return managedProduct.getSku();
+        return sku;
     }
 
-    @NonNull
-    public ManagedProduct getManagedProduct() {
-        return managedProduct;
+    /**
+     * @return the quantity of items that this consumable purchase would contain (or {@code null} if unused)
+     */
+    @Nullable
+    public Integer getPurchaseQuantity() {
+        return purchaseQuantity;
     }
 
     @Nullable
@@ -42,7 +64,7 @@ public enum InAppPurchase {
     public static ArrayList<String> getConsumablePurchaseSkus() {
         final ArrayList<String> skus = new ArrayList<>(values().length);
         for (final InAppPurchase inAppPurchase : values()) {
-            if (ConsumablePurchase.class.equals(inAppPurchase.managedProduct.getClass())) {
+            if (ConsumablePurchase.class.equals(inAppPurchase.getType())) {
                 skus.add(inAppPurchase.getSku());
             }
         }
@@ -53,7 +75,7 @@ public enum InAppPurchase {
     public static ArrayList<String> getSubscriptionSkus() {
         final ArrayList<String> skus = new ArrayList<>(values().length);
         for (final InAppPurchase inAppPurchase : values()) {
-            if (Subscription.class.equals(inAppPurchase.managedProduct.getClass())) {
+            if (Subscription.class.equals(inAppPurchase.getType())) {
                 skus.add(inAppPurchase.getSku());
 
             }

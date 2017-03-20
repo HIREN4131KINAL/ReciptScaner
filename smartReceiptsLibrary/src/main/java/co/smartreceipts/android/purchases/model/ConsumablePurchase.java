@@ -4,23 +4,19 @@ import android.support.annotation.NonNull;
 
 public class ConsumablePurchase extends AbstractManagedProduct {
 
-    private final int purchaseQuantity;
     private int remainingCount;
 
-    public ConsumablePurchase(@NonNull String sku, int purchaseQuantity) {
-        super(sku);
-        this.purchaseQuantity = purchaseQuantity;
-    }
-
-    public int getPurchaseQuantity() {
-        return purchaseQuantity;
+    public ConsumablePurchase(@NonNull InAppPurchase inAppPurchase, @NonNull String purchaseToken,
+                              @NonNull String inAppDataSignature, int remainingCount) {
+        super(inAppPurchase, purchaseToken, inAppDataSignature);
+        this.remainingCount = remainingCount;
     }
 
     public int getRemainingCount() {
         return remainingCount;
     }
 
-    public void setRemainingCount(int remainingCount) {
-        this.remainingCount = remainingCount;
+    public void decrementRemainingCount() {
+        this.remainingCount--;
     }
 }

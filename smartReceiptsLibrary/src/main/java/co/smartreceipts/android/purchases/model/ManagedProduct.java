@@ -5,8 +5,20 @@ import android.support.annotation.NonNull;
 public interface ManagedProduct {
 
     /**
-     * @return the unique {@link String} identifier (ie stock keeping unit) for this product
+     * @return the {@link InAppPurchase} enum that keys this managed product type
      */
     @NonNull
-    String getSku();
+    InAppPurchase getInAppPurchase();
+
+    /**
+     * @return the {@link String} purchase token provided by Google for this product
+     */
+    @NonNull
+    String getPurchaseToken();
+
+    /**
+     * @return the {@link String} data signature provided by Google for this product
+     */
+    @NonNull
+    String getInAppDataSignature();
 }

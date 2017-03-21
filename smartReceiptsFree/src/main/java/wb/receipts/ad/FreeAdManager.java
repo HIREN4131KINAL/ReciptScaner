@@ -17,6 +17,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.NativeExpressAdView;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Random;
 
 import javax.inject.Inject;
@@ -28,7 +29,6 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
@@ -188,7 +188,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
     }
 
     @Override
-    public synchronized void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
+    public synchronized void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
         // Refresh our subscriptions now
         final NativeExpressAdView adView = mAdViewReference.get();
         if (adView != null) {
@@ -206,7 +206,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
     }
 
     @Override
-    public synchronized void onSubscriptionsUnavailable() {
+    public synchronized void onPurchasesUnavailable() {
         // Intentional Stub. Handled with parent activity
     }
 

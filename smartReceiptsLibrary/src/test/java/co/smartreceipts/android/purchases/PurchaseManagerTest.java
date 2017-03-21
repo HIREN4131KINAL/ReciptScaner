@@ -130,8 +130,8 @@ public class PurchaseManagerTest {
 
         // Test
         purchaseManager.querySubscriptions();
-        verify(listener1).onSubscriptionsUnavailable();
-        verify(listener2).onSubscriptionsUnavailable();
+        verify(listener1).onPurchasesUnavailable();
+        verify(listener2).onPurchasesUnavailable();
         verifyZeroInteractions(listener3);
         verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(InAppPurchase.class));
         verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
@@ -150,8 +150,8 @@ public class PurchaseManagerTest {
 
         // Test
         purchaseManager.querySubscriptions();
-        verify(listener1).onSubscriptionsUnavailable();
-        verify(listener2).onSubscriptionsUnavailable();
+        verify(listener1).onPurchasesUnavailable();
+        verify(listener2).onPurchasesUnavailable();
         verifyZeroInteractions(listener3);
         verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(InAppPurchase.class));
         verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
@@ -177,8 +177,8 @@ public class PurchaseManagerTest {
 
         // Test
         purchaseManager.querySubscriptions();
-        verify(listener1).onSubscriptionsUnavailable();
-        verify(listener2).onSubscriptionsUnavailable();
+        verify(listener1).onPurchasesUnavailable();
+        verify(listener2).onPurchasesUnavailable();
         verifyZeroInteractions(listener3);
 
         // TODO: Fix me - Don't trigger if either errors
@@ -208,8 +208,8 @@ public class PurchaseManagerTest {
 
         // Test
         purchaseManager.querySubscriptions();
-        verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
-        verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
+        verify(listener1).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
+        verify(listener2).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updatePurchasesInWallet(Collections.<InAppPurchase>emptyList());
         verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
@@ -237,8 +237,8 @@ public class PurchaseManagerTest {
 
         // Test
         purchaseManager.querySubscriptions();
-        verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
-        verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
+        verify(listener1).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
+        verify(listener2).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
         verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));
@@ -266,8 +266,8 @@ public class PurchaseManagerTest {
         verifyInAppBillingServiceConnected();
 
         // Verify
-        verify(listener1).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
-        verify(listener2).onSubscriptionsAvailable(any(PurchaseableSubscriptions.class), eq(purchaseWallet));
+        verify(listener1).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
+        verify(listener2).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
         verifyZeroInteractions(listener3);
         verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
         verify(purchaseWallet, never()).addPurchaseToWallet(any(InAppPurchase.class));

@@ -39,7 +39,6 @@ import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
@@ -67,7 +66,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @Inject
     PurchaseWallet purchaseWallet;
 
-    private volatile PurchaseableSubscriptions purchaseableSubscriptions;
+    private volatile List<InAppPurchase> availablePurchases;
     private PurchaseManager mPurchaseManager;
     private boolean isUsingHeaders;
 
@@ -378,8 +377,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         } else if (key.equals(getString(R.string.pref_pro_pdf_footer_key))) {
             // Let's check if we should prompt the user to upgrade for this preference
             final boolean haveProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
-            final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null
-                    && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(InAppPurchase.SmartReceiptsPlus);
+            final boolean proSubscriptionIsAvailable = availablePurchases != null && availablePurchases.contains(InAppPurchase.SmartReceiptsPlus);
 
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
@@ -397,13 +395,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
-    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
-        Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
-        this.purchaseableSubscriptions = purchaseableSubscriptions;
+    public void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
+        Logger.info(this, "The following subscriptions are available: {}", availablePurchases);
+        this.availablePurchases = availablePurchases;
     }
 
     @Override
-    public void onSubscriptionsUnavailable() {
+    public void onPurchasesUnavailable() {
         Logger.warn(this, "No subscriptions were found for this session");
         // Intentional no-op
     }

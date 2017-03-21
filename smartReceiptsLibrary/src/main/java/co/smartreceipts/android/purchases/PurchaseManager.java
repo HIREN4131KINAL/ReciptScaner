@@ -248,7 +248,7 @@ public final class PurchaseManager {
                     if (service == null) {
                         Logger.error(PurchaseManager.this, "Failed to query subscriptions due to unbound service");
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onSubscriptionsUnavailable();
+                            listener.onPurchasesUnavailable();
                         }
                         return;
                     }
@@ -279,28 +279,27 @@ public final class PurchaseManager {
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onSubscriptionsUnavailable();
+                            listener.onPurchasesUnavailable();
                         }
                         return;
                     }
 
                     // Next, let's figure out what is available for purchase
-                    final List<PurchaseableSubscription> availableSubscriptions = new ArrayList<>();
+                    final List<InAppPurchase> availablePurchases = new ArrayList<>();
                     final Bundle subscriptionsQueryBundle = new Bundle();
                     subscriptionsQueryBundle.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSubscriptionSkus());
                     final Bundle skuDetails = mService.getSkuDetails(3, mContext.getPackageName(), Subscription.GOOGLE_PRODUCT_TYPE, subscriptionsQueryBundle);
                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                         final ArrayList<String> responseList = skuDetails.getStringArrayList("DETAILS_LIST");
-                        for (final String thisResponse : responseList) {
+                        for (final String response : responseList) {
                             try {
-                                final JSONObject object = new JSONObject(thisResponse);
+                                final JSONObject object = new JSONObject(response);
                                 final String sku = object.getString("productId");
-                                final String price = object.getString("price");
                                 final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                                 if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasActivePurchase(inAppPurchase)) {
-                                    availableSubscriptions.add(new PurchaseableSubscription(inAppPurchase, price));
+                                    availablePurchases.add(inAppPurchase);
                                 } else {
-                                    Logger.warn(PurchaseManager.this, "Unknown sku returned from the available subscriptions query: " + sku);
+                                    Logger.warn(PurchaseManager.this, "Unknown or already owned sku returned from the available subscriptions query: {}.", sku);
                                 }
                             } catch (JSONException e) {
                                 Logger.error(PurchaseManager.this, "Failed to parse JSON about available skus for purchase", e);
@@ -309,19 +308,19 @@ public final class PurchaseManager {
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get available skus for purchase");
                         for (final SubscriptionEventsListener listener : mListeners) {
-                            listener.onSubscriptionsUnavailable();
+                            listener.onPurchasesUnavailable();
                         }
                         return;
                     }
 
                     // Lastly, pass this info back to our listeners
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onSubscriptionsAvailable(new PurchaseableSubscriptions(availableSubscriptions), purchaseWallet);
+                        listener.onPurchasesAvailable(availablePurchases);
                     }
                 } catch (RemoteException e) {
                     Logger.error(PurchaseManager.this, "Failed to get available skus for purchase", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
-                        listener.onSubscriptionsUnavailable();
+                        listener.onPurchasesUnavailable();
                     }
                 }
             }

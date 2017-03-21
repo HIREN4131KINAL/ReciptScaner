@@ -13,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
@@ -24,7 +26,6 @@ import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFra
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.PurchaseableSubscriptions;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
@@ -54,7 +55,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Inject
     PurchaseWallet purchaseWallet;
 
-    private volatile PurchaseableSubscriptions purchaseableSubscriptions;
+    private volatile List<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
     private PurchaseManager mPurchaseManager;
     private Attachment attachment;
@@ -139,7 +140,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         final boolean haveProSubscription = purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
-        final boolean proSubscriptionIsAvailable = purchaseableSubscriptions != null && purchaseableSubscriptions.isSubscriptionAvailableForPurchase(InAppPurchase.SmartReceiptsPlus);
+        final boolean proSubscriptionIsAvailable = availablePurchases != null && availablePurchases.contains(InAppPurchase.SmartReceiptsPlus);
 
         // If the pro sub is either unavailable or we already have it, don't show the purchase menu option
         if (!proSubscriptionIsAvailable || haveProSubscription) {
@@ -225,14 +226,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     }
 
     @Override
-    public void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet) {
-        Logger.info(this, "The following subscriptions are available: {}", purchaseableSubscriptions);
-        this.purchaseableSubscriptions = purchaseableSubscriptions;
+    public void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
+        Logger.info(this, "The following subscriptions are available: {}", availablePurchases);
+        this.availablePurchases = availablePurchases;
         invalidateOptionsMenu(); // To show the subscription option
     }
 
     @Override
-    public void onSubscriptionsUnavailable() {
+    public void onPurchasesUnavailable() {
         Logger.warn(this, "No subscriptions were found for this session");
     }
 

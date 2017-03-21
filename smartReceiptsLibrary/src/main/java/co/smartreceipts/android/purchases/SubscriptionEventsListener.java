@@ -3,6 +3,8 @@ package co.smartreceipts.android.purchases;
 import android.app.PendingIntent;
 import android.support.annotation.NonNull;
 
+import java.util.List;
+
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
@@ -10,17 +12,17 @@ import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 public interface SubscriptionEventsListener {
 
     /**
-     * Called as soon as we have successfully queried a list of available subscriptions
+     * Called as soon as we have successfully queried a list of available purchases
      *
-     * @param purchaseableSubscriptions a list of subscriptions for purchase
-     * @param purchaseWallet a wallet of owned subscriptions
+     *  @param availablePurchases a list of available {@link InAppPurchase}s
+     *
      */
-    void onSubscriptionsAvailable(@NonNull PurchaseableSubscriptions purchaseableSubscriptions, @NonNull PurchaseWallet purchaseWallet);
+    void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases);
 
     /**
-     * Called if we failed to find to query subscriptions
+     * Called if we failed to query any items for purchase
      */
-    void onSubscriptionsUnavailable();
+    void onPurchasesUnavailable();
 
     /**
      * Called if we were able to successfully fetch the purchase intent

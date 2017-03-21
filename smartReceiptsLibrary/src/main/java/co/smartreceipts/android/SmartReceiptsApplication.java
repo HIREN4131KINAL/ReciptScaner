@@ -86,7 +86,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
         pushManager = new PushManager(this, mIdentityManager);
         pushManager.initialize();
 
-        ocrInteractor = new OcrInteractor(this, pushManager);
+        ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
 

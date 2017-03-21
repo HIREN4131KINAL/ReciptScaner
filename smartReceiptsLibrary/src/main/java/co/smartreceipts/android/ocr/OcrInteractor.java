@@ -3,22 +3,19 @@ package co.smartreceipts.android.ocr;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
 import java.io.File;
 
-import co.smartreceipts.android.R;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.ocr.apis.OcrService;
-import co.smartreceipts.android.ocr.apis.OcrServiceHostConfiguration;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
 import co.smartreceipts.android.utils.FeatureFlags;
-import co.smartreceipts.android.utils.MultiDependencyFeature;
 import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import okhttp3.MediaType;
@@ -38,19 +35,12 @@ public class OcrInteractor {
     private final OcrPushMessageReceiver pushMessageReceiver;
     private final Feature ocrFeature;
 
-    public OcrInteractor(@NonNull final Context context, @NonNull PushManager pushManager) {
-        this(context, pushManager, new ServiceManager(new OcrServiceHostConfiguration(context)), new OcrPushMessageReceiver(),
-                new MultiDependencyFeature(FeatureFlags.Ocr, new Feature() {
-                    @Override
-                    public boolean isEnabled() {
-                        // Temporary work around until we get this moved server-side
-                        final String key = context.getString(R.string.ocr_api_key);
-                        return !TextUtils.isEmpty(key) && key.length() > 10;
-                    }
-                }));
+    public OcrInteractor(@NonNull final Context context, @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager) {
+        this(context, pushManager, serviceManager, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
     }
 
-    public OcrInteractor(@NonNull Context context, @NonNull PushManager pushManager, @NonNull ServiceManager serviceManager,
+    @VisibleForTesting
+    OcrInteractor(@NonNull Context context, @NonNull PushManager pushManager, @NonNull ServiceManager serviceManager,
                          @NonNull OcrPushMessageReceiver pushMessageReceiver, @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.pushManager = Preconditions.checkNotNull(pushManager);

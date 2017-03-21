@@ -10,6 +10,6 @@ import rx.Observable;
 public interface OcrService {
 
     @Multipart
-    @POST("/api/receipt/v1/simple/file")
+    @POST("api/recognitions")
     Observable<OcrResponse> scanReceipt(@Part MultipartBody.Part filePart);
 }

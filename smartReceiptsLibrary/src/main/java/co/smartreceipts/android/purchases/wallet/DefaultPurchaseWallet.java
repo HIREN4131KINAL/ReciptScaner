@@ -64,6 +64,18 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
+    public synchronized void removePurchaseFromWallet(@NonNull InAppPurchase inAppPurchase) {
+        final ManagedProduct managedProduct = ownedInAppPurchasesMap.remove(inAppPurchase);
+        if (managedProduct != null) {
+            final SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(getKeyForPurchaseToken(inAppPurchase));
+            editor.remove(getKeyForInAppDataSignature(inAppPurchase));
+            editor.apply();
+            persistWallet(); // And persist our sku set
+        }
+    }
+
+    @Override
     public synchronized void addPurchaseToWallet(@NonNull ManagedProduct managedProduct) {
         if (!ownedInAppPurchasesMap.containsKey(managedProduct.getInAppPurchase())) {
             ownedInAppPurchasesMap.put(managedProduct.getInAppPurchase(), managedProduct);
@@ -88,10 +100,12 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     private void persistWallet() {
-        final Set<InAppPurchase> inAppPurchases = new HashSet<>(ownedInAppPurchasesMap.keySet());
+        final Set<InAppPurchase> ownedInAppPurchases = new HashSet<>(ownedInAppPurchasesMap.keySet());
         final Set<String> skusSet = new HashSet<>();
         final SharedPreferences.Editor editor = sharedPreferences.edit();
-        for (final InAppPurchase inAppPurchase : inAppPurchases) {
+        editor.clear(); // Clear our our existing set before calling the new ones
+
+        for (final InAppPurchase inAppPurchase : ownedInAppPurchases) {
             final ManagedProduct managedProduct = ownedInAppPurchasesMap.get(inAppPurchase);
             skusSet.add(inAppPurchase.getSku());
             editor.putString(getKeyForPurchaseToken(inAppPurchase), managedProduct.getPurchaseToken());

@@ -31,4 +31,11 @@ public interface PurchaseWallet {
      */
     void updatePurchasesInWallet(@NonNull Collection<ManagedProduct> managedProducts);
 
+    /**
+     * Removes an existing purchase from our wallet
+     *
+     * @param inAppPurchase the {@link InAppPurchase} to remove from our wallet
+     */
+    void removePurchaseFromWallet(@NonNull InAppPurchase inAppPurchase);
+
 }

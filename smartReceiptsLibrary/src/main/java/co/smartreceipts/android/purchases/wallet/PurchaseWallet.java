@@ -5,29 +5,30 @@ import android.support.annotation.NonNull;
 import java.util.Collection;
 
 import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.model.ManagedProduct;
 
 public interface PurchaseWallet {
 
     /**
-     * Checks if this user owns a particular subscription for this application
+     * Checks if this user owns a particular {@link InAppPurchase} for this application
      *
-     * @param inAppPurchase the subscription to check for
-     * @return {@code true} if it's owned. {@code false} otherwise
+     * @param inAppPurchase the purchase to check for
+     * @return {@code true} if it's both owned and active. {@code false} otherwise
      */
     boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase);
 
     /**
-     * Adds a subscriptions to the existing wallet
+     * Adds a new purchase to our existing wallet
      *
-     * @param inAppPurchase the subscription to add
+     * @param managedProduct the {@link ManagedProduct} to add to our wallet
      */
-    void addPurchaseToWallet(@NonNull InAppPurchase inAppPurchase);
+    void addPurchaseToWallet(@NonNull ManagedProduct managedProduct);
 
     /**
-     * Updates the list of subscriptions in the existing wallet
+     * Updates the list of purchased products that are owned in this wallet
      *
-     * @param inAppPurchases the subscriptions to add
+     * @param managedProducts the {@link Collection} of {@link ManagedProduct}s that are owned by this wallet
      */
-    void updatePurchasesInWallet(@NonNull Collection<InAppPurchase> inAppPurchases);
+    void updatePurchasesInWallet(@NonNull Collection<ManagedProduct> managedProducts);
 
 }

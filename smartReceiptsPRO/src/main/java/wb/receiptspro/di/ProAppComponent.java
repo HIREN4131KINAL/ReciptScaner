@@ -7,7 +7,7 @@ import co.smartreceipts.android.ad.NoOpAdManager;
 import co.smartreceipts.android.di.BaseAppModule;
 import co.smartreceipts.android.di.GlobalBindingModule;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import co.smartreceipts.android.purchases.wallet.ProPurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PlusPurchaseWallet;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import dagger.Component;
 import dagger.Module;
@@ -45,8 +45,8 @@ public interface ProAppComponent {
         }
 
         @Provides
-        public static PurchaseWallet providePurchaseWallet (ProPurchaseWallet proPurchaseWallet) {
-            return proPurchaseWallet;
+        public static PurchaseWallet providePurchaseWallet (PlusPurchaseWallet plusPurchaseWallet) {
+            return plusPurchaseWallet;
         }
     }
 }

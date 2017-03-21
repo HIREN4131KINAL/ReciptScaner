@@ -10,20 +10,14 @@ import java.util.ArrayList;
 public enum InAppPurchase {
 
     SmartReceiptsPlus(Subscription.class, "pro_sku_3"),
-    OcrScans50(ConsumablePurchase.class, "TODO_OCR_TODO", 50);
+    OcrScans50(ConsumablePurchase.class, "TODO_OCR_TODO");
 
     private final Class<? extends ManagedProduct> type;
     private final String sku;
-    private final Integer purchaseQuantity;
 
     InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku) {
-        this(type, sku, null);
-    }
-
-    InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku, @Nullable Integer purchaseQuantity) {
         this.type = Preconditions.checkNotNull(type);
         this.sku = Preconditions.checkNotNull(sku);
-        this.purchaseQuantity = purchaseQuantity;
     }
 
     /**
@@ -52,14 +46,6 @@ public enum InAppPurchase {
         } else {
             return Subscription.GOOGLE_PRODUCT_TYPE;
         }
-    }
-
-    /**
-     * @return the quantity of items that this consumable purchase would contain (or {@code null} if unused)
-     */
-    @Nullable
-    public Integer getPurchaseQuantity() {
-        return purchaseQuantity;
     }
 
     @Nullable

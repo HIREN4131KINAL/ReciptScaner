@@ -30,6 +30,8 @@ import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.model.ManagedProduct;
+import co.smartreceipts.android.purchases.model.ManagedProductFactory;
 import co.smartreceipts.android.purchases.model.Subscription;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
@@ -41,6 +43,11 @@ public final class PurchaseManager {
 
     private static final int BILLING_RESPONSE_CODE_OK = 0;
     private static final int API_VERSION = 3;
+
+    // Purchase state codes
+    private static final int PURCHASE_STATE_PURCHASED = 0;
+    private static final int PURCHASE_STATE_CANCELLED = 1;
+    private static final int PURCHASE_STATE_REFUNDED = 2;
 
     /**
      * Apparently, this has to be the same across all future sessions to recover this information, so we
@@ -198,18 +205,17 @@ public final class PurchaseManager {
         if (requestCode == REQUEST_CODE) {
             final int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
             final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-
-            // TODO: Check signature as well
-            final String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+            final String inAppDataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
             if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_CODE_OK) {
                 try {
                     final JSONObject json = new JSONObject(purchaseData);
                     final String actualDeveloperPayload = json.getString("developerPayload");
                     if (mSessionDeveloperPayload.equals(actualDeveloperPayload)) {
                         final String sku = json.getString("productId");
+                        final String purchaseToken = json.getString("purchaseToken");
                         final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                         if (inAppPurchase != null) {
-                            purchaseWallet.addPurchaseToWallet(inAppPurchase);
+                            purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get());
                             for (final SubscriptionEventsListener listener : mListeners) {
                                 listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
                             }
@@ -259,23 +265,26 @@ public final class PurchaseManager {
                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
                         final ArrayList<String> signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
-                        final List<InAppPurchase> ownedInAppPurchases = new ArrayList<>();
+                        final List<ManagedProduct> purchasedProducts = new ArrayList<>();
                         for (int i = 0; i < purchaseDataList.size(); ++i) {
-                            final String purchaseData = purchaseDataList.get(i);
+                            final String purchaseDataString = purchaseDataList.get(i);
+                            final JSONObject purchaseData = new JSONObject(purchaseDataString);
+                            final String inAppDataSignature = signatureList.get(i);
+                            final String purchaseToken = purchaseData.getString("purchaseToken");
 
-                            // TODO: Check signature
-                            final String signature = signatureList.get(i);
                             final String sku = ownedSkus.get(i);
-                            final InAppPurchase ownedInAppPurchase = InAppPurchase.from(sku);
-                            if (ownedInAppPurchase != null) {
-                                ownedInAppPurchases.add(ownedInAppPurchase);
+                            final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
+                            final int purchaseState = purchaseData.has("purchaseState") ? purchaseData.getInt("purchaseState") : PURCHASE_STATE_PURCHASED;
+
+                            if (inAppPurchase != null && purchaseState == PURCHASE_STATE_PURCHASED) {
+                                purchasedProducts.add(new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get());
                             } else {
-                                Logger.warn(PurchaseManager.this, "Unknown sku returned from the owned subscriptions query: " + sku);
+                                Logger.warn(PurchaseManager.this, "Failed to process {} in purchase state {}.", sku, purchaseState);
                             }
                         }
 
                         // Now that we successfully got everything, let's save it
-                        purchaseWallet.updatePurchasesInWallet(ownedInAppPurchases);
+                        purchaseWallet.updatePurchasesInWallet(purchasedProducts);
                     } else {
                         Logger.error(PurchaseManager.this, "Failed to get the user's owned skus");
                         for (final SubscriptionEventsListener listener : mListeners) {
@@ -317,7 +326,7 @@ public final class PurchaseManager {
                     for (final SubscriptionEventsListener listener : mListeners) {
                         listener.onPurchasesAvailable(availablePurchases);
                     }
-                } catch (RemoteException e) {
+                } catch (RemoteException | JSONException e) {
                     Logger.error(PurchaseManager.this, "Failed to get available skus for purchase", e);
                     for (final SubscriptionEventsListener listener : mListeners) {
                         listener.onPurchasesUnavailable();

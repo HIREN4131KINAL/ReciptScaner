@@ -34,4 +34,25 @@ abstract class AbstractManagedProduct implements ManagedProduct {
     public String getInAppDataSignature() {
         return inAppDataSignature;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractManagedProduct)) return false;
+
+        AbstractManagedProduct that = (AbstractManagedProduct) o;
+
+        if (inAppPurchase != that.inAppPurchase) return false;
+        if (!purchaseToken.equals(that.purchaseToken)) return false;
+        return inAppDataSignature.equals(that.inAppDataSignature);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = inAppPurchase.hashCode();
+        result = 31 * result + purchaseToken.hashCode();
+        result = 31 * result + inAppDataSignature.hashCode();
+        return result;
+    }
 }

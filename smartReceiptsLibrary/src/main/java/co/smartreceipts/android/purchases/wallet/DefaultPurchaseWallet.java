@@ -10,19 +10,28 @@ import com.google.common.base.Preconditions;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.model.ManagedProduct;
+import co.smartreceipts.android.purchases.model.ManagedProductFactory;
+import co.smartreceipts.android.purchases.model.Subscription;
 
 public class DefaultPurchaseWallet implements PurchaseWallet {
 
     private static final String KEY_SKU_SET = "key_sku_set";
+    private static final String FORMAT_KEY_PURCHASE_TOKEN = "%s_purchaseToken";
+    private static final String FORMAT_KEY_IN_APP_DATA_SIGNATURE = "%s_inAppDataSignature";
 
     private final SharedPreferences sharedPreferences;
-    private Set<InAppPurchase> ownedInAppPurchases;
+    private final Map<InAppPurchase, ManagedProduct> ownedInAppPurchasesMap;
 
     @Inject
     public DefaultPurchaseWallet(@NonNull Context context) {
@@ -30,53 +39,76 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @VisibleForTesting
-    public DefaultPurchaseWallet(@NonNull SharedPreferences preferences) {
+    protected DefaultPurchaseWallet(@NonNull SharedPreferences preferences) {
         this.sharedPreferences = Preconditions.checkNotNull(preferences);
-        ownedInAppPurchases = restoreWallet();
+        ownedInAppPurchasesMap = restoreWallet();
     }
 
     @Override
-    public boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
-        return ownedInAppPurchases.contains(inAppPurchase);
+    public synchronized boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
+        return ownedInAppPurchasesMap.containsKey(inAppPurchase);
     }
 
     @Override
-    public synchronized void updatePurchasesInWallet(@NonNull Collection<InAppPurchase> inAppPurchases) {
-        final Set<InAppPurchase> actualInAppPurchaseSet = new HashSet<>(inAppPurchases);
-        if (!actualInAppPurchaseSet.equals(ownedInAppPurchases)) {
+    public synchronized void updatePurchasesInWallet(@NonNull Collection<ManagedProduct> managedProducts) {
+        final Map<InAppPurchase, ManagedProduct> actualInAppPurchasesMap = new HashMap<>();
+        for (final ManagedProduct managedProduct : managedProducts) {
+            actualInAppPurchasesMap.put(managedProduct.getInAppPurchase(), managedProduct);
+        }
+        if (!actualInAppPurchasesMap.equals(ownedInAppPurchasesMap)) {
             // Only update if we actually added something to the underlying set
-            ownedInAppPurchases = actualInAppPurchaseSet;
+            ownedInAppPurchasesMap.clear();
+            ownedInAppPurchasesMap.putAll(actualInAppPurchasesMap);
             persistWallet();
         }
     }
 
     @Override
-    public synchronized void addPurchaseToWallet(@NonNull InAppPurchase inAppPurchase) {
-        if (!ownedInAppPurchases.contains(inAppPurchase)) {
-            ownedInAppPurchases.add(inAppPurchase);
+    public synchronized void addPurchaseToWallet(@NonNull ManagedProduct managedProduct) {
+        if (!ownedInAppPurchasesMap.containsKey(managedProduct.getInAppPurchase())) {
+            ownedInAppPurchasesMap.put(managedProduct.getInAppPurchase(), managedProduct);
             persistWallet();
         }
     }
 
     @NonNull
-    private Set<InAppPurchase> restoreWallet() {
+    private Map<InAppPurchase, ManagedProduct> restoreWallet() {
         final Set<String> skusSet = sharedPreferences.getStringSet(KEY_SKU_SET, Collections.<String>emptySet());
-        final Set<InAppPurchase> inAppPurchases = new HashSet<>(skusSet.size());
+        final Map<InAppPurchase, ManagedProduct> inAppPurchasesMap = new HashMap<>();
         for (final String sku : skusSet) {
             final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
             if (inAppPurchase != null) {
-                inAppPurchases.add(inAppPurchase);
+                final String purchaseToken = sharedPreferences.getString(getKeyForPurchaseToken(inAppPurchase), "");
+                final String inAppDataSignature = sharedPreferences.getString(getKeyForInAppDataSignature(inAppPurchase), "");
+                final ManagedProduct managedProduct = new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get();
+                inAppPurchasesMap.put(inAppPurchase, managedProduct);
             }
         }
-        return inAppPurchases;
+        return inAppPurchasesMap;
     }
 
     private void persistWallet() {
-        final Collection<InAppPurchase> inAppPurchases = ownedInAppPurchases;
-        final Set<String> skusSet = new HashSet<>(inAppPurchases.size());
+        final Set<InAppPurchase> inAppPurchases = new HashSet<>(ownedInAppPurchasesMap.keySet());
+        final Set<String> skusSet = new HashSet<>();
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
         for (final InAppPurchase inAppPurchase : inAppPurchases) {
+            final ManagedProduct managedProduct = ownedInAppPurchasesMap.get(inAppPurchase);
             skusSet.add(inAppPurchase.getSku());
+            editor.putString(getKeyForPurchaseToken(inAppPurchase), managedProduct.getPurchaseToken());
+            editor.putString(getKeyForInAppDataSignature(inAppPurchase), managedProduct.getInAppDataSignature());
         }
-        sharedPreferences.edit().putStringSet(KEY_SKU_SET, skusSet).apply();
+        editor.putStringSet(KEY_SKU_SET, skusSet);
+        editor.apply();
     }
+
+    @NonNull
+    private String getKeyForPurchaseToken(@NonNull InAppPurchase inAppPurchase) {
+        return String.format(Locale.US, FORMAT_KEY_PURCHASE_TOKEN, inAppPurchase.getSku());
+    }
+
+    @NonNull
+    private String getKeyForInAppDataSignature(@NonNull InAppPurchase inAppPurchase) {
+        return String.format(Locale.US, FORMAT_KEY_IN_APP_DATA_SIGNATURE, inAppPurchase.getSku());
+    }
+
 }

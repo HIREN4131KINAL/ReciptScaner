@@ -47,6 +47,7 @@ public interface FreeAppComponent {
         }
 
         @Provides
+        @ApplicationScope
         public static PurchaseWallet providePurchaseWallet (DefaultPurchaseWallet defaultPurchaseWallet) {
             return defaultPurchaseWallet;
         }

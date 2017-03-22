@@ -175,10 +175,6 @@ public abstract class ColumnsListFragment extends WBFragment implements TableEve
         mDisableInsertsAndDeletes = false;
     }
 
-//    protected ColumnDefinitions<Receipt> getColumnDefinitions() {
-//        return new ReceiptColumnDefinitions(getActivity(), getPersistenceManager(), flex);
-//    }
-
 	protected BaseAdapter getAdapter() {
 		return new SettingsListAdapter(LayoutInflater.from(getActivity()));
 	}

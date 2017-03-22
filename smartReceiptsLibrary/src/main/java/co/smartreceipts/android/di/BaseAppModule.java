@@ -29,6 +29,7 @@ public class BaseAppModule {
     }
 
     @Provides
+    @ApplicationScope
     public static StorageManager provideStorageManager(Context context) {
         return StorageManager.getInstance(context);
     }

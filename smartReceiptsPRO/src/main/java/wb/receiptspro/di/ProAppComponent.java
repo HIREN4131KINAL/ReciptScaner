@@ -45,6 +45,7 @@ public interface ProAppComponent {
         }
 
         @Provides
+        @ApplicationScope
         public static PurchaseWallet providePurchaseWallet (PlusPurchaseWallet plusPurchaseWallet) {
             return plusPurchaseWallet;
         }

@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
@@ -32,6 +34,9 @@ import rx.subjects.ReplaySubject;
 import wb.android.storage.StorageManager;
 
 public class RemoteBackupsDataCache {
+
+    @Inject
+    StorageManager storageManager;
 
     private final Context mContext;
     private final BackupProvidersManager mBackupProvidersManager;
@@ -161,7 +166,6 @@ public class RemoteBackupsDataCache {
             Observable.create(new Observable.OnSubscribe<Boolean>() {
                     @Override
                     public void call(Subscriber<? super Boolean> subscriber) {
-                        final StorageManager storageManager = StorageManager.getInstance(mContext);
                         if (storageManager.deleteRecursively(cacheDir)) {
                             if ((cacheDir.exists() || cacheDir.mkdirs()) && (!cacheDirZipFile.exists() || cacheDirZipFile.delete())) {
                                 subscriber.onNext(true);
@@ -187,7 +191,7 @@ public class RemoteBackupsDataCache {
                 .map(new Func1<List<File>, File>() {
                     @Override
                     public File call(List<File> files) {
-                        return StorageManager.getInstance(mContext).zip(cacheDir);
+                        return storageManager.zip(cacheDir);
                     }
                 })
                 .subscribeOn(Schedulers.io())

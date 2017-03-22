@@ -8,6 +8,8 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.utils.log.Logger;
 import wb.android.storage.StorageManager;
 
@@ -19,6 +21,9 @@ import wb.android.storage.StorageManager;
 public class SmartReceiptsTemporaryFileCache {
 
     private static final String FOLDER_NAME = "smartReceiptsTmp";
+
+    @Inject
+    StorageManager storageManager;
 
     private final Context mContext;
     private final File mTemporaryCacheFolder;
@@ -41,7 +46,6 @@ public class SmartReceiptsTemporaryFileCache {
                 mTemporaryCacheFolder.mkdirs();
                 final File[] files = mTemporaryCacheFolder.listFiles();
                 if (files != null) {
-                    final StorageManager storageManager = StorageManager.getInstance(mContext);
                     for (final File file : files) {
                         Logger.debug(SmartReceiptsTemporaryFileCache.this, "Recursively deleting cached file: {}", file);
                         storageManager.deleteRecursively(file);

@@ -25,12 +25,10 @@ import org.robolectric.shadows.ShadowApplication;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import co.smartreceipts.android.SameThreadExecutorService;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 import co.smartreceipts.android.purchases.model.Subscription;
@@ -93,6 +91,9 @@ public class PurchaseManagerTest {
 
     @Mock
     IInAppBillingService inAppBillingService;
+
+    @Mock
+    ConsumablePurchase consumablePurchase;
 
     @Mock
     SubscriptionEventsListener listener1, listener2, listener3;
@@ -303,12 +304,60 @@ public class PurchaseManagerTest {
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
 
+    @Test
+    public void consumePurchaseThrowsRemoteException() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenThrow(new RemoteException());
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(RemoteException.class);
+    }
+
+    @Test
+    public void consumePurchaseFails() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_ERROR);
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+    }
+
+    @Test
+    public void consumePurchaseSucceeds() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_OK);
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+    }
+
     private void verifyInAppBillingServiceConnected() {
         final Intent intent = shadowApplication.getNextStartedService();
         assertNotNull(intent);
         assertEquals(intent.getAction(), "com.android.vending.billing.InAppBillingService.BIND");
         assertFalse(shadowApplication.getBoundServiceConnections().isEmpty());
-        // TODO: Verify activity lifecylce callbacks are working
+        // TODO: Verify activity lifecylce callbacks are working with custom shadow
     }
 
     @NonNull

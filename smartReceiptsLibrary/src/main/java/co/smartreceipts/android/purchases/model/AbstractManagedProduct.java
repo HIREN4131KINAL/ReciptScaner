@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-abstract class AbstractManagedProduct implements ManagedProduct {
+public abstract class AbstractManagedProduct implements ManagedProduct {
 
     private final InAppPurchase inAppPurchase;
     private final String purchaseToken;

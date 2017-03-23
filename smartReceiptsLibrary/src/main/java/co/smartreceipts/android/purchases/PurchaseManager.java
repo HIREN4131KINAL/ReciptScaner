@@ -306,6 +306,39 @@ public final class PurchaseManager {
                 .subscribeOn(subscribeOnScheduler);
     }
 
+    /**
+     * Attempts to consume the purchase of a given {@link ConsumablePurchase}
+     *
+     * @param consumablePurchase the product to consume
+     *
+     * @return an {@link Observable}, which will pass {@link Subscriber#onCompleted()} or {@link Subscriber#onError(Throwable)}
+     *  calls back to the subscription. No values will be emitted.
+     */
+    @NonNull
+    public Observable<Void> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
+        return rxInAppBillingServiceConnection.bindToInAppBillingService()
+                .flatMap(new Func1<IInAppBillingService, Observable<Void>>() {
+                    @Override
+                    public Observable<Void> call(@NonNull final IInAppBillingService inAppBillingService) {
+                        return Observable.create(new Observable.OnSubscribe<Void>() {
+                            @Override
+                            public void call(Subscriber<? super Void> subscriber) {
+                                try {
+                                    if (BILLING_RESPONSE_CODE_OK == inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken())) {
+                                        subscriber.onCompleted();
+                                    } else {
+                                        Logger.warn(PurchaseManager.this, "Received an unexpected response code for the consumption of this product.");
+                                        subscriber.onError(new Exception("Received an unexpected response code for the consumption of this product."));
+                                    }
+                                } catch (RemoteException e) {
+                                    subscriber.onError(e);
+                                }
+                            }
+                        });
+                    }
+                });
+    }
+
     @VisibleForTesting
     Observable<PendingIntent> getPurchaseIntent(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
         return rxInAppBillingServiceConnection.bindToInAppBillingService()

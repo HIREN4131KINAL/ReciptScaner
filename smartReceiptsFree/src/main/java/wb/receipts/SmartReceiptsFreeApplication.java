@@ -13,6 +13,7 @@ import co.smartreceipts.android.analytics.GoogleAnalytics;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.wallet.DefaultPurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasDispatchingActivityInjector;
@@ -75,5 +76,10 @@ public class SmartReceiptsFreeApplication extends SmartReceiptsApplication
     @Override
     protected ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal() {
         return receiptColumnDefinitions;
+    }
+
+    @Override
+    protected PurchaseWallet getPurchaseWalletInternal() {
+        return purchaseWallet;
     }
 }

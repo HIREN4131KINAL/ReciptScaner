@@ -22,6 +22,8 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.purchases.wallet.PlusPurchaseWallet;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasDispatchingActivityInjector;
@@ -44,6 +46,9 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
 
     @Inject
     ReceiptColumnDefinitions receiptColumnDefinitions;
+
+    @Inject
+    PlusPurchaseWallet purchaseWallet;
 
     private WeakReference<ProgressDialog> progress;
 
@@ -129,6 +134,11 @@ public class SmartReceiptsProApplication extends SmartReceiptsApplication
     @Override
     protected ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal() {
         return receiptColumnDefinitions;
+    }
+
+    @Override
+    protected PurchaseWallet getPurchaseWalletInternal() {
+        return purchaseWallet;
     }
 
     private class QuickImport extends AsyncTask<Void, Void, Boolean> {

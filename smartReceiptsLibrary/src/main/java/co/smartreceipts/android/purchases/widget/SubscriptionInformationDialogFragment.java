@@ -51,7 +51,7 @@ public class SubscriptionInformationDialogFragment extends DialogFragment implem
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if (which == AlertDialog.BUTTON_POSITIVE && mPurchaseManager != null) {
-            mPurchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
+            mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.UpsellDialog);
         }
         dismiss();
     }

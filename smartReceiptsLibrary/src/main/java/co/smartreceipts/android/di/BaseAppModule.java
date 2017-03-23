@@ -6,6 +6,7 @@ import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
+import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import dagger.Module;
 import dagger.Provides;

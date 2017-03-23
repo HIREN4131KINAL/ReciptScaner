@@ -624,7 +624,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
                 final PurchaseManager purchaseManager = smartReceiptsActivity.getSubscriptionManager();
                 if (purchaseManager != null) {
-                    purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
+                    purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
                 }
             }
         }

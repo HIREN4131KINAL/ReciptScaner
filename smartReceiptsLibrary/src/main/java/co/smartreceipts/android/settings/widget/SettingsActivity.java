@@ -1,9 +1,7 @@
 package co.smartreceipts.android.settings.widget;
 
 import android.annotation.TargetApi;
-import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Build;
@@ -18,6 +16,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -50,6 +50,9 @@ import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import dagger.android.AndroidInjection;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
 import wb.android.flex.Flex;
 import wb.android.preferences.SummaryEditTextPreference;
 
@@ -66,8 +69,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @Inject
     PurchaseWallet purchaseWallet;
 
-    private volatile List<InAppPurchase> availablePurchases;
+    private volatile Set<InAppPurchase> availablePurchases;
     private PurchaseManager mPurchaseManager;
+    private CompositeSubscription compositeSubscription;
     private boolean isUsingHeaders;
 
     /**
@@ -101,10 +105,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         }
 
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getApplication());
-        mPurchaseManager = new PurchaseManager(this, purchaseWallet, app.getAnalyticsManager());
-        mPurchaseManager.onCreate();
+        mPurchaseManager = app.getPurchaseManager();
         mPurchaseManager.addEventListener(this);
-        mPurchaseManager.querySubscriptions();
 
 
         // Scroll to a predefined preference category (if provided). Only for when not using headers -
@@ -158,7 +160,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             actionBar.setTitle(R.string.menu_main_settings);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
+        compositeSubscription = new CompositeSubscription();
+        compositeSubscription.add(mPurchaseManager.getAllAvailablePurchases()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Set<InAppPurchase>>() {
+                    @Override
+                    public void call(Set<InAppPurchase> inAppPurchases) {
+                        Logger.info(SettingsActivity.this, "The following purchases are available: {}", availablePurchases);
+                        availablePurchases = inAppPurchases;
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Logger.warn(SettingsActivity.this, "Failed to retrieve purchases for this session.", throwable);
+                    }
+                }));
     }
 
     // Called only on Honeycomb and later
@@ -215,7 +231,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @Override
     protected void onDestroy() {
         mPurchaseManager.removeEventListener(this);
-        mPurchaseManager.onDestroy();
         super.onDestroy();
     }
 
@@ -381,7 +396,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
-                mPurchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
+                mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }
@@ -392,42 +407,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         } else {
             return false;
         }
-    }
-
-    @Override
-    public void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
-        Logger.info(this, "The following subscriptions are available: {}", availablePurchases);
-        this.availablePurchases = availablePurchases;
-    }
-
-    @Override
-    public void onPurchasesUnavailable() {
-        Logger.warn(this, "No subscriptions were found for this session");
-        // Intentional no-op
-    }
-
-    @Override
-    public void onPurchaseIntentAvailable(@NonNull InAppPurchase inAppPurchase, @NonNull PendingIntent pendingIntent, @NonNull String key) {
-        try {
-            startIntentSenderForResult(pendingIntent.getIntentSender(), PurchaseManager.REQUEST_CODE, new Intent(), 0, 0, 0);
-        } catch (IntentSender.SendIntentException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onPurchaseIntentUnavailable(@NonNull InAppPurchase inAppPurchase) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
-            }
-        });
     }
 
     @Override

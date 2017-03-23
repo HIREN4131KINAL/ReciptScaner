@@ -34,7 +34,6 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
@@ -141,7 +140,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
                 if (purchaseManager != null && backupProvidersManager.getSyncProvider() == SyncProvider.None
                         && !purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
-                    purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
+                    purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
                     navigationHandler.showDialog(new SelectAutomaticBackupProviderDialogFragment());
                 }

@@ -1,7 +1,7 @@
 package wb.receipts.ad;
 
 import android.app.Activity;
-import android.app.PendingIntent;
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
@@ -15,6 +15,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.NativeExpressAdView;
+import com.google.common.base.Preconditions;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -46,13 +47,16 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
     private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
     private static final String SHOW_AD = "pref1";
 
+    private final PurchaseWallet purchaseWallet;
+
     private WeakReference<NativeExpressAdView> mAdViewReference;
     private WeakReference<Button> mUpsellReference;
 
     private PurchaseManager purchaseManager;
 
     @Inject
-    FreeAdManager() {
+    FreeAdManager(@NonNull PurchaseWallet purchaseWallet) {
+        this.purchaseWallet = Preconditions.checkNotNull(purchaseWallet);
     }
 
     public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable PurchaseManager purchaseManager) {
@@ -109,7 +113,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
             public void onClick(View view) {
                 if (FreeAdManager.this.purchaseManager != null) {
                     analyticsManager.record(Events.Purchases.AdUpsellTapped);
-                    FreeAdManager.this.purchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AdBanner);
+                    FreeAdManager.this.purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AdBanner);
                 }
             }
         });
@@ -174,7 +178,7 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
 
     private boolean shouldShowAds(@NonNull NativeExpressAdView adView) {
         final boolean hasProSubscription = purchaseManager != null
-                && purchaseManager.getPurchaseWallet().hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
+                && purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
         final boolean areAdsEnabledLocally = adView.getContext().getSharedPreferences(AD_PREFERENECES, 0).getBoolean(SHOW_AD, true);
         return areAdsEnabledLocally && !hasProSubscription;
     }
@@ -185,39 +189,6 @@ public class FreeAdManager implements AdManager, SubscriptionEventsListener {
                 .addTestDevice("BFB48A3556EED9C87CB3AD907780D610")
                 .addTestDevice("E03AEBCB2894909B8E4EC87C0368C242")
                 .build();
-    }
-
-    @Override
-    public synchronized void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
-        // Refresh our subscriptions now
-        final NativeExpressAdView adView = mAdViewReference.get();
-        if (adView != null) {
-            adView.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (shouldShowAds(adView)) {
-                        adView.setVisibility(View.VISIBLE);
-                    } else {
-                        adView.setVisibility(View.GONE);
-                    }
-                }
-            });
-        }
-    }
-
-    @Override
-    public synchronized void onPurchasesUnavailable() {
-        // Intentional Stub. Handled with parent activity
-    }
-
-    @Override
-    public synchronized void onPurchaseIntentAvailable(@NonNull InAppPurchase inAppPurchase, @NonNull PendingIntent pendingIntent, @NonNull String key) {
-        // Intentional Stub. Handled with parent activity
-    }
-
-    @Override
-    public synchronized void onPurchaseIntentUnavailable(@NonNull InAppPurchase inAppPurchase) {
-        // Intentional Stub. Handled with parent activity
     }
 
     @Override

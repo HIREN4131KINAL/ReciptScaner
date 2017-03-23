@@ -24,6 +24,8 @@ import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
@@ -52,6 +54,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     private IdentityManager mIdentityManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
+    private PurchaseManager purchaseManager;
     private boolean mDeferFirstRunDialog;
 
     @Override
@@ -66,6 +69,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     protected void init() {
         PersistenceManager persistenceManager = getPersistenceManagerInternal();
         ReceiptColumnDefinitions receiptColumnDefinitions = getReceiptColumnDefinitionsInternal();
+        PurchaseWallet purchaseWallet = getPurchaseWalletInternal();
 
         mDeferFirstRunDialog = false;
         mConfigurationManager = instantiateConfigurationManager();
@@ -88,6 +92,9 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
 
         ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
 
+        purchaseManager = new PurchaseManager(this, purchaseWallet, mAnalyticsManager);
+        purchaseManager.initialize(this);
+
         PDFBoxResourceLoader.init(getApplicationContext());
 
         // Clear our cache
@@ -104,6 +111,7 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
     // TODO: 16.03.2017 temporаry methods, will be removed
     protected abstract PersistenceManager getPersistenceManagerInternal();
     protected abstract ReceiptColumnDefinitions getReceiptColumnDefinitionsInternal();
+    protected abstract PurchaseWallet getPurchaseWalletInternal();
 
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath() ;
@@ -170,6 +178,10 @@ public abstract class SmartReceiptsApplication extends Application implements Ve
         return ocrInteractor;
     }
 
+    @NonNull
+    public PurchaseManager getPurchaseManager() {
+        return purchaseManager;
+    }
 
     // This is called after _sdCard is available but before _db is
     // This was added after version 78 (version 79 is the first "new" one)

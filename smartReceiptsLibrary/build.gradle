@@ -43,6 +43,9 @@ dependencies {
 
     compile "com.andkulikov:transitionseverywhere:$TRANSITIONS_EVERYWHERE_VERSION"
 
+    compile "com.amazonaws:aws-android-sdk-core:$AWS_SDK_VERSION"
+    compile "com.amazonaws:aws-android-sdk-s3:$AWS_SDK_VERSION"
+
     // Dagger
     compile "com.google.dagger:dagger-android-support:$DAGGER_VERSION"
     compile "com.google.dagger:dagger:$DAGGER_VERSION"

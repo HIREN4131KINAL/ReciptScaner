@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+	<PreferenceCategory
+	    android:title="@string/pref_layout_header"
+	    android:key="pref_layout_category_key">
+	    <CheckBoxPreference
+	        android:key="@string/pref_layout_display_date_key"
+	        android:title="@string/pref_layout_display_date_title"
+	        android:summary="@string/pref_layout_display_date_summary"
+	        android:defaultValue="@bool/pref_layout_display_date_defaultValue"/>
+	    <CheckBoxPreference
+	        android:key="@string/pref_layout_display_category_key"
+	        android:title="@string/pref_layout_display_category_title"
+	        android:summary="@string/pref_layout_display_category_summary"
+	        android:defaultValue="@bool/pref_layout_display_category_defaultValue"/>
+	    <CheckBoxPreference
+	        android:key="@string/pref_layout_display_photo_key"
+	        android:title="@string/pref_layout_display_photo_title"
+	        android:summary="@string/pref_layout_display_photo_summary"
+	        android:defaultValue="@bool/pref_layout_display_photo_defaultValue"/>
+	</PreferenceCategory>
+</PreferenceScreen>

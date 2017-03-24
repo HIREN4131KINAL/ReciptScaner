@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+    <TextView android:id="@+id/dialog_filter_item_left_paren"
+        android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight=".02" />
+	<Spinner android:id="@+id/dialog_filter_item_combination"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+	    android:layout_weight=".2" />
+	<Spinner android:id="@+id/dialog_filter_item_type"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+	    android:layout_weight=".38" />
+	<EditText android:id="@+id/dialog_filter_item_value"
+	    android:layout_width="0dp" 
+	    android:layout_height="wrap_content"
+	    android:hint="@string/dialog_filter_item_value"
+	    android:layout_weight=".38" />
+	<TextView android:id="@+id/dialog_filter_item_right_paren"
+        android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight=".02" />
+</LinearLayout>

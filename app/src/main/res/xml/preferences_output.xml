@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" 
+    xmlns:wb="http://schemas.android.com/apk/res-auto" >
+	<PreferenceCategory
+	    android:title="@string/pref_output_header"
+	    android:key="pref_output_category_key">
+		<Preference 
+		    android:key="@string/pref_output_custom_csv_key" 
+			android:title="@string/pref_output_custom_csv_title" />
+		<Preference 
+		    android:key="@string/pref_output_custom_pdf_key" 
+			android:title="@string/pref_output_custom_pdf_key" />
+		<CheckBoxPreference
+			android:key="@string/pref_output_receipts_landscape_key"
+			android:title="@string/pref_output_receipts_landscape_title"
+			android:summaryOn="@string/pref_output_receipts_landscape_on"
+			android:summaryOff="@string/pref_output_receipts_landscape_off"
+			android:defaultValue="@bool/pref_output_receipts_landscape_defaultValue" />
+	   <wb.android.preferences.EmptyValueSummaryEditTextPreference
+	       android:key="@string/pref_output_username_key"
+	       android:title="@string/pref_output_username_title"
+           android:defaultValue="@string/pref_output_username_defaultValue"
+	       wb:emptyValue="@string/pref_output_username_emptyValue" />
+		<CheckBoxPreference
+            android:key="@string/pref_output_print_receipt_id_by_photo_key"
+            android:title="@string/pref_output_print_receipt_id_by_photo_title"
+            android:summary="@string/pref_output_print_receipt_id_by_photo_summary"
+            android:defaultValue="@bool/pref_output_print_receipt_id_by_photo_defaultValue"/>
+        <CheckBoxPreference
+            android:key="@string/pref_output_print_receipt_comment_by_photo_key"
+            android:title="@string/pref_output_print_receipt_comment_by_photo_title"
+            android:summaryOn="@string/pref_output_print_receipt_comment_by_photo_summaryOn"
+            android:summaryOff="@string/pref_output_print_receipt_comment_by_photo_summaryOff"
+            android:defaultValue="@bool/pref_output_print_receipt_comment_by_photo_defaultValue"/>
+	</PreferenceCategory>
+</PreferenceScreen>

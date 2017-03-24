@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+    <LinearLayout
+        android:layout_width="fill_parent"
+    	android:layout_height="wrap_content" 
+        android:orientation="vertical"
+        android:padding="8dp">
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_EMAIL" />
+        <EditText android:id="@+id/dialog_settings_email"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_DURATION" />
+        <EditText android:id="@+id/dialog_settings_duration"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_CURRENCY" />
+        <Spinner android:id="@+id/dialog_settings_currency"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_SEPARATOR" />
+        <Spinner android:id="@+id/dialog_settings_date_separator"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_MIN_PRICE" />
+        <EditText android:id="@+id/dialog_settings_minprice"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" 
+            android:hint="@string/DIALOG_SETTINGS_EDITTEXT_MIN_PRICE" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_TEXTVIEW_USER_ID" />
+        <EditText android:id="@+id/dialog_settings_userid"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+        <CheckBox android:id="@+id/dialog_settings_predictcategories"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_PREDICT" />
+        <CheckBox android:id="@+id/dialog_settings_usenativecamera"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_NATIVE_CAMERA" />
+        <CheckBox android:id="@+id/dialog_settings_tax"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_TAX" />
+        <CheckBox android:id="@+id/dialog_settings_matchnametocategory"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_NAME_TO_CAT" />
+        <CheckBox android:id="@+id/dialog_settings_matchcommenttocategory"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_COMMENT_TO_CAT" />
+        <CheckBox android:id="@+id/dialog_settings_onlyreportexpensable"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_EXPENSABLE" />
+        <CheckBox android:id="@+id/dialog_settings_enableautocompletesuggestions"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_CHECKBOX_AUTOCOMPLETE" />
+        <CheckBox android:id="@+id/dialog_settings_defaultToFirstReportDate"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/DIALOG_SETTINGS_DEFAULT_TO_FIRST_DATE" />
+	</LinearLayout>    
+
+</ScrollView>

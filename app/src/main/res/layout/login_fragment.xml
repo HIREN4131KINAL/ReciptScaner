@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <include layout="@layout/toolbar"
+            android:id="@+id/toolbar"/>
+
+        <LinearLayout
+            android:id="@+id/no_active_user_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/default_margin_size"
+            android:layout_below="@+id/toolbar" >
+
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
+                android:id="@+id/login_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="Lorem ipsum"/>
+
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+                android:id="@+id/login_fields_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator" />
+
+            <EditText
+                android:id="@+id/login_field_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/login_field_email_hint"
+                android:inputType="textEmailAddress" />
+
+            <EditText
+                android:id="@+id/login_field_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/login_field_password_hint"
+                android:inputType="textPassword" />
+
+            <Button style="@style/Widget.SmartReceipts.Button"
+                android:id="@+id/login_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/login_button_text" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/existing_user_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/default_margin_size"
+            android:layout_below="@+id/toolbar"
+            android:visibility="gone" >
+
+            <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+                android:id="@+id/my_account_welcome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="1"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/my_account_welcome"/>
+
+            <TextView style="@style/Widget.SmartReceipts.TextView.Subhead"
+                android:id="@+id/my_account_info_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_item_separator"
+                android:text="@string/my_account_info_message"/>
+
+            <Button style="@style/Widget.SmartReceipts.Button"
+                    android:id="@+id/logout_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/logout_button_text" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</ScrollView>

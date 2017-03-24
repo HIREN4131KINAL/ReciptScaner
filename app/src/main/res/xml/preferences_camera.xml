@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+	<PreferenceCategory
+		android:title="@string/pref_camera_header"
+	    android:key="@string/pref_camera_header_key">
+        <CheckBoxPreference
+            android:key="@string/pref_camera_bw_key"
+            android:title="@string/pref_camera_bw_title"
+            android:summary="@string/pref_camera_bw_summary"
+            android:defaultValue="@bool/pref_camera_bw_defaultValue"/>
+        <CheckBoxPreference
+            android:key="@string/pref_camera_rotate_key"
+            android:title="@string/pref_camera_rotate_title"
+            android:summaryOn="@string/pref_camera_rotate_summaryOn"
+            android:summaryOff="@string/pref_camera_rotate_summaryOff"
+            android:defaultValue="@bool/pref_camera_rotate_defaultValue"/>
+	</PreferenceCategory>
+</PreferenceScreen>

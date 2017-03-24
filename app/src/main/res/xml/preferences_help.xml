@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+	<PreferenceCategory
+		android:title="@string/pref_help_header"
+		android:key="pref_help_category_key">
+		<Preference 
+		    android:key="@string/pref_help_send_love_key" 
+			android:title="@string/pref_help_send_love_title" />
+		<Preference 
+		    android:key="@string/pref_help_send_feedback_key" 
+			android:title="@string/pref_help_send_feedback_title" />
+		<Preference 
+		    android:key="@string/pref_help_support_email_key" 
+			android:title="@string/pref_help_support_email_title" />
+	</PreferenceCategory>
+</PreferenceScreen>

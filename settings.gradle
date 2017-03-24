@@ -1,4 +1,2 @@
-include ':smartReceiptsFree'
-include ':smartReceiptsPRO'
+include ':app'
 include ':wbMiniLibrary'
-include ':smartReceiptsLibrary'

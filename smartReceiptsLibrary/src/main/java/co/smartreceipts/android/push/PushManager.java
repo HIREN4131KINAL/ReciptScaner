@@ -6,14 +6,11 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
-import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.push.apis.me.UpdateUserPushTokens;
 import co.smartreceipts.android.push.internal.FcmTokenRetriever;
@@ -21,7 +18,6 @@ import co.smartreceipts.android.push.store.PushDataStore;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
-import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -50,13 +46,20 @@ public class PushManager {
     }
 
     public void initialize() {
-        Observable.zip(pushDataStore.isRemoteRefreshRequiredObservable(), identityManager.isLoggedInObservable(), new Func2<Boolean, Boolean, Boolean>() {
+        identityManager.isLoggedInStream()
+                .subscribeOn(subscribeOnScheduler)
+                .flatMap(new Func1<Boolean, Observable<Boolean>>() {
                     @Override
-                    public Boolean call(Boolean isRefreshRequired, Boolean isLoggedIn) {
-                        return isRefreshRequired && isLoggedIn;
+                    public Observable<Boolean> call(final Boolean isLoggedIn) {
+                        return pushDataStore.isRemoteRefreshRequiredObservable()
+                                .map(new Func1<Boolean, Boolean>() {
+                                    @Override
+                                    public Boolean call(Boolean isRefreshRequired) {
+                                        return isRefreshRequired && isLoggedIn;
+                                    }
+                                });
                     }
                 })
-                .subscribeOn(subscribeOnScheduler)
                 .filter(new Func1<Boolean, Boolean>() {
                     @Override
                     public Boolean call(Boolean shouldPushTokenBeUploaded) {

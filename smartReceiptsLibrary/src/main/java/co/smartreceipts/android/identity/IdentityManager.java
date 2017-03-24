@@ -46,6 +46,7 @@ public class IdentityManager implements IdentityStore {
     private final Analytics analytics;
     private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
+    private final BehaviorSubject<Boolean> isLoggedInBehaviorSubject;
     private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
     private Subject<LogoutResponse, LogoutResponse> logoutSubject;
@@ -64,6 +65,7 @@ public class IdentityManager implements IdentityStore {
         this.analytics = Preconditions.checkNotNull(analytics);
         this.mutableIdentityStore = Preconditions.checkNotNull(mutableIdentityStore);
         this.organizationManager = Preconditions.checkNotNull(organizationManager);
+        this.isLoggedInBehaviorSubject = BehaviorSubject.create(isLoggedIn());
     }
 
     @Nullable
@@ -83,15 +85,23 @@ public class IdentityManager implements IdentityStore {
         return mutableIdentityStore.isLoggedIn();
     }
 
+    /**
+     * @return an {@link Observable} relay that will only emit {@link Subscriber#onNext(Object)} calls
+     * (and never {@link Subscriber#onCompleted()} or {@link Subscriber#onError(Throwable)} calls) under
+     * the following circumstances:
+     * <ul>
+     * <li>When the app launches, it will emit {@code true} if logged in and {@code false} if not</li>
+     * <li>When the user signs in, it will emit  {@code true}</li>
+     * <li>When the user signs out, it will emit  {@code false}</li>
+     * </ul>
+     * <p>
+     * Users of this class should expect a {@link BehaviorSubject} type behavior in which the current
+     * state will always be emitted as soon as we subscribe
+     * </p>
+     */
     @NonNull
-    public Observable<Boolean> isLoggedInObservable() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                subscriber.onNext(isLoggedIn());
-                subscriber.onCompleted();
-            }
-        });
+    public Observable<Boolean> isLoggedInStream() {
+        return isLoggedInBehaviorSubject.asObservable();
     }
 
     public synchronized Observable<LoginResponse> logIn(@NonNull final LoginParams login) {
@@ -118,13 +128,6 @@ public class IdentityManager implements IdentityStore {
                             }
                         }
                     })
-                    .doOnError(new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            Logger.error(this, "Failed to complete the log-in request", throwable);
-                            analytics.record(Events.Identity.UserLoginFailure);
-                        }
-                    })
                     .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
                         @Override
                         public Observable<LoginResponse> call(final LoginResponse loginResponse) {
@@ -137,10 +140,18 @@ public class IdentityManager implements IdentityStore {
                                     });
                         }
                     })
+                    .doOnError(new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Logger.error(this, "Failed to complete the log-in request", throwable);
+                            analytics.record(Events.Identity.UserLoginFailure);
+                        }
+                    })
                     .doOnCompleted(new Action0() {
                         @Override
                         public void call() {
                             Logger.info(this, "Successfully completed the log-in request");
+                            isLoggedInBehaviorSubject.onNext(true);
                             analytics.record(Events.Identity.UserLoginSuccess);
                         }
                     })
@@ -180,6 +191,7 @@ public class IdentityManager implements IdentityStore {
                         @Override
                         public void call() {
                             Logger.info(this, "Successfully completed the log-out request");
+                            isLoggedInBehaviorSubject.onNext(false);
                             analytics.record(Events.Identity.UserLogoutSuccess);
                         }
                     })

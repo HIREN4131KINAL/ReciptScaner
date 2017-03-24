@@ -25,8 +25,8 @@ public class PushDataStore {
     }
 
     /**
-     * @return an {@link Observable} that will emit {@code true} if a refresh is required and nothing
-     * (ie {@link Observable#empty()}) if one is not required
+     * @return an {@link Observable} that will emit {@code true} if a refresh is required and {@code false}
+     * if one is not
      */
     @NonNull
     public Observable<Boolean> isRemoteRefreshRequiredObservable() {

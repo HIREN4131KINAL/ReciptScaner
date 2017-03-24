@@ -18,6 +18,7 @@ import co.smartreceipts.android.identity.apis.organizations.OrganizationsService
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
@@ -38,25 +39,29 @@ public class OrganizationManager {
 
     @NonNull
     public Observable<OrganizationsResponse> getOrganizations() {
-        return getOrganizationsApiRequest()
-                .flatMap(new Func1<OrganizationsResponse, Observable<OrganizationsResponse>>() {
-                    @Override
-                    public Observable<OrganizationsResponse> call(final OrganizationsResponse organizationsResponse) {
-                        return applyOrganizationsResponse(organizationsResponse)
-                                .map(new Func1<Object, OrganizationsResponse>() {
-                                    @Override
-                                    public OrganizationsResponse call(Object o) {
-                                        return organizationsResponse;
-                                    }
-                                });
-                    }
-                })
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.error(this, "Failed to complete the organizations request", throwable);
-                    }
-                });
+        if (FeatureFlags.OrganizationSyncing.isEnabled()) {
+            return getOrganizationsApiRequest()
+                    .flatMap(new Func1<OrganizationsResponse, Observable<OrganizationsResponse>>() {
+                        @Override
+                        public Observable<OrganizationsResponse> call(final OrganizationsResponse organizationsResponse) {
+                            return applyOrganizationsResponse(organizationsResponse)
+                                    .map(new Func1<Object, OrganizationsResponse>() {
+                                        @Override
+                                        public OrganizationsResponse call(Object o) {
+                                            return organizationsResponse;
+                                        }
+                                    });
+                        }
+                    })
+                    .doOnError(new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            Logger.error(this, "Failed to complete the organizations request", throwable);
+                        }
+                    });
+        } else {
+            return Observable.empty();
+        }
     }
 
     @NonNull

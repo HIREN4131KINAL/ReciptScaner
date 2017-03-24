@@ -60,7 +60,7 @@ public class PushManagerTest {
     @Test
     public void initializeWhenNotRequired() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(false));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.just(true));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.just(true));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 
@@ -73,7 +73,7 @@ public class PushManagerTest {
     @Test
     public void initializeWhenNotLoggedIn() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(true));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.just(false));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.just(false));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 
@@ -86,7 +86,7 @@ public class PushManagerTest {
     @Test
     public void initializeWithNetworkError() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(true));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.<Boolean>error(new Exception("test")));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.<Boolean>error(new Exception("test")));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 
@@ -98,7 +98,7 @@ public class PushManagerTest {
     @Test
     public void initialize() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(true));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.just(true));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.just(true));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 
@@ -111,7 +111,7 @@ public class PushManagerTest {
     @Test
     public void onTokenRefreshWhenNotLoggedIn() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(true));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.just(false));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.just(false));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 
@@ -124,7 +124,7 @@ public class PushManagerTest {
     @Test
     public void onTokenRefresh() throws Exception {
         when(pushDataStore.isRemoteRefreshRequiredObservable()).thenReturn(Observable.just(true));
-        when(identityManager.isLoggedInObservable()).thenReturn(Observable.just(true));
+        when(identityManager.isLoggedInStream()).thenReturn(Observable.just(true));
         when(fcmTokenRetriever.getFcmTokenObservable()).thenReturn(Observable.just(TOKEN));
         when(identityManager.updateMe(any(UpdatePushTokensRequest.class))).thenReturn(Observable.just(meResponse));
 

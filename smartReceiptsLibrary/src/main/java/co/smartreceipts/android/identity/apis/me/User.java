@@ -16,7 +16,9 @@ public class User implements Serializable {
     private String name;
     private String display_name;
     private List<String> registration_ids;
-    private Cognito cognito;
+    private String cognito_token;
+    private String identity_id;
+    private long cognito_token_expires_at;
 
     public User(@NonNull List<String> registrationIds) {
         this.registration_ids = Preconditions.checkNotNull(registrationIds);
@@ -31,8 +33,6 @@ public class User implements Serializable {
     public String getEmail() {
         return email;
     }
-
-
 
     @Nullable
     public String getName() {
@@ -50,8 +50,17 @@ public class User implements Serializable {
     }
 
     @Nullable
-    public Cognito getCognito() {
-        return this.cognito;
+    public String getCognitoToken() {
+        return cognito_token;
     }
 
+    @Nullable
+    public String getIdentityId() {
+        return identity_id;
+    }
+
+    @Nullable
+    public long getCognitoTokenExpiresAt() {
+        return cognito_token_expires_at;
+    }
 }

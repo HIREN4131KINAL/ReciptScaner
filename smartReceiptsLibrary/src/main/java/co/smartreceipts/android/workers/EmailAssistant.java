@@ -20,6 +20,7 @@ import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +45,7 @@ import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.Report;
 import co.smartreceipts.android.workers.reports.ReportGenerationException;
+import co.smartreceipts.android.workers.reports.csv.CsvReportWriter;
 import co.smartreceipts.android.workers.reports.csv.CsvTableGenerator;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxFullPdfReport;
@@ -310,14 +312,15 @@ public class EmailAssistant {
                         data += new CsvTableGenerator<>(distanceColumns, true, true).generate(distances);
                     }
                 }
+
                 String filename = dir.getName() + ".csv";
-                if (!mStorageManager.write(dir, filename, data)) {
-                    if (BuildConfig.DEBUG) {
-                        Logger.error(this, "Failed to write the csv file");
-                    }
+                File csvFile = new File(dir, filename);
+                try {
+                    mFiles[EmailOptions.CSV.getIndex()] = csvFile;
+                    new CsvReportWriter(csvFile).write(data);
+                } catch (IOException e) {
+                    Logger.error(this, "Failed to write the csv file", e);
                     results.didCSVFailCompletely = true;
-                } else {
-                    mFiles[EmailOptions.CSV.getIndex()] = mStorageManager.getFile(dir, filename);
                 }
             }
             if (mOptions.contains(EmailOptions.ZIP_IMAGES_STAMPED)) {

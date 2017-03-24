@@ -1,4 +1,0 @@
-<included>
-    <appender name="logcat" class="ch.qos.logback.core.helpers.NOPAppender">
-    </appender>
-</included>

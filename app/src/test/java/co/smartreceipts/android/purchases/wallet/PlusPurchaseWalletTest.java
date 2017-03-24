@@ -62,16 +62,33 @@ public class PlusPurchaseWalletTest {
     @Test
     public void singlePurchase() {
         plusPurchaseWallet.addPurchaseToWallet(managedProduct);
+
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
+        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
-    public void updatePurchasesKeepsPlus() {
-        plusPurchaseWallet.updatePurchasesInWallet(Collections.singletonList(managedProduct));
+    public void updatePurchases() {
+        plusPurchaseWallet.updatePurchasesInWallet(Collections.singleton(managedProduct));
 
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
+        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
+    }
+
+    @Test
+    public void removeMissingPurchase() {
+        plusPurchaseWallet.removePurchaseFromWallet(InAppPurchase.OcrScans50);
+
+        assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.<String>emptySet());
+        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseToken"));
+        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
     }
 
     @Test
@@ -83,6 +100,9 @@ public class PlusPurchaseWalletTest {
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
+        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
@@ -98,6 +118,25 @@ public class PlusPurchaseWalletTest {
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
         assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
+        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseToken"));
+        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
+    }
+
+    @Test
+    public void ensureRemovedPurchaseIsPersisted() {
+        plusPurchaseWallet.addPurchaseToWallet(managedProduct);
+        plusPurchaseWallet.removePurchaseFromWallet(InAppPurchase.OcrScans50);
+
+        final PurchaseWallet newWallet = new PlusPurchaseWallet(preferences);
+
+        assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
+        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseToken"));
+        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
     }
 
 }

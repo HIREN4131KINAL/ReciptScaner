@@ -1,8 +1,6 @@
 package co.smartreceipts.android.activities;
 
-import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,7 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -36,6 +34,9 @@ import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragm
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.AndroidInjection;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.subscriptions.CompositeSubscription;
 import wb.android.flex.Flex;
 
 public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
@@ -45,18 +46,22 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
 
     @Inject
     AdManager adManager;
+
     @Inject
     Flex flex;
+
     @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     PurchaseWallet purchaseWallet;
 
-    private volatile List<InAppPurchase> availablePurchases;
+    private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
     private PurchaseManager mPurchaseManager;
     private Attachment attachment;
     private BackupProvidersManager backupProvidersManager;
+    private CompositeSubscription compositeSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +71,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.debug(this, "onCreate");
 
         navigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
-        mPurchaseManager = new PurchaseManager(this, purchaseWallet, getSmartReceiptsApplication().getAnalyticsManager());
-        mPurchaseManager.onCreate();
+        mPurchaseManager = getSmartReceiptsApplication().getPurchaseManager();
         mPurchaseManager.addEventListener(this);
-        mPurchaseManager.querySubscriptions();
 
         setContentView(R.layout.activity_main);
 
@@ -93,6 +96,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         if (!persistenceManager.getStorageManager().isExternal()) {
             Toast.makeText(SmartReceiptsActivity.this, flex.getString(this, R.string.SD_WARNING), Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Override
@@ -120,6 +124,23 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             }
         }
         adManager.onResume();
+
+        compositeSubscription = new CompositeSubscription();
+        compositeSubscription.add(mPurchaseManager.getAllAvailablePurchases()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Set<InAppPurchase>>() {
+                    @Override
+                    public void call(Set<InAppPurchase> inAppPurchases) {
+                        Logger.info(this, "The following purchases are available: {}", availablePurchases);
+                        availablePurchases = inAppPurchases;
+                        invalidateOptionsMenu(); // To show the subscription option
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Logger.warn(SmartReceiptsActivity.this, "Failed to retrieve purchases for this session.", throwable);
+                    }
+                }));
     }
 
     @Override
@@ -166,7 +187,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mPurchaseManager.queryBuyIntent(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
@@ -206,7 +227,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
         Logger.info(this, "onDestroy");
         adManager.onDestroy();
         mPurchaseManager.removeEventListener(this);
-        mPurchaseManager.onDestroy();
         persistenceManager.getDatabase().onDestroy();
         super.onDestroy();
     }
@@ -219,42 +239,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     @Override
     public void setAttachment(Attachment attachment) {
         this.attachment = attachment;
-    }
-
-    @Override
-    public void onPurchasesAvailable(@NonNull List<InAppPurchase> availablePurchases) {
-        Logger.info(this, "The following subscriptions are available: {}", availablePurchases);
-        this.availablePurchases = availablePurchases;
-        invalidateOptionsMenu(); // To show the subscription option
-    }
-
-    @Override
-    public void onPurchasesUnavailable() {
-        Logger.warn(this, "No subscriptions were found for this session");
-    }
-
-    @Override
-    public void onPurchaseIntentAvailable(@NonNull InAppPurchase inAppPurchase, @NonNull PendingIntent pendingIntent, @NonNull String key) {
-        try {
-            startIntentSenderForResult(pendingIntent.getIntentSender(), PurchaseManager.REQUEST_CODE, new Intent(), 0, 0, 0);
-        } catch (IntentSender.SendIntentException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onPurchaseIntentUnavailable(@NonNull InAppPurchase inAppPurchase) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
-            }
-        });
     }
 
     @Override
@@ -284,6 +268,4 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Sub
     public PurchaseManager getSubscriptionManager() {
         return mPurchaseManager;
     }
-
-
 }

@@ -17,7 +17,9 @@ import java.util.Collections;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
@@ -61,13 +63,28 @@ public class DefaultPurchaseWalletTest {
         defaultPurchaseWallet.addPurchaseToWallet(managedProduct);
 
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
+        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
     public void updatePurchases() {
-        defaultPurchaseWallet.updatePurchasesInWallet(Collections.singletonList(managedProduct));
+        defaultPurchaseWallet.updatePurchasesInWallet(Collections.singleton(managedProduct));
 
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
+        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
+    }
+
+    @Test
+    public void removeMissingPurchase() {
+        defaultPurchaseWallet.removePurchaseFromWallet(InAppPurchase.SmartReceiptsPlus);
+
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.<String>emptySet());
+        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
     }
 
     @Test
@@ -77,6 +94,9 @@ public class DefaultPurchaseWalletTest {
 
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
+        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
@@ -90,6 +110,23 @@ public class DefaultPurchaseWalletTest {
 
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
+        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
+    }
+
+    @Test
+    public void ensureRemovedPurchaseIsPersisted() {
+        defaultPurchaseWallet.addPurchaseToWallet(managedProduct);
+        defaultPurchaseWallet.removePurchaseFromWallet(InAppPurchase.SmartReceiptsPlus);
+
+        final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
+
+        assertFalse(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
+        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
     }
 
     @Test

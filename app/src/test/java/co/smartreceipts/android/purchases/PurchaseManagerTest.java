@@ -1,5 +1,6 @@
 package co.smartreceipts.android.purchases;
 
+import android.app.Application;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,23 +25,26 @@ import org.robolectric.shadows.ShadowApplication;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
 
-import co.smartreceipts.android.SameThreadExecutorService;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 import co.smartreceipts.android.purchases.model.Subscription;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
+import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -69,8 +73,10 @@ public class PurchaseManagerTest {
     // Class under test
     PurchaseManager purchaseManager;
 
-    ShadowApplication shadowApplication = Shadows.shadowOf(RuntimeEnvironment.application);
-    
+    Application application = RuntimeEnvironment.application;
+
+    ShadowApplication shadowApplication = Shadows.shadowOf(application);
+
     String packageName = RuntimeEnvironment.application.getPackageName();
 
     @Mock
@@ -86,6 +92,9 @@ public class PurchaseManagerTest {
     IInAppBillingService inAppBillingService;
 
     @Mock
+    ConsumablePurchase consumablePurchase;
+
+    @Mock
     SubscriptionEventsListener listener1, listener2, listener3;
 
     @Captor
@@ -98,7 +107,7 @@ public class PurchaseManagerTest {
         when(binder.queryLocalInterface("com.android.vending.billing.IInAppBillingService")).thenReturn(inAppBillingService);
         shadowApplication.setComponentNameAndServiceForBindService(new ComponentName("com.android.vending.billing", "InAppBillingService"), binder);
 
-        purchaseManager = new PurchaseManager(RuntimeEnvironment.application, purchaseWallet, analytics, new SameThreadExecutorService());
+        purchaseManager = new PurchaseManager(application, purchaseWallet, analytics, Schedulers.immediate(), Schedulers.immediate());
         purchaseManager.addEventListener(listener1);
         purchaseManager.addEventListener(listener2);
         purchaseManager.addEventListener(listener3);
@@ -107,68 +116,40 @@ public class PurchaseManagerTest {
 
     @Test
     public void onCreate() {
-        purchaseManager.onCreate();
+        purchaseManager.initialize(application);
         verifyInAppBillingServiceConnected();
     }
 
     @Test
-    public void onDestroy() {
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
-        purchaseManager.onDestroy();
-        verifyInAppBillingServiceDisonnected();
-    }
-
-    @Test
-    public void getPurchaseWallet() {
-        assertEquals(purchaseWallet, purchaseManager.getPurchaseWallet());
-    }
-
-    @Test
-    public void queryPurchasesThrowsException() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
+    public void initializeThrowsRemoteException() throws Exception {
         // Configure
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenThrow(new RemoteException());
 
         // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesUnavailable();
-        verify(listener2).onPurchasesUnavailable();
-        verifyZeroInteractions(listener3);
-        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-    }
-    
-    @Test
-    public void queryPurchasesResponseError() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
+        purchaseManager.initialize(application);
 
+        // Verify
+        verifyInAppBillingServiceConnected();
+        verifyZeroInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeResponseError() throws Exception {
         // Configure
         final Bundle getPurchasesResponse = new Bundle();
         getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
 
         // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesUnavailable();
-        verify(listener2).onPurchasesUnavailable();
-        verifyZeroInteractions(listener3);
-        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
+        purchaseManager.initialize(application);
+
+        // Verify
+        verifyInAppBillingServiceConnected();
+        verifyZeroInteractions(purchaseWallet);
     }
 
     @Test
-    public void queryPurchasesButAvailableSkusResponseError() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
+    public void initializeWithNoneOwned() throws Exception {
         // Configure
         final Bundle getPurchasesResponse = new Bundle();
         getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
@@ -177,57 +158,16 @@ public class PurchaseManagerTest {
         getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
 
-        final Bundle getSkuDetailsResponse = new Bundle();
-        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
-        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
-
         // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesUnavailable();
-        verify(listener2).onPurchasesUnavailable();
-        verifyZeroInteractions(listener3);
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
 
-        // TODO: Fix me - Don't trigger if either errors
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptyList());
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptySet());
+        verifyNoMoreInteractions(purchaseWallet);
     }
 
     @Test
-    public void queryPurchasesWithNoneOwned() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
-        // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
-
-        final Bundle getSkuDetailsResponse = new Bundle();
-        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<>(Collections.singletonList(getSkuDetails(InAppPurchase.SmartReceiptsPlus))));
-        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
-
-        // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verify(listener2).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptyList());
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
-    }
-
-    @Test
-    public void queryPurchasesWithCancelledOrder() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
+    public void initializeWithCancelledOrder() throws Exception {
         // Configure
         final Bundle getPurchasesResponse = new Bundle();
         getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
@@ -236,27 +176,16 @@ public class PurchaseManagerTest {
         getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
 
-        final Bundle getSkuDetailsResponse = new Bundle();
-        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<>(Collections.singletonList(getSkuDetails(InAppPurchase.SmartReceiptsPlus))));
-        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
-
         // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verify(listener2).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptyList());
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptySet());
+        verifyNoMoreInteractions(purchaseWallet);
     }
 
     @Test
-    public void queryPurchasesWithRefundedOrder() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
+    public void initializeWithRefundedOrder() throws Exception {
         // Configure
         final Bundle getPurchasesResponse = new Bundle();
         getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
@@ -265,81 +194,161 @@ public class PurchaseManagerTest {
         getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
 
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptySet());
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeWithSomeOwned() throws Exception {
+        // Configure
+        final Bundle getPurchasesResponse = new Bundle();
+        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
+        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
+        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.singleton(managedProduct));
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void getAvailableSubscriptionsThrowsRemoteException() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenThrow(new RemoteException());
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableSubscriptions().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(RemoteException.class);
+        verifyZeroInteractions(purchaseWallet);
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+    }
+
+    @Test
+    public void getAvailableSubscriptionsResponseError() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableSubscriptions().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+        verifyZeroInteractions(purchaseWallet);
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+    }
+
+    @Test
+    public void getAvailableSubscriptionsWithNoneAvailable() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<String>());
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableSubscriptions().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertValue(Collections.<InAppPurchase>emptySet());
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+    }
+
+    @Test
+    public void getAvailableSubscriptionsWithSomeAvailable() throws Exception {
+        // Configure
         final Bundle getSkuDetailsResponse = new Bundle();
         getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
         getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<>(Collections.singletonList(getSkuDetails(InAppPurchase.SmartReceiptsPlus))));
         when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
 
         // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verify(listener2).onPurchasesAvailable(Collections.singletonList(InAppPurchase.SmartReceiptsPlus));
-        verifyZeroInteractions(listener3);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptyList());
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
-    }
-
-    @Test
-    public void queryPurchasesWithSomeOwned() throws Exception {
-        // Connect
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
-
-        // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
-
-        final Bundle getSkuDetailsResponse = new Bundle();
-        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<String>());
-        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
-
-        // Test
-        purchaseManager.querySubscriptions();
-        verify(listener1).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
-        verify(listener2).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
-        verifyZeroInteractions(listener3);
-
-        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(managedProduct));
-        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
-    }
-
-    @Test
-    public void queryPurchasesWithSomeOwnedOnLateConnection() throws Exception {
-        // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
-
-        final Bundle getSkuDetailsResponse = new Bundle();
-        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<String>());
-        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("subs"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
-
-        // Test Late Connect
-        purchaseManager.querySubscriptions();
-        purchaseManager.onCreate();
-        verifyInAppBillingServiceConnected();
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableSubscriptions().subscribe(testSubscriber);
 
         // Verify
-        verify(listener1).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
-        verify(listener2).onPurchasesAvailable(Collections.<InAppPurchase>emptyList());
-        verifyZeroInteractions(listener3);
-
-        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.singletonList(managedProduct));
+        testSubscriber.assertValue(Collections.singleton(InAppPurchase.SmartReceiptsPlus));
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+    }
+
+    @Test
+    public void consumePurchaseThrowsRemoteException() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenThrow(new RemoteException());
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(RemoteException.class);
+    }
+
+    @Test
+    public void consumePurchaseFails() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_ERROR);
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+    }
+
+    @Test
+    public void consumePurchaseSucceeds() throws Exception {
+        // Configure
+        when(consumablePurchase.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
+        when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_OK);
+
+        // Test
+        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
     }
 
     private void verifyInAppBillingServiceConnected() {
@@ -347,11 +356,7 @@ public class PurchaseManagerTest {
         assertNotNull(intent);
         assertEquals(intent.getAction(), "com.android.vending.billing.InAppBillingService.BIND");
         assertFalse(shadowApplication.getBoundServiceConnections().isEmpty());
-    }
-
-    private void verifyInAppBillingServiceDisonnected() {
-        assertTrue(shadowApplication.getBoundServiceConnections().isEmpty());
-        assertFalse(shadowApplication.getUnboundServiceConnections().isEmpty());
+        // TODO: Verify activity lifecylce callbacks are working with custom shadow
     }
 
     @NonNull

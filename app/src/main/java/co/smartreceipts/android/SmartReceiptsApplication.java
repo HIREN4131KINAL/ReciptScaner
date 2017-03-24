@@ -30,7 +30,8 @@ import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
-import co.smartreceipts.android.purchases.wallet.DefaultPurchaseWallet;
+import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
@@ -60,7 +61,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Inject
     ReceiptColumnDefinitions receiptColumnDefinitions;
     @Inject
-    DefaultPurchaseWallet purchaseWallet;
+    PurchaseWallet purchaseWallet;
     @Inject
     ExtraInitializer extraInitializer;
 
@@ -72,6 +73,8 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     private IdentityManager mIdentityManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
+    private PurchaseManager purchaseManager;
+
 
     @Override
     public void onCreate() {
@@ -123,6 +126,9 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         pushManager.initialize();
 
         ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
+
+        purchaseManager = new PurchaseManager(this, purchaseWallet, mAnalyticsManager);
+        purchaseManager.initialize(this);
 
         PDFBoxResourceLoader.init(getApplicationContext());
 
@@ -188,6 +194,10 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         return ocrInteractor;
     }
 
+    @NonNull
+    public PurchaseManager getPurchaseManager() {
+        return purchaseManager;
+    }
 
     // This is called after _sdCard is available but before _db is
     // This was added after version 78 (version 79 is the first "new" one)

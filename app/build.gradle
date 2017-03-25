@@ -1,8 +1,5 @@
 apply plugin: 'com.android.application'
 android {
-    // correct propagation of build-type
-    // https://code.google.com/p/android/issues/detail?id=52962#c129
-    publishNonDefault true
 
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -18,8 +15,9 @@ android {
         free {
             applicationId "wb.receipts"
         }
-        pro {
+        plus {
             applicationId "wb.receiptspro"
+            versionNameSuffix "Plus"
         }
     }
 
@@ -28,28 +26,12 @@ android {
         disable 'InvalidPackage'
     }
 
-    sourceSets {
-        // Move the build types to build-types/<type>
-        // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
-        // This moves them out of them default location under src/<type>/... which would
-        // conflict with src/ being used by the main source set.
-        // Adding new build types or product flavors should be accompanied
-        // by a similar customization.
-        debug {
-            setRoot('build-types/debug')
-        }
-        release {
-            setRoot('build-types/release')
-        }
-    }
-
     testOptions {
         unitTests.returnDefaultValues = true
     }
 
     dependencies {
         compile fileTree(dir: 'libs', include: '*.jar')
-
         compile project(':wbMiniLibrary')
 
         compile "com.android.support:support-v4:$SUPPORT_LIBRARY_VERSION"
@@ -111,11 +93,8 @@ android {
         // Special dependencies for free flavor
         freeCompile "com.google.android.gms:play-services-ads:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
         freeCompile "com.google.android.gms:play-services-analytics:$FIREBASE_AND_GOOGLE_PLAY_SERVICES_VERSION"
+        freeCompile files('src/free/libs/bugsense-3.6.jar')
     }
 
     apply plugin: 'com.google.gms.google-services'
-}
-
-dependencies {
-    compile files('src/free/libs/bugsense-3.6.jar')
 }

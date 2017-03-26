@@ -15,9 +15,9 @@ android {
         free {
             applicationId "wb.receipts"
         }
-        plus {
-            applicationId "wb.receiptspro"
-            versionNameSuffix "Plus"
+        plusFlavor {
+            applicationId 'wb.receiptspro'
+            versionNameSuffix 'Plus'
         }
     }
 
@@ -97,4 +97,6 @@ android {
     }
 
     apply plugin: 'com.google.gms.google-services'
+}
+dependencies {
 }

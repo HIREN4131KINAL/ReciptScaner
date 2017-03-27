@@ -30,7 +30,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.AppCompatPreferenceActivity;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.analytics.AnalyticsManager;
@@ -71,9 +70,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     PurchaseWallet purchaseWallet;
     @Inject
     AnalyticsManager analyticsManager;
+    @Inject
+    PurchaseManager purchaseManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
-    private PurchaseManager mPurchaseManager;
     private CompositeSubscription compositeSubscription;
     private boolean isUsingHeaders;
 
@@ -107,9 +107,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             configurePreferencesAbout(this);
         }
 
-        final SmartReceiptsApplication app = ((SmartReceiptsApplication) getApplication());
-        mPurchaseManager = app.getPurchaseManager();
-        mPurchaseManager.addEventListener(this);
+        purchaseManager.addEventListener(this);
 
 
         // Scroll to a predefined preference category (if provided). Only for when not using headers -
@@ -164,7 +162,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(mPurchaseManager.getAllAvailablePurchases()
+        compositeSubscription.add(purchaseManager.getAllAvailablePurchases()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Set<InAppPurchase>>() {
                     @Override
@@ -226,14 +224,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!mPurchaseManager.onActivityResult(requestCode, resultCode, data)) {
+        if (!purchaseManager.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
     @Override
     protected void onDestroy() {
-        mPurchaseManager.removeEventListener(this);
+        purchaseManager.removeEventListener(this);
         super.onDestroy();
     }
 
@@ -399,7 +397,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
             // If we don't already have the pro subscription and it's available, let's buy it
             if (proSubscriptionIsAvailable && !haveProSubscription) {
-                mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
+                purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
             } else {
                 Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
             }

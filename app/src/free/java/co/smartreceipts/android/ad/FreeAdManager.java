@@ -14,7 +14,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.NativeExpressAdView;
-import com.google.common.base.Preconditions;
 
 import java.lang.ref.WeakReference;
 import java.util.Random;
@@ -22,7 +21,6 @@ import java.util.Random;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
@@ -45,15 +43,21 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
     private static final String SHOW_AD = "pref1";
 
     private final PurchaseWallet purchaseWallet;
+    private final AnalyticsManager analyticsManager;
 
     private WeakReference<NativeExpressAdView> mAdViewReference;
     private WeakReference<Button> mUpsellReference;
 
     private PurchaseManager purchaseManager;
 
+
     @Inject
-    FreeAdManager(@NonNull PurchaseWallet purchaseWallet) {
-        this.purchaseWallet = Preconditions.checkNotNull(purchaseWallet);
+    FreeAdManager(PurchaseWallet purchaseWallet, AnalyticsManager analyticsManager) {
+        // note: Dagger throws exception if there is null in parameters.
+        // So, no need in additional check
+//        this.purchaseWallet = Preconditions.checkNotNull(purchaseWallet);
+        this.purchaseWallet = purchaseWallet;
+        this.analyticsManager = analyticsManager;
     }
 
     public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable PurchaseManager purchaseManager) {
@@ -72,7 +76,6 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
         mAdViewReference = new WeakReference<>(adView);
         mUpsellReference = new WeakReference<>(upsell);
 
-        final AnalyticsManager analyticsManager = ((SmartReceiptsApplication) activity.getApplication()).getAnalyticsManager();
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 if (showUpsell()) {

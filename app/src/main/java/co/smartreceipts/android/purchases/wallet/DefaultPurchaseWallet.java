@@ -35,7 +35,7 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     private final Map<InAppPurchase, ManagedProduct> ownedInAppPurchasesMap;
 
     @Inject
-    public DefaultPurchaseWallet(@NonNull Context context) {
+    public DefaultPurchaseWallet(Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 

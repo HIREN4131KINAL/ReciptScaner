@@ -26,11 +26,15 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.purchases.lifecycle.PurchaseManagerActivityLifecycleCallbacks;
 import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
@@ -51,7 +55,8 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-public class PurchaseManager {
+@ApplicationScope
+public final class PurchaseManager {
 
     public static final int REQUEST_CODE = 5435;
 
@@ -83,8 +88,9 @@ public class PurchaseManager {
     private CompositeSubscription compositeSubscription;
     private volatile PurchaseSource mPurchaseSource;
 
-    public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull Analytics analytics) {
-        this(context, purchaseWallet, analytics, Schedulers.io(), AndroidSchedulers.mainThread());
+    @Inject
+    public PurchaseManager(Context context, PurchaseWallet purchaseWallet, AnalyticsManager analyticsManager) {
+        this(context, purchaseWallet, analyticsManager, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
     public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull Analytics analytics,

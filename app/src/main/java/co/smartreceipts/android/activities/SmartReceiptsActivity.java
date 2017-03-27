@@ -58,10 +58,11 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     ConfigurationManager configurationManager;
     @Inject
     AnalyticsManager analyticsManager;
+    @Inject
+    PurchaseManager purchaseManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
-    private PurchaseManager mPurchaseManager;
     private Attachment attachment;
     private BackupProvidersManager backupProvidersManager;
     private CompositeSubscription compositeSubscription;
@@ -74,8 +75,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
         Logger.debug(this, "onCreate");
 
         navigationHandler = new NavigationHandler(this, getSupportFragmentManager(), new FragmentProvider());
-        mPurchaseManager = getSmartReceiptsApplication().getPurchaseManager();
-        mPurchaseManager.addEventListener(this);
+
+        purchaseManager.addEventListener(this);
 
         setContentView(R.layout.activity_main);
 
@@ -84,7 +85,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
             navigationHandler.navigateToHomeTripsFragment();
         }
 
-        adManager.onActivityCreated(this, mPurchaseManager);
+        adManager.onActivityCreated(this, purchaseManager);
 
         backupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         backupProvidersManager.initialize(this);
@@ -129,7 +130,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
         adManager.onResume();
 
         compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(mPurchaseManager.getAllAvailablePurchases()
+        compositeSubscription.add(purchaseManager.getAllAvailablePurchases()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Set<InAppPurchase>>() {
                     @Override
@@ -148,7 +149,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (!mPurchaseManager.onActivityResult(requestCode, resultCode, data)) {
+        if (!purchaseManager.onActivityResult(requestCode, resultCode, data)) {
             if (!backupProvidersManager.onActivityResult(requestCode, resultCode, data)) {
                 super.onActivityResult(requestCode, resultCode, data);
             }
@@ -190,7 +191,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
             analyticsManager.record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
-            mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
+            purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             analyticsManager.record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
@@ -229,7 +230,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     protected void onDestroy() {
         Logger.info(this, "onDestroy");
         adManager.onDestroy();
-        mPurchaseManager.removeEventListener(this);
+        purchaseManager.removeEventListener(this);
         persistenceManager.getDatabase().onDestroy();
         super.onDestroy();
     }
@@ -269,6 +270,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Nullable
     public PurchaseManager getSubscriptionManager() {
-        return mPurchaseManager;
+        return purchaseManager;
     }
 }

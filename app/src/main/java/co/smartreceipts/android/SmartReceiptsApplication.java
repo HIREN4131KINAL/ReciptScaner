@@ -70,6 +70,8 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     NetworkManager networkManager;
     @Inject
     AnalyticsManager analyticsManager;
+    @Inject
+    PurchaseManager purchaseManager;
 
 
 //    private ConfigurationManager mConfigurationManager;
@@ -80,7 +82,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     private IdentityManager mIdentityManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
-    private PurchaseManager purchaseManager;
+//    private PurchaseManager purchaseManager;
     private CognitoManager cognitoManager;
 
 
@@ -115,7 +117,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     private void init() {
-//        mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
         analyticsManager.register(new FirebaseAnalytics(this));
 
 
@@ -133,7 +134,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         pushManager = new PushManager(this, mIdentityManager);
         pushManager.initialize();
 
-        purchaseManager = new PurchaseManager(this, purchaseWallet, analyticsManager);
         purchaseManager.initialize(this);
 
         cognitoManager = new CognitoManager(this, mIdentityManager);
@@ -190,11 +190,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @NonNull
     public OcrInteractor getOcrInteractor() {
         return ocrInteractor;
-    }
-
-    @NonNull
-    public PurchaseManager getPurchaseManager() {
-        return purchaseManager;
     }
 
     // This is called after _sdCard is available but before _db is

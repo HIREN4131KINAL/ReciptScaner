@@ -25,7 +25,7 @@ import wb.android.image.ImageUtils;
  */
 public class LollipopPdfPDImageXFactory implements PdfPDImageXFactory {
 
-    private static final float IMAGE_QUALITY_SCALING_FACTOR = 2f;
+    private static final float IMAGE_QUALITY_SCALING_FACTOR = 2.75f;
 
     private final PDDocument pdDocument;
     private final File file;

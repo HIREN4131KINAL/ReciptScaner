@@ -1,4 +1,4 @@
-package co.smartreceipts.android.identity.cognito;
+package co.smartreceipts.android.aws.cognito;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

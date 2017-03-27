@@ -1,4 +1,4 @@
-package co.smartreceipts.android.identity.cognito;
+package co.smartreceipts.android.aws.cognito;
 
 import android.support.annotation.NonNull;
 
@@ -7,7 +7,6 @@ import com.amazonaws.regions.Regions;
 import com.google.common.base.Preconditions;
 
 import java.util.Collections;
-import java.util.HashMap;
 
 import co.smartreceipts.android.identity.apis.me.Cognito;
 import co.smartreceipts.android.utils.log.Logger;

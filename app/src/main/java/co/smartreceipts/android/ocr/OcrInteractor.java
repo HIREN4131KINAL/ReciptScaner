@@ -11,6 +11,7 @@ import java.io.File;
 
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
+import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
@@ -34,20 +35,22 @@ public class OcrInteractor {
 
     private final Context context;
     private final S3Manager s3Manager;
+    private final IdentityManager identityManager;
     private final PushManager pushManager;
     private final ServiceManager ocrServiceManager;
     private final OcrPushMessageReceiver pushMessageReceiver;
     private final Feature ocrFeature;
 
-    public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager) {
-        this(context, s3Manager, pushManager, serviceManager, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
+    public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager, @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager) {
+        this(context, s3Manager, identityManager, pushManager, serviceManager, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
-    OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull PushManager pushManager,
+    OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager, @NonNull PushManager pushManager,
                   @NonNull ServiceManager serviceManager, @NonNull OcrPushMessageReceiver pushMessageReceiver, @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
+        this.identityManager = Preconditions.checkNotNull(identityManager);
         this.pushManager = Preconditions.checkNotNull(pushManager);
         this.ocrServiceManager = Preconditions.checkNotNull(serviceManager);
         this.pushMessageReceiver = Preconditions.checkNotNull(pushMessageReceiver);
@@ -58,7 +61,7 @@ public class OcrInteractor {
     public Observable<OcrResponse> scan(@NonNull File file) {
         Preconditions.checkNotNull(file);
 
-        if (ocrFeature.isEnabled()) {
+        if (ocrFeature.isEnabled() && identityManager.isLoggedIn()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
             final String mimeType = UriUtils.getMimeType(Uri.fromFile(file), context.getContentResolver());
             final RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), file);
@@ -99,7 +102,7 @@ public class OcrInteractor {
                         }
                     });
         } else {
-            Logger.debug(OcrInteractor.this, "Ocr is disabled. Ignoring scan");
+            Logger.debug(OcrInteractor.this, "Ocr is disabled or we're not signed in. Ignoring scan");
             return Observable.just(new OcrResponse());
         }
     }

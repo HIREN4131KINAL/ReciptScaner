@@ -134,7 +134,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         cognitoManager = new CognitoManager(this, mIdentityManager);
         cognitoManager.initialize();
 
-        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), serviceManager, pushManager);
+        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), mIdentityManager, serviceManager, pushManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
 

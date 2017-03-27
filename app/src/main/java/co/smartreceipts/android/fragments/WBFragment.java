@@ -11,7 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.date.DateManager;
 import wb.android.flex.Flex;
 
@@ -74,11 +73,6 @@ public class WBFragment extends Fragment {
         } else {
             return null;
         }
-	}
-
-	@NonNull
-	protected ConfigurationManager getConfigurationManager() {
-		return getSmartReceiptsApplication().getConfigurationManager();
 	}
 
 	public SmartReceiptsApplication getSmartReceiptsApplication() {

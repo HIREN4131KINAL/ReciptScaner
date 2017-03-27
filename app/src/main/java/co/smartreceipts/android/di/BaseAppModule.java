@@ -3,10 +3,16 @@ package co.smartreceipts.android.di;
 import android.content.Context;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
+import co.smartreceipts.android.config.ConfigurationManager;
+import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
+import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
+import co.smartreceipts.android.rating.data.AppRatingStorage;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import dagger.Module;
 import dagger.Provides;
@@ -53,5 +59,23 @@ public class BaseAppModule {
                                                        ReceiptColumnDefinitions receiptColumnDefinitions,
                                                        WhiteLabelFriendlyTableDefaultsCustomizer tableDefaultsCustomizer) {
         return DatabaseHelper.getInstance(context, storageManager, preferences, receiptColumnDefinitions, tableDefaultsCustomizer);
+    }
+
+    @Provides
+    @ApplicationScope
+    public static ConfigurationManager provideConfigurationManager(DefaultConfigurationManager manager) {
+        return manager;
+    }
+
+    @Provides
+    @ApplicationScope
+    public static AppRatingStorage provideAppRatingStorage(AppRatingPreferencesStorage storage) {
+        return storage;
+    }
+
+    @Provides
+    @ApplicationScope
+    public static Analytics provideAnalytics(AnalyticsLogger logger) {
+        return logger;
     }
 }

@@ -45,6 +45,7 @@ import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
@@ -92,15 +93,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Inject
     Flex flex;
-
     @Inject
     DateManager dateManager;
-
     @Inject
     PersistenceManager persistenceManager;
-
     @Inject
     PurchaseWallet purchaseWallet;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     // Metadata
     private Trip trip;
@@ -705,7 +705,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
         if (purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRate);
+            analyticsManager.record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
             if (lastExchangeRateFetchCallback != null) {
@@ -717,7 +717,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 public void success(EditText editText, Call<ExchangeRate> call, Response<ExchangeRate> response) {
                     final ExchangeRate exchangeRate = response.body();
                     if (exchangeRate != null && exchangeRate.supportsExchangeRateFor(exchangeRateCurrencyCode)) {
-                        getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateSuccess);
+                        analyticsManager.record(Events.Receipts.RequestExchangeRateSuccess);
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
@@ -726,7 +726,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
                         Logger.error(ReceiptCreateEditFragment.this, "Received a null exchange rate");
-                        getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailedWithNull);
+                        analyticsManager.record(Events.Receipts.RequestExchangeRateFailedWithNull);
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
                 }
@@ -734,7 +734,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 @Override
                 public void failure(EditText editText, Call<ExchangeRate> call, Throwable th) {
                     Logger.error(ReceiptCreateEditFragment.this, th);
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.RequestExchangeRateFailed);
+                    analyticsManager.record(Events.Receipts.RequestExchangeRateFailed);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };
@@ -788,11 +788,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         if (isNewReceipt) {
             builderFactory.setFile(file);
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistNewReceipt);
+            analyticsManager.record(Events.Receipts.PersistNewReceipt);
             getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         } else {
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.PersistUpdateReceipt);
+            analyticsManager.record(Events.Receipts.PersistUpdateReceipt);
             getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         }

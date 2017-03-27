@@ -1,5 +1,6 @@
 package co.smartreceipts.android.ocr.info;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,11 +14,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.support.AndroidSupportInjection;
 
 public class OcrInformationalFragment extends Fragment {
+
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private OcrInformationalInteractor mInteractor;
     private OcrInformationalPresenter mPresenter;
@@ -27,13 +34,18 @@ public class OcrInformationalFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         setHasOptionsMenu(true);
 
-        final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
-        mInteractor = new OcrInformationalInteractor(application.getAnalyticsManager(), getActivity());
+        mInteractor = new OcrInformationalInteractor(analyticsManager, getActivity());
     }
 
     @Nullable

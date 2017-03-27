@@ -15,12 +15,13 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import dagger.android.support.AndroidSupportInjection;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -35,9 +36,12 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
 
     @Inject
     DatabaseHelper database;
+    @Inject
+    NetworkManager networkManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private Analytics analytics;
     private Subscription subscription;
 
     private RemoteBackupMetadata backupMetadata;
@@ -85,9 +89,8 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
                 smartReceiptsApplication.getBackupProvidersManager(),
-                smartReceiptsApplication.getNetworkManager(),
+                networkManager,
                 database);
-        analytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -113,7 +116,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
+                        analyticsManager.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
                         dismiss();

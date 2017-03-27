@@ -11,16 +11,23 @@ import co.smartreceipts.android.di.subcomponents.DistanceDialogFragmentSubcompon
 import co.smartreceipts.android.di.subcomponents.DistanceFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.DownloadRemoteBackupImagesProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ExportBackupWorkerProgressDialogFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.FeedbackDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.GenerateReportFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ImportLocalBackupWorkerProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.InformAboutPdfImageAttachmentDialogFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.LoginFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.OcrInformationalFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.OcrInformationalTooltipFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PDFColumnsListFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.RatingDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ReceiptCreateEditFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ReceiptImageFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ReceiptsListFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.ReportInfoFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.SettingsActivitySubcomponent;
 import co.smartreceipts.android.di.subcomponents.SmartReceiptsActivitySubcomponent;
+import co.smartreceipts.android.di.subcomponents.SyncErrorFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.TripCreateEditFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.TripFragmentSubcomponent;
 import co.smartreceipts.android.fragments.DistanceDialogFragment;
@@ -30,6 +37,12 @@ import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFra
 import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
+import co.smartreceipts.android.fragments.ReportInfoFragment;
+import co.smartreceipts.android.identity.widget.LoginFragment;
+import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
+import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
+import co.smartreceipts.android.rating.FeedbackDialogFragment;
+import co.smartreceipts.android.rating.RatingDialogFragment;
 import co.smartreceipts.android.settings.widget.CSVColumnsListFragment;
 import co.smartreceipts.android.settings.widget.PDFColumnsListFragment;
 import co.smartreceipts.android.settings.widget.SettingsActivity;
@@ -39,6 +52,7 @@ import co.smartreceipts.android.sync.widget.backups.DownloadRemoteBackupImagesPr
 import co.smartreceipts.android.sync.widget.backups.ExportBackupWorkerProgressDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupWorkerProgressDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.ImportRemoteBackupWorkerProgressDialogFragment;
+import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 import co.smartreceipts.android.trips.TripFragment;
 import co.smartreceipts.android.trips.editor.TripCreateEditFragment;
 import dagger.Binds;
@@ -68,7 +82,14 @@ import dagger.multibindings.IntoMap;
                 DownloadRemoteBackupImagesProgressDialogFragmentSubcomponent.class,
                 ExportBackupWorkerProgressDialogFragmentSubcomponent.class,
                 ImportLocalBackupWorkerProgressDialogFragmentSubcomponent.class,
-                ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent.class
+                ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent.class,
+                ReportInfoFragmentSubcomponent.class,
+                SyncErrorFragmentSubcomponent.class,
+                FeedbackDialogFragmentSubcomponent.class,
+                LoginFragmentSubcomponent.class,
+                OcrInformationalFragmentSubcomponent.class,
+                OcrInformationalTooltipFragmentSubcomponent.class,
+                RatingDialogFragmentSubcomponent.class
         }
 )
 public abstract class GlobalBindingModule {
@@ -187,5 +208,47 @@ public abstract class GlobalBindingModule {
     public abstract AndroidInjector.Factory<? extends Fragment> importRemoteBackupWorkerProgressDialogFragmentBuilder(
             ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent.Builder builder);
 
+
+    @Binds
+    @IntoMap
+    @FragmentKey(ReportInfoFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> reportInfoFragmentBuilder(
+            ReportInfoFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(SyncErrorFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> syncErrorFragmentBuilder(
+            SyncErrorFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(FeedbackDialogFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> feedbackDialogFragmentBuilder(
+            FeedbackDialogFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(LoginFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> loginFragmentBuilder(
+            LoginFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(OcrInformationalFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> ocrInformationalFragmentBuilder(
+            OcrInformationalFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(OcrInformationalTooltipFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> ocrInformationalTooltipFragmentBuilder(
+            OcrInformationalTooltipFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(RatingDialogFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> ratingDialogFragmentBuilder(
+            RatingDialogFragmentSubcomponent.Builder builder);
 
 }

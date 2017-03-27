@@ -4,12 +4,20 @@ import android.support.annotation.NonNull;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.utils.log.Logger;
 
+@ApplicationScope
 public class AnalyticsLogger implements Analytics {
+
+    @Inject
+    public AnalyticsLogger() {
+    }
 
     @Override
     public void record(@NonNull Event event) {

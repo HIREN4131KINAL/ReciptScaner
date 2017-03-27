@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.widget.errors;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,8 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -19,25 +22,34 @@ import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
+import dagger.android.support.AndroidSupportInjection;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 
 public class SyncErrorFragment extends Fragment implements BackupProviderChangeListener {
 
+    @Inject
+    AnalyticsManager analyticsManager;
+
     private SyncErrorInteractor mSyncErrorInteractor;
     private SyncErrorPresenter mSyncErrorPresenter;
     private BackupProvidersManager mBackupProvidersManager;
-    private Analytics mAnalytics;
+//    private Analytics mAnalytics;
     private CompositeSubscription mCompositeSubscription;
+
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
         mBackupProvidersManager = application.getBackupProvidersManager();
-        mAnalytics = application.getAnalyticsManager();
-        mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), mBackupProvidersManager, mAnalytics);
+        mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), mBackupProvidersManager, analyticsManager);
     }
 
     @Nullable
@@ -87,7 +99,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
             .doOnNext(new Action1<SyncErrorType>() {
                 @Override
                 public void call(SyncErrorType syncErrorType) {
-                    mAnalytics.record(new DefaultDataPointEvent(Events.Sync.DisplaySyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
+                    analyticsManager.record(new DefaultDataPointEvent(Events.Sync.DisplaySyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
                     Logger.info(this, "Received sync error: {}.", syncErrorType);
                 }
             })

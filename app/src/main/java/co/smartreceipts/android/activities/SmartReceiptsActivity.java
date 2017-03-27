@@ -17,9 +17,11 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.ad.AdManager;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -46,15 +48,16 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Inject
     AdManager adManager;
-
     @Inject
     Flex flex;
-
     @Inject
     PersistenceManager persistenceManager;
-
     @Inject
     PurchaseWallet purchaseWallet;
+    @Inject
+    ConfigurationManager configurationManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
@@ -165,7 +168,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
         }
 
         // If we disabled settings in our config, let's remove it
-        if (!getSmartReceiptsApplication().getConfigurationManager().isSettingsMenuAvailable()) {
+        if (!configurationManager.isSettingsMenuAvailable()) {
             menu.removeItem(R.id.menu_main_settings);
         }
 
@@ -180,19 +183,19 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
             navigationHandler.navigateToSettings();
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SettingsOverflow);
+            analyticsManager.record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
             navigationHandler.navigateToBackupMenu();
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
+            analyticsManager.record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
             mPurchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.SmartReceiptsPlusOverflow);
+            analyticsManager.record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
             navigationHandler.navigateToLoginScreen();
-            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Navigation.BackupOverflow);
+            analyticsManager.record(Events.Navigation.BackupOverflow);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -243,7 +246,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Override
     public void onPurchaseSuccess(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
-        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -255,7 +258,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Override
     public void onPurchaseFailed(@NonNull final PurchaseSource purchaseSource) {
-        getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
+        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

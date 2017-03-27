@@ -27,6 +27,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.date.DateEditText;
 import co.smartreceipts.android.date.DateManager;
@@ -50,9 +51,10 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
 
     @Inject
     PersistenceManager persistenceManager;
-
     @Inject
     DateManager dateManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private EditText distance, rate, comment;
     private AutoCompleteTextView location;
@@ -245,7 +247,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
-                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistNewDistance);
+                analyticsManager.record(Events.Distance.PersistNewDistance);
                 distanceTableController.insert(builder.build(), new DatabaseOperationMetadata());
             } else {
                 // We're updating
@@ -258,7 +260,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
                 builder.setRate(rate);
                 builder.setCurrency(currency);
                 builder.setComment(comment);
-                ((SmartReceiptsApplication)getActivity().getApplication()).getAnalyticsManager().record(Events.Distance.PersistUpdateDistance);
+                analyticsManager.record(Events.Distance.PersistUpdateDistance);
                 distanceTableController.update(updateableDistance, builder.build(), new DatabaseOperationMetadata());
             }
         } else if (which == DialogInterface.BUTTON_NEUTRAL) {

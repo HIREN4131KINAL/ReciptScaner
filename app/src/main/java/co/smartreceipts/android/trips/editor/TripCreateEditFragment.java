@@ -49,10 +49,8 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     
     @Inject
     Flex flex;
-
     @Inject
     DateManager dateManager;
-
     @Inject
     PersistenceManager persistenceManager;
 
@@ -69,7 +67,8 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     private AutoCompleteAdapter nameAutoCompleteAdapter, costCenterAutoCompleteAdapter;
     private ArrayAdapter<CharSequence> currencies;
 
-    private TripCreateEditFragmentPresenter presenter;
+    @Inject
+    TripCreateEditFragmentPresenter presenter;
 
     public static TripCreateEditFragment newInstance() {
         return new TripCreateEditFragment();
@@ -95,7 +94,6 @@ public class TripCreateEditFragment extends WBFragment implements View.OnFocusCh
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        presenter = new TripCreateEditFragmentPresenter(this);
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
 
         setHasOptionsMenu(true);

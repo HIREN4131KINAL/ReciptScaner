@@ -18,10 +18,11 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.IntentUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
@@ -39,9 +40,12 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
 
     @Inject
     DatabaseHelper database;
+    @Inject
+    NetworkManager networkManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private Analytics analytics;
     private Subscription subscription;
 
     private RemoteBackupMetadata backupMetadata;
@@ -91,9 +95,8 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
-                smartReceiptsApplication.getBackupProvidersManager(), smartReceiptsApplication.getNetworkManager(),
+                smartReceiptsApplication.getBackupProvidersManager(), networkManager,
                 database);
-        analytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -117,7 +120,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(DownloadRemoteBackupImagesProgressDialogFragment.this, throwable));
+                        analyticsManager.record(new ErrorEvent(DownloadRemoteBackupImagesProgressDialogFragment.this, throwable));
                         Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
                         dismiss();

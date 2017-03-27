@@ -1,6 +1,6 @@
 package co.smartreceipts.android.adapters;
 
-import android.content.Context;
+import android.content.res.Resources;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,18 +16,18 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
 
     private static final int FRAGMENT_COUNT = 3;
 
-    private final Context mContext;
-    private final ConfigurationManager mConfigurationManager;
+    private final Resources resources;
+    private final ConfigurationManager configurationManager;
 
-    public TripFragmentPagerAdapter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull ConfigurationManager configurationManager) {
+    public TripFragmentPagerAdapter(Resources resources, @NonNull FragmentManager fragmentManager, @NonNull ConfigurationManager configurationManager) {
         super(fragmentManager);
-        mContext = context.getApplicationContext();
-        mConfigurationManager = configurationManager;
+        this.resources = resources;
+        this.configurationManager = configurationManager;
     }
 
     @Override
     public int getCount() {
-        if (mConfigurationManager.isDistanceTrackingOptionAvailable()) {
+        if (configurationManager.isDistanceTrackingOptionAvailable()) {
             return FRAGMENT_COUNT;
         } else {
             return FRAGMENT_COUNT - 1;
@@ -39,7 +39,7 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
         if (position == 0) {
             return ReceiptsListFragment.newListInstance();
         } else if (position == 1) {
-            if (mConfigurationManager.isDistanceTrackingOptionAvailable()) {
+            if (configurationManager.isDistanceTrackingOptionAvailable()) {
                 return DistanceFragment.newInstance();
             } else {
                 return GenerateReportFragment.newInstance();
@@ -54,15 +54,15 @@ public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         if (position == 0) {
-            return mContext.getString(R.string.report_info_receipts);
+            return resources.getString(R.string.report_info_receipts);
         } else if (position == 1) {
-            if (mConfigurationManager.isDistanceTrackingOptionAvailable()) {
-                return mContext.getString(R.string.report_info_distance);
+            if (configurationManager.isDistanceTrackingOptionAvailable()) {
+                return resources.getString(R.string.report_info_distance);
             } else {
-                return mContext.getString(R.string.report_info_reports);
+                return resources.getString(R.string.report_info_reports);
             }
         } else if (position == 2) {
-            return mContext.getString(R.string.report_info_reports);
+            return resources.getString(R.string.report_info_reports);
         } else {
             throw new IllegalArgumentException("Unexpected Fragment Position");
         }

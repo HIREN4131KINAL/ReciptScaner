@@ -11,7 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.config.ConfigurationManager;
 import wb.android.flex.Flex;
 
 public class WBListFragment extends ListFragment {
@@ -60,11 +59,6 @@ public class WBListFragment extends ListFragment {
 		else {
 			return "";
 		}
-	}
-
-	@NonNull
-	protected ConfigurationManager getConfigurationManager() {
-		return getSmartReceiptsApplication().getConfigurationManager();
 	}
 
     public final void setSupportActionBar(@Nullable Toolbar toolbar) {

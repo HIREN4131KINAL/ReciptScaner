@@ -3,6 +3,9 @@ package co.smartreceipts.android.trips.editor;
 import java.io.File;
 import java.sql.Date;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
@@ -12,33 +15,36 @@ import co.smartreceipts.android.utils.FileUtils;
 
 public class TripCreateEditFragmentPresenter {
 
-    private TripCreateEditFragment mFragment;
+    @Inject
+    TripCreateEditFragment fragment;
+    @Inject
+    AnalyticsManager analyticsManager;
 
-    public TripCreateEditFragmentPresenter(TripCreateEditFragment fragment) {
-        mFragment = fragment;
+    @Inject
+    public TripCreateEditFragmentPresenter() {
     }
 
     public boolean checkTrip(String name, String startDateText, Date startDate,
                              String endDateText, Date endDate) {
         // Error Checking
         if (name.length() == 0 || startDateText.length() == 0 || endDateText.length() == 0) {
-            mFragment.showError(TripEditorErrors.MISSING_FIELD);
+            fragment.showError(TripEditorErrors.MISSING_FIELD);
             return false;
         }
         if (startDate == null || endDate == null) {
-            mFragment.showError(TripEditorErrors.CALENDAR_ERROR);
+            fragment.showError(TripEditorErrors.CALENDAR_ERROR);
             return false;
         }
         if (startDate.getTime() > endDate.getTime()) {
-            mFragment.showError(TripEditorErrors.DURATION_ERROR);
+            fragment.showError(TripEditorErrors.DURATION_ERROR);
             return false;
         }
         if (name.startsWith(" ")) {
-            mFragment.showError(TripEditorErrors.SPACE_ERROR);
+            fragment.showError(TripEditorErrors.SPACE_ERROR);
             return false;
         }
         if (FileUtils.filenameContainsIllegalCharacter(name)) {
-            mFragment.showError(TripEditorErrors.ILLEGAL_CHAR_ERROR);
+            fragment.showError(TripEditorErrors.ILLEGAL_CHAR_ERROR);
             return false;
         }
 
@@ -47,12 +53,12 @@ public class TripCreateEditFragmentPresenter {
 
     public Trip saveTrip(File file, Date startDate, Date endDate, String defaultCurrency,
                          String comment, String costCenter) {
-        TripTableController tripTableController = mFragment.getSmartReceiptsApplication()
+        TripTableController tripTableController = fragment.getSmartReceiptsApplication()
                 .getTableControllerManager().getTripTableController();
 
 
-        if (mFragment.getTrip() == null) { // Insert
-            mFragment.getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistNewReport);
+        if (fragment.getTrip() == null) { // Insert
+            analyticsManager.record(Events.Reports.PersistNewReport);
             final Trip insertTrip = new TripBuilderFactory()
                     .setDirectory(file)
                     .setStartDate(startDate)
@@ -64,8 +70,8 @@ public class TripCreateEditFragmentPresenter {
             tripTableController.insert(insertTrip, new DatabaseOperationMetadata());
             return insertTrip;
         } else { // Update
-            mFragment.getSmartReceiptsApplication().getAnalyticsManager().record(Events.Reports.PersistUpdateReport);
-            final Trip updateTrip = new TripBuilderFactory(mFragment.getTrip())
+            analyticsManager.record(Events.Reports.PersistUpdateReport);
+            final Trip updateTrip = new TripBuilderFactory(fragment.getTrip())
                     .setDirectory(file)
                     .setStartDate(startDate)
                     .setEndDate(endDate)
@@ -74,7 +80,7 @@ public class TripCreateEditFragmentPresenter {
                     .setCostCenter(costCenter)
                     .setDefaultCurrency(defaultCurrency)
                     .build();
-            tripTableController.update(mFragment.getTrip(), updateTrip, new DatabaseOperationMetadata());
+            tripTableController.update(fragment.getTrip(), updateTrip, new DatabaseOperationMetadata());
             return updateTrip;
         }
     }

@@ -15,7 +15,6 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.impl.firebase.FirebaseAnalytics;
-import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
@@ -67,12 +66,17 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     PurchaseWallet purchaseWallet;
     @Inject
     ExtraInitializer extraInitializer;
+    @Inject
+    NetworkManager networkManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
-    private ConfigurationManager mConfigurationManager;
+
+//    private ConfigurationManager mConfigurationManager;
     private TableControllerManager mTableControllerManager;
-    private AnalyticsManager mAnalyticsManager;
+//    private AnalyticsManager mAnalyticsManager;
     private BackupProvidersManager mBackupProvidersManager;
-    private NetworkManager mNetworkManager;
+//    private NetworkManager mNetworkManager;
     private IdentityManager mIdentityManager;
     private PushManager pushManager;
     private OcrInteractor ocrInteractor;
@@ -96,7 +100,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 
         init();
 
-        extraInitializer.init(getAnalyticsManager());
+        extraInitializer.init(analyticsManager);
     }
 
 
@@ -111,30 +115,31 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     private void init() {
-        mConfigurationManager = instantiateConfigurationManager();
-
-        mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
-        mAnalyticsManager.register(new FirebaseAnalytics(this));
+//        mAnalyticsManager = new AnalyticsManager(new AnalyticsLogger());
+        analyticsManager.register(new FirebaseAnalytics(this));
 
 
-        mTableControllerManager = new TableControllerManager(persistenceManager, mAnalyticsManager,
+        mTableControllerManager = new TableControllerManager(persistenceManager, analyticsManager,
                 receiptColumnDefinitions);
-        mNetworkManager = new NetworkManager(this, persistenceManager.getPreferenceManager());
-        mNetworkManager.initialize();
-        mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(), getTableControllerManager(), mNetworkManager, mAnalyticsManager);
+
+        mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(),
+                getTableControllerManager(), networkManager, analyticsManager);
 
         final MutableIdentityStore identityStore = new MutableIdentityStore(this);
-        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore, new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
-        mIdentityManager = new IdentityManager(this, identityStore, serviceManager, mAnalyticsManager, persistenceManager.getPreferenceManager());
+        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore,
+                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
+        mIdentityManager = new IdentityManager(this, identityStore, serviceManager, analyticsManager,
+                persistenceManager.getPreferenceManager());
         pushManager = new PushManager(this, mIdentityManager);
         pushManager.initialize();
 
-        purchaseManager = new PurchaseManager(this, purchaseWallet, mAnalyticsManager);
+        purchaseManager = new PurchaseManager(this, purchaseWallet, analyticsManager);
         purchaseManager.initialize(this);
 
         cognitoManager = new CognitoManager(this, mIdentityManager);
         cognitoManager.initialize();
 
+        //ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
         ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), mIdentityManager, serviceManager, pushManager, new OcrPurchaseTracker(this, serviceManager, purchaseManager, purchaseWallet));
         ocrInteractor.initialize();
 
@@ -168,28 +173,13 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     @NonNull
-    public ConfigurationManager getConfigurationManager() {
-        return mConfigurationManager;
-    }
-
-    @NonNull
     public TableControllerManager getTableControllerManager() {
         return mTableControllerManager;
     }
 
     @NonNull
-    public AnalyticsManager getAnalyticsManager() {
-        return mAnalyticsManager;
-    }
-
-    @NonNull
     public BackupProvidersManager getBackupProvidersManager() {
         return mBackupProvidersManager;
-    }
-
-    @NonNull
-    public NetworkManager getNetworkManager() {
-        return mNetworkManager;
     }
 
     @NonNull
@@ -232,14 +222,5 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
             } catch (SDCardStateException e) {
             }
         }
-    }
-
-    /**
-     * Protected method to enable subclasses to create custom instances
-     *
-     * @return a ConfigurationManager Instance
-     */
-    protected ConfigurationManager instantiateConfigurationManager() {
-        return new DefaultConfigurationManager(this);
     }
 }

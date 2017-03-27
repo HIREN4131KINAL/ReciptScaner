@@ -16,7 +16,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
@@ -35,11 +35,12 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
 
     @Inject
     PersistenceManager persistenceManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private ManualBackupAndRestoreTaskCache manualBackupAndRestoreTaskCache;
     private Subscription subscription;
     private TableControllerManager tableControllerManager;
-    private Analytics analytics;
 
     private Uri uri;
     private boolean overwrite;
@@ -82,9 +83,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         manualBackupAndRestoreTaskCache = new ManualBackupAndRestoreTaskCache(getFragmentManager(), persistenceManager, getContext());
-        analytics = smartReceiptsApplication.getAnalyticsManager();
     }
 
     @Override
@@ -108,7 +107,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
+                        analyticsManager.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         dismiss();
                     }

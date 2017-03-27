@@ -305,29 +305,29 @@ public class PdfBoxWriter {
         }
     }
 
-    private PDImageXObject getXImagePdfBox(File image) {
-        PDDocument document = null;
-        try {
-            document = PDDocument.load(image);
-            PDFRenderer renderer = new PDFRenderer(document);
-            Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.ARGB_8888);
-            return LosslessFactory.createFromImage(mDocument, bitmap);
-        } catch (IOException e) {
-            Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
-            ((SmartReceiptsApplication) (mContext.getAndroidContext().getApplicationContext()))
-                    .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
-
-            return null;
-        } finally {
-            if (document != null) {
-                try {
-                    document.close();
-                } catch (IOException e) {
-                    // we can ignore this
-                }
-            }
-        }
-    }
+//    private PDImageXObject getXImagePdfBox(File image) {
+//        PDDocument document = null;
+//        try {
+//            document = PDDocument.load(image);
+//            PDFRenderer renderer = new PDFRenderer(document);
+//            Bitmap bitmap = renderer.renderImage(0, 1, Bitmap.Config.ARGB_8888);
+//            return LosslessFactory.createFromImage(mDocument, bitmap);
+//        } catch (IOException e) {
+//            Logger.error(this, "Error while rendering PDF using PDFBox renderer", e);
+//            ((SmartReceiptsApplication) (mContext.getAndroidContext().getApplicationContext()))
+//                    .getAnalyticsManager().record(Events.Generate.ReportPdfRenderingError);
+//
+//            return null;
+//        } finally {
+//            if (document != null) {
+//                try {
+//                    document.close();
+//                } catch (IOException e) {
+//                    // we can ignore this
+//                }
+//            }
+//        }
+//    }
 
 
     @Nullable

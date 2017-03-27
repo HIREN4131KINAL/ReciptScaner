@@ -1,5 +1,6 @@
 package co.smartreceipts.android.identity.widget;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,9 +12,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
@@ -22,8 +26,8 @@ import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.widget.presenters.MyAccountPresenter;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.support.AndroidSupportInjection;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -34,6 +38,9 @@ public class LoginFragment extends WBFragment {
     public static final String TAG = LoginFragment.class.getSimpleName();
 
     private static final String OUT_LOGIN_PARAMS = "out_login_params";
+
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private MyAccountPresenter myAccountPresenter;
     private LoginInteractor loginInteractor;
@@ -48,11 +55,19 @@ public class LoginFragment extends WBFragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         this.navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        this.loginInteractor = new LoginInteractor(getFragmentManager(), getSmartReceiptsApplication().getIdentityManager(), getSmartReceiptsApplication().getAnalyticsManager());
+        this.loginInteractor = new LoginInteractor(getFragmentManager(),
+                getSmartReceiptsApplication().getIdentityManager(),
+                analyticsManager);
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
             if (loginParams != null) {

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.ocr.info.tooltip;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -7,20 +8,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
+import javax.inject.Inject;
+
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.widget.Tooltip;
+import dagger.android.support.AndroidSupportInjection;
 
 public class OcrInformationalTooltipFragment extends Fragment {
+
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private OcrInformationalTooltipInteractor mInteractor;
     private OcrInformationalTooltipPresenter mPresenter;
 
+
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
-        mInteractor = new OcrInformationalTooltipInteractor(getActivity(), new NavigationHandler(getActivity()), application.getAnalyticsManager());
+        mInteractor = new OcrInformationalTooltipInteractor(getActivity(),
+                new NavigationHandler(getActivity()), analyticsManager);
     }
 
     @Nullable

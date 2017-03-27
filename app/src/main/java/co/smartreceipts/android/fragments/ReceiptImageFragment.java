@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
@@ -60,9 +61,10 @@ public class ReceiptImageFragment extends WBFragment {
 
     @Inject
     Flex flex;
-
     @Inject
     PersistenceManager persistenceManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
 
     private PinchToZoomImageView imageView;
@@ -103,7 +105,7 @@ public class ReceiptImageFragment extends WBFragment {
         }
         isRotateOngoing = false;
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), receipt.getTrip(),
-                persistenceManager, getSmartReceiptsApplication().getAnalyticsManager(), getSmartReceiptsApplication().getOcrInteractor());
+                persistenceManager, analyticsManager, getSmartReceiptsApplication().getOcrInteractor());
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         imageUpdatedListener = new ImageUpdatedListener();
         setHasOptionsMenu(true);
@@ -123,21 +125,21 @@ public class ReceiptImageFragment extends WBFragment {
         rotateCCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCcw);
+                analyticsManager.record(Events.Receipts.ReceiptImageViewRotateCcw);
                 rotate(ExifInterface.ORIENTATION_ROTATE_270);
             }
         });
         retakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRetakePhoto);
+                analyticsManager.record(Events.Receipts.ReceiptImageViewRetakePhoto);
                 imageUri = new CameraInteractionController(ReceiptImageFragment.this).retakePhoto(receipt);
             }
         });
         rotateCW.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptImageViewRotateCw);
+                analyticsManager.record(Events.Receipts.ReceiptImageViewRotateCw);
                 rotate(ExifInterface.ORIENTATION_ROTATE_90);
             }
         });

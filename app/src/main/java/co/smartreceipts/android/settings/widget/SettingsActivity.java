@@ -33,6 +33,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.AppCompatPreferenceActivity;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -41,6 +42,9 @@ import co.smartreceipts.android.purchases.PurchaseEventsListener;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.SubscriptionEventsListener;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -61,12 +65,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Inject
     Flex flex;
-
     @Inject
     PersistenceManager persistenceManager;
-
     @Inject
     PurchaseWallet purchaseWallet;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
     private PurchaseManager mPurchaseManager;
@@ -410,7 +414,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
-        ((SmartReceiptsApplication) getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -422,7 +426,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseFailed(@NonNull PurchaseSource purchaseSource) {
-        ((SmartReceiptsApplication) getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
+        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

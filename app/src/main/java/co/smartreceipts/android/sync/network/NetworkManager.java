@@ -5,20 +5,25 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 
+@ApplicationScope
 public class NetworkManager extends CompositeNetworkProviderImpl {
 
     private final NetworkProviderFactory mNetworkProviderFactory;
     private final UserPreferenceManager mPreferences;
 
-    public NetworkManager(@NonNull Context context, @NonNull UserPreferenceManager preferences) {
+    @Inject
+    public NetworkManager(Context context, UserPreferenceManager preferences) {
         this(new NetworkProviderFactory(context), preferences);
     }
 
-    public NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull UserPreferenceManager preferences) {
+    private NetworkManager(@NonNull NetworkProviderFactory networkProviderFactory, @NonNull UserPreferenceManager preferences) {
         super(networkProviderFactory.get(preferences.get(UserPreference.Misc.AutoBackupOnWifiOnly) ? SupportedNetworkType.WifiOnly : SupportedNetworkType.AllNetworks));
         mNetworkProviderFactory = Preconditions.checkNotNull(networkProviderFactory);
         mPreferences = Preconditions.checkNotNull(preferences);

@@ -14,12 +14,13 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
+import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
@@ -34,10 +35,13 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
 
     @Inject
     DatabaseHelper database;
+    @Inject
+    NetworkManager networkManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private BackupProvidersManager backupProvidersManager;
-    private Analytics analytics;
     private Subscription subscription;
 
     private RemoteBackupMetadata backupMetadata;
@@ -92,8 +96,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         backupProvidersManager = smartReceiptsApplication.getBackupProvidersManager();
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
-                backupProvidersManager, smartReceiptsApplication.getNetworkManager(), database);
-        analytics = smartReceiptsApplication.getAnalyticsManager();
+                backupProvidersManager, networkManager, database);
     }
 
     @Override
@@ -130,7 +133,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
+                        analyticsManager.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
                         if (backupMetadata != null) {
                             Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
                         } else {

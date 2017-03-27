@@ -31,7 +31,9 @@ import co.smartreceipts.android.activities.Attachable;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.ReceiptCardAdapter;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.AttachmentSendFileImporter;
@@ -63,9 +65,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Inject
     Flex flex;
-
     @Inject
     PersistenceManager persistenceManager;
+    @Inject
+    ConfigurationManager configurationManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private ReceiptTableController receiptTableController;
     private ReceiptCardAdapter adapter;
@@ -122,13 +127,13 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             public void onClick(View v) {
                 final int id = v.getId();
                 if (id == R.id.receipt_action_camera) {
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddPictureReceipt);
+                    analyticsManager.record(Events.Receipts.AddPictureReceipt);
                     addPictureReceipt();
                 } else if (id == R.id.receipt_action_text) {
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.AddTextReceipt);
+                    analyticsManager.record(Events.Receipts.AddTextReceipt);
                     addTextReceipt();
                 } else if (id == R.id.receipt_action_import) {
-                    getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ImportPictureReceipt);
+                    analyticsManager.record(Events.Receipts.ImportPictureReceipt);
                     importReceipt();
                 }
             }
@@ -136,7 +141,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         rootView.findViewById(R.id.receipt_action_camera).setOnClickListener(listener);
         rootView.findViewById(R.id.receipt_action_text).setOnClickListener(listener);
         rootView.findViewById(R.id.receipt_action_import).setOnClickListener(listener);
-        rootView.findViewById(R.id.receipt_action_text).setVisibility(getConfigurationManager().isTextReceiptsOptionAvailable() ? View.VISIBLE : View.GONE);
+        rootView.findViewById(R.id.receipt_action_text).setVisibility(configurationManager.isTextReceiptsOptionAvailable() ? View.VISIBLE : View.GONE);
         floatingActionMenu = (FloatingActionMenu) rootView.findViewById(R.id.fab_menu);
         floatingActionMenuActiveMaskView = rootView.findViewById(R.id.fab_active_mask);
         floatingActionMenuActiveMaskView.setOnClickListener(new View.OnClickListener() {
@@ -169,7 +174,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
         Preconditions.checkNotNull(mTrip, "A valid trip is required");
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(),
-                mTrip, persistenceManager, getSmartReceiptsApplication().getAnalyticsManager(),
+                mTrip, persistenceManager, analyticsManager,
                 getSmartReceiptsApplication().getOcrInteractor());
         setListAdapter(adapter); // Set this here to ensure this has been laid out already
     }
@@ -327,7 +332,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                             // TODO: Make this more graceful
                             final AttachmentSendFileImporter importer = new AttachmentSendFileImporter(getActivity(),
                                     mTrip, persistenceManager, receiptTableController,
-                                    getSmartReceiptsApplication().getAnalyticsManager());
+                                    analyticsManager);
                             compositeSubscription.add(importer.importAttachment(attachment, receipt)
                                     .subscribeOn(Schedulers.io())
                                     .observeOn(AndroidSchedulers.mainThread())
@@ -366,31 +371,31 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                     final String selection = receiptActions[item];
                     if (selection != null) {
                         if (selection.equals(receiptActionEdit)) { // Edit Receipt
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuEdit);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuEdit);
                             // ReceiptsListFragment.this.receiptMenu(trip, receipt, null);
                             navigationHandler.navigateToEditReceiptFragment(mTrip, receipt);
                         } else if (selection.equals(receiptActionCamera)) { // Take Photo
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuRetakePhoto);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuRetakePhoto);
                             imageUri = new CameraInteractionController(ReceiptsListFragment.this).addPhoto();
                         } else if (selection.equals(receiptActionView)) { // View Photo/PDF
                             if (receipt.hasPDF()) {
-                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewImage);
+                                analyticsManager.record(Events.Receipts.ReceiptMenuViewImage);
                                 ReceiptsListFragment.this.showPDF(receipt);
                             } else {
-                                getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuViewPdf);
+                                analyticsManager.record(Events.Receipts.ReceiptMenuViewPdf);
                                 ReceiptsListFragment.this.showImage(receipt);
                             }
                         } else if (selection.equals(receiptActionDelete)) { // Delete Receipt
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuDelete);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuDelete);
                             ReceiptsListFragment.this.deleteReceipt(receipt);
                         } else if (selection.equals(receiptActionMoveCopy)) {// Move-Copy
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuMoveCopy);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuMoveCopy);
                             ReceiptMoveCopyDialogFragment.newInstance(receipt).show(getFragmentManager(), ReceiptMoveCopyDialogFragment.TAG);
                         } else if (selection.equals(receiptActionSwapUp)) { // Swap Up
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapUp);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuSwapUp);
                             receiptTableController.swapUp(receipt);
                         } else if (selection.equals(receiptActionSwapDown)) { // Swap Down
-                            getSmartReceiptsApplication().getAnalyticsManager().record(Events.Receipts.ReceiptMenuSwapDown);
+                            analyticsManager.record(Events.Receipts.ReceiptMenuSwapDown);
                             receiptTableController.swapDown(receipt);
                         }
                     }

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,22 +20,29 @@ import com.google.common.base.Preconditions;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
+import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.support.AndroidSupportInjection;
 
 public class ReportInfoFragment extends WBFragment {
 
     public static final String TAG = ReportInfoFragment.class.getSimpleName();
 
     private static final String KEY_OUT_TRIP = "key_out_trip";
+
+    @Inject
+    ConfigurationManager configurationManager;
 
     private NavigationHandler mNavigationHandler;
     private LastTripController mLastTripController;
@@ -54,6 +62,11 @@ public class ReportInfoFragment extends WBFragment {
         return fragment;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,7 +81,8 @@ public class ReportInfoFragment extends WBFragment {
         }
         Preconditions.checkNotNull(mTrip, "A valid trip is required");
         mLastTripController = new LastTripController(getActivity());
-        mFragmentPagerAdapter = new TripFragmentPagerAdapter(getContext(), getChildFragmentManager(), getConfigurationManager());
+        mFragmentPagerAdapter = new TripFragmentPagerAdapter(getResources(), getChildFragmentManager(),
+                configurationManager);
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
     }
 

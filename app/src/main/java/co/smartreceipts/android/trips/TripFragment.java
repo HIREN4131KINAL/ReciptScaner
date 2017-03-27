@@ -26,11 +26,10 @@ import java.util.List;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
-import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.WBListFragment;
@@ -56,13 +55,13 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
 
     @Inject
     Flex flex;
-
     @Inject
     PersistenceManager persistenceManager;
+    @Inject
+    AnalyticsManager analyticsManager;
 
     private TripTableController tripTableController;
     private TripFragmentPresenter presenter;
-    private Analytics analytics;
 
     private NavigationHandler navigationHandler;
 
@@ -133,9 +132,6 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         if (toolbar != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         }
-
-        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        analytics = smartReceiptsApplication.getAnalyticsManager();
 
         presenter.checkRating();
     }
@@ -347,7 +343,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         tooltip.setQuestion(R.string.rating_tooltip_text, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                analytics.record(Events.Ratings.UserDeclinedRatingPrompt);
+                analyticsManager.record(Events.Ratings.UserDeclinedRatingPrompt);
                 navigationHandler.showDialog(new FeedbackDialogFragment());
                 tooltip.hideWithAnimation();
                 presenter.dontShowRatingPrompt();
@@ -355,7 +351,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         }, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                analytics.record(Events.Ratings.UserAcceptedRatingPrompt);
+                analyticsManager.record(Events.Ratings.UserAcceptedRatingPrompt);
                 navigationHandler.showDialog(new RatingDialogFragment());
                 tooltip.hideWithAnimation();
                 presenter.dontShowRatingPrompt();
@@ -363,7 +359,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         });
 
         tooltip.showWithAnimation();
-        analytics.record(Events.Ratings.RatingPromptShown);
+        analyticsManager.record(Events.Ratings.RatingPromptShown);
     }
 
     private String getFlexString(int id){

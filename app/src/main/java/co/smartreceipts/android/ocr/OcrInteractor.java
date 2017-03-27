@@ -14,6 +14,8 @@ import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
+import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
+import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
@@ -63,16 +65,13 @@ public class OcrInteractor {
 
         if (ocrFeature.isEnabled() && identityManager.isLoggedIn()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
-            final String mimeType = UriUtils.getMimeType(Uri.fromFile(file), context.getContentResolver());
-            final RequestBody requestBody = RequestBody.create(MediaType.parse(mimeType), file);
-            final MultipartBody.Part filePart = MultipartBody.Part.createFormData(PART_NAME, file.getName(), requestBody);
             return s3Manager.upload(file, OCR_FOLDER)
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
-                    .flatMap(new Func1<String, Observable<OcrResponse>>() {
+                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
                         @Override
-                        public Observable<OcrResponse> call(String s) {
-                            return ocrServiceManager.getService(OcrService.class).scanReceipt(filePart);
+                        public Observable<RecognitionResponse> call(@NonNull String s3Url) {
+                            return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
                         }
                     })
                     .doOnSubscribe(new Action0() {
@@ -81,18 +80,18 @@ public class OcrInteractor {
                             pushManager.registerReceiver(pushMessageReceiver);
                         }
                     })
+                    .flatMap(new Func1<RecognitionResponse, Observable<OcrResponse>>() {
+                        @Override
+                        public Observable<OcrResponse> call(RecognitionResponse recognitionResponse) {
+                            // TODO: Here's where we should wait for the push result to come in to validate everything
+                            // TODO: Also include a timeout here so it doesn't take more than say 7 seconds or so
+                            return Observable.just(new OcrResponse());
+                        }
+                    })
                     .onErrorReturn(new Func1<Throwable, OcrResponse>() {
                         @Override
                         public OcrResponse call(Throwable throwable) {
                             return new OcrResponse();
-                        }
-                    })
-                    .flatMap(new Func1<OcrResponse, Observable<OcrResponse>>() {
-                        @Override
-                        public Observable<OcrResponse> call(OcrResponse ocrResponse) {
-                            // TODO: Here's where we should wait for the push result to come in to validate everything
-                            // TODO: Also include a timeout here so it doesn't take more than say 7 seconds or so
-                            return Observable.just(ocrResponse);
                         }
                     })
                     .doOnTerminate(new Action0() {

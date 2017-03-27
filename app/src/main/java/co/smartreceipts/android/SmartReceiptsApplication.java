@@ -19,6 +19,7 @@ import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.BaseAppModule;
@@ -127,13 +128,13 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         pushManager = new PushManager(this, mIdentityManager);
         pushManager.initialize();
 
-        ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
-
         purchaseManager = new PurchaseManager(this, purchaseWallet, mAnalyticsManager);
         purchaseManager.initialize(this);
 
         cognitoManager = new CognitoManager(this, mIdentityManager);
         cognitoManager.initialize();
+
+        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), serviceManager, pushManager);
 
         PDFBoxResourceLoader.init(getApplicationContext());
 

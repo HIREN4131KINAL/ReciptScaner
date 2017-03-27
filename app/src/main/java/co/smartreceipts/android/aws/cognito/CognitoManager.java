@@ -52,7 +52,6 @@ public class CognitoManager {
                 .flatMap(new Func1<Boolean, Observable<CognitoCachingCredentialsProvider>>() {
                     @Override
                     public Observable<CognitoCachingCredentialsProvider> call(Boolean isLoggedIn) {
-                        final Regions regions = Regions.US_EAST_1;
                         return cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()
                                 .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
                                     @Override
@@ -68,8 +67,8 @@ public class CognitoManager {
                                 .map(new Func1<Cognito, CognitoCachingCredentialsProvider>() {
                                     @Override
                                     public CognitoCachingCredentialsProvider call(Cognito cognito) {
-                                        final SmartReceiptsAuthenticationProvider authenticationProvider = new SmartReceiptsAuthenticationProvider(cognitoIdentityProvider, regions);
-                                        return new CognitoCachingCredentialsProvider(context, authenticationProvider, regions);
+                                        final SmartReceiptsAuthenticationProvider authenticationProvider = new SmartReceiptsAuthenticationProvider(cognitoIdentityProvider, getRegions());
+                                        return new CognitoCachingCredentialsProvider(context, authenticationProvider, getRegions());
                                     }
                                 })
                                 .toObservable();
@@ -88,6 +87,11 @@ public class CognitoManager {
                         retryErrorsOnSubscribePredicate.onNext(new Object());
                     }
                 }).take(1);
+    }
+
+    @NonNull
+    public Regions getRegions() {
+        return Regions.US_EAST_1;
     }
 
 }

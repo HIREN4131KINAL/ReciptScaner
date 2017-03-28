@@ -76,6 +76,8 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     IdentityManager identityManager;
     @Inject
     PushManager pushManager;
+    @Inject
+    CognitoManager cognitoManager;
 
 
 //    private ConfigurationManager mConfigurationManager;
@@ -87,7 +89,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 //    private PushManager pushManager;
     private OcrInteractor ocrInteractor;
 //    private PurchaseManager purchaseManager;
-    private CognitoManager cognitoManager;
+//    private CognitoManager cognitoManager;
     private AppComponent appComponent;
 
 
@@ -137,12 +139,10 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
                 new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
 
 
-//        pushManager = new PushManager(this, identityManager);
         pushManager.initialize();
 
         purchaseManager.initialize(this);
 
-        cognitoManager = new CognitoManager(this, identityManager);
         cognitoManager.initialize();
 
         //ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);

@@ -8,6 +8,9 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.Cognito;
 import rx.Observable;
@@ -18,6 +21,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subjects.ReplaySubject;
 
+@ApplicationScope
 public class CognitoManager {
 
     private final Context context;
@@ -27,7 +31,8 @@ public class CognitoManager {
     private final PublishSubject<Object> retryErrorsOnSubscribePredicate = PublishSubject.create();
     private final ReplaySubject<CognitoCachingCredentialsProvider> cachingCredentialsProviderReplaySubject = ReplaySubject.create(1);
 
-    public CognitoManager(@NonNull Context context, @NonNull IdentityManager identityManager) {
+    @Inject
+    public CognitoManager(Context context, IdentityManager identityManager) {
         this(context, identityManager, new CognitoIdentityProvider(identityManager, context), Schedulers.io());
     }
 

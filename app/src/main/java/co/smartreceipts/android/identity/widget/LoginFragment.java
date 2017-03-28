@@ -17,8 +17,9 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.fragments.WBFragment;
+import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
@@ -40,7 +41,9 @@ public class LoginFragment extends WBFragment {
     private static final String OUT_LOGIN_PARAMS = "out_login_params";
 
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
+    @Inject
+    IdentityManager identityManager;
 
     private MyAccountPresenter myAccountPresenter;
     private LoginInteractor loginInteractor;
@@ -65,9 +68,7 @@ public class LoginFragment extends WBFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         this.navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        this.loginInteractor = new LoginInteractor(getFragmentManager(),
-                getSmartReceiptsApplication().getIdentityManager(),
-                analyticsManager);
+        this.loginInteractor = new LoginInteractor(getFragmentManager(), identityManager, analytics);
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
             if (loginParams != null) {

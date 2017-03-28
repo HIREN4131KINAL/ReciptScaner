@@ -9,6 +9,8 @@ import com.google.common.base.Preconditions;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.Event;
@@ -18,11 +20,12 @@ public class GoogleAnalytics implements Analytics {
 
     private final Tracker mTracker;
 
-    public GoogleAnalytics(@NonNull Context context) {
+    @Inject
+    public GoogleAnalytics(Context context) {
         this(com.google.android.gms.analytics.GoogleAnalytics.getInstance(context).newTracker(R.xml.analytics));
     }
 
-    public GoogleAnalytics(@NonNull Tracker tracker) {
+    private GoogleAnalytics(@NonNull Tracker tracker) {
         mTracker = Preconditions.checkNotNull(tracker);
     }
 

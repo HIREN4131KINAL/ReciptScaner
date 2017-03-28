@@ -32,7 +32,7 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.AppCompatPreferenceActivity;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -69,7 +69,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     @Inject
     PurchaseWallet purchaseWallet;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
     @Inject
     PurchaseManager purchaseManager;
 
@@ -412,7 +412,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
-        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        analytics.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -424,7 +424,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     @Override
     public void onPurchaseFailed(@NonNull PurchaseSource purchaseSource) {
-        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
+        analytics.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

@@ -21,7 +21,7 @@ import java.util.Random;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
@@ -43,7 +43,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
     private static final String SHOW_AD = "pref1";
 
     private final PurchaseWallet purchaseWallet;
-    private final AnalyticsManager analyticsManager;
+    private final Analytics analytics;
 
     private WeakReference<NativeExpressAdView> mAdViewReference;
     private WeakReference<Button> mUpsellReference;
@@ -52,12 +52,12 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
 
 
     @Inject
-    FreeAdManager(PurchaseWallet purchaseWallet, AnalyticsManager analyticsManager) {
+    FreeAdManager(PurchaseWallet purchaseWallet, Analytics analytics) {
         // note: Dagger throws exception if there is null in parameters.
         // So, no need in additional check
 //        this.purchaseWallet = Preconditions.checkNotNull(purchaseWallet);
         this.purchaseWallet = purchaseWallet;
-        this.analyticsManager = analyticsManager;
+        this.analytics = analytics;
     }
 
     public synchronized void onActivityCreated(@NonNull final Activity activity, @Nullable PurchaseManager purchaseManager) {
@@ -79,7 +79,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
         if (adView != null) {
             if (shouldShowAds(adView)) {
                 if (showUpsell()) {
-                    analyticsManager.record(Events.Purchases.AdUpsellShown);
+                    analytics.record(Events.Purchases.AdUpsellShown);
                     adView.setVisibility(View.GONE);
                     upsell.setVisibility(View.VISIBLE);
                 } else {
@@ -87,7 +87,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
                         @Override
                         public void onAdFailedToLoad(int errorCode) {
                             // If we fail to load the ad, just hide it
-                            analyticsManager.record(Events.Purchases.AdUpsellShownOnFailure);
+                            analytics.record(Events.Purchases.AdUpsellShownOnFailure);
                             adView.setVisibility(View.GONE);
                             upsell.setVisibility(View.VISIBLE);
                         }
@@ -112,7 +112,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
             @Override
             public void onClick(View view) {
                 if (FreeAdManager.this.purchaseManager != null) {
-                    analyticsManager.record(Events.Purchases.AdUpsellTapped);
+                    analytics.record(Events.Purchases.AdUpsellTapped);
                     FreeAdManager.this.purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AdBanner);
                 }
             }

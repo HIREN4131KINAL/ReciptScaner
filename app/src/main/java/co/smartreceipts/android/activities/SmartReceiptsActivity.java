@@ -17,7 +17,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.ad.AdManager;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -57,7 +57,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     @Inject
     ConfigurationManager configurationManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
     @Inject
     PurchaseManager purchaseManager;
 
@@ -184,19 +184,19 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_main_settings) {
             navigationHandler.navigateToSettings();
-            analyticsManager.record(Events.Navigation.SettingsOverflow);
+            analytics.record(Events.Navigation.SettingsOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_export) {
             navigationHandler.navigateToBackupMenu();
-            analyticsManager.record(Events.Navigation.BackupOverflow);
+            analytics.record(Events.Navigation.BackupOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_pro_subscription) {
             purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
-            analyticsManager.record(Events.Navigation.SmartReceiptsPlusOverflow);
+            analytics.record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
         } else if (item.getItemId() == R.id.menu_main_my_account) {
             navigationHandler.navigateToLoginScreen();
-            analyticsManager.record(Events.Navigation.BackupOverflow);
+            analytics.record(Events.Navigation.BackupOverflow);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -247,7 +247,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Override
     public void onPurchaseSuccess(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
-        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
+        analytics.record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -259,7 +259,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
     @Override
     public void onPurchaseFailed(@NonNull final PurchaseSource purchaseSource) {
-        analyticsManager.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
+        analytics.record(new DefaultDataPointEvent(Events.Purchases.PurchaseFailed).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 
 public final class MutableIdentityStore implements IdentityStore {
 
@@ -17,6 +18,7 @@ public final class MutableIdentityStore implements IdentityStore {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 
+    @VisibleForTesting
     public MutableIdentityStore(@NonNull SharedPreferences sharedPreferences) {
         mSharedPreferences = sharedPreferences;
     }

@@ -12,7 +12,7 @@ public class ExtraInitializerPlusImpl implements ExtraInitializer {
 
 
     @Override
-    public void init(AnalyticsManager analyticsManager) {
+    public void init() {
         /* no-op */
     }
     

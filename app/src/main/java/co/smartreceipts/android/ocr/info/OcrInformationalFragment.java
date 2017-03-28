@@ -17,14 +17,14 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 
 public class OcrInformationalFragment extends Fragment {
 
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private OcrInformationalInteractor mInteractor;
     private OcrInformationalPresenter mPresenter;
@@ -45,7 +45,7 @@ public class OcrInformationalFragment extends Fragment {
         Logger.debug(this, "onCreate");
         setHasOptionsMenu(true);
 
-        mInteractor = new OcrInformationalInteractor(analyticsManager, getActivity());
+        mInteractor = new OcrInformationalInteractor(analytics, getActivity());
     }
 
     @Nullable

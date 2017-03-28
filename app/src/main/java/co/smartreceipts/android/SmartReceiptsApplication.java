@@ -13,14 +13,14 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.AnalyticsManager;
-import co.smartreceipts.android.analytics.impl.firebase.FirebaseAnalytics;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
 import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
+import co.smartreceipts.android.di.AppComponent;
 import co.smartreceipts.android.di.BaseAppModule;
 import co.smartreceipts.android.di.DaggerAppComponent;
 import co.smartreceipts.android.identity.IdentityManager;
@@ -69,9 +69,13 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Inject
     NetworkManager networkManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
     @Inject
     PurchaseManager purchaseManager;
+    @Inject
+    IdentityManager identityManager;
+    @Inject
+    PushManager pushManager;
 
 
 //    private ConfigurationManager mConfigurationManager;
@@ -79,21 +83,23 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 //    private AnalyticsManager mAnalyticsManager;
     private BackupProvidersManager mBackupProvidersManager;
 //    private NetworkManager mNetworkManager;
-    private IdentityManager mIdentityManager;
-    private PushManager pushManager;
+//    private IdentityManager mIdentityManager;
+//    private PushManager pushManager;
     private OcrInteractor ocrInteractor;
 //    private PurchaseManager purchaseManager;
     private CognitoManager cognitoManager;
+    private AppComponent appComponent;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        DaggerAppComponent.builder()
+        appComponent = DaggerAppComponent.builder()
                 .baseAppModule(new BaseAppModule(this))
-                .build()
-                .inject(this);
+                .build();
+
+        appComponent.inject(this);
 
         configureLog();
         WBUncaughtExceptionHandler.initialize();
@@ -102,9 +108,12 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 
         init();
 
-        extraInitializer.init(analyticsManager);
+        extraInitializer.init();
     }
 
+    public AppComponent getAppComponent() {
+        return appComponent;
+    }
 
     @Override
     public DispatchingAndroidInjector<Activity> activityInjector() {
@@ -117,26 +126,23 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     private void init() {
-        analyticsManager.register(new FirebaseAnalytics(this));
-
-
-        mTableControllerManager = new TableControllerManager(persistenceManager, analyticsManager,
+        mTableControllerManager = new TableControllerManager(persistenceManager, analytics,
                 receiptColumnDefinitions);
 
         mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(),
-                getTableControllerManager(), networkManager, analyticsManager);
+                getTableControllerManager(), networkManager, analytics);
 
         final MutableIdentityStore identityStore = new MutableIdentityStore(this);
         ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore,
                 new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
-        mIdentityManager = new IdentityManager(this, identityStore, serviceManager, analyticsManager,
-                persistenceManager.getPreferenceManager());
-        pushManager = new PushManager(this, mIdentityManager);
+
+
+//        pushManager = new PushManager(this, identityManager);
         pushManager.initialize();
 
         purchaseManager.initialize(this);
 
-        cognitoManager = new CognitoManager(this, mIdentityManager);
+        cognitoManager = new CognitoManager(this, identityManager);
         cognitoManager.initialize();
 
         //ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
@@ -168,11 +174,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     @NonNull
-    public IdentityManager getIdentityManager() {
-        return mIdentityManager;
-    }
-
-    @NonNull
     public TableControllerManager getTableControllerManager() {
         return mTableControllerManager;
     }
@@ -180,11 +181,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @NonNull
     public BackupProvidersManager getBackupProvidersManager() {
         return mBackupProvidersManager;
-    }
-
-    @NonNull
-    public PushManager getPushManager() {
-        return pushManager;
     }
 
     @NonNull

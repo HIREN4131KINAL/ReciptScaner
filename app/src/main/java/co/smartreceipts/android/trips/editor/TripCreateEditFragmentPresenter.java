@@ -5,7 +5,7 @@ import java.sql.Date;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
@@ -18,7 +18,7 @@ public class TripCreateEditFragmentPresenter {
     @Inject
     TripCreateEditFragment fragment;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     @Inject
     public TripCreateEditFragmentPresenter() {
@@ -58,7 +58,7 @@ public class TripCreateEditFragmentPresenter {
 
 
         if (fragment.getTrip() == null) { // Insert
-            analyticsManager.record(Events.Reports.PersistNewReport);
+            analytics.record(Events.Reports.PersistNewReport);
             final Trip insertTrip = new TripBuilderFactory()
                     .setDirectory(file)
                     .setStartDate(startDate)
@@ -70,7 +70,7 @@ public class TripCreateEditFragmentPresenter {
             tripTableController.insert(insertTrip, new DatabaseOperationMetadata());
             return insertTrip;
         } else { // Update
-            analyticsManager.record(Events.Reports.PersistUpdateReport);
+            analytics.record(Events.Reports.PersistUpdateReport);
             final Trip updateTrip = new TripBuilderFactory(fragment.getTrip())
                     .setDirectory(file)
                     .setStartDate(startDate)

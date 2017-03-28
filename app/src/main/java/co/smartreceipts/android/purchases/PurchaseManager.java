@@ -30,7 +30,6 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
@@ -89,8 +88,8 @@ public final class PurchaseManager {
     private volatile PurchaseSource mPurchaseSource;
 
     @Inject
-    public PurchaseManager(Context context, PurchaseWallet purchaseWallet, AnalyticsManager analyticsManager) {
-        this(context, purchaseWallet, analyticsManager, Schedulers.io(), AndroidSchedulers.mainThread());
+    public PurchaseManager(Context context, PurchaseWallet purchaseWallet, Analytics analytics) {
+        this(context, purchaseWallet, analytics, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
     public PurchaseManager(@NonNull Context context, @NonNull PurchaseWallet purchaseWallet, @NonNull Analytics analytics,

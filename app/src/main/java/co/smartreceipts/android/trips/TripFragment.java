@@ -29,7 +29,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.WBListFragment;
@@ -58,7 +58,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Inject
     PersistenceManager persistenceManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private TripTableController tripTableController;
     private TripFragmentPresenter presenter;
@@ -343,7 +343,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         tooltip.setQuestion(R.string.rating_tooltip_text, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                analyticsManager.record(Events.Ratings.UserDeclinedRatingPrompt);
+                analytics.record(Events.Ratings.UserDeclinedRatingPrompt);
                 navigationHandler.showDialog(new FeedbackDialogFragment());
                 tooltip.hideWithAnimation();
                 presenter.dontShowRatingPrompt();
@@ -351,7 +351,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         }, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                analyticsManager.record(Events.Ratings.UserAcceptedRatingPrompt);
+                analytics.record(Events.Ratings.UserAcceptedRatingPrompt);
                 navigationHandler.showDialog(new RatingDialogFragment());
                 tooltip.hideWithAnimation();
                 presenter.dontShowRatingPrompt();
@@ -359,7 +359,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         });
 
         tooltip.showWithAnimation();
-        analyticsManager.record(Events.Ratings.RatingPromptShown);
+        analytics.record(Events.Ratings.RatingPromptShown);
     }
 
     private String getFlexString(int id){

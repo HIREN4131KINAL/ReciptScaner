@@ -14,7 +14,7 @@ import android.widget.Toast;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
@@ -29,7 +29,7 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
     @Inject
     PersistenceManager persistenceManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private ManualBackupAndRestoreTaskCache manualBackupAndRestoreTaskCache;
     private Subscription subscription;
@@ -81,7 +81,7 @@ public class ExportBackupWorkerProgressDialogFragment extends DialogFragment {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analyticsManager.record(new ErrorEvent(ExportBackupWorkerProgressDialogFragment.this, throwable));
+                        analytics.record(new ErrorEvent(ExportBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getContext(), getString(R.string.EXPORT_ERROR), Toast.LENGTH_LONG).show();
                         dismiss();
                     }

@@ -45,7 +45,7 @@ import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.adapters.TaxAutoCompleteAdapter;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ExchangeRateServiceManager;
 import co.smartreceipts.android.apis.MemoryLeakSafeCallback;
@@ -66,9 +66,9 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -100,7 +100,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Inject
     PurchaseWallet purchaseWallet;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     // Metadata
     private Trip trip;
@@ -705,7 +705,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         exchangeRateBox.setText(""); // Clear results to avoid stale data here
         if (purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
             Logger.info(this, "Submitting exchange rate request");
-            analyticsManager.record(Events.Receipts.RequestExchangeRate);
+            analytics.record(Events.Receipts.RequestExchangeRate);
             final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
             if (lastExchangeRateFetchCallback != null) {
@@ -717,7 +717,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 public void success(EditText editText, Call<ExchangeRate> call, Response<ExchangeRate> response) {
                     final ExchangeRate exchangeRate = response.body();
                     if (exchangeRate != null && exchangeRate.supportsExchangeRateFor(exchangeRateCurrencyCode)) {
-                        analyticsManager.record(Events.Receipts.RequestExchangeRateSuccess);
+                        analytics.record(Events.Receipts.RequestExchangeRateSuccess);
                         if (TextUtils.isEmpty(editText.getText())) {
                             editText.setText(exchangeRate.getDecimalFormattedExchangeRate(exchangeRateCurrencyCode));
                         } else {
@@ -726,7 +726,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Success);
                     } else {
                         Logger.error(ReceiptCreateEditFragment.this, "Received a null exchange rate");
-                        analyticsManager.record(Events.Receipts.RequestExchangeRateFailedWithNull);
+                        analytics.record(Events.Receipts.RequestExchangeRateFailedWithNull);
                         exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                     }
                 }
@@ -734,7 +734,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 @Override
                 public void failure(EditText editText, Call<ExchangeRate> call, Throwable th) {
                     Logger.error(ReceiptCreateEditFragment.this, th);
-                    analyticsManager.record(Events.Receipts.RequestExchangeRateFailed);
+                    analytics.record(Events.Receipts.RequestExchangeRateFailed);
                     exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Failure);
                 }
             };
@@ -788,11 +788,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         if (isNewReceipt) {
             builderFactory.setFile(file);
-            analyticsManager.record(Events.Receipts.PersistNewReceipt);
+            analytics.record(Events.Receipts.PersistNewReceipt);
             getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         } else {
-            analyticsManager.record(Events.Receipts.PersistUpdateReceipt);
+            analytics.record(Events.Receipts.PersistUpdateReceipt);
             getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         }

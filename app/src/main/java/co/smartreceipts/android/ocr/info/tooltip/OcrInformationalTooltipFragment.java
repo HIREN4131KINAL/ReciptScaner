@@ -11,14 +11,14 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.widget.Tooltip;
 import dagger.android.support.AndroidSupportInjection;
 
 public class OcrInformationalTooltipFragment extends Fragment {
 
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private OcrInformationalTooltipInteractor mInteractor;
     private OcrInformationalTooltipPresenter mPresenter;
@@ -34,7 +34,7 @@ public class OcrInformationalTooltipFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInteractor = new OcrInformationalTooltipInteractor(getActivity(),
-                new NavigationHandler(getActivity()), analyticsManager);
+                new NavigationHandler(getActivity()), analytics);
     }
 
     @Nullable

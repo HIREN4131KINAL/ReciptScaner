@@ -3,6 +3,7 @@ package co.smartreceipts.android.push.services;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class FirebaseTokenRefreshService extends FirebaseInstanceIdService {
@@ -16,6 +17,8 @@ public class FirebaseTokenRefreshService extends FirebaseInstanceIdService {
     public void onTokenRefresh() {
         Logger.info(this, "onTokenRefresh");
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getApplication();
-        application.getPushManager().onTokenRefresh();
+
+        PushManager pushManager = application.getAppComponent().providePushManager();
+        pushManager.onTokenRefresh();
     }
 }

@@ -3,8 +3,6 @@ package co.smartreceipts.android.di;
 import android.content.Context;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.analytics.impl.logger.AnalyticsLogger;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
@@ -71,11 +69,5 @@ public class BaseAppModule {
     @ApplicationScope
     public static AppRatingStorage provideAppRatingStorage(AppRatingPreferencesStorage storage) {
         return storage;
-    }
-
-    @Provides
-    @ApplicationScope
-    public static Analytics provideAnalytics(AnalyticsLogger logger) {
-        return logger;
     }
 }

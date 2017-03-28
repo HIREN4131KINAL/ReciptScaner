@@ -15,7 +15,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
@@ -39,7 +39,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Inject
     NetworkManager networkManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private Subscription subscription;
@@ -116,7 +116,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        analyticsManager.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
+                        analytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
                         remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
                         dismiss();

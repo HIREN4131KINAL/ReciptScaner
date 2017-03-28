@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Constructor;
 
@@ -54,7 +53,7 @@ public class PushManagerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        pushManager = new PushManager(RuntimeEnvironment.application, identityManager, fcmTokenRetriever, pushDataStore, Schedulers.immediate());
+        pushManager = new PushManager(identityManager, fcmTokenRetriever, pushDataStore, Schedulers.immediate());
     }
 
     @Test

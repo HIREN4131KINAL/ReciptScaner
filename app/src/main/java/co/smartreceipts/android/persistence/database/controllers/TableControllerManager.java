@@ -26,7 +26,10 @@ public class TableControllerManager {
     private final PDFTableController mPDFTableController;
     private final PaymentMethodsTableController mPaymentMethodsTableController;
 
-    public TableControllerManager(@NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+    public TableControllerManager(@NonNull PersistenceManager persistenceManager,
+                                  @NonNull Analytics analytics,
+                                  @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+
         Preconditions.checkNotNull(persistenceManager);
         Preconditions.checkNotNull(receiptColumnDefinitions);
 

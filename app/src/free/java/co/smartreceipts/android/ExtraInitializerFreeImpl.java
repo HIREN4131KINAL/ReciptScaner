@@ -6,9 +6,6 @@ import com.bugsense.trace.BugSenseHandler;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.AnalyticsManager;
-import co.smartreceipts.android.analytics.GoogleAnalytics;
-
 public class ExtraInitializerFreeImpl implements ExtraInitializer{
 
     @Inject
@@ -19,10 +16,7 @@ public class ExtraInitializerFreeImpl implements ExtraInitializer{
     }
 
     @Override
-    public void init(AnalyticsManager analyticsManager) {
-
+    public void init() {
         BugSenseHandler.initAndStartSession(context, "01de172a");
-
-        analyticsManager.register(new GoogleAnalytics(context));
     }
 }

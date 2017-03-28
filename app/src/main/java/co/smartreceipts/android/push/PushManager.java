@@ -2,6 +2,7 @@ package co.smartreceipts.android.push;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 import com.google.firebase.messaging.RemoteMessage;
@@ -9,6 +10,9 @@ import com.google.firebase.messaging.RemoteMessage;
 import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
@@ -20,25 +24,25 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
+@ApplicationScope
 public class PushManager {
 
-    private final Context context;
     private final IdentityManager identityManager;
     private final FcmTokenRetriever fcmTokenRetriever;
     private final PushDataStore pushDataStore;
     private final Scheduler subscribeOnScheduler;
     private final CopyOnWriteArrayList<PushMessageReceiver> pushMessageReceivers = new CopyOnWriteArrayList<>();
 
-    public PushManager(@NonNull Context context, @NonNull IdentityManager identityManager) {
-        this(context, identityManager, new FcmTokenRetriever(), new PushDataStore(context), Schedulers.io());
+    @Inject
+    public PushManager(Context context, IdentityManager identityManager) {
+        this(identityManager, new FcmTokenRetriever(), new PushDataStore(context), Schedulers.io());
     }
 
-    public PushManager(@NonNull Context context, @NonNull IdentityManager identityManager, @NonNull FcmTokenRetriever fcmTokenRetriever,
+    @VisibleForTesting
+    public PushManager(@NonNull IdentityManager identityManager, @NonNull FcmTokenRetriever fcmTokenRetriever,
                        @NonNull PushDataStore pushDataStore, @NonNull Scheduler subscribeOnScheduler) {
-        this.context = Preconditions.checkNotNull(context);
         this.identityManager = Preconditions.checkNotNull(identityManager);
         this.fcmTokenRetriever = Preconditions.checkNotNull(fcmTokenRetriever);
         this.pushDataStore = Preconditions.checkNotNull(pushDataStore);

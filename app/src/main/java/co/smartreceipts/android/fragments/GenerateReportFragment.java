@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.FragmentProvider;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -36,7 +36,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
     @Inject
     PersistenceManager persistenceManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     private CheckBox pdfFullCheckbox;
     private CheckBox pdfImagesCheckbox;
@@ -75,7 +75,7 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
         root.findViewById(R.id.generate_report_tooltip).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                analyticsManager.record(Events.Informational.ConfigureReport);
+                analytics.record(Events.Informational.ConfigureReport);
                 navigationHandler.navigateToSettingsScrollToReportSection();
             }
         });
@@ -116,18 +116,18 @@ public class GenerateReportFragment extends WBFragment implements View.OnClickLi
             return;
         }
 
-        analyticsManager.record(Events.Generate.GenerateReports);
+        analytics.record(Events.Generate.GenerateReports);
         if (pdfFullCheckbox.isChecked()) {
-            analyticsManager.record(Events.Generate.FullPdfReport);
+            analytics.record(Events.Generate.FullPdfReport);
         }
         if (pdfImagesCheckbox.isChecked()) {
-            analyticsManager.record(Events.Generate.ImagesPdfReport);
+            analytics.record(Events.Generate.ImagesPdfReport);
         }
         if (csvCheckbox.isChecked()) {
-            analyticsManager.record(Events.Generate.CsvReport);
+            analytics.record(Events.Generate.CsvReport);
         }
         if (zipStampedImagesCheckbox.isChecked()) {
-            analyticsManager.record(Events.Generate.StampedZipReport);
+            analytics.record(Events.Generate.StampedZipReport);
         }
 
         // TODO: Off the UI thread :/

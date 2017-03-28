@@ -9,10 +9,15 @@ import com.google.common.base.Preconditions;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ApiValidationException;
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
+import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginPayload;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
@@ -21,12 +26,12 @@ import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.MeService;
-import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.identity.store.Token;
+import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
@@ -39,9 +44,9 @@ import rx.subjects.AsyncSubject;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
 
+@ApplicationScope
 public class IdentityManager implements IdentityStore {
 
-    private final Context context;
     private final ServiceManager serviceManager;
     private final Analytics analytics;
     private final MutableIdentityStore mutableIdentityStore;
@@ -51,21 +56,22 @@ public class IdentityManager implements IdentityStore {
 
     private Subject<LogoutResponse, LogoutResponse> logoutSubject;
 
-    public IdentityManager(@NonNull Context context, @NonNull MutableIdentityStore mutableIdentityStore,
-                           @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
-                           @NonNull UserPreferenceManager userPreferenceManager) {
-        this(context, mutableIdentityStore, serviceManager, analytics, new OrganizationManager(serviceManager, mutableIdentityStore, userPreferenceManager));
-    }
+    @Inject
+    public IdentityManager(Context context, ReceiptColumnDefinitions receiptColumnDefinitions,
+                           Analytics analytics,
+                           UserPreferenceManager userPreferenceManager) {
 
-    public IdentityManager(@NonNull Context context, @NonNull MutableIdentityStore mutableIdentityStore,
-                           @NonNull ServiceManager serviceManager, @NonNull Analytics analytics,
-                           @NonNull OrganizationManager organizationManager) {
-        this.context = Preconditions.checkNotNull(context.getApplicationContext());
-        this.serviceManager = Preconditions.checkNotNull(serviceManager);
-        this.analytics = Preconditions.checkNotNull(analytics);
+        final MutableIdentityStore mutableIdentityStore = new MutableIdentityStore(context);
+        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
+                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
+
+        this.serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
+                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
+        this.analytics = analytics;
         this.mutableIdentityStore = Preconditions.checkNotNull(mutableIdentityStore);
-        this.organizationManager = Preconditions.checkNotNull(organizationManager);
+        this.organizationManager = new OrganizationManager(serviceManager, mutableIdentityStore, userPreferenceManager);
         this.isLoggedInBehaviorSubject = BehaviorSubject.create(isLoggedIn());
+
     }
 
     @Nullable

@@ -13,7 +13,7 @@ import android.support.v4.app.DialogFragment;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
@@ -26,7 +26,7 @@ import dagger.android.support.AndroidSupportInjection;
 public class RatingDialogFragment extends DialogFragment {
 
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
 
     @Override
     public void onAttach(Context context) {
@@ -45,21 +45,21 @@ public class RatingDialogFragment extends DialogFragment {
                 .setNegativeButton(R.string.apprating_dialog_negative, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        analyticsManager.record(Events.Ratings.UserSelectedNever);
+                        analytics.record(Events.Ratings.UserSelectedNever);
                         dismiss();
                     }
                 })
                 .setNeutralButton(R.string.apprating_dialog_neutral, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        analyticsManager.record(Events.Ratings.UserSelectedLater);
+                        analytics.record(Events.Ratings.UserSelectedLater);
                         prorogueRatingPrompt();
                     }
                 })
                 .setPositiveButton(R.string.apprating_dialog_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        analyticsManager.record(Events.Ratings.UserSelectedRate);
+                        analytics.record(Events.Ratings.UserSelectedRate);
                         launchRatingIntent();
                     }
                 });

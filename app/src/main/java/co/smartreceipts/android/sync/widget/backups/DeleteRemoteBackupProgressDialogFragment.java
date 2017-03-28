@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.AnalyticsManager;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.BackupProvidersManager;
@@ -38,7 +38,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     @Inject
     NetworkManager networkManager;
     @Inject
-    AnalyticsManager analyticsManager;
+    Analytics analyticsManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private BackupProvidersManager backupProvidersManager;

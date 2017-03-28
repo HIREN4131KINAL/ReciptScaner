@@ -8,6 +8,8 @@ import com.google.firebase.crash.FirebaseCrash;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
@@ -18,7 +20,8 @@ public class FirebaseAnalytics implements Analytics {
 
     private final com.google.firebase.analytics.FirebaseAnalytics mFirebaseAnalytics;
 
-    public FirebaseAnalytics(@NonNull Context context) {
+    @Inject
+    public FirebaseAnalytics(Context context) {
         mFirebaseAnalytics = com.google.firebase.analytics.FirebaseAnalytics.getInstance(
                 context.getApplicationContext());
     }

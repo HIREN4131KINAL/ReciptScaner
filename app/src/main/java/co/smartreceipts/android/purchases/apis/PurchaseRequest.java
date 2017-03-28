@@ -6,6 +6,8 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import co.smartreceipts.android.purchases.model.ManagedProduct;
+
 public class PurchaseRequest {
 
     private String signature;
@@ -13,10 +15,10 @@ public class PurchaseRequest {
     private String pay_service;
     private String goal;
 
-    public PurchaseRequest(@NonNull String signature, @NonNull String inAppPurchaseData, @NonNull String goal) {
-        this.signature = Preconditions.checkNotNull(signature);
-        this.goal = Preconditions.checkNotNull("Recognition");
-        this.receipt = new JsonParser().parse(Preconditions.checkNotNull(inAppPurchaseData)).getAsJsonObject();
+    public PurchaseRequest(@NonNull ManagedProduct managedProduct, @NonNull String goal) {
+        this.signature = Preconditions.checkNotNull(managedProduct.getInAppDataSignature());
+        this.goal = Preconditions.checkNotNull(goal);
+        this.receipt = new JsonParser().parse(Preconditions.checkNotNull(managedProduct.getPurchaseData())).getAsJsonObject();
         this.pay_service = "Google Play";
     }
 

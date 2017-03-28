@@ -216,7 +216,7 @@ public class PurchaseManagerTest {
         purchaseManager.initialize(application);
         verifyInAppBillingServiceConnected();
 
-        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
         verify(purchaseWallet).updatePurchasesInWallet(Collections.singleton(managedProduct));
         verifyNoMoreInteractions(purchaseWallet);
     }

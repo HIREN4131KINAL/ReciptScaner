@@ -17,6 +17,12 @@ public interface ManagedProduct {
     String getPurchaseToken();
 
     /**
+     * @return the purchase data json {@link String} provided by Google for this purchase
+     */
+    @NonNull
+    String getPurchaseData();
+
+    /**
      * @return the {@link String} data signature provided by Google for this product
      */
     @NonNull

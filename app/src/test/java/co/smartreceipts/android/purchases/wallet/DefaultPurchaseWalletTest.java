@@ -2,7 +2,9 @@ package co.smartreceipts.android.purchases.wallet;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +29,7 @@ public class DefaultPurchaseWalletTest {
 
     private static final String PURCHASE_TOKEN = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689";
     private static final String IN_APP_DATA_SIGNATURE = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689==";
+    private String purchaseData;
 
     // Class under test
     DefaultPurchaseWallet defaultPurchaseWallet;
@@ -37,10 +40,23 @@ public class DefaultPurchaseWalletTest {
     ManagedProduct managedProduct;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-
+        
+        // https://developer.android.com/google/play/billing/billing_reference.html
+        final JSONObject purchaseData = new JSONObject();
+        purchaseData.put("autoRenewing", true);
+        purchaseData.put("orderId", "orderId");
+        purchaseData.put("packageName", "co.smartreceipts.android");
+        purchaseData.put("productId", InAppPurchase.SmartReceiptsPlus.getSku());
+        purchaseData.put("purchaseTime", 1234567890123L);
+        purchaseData.put("purchaseState", 0);
+        purchaseData.put("developerPayload", "1234567890");
+        purchaseData.put("purchaseToken", PURCHASE_TOKEN);
+        this.purchaseData = purchaseData.toString();
+        
         when(managedProduct.getInAppPurchase()).thenReturn(InAppPurchase.SmartReceiptsPlus);
+        when(managedProduct.getPurchaseData()).thenReturn(this.purchaseData);
         when(managedProduct.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
         when(managedProduct.getInAppDataSignature()).thenReturn(IN_APP_DATA_SIGNATURE);
 
@@ -64,7 +80,7 @@ public class DefaultPurchaseWalletTest {
 
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
-        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_purchaseData", null), purchaseData);
         assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
@@ -74,7 +90,7 @@ public class DefaultPurchaseWalletTest {
 
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
-        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_purchaseData", null), purchaseData);
         assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
@@ -83,7 +99,7 @@ public class DefaultPurchaseWalletTest {
         defaultPurchaseWallet.removePurchaseFromWallet(InAppPurchase.SmartReceiptsPlus);
 
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.<String>emptySet());
-        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_purchaseData"));
         assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
     }
 
@@ -95,7 +111,7 @@ public class DefaultPurchaseWalletTest {
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku()));
-        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_purchaseData", null), purchaseData);
         assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
@@ -111,7 +127,7 @@ public class DefaultPurchaseWalletTest {
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
-        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_purchaseData"));
         assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
     }
 
@@ -125,12 +141,12 @@ public class DefaultPurchaseWalletTest {
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertFalse(defaultPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
-        assertFalse(preferences.contains("pro_sku_3_purchaseToken"));
+        assertFalse(preferences.contains("pro_sku_3_purchaseData"));
         assertFalse(preferences.contains("pro_sku_3_inAppDataSignature"));
     }
 
     @Test
-    public void upgradeFrom_V_4_2_0_249_WhenWeDidNotPersistTokenOrSignature() {
+    public void upgradeFrom_V_4_2_0_249_WhenWeDidNotPersistDataOrSignature() {
         // Historically, we only used to save the sku set and not the token or signature
         preferences.edit().putStringSet("key_sku_set", Collections.singleton(InAppPurchase.SmartReceiptsPlus.getSku())).apply();
         final PurchaseWallet newWallet = new DefaultPurchaseWallet(preferences);
@@ -141,7 +157,7 @@ public class DefaultPurchaseWalletTest {
         newWallet.updatePurchasesInWallet(Collections.singleton(managedProduct));
 
         // Verify that we've now save the extra params
-        assertEquals(preferences.getString("pro_sku_3_purchaseToken", null), PURCHASE_TOKEN);
+        assertEquals(preferences.getString("pro_sku_3_purchaseData", null), purchaseData);
         assertEquals(preferences.getString("pro_sku_3_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 

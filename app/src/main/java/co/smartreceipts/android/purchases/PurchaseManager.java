@@ -232,7 +232,7 @@ public final class PurchaseManager {
                         final String purchaseToken = json.getString("purchaseToken");
                         final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                         if (inAppPurchase != null) {
-                            purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get());
+                            purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseData, inAppDataSignature).get());
                             for (final SubscriptionEventsListener listener : listeners) {
                                 listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
                             }
@@ -408,7 +408,7 @@ public final class PurchaseManager {
                                             final int purchaseState = purchaseData.has("purchaseState") ? purchaseData.getInt("purchaseState") : PURCHASE_STATE_PURCHASED;
 
                                             if (inAppPurchase != null && purchaseState == PURCHASE_STATE_PURCHASED) {
-                                                purchasedProducts.add(new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get());
+                                                purchasedProducts.add(new ManagedProductFactory(inAppPurchase, purchaseDataString, inAppDataSignature).get());
                                             } else {
                                                 Logger.warn(PurchaseManager.this, "Failed to process {} in purchase state {}.", sku, purchaseState);
                                             }

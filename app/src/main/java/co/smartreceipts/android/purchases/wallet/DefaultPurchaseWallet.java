@@ -8,6 +8,8 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
+import org.json.JSONException;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,11 +23,12 @@ import javax.inject.Inject;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 import co.smartreceipts.android.purchases.model.ManagedProductFactory;
+import co.smartreceipts.android.utils.log.Logger;
 
 public class DefaultPurchaseWallet implements PurchaseWallet {
 
     private static final String KEY_SKU_SET = "key_sku_set";
-    private static final String FORMAT_KEY_PURCHASE_TOKEN = "%s_purchaseToken";
+    private static final String FORMAT_KEY_PURCHASE_DATA = "%s_purchaseData";
     private static final String FORMAT_KEY_IN_APP_DATA_SIGNATURE = "%s_inAppDataSignature";
 
     private final SharedPreferences sharedPreferences;
@@ -66,7 +69,7 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
         final ManagedProduct managedProduct = ownedInAppPurchasesMap.remove(inAppPurchase);
         if (managedProduct != null) {
             final SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.remove(getKeyForPurchaseToken(inAppPurchase));
+            editor.remove(getKeyForPurchaseData(inAppPurchase));
             editor.remove(getKeyForInAppDataSignature(inAppPurchase));
             editor.apply();
             persistWallet(); // And persist our sku set
@@ -88,10 +91,14 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
         for (final String sku : skusSet) {
             final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
             if (inAppPurchase != null) {
-                final String purchaseToken = sharedPreferences.getString(getKeyForPurchaseToken(inAppPurchase), "");
+                final String purchaseData = sharedPreferences.getString(getKeyForPurchaseData(inAppPurchase), "");
                 final String inAppDataSignature = sharedPreferences.getString(getKeyForInAppDataSignature(inAppPurchase), "");
-                final ManagedProduct managedProduct = new ManagedProductFactory(inAppPurchase, purchaseToken, inAppDataSignature).get();
-                inAppPurchasesMap.put(inAppPurchase, managedProduct);
+                try {
+                    final ManagedProduct managedProduct = new ManagedProductFactory(inAppPurchase, purchaseData, inAppDataSignature).get();
+                    inAppPurchasesMap.put(inAppPurchase, managedProduct);
+                } catch (JSONException e) {
+                    Logger.error(this, "Failed to parse the purchase data for " + inAppPurchase, e);
+                }
             }
         }
         return inAppPurchasesMap;
@@ -106,7 +113,7 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
         for (final InAppPurchase inAppPurchase : ownedInAppPurchases) {
             final ManagedProduct managedProduct = ownedInAppPurchasesMap.get(inAppPurchase);
             skusSet.add(inAppPurchase.getSku());
-            editor.putString(getKeyForPurchaseToken(inAppPurchase), managedProduct.getPurchaseToken());
+            editor.putString(getKeyForPurchaseData(inAppPurchase), managedProduct.getPurchaseData());
             editor.putString(getKeyForInAppDataSignature(inAppPurchase), managedProduct.getInAppDataSignature());
         }
         editor.putStringSet(KEY_SKU_SET, skusSet);
@@ -114,8 +121,8 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @NonNull
-    private String getKeyForPurchaseToken(@NonNull InAppPurchase inAppPurchase) {
-        return String.format(Locale.US, FORMAT_KEY_PURCHASE_TOKEN, inAppPurchase.getSku());
+    private String getKeyForPurchaseData(@NonNull InAppPurchase inAppPurchase) {
+        return String.format(Locale.US, FORMAT_KEY_PURCHASE_DATA, inAppPurchase.getSku());
     }
 
     @NonNull

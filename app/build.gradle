@@ -7,8 +7,14 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 260
+        versionName "4.3.0.260"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
+    }
+
+    dexOptions {
+        javaMaxHeapSize "2048M"
     }
 
     productFlavors {
@@ -17,13 +23,12 @@ android {
         }
         plusFlavor {
             applicationId 'wb.receiptspro'
-            versionNameSuffix 'Plus'
         }
     }
 
     lintOptions {
         abortOnError false
-        disable 'InvalidPackage'
+        disable 'InvalidPackage', 'MissingTranslation'
     }
 
     testOptions {

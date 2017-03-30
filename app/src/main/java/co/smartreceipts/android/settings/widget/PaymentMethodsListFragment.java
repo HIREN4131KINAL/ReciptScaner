@@ -15,7 +15,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.persistence.database.controllers.impl.PaymentMethodsTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import dagger.android.support.AndroidSupportInjection;
 import wb.android.dialog.fragments.EditTextDialogFragment;
@@ -25,8 +25,8 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 	public static final String TAG = PaymentMethodsListFragment.class.getSimpleName();
 
 	@Inject
-	TableControllerManager tableControllerManager;
-	
+	PaymentMethodsTableController paymentMethodsTableController;
+
 	public static PaymentMethodsListFragment newInstance() {
 		return new PaymentMethodsListFragment();
 	}
@@ -59,7 +59,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 
     @Override
     protected TableController<PaymentMethod> getTableController() {
-        return tableControllerManager.getPaymentMethodsTableController();
+        return paymentMethodsTableController;
     }
 
     @Override

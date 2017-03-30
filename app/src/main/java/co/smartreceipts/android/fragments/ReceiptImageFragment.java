@@ -40,7 +40,7 @@ import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
@@ -67,7 +67,7 @@ public class ReceiptImageFragment extends WBFragment {
     @Inject
     Analytics analytics;
     @Inject
-    TableControllerManager tableControllerManager;
+    ReceiptTableController receiptTableController;
 
 
     private PinchToZoomImageView imageView;
@@ -190,13 +190,13 @@ public class ReceiptImageFragment extends WBFragment {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(receipt.getName());
         }
-        tableControllerManager.getReceiptTableController().subscribe(imageUpdatedListener);
+        receiptTableController.subscribe(imageUpdatedListener);
         compositeSubscription.add(activityFileResultImporter.getResultStream()
                 .subscribe(new Action1<ActivityFileResultImporterResponse>() {
                     @Override
                     public void call(ActivityFileResultImporterResponse response) {
                         final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(response.getFile()).build();
-                        tableControllerManager.getReceiptTableController().update(receipt, retakeReceipt, new DatabaseOperationMetadata());
+                        receiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -218,7 +218,7 @@ public class ReceiptImageFragment extends WBFragment {
     public void onPause() {
         compositeSubscription.unsubscribe();
         compositeSubscription = null;
-        tableControllerManager.getReceiptTableController().unsubscribe(imageUpdatedListener);
+        receiptTableController.unsubscribe(imageUpdatedListener);
         super.onPause();
     }
 

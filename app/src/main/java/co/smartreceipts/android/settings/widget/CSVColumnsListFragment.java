@@ -7,7 +7,7 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.persistence.database.controllers.impl.CSVTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.ColumnTableController;
 import dagger.android.support.AndroidSupportInjection;
 
@@ -18,7 +18,7 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
     @Inject
     ReceiptColumnDefinitions receiptColumnDefinitions;
     @Inject
-    TableControllerManager tableControllerManager;
+    CSVTableController csvTableController;
 
 	public static ColumnsListFragment newInstance() {
 		return new CSVColumnsListFragment();
@@ -26,7 +26,7 @@ public class CSVColumnsListFragment extends ColumnsListFragment {
 
     @Override
     protected ColumnTableController getColumnTableController() {
-        return tableControllerManager.getCSVTableController();
+        return csvTableController;
     }
 
     @Override

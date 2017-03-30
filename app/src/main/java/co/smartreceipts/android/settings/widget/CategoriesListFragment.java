@@ -32,7 +32,6 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -44,13 +43,12 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	public static String TAG = "CategoriesListFragment";
 
 	@Inject
-	TableControllerManager tableControllerManager;
+	CategoriesTableController categoriesTableController;
 
 	private BaseAdapter mAdapter;
     private Toolbar mToolbar;
 	private ListView mListView;
 	private List<Category> mCategories;
-    private CategoriesTableController mTableController;
     private Category mScrollToCategory;
 
 	public static CategoriesListFragment newInstance() {
@@ -66,7 +64,6 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        mTableController = tableControllerManager.getCategoriesTableController();
         mAdapter = getAdapter();
 		mCategories = new ArrayList<>();
 		setHasOptionsMenu(true);
@@ -96,13 +93,13 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
             actionBar.setTitle(R.string.menu_main_categories);
             actionBar.setSubtitle(null);
         }
-        mTableController.subscribe(this);
-        mTableController.get();
+        categoriesTableController.subscribe(this);
+        categoriesTableController.get();
 	}
 
     @Override
     public void onPause() {
-        mTableController.unsubscribe(this);
+        categoriesTableController.unsubscribe(this);
         super.onPause();
     }
 
@@ -168,7 +165,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 						public void onClick(DialogInterface dialog, int which) {
 							final String name = nameBox.getText().toString();
 							final String code = codeBox.getText().toString();
-                            mTableController.insert(new CategoryBuilderFactory().setName(name).setCode(code).build(), new DatabaseOperationMetadata());
+                            categoriesTableController.insert(new CategoryBuilderFactory().setName(name).setCode(code).build(), new DatabaseOperationMetadata());
 
 						}
 					})
@@ -212,7 +209,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 							final String newName = nameBox.getText().toString();
 							final String newCode = codeBox.getText().toString();
 							final Category newCategory = new CategoryBuilderFactory().setName(newName).setCode(newCode).build();
-							mTableController.update(editCategory, newCategory, new DatabaseOperationMetadata());
+							categoriesTableController.update(editCategory, newCategory, new DatabaseOperationMetadata());
 
 						}
 					})
@@ -234,7 +231,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 					.setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							mTableController.delete(category, new DatabaseOperationMetadata());
+							categoriesTableController.delete(category, new DatabaseOperationMetadata());
 						}
 					})
 					.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -263,7 +260,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onInsertSuccess(@NonNull Category category, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        mTableController.get();
+        categoriesTableController.get();
         mScrollToCategory = category;
     }
 
@@ -279,7 +276,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onUpdateSuccess(@NonNull Category oldCategory, @NonNull Category newCategory, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        mTableController.get();
+        categoriesTableController.get();
         mScrollToCategory = newCategory;
     }
 
@@ -295,7 +292,7 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 
     @Override
     public void onDeleteSuccess(@NonNull Category category, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        mTableController.get();
+        categoriesTableController.get();
     }
 
     @Override

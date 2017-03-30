@@ -37,7 +37,6 @@ import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.settings.UserPreferenceManager;
@@ -57,7 +56,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     @Inject
     Analytics analytics;
     @Inject
-    TableControllerManager tableControllerManager;
+    DistanceTableController distanceTableController;
 
     private EditText distance, rate, comment;
     private AutoCompleteTextView location;
@@ -67,7 +66,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
     private Distance updateableDistance;
     private AutoCompleteAdapter locationAutoCompleteAdapter;
     private Date suggestedDate;
-    private DistanceTableController distanceTableController;
 
     /**
      * Creates a new instance of a {@link DistanceDialogFragment}, which
@@ -132,7 +130,6 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
 
-        distanceTableController = tableControllerManager.getDistanceTableController();
         trip = getArguments().getParcelable(Trip.PARCEL_KEY);
         updateableDistance = getArguments().getParcelable(Distance.PARCEL_KEY);
         final Time now = new Time();

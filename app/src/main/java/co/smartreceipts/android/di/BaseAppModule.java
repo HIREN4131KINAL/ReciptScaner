@@ -8,8 +8,11 @@ import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
+import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.rating.data.AppRatingStorage;
@@ -79,9 +82,9 @@ public class BaseAppModule {
         return receiptColumnDefinitions;
     }
 
-//    @Provides
-//    @co.smartreceipts.android.di.qualifiers.DistanceColumnDefinitions
-//    public static ColumnDefinitions<Distance> provideColumnDefinitionReceipts(DistanceColumnDefinitions distanceColumnDefinitions) {
-//        return distanceColumnDefinitions;
-//    }
+    @Provides
+    @co.smartreceipts.android.di.qualifiers.TripTableController
+    public static TableController<Trip> provideTripTableController (TripTableController tripTableController) {
+        return tripTableController;
+    }
 }

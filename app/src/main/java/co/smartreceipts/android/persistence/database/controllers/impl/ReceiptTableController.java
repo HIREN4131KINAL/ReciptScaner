@@ -10,8 +10,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -30,20 +33,24 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import wb.android.storage.StorageManager;
 
+@ApplicationScope
 public class ReceiptTableController extends TripForeignKeyAbstractTableController<Receipt> {
 
     private final ReceiptTableActionAlterations mReceiptTableActionAlterations;
     private final CopyOnWriteArrayList<ReceiptTableEventsListener> mReceiptTableEventsListeners = new CopyOnWriteArrayList<>();
 
-    public ReceiptTableController(@NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
-        this(Preconditions.checkNotNull(persistenceManager.getDatabase().getReceiptsTable()), Preconditions.checkNotNull(persistenceManager.getStorageManager()), analytics, tripTableController);
+    @Inject
+    public ReceiptTableController(PersistenceManager persistenceManager, Analytics analytics,
+                                  TripTableController tripTableController) {
+        this(persistenceManager.getDatabase().getReceiptsTable(), persistenceManager.getStorageManager(),
+                analytics, tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+    private ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
         this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager), analytics, tripTableController);
     }
 
-    public ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+    private ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
         super(receiptsTable, receiptTableActionAlterations, analytics);
         mReceiptTableActionAlterations = Preconditions.checkNotNull(receiptTableActionAlterations);
         subscribe(new ReceiptRefreshTripPricesListener(Preconditions.checkNotNull(tripTableController)));

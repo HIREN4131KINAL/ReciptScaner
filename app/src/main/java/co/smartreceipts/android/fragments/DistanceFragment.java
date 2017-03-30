@@ -26,7 +26,6 @@ import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.PriceBuilderFactory;
 import co.smartreceipts.android.model.utils.ModelUtils;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -40,14 +39,13 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     @Inject
     UserPreferenceManager preferenceManager;
     @Inject
-    TableControllerManager tableControllerManager;
+    DistanceTableController distanceTableController;
 
     private Trip trip;
     private DistanceAdapter distanceAdapter;
     private View progressDialog;
     private TextView noDataAlert;
     private Distance lastInsertedDistance;
-    private DistanceTableController distanceTableController;
 
     public static DistanceFragment newInstance() {
         return new DistanceFragment();
@@ -66,7 +64,6 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         Logger.debug(this, "onCreate");
         distanceAdapter = new DistanceAdapter(getActivity(), preferenceManager,
                 getSmartReceiptsApplication().getBackupProvidersManager());
-        distanceTableController = tableControllerManager.getDistanceTableController();
     }
 
 

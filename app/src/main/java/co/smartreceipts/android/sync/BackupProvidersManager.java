@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.FragmentActivity;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +44,8 @@ public class BackupProvidersManager implements BackupProvider {
         this(new SyncProviderFactory(context, databaseHelper, tableControllerManager, networkManager, analytics), new SyncProviderStore(context), networkManager);
     }
 
-    public BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore, @NonNull NetworkManager networkManager) {
+    @VisibleForTesting
+    BackupProvidersManager(@NonNull SyncProviderFactory syncProviderFactory, @NonNull SyncProviderStore syncProviderStore, @NonNull NetworkManager networkManager) {
         mSyncProviderFactory = Preconditions.checkNotNull(syncProviderFactory);
         mSyncProviderStore = Preconditions.checkNotNull(syncProviderStore);
         mNetworkManager = Preconditions.checkNotNull(networkManager);

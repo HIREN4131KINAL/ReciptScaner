@@ -45,7 +45,6 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.utils.log.Logger;
@@ -73,9 +72,8 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Inject
     Analytics analytics;
     @Inject
-    TableControllerManager tableControllerManager;
+    ReceiptTableController receiptTableController;
 
-    private ReceiptTableController receiptTableController;
     private ReceiptCardAdapter adapter;
     private ActivityFileResultImporter activityFileResultImporter;
     private Receipt highlightedReceipt;
@@ -108,7 +106,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
-        receiptTableController = tableControllerManager.getReceiptTableController();
         adapter = new ReceiptCardAdapter(getActivity(), persistenceManager.getPreferenceManager(),
                 getSmartReceiptsApplication().getBackupProvidersManager());
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());

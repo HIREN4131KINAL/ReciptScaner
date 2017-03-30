@@ -18,7 +18,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
+import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
@@ -41,7 +41,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Inject
     Analytics analytics;
     @Inject
-    TableControllerManager tableControllerManager;
+    TripTableController tripTableController;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private Subscription subscription;
@@ -107,7 +107,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
                             for (final Table table : database.getTables()) {
                                 table.clearCache();
                             }
-                            tableControllerManager.getTripTableController().get();
+                            tripTableController.get();
                             getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
                         } else {
                             Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();

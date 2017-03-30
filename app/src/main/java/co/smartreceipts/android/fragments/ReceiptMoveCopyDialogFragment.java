@@ -23,7 +23,6 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
@@ -35,11 +34,11 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
     public static final String TAG = ReceiptMoveCopyDialogFragment.class.getSimpleName();
 
     @Inject
-    TableControllerManager tableControllerManager;
+    TripTableController tripTableController;
+    @Inject
+    ReceiptTableController receiptTableController;
 
     private Receipt mReceipt;
-    private ReceiptTableController mReceiptTableController;
-    private TripTableController mTripTableController;
     private TableEventsListener<Trip> mTripTableEventsListener;
     private Spinner mTripSpinner;
 
@@ -62,8 +61,6 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
         super.onCreate(savedInstanceState);
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mTripTableEventsListener = new UpdateAdapterTrips();
-        mTripTableController = tableControllerManager.getTripTableController();
-        mReceiptTableController = tableControllerManager.getReceiptTableController();
     }
 
     @NonNull
@@ -90,13 +87,13 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
     @Override
     public void onResume() {
         super.onResume();
-        mTripTableController.subscribe(mTripTableEventsListener);
-        mTripTableController.get();
+        tripTableController.subscribe(mTripTableEventsListener);
+        tripTableController.get();
     }
 
     @Override
     public void onPause() {
-        mTripTableController.unsubscribe(mTripTableEventsListener);
+        tripTableController.unsubscribe(mTripTableEventsListener);
         super.onPause();
     }
 
@@ -105,12 +102,12 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
         final TripNameAdapterWrapper wrapper = (TripNameAdapterWrapper) mTripSpinner.getSelectedItem();
         if (which == DialogInterface.BUTTON_POSITIVE) {
             if (wrapper != null) {
-                mReceiptTableController.move(mReceipt, wrapper.mTrip);
+                receiptTableController.move(mReceipt, wrapper.mTrip);
                 dismiss();
             }
         } else if (which == DialogInterface.BUTTON_NEGATIVE) {
             if (wrapper != null) {
-                mReceiptTableController.copy(mReceipt, wrapper.mTrip);
+                receiptTableController.copy(mReceipt, wrapper.mTrip);
                 dismiss();
             }
         } else {

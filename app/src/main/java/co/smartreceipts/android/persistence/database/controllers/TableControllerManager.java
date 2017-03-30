@@ -4,12 +4,7 @@ import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.di.qualifiers.ReceiptColumnDefinitions;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import co.smartreceipts.android.model.ColumnDefinitions;
-import co.smartreceipts.android.model.Receipt;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.CSVTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTableController;
@@ -21,63 +16,66 @@ import co.smartreceipts.android.persistence.database.controllers.impl.TripTableC
 @ApplicationScope
 public class TableControllerManager {
 
-    // TODO: 29.03.2017 dagger for fields. tcm is often used just for one get method
-    // tripTableController, distanceTableController, categoriesTC, CSVTableController, PDFTableController, RTC
+    // TODO: 31.03.2017 We can get rid of all getters here, but I'm not sure if it's better or not
     
-    private final TripTableController mTripTableController;
-    private final ReceiptTableController mReceiptTableController;
-    private final DistanceTableController mDistanceTableController;
-    private final CategoriesTableController mCategoriesTableController;
-    private final CSVTableController mCSVTableController;
-    private final PDFTableController mPDFTableController;
-    private final PaymentMethodsTableController mPaymentMethodsTableController;
+    private final TripTableController tripTableController;
+    private final ReceiptTableController receiptTableController;
+    private final CategoriesTableController categoriesTableController;
+    private final CSVTableController csvTableController;
+    private final PDFTableController pdfTableController;
+    private final PaymentMethodsTableController paymentMethodsTableController;
+    private final DistanceTableController distanceTableController;
 
     @Inject
-    public TableControllerManager(PersistenceManager persistenceManager,
-                                  Analytics analytics,
-                                  @ReceiptColumnDefinitions ColumnDefinitions<Receipt> receiptColumnDefinitions) {
+    public TableControllerManager(TripTableController tripTableController,
+                                  ReceiptTableController receiptTableController,
+                                  CategoriesTableController categoriesTableController,
+                                  CSVTableController csvTableController,
+                                  PDFTableController pdfTableController,
+                                  PaymentMethodsTableController paymentMethodsTableController,
+                                  DistanceTableController distanceTableController) {
 
-        mTripTableController = new TripTableController(persistenceManager, analytics);
-        mReceiptTableController = new ReceiptTableController(persistenceManager, analytics, mTripTableController);
-        mDistanceTableController = new DistanceTableController(persistenceManager, analytics, mTripTableController);
-        mCategoriesTableController = new CategoriesTableController(persistenceManager, analytics);
-        mCSVTableController = new CSVTableController(persistenceManager, analytics, receiptColumnDefinitions);
-        mPDFTableController = new PDFTableController(persistenceManager, analytics, receiptColumnDefinitions);
-        mPaymentMethodsTableController = new PaymentMethodsTableController(persistenceManager, analytics);
+        this.tripTableController = tripTableController;
+        this.receiptTableController = receiptTableController;
+        this.categoriesTableController = categoriesTableController;
+        this.csvTableController = csvTableController;
+        this.pdfTableController = pdfTableController;
+        this.paymentMethodsTableController = paymentMethodsTableController;
+        this.distanceTableController = distanceTableController;
     }
 
     @NonNull
     public TripTableController getTripTableController() {
-        return mTripTableController;
+        return tripTableController;
     }
 
     @NonNull
     public ReceiptTableController getReceiptTableController() {
-        return mReceiptTableController;
+        return receiptTableController;
     }
 
     @NonNull
     public DistanceTableController getDistanceTableController() {
-        return mDistanceTableController;
+        return distanceTableController;
     }
 
     @NonNull
     public CategoriesTableController getCategoriesTableController() {
-        return mCategoriesTableController;
+        return categoriesTableController;
     }
 
     @NonNull
     public CSVTableController getCSVTableController() {
-        return mCSVTableController;
+        return csvTableController;
     }
 
     @NonNull
     public PDFTableController getPDFTableController() {
-        return mPDFTableController;
+        return pdfTableController;
     }
 
     @NonNull
     public PaymentMethodsTableController getPaymentMethodsTableController() {
-        return mPaymentMethodsTableController;
+        return paymentMethodsTableController;
     }
 }

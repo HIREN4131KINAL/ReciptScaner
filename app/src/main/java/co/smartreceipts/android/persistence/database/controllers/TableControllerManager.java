@@ -17,6 +17,7 @@ import co.smartreceipts.android.persistence.database.controllers.impl.TripTableC
 public class TableControllerManager {
 
     // TODO: 31.03.2017 We can get rid of all getters here, but I'm not sure if it's better or not
+    // (GoogleDriveBackupManager could became more bulky)
     
     private final TripTableController tripTableController;
     private final ReceiptTableController receiptTableController;

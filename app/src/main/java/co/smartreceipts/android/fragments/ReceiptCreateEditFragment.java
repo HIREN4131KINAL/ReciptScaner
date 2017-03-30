@@ -63,8 +63,10 @@ import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
+import co.smartreceipts.android.persistence.database.controllers.impl.PaymentMethodsTableController;
+import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.purchases.PurchaseManager;
@@ -103,7 +105,12 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Inject
     Analytics analytics;
     @Inject
-    TableControllerManager tableControllerManager;
+    ReceiptTableController receiptTableController;
+    @Inject
+    CategoriesTableController categoriesTableController;
+    @Inject
+    PaymentMethodsTableController paymentMethodsTableController;
+
 
     // Metadata
     private Trip trip;
@@ -511,10 +518,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
             }
         };
-        tableControllerManager.getCategoriesTableController().subscribe(categoryTableEventsListener);
-        tableControllerManager.getPaymentMethodsTableController().subscribe(paymentMethodTableEventsListener);
-        tableControllerManager.getCategoriesTableController().get();
-        tableControllerManager.getPaymentMethodsTableController().get();
+        categoriesTableController.subscribe(categoryTableEventsListener);
+        paymentMethodsTableController.subscribe(paymentMethodTableEventsListener);
+        categoriesTableController.get();
+        paymentMethodsTableController.get();
     }
 
     @Override
@@ -688,8 +695,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onDestroy() {
-        tableControllerManager.getCategoriesTableController().unsubscribe(categoryTableEventsListener);
-        tableControllerManager.getPaymentMethodsTableController().unsubscribe(paymentMethodTableEventsListener);
+        categoriesTableController.unsubscribe(categoryTableEventsListener);
+        paymentMethodsTableController.unsubscribe(paymentMethodTableEventsListener);
         super.onDestroy();
     }
 
@@ -792,11 +799,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             builderFactory.setFile(file);
             analytics.record(Events.Receipts.PersistNewReceipt);
-            tableControllerManager.getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
+            receiptTableController.insert(builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         } else {
             analytics.record(Events.Receipts.PersistUpdateReceipt);
-            tableControllerManager.getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
+            receiptTableController.update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         }
 

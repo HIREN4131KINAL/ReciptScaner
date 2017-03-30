@@ -11,7 +11,6 @@ import com.google.common.base.Preconditions;
 
 import org.json.JSONException;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +57,7 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     }
 
     @Override
-    public synchronized void updatePurchasesInWallet(@NonNull Collection<ManagedProduct> managedProducts) {
+    public synchronized void updatePurchasesInWallet(@NonNull Set<ManagedProduct> managedProducts) {
         final Map<InAppPurchase, ManagedProduct> actualInAppPurchasesMap = new HashMap<>();
         for (final ManagedProduct managedProduct : managedProducts) {
             actualInAppPurchasesMap.put(managedProduct.getInAppPurchase(), managedProduct);

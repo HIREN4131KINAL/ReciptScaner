@@ -125,6 +125,7 @@ public final class PurchaseManager {
      * list of all entities that we own, and finally persisting all changes to our {@link PurchaseWallet}.
      */
     public void initialize(@NonNull Application application) {
+        Logger.debug(PurchaseManager.this, "Initializing the purchase manager");
         application.registerActivityLifecycleCallbacks(new PurchaseManagerActivityLifecycleCallbacks(this));
         getAllOwnedPurchases()
                 .subscribeOn(subscribeOnScheduler)
@@ -372,13 +373,13 @@ public final class PurchaseManager {
     @NonNull
     @VisibleForTesting
     Observable<Set<InAppPurchase>> getAvailableConsumablePurchases() {
-        return getAvailablePurchases(ConsumablePurchase.GOOGLE_PRODUCT_TYPE);
+        return getAvailablePurchases(InAppPurchase.getConsumablePurchaseSkus(), ConsumablePurchase.GOOGLE_PRODUCT_TYPE);
     }
 
     @NonNull
     @VisibleForTesting
     Observable<Set<InAppPurchase>> getAvailableSubscriptions() {
-        return getAvailablePurchases(Subscription.GOOGLE_PRODUCT_TYPE);
+        return getAvailablePurchases(InAppPurchase.getSubscriptionSkus(), Subscription.GOOGLE_PRODUCT_TYPE);
     }
     
     @NonNull
@@ -391,7 +392,7 @@ public final class PurchaseManager {
                             @Override
                             public void call(Subscriber<? super Set<ManagedProduct>> subscriber) {
                                 try {
-                                    final Bundle ownedItems = inAppBillingService.getPurchases(API_VERSION, context.getPackageName(), Subscription.GOOGLE_PRODUCT_TYPE, null);
+                                    final Bundle ownedItems = inAppBillingService.getPurchases(API_VERSION, context.getPackageName(), googleProductType, null);
                                     if (ownedItems.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
@@ -431,7 +432,7 @@ public final class PurchaseManager {
     }
 
     @NonNull
-    private Observable<Set<InAppPurchase>> getAvailablePurchases(@NonNull final String googleProductType) {
+    private Observable<Set<InAppPurchase>> getAvailablePurchases(@NonNull final ArrayList<String> skus, @NonNull final String googleProductType) {
         return rxInAppBillingServiceConnection.bindToInAppBillingService()
                 .flatMap(new Func1<IInAppBillingService, Observable<Set<InAppPurchase>>>() {
                     @Override
@@ -443,7 +444,8 @@ public final class PurchaseManager {
                                     // Next, let's figure out what is available for purchase
                                     final Set<InAppPurchase> availablePurchases = new HashSet<>();
                                     final Bundle subscriptionsQueryBundle = new Bundle();
-                                    subscriptionsQueryBundle.putStringArrayList("ITEM_ID_LIST", InAppPurchase.getSubscriptionSkus());
+                                    // TODO: Fix me to use the actual query
+                                    subscriptionsQueryBundle.putStringArrayList("ITEM_ID_LIST", skus);
                                     final Bundle skuDetails = inAppBillingService.getSkuDetails(3, context.getPackageName(), googleProductType, subscriptionsQueryBundle);
                                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                                         final ArrayList<String> responseList = skuDetails.getStringArrayList("DETAILS_LIST");

@@ -9,6 +9,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import com.android.vending.billing.IInAppBillingService;
+import com.tom_roush.pdfbox.pdmodel.graphics.predictor.Sub;
 
 import org.json.JSONObject;
 import org.junit.Before;
@@ -24,7 +25,9 @@ import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowApplication;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -41,6 +44,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -121,9 +125,15 @@ public class PurchaseManagerTest {
     }
 
     @Test
-    public void initializeThrowsRemoteException() throws Exception {
+    public void initializeSubscriptionsThrowsRemoteException() throws Exception {
         // Configure
         when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenThrow(new RemoteException());
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
@@ -134,11 +144,57 @@ public class PurchaseManagerTest {
     }
 
     @Test
-    public void initializeResponseError() throws Exception {
+    public void initializeConsumablePurchasesThrowsRemoteException() throws Exception {
         // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenThrow(new RemoteException());
+
+        // Test
+        purchaseManager.initialize(application);
+
+        // Verify
+        verifyInAppBillingServiceConnected();
+        verifyZeroInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeSubscriptionsHasResponseError() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+
+        // Verify
+        verifyInAppBillingServiceConnected();
+        verifyZeroInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeConsumablePurchasesHasResponseError() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
@@ -151,12 +207,18 @@ public class PurchaseManagerTest {
     @Test
     public void initializeWithNoneOwned() throws Exception {
         // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
@@ -167,14 +229,20 @@ public class PurchaseManagerTest {
     }
 
     @Test
-    public void initializeWithCancelledOrder() throws Exception {
+    public void initializeWithCancelledConsumablePurchase() throws Exception {
         // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_CANCELLED))));
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.OcrScans50))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_CANCELLED))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
@@ -185,14 +253,20 @@ public class PurchaseManagerTest {
     }
 
     @Test
-    public void initializeWithRefundedOrder() throws Exception {
+    public void initializeWithCancelledSubscription() throws Exception {
         // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_REFUNDED))));
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_CANCELLED))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
@@ -203,21 +277,126 @@ public class PurchaseManagerTest {
     }
 
     @Test
-    public void initializeWithSomeOwned() throws Exception {
+    public void initializeWithRefundedConsumablePurchase() throws Exception {
         // Configure
-        final Bundle getPurchasesResponse = new Bundle();
-        getPurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
-        getPurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
-        getPurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
-        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getPurchasesResponse);
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.OcrScans50))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_REFUNDED))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
 
         // Test
         purchaseManager.initialize(application);
         verifyInAppBillingServiceConnected();
 
-        final ManagedProduct managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
-        verify(purchaseWallet).updatePurchasesInWallet(Collections.singleton(managedProduct));
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptySet());
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeWithRefundedSubscription() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_REFUNDED))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.<ManagedProduct>emptySet());
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeWithConsumablePurchasesOwned() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.OcrScans50))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_PURCHASED))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        final ManagedProduct consumablePurchase = new ConsumablePurchase(InAppPurchase.OcrScans50, getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.singleton(consumablePurchase));
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeWithSubscriptionsOwned() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<String>());
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<String>());
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        final ManagedProduct subscription = new Subscription(InAppPurchase.SmartReceiptsPlus, getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        verify(purchaseWallet).updatePurchasesInWallet(Collections.singleton(subscription));
+        verifyNoMoreInteractions(purchaseWallet);
+    }
+
+    @Test
+    public void initializeWithSubscriptionsAndConsumablePurchasesOwned() throws Exception {
+        // Configure
+        final Bundle getSubscriptionsResponse = new Bundle();
+        getSubscriptionsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.SmartReceiptsPlus))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED))));
+        getSubscriptionsResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "subs", null)).thenReturn(getSubscriptionsResponse);
+        final Bundle getConsumablePurchasesResponse = new Bundle();
+        getConsumablePurchasesResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_ITEM_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseItem(InAppPurchase.OcrScans50))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_PURCHASE_DATA_LIST", new ArrayList<>(Collections.singletonList(getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_PURCHASED))));
+        getConsumablePurchasesResponse.putStringArrayList("INAPP_DATA_SIGNATURE_LIST", new ArrayList<>(Collections.singletonList(getInAppDataSignature())));
+        when(inAppBillingService.getPurchases(3, packageName, "inapp", null)).thenReturn(getConsumablePurchasesResponse);
+
+        // Test
+        purchaseManager.initialize(application);
+        verifyInAppBillingServiceConnected();
+
+        final ManagedProduct subscription = new Subscription(InAppPurchase.SmartReceiptsPlus, getInAppPurchaseData(InAppPurchase.SmartReceiptsPlus, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        final ManagedProduct consumablePurchase = new ConsumablePurchase(InAppPurchase.OcrScans50, getInAppPurchaseData(InAppPurchase.OcrScans50, PURCHASE_STATE_PURCHASED), PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        verify(purchaseWallet).updatePurchasesInWallet(new HashSet<>(Arrays.asList(subscription, consumablePurchase)));
         verifyNoMoreInteractions(purchaseWallet);
     }
 
@@ -276,7 +455,7 @@ public class PurchaseManagerTest {
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
         verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
     }
@@ -298,9 +477,91 @@ public class PurchaseManagerTest {
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
-        verify(purchaseWallet, never()).updatePurchasesInWallet(anyCollectionOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
         verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
         assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getSubscriptionSkus());
+    }
+
+    @Test
+    public void getAvailableConsumablePurchasesThrowsRemoteException() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenThrow(new RemoteException());
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableConsumablePurchases().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(RemoteException.class);
+        verifyZeroInteractions(purchaseWallet);
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getConsumablePurchaseSkus());
+    }
+
+    @Test
+    public void getAvailableConsumablePurchasesResponseError() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_ERROR);
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableConsumablePurchases().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertNoValues();
+        testSubscriber.assertNotCompleted();
+        testSubscriber.assertError(Exception.class);
+        verifyZeroInteractions(purchaseWallet);
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getConsumablePurchaseSkus());
+    }
+
+    @Test
+    public void getAvailableConsumablePurchasesWithNoneAvailable() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<String>());
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableConsumablePurchases().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertValue(Collections.<InAppPurchase>emptySet());
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getConsumablePurchaseSkus());
+    }
+
+    @Test
+    public void getAvailableConsumablePurchasesWithSomeAvailable() throws Exception {
+        // Configure
+        final Bundle getSkuDetailsResponse = new Bundle();
+        getSkuDetailsResponse.putInt("RESPONSE_CODE", RESULT_OK);
+        getSkuDetailsResponse.putStringArrayList("DETAILS_LIST", new ArrayList<>(Collections.singletonList(getSkuDetails(InAppPurchase.OcrScans50))));
+        when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenReturn(getSkuDetailsResponse);
+
+        // Test
+        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
+        purchaseManager.getAvailableConsumablePurchases().subscribe(testSubscriber);
+
+        // Verify
+        testSubscriber.assertValue(Collections.singleton(InAppPurchase.OcrScans50));
+        testSubscriber.assertCompleted();
+        testSubscriber.assertNoErrors();
+        verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
+        verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
+        verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
+        assertEquals(bundleCaptor.getValue().getStringArrayList("ITEM_ID_LIST"), InAppPurchase.getConsumablePurchaseSkus());
     }
 
     @Test
@@ -368,7 +629,9 @@ public class PurchaseManagerTest {
     private String getInAppPurchaseData(@NonNull InAppPurchase inAppPurchase, int purchaseState) throws Exception {
         // https://developer.android.com/google/play/billing/billing_reference.html
         final JSONObject json = new JSONObject();
-        json.put("autoRenewing", true);
+        if (Subscription.class.equals(inAppPurchase.getType())) {
+            json.put("autoRenewing", true);
+        }
         json.put("orderId", "orderId");
         json.put("packageName", packageName);
         json.put("productId", inAppPurchase.getSku());

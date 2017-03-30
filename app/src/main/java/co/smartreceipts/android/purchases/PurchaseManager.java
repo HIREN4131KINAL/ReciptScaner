@@ -230,7 +230,6 @@ public final class PurchaseManager {
                     final String actualDeveloperPayload = json.getString("developerPayload");
                     if (sessionDeveloperPayload.equals(actualDeveloperPayload)) {
                         final String sku = json.getString("productId");
-                        final String purchaseToken = json.getString("purchaseToken");
                         final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                         if (inAppPurchase != null) {
                             purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseData, inAppDataSignature).get());
@@ -241,7 +240,7 @@ public final class PurchaseManager {
                             for (final PurchaseEventsListener listener : listeners) {
                                 listener.onPurchaseFailed(mPurchaseSource);
                             }
-                            Logger.warn(PurchaseManager.this, "Retrieved an unknown subscription code following a successful purchase: " + sku);
+                            Logger.warn(PurchaseManager.this, "Retrieved an unknown sku following a successful purchase: {}", sku);
                         }
                     }
                 } catch (JSONException e) {
@@ -273,10 +272,11 @@ public final class PurchaseManager {
                         return combinedSet;
                     }
                 })
-                .doOnNext(new Action1<Set<ManagedProduct>>() {
+                .map(new Func1<Set<ManagedProduct>, Set<ManagedProduct>>() {
                     @Override
-                    public void call(Set<ManagedProduct> purchasedProducts) {
-                        purchaseWallet.updatePurchasesInWallet(purchasedProducts);;
+                    public Set<ManagedProduct> call(Set<ManagedProduct> purchasedProducts) {
+                        purchaseWallet.updatePurchasesInWallet(purchasedProducts);
+                        return purchaseWallet.getActivePurchases();
                     }
                 })
                 .subscribeOn(subscribeOnScheduler);
@@ -291,6 +291,20 @@ public final class PurchaseManager {
                         combinedSet.addAll(consumablePurchases);
                         combinedSet.addAll(subscriptions);
                         return combinedSet;
+                    }
+                })
+                .map(new Func1<Set<InAppPurchase>, Set<InAppPurchase>>() {
+                    @Override
+                    public Set<InAppPurchase> call(@NonNull Set<InAppPurchase> inAppPurchases) {
+                        final Set<InAppPurchase> trimmedInAppPurchase = new HashSet<>();
+                        for (final InAppPurchase inAppPurchase : inAppPurchases) {
+                            if (!purchaseWallet.hasActivePurchase(inAppPurchase)) {
+                                trimmedInAppPurchase.add(inAppPurchase);
+                            } else {
+                                Logger.debug(PurchaseManager.this, "Omitting {} from available purchases as we're tracking it as owned.", inAppPurchase);
+                            }
+                        }
+                        return trimmedInAppPurchase;
                     }
                 })
                 .subscribeOn(subscribeOnScheduler);
@@ -314,10 +328,11 @@ public final class PurchaseManager {
                             @Override
                             public void call(Subscriber<? super Void> subscriber) {
                                 try {
-                                    if (BILLING_RESPONSE_CODE_OK == inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken())) {
+                                    final int responseCode = inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken());
+                                    if (BILLING_RESPONSE_CODE_OK == responseCode) {
                                         subscriber.onCompleted();
                                     } else {
-                                        Logger.warn(PurchaseManager.this, "Received an unexpected response code for the consumption of this product.");
+                                        Logger.warn(PurchaseManager.this, "Received an unexpected response code, {}, for the consumption of this product.", responseCode);
                                         subscriber.onError(new Exception("Received an unexpected response code for the consumption of this product."));
                                     }
                                 } catch (RemoteException e) {
@@ -346,7 +361,7 @@ public final class PurchaseManager {
                                         subscriber.onNext(pendingIntent);
                                         subscriber.onCompleted();
                                     } else {
-                                        Logger.warn(PurchaseManager.this, "Received an unexpected response code for the buy intent.");
+                                        Logger.warn(PurchaseManager.this, "Received an unexpected response code, {}, for the buy intent.", buyIntentBundle.getInt("RESPONSE_CODE"));
                                         subscriber.onError(new Exception("Received an unexpected response code for the buy intent."));
                                     }
                                 } catch (RemoteException e) {

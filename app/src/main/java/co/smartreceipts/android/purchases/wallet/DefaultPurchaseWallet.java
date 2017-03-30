@@ -45,6 +45,12 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
         ownedInAppPurchasesMap = restoreWallet();
     }
 
+    @NonNull
+    @Override
+    public Set<ManagedProduct> getActivePurchases() {
+        return new HashSet<>(ownedInAppPurchasesMap.values());
+    }
+
     @Override
     public synchronized boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
         return ownedInAppPurchasesMap.containsKey(inAppPurchase);

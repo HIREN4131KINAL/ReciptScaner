@@ -8,6 +8,8 @@ import android.support.annotation.VisibleForTesting;
 
 import org.json.JSONException;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import co.smartreceipts.android.purchases.model.InAppPurchase;
@@ -24,6 +26,14 @@ public final class PlusPurchaseWallet extends DefaultPurchaseWallet {
     @VisibleForTesting
     protected PlusPurchaseWallet(@NonNull SharedPreferences preferences) {
         super(preferences);
+    }
+
+    @NonNull
+    @Override
+    public Set<ManagedProduct> getActivePurchases() {
+        final Set<ManagedProduct> activePurchases = super.getActivePurchases();
+        activePurchases.add(getManagedProduct(InAppPurchase.SmartReceiptsPlus));
+        return activePurchases;
     }
 
     @Override

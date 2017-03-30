@@ -12,6 +12,12 @@ import co.smartreceipts.android.purchases.model.ManagedProduct;
 public interface PurchaseWallet {
 
     /**
+     * @return a complete {@link Set} of all actively owned purchases
+     */
+    @NonNull
+    Set<ManagedProduct> getActivePurchases();
+
+    /**
      * Checks if this user owns a particular {@link InAppPurchase} for this application
      *
      * @param inAppPurchase the purchase to check for

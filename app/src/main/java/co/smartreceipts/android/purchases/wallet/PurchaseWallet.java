@@ -1,6 +1,7 @@
 package co.smartreceipts.android.purchases.wallet;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.Collection;
 
@@ -16,6 +17,15 @@ public interface PurchaseWallet {
      * @return {@code true} if it's both owned and active. {@code false} otherwise
      */
     boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase);
+
+    /**
+     * Fetches the {@link ManagedProduct} that is associated with a particular {@link InAppPurchase}
+     *
+     * @param inAppPurchase - the {@link InAppPurchase} to look for
+     * @return the corresponding {@link ManagedProduct} of {@code null} if this item is unowned
+     */
+    @Nullable
+    ManagedProduct getManagedProduct(@NonNull InAppPurchase inAppPurchase);
 
     /**
      * Adds a new purchase to our existing wallet

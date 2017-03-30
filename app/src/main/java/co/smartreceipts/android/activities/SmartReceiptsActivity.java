@@ -23,8 +23,8 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
 import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.purchases.PurchaseEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
@@ -39,7 +39,7 @@ import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import wb.android.flex.Flex;
 
-public class SmartReceiptsActivity extends WBActivity implements Attachable, SubscriptionEventsListener {
+public class SmartReceiptsActivity extends WBActivity implements Attachable, PurchaseEventsListener {
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";

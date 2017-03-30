@@ -8,7 +8,7 @@ import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 
-public interface SubscriptionEventsListener {
+public interface PurchaseEventsListener {
 
     /**
      * Called if we successfully completed a purchase

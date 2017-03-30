@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
@@ -48,6 +49,12 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
     @Override
     public synchronized boolean hasActivePurchase(@NonNull InAppPurchase inAppPurchase) {
         return ownedInAppPurchasesMap.containsKey(inAppPurchase);
+    }
+
+    @Nullable
+    @Override
+    public synchronized ManagedProduct getManagedProduct(@NonNull InAppPurchase inAppPurchase) {
+        return ownedInAppPurchasesMap.get(inAppPurchase);
     }
 
     @Override

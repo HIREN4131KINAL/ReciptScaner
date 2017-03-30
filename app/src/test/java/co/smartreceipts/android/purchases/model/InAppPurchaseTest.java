@@ -18,7 +18,7 @@ public class InAppPurchaseTest {
         assertEquals(InAppPurchase.SmartReceiptsPlus.getType(), Subscription.class);
         assertEquals(InAppPurchase.SmartReceiptsPlus.getProductType(), "subs");
 
-        assertEquals(InAppPurchase.OcrScans50.getSku(), "TODO_OCR_TODO");
+        assertEquals(InAppPurchase.OcrScans50.getSku(), "ocr_purchase_1");
         assertEquals(InAppPurchase.OcrScans50.getType(), ConsumablePurchase.class);
         assertEquals(InAppPurchase.OcrScans50.getProductType(), "inapp");
     }
@@ -26,12 +26,12 @@ public class InAppPurchaseTest {
     @Test
     public void from() {
         assertEquals(InAppPurchase.SmartReceiptsPlus, InAppPurchase.from("pro_sku_3"));
-        assertEquals(InAppPurchase.OcrScans50, InAppPurchase.from("TODO_OCR_TODO"));
+        assertEquals(InAppPurchase.OcrScans50, InAppPurchase.from("ocr_purchase_1"));
     }
 
     @Test
     public void getConsumablePurchaseSkus() {
-        final List<String> purchases = Collections.singletonList("TODO_OCR_TODO");
+        final List<String> purchases = Collections.singletonList("ocr_purchase_1");
         assertEquals(InAppPurchase.getConsumablePurchaseSkus(), purchases);
     }
 

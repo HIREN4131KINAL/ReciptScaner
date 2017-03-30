@@ -16,6 +16,7 @@ import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
+import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
@@ -33,37 +34,44 @@ import rx.schedulers.Schedulers;
 public class OcrInteractor {
 
     private static final String OCR_FOLDER = "ocr/";
-    private static final String PART_NAME = "file";
 
     private final Context context;
     private final S3Manager s3Manager;
     private final IdentityManager identityManager;
-    private final PushManager pushManager;
     private final ServiceManager ocrServiceManager;
+    private final PushManager pushManager;
+    private final OcrPurchaseTracker ocrPurchaseTracker;
     private final OcrPushMessageReceiver pushMessageReceiver;
     private final Feature ocrFeature;
 
-    public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager, @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager) {
-        this(context, s3Manager, identityManager, pushManager, serviceManager, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
+    public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
+                         @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker) {
+        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
-    OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager, @NonNull PushManager pushManager,
-                  @NonNull ServiceManager serviceManager, @NonNull OcrPushMessageReceiver pushMessageReceiver, @NonNull Feature ocrFeature) {
+    OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
+                  @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
+                  @NonNull OcrPushMessageReceiver pushMessageReceiver, @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
         this.identityManager = Preconditions.checkNotNull(identityManager);
-        this.pushManager = Preconditions.checkNotNull(pushManager);
         this.ocrServiceManager = Preconditions.checkNotNull(serviceManager);
+        this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
+        this.pushManager = Preconditions.checkNotNull(pushManager);
         this.pushMessageReceiver = Preconditions.checkNotNull(pushMessageReceiver);
         this.ocrFeature = Preconditions.checkNotNull(ocrFeature);
+    }
+
+    public void initialize() {
+        ocrPurchaseTracker.initialize();
     }
 
     @NonNull
     public Observable<OcrResponse> scan(@NonNull File file) {
         Preconditions.checkNotNull(file);
 
-        if (ocrFeature.isEnabled() && identityManager.isLoggedIn()) {
+        if (ocrFeature.isEnabled() && identityManager.isLoggedIn() && ocrPurchaseTracker.hasAvailableScans()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
             return s3Manager.upload(file, OCR_FOLDER)
                     .subscribeOn(Schedulers.io())
@@ -101,7 +109,7 @@ public class OcrInteractor {
                         }
                     });
         } else {
-            Logger.debug(OcrInteractor.this, "Ocr is disabled or we're not signed in. Ignoring scan");
+            Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
             return Observable.just(new OcrResponse());
         }
     }

@@ -29,6 +29,7 @@ import co.smartreceipts.android.aws.cognito.CognitoManager;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
@@ -134,7 +135,8 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         cognitoManager = new CognitoManager(this, mIdentityManager);
         cognitoManager.initialize();
 
-        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), mIdentityManager, serviceManager, pushManager);
+        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), mIdentityManager, serviceManager, pushManager, new OcrPurchaseTracker(this, serviceManager, purchaseManager, purchaseWallet));
+        ocrInteractor.initialize();
 
         PDFBoxResourceLoader.init(getApplicationContext());
 

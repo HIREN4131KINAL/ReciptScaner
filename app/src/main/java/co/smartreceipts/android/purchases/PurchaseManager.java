@@ -73,7 +73,7 @@ public final class PurchaseManager {
     private final Context context;
     private final PurchaseWallet purchaseWallet;
     private final Analytics analytics;
-    private final CopyOnWriteArrayList<SubscriptionEventsListener> listeners;
+    private final CopyOnWriteArrayList<PurchaseEventsListener> listeners;
     private final String sessionDeveloperPayload;
     private final RxInAppBillingServiceConnection rxInAppBillingServiceConnection;
     private final Scheduler subscribeOnScheduler;
@@ -106,7 +106,7 @@ public final class PurchaseManager {
      * @param listener the listener to register
      * @return {@code true} if it was successfully registered. {@code false} otherwise
      */
-    public boolean addEventListener(@NonNull SubscriptionEventsListener listener) {
+    public boolean addEventListener(@NonNull PurchaseEventsListener listener) {
         return listeners.add(listener);
     }
 
@@ -116,7 +116,7 @@ public final class PurchaseManager {
      * @param listener the listener to unregister
      * @return {@code true} if it was successfully unregistered. {@code false} otherwise
      */
-    public boolean removeEventListener(@NonNull SubscriptionEventsListener listener) {
+    public boolean removeEventListener(@NonNull PurchaseEventsListener listener) {
         return listeners.remove(listener);
     }
 
@@ -233,11 +233,11 @@ public final class PurchaseManager {
                         final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
                         if (inAppPurchase != null) {
                             purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseData, inAppDataSignature).get());
-                            for (final SubscriptionEventsListener listener : listeners) {
+                            for (final PurchaseEventsListener listener : listeners) {
                                 listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
                             }
                         } else {
-                            for (final SubscriptionEventsListener listener : listeners) {
+                            for (final PurchaseEventsListener listener : listeners) {
                                 listener.onPurchaseFailed(mPurchaseSource);
                             }
                             Logger.warn(PurchaseManager.this, "Retrieved an unknown subscription code following a successful purchase: " + sku);
@@ -245,13 +245,13 @@ public final class PurchaseManager {
                     }
                 } catch (JSONException e) {
                     Logger.error(PurchaseManager.this, "Failed to find purchase information", e);
-                    for (final SubscriptionEventsListener listener : listeners) {
+                    for (final PurchaseEventsListener listener : listeners) {
                         listener.onPurchaseFailed(purchaseSource);
                     }
                 }
             } else {
                 Logger.warn(PurchaseManager.this, "Unexpected {resultCode, responseCode} pair: {" + resultCode + ", " + responseCode + "}");
-                for (final SubscriptionEventsListener listener : listeners) {
+                for (final PurchaseEventsListener listener : listeners) {
                     listener.onPurchaseFailed(purchaseSource);
                 }
             }

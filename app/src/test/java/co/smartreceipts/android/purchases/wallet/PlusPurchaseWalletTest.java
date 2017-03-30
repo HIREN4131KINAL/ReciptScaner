@@ -15,11 +15,15 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.util.Collections;
 
+import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
+import co.smartreceipts.android.purchases.model.Subscription;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -35,8 +39,9 @@ public class PlusPurchaseWalletTest {
 
     SharedPreferences preferences;
 
-    @Mock
     ManagedProduct managedProduct;
+
+    ManagedProduct plusManagedProduct;
 
     @Before
     public void setUp() throws Exception {
@@ -47,17 +52,15 @@ public class PlusPurchaseWalletTest {
         purchaseData.put("autoRenewing", true);
         purchaseData.put("orderId", "orderId");
         purchaseData.put("packageName", "co.smartreceipts.android");
-        purchaseData.put("productId", InAppPurchase.SmartReceiptsPlus.getSku());
+        purchaseData.put("productId", InAppPurchase.OcrScans50.getSku());
         purchaseData.put("purchaseTime", 1234567890123L);
         purchaseData.put("purchaseState", 0);
         purchaseData.put("developerPayload", "1234567890");
         purchaseData.put("purchaseToken", PURCHASE_TOKEN);
         this.purchaseData = purchaseData.toString();
 
-        when(managedProduct.getInAppPurchase()).thenReturn(InAppPurchase.OcrScans50);
-        when(managedProduct.getPurchaseData()).thenReturn(this.purchaseData);
-        when(managedProduct.getPurchaseToken()).thenReturn(PURCHASE_TOKEN);
-        when(managedProduct.getInAppDataSignature()).thenReturn(IN_APP_DATA_SIGNATURE);
+        managedProduct = new ConsumablePurchase(InAppPurchase.OcrScans50, this.purchaseData, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
+        plusManagedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, "", "", "");
 
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
         plusPurchaseWallet = new PlusPurchaseWallet(preferences);
@@ -71,7 +74,9 @@ public class PlusPurchaseWalletTest {
     @Test
     public void emptyPurchases() {
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
         assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
     }
 
     @Test
@@ -79,10 +84,13 @@ public class PlusPurchaseWalletTest {
         plusPurchaseWallet.addPurchaseToWallet(managedProduct);
 
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(managedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
-        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseData", null), this.purchaseData);
-        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
+        assertEquals(preferences.getString("ocr_purchase_1_purchaseData", null), this.purchaseData);
+        assertEquals(preferences.getString("ocr_purchase_1_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
@@ -91,9 +99,10 @@ public class PlusPurchaseWalletTest {
 
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
-        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseData", null), this.purchaseData);
-        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
+        assertEquals(preferences.getString("ocr_purchase_1_purchaseData", null), this.purchaseData);
+        assertEquals(preferences.getString("ocr_purchase_1_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
@@ -101,9 +110,13 @@ public class PlusPurchaseWalletTest {
         plusPurchaseWallet.removePurchaseFromWallet(InAppPurchase.OcrScans50);
 
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
+        assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.<String>emptySet());
-        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseData"));
-        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
+        assertFalse(preferences.contains("ocr_purchase_1_purchaseData"));
+        assertFalse(preferences.contains("ocr_purchase_1_inAppDataSignature"));
     }
 
     @Test
@@ -112,12 +125,18 @@ public class PlusPurchaseWalletTest {
         final PurchaseWallet newWallet = new PlusPurchaseWallet(preferences);
 
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, newWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
+
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(managedProduct, newWallet.getManagedProduct(InAppPurchase.OcrScans50));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertEquals(managedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.singleton(InAppPurchase.OcrScans50.getSku()));
-        assertEquals(preferences.getString("TODO_OCR_TODO_purchaseData", null), this.purchaseData);
-        assertEquals(preferences.getString("TODO_OCR_TODO_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
+        assertEquals(preferences.getString("ocr_purchase_1_purchaseData", null), this.purchaseData);
+        assertEquals(preferences.getString("ocr_purchase_1_inAppDataSignature", null), IN_APP_DATA_SIGNATURE);
     }
 
     @Test
@@ -130,12 +149,18 @@ public class PlusPurchaseWalletTest {
         final PurchaseWallet newWallet = new PlusPurchaseWallet(preferences);
 
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, newWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
+
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(newWallet.getManagedProduct(InAppPurchase.OcrScans50));
         assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
-        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseData"));
-        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
+        assertFalse(preferences.contains("ocr_purchase_1_purchaseData"));
+        assertFalse(preferences.contains("ocr_purchase_1_inAppDataSignature"));
     }
 
     @Test
@@ -146,12 +171,18 @@ public class PlusPurchaseWalletTest {
         final PurchaseWallet newWallet = new PlusPurchaseWallet(preferences);
 
         assertTrue(newWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, newWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
         assertTrue(plusPurchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus));
+        assertEquals(plusManagedProduct, plusPurchaseWallet.getManagedProduct(InAppPurchase.SmartReceiptsPlus));
+
         assertFalse(newWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(newWallet.getManagedProduct(InAppPurchase.OcrScans50));
         assertFalse(plusPurchaseWallet.hasActivePurchase(InAppPurchase.OcrScans50));
+        assertNull(plusPurchaseWallet.getManagedProduct(InAppPurchase.OcrScans50));
+
         assertEquals(preferences.getStringSet("key_sku_set", Collections.<String>emptySet()), Collections.emptySet());
-        assertFalse(preferences.contains("TODO_OCR_TODO_purchaseData"));
-        assertFalse(preferences.contains("TODO_OCR_TODO_inAppDataSignature"));
+        assertFalse(preferences.contains("ocr_purchase_1_purchaseData"));
+        assertFalse(preferences.contains("ocr_purchase_1_inAppDataSignature"));
     }
 
 }

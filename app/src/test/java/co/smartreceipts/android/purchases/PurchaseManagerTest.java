@@ -95,7 +95,7 @@ public class PurchaseManagerTest {
     ConsumablePurchase consumablePurchase;
 
     @Mock
-    SubscriptionEventsListener listener1, listener2, listener3;
+    PurchaseEventsListener listener1, listener2, listener3;
 
     @Captor
     ArgumentCaptor<Bundle> bundleCaptor;

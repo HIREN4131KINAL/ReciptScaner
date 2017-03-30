@@ -27,15 +27,15 @@ import co.smartreceipts.android.analytics.AnalyticsManager;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
+import co.smartreceipts.android.purchases.PurchaseEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.SubscriptionEventsListener;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 
 @ApplicationScope
-public class FreeAdManager implements AdManager, SubscriptionEventsListener {
+public class FreeAdManager implements AdManager, PurchaseEventsListener {
 
     private static final int RANDOM_MAX = 100;
     private static final int UPSELL_FREQUENCY = 1; // Out of 100

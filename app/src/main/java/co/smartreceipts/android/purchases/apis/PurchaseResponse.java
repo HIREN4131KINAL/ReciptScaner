@@ -1,5 +1,7 @@
 package co.smartreceipts.android.purchases.apis;
 
+import com.google.gson.Gson;
+
 public class PurchaseResponse {
 
     private MobileAppPurchase mobile_app_purchase;
@@ -13,5 +15,10 @@ public class PurchaseResponse {
         private long purchase_time;
         private String status;
         private long created_at;
+    }
+
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
     }
 }

@@ -234,7 +234,7 @@ public final class PurchaseManager {
                         if (inAppPurchase != null) {
                             purchaseWallet.addPurchaseToWallet(new ManagedProductFactory(inAppPurchase, purchaseData, inAppDataSignature).get());
                             for (final PurchaseEventsListener listener : listeners) {
-                                listener.onPurchaseSuccess(inAppPurchase, purchaseSource, purchaseWallet);
+                                listener.onPurchaseSuccess(inAppPurchase, purchaseSource);
                             }
                         } else {
                             for (final PurchaseEventsListener listener : listeners) {

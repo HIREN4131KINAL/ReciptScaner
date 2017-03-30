@@ -15,9 +15,8 @@ public interface PurchaseEventsListener {
      *
      * @param inAppPurchase the new subscription that we purchased
      * @param purchaseSource where the purchase flow was initiated
-     * @param updatedPurchaseWallet the updated subscription wallet
      */
-    void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet);
+    void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource);
 
     /**
      * Called if we failed to complete a purchase

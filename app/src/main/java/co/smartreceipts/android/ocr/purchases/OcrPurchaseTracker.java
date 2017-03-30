@@ -54,7 +54,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
+    public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
         if (inAppPurchase == InAppPurchase.OcrScans50) {
             final ManagedProduct managedProduct = purchaseWallet.getManagedProduct(InAppPurchase.OcrScans50);
             if (managedProduct instanceof ConsumablePurchase) {

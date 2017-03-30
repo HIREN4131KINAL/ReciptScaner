@@ -189,7 +189,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
     }
 
     @Override
-    public synchronized void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
+    public synchronized void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
         Logger.info(this, "Received purchase success in our ad manager for: {}", inAppPurchase);
         if (InAppPurchase.SmartReceiptsPlus == inAppPurchase) {
             final NativeExpressAdView adView = mAdViewReference.get();

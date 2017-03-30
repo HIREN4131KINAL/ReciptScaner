@@ -242,7 +242,7 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
+    public void onPurchaseSuccess(@NonNull final InAppPurchase inAppPurchase, @NonNull final PurchaseSource purchaseSource) {
         getSmartReceiptsApplication().getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override

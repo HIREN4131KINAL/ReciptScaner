@@ -409,7 +409,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
-    public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatePurchaseWallet) {
+    public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
         ((SmartReceiptsApplication) getApplication()).getAnalyticsManager().record(new DefaultDataPointEvent(Events.Purchases.PurchaseSuccess).addDataPoint(new DataPoint("sku", inAppPurchase.getSku())).addDataPoint(new DataPoint("source", purchaseSource)));
         runOnUiThread(new Runnable() {
             @Override

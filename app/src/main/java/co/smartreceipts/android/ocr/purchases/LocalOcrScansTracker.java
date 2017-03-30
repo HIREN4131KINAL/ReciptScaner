@@ -8,18 +8,18 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
-class OcrScansTracker {
+class LocalOcrScansTracker {
 
     private static final String KEY_AVAILABLE_SCANS = "key_int_available_ocr_scans";
 
     private final SharedPreferences sharedPreferences;
 
-    public OcrScansTracker(@NonNull Context context) {
+    public LocalOcrScansTracker(@NonNull Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 
     @VisibleForTesting
-    OcrScansTracker(@NonNull SharedPreferences sharedPreferences) {
+    LocalOcrScansTracker(@NonNull SharedPreferences sharedPreferences) {
         this.sharedPreferences = Preconditions.checkNotNull(sharedPreferences);
     }
 

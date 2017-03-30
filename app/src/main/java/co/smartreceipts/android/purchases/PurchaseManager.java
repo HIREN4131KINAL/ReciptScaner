@@ -51,7 +51,7 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-public final class PurchaseManager {
+public class PurchaseManager {
 
     public static final int REQUEST_CODE = 5435;
 

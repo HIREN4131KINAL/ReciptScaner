@@ -13,17 +13,17 @@ import org.robolectric.RuntimeEnvironment;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-public class OcrScansTrackerTest {
+public class LocalOcrScansTrackerTest {
 
     // Class under test
-    OcrScansTracker ocrScansTracker;
+    LocalOcrScansTracker localOcrScansTracker;
 
     SharedPreferences preferences;
 
     @Before
     public void setUp() {
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
-        ocrScansTracker = new OcrScansTracker(preferences);
+        localOcrScansTracker = new LocalOcrScansTracker(preferences);
     }
 
     @After
@@ -33,26 +33,26 @@ public class OcrScansTrackerTest {
 
     @Test
     public void getRemainingScans() {
-        assertEquals(0, ocrScansTracker.getRemainingScans());
+        assertEquals(0, localOcrScansTracker.getRemainingScans());
     }
 
     @Test
     public void setRemainingScans() {
-        ocrScansTracker.setRemainingScans(50);
-        assertEquals(50, ocrScansTracker.getRemainingScans());
+        localOcrScansTracker.setRemainingScans(50);
+        assertEquals(50, localOcrScansTracker.getRemainingScans());
     }
 
     @Test
     public void decrementRemainingScans() {
-        ocrScansTracker.setRemainingScans(50);
-        ocrScansTracker.decrementRemainingScans();
-        assertEquals(49, ocrScansTracker.getRemainingScans());
+        localOcrScansTracker.setRemainingScans(50);
+        localOcrScansTracker.decrementRemainingScans();
+        assertEquals(49, localOcrScansTracker.getRemainingScans());
     }
 
     @Test
     public void decrementRemainingDoesntGoNegative() {
-        ocrScansTracker.decrementRemainingScans();
-        assertEquals(0, ocrScansTracker.getRemainingScans());
+        localOcrScansTracker.decrementRemainingScans();
+        assertEquals(0, localOcrScansTracker.getRemainingScans());
     }
 
 }

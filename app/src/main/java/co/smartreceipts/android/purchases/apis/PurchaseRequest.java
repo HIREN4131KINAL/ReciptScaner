@@ -18,7 +18,11 @@ public class PurchaseRequest {
     public PurchaseRequest(@NonNull ManagedProduct managedProduct, @NonNull String goal) {
         this.signature = Preconditions.checkNotNull(managedProduct.getInAppDataSignature());
         this.goal = Preconditions.checkNotNull(goal);
-        this.receipt = new JsonParser().parse(Preconditions.checkNotNull(managedProduct.getPurchaseData())).getAsJsonObject();
+        try {
+            this.receipt = new JsonParser().parse(Preconditions.checkNotNull(managedProduct.getPurchaseData())).getAsJsonObject();
+        } catch (IllegalStateException e) {
+            this.receipt = new JsonObject();
+        }
         this.pay_service = "Google Play";
     }
 

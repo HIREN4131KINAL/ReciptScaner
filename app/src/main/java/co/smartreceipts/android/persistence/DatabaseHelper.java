@@ -72,6 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     private final ReceiptColumnDefinitions mReceiptColumnDefinitions;
 
     // Other vars
+    private final Context mContext;
     private final TableDefaultsCustomizer mCustomizations;
     private final UserPreferenceManager mPreferences;
     private final StorageManager mStorageManager;
@@ -106,6 +107,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
                           WhiteLabelFriendlyTableDefaultsCustomizer tableDefaultsCustomizer) {
         super(context, databasePath, null, DATABASE_VERSION); // Requests the default cursor
 
+        mContext = context;
         mPreferences = preferences;
         mStorageManager = storageManager;
         mReceiptColumnDefinitions = receiptColumnDefinitions; //new ReceiptColumnDefinitions(mContext, mPersistenceManager.getPreferenceManager(), tmpFlex);
@@ -157,6 +159,9 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     // //////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public void onCreate(final SQLiteDatabase db) {
+        Logger.info(this, "onCreate");
+        Logger.info(this, "Clearing out our clear-able preferences to avoid any syncing issues due if our data was only partially wiped");
+        SharedPreferenceDefinitions.clearPreferencesThatCanBeCleared(mContext);
         for (final Table table : mTables) {
             table.onCreate(db, mCustomizations);
         }
@@ -169,6 +174,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
 
     @Override
     public final void onUpgrade(final SQLiteDatabase db, int oldVersion, final int newVersion) {
+        Logger.info(this, "onCreate from {} to {}.", oldVersion, newVersion);
 
         for (final Table table : mTables) {
             table.onUpgrade(db, oldVersion, newVersion, mCustomizations);

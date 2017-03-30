@@ -19,7 +19,22 @@
         android:largeHeap="true"
         android:logo="@drawable/logo"
         android:name=".SmartReceiptsApplication"
-        android:allowBackup="true">
+        android:allowBackup="false">
+
+        <!--
+            Please note that we explicitly disable allowBackup for auto-backup above:
+            https://developer.android.com/guide/topics/data/autobackup.html
+            Here's why:
+            1. Backups have a 25MB quota. Because SmartReceipts saves images, it will quickly exceed this
+            2. We can break our native syncing solution as follows:
+                 - The user uploads the database and Google Drive metadata
+                 - The user uninstalls and restores the app
+                 - In some situations, shared preferences will be synced but not the database (eg if we're at the 25MB quota)
+                 - As a result, we attempt to restore the drive metadata and an empty database. We then upload
+                   the empty database, which causes the user to lose his/her data.
+                 - While this can be disabled via a "my_backup_rules.xml" definition, the 25MB quota is going to cause
+                   us issues anyway. As a result, I'm disabling this entirely
+        -->
 
         <activity android:name=".activities.SmartReceiptsActivity"
                   android:label="@string/sr_app_name"

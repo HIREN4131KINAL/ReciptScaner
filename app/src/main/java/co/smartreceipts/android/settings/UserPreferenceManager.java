@@ -29,7 +29,7 @@ import rx.schedulers.Schedulers;
 @ApplicationScope
 public class UserPreferenceManager {
 
-    public static final String PREFERENCES_FILE_NAME = SharedPreferenceDefinitions.SmartReceipts_Preferences.toString();
+    public static final String PREFERENCES_FILE_NAME = SharedPreferenceDefinitions.SmartReceiptsCoreSettings.toString();
 
     private final Context context;
 

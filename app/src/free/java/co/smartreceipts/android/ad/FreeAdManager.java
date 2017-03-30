@@ -41,7 +41,7 @@ public class FreeAdManager implements AdManager, PurchaseEventsListener {
     private static final int UPSELL_FREQUENCY = 1; // Out of 100
 
     //Preference Identifiers - SubClasses Only
-    private static final String AD_PREFERENECES = SharedPreferenceDefinitions.Subclass_Preferences.toString();
+    private static final String AD_PREFERENECES = SharedPreferenceDefinitions.SubclassAds.toString();
     private static final String SHOW_AD = "pref1";
 
     private final PurchaseWallet purchaseWallet;

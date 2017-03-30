@@ -11,7 +11,7 @@ import co.smartreceipts.android.model.Trip;
 
 public class LastTripController {
 
-    private static final String PREFERENCES_FILENAME = SharedPreferenceDefinitions.ReceiptFragment_Preferences.toString();
+    private static final String PREFERENCES_FILENAME = SharedPreferenceDefinitions.LastTripTracker.toString();
     private static final String PREFERENCE_TRIP_NAME = "tripName";
 
     private final Context mContext;

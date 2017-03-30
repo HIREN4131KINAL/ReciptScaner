@@ -46,8 +46,9 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     public void initialize() {
         this.purchaseManager.addEventListener(this);
         final ManagedProduct managedProduct = purchaseWallet.getManagedProduct(InAppPurchase.OcrScans50);
-        Preconditions.checkArgument(managedProduct instanceof ConsumablePurchase, "OcrScans50 must be a ConsumablePurchase");
-        uploadOcrPurchase((ConsumablePurchase) managedProduct);
+        if (managedProduct instanceof ConsumablePurchase) {
+            uploadOcrPurchase((ConsumablePurchase) managedProduct);
+        }
 
         // TODO: Get the most accurate amount of scans (currently available) and persist
     }
@@ -56,8 +57,9 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource, @NonNull PurchaseWallet updatedPurchaseWallet) {
         if (inAppPurchase == InAppPurchase.OcrScans50) {
             final ManagedProduct managedProduct = purchaseWallet.getManagedProduct(InAppPurchase.OcrScans50);
-            Preconditions.checkArgument(managedProduct instanceof ConsumablePurchase, "OcrScans50 must be a ConsumablePurchase");
-            uploadOcrPurchase((ConsumablePurchase) managedProduct);
+            if (managedProduct instanceof ConsumablePurchase) {
+                uploadOcrPurchase((ConsumablePurchase) managedProduct);
+            }
         }
     }
 

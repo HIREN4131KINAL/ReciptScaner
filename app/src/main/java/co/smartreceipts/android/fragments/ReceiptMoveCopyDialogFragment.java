@@ -2,6 +2,7 @@ package co.smartreceipts.android.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,18 +18,24 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
+import dagger.android.support.AndroidSupportInjection;
 
 public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dialog.OnClickListener {
 
     public static final String TAG = ReceiptMoveCopyDialogFragment.class.getSimpleName();
+
+    @Inject
+    TableControllerManager tableControllerManager;
 
     private Receipt mReceipt;
     private ReceiptTableController mReceiptTableController;
@@ -45,13 +52,18 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
     }
 
     @Override
+    public void onAttach(Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final SmartReceiptsApplication app = ((SmartReceiptsApplication) getActivity().getApplication());
         mReceipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
         mTripTableEventsListener = new UpdateAdapterTrips();
-        mTripTableController = app.getTableControllerManager().getTripTableController();
-        mReceiptTableController = app.getTableControllerManager().getReceiptTableController();
+        mTripTableController = tableControllerManager.getTripTableController();
+        mReceiptTableController = tableControllerManager.getReceiptTableController();
     }
 
     @NonNull

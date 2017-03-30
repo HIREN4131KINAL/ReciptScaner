@@ -101,8 +101,8 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         void onReceiptRowAutoCompleteQueryResult(@Nullable String name, @Nullable String price, @Nullable String category);
     }
 
-    public DatabaseHelper(@NonNull Context context, /*@NonNull PersistenceManager persistenceManager,*/
-                          @NonNull StorageManager storageManager, @NonNull UserPreferenceManager preferences,
+    public DatabaseHelper(@NonNull Context context, @NonNull StorageManager storageManager,
+                          @NonNull UserPreferenceManager preferences,
                           @NonNull String databasePath, ReceiptColumnDefinitions receiptColumnDefinitions,
                           WhiteLabelFriendlyTableDefaultsCustomizer tableDefaultsCustomizer) {
         super(context, databasePath, null, DATABASE_VERSION); // Requests the default cursor

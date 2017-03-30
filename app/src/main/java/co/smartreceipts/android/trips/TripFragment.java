@@ -36,6 +36,7 @@ import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -59,6 +60,8 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     PersistenceManager persistenceManager;
     @Inject
     Analytics analytics;
+    @Inject
+    TableControllerManager tableControllerManager;
 
     private TripTableController tripTableController;
     private TripFragmentPresenter presenter;
@@ -96,7 +99,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        tripTableController = getSmartReceiptsApplication().getTableControllerManager().getTripTableController();
+        tripTableController = tableControllerManager.getTripTableController();
         tripCardAdapter = new TripCardAdapter(getActivity(), persistenceManager.getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
         if (savedInstanceState == null) {
             navigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);

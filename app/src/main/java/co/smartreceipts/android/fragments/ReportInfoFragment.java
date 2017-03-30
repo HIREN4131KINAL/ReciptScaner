@@ -29,6 +29,7 @@ import co.smartreceipts.android.adapters.TripFragmentPagerAdapter;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.widget.errors.SyncErrorFragment;
@@ -43,6 +44,8 @@ public class ReportInfoFragment extends WBFragment {
 
     @Inject
     ConfigurationManager configurationManager;
+    @Inject
+    TableControllerManager tableControllerManager;
 
     private NavigationHandler mNavigationHandler;
     private LastTripController mLastTripController;
@@ -160,12 +163,12 @@ public class ReportInfoFragment extends WBFragment {
             }
         }
         updateActionBarTitlePrice();
-        getSmartReceiptsApplication().getTableControllerManager().getTripTableController().subscribe(mActionBarTitleUpdatesListener);
+        tableControllerManager.getTripTableController().subscribe(mActionBarTitleUpdatesListener);
     }
 
     @Override
     public void onPause() {
-        getSmartReceiptsApplication().getTableControllerManager().getTripTableController().unsubscribe(mActionBarTitleUpdatesListener);
+        tableControllerManager.getTripTableController().unsubscribe(mActionBarTitleUpdatesListener);
         mLastTripController.setLastTrip(mTrip);
         super.onPause();
     }

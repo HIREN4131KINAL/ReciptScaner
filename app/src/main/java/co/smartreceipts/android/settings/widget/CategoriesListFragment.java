@@ -1,6 +1,7 @@
 package co.smartreceipts.android.settings.widget;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.database.SQLException;
 import android.os.Bundle;
@@ -25,18 +26,25 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.model.Category;
 import co.smartreceipts.android.model.factory.CategoryBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.CategoriesTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import dagger.android.support.AndroidSupportInjection;
 import wb.android.dialog.BetterDialogBuilder;
 
 public class CategoriesListFragment extends WBFragment implements View.OnClickListener, TableEventsListener<Category> {
 
 	public static String TAG = "CategoriesListFragment";
+
+	@Inject
+	TableControllerManager tableControllerManager;
 
 	private BaseAdapter mAdapter;
     private Toolbar mToolbar;
@@ -50,9 +58,15 @@ public class CategoriesListFragment extends WBFragment implements View.OnClickLi
 	}
 
 	@Override
+	public void onAttach(Context context) {
+		AndroidSupportInjection.inject(this);
+		super.onAttach(context);
+	}
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        mTableController = getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController();
+        mTableController = tableControllerManager.getCategoriesTableController();
         mAdapter = getAdapter();
 		mCategories = new ArrayList<>();
 		setHasOptionsMenu(true);

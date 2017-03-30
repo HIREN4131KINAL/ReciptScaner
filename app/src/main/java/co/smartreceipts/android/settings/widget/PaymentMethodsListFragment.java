@@ -1,6 +1,7 @@
 package co.smartreceipts.android.settings.widget;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
@@ -8,21 +9,34 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.PaymentMethod;
 import co.smartreceipts.android.model.factory.PaymentMethodBuilderFactory;
 import co.smartreceipts.android.persistence.database.controllers.TableController;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import dagger.android.support.AndroidSupportInjection;
 import wb.android.dialog.fragments.EditTextDialogFragment;
 
 public class PaymentMethodsListFragment extends SimpleInsertableListFragment<PaymentMethod> implements View.OnClickListener {
 
 	public static final String TAG = PaymentMethodsListFragment.class.getSimpleName();
+
+	@Inject
+	TableControllerManager tableControllerManager;
 	
 	public static PaymentMethodsListFragment newInstance() {
 		return new PaymentMethodsListFragment();
 	}
-	
+
+	@Override
+	public void onAttach(Context context) {
+		AndroidSupportInjection.inject(this);
+		super.onAttach(context);
+	}
+
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -45,7 +59,7 @@ public class PaymentMethodsListFragment extends SimpleInsertableListFragment<Pay
 
     @Override
     protected TableController<PaymentMethod> getTableController() {
-        return getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController();
+        return tableControllerManager.getPaymentMethodsTableController();
     }
 
     @Override

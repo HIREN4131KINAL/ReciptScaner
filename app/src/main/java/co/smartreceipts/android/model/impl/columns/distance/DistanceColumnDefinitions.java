@@ -59,7 +59,8 @@ public final class DistanceColumnDefinitions implements ColumnDefinitions<Distan
         this(context, persistenceManager.getDatabase(), persistenceManager.getPreferenceManager(), flex, allowSpecialCharacters);
     }
 
-    public DistanceColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db, @NonNull UserPreferenceManager preferences, Flex flex, boolean allowSpecialCharacters) {
+    public DistanceColumnDefinitions(@NonNull Context context, @NonNull DatabaseHelper db,
+                                     @NonNull UserPreferenceManager preferences, Flex flex, boolean allowSpecialCharacters) {
         mContext = context;
         mDB = db;
         mPreferences = preferences;

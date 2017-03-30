@@ -9,6 +9,7 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.utils.FileUtils;
@@ -19,6 +20,8 @@ public class TripCreateEditFragmentPresenter {
     TripCreateEditFragment fragment;
     @Inject
     Analytics analytics;
+    @Inject
+    TableControllerManager tableControllerManager;
 
     @Inject
     public TripCreateEditFragmentPresenter() {
@@ -53,8 +56,7 @@ public class TripCreateEditFragmentPresenter {
 
     public Trip saveTrip(File file, Date startDate, Date endDate, String defaultCurrency,
                          String comment, String costCenter) {
-        TripTableController tripTableController = fragment.getSmartReceiptsApplication()
-                .getTableControllerManager().getTripTableController();
+        TripTableController tripTableController = tableControllerManager.getTripTableController();
 
 
         if (fragment.getTrip() == null) { // Insert

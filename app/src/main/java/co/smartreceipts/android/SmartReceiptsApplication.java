@@ -78,10 +78,12 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     PushManager pushManager;
     @Inject
     CognitoManager cognitoManager;
+    @Inject
+    TableControllerManager tableControllerManager;
 
 
 //    private ConfigurationManager mConfigurationManager;
-    private TableControllerManager mTableControllerManager;
+//    private TableControllerManager mTableControllerManager;
 //    private AnalyticsManager mAnalyticsManager;
     private BackupProvidersManager mBackupProvidersManager;
 //    private NetworkManager mNetworkManager;
@@ -128,11 +130,11 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     private void init() {
-        mTableControllerManager = new TableControllerManager(persistenceManager, analytics,
-                receiptColumnDefinitions);
+//        mTableControllerManager = new TableControllerManager(persistenceManager, analytics,
+//                receiptColumnDefinitions);
 
         mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(),
-                getTableControllerManager(), networkManager, analytics);
+                tableControllerManager, networkManager, analytics);
 
         final MutableIdentityStore identityStore = new MutableIdentityStore(this);
         ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore,
@@ -171,11 +173,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath();
         System.setProperty("LOG_DIR", logDirPath);
-    }
-
-    @NonNull
-    public TableControllerManager getTableControllerManager() {
-        return mTableControllerManager;
     }
 
     @NonNull

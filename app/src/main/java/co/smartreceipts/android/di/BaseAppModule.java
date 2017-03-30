@@ -6,6 +6,8 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
+import co.smartreceipts.android.model.ColumnDefinitions;
+import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.WhiteLabelFriendlyTableDefaultsCustomizer;
@@ -70,4 +72,16 @@ public class BaseAppModule {
     public static AppRatingStorage provideAppRatingStorage(AppRatingPreferencesStorage storage) {
         return storage;
     }
+
+    @Provides
+    @co.smartreceipts.android.di.qualifiers.ReceiptColumnDefinitions
+    public static ColumnDefinitions<Receipt> provideColumnDefinitionReceipts(ReceiptColumnDefinitions receiptColumnDefinitions) {
+        return receiptColumnDefinitions;
+    }
+
+//    @Provides
+//    @co.smartreceipts.android.di.qualifiers.DistanceColumnDefinitions
+//    public static ColumnDefinitions<Distance> provideColumnDefinitionReceipts(DistanceColumnDefinitions distanceColumnDefinitions) {
+//        return distanceColumnDefinitions;
+//    }
 }

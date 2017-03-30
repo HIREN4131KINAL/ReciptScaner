@@ -15,7 +15,6 @@ import com.google.common.base.Preconditions;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -37,10 +36,11 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     PersistenceManager persistenceManager;
     @Inject
     Analytics analytics;
+    @Inject
+    private TableControllerManager tableControllerManager;
 
     private ManualBackupAndRestoreTaskCache manualBackupAndRestoreTaskCache;
     private Subscription subscription;
-    private TableControllerManager tableControllerManager;
 
     private Uri uri;
     private boolean overwrite;
@@ -66,7 +66,6 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
         setCancelable(false);
         uri = getArguments().getParcelable(ARG_SMR_URI);
         overwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        tableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
         Preconditions.checkNotNull(uri, "ImportBackupDialogFragment requires a valid SMR Uri");
     }
 

@@ -63,6 +63,7 @@ import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
+import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
@@ -101,6 +102,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     PurchaseWallet purchaseWallet;
     @Inject
     Analytics analytics;
+    @Inject
+    TableControllerManager tableControllerManager;
 
     // Metadata
     private Trip trip;
@@ -508,10 +511,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 }
             }
         };
-        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().subscribe(categoryTableEventsListener);
-        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().subscribe(paymentMethodTableEventsListener);
-        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().get();
-        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().get();
+        tableControllerManager.getCategoriesTableController().subscribe(categoryTableEventsListener);
+        tableControllerManager.getPaymentMethodsTableController().subscribe(paymentMethodTableEventsListener);
+        tableControllerManager.getCategoriesTableController().get();
+        tableControllerManager.getPaymentMethodsTableController().get();
     }
 
     @Override
@@ -685,8 +688,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     @Override
     public void onDestroy() {
-        getSmartReceiptsApplication().getTableControllerManager().getCategoriesTableController().unsubscribe(categoryTableEventsListener);
-        getSmartReceiptsApplication().getTableControllerManager().getPaymentMethodsTableController().unsubscribe(paymentMethodTableEventsListener);
+        tableControllerManager.getCategoriesTableController().unsubscribe(categoryTableEventsListener);
+        tableControllerManager.getPaymentMethodsTableController().unsubscribe(paymentMethodTableEventsListener);
         super.onDestroy();
     }
 
@@ -789,11 +792,11 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (isNewReceipt) {
             builderFactory.setFile(file);
             analytics.record(Events.Receipts.PersistNewReceipt);
-            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
+            tableControllerManager.getReceiptTableController().insert(builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         } else {
             analytics.record(Events.Receipts.PersistUpdateReceipt);
-            getSmartReceiptsApplication().getTableControllerManager().getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
+            tableControllerManager.getReceiptTableController().update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
             dateManager.setDateEditTextListenerDialogHolder(null);
         }
 

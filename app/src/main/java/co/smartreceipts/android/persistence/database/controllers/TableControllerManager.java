@@ -2,9 +2,11 @@ package co.smartreceipts.android.persistence.database.controllers;
 
 import android.support.annotation.NonNull;
 
-import com.google.common.base.Preconditions;
+import javax.inject.Inject;
 
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.di.qualifiers.ReceiptColumnDefinitions;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -16,8 +18,12 @@ import co.smartreceipts.android.persistence.database.controllers.impl.PaymentMet
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 
+@ApplicationScope
 public class TableControllerManager {
 
+    // TODO: 29.03.2017 dagger for fields. tcm is often used just for one get method
+    // tripTableController, distanceTableController, categoriesTC, CSVTableController, PDFTableController, RTC
+    
     private final TripTableController mTripTableController;
     private final ReceiptTableController mReceiptTableController;
     private final DistanceTableController mDistanceTableController;
@@ -26,12 +32,10 @@ public class TableControllerManager {
     private final PDFTableController mPDFTableController;
     private final PaymentMethodsTableController mPaymentMethodsTableController;
 
-    public TableControllerManager(@NonNull PersistenceManager persistenceManager,
-                                  @NonNull Analytics analytics,
-                                  @NonNull ColumnDefinitions<Receipt> receiptColumnDefinitions) {
-
-        Preconditions.checkNotNull(persistenceManager);
-        Preconditions.checkNotNull(receiptColumnDefinitions);
+    @Inject
+    public TableControllerManager(PersistenceManager persistenceManager,
+                                  Analytics analytics,
+                                  @ReceiptColumnDefinitions ColumnDefinitions<Receipt> receiptColumnDefinitions) {
 
         mTripTableController = new TripTableController(persistenceManager, analytics);
         mReceiptTableController = new ReceiptTableController(persistenceManager, analytics, mTripTableController);

@@ -40,12 +40,13 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     NetworkManager networkManager;
     @Inject
     Analytics analytics;
+    @Inject
+    TableControllerManager tableControllerManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private Subscription subscription;
 
     private RemoteBackupMetadata backupMetadata;
-    private TableControllerManager tableControllerManager;
     private boolean overwrite;
 
     public static ImportRemoteBackupWorkerProgressDialogFragment newInstance(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwrite) {
@@ -69,7 +70,6 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
         setCancelable(false);
         backupMetadata = getArguments().getParcelable(ARG_BACKUP_METADATA);
         overwrite = getArguments().getBoolean(ARG_OVERWRITE);
-        tableControllerManager = ((SmartReceiptsApplication) getActivity().getApplication()).getTableControllerManager();
         Preconditions.checkNotNull(backupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
 

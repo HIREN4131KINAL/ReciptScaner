@@ -325,6 +325,7 @@ public final class PurchaseManager {
      */
     @NonNull
     public Observable<Void> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
+        Logger.info(PurchaseManager.this, "Consuming the purchase of {}", consumablePurchase.getInAppPurchase());
         return rxInAppBillingServiceConnection.bindToInAppBillingService()
                 .flatMap(new Func1<IInAppBillingService, Observable<Void>>() {
                     @Override
@@ -335,6 +336,7 @@ public final class PurchaseManager {
                                 try {
                                     final int responseCode = inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken());
                                     if (BILLING_RESPONSE_CODE_OK == responseCode) {
+                                        Logger.info(PurchaseManager.this, "Successfully consumed the purchase of {}", consumablePurchase.getInAppPurchase());
                                         subscriber.onCompleted();
                                     } else {
                                         Logger.warn(PurchaseManager.this, "Received an unexpected response code, {}, for the consumption of this product.", responseCode);

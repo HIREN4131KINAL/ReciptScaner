@@ -7,6 +7,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.di.scopes.ApplicationScope;
+
+@ApplicationScope
 public final class MutableIdentityStore implements IdentityStore {
 
     private static final String KEY_EMAIL = "identity_email_address";
@@ -14,7 +19,8 @@ public final class MutableIdentityStore implements IdentityStore {
 
     private final SharedPreferences mSharedPreferences;
 
-    public MutableIdentityStore(@NonNull Context context) {
+    @Inject
+    public MutableIdentityStore(Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 

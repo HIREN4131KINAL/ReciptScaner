@@ -60,11 +60,12 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
     Analytics analytics;
     @Inject
     PurchaseManager purchaseManager;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
     private Attachment attachment;
-    private BackupProvidersManager backupProvidersManager;
     private CompositeSubscription compositeSubscription;
 
     @Override
@@ -87,7 +88,6 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
 
         adManager.onActivityCreated(this, purchaseManager);
 
-        backupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         backupProvidersManager.initialize(this);
     }
 

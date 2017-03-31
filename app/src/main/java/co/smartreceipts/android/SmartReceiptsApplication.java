@@ -2,7 +2,6 @@ package co.smartreceipts.android;
 
 import android.app.Activity;
 import android.app.Application;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 
 import com.squareup.leakcanary.LeakCanary;
@@ -38,7 +37,6 @@ import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
 import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
-import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
@@ -81,19 +79,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Inject
     TableControllerManager tableControllerManager;
 
-
-//    private ConfigurationManager mConfigurationManager;
-//    private TableControllerManager mTableControllerManager;
-//    private AnalyticsManager mAnalyticsManager;
-    private BackupProvidersManager mBackupProvidersManager;
-//    private NetworkManager mNetworkManager;
-//    private IdentityManager mIdentityManager;
-//    private PushManager pushManager;
-    private OcrInteractor ocrInteractor;
-//    private PurchaseManager purchaseManager;
-//    private CognitoManager cognitoManager;
     private AppComponent appComponent;
-
 
     @Override
     public void onCreate() {
@@ -111,8 +97,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         Logger.debug(this, "\n\n\n\n Launching App...");
 
         init();
-
-        extraInitializer.init();
     }
 
     public AppComponent getAppComponent() {
@@ -130,21 +114,9 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     }
 
     private void init() {
-//        mTableControllerManager = new TableControllerManager(persistenceManager, analytics,
-//                receiptColumnDefinitions);
-
-        mBackupProvidersManager = new BackupProvidersManager(this, persistenceManager.getDatabase(),
-                tableControllerManager, networkManager, analytics);
-
-        final MutableIdentityStore identityStore = new MutableIdentityStore(this);
-        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(identityStore,
-                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
-
 
         pushManager.initialize();
-
         purchaseManager.initialize(this);
-
         cognitoManager.initialize();
 
         //ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
@@ -168,21 +140,13 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         } else {
             LeakCanary.install(this);
         }
+
+        extraInitializer.init();
     }
 
     private void configureLog() {
         final String logDirPath = getFilesDir().getPath();
         System.setProperty("LOG_DIR", logDirPath);
-    }
-
-    @NonNull
-    public BackupProvidersManager getBackupProvidersManager() {
-        return mBackupProvidersManager;
-    }
-
-    @NonNull
-    public OcrInteractor getOcrInteractor() {
-        return ocrInteractor;
     }
 
     // This is called after _sdCard is available but before _db is

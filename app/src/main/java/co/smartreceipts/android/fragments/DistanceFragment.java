@@ -31,6 +31,7 @@ import co.smartreceipts.android.persistence.database.controllers.impl.DistanceTa
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 
@@ -40,6 +41,8 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
     UserPreferenceManager preferenceManager;
     @Inject
     DistanceTableController distanceTableController;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private Trip trip;
     private DistanceAdapter distanceAdapter;
@@ -63,7 +66,7 @@ public class DistanceFragment extends WBListFragment implements TripForeignKeyTa
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         distanceAdapter = new DistanceAdapter(getActivity(), preferenceManager,
-                getSmartReceiptsApplication().getBackupProvidersManager());
+                backupProvidersManager);
     }
 
 

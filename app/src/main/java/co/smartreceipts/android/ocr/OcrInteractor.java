@@ -9,9 +9,12 @@ import com.google.common.base.Preconditions;
 
 import java.io.File;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
@@ -31,6 +34,7 @@ import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+@ApplicationScope
 public class OcrInteractor {
 
     private static final String OCR_FOLDER = "ocr/";

@@ -1,6 +1,5 @@
 package co.smartreceipts.android.identity;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -14,8 +13,6 @@ import javax.inject.Inject;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ApiValidationException;
-import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
-import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
@@ -31,7 +28,6 @@ import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.identity.store.Token;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
@@ -57,18 +53,14 @@ public class IdentityManager implements IdentityStore {
     private Subject<LogoutResponse, LogoutResponse> logoutSubject;
 
     @Inject
-    public IdentityManager(Context context, ReceiptColumnDefinitions receiptColumnDefinitions,
-                           Analytics analytics,
-                           UserPreferenceManager userPreferenceManager) {
+    public IdentityManager(Analytics analytics,
+                           UserPreferenceManager userPreferenceManager,
+                           MutableIdentityStore mutableIdentityStore,
+                           ServiceManager serviceManager) {
 
-        final MutableIdentityStore mutableIdentityStore = new MutableIdentityStore(context);
-        ServiceManager serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
-                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
-
-        this.serviceManager = new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
-                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
+        this.serviceManager = serviceManager;
         this.analytics = analytics;
-        this.mutableIdentityStore = Preconditions.checkNotNull(mutableIdentityStore);
+        this.mutableIdentityStore = mutableIdentityStore;
         this.organizationManager = new OrganizationManager(serviceManager, mutableIdentityStore, userPreferenceManager);
         this.isLoggedInBehaviorSubject = BehaviorSubject.create(isLoggedIn());
 

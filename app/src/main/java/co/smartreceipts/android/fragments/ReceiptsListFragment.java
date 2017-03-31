@@ -43,10 +43,12 @@ import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
+import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 import rx.android.schedulers.AndroidSchedulers;
@@ -73,6 +75,10 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     Analytics analytics;
     @Inject
     ReceiptTableController receiptTableController;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
+    @Inject
+    OcrInteractor ocrInteractor;
 
     private ReceiptCardAdapter adapter;
     private ActivityFileResultImporter activityFileResultImporter;
@@ -107,7 +113,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         adapter = new ReceiptCardAdapter(getActivity(), persistenceManager.getPreferenceManager(),
-                getSmartReceiptsApplication().getBackupProvidersManager());
+                backupProvidersManager);
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         if (savedInstanceState != null) {
             imageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
@@ -174,8 +180,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         mTrip = ((ReportInfoFragment) getParentFragment()).getTrip();
         Preconditions.checkNotNull(mTrip, "A valid trip is required");
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(),
-                mTrip, persistenceManager, analytics,
-                getSmartReceiptsApplication().getOcrInteractor());
+                mTrip, persistenceManager, analytics, ocrInteractor);
         setListAdapter(adapter); // Set this here to ensure this has been laid out already
     }
 

@@ -56,8 +56,9 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     PurchaseWallet purchaseWallet;
     @Inject
     NetworkManager networkManager;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
-    private BackupProvidersManager backupProvidersManager;
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private CompositeSubscription compositeSubscription;
     private NavigationHandler navigationHandler;
@@ -84,7 +85,6 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        backupProvidersManager = getSmartReceiptsApplication().getBackupProvidersManager();
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
                 backupProvidersManager, networkManager, persistenceManager.getDatabase());
         navigationHandler = new NavigationHandler(getActivity());

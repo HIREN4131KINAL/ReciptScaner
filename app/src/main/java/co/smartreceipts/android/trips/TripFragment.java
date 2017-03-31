@@ -41,6 +41,7 @@ import co.smartreceipts.android.persistence.database.controllers.impl.TripTableC
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
 import co.smartreceipts.android.workers.EmailAssistant;
@@ -61,6 +62,8 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     Analytics analytics;
     @Inject
     TripTableController tripTableController;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private TripFragmentPresenter presenter;
 
@@ -97,7 +100,8 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        tripCardAdapter = new TripCardAdapter(getActivity(), persistenceManager.getPreferenceManager(), getSmartReceiptsApplication().getBackupProvidersManager());
+        tripCardAdapter = new TripCardAdapter(getActivity(), persistenceManager.getPreferenceManager(),
+                backupProvidersManager);
         if (savedInstanceState == null) {
             navigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);
         } else {

@@ -39,9 +39,10 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     NetworkManager networkManager;
     @Inject
     Analytics analyticsManager;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private BackupProvidersManager backupProvidersManager;
     private Subscription subscription;
 
     private RemoteBackupMetadata backupMetadata;
@@ -94,7 +95,6 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
-        backupProvidersManager = smartReceiptsApplication.getBackupProvidersManager();
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
                 backupProvidersManager, networkManager, database);
     }

@@ -14,12 +14,12 @@ import com.google.common.base.Preconditions;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.tables.Table;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import dagger.android.support.AndroidSupportInjection;
@@ -42,6 +42,8 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     Analytics analytics;
     @Inject
     TripTableController tripTableController;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private Subscription subscription;
@@ -86,11 +88,8 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
-                smartReceiptsApplication.getBackupProvidersManager(),
-                networkManager,
-                database);
+                backupProvidersManager, networkManager, database);
     }
 
     @Override

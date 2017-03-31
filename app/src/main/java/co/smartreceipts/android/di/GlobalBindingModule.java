@@ -7,6 +7,7 @@ import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.di.subcomponents.BackupsFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.CSVColumnsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.CategoriesListFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.DeleteRemoteBackupDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.DeleteRemoteBackupProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.DistanceDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.DistanceFragmentSubcomponent;
@@ -28,6 +29,7 @@ import co.smartreceipts.android.di.subcomponents.ReceiptImageFragmentSubcomponen
 import co.smartreceipts.android.di.subcomponents.ReceiptMoveCopyDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ReceiptsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.ReportInfoFragmentSubcomponent;
+import co.smartreceipts.android.di.subcomponents.SelectAutomaticBackupProviderDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.SettingsActivitySubcomponent;
 import co.smartreceipts.android.di.subcomponents.SmartReceiptsActivitySubcomponent;
 import co.smartreceipts.android.di.subcomponents.SyncErrorFragmentSubcomponent;
@@ -42,6 +44,7 @@ import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptMoveCopyDialogFragment;
 import co.smartreceipts.android.fragments.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
+import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.identity.widget.LoginFragment;
 import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
 import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
@@ -53,6 +56,7 @@ import co.smartreceipts.android.settings.widget.PDFColumnsListFragment;
 import co.smartreceipts.android.settings.widget.PaymentMethodsListFragment;
 import co.smartreceipts.android.settings.widget.SettingsActivity;
 import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
+import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupProgressDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.DownloadRemoteBackupImagesProgressDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.ExportBackupWorkerProgressDialogFragment;
@@ -98,7 +102,9 @@ import dagger.multibindings.IntoMap;
                 RatingDialogFragmentSubcomponent.class,
                 PaymentMethodsListFragmentSubcomponent.class,
                 CategoriesListFragmentSubcomponent.class,
-                ReceiptMoveCopyDialogFragmentSubcomponent.class
+                ReceiptMoveCopyDialogFragmentSubcomponent.class,
+                DeleteRemoteBackupDialogFragmentSubcomponent.class,
+                SelectAutomaticBackupProviderDialogFragmentSubcomponent.class
         }
 )
 public abstract class GlobalBindingModule {
@@ -277,5 +283,17 @@ public abstract class GlobalBindingModule {
     @FragmentKey(ReceiptMoveCopyDialogFragment.class)
     public abstract AndroidInjector.Factory<? extends Fragment> receiptMoveCopyDialogFragmentBuilder(
             ReceiptMoveCopyDialogFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(DeleteRemoteBackupDialogFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> deleteRemoteBackupDialogFragmentBuilder(
+            DeleteRemoteBackupDialogFragmentSubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @FragmentKey(SelectAutomaticBackupProviderDialogFragment.class)
+    public abstract AndroidInjector.Factory<? extends Fragment> selectAutomaticBackupProviderDialogFragmentBuilder(
+            SelectAutomaticBackupProviderDialogFragmentSubcomponent.Builder builder);
 
 }

@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 import java.util.HashMap;
 import java.util.Map;
 
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -16,6 +17,7 @@ import rx.schedulers.Schedulers;
  * Provides a standardized manner in which we can define host configurations and their association to a specific
  * service endpoint for network requests within the app
  */
+@ApplicationScope
 public class ServiceManager {
 
     private final Retrofit mRetrofit;

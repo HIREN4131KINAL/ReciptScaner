@@ -21,6 +21,7 @@ import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.IntentUtils;
@@ -44,6 +45,8 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
     NetworkManager networkManager;
     @Inject
     Analytics analytics;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private Subscription subscription;
@@ -95,7 +98,7 @@ public class DownloadRemoteBackupImagesProgressDialogFragment extends DialogFrag
         super.onActivityCreated(savedInstanceState);
         final SmartReceiptsApplication smartReceiptsApplication = ((SmartReceiptsApplication)getActivity().getApplication());
         remoteBackupsDataCache = new RemoteBackupsDataCache(getFragmentManager(), getContext(),
-                smartReceiptsApplication.getBackupProvidersManager(), networkManager,
+                backupProvidersManager, networkManager,
                 database);
     }
 

@@ -3,9 +3,13 @@ package co.smartreceipts.android.di;
 import android.content.Context;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
+import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
+import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
+import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
+import co.smartreceipts.android.identity.store.MutableIdentityStore;
 import co.smartreceipts.android.model.ColumnDefinitions;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -86,5 +90,13 @@ public class BaseAppModule {
     @co.smartreceipts.android.di.qualifiers.TripTableController
     public static TableController<Trip> provideTripTableController (TripTableController tripTableController) {
         return tripTableController;
+    }
+
+    @Provides
+    @ApplicationScope
+    public static ServiceManager provideServiceManager(MutableIdentityStore mutableIdentityStore,
+                                                       ReceiptColumnDefinitions receiptColumnDefinitions) {
+        return new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
+                new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
     }
 }

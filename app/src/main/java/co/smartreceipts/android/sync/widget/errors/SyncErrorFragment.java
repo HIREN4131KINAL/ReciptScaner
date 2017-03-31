@@ -31,11 +31,11 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
 
     @Inject
     Analytics analytics;
+    @Inject
+    BackupProvidersManager backupProvidersManager;
 
     private SyncErrorInteractor mSyncErrorInteractor;
     private SyncErrorPresenter mSyncErrorPresenter;
-    private BackupProvidersManager mBackupProvidersManager;
-//    private Analytics mAnalytics;
     private CompositeSubscription mCompositeSubscription;
 
     @Override
@@ -48,8 +48,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
-        mBackupProvidersManager = application.getBackupProvidersManager();
-        mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), mBackupProvidersManager, analytics);
+        mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), backupProvidersManager, analytics);
     }
 
     @Nullable
@@ -77,13 +76,13 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
                 }
             }));
 
-        mBackupProvidersManager.registerChangeListener(this);
-        updateForProvider(mBackupProvidersManager.getSyncProvider());
+        backupProvidersManager.registerChangeListener(this);
+        updateForProvider(backupProvidersManager.getSyncProvider());
     }
 
     @Override
     public void onPause() {
-        mBackupProvidersManager.unregisterChangeListener(this);
+        backupProvidersManager.unregisterChangeListener(this);
         mCompositeSubscription.unsubscribe();
         super.onPause();
     }

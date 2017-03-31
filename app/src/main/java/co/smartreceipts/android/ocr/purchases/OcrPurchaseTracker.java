@@ -7,7 +7,10 @@ import com.google.common.base.Preconditions;
 
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.purchases.PurchaseEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.apis.MobileAppPurchasesService;
@@ -26,6 +29,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+@ApplicationScope
 public class OcrPurchaseTracker implements PurchaseEventsListener {
 
     private static final String GOAL = "Recognition";
@@ -36,8 +40,9 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     private final LocalOcrScansTracker localOcrScansTracker;
     private final Scheduler subscribeOnScheduler;
 
-    public OcrPurchaseTracker(@NonNull Context context, @NonNull ServiceManager serviceManager,
-                              @NonNull PurchaseManager purchaseManager, @NonNull PurchaseWallet purchaseWallet) {
+    @Inject
+    public OcrPurchaseTracker(Context context, ServiceManager serviceManager,
+                              PurchaseManager purchaseManager, PurchaseWallet purchaseWallet) {
         this(serviceManager, purchaseManager, purchaseWallet, new LocalOcrScansTracker(context), Schedulers.io());
     }
 

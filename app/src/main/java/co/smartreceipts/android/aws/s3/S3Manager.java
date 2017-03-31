@@ -15,11 +15,15 @@ import java.io.File;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.aws.cognito.CognitoManager;
+import co.smartreceipts.android.di.scopes.ApplicationScope;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
 
+@ApplicationScope
 public class S3Manager {
 
     private static final String BUCKET = "smartreceipts";
@@ -28,7 +32,8 @@ public class S3Manager {
     private final S3KeyGeneratorFactory s3KeyGeneratorFactory;
     private final Executor executor;
 
-    public S3Manager(@NonNull Context context, @NonNull CognitoManager cognitoManager) {
+    @Inject
+    public S3Manager(Context context, CognitoManager cognitoManager) {
         this(new S3ClientFactory(context, cognitoManager), new S3KeyGeneratorFactory(), Executors.newSingleThreadExecutor());
     }
 

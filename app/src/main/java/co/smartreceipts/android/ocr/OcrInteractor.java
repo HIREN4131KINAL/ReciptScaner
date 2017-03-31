@@ -1,7 +1,6 @@
 package co.smartreceipts.android.ocr;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
@@ -13,8 +12,8 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
-import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
+import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
@@ -24,11 +23,7 @@ import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
 import co.smartreceipts.android.utils.FeatureFlags;
-import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
@@ -48,6 +43,7 @@ public class OcrInteractor {
     private final OcrPushMessageReceiver pushMessageReceiver;
     private final Feature ocrFeature;
 
+    @Inject
     public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                          @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker) {
         this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, new OcrPushMessageReceiver(), FeatureFlags.Ocr);

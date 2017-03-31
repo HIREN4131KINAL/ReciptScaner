@@ -12,32 +12,18 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
-import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
-import co.smartreceipts.android.apis.hosts.ServiceManager;
-import co.smartreceipts.android.aws.s3.S3Manager;
-import co.smartreceipts.android.config.ConfigurationManager;
-import co.smartreceipts.android.config.DefaultConfigurationManager;
+import co.smartreceipts.android.aws.cognito.CognitoManager;
 import co.smartreceipts.android.di.AppComponent;
 import co.smartreceipts.android.di.BaseAppModule;
 import co.smartreceipts.android.di.DaggerAppComponent;
-import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.aws.cognito.CognitoManager;
-import co.smartreceipts.android.identity.store.MutableIdentityStore;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptColumnDefinitions;
 import co.smartreceipts.android.ocr.OcrInteractor;
-import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.persistence.database.controllers.TableControllerManager;
 import co.smartreceipts.android.purchases.PurchaseManager;
-import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.settings.versions.AppVersionManager;
 import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
-import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
@@ -59,25 +45,15 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Inject
     PersistenceManager persistenceManager;
     @Inject
-    ReceiptColumnDefinitions receiptColumnDefinitions;
-    @Inject
-    PurchaseWallet purchaseWallet;
-    @Inject
     ExtraInitializer extraInitializer;
     @Inject
-    NetworkManager networkManager;
-    @Inject
-    Analytics analytics;
-    @Inject
     PurchaseManager purchaseManager;
-    @Inject
-    IdentityManager identityManager;
     @Inject
     PushManager pushManager;
     @Inject
     CognitoManager cognitoManager;
     @Inject
-    TableControllerManager tableControllerManager;
+    OcrInteractor ocrInteractor;
 
     private AppComponent appComponent;
 
@@ -118,9 +94,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         pushManager.initialize();
         purchaseManager.initialize(this);
         cognitoManager.initialize();
-
-        //ocrInteractor = new OcrInteractor(this, serviceManager, pushManager);
-        ocrInteractor = new OcrInteractor(this, new S3Manager(this, cognitoManager), mIdentityManager, serviceManager, pushManager, new OcrPurchaseTracker(this, serviceManager, purchaseManager, purchaseWallet));
         ocrInteractor.initialize();
 
         PDFBoxResourceLoader.init(getApplicationContext());

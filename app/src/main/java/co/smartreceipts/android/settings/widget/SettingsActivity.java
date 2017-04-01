@@ -393,10 +393,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             final boolean proSubscriptionIsAvailable = availablePurchases != null && availablePurchases.contains(InAppPurchase.SmartReceiptsPlus);
 
             // If we don't already have the pro subscription and it's available, let's buy it
-            if (proSubscriptionIsAvailable && !haveProSubscription) {
-                purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
-            } else {
-                Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
+            if (!haveProSubscription) {
+                if (proSubscriptionIsAvailable) {
+                    purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.PdfFooterSetting);
+                } else {
+                    Toast.makeText(SettingsActivity.this, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
+                }
             }
             return true;
         } else if (key.equals(getString(R.string.pref_about_privacy_policy_key))) {

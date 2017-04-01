@@ -76,6 +76,7 @@ android {
         compile "com.github.clans:fab:$FAB_MENU_VERSION"
 
         compile "com.tom_roush:pdfbox-android:$PDFBOX_ANDROID_VERSION"
+        compile "com.github.barteksc:pdfium-android:$PDFIUM_VERSION"
 
         compile "org.slf4j:slf4j-api:$SLF4J_VERSION"
         compile "com.github.tony19:logback-android-core:$LOGBACK_VERSION"

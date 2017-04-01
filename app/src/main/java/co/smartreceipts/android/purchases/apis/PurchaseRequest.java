@@ -11,18 +11,14 @@ import co.smartreceipts.android.purchases.model.ManagedProduct;
 public class PurchaseRequest {
 
     private String signature;
-    private JsonObject receipt;
+    private String receipt;
     private String pay_service;
     private String goal;
 
     public PurchaseRequest(@NonNull ManagedProduct managedProduct, @NonNull String goal) {
         this.signature = Preconditions.checkNotNull(managedProduct.getInAppDataSignature());
         this.goal = Preconditions.checkNotNull(goal);
-        try {
-            this.receipt = new JsonParser().parse(Preconditions.checkNotNull(managedProduct.getPurchaseData())).getAsJsonObject();
-        } catch (IllegalStateException e) {
-            this.receipt = new JsonObject();
-        }
+        this.receipt = Preconditions.checkNotNull(managedProduct.getPurchaseData());
         this.pay_service = "Google Play";
     }
 

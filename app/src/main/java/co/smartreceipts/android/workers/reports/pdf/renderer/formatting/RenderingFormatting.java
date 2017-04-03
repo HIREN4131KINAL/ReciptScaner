@@ -10,22 +10,27 @@ import java.util.Map;
 
 public class RenderingFormatting {
 
-    private final Map<Class<? extends Formatting>, Formatting<?>> FormattingMap = new HashMap<>();
+    private final Map<Class<? extends Formatting>, Formatting<?>> formattingMap = new HashMap<>();
 
     public void addFormatting(@NonNull Formatting<?> Formatting) {
         Preconditions.checkNotNull(Formatting);
-        this.FormattingMap.put(Formatting.getClass(), Formatting);
+        this.formattingMap.put(Formatting.getClass(), Formatting);
     }
 
     public boolean hasFormatting(@NonNull Class<? extends Formatting> type) {
         Preconditions.checkNotNull(type);
-        return FormattingMap.containsKey(type);
+        return formattingMap.containsKey(type);
+    }
+
+    public void setFormatting(@NonNull RenderingFormatting renderingFormatting) {
+        formattingMap.clear();
+        formattingMap.putAll(renderingFormatting.formattingMap);
     }
 
     @Nullable
     public <T> T getFormatting(@NonNull Class<? extends Formatting<T>> type) {
         Preconditions.checkNotNull(type);
-        final Formatting<?> Formatting = FormattingMap.get(type);
+        final Formatting<?> Formatting = formattingMap.get(type);
         if (Formatting != null) {
             return (T) Formatting.value();
         } else {
@@ -36,7 +41,7 @@ public class RenderingFormatting {
     @NonNull
     public <T> T getFormatting(@NonNull Class<? extends Formatting<T>> type, @NonNull T defaultValue) {
         Preconditions.checkNotNull(type);
-        final Formatting<?> Formatting = FormattingMap.get(type);
+        final Formatting<?> Formatting = formattingMap.get(type);
         if (Formatting != null) {
             return (T) Formatting.value();
         } else {

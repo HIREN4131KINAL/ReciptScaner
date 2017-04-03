@@ -6,6 +6,7 @@ import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.google.common.base.Preconditions;
+import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import co.smartreceipts.android.model.Receipt;
@@ -19,20 +20,15 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
 public class ReceiptLabelTextRenderer extends TextRenderer {
 
 
-    public ReceiptLabelTextRenderer(@NonNull Receipt receipt, @NonNull Context context, @NonNull UserPreferenceManager userPreferenceManager,
-                                    @NonNull AWTColor color, @NonNull PdfFontSpec fontSpec) {
-        super(new TextFormatter(context, userPreferenceManager).buildLegendForImage(receipt), color, fontSpec);
-    }
-
-    public ReceiptLabelTextRenderer(@NonNull Receipt receipt, @NonNull Context context, @NonNull UserPreferenceManager userPreferenceManager,
-                                    @NonNull Color color, @NonNull Font font) {
-        super(new TextFormatter(context, userPreferenceManager).buildLegendForImage(receipt), color, font);
+    public ReceiptLabelTextRenderer(@NonNull Receipt receipt, @NonNull Context context, @NonNull PDDocument pdDocument,
+                                    @NonNull UserPreferenceManager userPreferenceManager, @NonNull AWTColor color, @NonNull PdfFontSpec fontSpec) {
+        super(context, pdDocument, new TextFormatter(context, userPreferenceManager).buildLegendForImage(receipt), color, fontSpec);
     }
 
     @VisibleForTesting
     static class TextFormatter {
 
-        private static final String SEP = " - ";
+        private static final String SEP = " \u2022 ";
 
         private final Context context;
         private final UserPreferenceManager userPreferenceManager;

@@ -23,6 +23,11 @@ public class RenderingConstraints {
         return constraintMap.containsKey(type);
     }
 
+    public void setConstraints(@NonNull RenderingConstraints renderingConstraints) {
+        constraintMap.clear();
+        constraintMap.putAll(renderingConstraints.constraintMap);
+    }
+
     @Nullable
     public <T> T getConstraint(@NonNull Class<? extends Constraint<T>> type) {
         Preconditions.checkNotNull(type);

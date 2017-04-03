@@ -99,7 +99,7 @@ public class PdfGridGenerator implements TableGenerator<List<Renderer>, Receipt>
                 if (receipt.hasPDF()) {
                     Logger.debug(this, "Adding existing pdf using the native renderer");
                     final PdfPDImageXFactory pdfFactory = new LollipopPdfPDImageXFactory(pdDocument, receipt.getFile());
-                    final ReceiptLabelTextRenderer textRenderer = new ReceiptLabelTextRenderer(receipt, pdfBoxContext.getAndroidContext(), userPreferenceManager, color, fontSpec);
+                    final ReceiptLabelTextRenderer textRenderer = new ReceiptLabelTextRenderer(receipt, pdfBoxContext.getAndroidContext(), pdDocument, userPreferenceManager, color, fontSpec);
                     final PDImageXRenderer imageRenderer = new PDImageXRenderer(pdfFactory);
                     final PdfGridRenderer pdfGridRenderer = new PdfGridRenderer(pdfFactory, availableWidth, availableHeight);
                     pdfGridRenderer.addRow(new GridRowRenderer(textRenderer));

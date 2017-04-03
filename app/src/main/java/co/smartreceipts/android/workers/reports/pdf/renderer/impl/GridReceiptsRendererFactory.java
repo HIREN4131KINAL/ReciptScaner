@@ -81,7 +81,7 @@ public class GridReceiptsRendererFactory {
                     final Receipt receipt = receipts.get(index);
                     Preconditions.checkNotNull(receipt.getFile(), "All receipts must have an image file");
 
-                    labelRows.add(new ReceiptLabelTextRenderer(receipt, context, userPreferenceManager, color, fontSpec));
+                    labelRows.add(new ReceiptLabelTextRenderer(receipt, context, pdDocument, userPreferenceManager, color, fontSpec));
                     if (receipt.hasImage()) {
                         imageRows.add(new PDImageXRenderer(new ImagePDImageXFactory(pdDocument, receipt.getFile())));
                     } else {

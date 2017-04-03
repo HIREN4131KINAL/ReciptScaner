@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.Menu;
@@ -266,10 +265,5 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    @Nullable
-    public PurchaseManager getSubscriptionManager() {
-        return purchaseManager;
     }
 }

@@ -27,13 +27,12 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
@@ -58,6 +57,8 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     NetworkManager networkManager;
     @Inject
     BackupProvidersManager backupProvidersManager;
+    @Inject
+    PurchaseManager purchaseManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
     private CompositeSubscription compositeSubscription;
@@ -129,15 +130,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         backupConfigButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final PurchaseManager purchaseManager;
-                if (getActivity() instanceof SmartReceiptsActivity) {
-                    final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) getActivity();
-                    purchaseManager = smartReceiptsActivity.getSubscriptionManager();
-                } else {
-                    purchaseManager = null;
-                }
-
-                if (purchaseManager != null && backupProvidersManager.getSyncProvider() == SyncProvider.None
+                if (backupProvidersManager.getSyncProvider() == SyncProvider.None
                         && !purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
                     purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {

@@ -110,7 +110,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     CategoriesTableController categoriesTableController;
     @Inject
     PaymentMethodsTableController paymentMethodsTableController;
-
+    @Inject
+    PurchaseManager purchaseManager;
 
     // Metadata
     private Trip trip;
@@ -631,11 +632,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             Logger.info(this, "Attempting to retry without valid subscription. Directing user to purchase intent");
             final Activity activity = getActivity();
             if (activity instanceof SmartReceiptsActivity) {
-                final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) activity;
-                final PurchaseManager purchaseManager = smartReceiptsActivity.getSubscriptionManager();
-                if (purchaseManager != null) {
                     purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
-                }
             }
         }
     }

@@ -33,7 +33,8 @@ public class DriveDatabaseManager {
     private final Scheduler mSubscribeOnScheduler;
     private final AtomicBoolean mIsSyncInProgress = new AtomicBoolean(false);
 
-    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
+    public DriveDatabaseManager(@NonNull Context context, @NonNull DriveStreamsManager driveTaskManager,
+                                @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
                                 @NonNull NetworkManager networkManager, @NonNull Analytics analytics) {
         this(context, driveTaskManager, googleDriveSyncMetadata, networkManager, analytics, Schedulers.io(), Schedulers.io());
     }

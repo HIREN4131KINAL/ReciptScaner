@@ -25,7 +25,7 @@ public class GoogleDriveSyncMetadata {
         this(context.getSharedPreferences(PREFS_GOOGLE_DRIVE, Context.MODE_PRIVATE), new DeviceMetadata(context));
     }
 
-    public GoogleDriveSyncMetadata(@NonNull SharedPreferences sharedPreferences, @NonNull DeviceMetadata deviceMetadata) {
+    private GoogleDriveSyncMetadata(@NonNull SharedPreferences sharedPreferences, @NonNull DeviceMetadata deviceMetadata) {
         mSharedPreferences = Preconditions.checkNotNull(sharedPreferences);
         mDeviceMetadata = Preconditions.checkNotNull(deviceMetadata);
     }

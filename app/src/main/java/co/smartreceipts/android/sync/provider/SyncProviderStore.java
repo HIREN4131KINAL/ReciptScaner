@@ -7,17 +7,20 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
 public class SyncProviderStore {
 
     private static final String KEY_SYNC_PROVIDER = "key_sync_provider_1";
 
     private final SharedPreferences mSharedPreferences;
 
-    public SyncProviderStore(@NonNull Context context) {
+    @Inject
+    public SyncProviderStore(Context context) {
         this(PreferenceManager.getDefaultSharedPreferences(context));
     }
 
-    public SyncProviderStore(@NonNull SharedPreferences sharedPreferences) {
+    private SyncProviderStore(@NonNull SharedPreferences sharedPreferences) {
         mSharedPreferences = Preconditions.checkNotNull(sharedPreferences);
     }
 

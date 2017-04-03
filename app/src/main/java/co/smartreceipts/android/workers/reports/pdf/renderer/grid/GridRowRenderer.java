@@ -43,6 +43,14 @@ public class GridRowRenderer extends Renderer {
         this.height = layoutHeight;
     }
 
+    public GridRowRenderer(@NonNull GridRowRenderer copy) {
+        this.columns = new ArrayList<>(copy.columns);
+        this.width = copy.width;
+        this.height = copy.height;
+        this.getRenderingConstraints().setConstraints(copy.getRenderingConstraints());
+        this.getRenderingFormatting().setFormatting(copy.getRenderingFormatting());
+    }
+
     @Override
     public void measure() throws IOException {
         final float x = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(XPositionConstraint.class, 0f));

@@ -1,13 +1,17 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.grid;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;
 import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightConstraint;
@@ -19,6 +23,7 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
 public class GridRenderer extends Renderer {
 
     private final List<GridRowRenderer> rowRenderers = new ArrayList<>();
+    private final List<GridRowRenderer> newLineRows = new ArrayList<>();
     private GridRowRenderer headerRow;
     private GridRowRenderer footerRow;
 
@@ -85,10 +90,30 @@ public class GridRenderer extends Renderer {
         // Finally - apply the x/y coords based on the heights
         final float x = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(XPositionConstraint.class, 0f));
         float y = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(YPositionConstraint.class, 0f));
-        for (final GridRowRenderer rowRenderer : rowRenderers) {
+
+        List<GridRowRenderer> gridRowRendererLinkedList = new LinkedList<>(rowRenderers);
+        for (ListIterator<GridRowRenderer> listIterator = gridRowRendererLinkedList.listIterator(); listIterator.hasNext(); ) {
+            final GridRowRenderer rowRenderer = listIterator.next();
             rowRenderer.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
             rowRenderer.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
             y += rowRenderer.getHeight();
+            if (y > heightConstraint && listIterator.hasNext()) {
+                Logger.info(this, "Identified a page breaking table. Marking it as such");
+                y = 0;
+                if (headerRow != null) {
+                    final GridRowRenderer newPageHeader = new GridRowRenderer(headerRow);
+                    newPageHeader.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
+                    newPageHeader.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
+                    newPageHeader.measure();
+                    rowRenderers.add(rowRenderers.indexOf(rowRenderer), newPageHeader);
+                    y += rowRenderer.getHeight();
+                    newLineRows.add(newPageHeader);
+                } else {
+                    newLineRows.add(rowRenderer);
+                }
+                rowRenderer.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
+                rowRenderer.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
+            }
 
             // Run a final measure pass based on these new coordinates
             rowRenderer.measure();
@@ -98,6 +123,9 @@ public class GridRenderer extends Renderer {
     @Override
     public void render(@NonNull PdfBoxWriter writer) throws IOException {
         for (final GridRowRenderer rowRenderer : rowRenderers) {
+            if (newLineRows.contains(rowRenderer)) {
+                writer.newPage();
+            }
             rowRenderer.render(writer);
         }
     }

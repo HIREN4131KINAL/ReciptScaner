@@ -1,49 +1,28 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.pdf.PdfRenderer;
-import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.text.TextUtils;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
-import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import com.tom_roush.pdfbox.rendering.PDFRenderer;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.smartreceipts.android.R;
-import co.smartreceipts.android.SmartReceiptsApplication;
-import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
-import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
-import co.smartreceipts.android.workers.reports.pdf.tables.FixedSizeImageCell;
 import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthCell;
 import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthTextCell;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
-import wb.android.storage.StorageManager;
 
 
 /**

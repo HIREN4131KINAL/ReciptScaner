@@ -22,9 +22,14 @@ import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
+import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
+import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
+import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRenderer;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator;
+import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator2;
 
 public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
@@ -58,6 +63,7 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
     @Override
     public void writeSection(@NonNull PDDocument doc, @NonNull PdfBoxWriter writer) throws IOException {
 
+        final DefaultPdfBoxPageDecorations pageDecorations = new DefaultPdfBoxPageDecorations(pdfBoxContext, trip);
         final ReceiptsTotals totals = new ReceiptsTotals(trip, mReceipts, mDistances, mPreferences);
 
         // switch to landscape mode
@@ -73,12 +79,12 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
         mWriter.verticalJump(40);
 
-        writeReceiptsTable(mReceipts);
+        writeReceiptsTable(mReceipts, doc, pageDecorations);
 
         if (mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports) && !mDistances.isEmpty()) {
             mWriter.verticalJump(60);
 
-            writeDistancesTable(mDistances);
+            writeDistancesTable(mDistances, doc, pageDecorations);
         }
 
         // reset the page size if necessary
@@ -141,7 +147,8 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         mWriter.closeTextBlock();
     }
 
-    private void writeReceiptsTable(@NonNull List<Receipt> receipts) throws IOException {
+    private void writeReceiptsTable(@NonNull List<Receipt> receipts, @NonNull PDDocument pdDocument,
+                                    @NonNull PdfBoxPageDecorations pageDecorations) throws IOException {
 
         final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
         if (mPreferences.get(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports)) {
@@ -149,17 +156,30 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             Collections.sort(receiptsTableList, new ReceiptDateComparator());
         }
 
-        final PdfBoxTableGenerator<Receipt> pdfTableGenerator = new PdfBoxTableGenerator<>(pdfBoxContext, mReceiptColumns,
-                new LegacyReceiptFilter(mPreferences), true, false);
+        final PdfBoxTableGenerator2<Receipt> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mReceiptColumns,
+                pdDocument, pageDecorations, new LegacyReceiptFilter(mPreferences), true, false);
 
-        final PdfBoxTable table = pdfTableGenerator.generate(receiptsTableList);
-        mWriter.writeTable(table);
+        final GridRenderer table = pdfTableGenerator.generate(receiptsTableList);
+        table.getRenderingConstraints().addConstraint(new YPositionConstraint(mWriter.getCurrentYPosition()));
+
+        Logger.debug(this, "Performing measure of Receipts Table at {}.", System.currentTimeMillis());
+        table.measure();
+
+        Logger.debug(this, "Performing render of Receipts Table at {}.", System.currentTimeMillis());
+        table.render(mWriter);
     }
 
-    private void writeDistancesTable(@NonNull List<Distance> distances) throws IOException {
-        final PdfBoxTableGenerator<Distance> pdfTableGenerator = new PdfBoxTableGenerator<>(pdfBoxContext, mDistanceColumns, null, true, true);
-        final PdfBoxTable table = pdfTableGenerator.generate(distances);
-        mWriter.writeTable(table);
+    private void writeDistancesTable(@NonNull List<Distance> distances, @NonNull PDDocument pdDocument,
+                                     @NonNull PdfBoxPageDecorations pageDecorations) throws IOException {
+        final PdfBoxTableGenerator2<Distance> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mDistanceColumns,
+                pdDocument, pageDecorations, null, true, true);
+        final GridRenderer table = pdfTableGenerator.generate(distances);
+
+        Logger.debug(this, "Performing measure of Distance Table at {}.", System.currentTimeMillis());
+        table.measure();
+
+        Logger.debug(this, "Performing render of Distance Table at {}.", System.currentTimeMillis());
+        table.render(mWriter);
     }
 
 

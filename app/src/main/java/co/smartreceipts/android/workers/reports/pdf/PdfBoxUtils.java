@@ -19,7 +19,13 @@ public class PdfBoxUtils {
      */
     public static float getStringWidth(@NonNull String text, @NonNull PdfFontSpec fontSpec)
             throws IOException {
-        return fontSpec.getFont().getStringWidth(text) * fontSpec.getSize() / 1000F;
+        try {
+            return fontSpec.getFont().getStringWidth(text) * fontSpec.getSize() / 1000F;
+        } catch (IllegalArgumentException e) {
+            // If we cannot encode, try it again with the unicode "?"/tofu character
+            // We just use latin chars for a best guess here
+            return fontSpec.getFont().getStringWidth(text.replaceAll("\\P{InBasic_Latin}", "\uFFFD\uFFFD")) * fontSpec.getSize() / 1000F;
+        }
     }
 
     /**

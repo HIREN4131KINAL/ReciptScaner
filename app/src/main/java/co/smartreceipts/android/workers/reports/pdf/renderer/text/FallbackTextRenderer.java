@@ -31,6 +31,7 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthCo
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.XPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Alignment;
+import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.BackgroundColor;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Color;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Font;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
@@ -43,12 +44,6 @@ import wb.android.image.ImageUtils;
  * fonts).
  */
 class FallbackTextRenderer extends Renderer {
-
-    /**
-     * A manually defined fudge to help ensure that our tables are aligned, since TextViews have
-     * their own kerning
-     */
-    private static final int KERNING_FUDGE_PX = 2;
 
     private static final int WIDTH_SCALE_FACTOR = 3;
     private static final int UI_THREAD_WAITING_TIME_SECONDS = 5;
@@ -142,7 +137,7 @@ class FallbackTextRenderer extends Renderer {
                 final PDImageXObject imageXObject = JPEGFactory.createFromImage(pdDocument, bitmap, 1);
                 float availableHeight = height;
                 float availableWidth = width;
-                final PDRectangle rectangle = new PDRectangle(x + padding, y + padding + KERNING_FUDGE_PX, availableWidth, availableHeight);
+                final PDRectangle rectangle = new PDRectangle(x + padding, y + padding, availableWidth, availableHeight);
                 final PDRectangle resizedRec = PdfBoxImageUtils.scaleImageInsideRectangle(imageXObject, rectangle);
                 writer.printPDImageXObject(imageXObject, resizedRec.getLowerLeftX(), resizedRec.getLowerLeftY(), resizedRec.getWidth(), resizedRec.getHeight());
             }
@@ -182,12 +177,16 @@ class FallbackTextRenderer extends Renderer {
     @NonNull
     private TextView createTextView(int fontSizePx) {
         final AWTColor color = Preconditions.checkNotNull(getRenderingFormatting().getFormatting(Color.class));
+        final AWTColor backgroundColor = getRenderingFormatting().getFormatting(BackgroundColor.class);
 
         final TextView textView = new TextView(context);
         textView.setText(string);
         textView.setTextColor(color.color);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSizePx);
         textView.setGravity(Gravity.CENTER);
+        if (backgroundColor != null) {
+            textView.setBackgroundColor(backgroundColor.color);
+        }
         return textView;
     }
 }

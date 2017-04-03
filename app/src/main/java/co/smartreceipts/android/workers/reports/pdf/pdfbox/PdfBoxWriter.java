@@ -75,6 +75,27 @@ public class PdfBoxWriter {
     }
 
     /**
+     * Prints a Rectangle in a particular color
+     *
+     * @param color the {@link AWTColor} to draw
+     * @param x the x-coordinate location, where 0 is the left of the page
+     * @param y the y-coordinate location, where 0 is the top of the page
+     * @param width the width that this image requires
+     * @param height the height that this image requires
+     *
+     * @throws IOException if something fails during the printing process
+     */
+    public void printRectangle(@NonNull AWTColor color, float x, float y, float width, float height) throws IOException {
+        final PDRectangle rect = new PDRectangle(leftOfPageXPosition + x, swapYCoordinate(y) - height, width, height);
+        contentStream.setNonStrokingColor(color);
+        contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
+        contentStream.fill();
+
+        // Reset to default afterwards
+        contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
+    }
+
+    /**
      * Prints a {@link PDImageXObject} (usually an image or another PDF) inside our PDF
      *
      * @param image the {@link PDImageXObject} to print
@@ -107,6 +128,11 @@ public class PdfBoxWriter {
         contentStream.newLineAtOffset(leftOfPageXPosition + x, swapYCoordinate(y));
         contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(string));
         contentStream.endText();
+    }
+
+    @Deprecated
+    public float getCurrentYPosition() {
+        return swapYCoordinate(currentYPosition);
     }
 
 

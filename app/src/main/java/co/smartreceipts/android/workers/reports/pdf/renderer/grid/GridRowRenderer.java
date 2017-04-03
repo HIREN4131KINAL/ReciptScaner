@@ -3,6 +3,7 @@ package co.smartreceipts.android.workers.reports.pdf.renderer.grid;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
+import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightC
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.XPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
+import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.BackgroundColor;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
 
 public class GridRowRenderer extends Renderer {
@@ -55,21 +57,51 @@ public class GridRowRenderer extends Renderer {
             }
         }
 
-        final float perColumnWidth = widthConstraint / columns.size();
-        final WidthConstraint perColumnWidthConstraint = new WidthConstraint(perColumnWidth);
+        final AWTColor backgroundColor = getRenderingFormatting().getFormatting(BackgroundColor.class);
+        if (backgroundColor != null) {
+            for (final Renderer renderer : columns) {
+                renderer.getRenderingFormatting().addFormatting(new BackgroundColor(backgroundColor));
+            }
+        }
 
+
+        float unconstrainedWidth = widthConstraint;
+        int constrainedByWidthColumnCount = 0;
+        for (int i = 0; i < columns.size(); i++) {
+            final Float columnWidthConstraint = columns.get(i).getRenderingConstraints().getConstraint(WidthConstraint.class);
+            if (columnWidthConstraint != null) {
+                unconstrainedWidth -= columnWidthConstraint;
+                constrainedByWidthColumnCount++;
+            }
+        }
+
+        final WidthConstraint remainingColumnsWidthConstraint;
+        if (constrainedByWidthColumnCount != columns.size()) {
+            final float unconstrainedPerColumnWidthConstraint = unconstrainedWidth / (columns.size() - constrainedByWidthColumnCount);
+            remainingColumnsWidthConstraint = new WidthConstraint(unconstrainedPerColumnWidthConstraint);
+        } else {
+            remainingColumnsWidthConstraint = null;
+        }
+
+        // First - measure out all our widths
         float measuredHeight = -1;
+        float currentXPosition = x;
         for (int i = 0; i < columns.size(); i++) {
             final Renderer column = columns.get(i);
-            // Space the columns evenly
             // TODO: Refactor this if we use dynamic formatting for the first tables
             if (heightConstraint != null) {
                 column.getRenderingConstraints().addConstraint(new HeightConstraint(heightConstraint));
             }
-            column.getRenderingConstraints().addConstraint(perColumnWidthConstraint);
-            column.getRenderingConstraints().addConstraint(new XPositionConstraint(x + perColumnWidth * i));
+            if (!column.getRenderingConstraints().hasConstraint(WidthConstraint.class)) {
+                column.getRenderingConstraints().addConstraint(remainingColumnsWidthConstraint);
+            }
+
+            column.getRenderingConstraints().addConstraint(new XPositionConstraint(currentXPosition));
             column.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
             column.measure();
+
+            final Float columnWidthConstraint = column.getRenderingConstraints().getConstraint(WidthConstraint.class);
+            currentXPosition += columnWidthConstraint;
             measuredHeight = Math.max(measuredHeight, column.getHeight());
         }
 
@@ -79,8 +111,15 @@ public class GridRowRenderer extends Renderer {
 
     @Override
     public void render(@NonNull PdfBoxWriter writer) throws IOException {
+        final AWTColor backgroundColor = getRenderingFormatting().getFormatting(BackgroundColor.class);
+        if (backgroundColor != null) {
+            float x = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(XPositionConstraint.class));
+            float y = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(YPositionConstraint.class));
+            writer.printRectangle(backgroundColor, x, y, width, height);
+        }
         for (final Renderer column : columns) {
             column.render(writer);
         }
     }
+
 }

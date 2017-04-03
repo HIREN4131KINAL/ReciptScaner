@@ -19,6 +19,8 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
 public class GridRenderer extends Renderer {
 
     private final List<GridRowRenderer> rowRenderers = new ArrayList<>();
+    private GridRowRenderer headerRow;
+    private GridRowRenderer footerRow;
 
     public GridRenderer(float width, float height) {
         this(new WidthConstraint(width), new HeightConstraint(height));
@@ -29,8 +31,18 @@ public class GridRenderer extends Renderer {
         this.getRenderingConstraints().addConstraint(heightConstraint);
     }
 
+    public void addHeader(@NonNull GridRowRenderer headerRow) {
+        this.headerRow = headerRow;
+        rowRenderers.add(0, headerRow);
+    }
+
     public void addRow(@NonNull GridRowRenderer rowRenderer) {
         rowRenderers.add(rowRenderer);
+    }
+
+    public void addFooter(@NonNull GridRowRenderer footerRow) {
+        this.footerRow = footerRow;
+        rowRenderers.add(footerRow);
     }
 
     @Override

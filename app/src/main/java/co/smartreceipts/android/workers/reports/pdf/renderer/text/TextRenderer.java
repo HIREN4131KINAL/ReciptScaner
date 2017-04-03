@@ -69,7 +69,8 @@ public class TextRenderer extends Renderer {
         Preconditions.checkArgument(heightConstraint == null, "Height constraints are currently unsupported");
 
         try {
-
+            // Test to see if we can encode this string or not
+            fontSpec.getFont().encode(string);
             final float measuredHeight;
             final float measuredWidth;
 
@@ -115,9 +116,6 @@ public class TextRenderer extends Renderer {
             Preconditions.checkArgument(alignment == Alignment.Type.Centered, "Only center alignment is currently supported");
 
             final List<String> lines = new FixedWidthTextCell(width, padding, string, fontSpec, color).getLines();
-
-            // Attempt to center our cursor
-            y = y + padding;
 
             for (final String line : lines) {
                 final float stringWidth = PdfBoxUtils.getStringWidth(line, fontSpec);

@@ -19,6 +19,7 @@ public class User implements Serializable {
     private String cognito_token;
     private String identity_id;
     private long cognito_token_expires_at;
+    private int recognitions_available;
 
     public User(@NonNull List<String> registrationIds) {
         this.registration_ids = Preconditions.checkNotNull(registrationIds);
@@ -59,8 +60,11 @@ public class User implements Serializable {
         return identity_id;
     }
 
-    @Nullable
     public long getCognitoTokenExpiresAt() {
         return cognito_token_expires_at;
+    }
+
+    public int getRecognitionsAvailable() {
+        return recognitions_available;
     }
 }

@@ -8,6 +8,8 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
+import co.smartreceipts.android.utils.log.Logger;
+
 class LocalOcrScansTracker {
 
     private static final String KEY_AVAILABLE_SCANS = "key_int_available_ocr_scans";
@@ -31,6 +33,7 @@ class LocalOcrScansTracker {
     }
 
     public void setRemainingScans(int remainingScans) {
+        Logger.info(this, "Setting scans remaining as {}.", remainingScans);
         sharedPreferences.edit().putInt(KEY_AVAILABLE_SCANS, remainingScans).apply();
     }
 

@@ -178,7 +178,7 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
     private void backUpDatabase() {
         File sdDB = mStorageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DatabaseHelper.DATABASE_NAME + ".bak");
         try {
-            mStorageManager.copy(new File(DatabaseHelper.DATABASE_NAME), sdDB, true);
+            mStorageManager.copy(mStorageManager.getFile(DatabaseHelper.DATABASE_NAME), sdDB, true);
             Logger.info(this, "Backed up database file to: {}", sdDB.getName());
         } catch (Exception e) {
             Logger.error(this, "Failed to back up database", e);

@@ -2,6 +2,7 @@ package co.smartreceipts.android.persistence.database.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.google.common.base.Preconditions;
 
@@ -178,8 +179,11 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
     private void backUpDatabase() {
         File sdDB = mStorageManager.getFile(DateUtils.getCurrentDateAsYYYY_MM_DDString() + "_" + DatabaseHelper.DATABASE_NAME + ".bak");
         try {
-            mStorageManager.copy(mStorageManager.getFile(DatabaseHelper.DATABASE_NAME), sdDB, true);
-            Logger.info(this, "Backed up database file to: {}", sdDB.getName());
+            if (mStorageManager.copy(mStorageManager.getFile(DatabaseHelper.DATABASE_NAME), sdDB, true)) {
+                Logger.info(this, "Backed up database file to: {}", sdDB.getName());
+            } else {
+                Logger.error(this, "Failed to backup database: {}", sdDB.getName());
+            }
         } catch (Exception e) {
             Logger.error(this, "Failed to back up database", e);
         }

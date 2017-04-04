@@ -1,19 +1,5 @@
 package wb.android.flex;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
-
-import wb.android.storage.InternalStorageManager;
-import wb.android.storage.StorageManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -23,6 +9,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import wb.android.storage.InternalStorageManager;
+import wb.android.storage.StorageManager;
 
 public class Flex {
 	
@@ -37,7 +38,7 @@ public class Flex {
 	private FlexViews mFlexViews;
 	private FlexStrings mFlexStrings;
 	
-	private Flex(Context context, Flexable flexable) {
+	public Flex(Context context, Flexable flexable) {
 		int rawID = flexable.getFleXML();
 		
 		//Try to find an old flex file
@@ -103,7 +104,7 @@ public class Flex {
 		if (flexFile != null && flexFile.exists()) {
 			Editor editor = prefs.edit();
 			editor.putString(STRING_FLEX_FILE, flexFile.getAbsolutePath());
-			editor.commit();
+			editor.apply();
 			if (D) Log.d(TAG, "Wrote the Flex file to: " + flexFile.getAbsolutePath());
 		}
 	}

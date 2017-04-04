@@ -1,7 +1,6 @@
 package wb.android.preferences;
 
 import android.content.Context;
-import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.util.AttributeSet;
 

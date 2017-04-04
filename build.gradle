@@ -1,9 +1,8 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
         mavenCentral()
         mavenLocal()
-	jcenter()
+	    jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.0'
@@ -24,11 +23,4 @@ ext {
     targetSdkVersion = 25
     compileSdkVersion = 25
     buildToolsVersion = "25.0.0"
-
-    versionCode = 249
-    versionName = "4.2.0.249"
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.14.1' // Gradle wrapper script
 }

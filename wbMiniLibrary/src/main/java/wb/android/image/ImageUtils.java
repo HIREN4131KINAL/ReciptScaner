@@ -11,8 +11,14 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import wb.android.storage.StorageManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -217,6 +223,32 @@ public class ImageUtils {
         } else {
             throw new IOException("Failed to convert the bitmap codec");
         }
+    }
+
+    /**
+     * Attempts to draw a given {@link View} to a {@link Bitmap}
+     *
+     * @param view the desired {@link View} to draw
+     * @return the {@link Bitmap}
+     */
+    @NonNull
+    public static Bitmap drawView(@NonNull View view) {
+        return drawView(view, 1);
+    }
+
+    /**
+     * Attempts to draw a given {@link View} to a {@link Bitmap}
+     *
+     * @param view the desired {@link View} to draw
+     * @param scaleFactor how much the image should be scaled up/down
+     * @return the {@link Bitmap}
+     */
+    @NonNull
+    public static Bitmap drawView(@NonNull View view, float scaleFactor) {
+        final Bitmap bitmap = Bitmap.createBitmap((int) (view.getWidth() * scaleFactor), (int) (view.getHeight() * scaleFactor), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(bitmap);
+        view.draw(canvas);
+        return bitmap;
     }
 
 }

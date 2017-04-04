@@ -1,11 +1,11 @@
 package wb.android.dialog;
 
-import java.sql.Date;
-import java.util.Calendar;
-
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.widget.DatePicker;
+
+import java.sql.Date;
+import java.util.Calendar;
 
 public abstract class CalendarDialog {
 

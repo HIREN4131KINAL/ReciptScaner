@@ -1,13 +1,14 @@
 package wb.android.flex;
 
-import java.util.Stack;
+import android.util.Log;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.Stack;
+
 import wb.android.flex.Flex.Element;
-import android.util.Log;
 
 class FlexHandler extends DefaultHandler {
 	

@@ -1,12 +1,12 @@
 package wb.android.camera;
 
-import java.io.IOException;
-
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceHolder;
+
+import java.io.IOException;
 
 /**
  * This class will perform all interactions with the device's camera

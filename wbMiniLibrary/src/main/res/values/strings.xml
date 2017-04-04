@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="apprating_dialog_title">Like %s?</string>
-    <string name="apprating_dialog_message">Please consider leaving a review about it. As an independent developer, your reviews are my primary source of exposure and really help to encourage me to keep adding new features. Thanks!</string>
-    <string name="apprating_dialog_negative">No Thanks</string>
-    <string name="apprating_dialog_neutral">Maybe Later</string>
-    <string name="apprating_dialog_positive">Rate It Now!</string>
-</resources>

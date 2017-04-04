@@ -1,13 +1,13 @@
 package wb.android.camera;
 
-import java.util.List;
-
 import android.annotation.SuppressLint;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.util.List;
 
 /**
  * This code is adapted from the google camera APIs. Check it online for more details

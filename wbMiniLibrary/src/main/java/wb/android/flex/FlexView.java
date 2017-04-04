@@ -1,6 +1,5 @@
 package wb.android.flex;
 
-import org.xml.sax.Attributes;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +8,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+
+import org.xml.sax.Attributes;
 
 class FlexView {
 	

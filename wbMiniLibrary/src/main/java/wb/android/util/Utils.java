@@ -1,13 +1,13 @@
 package wb.android.util;
 
-import java.lang.reflect.Field;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.StrictMode;
 import android.util.DisplayMetrics;
+
+import java.lang.reflect.Field;
 
 public class Utils {
 
@@ -110,6 +110,10 @@ public class Utils {
 	    public static boolean hasKitKat() {
 	        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 	    }
+
+		public static boolean hasLollipop() {
+			return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+		}
 	    
 	    public static boolean supportsPreferenceHeaders() {
 	    	return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;

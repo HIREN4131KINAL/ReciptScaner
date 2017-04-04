@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="co.smartreceipts.android"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        tools:replace="android:icon,android:label,android:theme"
+        android:icon="@drawable/icon" 
+        android:label="@string/sr_app_name"
+        android:theme="@style/Theme.SmartReceipts"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        android:logo="@drawable/logo"
+        android:name=".SmartReceiptsApplication"
+        android:allowBackup="false">
+
+        <!--
+            Please note that we explicitly disable allowBackup for auto-backup above:
+            https://developer.android.com/guide/topics/data/autobackup.html
+            Here's why:
+            1. Backups have a 25MB quota. Because SmartReceipts saves images, it will quickly exceed this
+            2. We can break our native syncing solution as follows:
+                 - The user uploads the database and Google Drive metadata
+                 - The user uninstalls and restores the app
+                 - In some situations, shared preferences will be synced but not the database (eg if we're at the 25MB quota)
+                 - As a result, we attempt to restore the drive metadata and an empty database. We then upload
+                   the empty database, which causes the user to lose his/her data.
+                 - While this can be disabled via a "my_backup_rules.xml" definition, the 25MB quota is going to cause
+                   us issues anyway. As a result, I'm disabling this entirely
+        -->
+
+        <activity android:name=".activities.SmartReceiptsActivity"
+                  android:label="@string/sr_app_name"
+                  android:windowSoftInputMode="adjustPan" >
+
+            <!-- Main Launcher filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Filter to handle action send activities -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+            </intent-filter>
+
+            <!-- ****Do not nest these filters!! They will not work if so. *** -->
+            <!-- Filter to open file with gmail version 4.2 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/smr" android:pathPattern=".*\\.smr"  android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError" />
+            </intent-filter>
+
+            <!-- This seems to be the "key" one for SMRs -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/octet-stream" android:pathPattern=".*\\.smr" android:host="*"
+                      tools:ignore="GoogleAppIndexingUrlError"/>
+            </intent-filter>
+
+            <!-- Filter to open with file browser -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:mimeType="*/*" android:pathPattern=".*\\.smr" android:host="*" />
+            </intent-filter>
+
+        </activity>
+
+        <activity
+            android:name="co.smartreceipts.android.settings.widget.SettingsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
+        <activity
+            android:name="co.smartreceipts.android.settings.widget.SettingsViewerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+        </activity>
+
+        <service android:name=".sync.drive.services.DriveCompletionEventService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.drive.events.HANDLE_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service android:name=".push.services.MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service android:name=".push.services.FirebaseTokenRefreshService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <service android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+
+    </application>
+</manifest>

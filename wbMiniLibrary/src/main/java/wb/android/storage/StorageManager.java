@@ -1,5 +1,16 @@
 package wb.android.storage;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -23,22 +34,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.util.Log;
-
 //There are a lot of helper methods here to make sure that no functionality is lost if a method is overwritten
 public class StorageManager {
 
 	private static final String TAG = "StorageManager";
-	private static final boolean D = true;
 
 	protected File _root;
 
@@ -48,6 +47,7 @@ public class StorageManager {
 	protected StorageManager(File root) {
 		_root = root;
 	}
+
 
 	public static StorageManager getInstance(Context context) {
 		if (_externalInstance != null)
@@ -978,10 +978,12 @@ public class StorageManager {
 	 * 
 	 * @param file
 	 *            - the file to get the extension from
+     * @deprecated in favor of {@link UriUtils}
 	 * @return the extension as a string
 	 */
     @Nullable
-	public static final String getExtension(File file) {
+    @Deprecated
+	public static String getExtension(File file) {
 		if (file == null || TextUtils.isEmpty(file.getName()) || file.isDirectory()) {
 			return null;
 		}

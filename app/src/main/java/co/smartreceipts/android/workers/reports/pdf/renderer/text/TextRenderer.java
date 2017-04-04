@@ -5,20 +5,15 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
-import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
-
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.utils.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxImageUtils;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;
 import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightConstraint;
@@ -29,7 +24,7 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Alignmen
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Color;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Font;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
-import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthTextCell;
+import co.smartreceipts.android.workers.reports.pdf.misc.FixedWidthTextCell;
 
 /**
  * Renders text using a {@link PdfBoxWriter}

@@ -1,7 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf.pdfbox;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -15,13 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
-import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthCell;
-import co.smartreceipts.android.workers.reports.pdf.tables.FixedWidthTextCell;
-import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
-import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableRow;
 import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
@@ -42,7 +36,6 @@ public class PdfBoxWriter {
     private float topOfPageYPosition = -1;
     private float leftOfPageXPosition = 0;
     private PDPageContentStream contentStream;
-    private boolean inTextBlock;
 
     public PdfBoxWriter(@NonNull PDDocument doc,
                         @NonNull PdfBoxContext context,
@@ -130,172 +123,18 @@ public class PdfBoxWriter {
         contentStream.endText();
     }
 
-    @Deprecated
-    public float getCurrentYPosition() {
-        return swapYCoordinate(currentYPosition);
-    }
-
-
-    void openTextBlock() throws IOException {
-        inTextBlock = true;
-        contentStream.beginText();
-        contentStream.newLineAtOffset(
-                mContext.getPageMarginHorizontal(), currentYPosition);
-    }
-
-    void closeTextBlock() throws IOException {
-        inTextBlock = false;
-        contentStream.endText();
-    }
-
-
-    void writeNewLine(@NonNull PdfFontSpec spec,
-                      @StringRes int resId,
-                      Object... args) throws IOException {
-        if (resId != 0) {
-            writeNewLine(spec, mContext.getString(resId, args));
-        }
-    }
-
-
-    void writeNewLine(PdfFontSpec spec, String str) throws IOException {
-        if (!inTextBlock) {
-            throw new IllegalStateException("Tried to write out text, without opening a text block first");
-        }
-        // set the font
-        contentStream.setFont(spec.getFont(), spec.getSize());
-        // calculate dy (font size + line spacing)
-        float dy = spec.getSize() + mContext.getLineSpacing();
-        // move the cursor by dy and update the currentYPosition
-        contentStream.newLineAtOffset(0, -dy);
-        currentYPosition -= dy;
-        // write the text
-        contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(str));
-    }
-
-    void writeAndClose() throws IOException {
+    /**
+     * Writes the file and closes our stream
+     *
+     * @throws IOException if we fail to write this item
+     */
+    public void writeAndClose() throws IOException {
         if (contentStream != null) {
             contentStream.close();
         }
 
         for (PDPage page : mPages) {
             mDocument.addPage(page);
-        }
-    }
-
-    void writeTable(@NonNull PdfBoxTable table) throws IOException {
-
-        if (table.getHeaderRow() != null) {
-            printRow(table.getHeaderRow());
-        }
-
-        for (PdfBoxTableRow pdfBoxTableRow : table.getRows()) {
-            // If we must add a page break
-            if (!printRow(pdfBoxTableRow)) {
-                // add new page
-                newPage();
-                // repeat header (if available)
-                if (table.getHeaderRow() != null) {
-                    printRow(table.getHeaderRow());
-                }
-                // print out the row again
-                boolean successInNewPage = printRow(pdfBoxTableRow);
-                if (!successInNewPage) {
-                    throw new IOException("Row does not fit in a single page...");
-                }
-            }
-        }
-
-        if (table.getFooterRow() != null) {
-            printRow(table.getFooterRow());
-        }
-    }
-
-    void verticalJump(float dy) {
-        currentYPosition -= dy;
-    }
-
-    /**
-     * @param row
-     * @return Whether the row was printed or not. (It might not be printed if
-     * the page has no more vertical space available).
-     * @throws IOException
-     */
-    private boolean printRow(@NonNull PdfBoxTableRow row) throws IOException {
-        // Line break if required
-        if (currentYPosition - row.getHeight() <
-                mContext.getPageMarginVertical() + mPageDecorations.getFooterHeight()) {
-            return false;
-        }
-
-        float x = mContext.getPageMarginHorizontal();
-        if (row.getBackgroundColor() != null) {
-            PDRectangle rect = new PDRectangle(
-                    x,
-                    currentYPosition - row.getHeight(),
-                    row.getWidth(),
-                    row.getHeight());
-            contentStream.setNonStrokingColor(row.getBackgroundColor());
-            contentStream.addRect(rect.getLowerLeftX(), rect.getLowerLeftY(), rect.getWidth(), rect.getHeight());
-            contentStream.fill();
-            contentStream.setNonStrokingColor(mContext.getColorManager().getColor(PdfColorStyle.Default));
-        }
-
-        // draw the cells contents
-        printRowContents(row, x, currentYPosition);
-        currentYPosition -= row.getHeight();
-        return true;
-    }
-
-    private void printRowContents(@NonNull PdfBoxTableRow row, float x, float y) throws IOException {
-        float xCell = x;
-        for (FixedWidthCell cell : row.getCells()) {
-            if (cell != null) {
-                if (cell instanceof FixedWidthTextCell) {
-                    printTextCellContent((FixedWidthTextCell) cell, xCell, y, row.getHeight());
-
-                }
-                xCell += cell.getWidth();
-            }
-        }
-    }
-
-    /**
-     * Prints the cell content centering the contents vertically and horizontally.
-     *
-     * @param cell
-     * @param xCell     x-coordinate of the upper-left corner
-     * @param yCell     y-coordinate of the upper-left corner
-     * @param rowHeight @throws IOException
-     */
-    private void printTextCellContent(FixedWidthTextCell cell,
-                                      float xCell,
-                                      float yCell,
-                                      float rowHeight) throws IOException {
-
-        List<String> lines = cell.getLines();
-
-        PdfFontSpec fontSpec = cell.getFontSpec();
-
-        // unused space above and below the lines, excluding
-        float unusedSpace = (rowHeight - 2 * cell.getCellPadding() - (lines.size()) * PdfBoxUtils.getFontHeight(fontSpec));
-        // position the cursor where the baseline of the first line should be written
-        float y = yCell - cell.getCellPadding() - unusedSpace / 2.0f - PdfBoxUtils.getFontAboveBaselineHeight(fontSpec);
-
-        for (int i = 0; i < lines.size(); i++) {
-            float stringWidth = PdfBoxUtils.getStringWidth(lines.get(i), fontSpec);
-            float dx = (cell.getWidth() - stringWidth) / 2.0f;
-
-            contentStream.setFont(fontSpec.getFont(), fontSpec.getSize());
-            contentStream.setNonStrokingColor(cell.getColor());
-            contentStream.beginText();
-            contentStream.newLineAtOffset(
-                    xCell + dx,
-                    y);
-            contentStream.showText(HeavyHandedReplaceIllegalCharacters.getSafeString(lines.get(i)));
-            contentStream.endText();
-
-            y -= PdfBoxUtils.getFontHeight(fontSpec);
         }
     }
 

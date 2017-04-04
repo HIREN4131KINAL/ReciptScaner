@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.pdf.tables;
+package co.smartreceipts.android.workers.reports.pdf.renderer.impl;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,18 +16,16 @@ import co.smartreceipts.android.workers.reports.TableGenerator;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxContext;
-import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxPageDecorations;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.BackgroundColor;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
-import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRenderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRowRenderer;
-import co.smartreceipts.android.workers.reports.pdf.renderer.impl.ReceiptLabelTextRenderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
+import co.smartreceipts.android.workers.reports.pdf.misc.ColumnWidthCalculator;
 import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
-public class PdfBoxTableGenerator2<DataType> implements TableGenerator<List<GridRowRenderer>, DataType> {
+public class PdfTableGenerator<DataType> implements TableGenerator<List<GridRowRenderer>, DataType> {
 
     private static final Padding DEFAULT_PADDING = new Padding(4f);
 
@@ -38,12 +36,12 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<List<Grid
     private final boolean printHeaders;
     private final boolean printFooters;
 
-    public PdfBoxTableGenerator2(@NonNull PdfBoxContext context,
-                                 @NonNull List<Column<DataType>> columns,
-                                 @NonNull PDDocument pdDocument,
-                                 @Nullable Filter<DataType> receiptFilter,
-                                 boolean printHeaders,
-                                 boolean printFooters) {
+    public PdfTableGenerator(@NonNull PdfBoxContext context,
+                             @NonNull List<Column<DataType>> columns,
+                             @NonNull PDDocument pdDocument,
+                             @Nullable Filter<DataType> receiptFilter,
+                             boolean printHeaders,
+                             boolean printFooters) {
         this.pdfBoxContext = Preconditions.checkNotNull(context);
         this.columns = Preconditions.checkNotNull(columns);
         this.pdDocument = Preconditions.checkNotNull(pdDocument);

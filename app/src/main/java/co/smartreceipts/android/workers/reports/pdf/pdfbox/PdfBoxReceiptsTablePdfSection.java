@@ -22,19 +22,14 @@ import co.smartreceipts.android.model.comparators.ReceiptDateComparator;
 import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
-import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
-import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.empty.EmptyRenderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Alignment;
 import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRenderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRowRenderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
-import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
-import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator;
-import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator2;
+import co.smartreceipts.android.workers.reports.pdf.renderer.impl.PdfTableGenerator;
 
 public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
@@ -210,14 +205,14 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
             Collections.sort(receiptsTableList, new ReceiptDateComparator());
         }
 
-        final PdfBoxTableGenerator2<Receipt> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mReceiptColumns,
+        final PdfTableGenerator<Receipt> pdfTableGenerator = new PdfTableGenerator<>(pdfBoxContext, mReceiptColumns,
                 pdDocument, new LegacyReceiptFilter(mPreferences), true, false);
 
         return pdfTableGenerator.generate(receiptsTableList);
     }
 
     private List<GridRowRenderer> writeDistancesTable(@NonNull List<Distance> distances, @NonNull PDDocument pdDocument) throws IOException {
-        final PdfBoxTableGenerator2<Distance> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mDistanceColumns,
+        final PdfTableGenerator<Distance> pdfTableGenerator = new PdfTableGenerator<>(pdfBoxContext, mDistanceColumns,
                 pdDocument, null, true, true);
         return pdfTableGenerator.generate(distances);
     }

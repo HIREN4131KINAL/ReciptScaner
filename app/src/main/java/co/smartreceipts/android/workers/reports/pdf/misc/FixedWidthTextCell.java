@@ -1,4 +1,4 @@
-package co.smartreceipts.android.workers.reports.pdf.tables;
+package co.smartreceipts.android.workers.reports.pdf.misc;
 
 import android.support.annotation.NonNull;
 
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import co.smartreceipts.android.workers.reports.pdf.PdfBoxUtils;
+import co.smartreceipts.android.workers.reports.pdf.utils.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 

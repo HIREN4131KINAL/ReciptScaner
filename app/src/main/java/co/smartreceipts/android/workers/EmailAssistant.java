@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.filters.LegacyReceiptFilter;
@@ -50,7 +49,7 @@ import co.smartreceipts.android.workers.reports.csv.CsvTableGenerator;
 import co.smartreceipts.android.workers.reports.formatting.SmartReceiptsFormattableString;
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxFullPdfReport;
 import co.smartreceipts.android.workers.reports.pdf.PdfBoxImagesOnlyReport;
-import co.smartreceipts.android.workers.reports.pdf.tables.TooManyColumnsException;
+import co.smartreceipts.android.workers.reports.pdf.misc.TooManyColumnsException;
 import wb.android.flex.Flex;
 import wb.android.storage.StorageManager;
 

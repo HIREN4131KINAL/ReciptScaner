@@ -46,14 +46,6 @@ public class GridRowRenderer extends Renderer {
         this.height = layoutHeight;
     }
 
-    public GridRowRenderer(@NonNull GridRowRenderer copy) {
-        this.columns = new ArrayList<>(copy.columns);
-        this.width = copy.width;
-        this.height = copy.height;
-        this.getRenderingConstraints().setConstraints(copy.getRenderingConstraints());
-        this.getRenderingFormatting().setFormatting(copy.getRenderingFormatting());
-    }
-
     public void associateHeaderRow(@Nullable GridRowRenderer header) {
         this.header = header;
     }
@@ -61,6 +53,22 @@ public class GridRowRenderer extends Renderer {
     @Nullable
     public GridRowRenderer getAssociatedHeader() {
         return header;
+    }
+
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final List<Renderer> renderers = new ArrayList<>();
+        for (final Renderer renderer : this.columns) {
+            renderers.add(renderer.copy());
+        }
+        final GridRowRenderer copy = new GridRowRenderer(renderers);
+        copy.header = this.header;
+        copy.height = this.height;
+        copy.width = this.width;
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
     }
 
     @Override

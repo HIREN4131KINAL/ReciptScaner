@@ -17,6 +17,18 @@ public class SinglePageRenderer extends Renderer {
         this.renderer = Preconditions.checkNotNull(renderer);
     }
 
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final Renderer rendererCopy = this.renderer.copy();
+        final SinglePageRenderer copy = new SinglePageRenderer(rendererCopy);
+        copy.width = this.width;
+        copy.height = this.height;
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
+    }
+
     @Override
     public void measure() throws IOException {
         renderer.measure();

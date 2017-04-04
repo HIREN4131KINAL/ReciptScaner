@@ -22,8 +22,8 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
 
 public class GridRenderer extends Renderer {
 
-    private final List<GridRowRenderer> rowRenderers = new ArrayList<>();
-    private final List<GridRowRenderer> newLineRows = new ArrayList<>();
+    protected final List<GridRowRenderer> rowRenderers = new ArrayList<>();
+    protected final List<GridRowRenderer> newLineRows = new ArrayList<>();
 
     public GridRenderer(float width, float height) {
         this(new WidthConstraint(width), new HeightConstraint(height));
@@ -40,6 +40,28 @@ public class GridRenderer extends Renderer {
 
     public void addRows(@NonNull List<GridRowRenderer> rows) {
         rowRenderers.addAll(rows);
+    }
+
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final List<GridRowRenderer> renderers = new ArrayList<>();
+        final List<GridRowRenderer> newLines = new ArrayList<>();
+        for (final GridRowRenderer renderer : this.rowRenderers) {
+            final GridRowRenderer rowCopy = (GridRowRenderer) renderer.copy();
+            renderers.add(rowCopy);
+            if (newLines.contains(renderer)) {
+                newLines.add(rowCopy);
+            }
+        }
+        final GridRenderer copy = new GridRenderer(width, this.height);
+        copy.rowRenderers.addAll(renderers);
+        copy.newLineRows.addAll(newLines);
+        copy.height = this.height;
+        copy.width = this.width;
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
     }
 
     @Override
@@ -92,7 +114,7 @@ public class GridRenderer extends Renderer {
                 Logger.info(this, "Identified a page breaking table. Marking it as such");
                 y = 0;
                 if (rowRenderer.getAssociatedHeader() != null) {
-                    final GridRowRenderer newPageHeader = new GridRowRenderer(rowRenderer.getAssociatedHeader());
+                    final GridRowRenderer newPageHeader = (GridRowRenderer) rowRenderer.getAssociatedHeader().copy();
                     newPageHeader.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
                     newPageHeader.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
                     newPageHeader.measure();

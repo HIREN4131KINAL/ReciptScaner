@@ -9,6 +9,8 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +57,28 @@ public class TextRenderer extends Renderer {
 
         this.getRenderingFormatting().addFormatting(color);
         this.getRenderingFormatting().addFormatting(font);
+    }
+
+    private TextRenderer(@NonNull Context context, @NonNull PDDocument pdDocument, @NonNull String string) {
+        this.context = Preconditions.checkNotNull(context.getApplicationContext());
+        this.pdDocument = Preconditions.checkNotNull(pdDocument);
+        this.string = Preconditions.checkNotNull(string);
+        this.width = WRAP_CONTENT;
+        this.height = WRAP_CONTENT;
+    }
+
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final TextRenderer copy = new TextRenderer(this.context, this.pdDocument, this.string);
+        copy.height = this.height;
+        copy.width = this.width;
+        if (this.fallbackRendererFactory != null) {
+            copy.fallbackRendererFactory = (FallbackTextRenderer) this.fallbackRendererFactory.copy();
+        }
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
     }
 
     @Override

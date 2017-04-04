@@ -132,10 +132,11 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<List<Grid
                         pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default));
                 textRenderer.getRenderingFormatting().addFormatting(DEFAULT_PADDING);
                 textRenderer.getRenderingConstraints().addConstraint(new WidthConstraint(colWidths[i]));
+                footerColumns.add(textRenderer);
             }
             final GridRowRenderer footerRow = new GridRowRenderer(footerColumns);
             footerRow.associateHeaderRow(headerRow);
-            footerRow.getRenderingFormatting().addFormatting(new BackgroundColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.TableCell)));
+            footerRow.getRenderingFormatting().addFormatting(new BackgroundColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.TableHeader)));
             gridRows.add(footerRow);
         }
 

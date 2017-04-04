@@ -20,6 +20,12 @@ public class EmptyRenderer extends Renderer {
         this.height = height;
     }
 
+    @NonNull
+    @Override
+    public Renderer copy() {
+        return new EmptyRenderer(this.width, this.height);
+    }
+
     @Override
     public void measure() throws IOException {
         final Float heightConstraint = getRenderingConstraints().getConstraint(HeightConstraint.class);

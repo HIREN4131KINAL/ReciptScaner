@@ -19,6 +19,8 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,6 +37,7 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Backgrou
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Color;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Font;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
+import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRowRenderer;
 import wb.android.image.ImageUtils;
 
 /**
@@ -60,6 +63,17 @@ class FallbackTextRenderer extends Renderer {
 
         this.width = WRAP_CONTENT;
         this.height = WRAP_CONTENT;
+    }
+
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final FallbackTextRenderer copy = new FallbackTextRenderer(this.context, this.pdDocument, this.string);
+        copy.height = this.height;
+        copy.width = this.width;
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
     }
 
     @Override

@@ -31,6 +31,17 @@ public class PDImageXRenderer extends Renderer {
         this.width = MATCH_PARENT;
     }
 
+    @NonNull
+    @Override
+    public Renderer copy() {
+        final PDImageXRenderer copy = new PDImageXRenderer(this.pdImageXFactory);
+        copy.height = this.height;
+        copy.width = this.width;
+        copy.getRenderingConstraints().setConstraints(this.getRenderingConstraints());
+        copy.getRenderingFormatting().setFormatting(this.getRenderingFormatting());
+        return copy;
+    }
+
     @Override
     public void measure() throws IOException {
         final float heightConstraint = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(HeightConstraint.class));

@@ -57,6 +57,12 @@ public abstract class Renderer {
     }
 
     /**
+     * @return a new deep copy of this {@link Renderer} instance
+     */
+    @NonNull
+    public abstract Renderer copy();
+
+    /**
      * Request that we measure our data to determine the size that will be required
      *
      * @throws IOException if the measuring fails

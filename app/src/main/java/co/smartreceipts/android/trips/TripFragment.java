@@ -35,12 +35,12 @@ import co.smartreceipts.android.fragments.ReceiptsFragment;
 import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;
-import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;
+import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
@@ -57,22 +57,23 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     @Inject
     Flex flex;
     @Inject
-    PersistenceManager persistenceManager;
-    @Inject
     Analytics analytics;
     @Inject
     TripTableController tripTableController;
     @Inject
     BackupProvidersManager backupProvidersManager;
+    @Inject
+    UserPreferenceManager preferenceManager;
 
-    private TripFragmentPresenter presenter;
+
+    @Inject
+    TripFragmentPresenter presenter;
 
     private NavigationHandler navigationHandler;
 
     private TripCardAdapter tripCardAdapter;
     private ProgressBar progressBar;
     private TextView noDataAlert;
-
     private Tooltip tooltip;
 
     private boolean navigateToLastTrip;
@@ -100,8 +101,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
         super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
         navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        tripCardAdapter = new TripCardAdapter(getActivity(), persistenceManager.getPreferenceManager(),
-                backupProvidersManager);
+        tripCardAdapter = new TripCardAdapter(getActivity(), preferenceManager, backupProvidersManager);
         if (savedInstanceState == null) {
             navigateToLastTrip = getArguments().getBoolean(ARG_NAVIGATE_TO_VIEW_LAST_TRIP);
         } else {
@@ -122,7 +122,6 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
                 tripMenu(null);
             }
         });
-        presenter = new TripFragmentPresenter(this);
         return rootView;
     }
 
@@ -169,7 +168,7 @@ public class TripFragment extends WBListFragment implements TableEventsListener<
     }
 
     public final void tripMenu(final Trip trip) {
-        if (!persistenceManager.getStorageManager().isExternal()) {
+        if (!presenter.isExternalStorage()) {
             Toast.makeText(getActivity(), getFlexString(R.string.SD_ERROR), Toast.LENGTH_LONG).show();
             return;
         }

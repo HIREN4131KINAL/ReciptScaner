@@ -1,39 +1,46 @@
 package co.smartreceipts.android.trips;
 
-import android.support.annotation.NonNull;
+import javax.inject.Inject;
 
-import com.google.common.base.Preconditions;
-
-import co.smartreceipts.android.rating.data.AppRatingManager;
-import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
+import co.smartreceipts.android.di.scopes.FragmentScope;
+import co.smartreceipts.android.rating.AppRatingManager;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import wb.android.storage.StorageManager;
 
+@FragmentScope
 public class TripFragmentPresenter {
 
-    private TripFragment mFragment;
+    @Inject
+    TripFragment fragment;
+    @Inject
+    AppRatingManager appRatingManager;
+    @Inject
+    StorageManager storageManager;
 
-    private AppRatingManager mRatingManager;
-
-    public TripFragmentPresenter(@NonNull TripFragment fragment) {
-        mFragment = Preconditions.checkNotNull(fragment);
-        mRatingManager = AppRatingManager.getInstance(new AppRatingPreferencesStorage(mFragment.getContext()));
+    @Inject
+    public TripFragmentPresenter() {
     }
 
     public void checkRating() {
-        mRatingManager.checkIfNeedToAskRating()
+        appRatingManager.checkIfNeedToAskRating()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean ratingPrompt) {
                         if (ratingPrompt) {
-                            mFragment.showRatingTooltip();
+                            fragment.showRatingTooltip();
                         }
                     }
                 });
     }
 
     public void dontShowRatingPrompt() {
-        mRatingManager.dontShowRatingPromptAgain();
+        appRatingManager.dontShowRatingPromptAgain();
     }
+
+    public boolean isExternalStorage() {
+        return storageManager.isExternal();
+    }
+
 }

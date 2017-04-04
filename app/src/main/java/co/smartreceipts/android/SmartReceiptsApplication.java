@@ -54,6 +54,8 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     CognitoManager cognitoManager;
     @Inject
     OcrInteractor ocrInteractor;
+    @Inject
+    AppRatingPreferencesStorage appRatingPreferencesStorage;
 
     private AppComponent appComponent;
 
@@ -105,7 +107,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         new AppVersionManager(this, persistenceManager.getPreferenceManager()).onLaunch(this);
 
         // Add launch count for rating prompt monitoring
-        new AppRatingPreferencesStorage(getApplicationContext()).incrementLaunchCount();
+        appRatingPreferencesStorage.incrementLaunchCount();
 
         // LeakCanary initialization
         if (LeakCanary.isInAnalyzerProcess(this)) {

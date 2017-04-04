@@ -1,13 +1,17 @@
-package co.smartreceipts.android.rating.data;
-
-import android.support.annotation.VisibleForTesting;
+package co.smartreceipts.android.rating;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.di.scopes.ApplicationScope;
+import co.smartreceipts.android.rating.data.AppRatingModel;
+import co.smartreceipts.android.rating.data.AppRatingStorage;
 import rx.Single;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
+@ApplicationScope
 public class AppRatingManager {
 
     // AppRating (Use a combination of launches and a timer for the app rating
@@ -15,30 +19,17 @@ public class AppRatingManager {
     private static final int LAUNCHES_UNTIL_PROMPT = 15;
     private static final int DAYS_UNTIL_PROMPT = 7;
 
-    private static AppRatingManager sInstance;
+    private AppRatingStorage appRatingStorage;
 
-    private AppRatingStorage mAppRatingStorage;
-
-    public static AppRatingManager getInstance(AppRatingStorage ratingStorage) {
-        if (sInstance == null) {
-            sInstance = new AppRatingManager(ratingStorage);
-        }
-        return sInstance;
-    }
-
-    private AppRatingManager(AppRatingStorage appRatingStorage) {
-        this.mAppRatingStorage = appRatingStorage;
+    @Inject
+    AppRatingManager(AppRatingStorage appRatingStorage) {
+        this.appRatingStorage = appRatingStorage;
 
         setCustomUncaughtExceptionHandler();
     }
 
-    @VisibleForTesting
-    public static void clearStateForTesting() {
-        sInstance = null;
-    }
-
     public Single<Boolean> checkIfNeedToAskRating() {
-        return mAppRatingStorage.readAppRatingData()
+        return appRatingStorage.readAppRatingData()
                 .map(new Func1<AppRatingModel, Boolean>() {
                     @Override
                     public Boolean call(AppRatingModel appRatingModel) {
@@ -56,17 +47,17 @@ public class AppRatingManager {
     }
 
     public void dontShowRatingPromptAgain() {
-        mAppRatingStorage.setDontShowRatingPromptMore();
+        appRatingStorage.setDontShowRatingPromptMore();
     }
 
     public void prorogueRatingPrompt() {
-        mAppRatingStorage.prorogueRatingPrompt(LAUNCHES_UNTIL_PROMPT);
+        appRatingStorage.prorogueRatingPrompt(LAUNCHES_UNTIL_PROMPT);
     }
 
     private void setCustomUncaughtExceptionHandler() {
         Thread.UncaughtExceptionHandler exceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (!(exceptionHandler instanceof RatingUncaughtExceptionHandler)) {
-            Thread.setDefaultUncaughtExceptionHandler(new RatingUncaughtExceptionHandler(mAppRatingStorage, exceptionHandler));
+            Thread.setDefaultUncaughtExceptionHandler(new RatingUncaughtExceptionHandler(appRatingStorage, exceptionHandler));
         }
     }
 

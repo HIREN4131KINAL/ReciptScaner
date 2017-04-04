@@ -3,7 +3,6 @@ package co.smartreceipts.android.rating;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.rating.data.AppRatingModel;
 import co.smartreceipts.android.rating.data.AppRatingStorage;
 import rx.Single;
@@ -37,9 +36,9 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
+
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -58,9 +57,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CANT_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -79,9 +77,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_LESS, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -100,9 +97,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, RECENT_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -121,9 +117,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -142,9 +137,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -163,9 +157,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()
@@ -184,9 +177,8 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MACH_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
         TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
 
         manager.checkIfNeedToAskRating()

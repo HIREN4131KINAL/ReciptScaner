@@ -27,14 +27,13 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
 import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 
 
-public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRenderer, DataType> {
+public class PdfBoxTableGenerator2<DataType> implements TableGenerator<List<GridRowRenderer>, DataType> {
 
     private static final Padding DEFAULT_PADDING = new Padding(4f);
 
     private final PdfBoxContext pdfBoxContext;
     private final List<Column<DataType>> columns;
     private final PDDocument pdDocument;
-    private final PdfBoxPageDecorations pageDecorations;
     private final Filter<DataType> filter;
     private final boolean printHeaders;
     private final boolean printFooters;
@@ -42,14 +41,12 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
     public PdfBoxTableGenerator2(@NonNull PdfBoxContext context,
                                  @NonNull List<Column<DataType>> columns,
                                  @NonNull PDDocument pdDocument,
-                                 @NonNull PdfBoxPageDecorations pageDecorations,
                                  @Nullable Filter<DataType> receiptFilter,
                                  boolean printHeaders,
                                  boolean printFooters) {
         this.pdfBoxContext = Preconditions.checkNotNull(context);
         this.columns = Preconditions.checkNotNull(columns);
         this.pdDocument = Preconditions.checkNotNull(pdDocument);
-        this.pageDecorations = Preconditions.checkNotNull(pageDecorations);
         this.filter = receiptFilter;
         this.printHeaders = printHeaders;
         this.printFooters = printFooters;
@@ -57,13 +54,12 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
 
     @NonNull
     @Override
-    public GridRenderer generate(@NonNull List<DataType> list) throws IOException {
+    public List<GridRowRenderer> generate(@NonNull List<DataType> list) throws IOException {
+        final List<GridRowRenderer> gridRows = new ArrayList<>();
         final int colCount = columns.size();
         final List<DataType> filteredList = new ArrayList<>(list.size());
 
         float availableWidth = pdfBoxContext.getPageSize().getWidth() - 2 * pdfBoxContext.getPageMarginHorizontal();
-        float availableHeight = pdfBoxContext.getPageSize().getHeight() - 2 * pdfBoxContext.getPageMarginVertical()
-                - pageDecorations.getHeaderHeight() - pageDecorations.getFooterHeight();
 
         // calculate column widths
         // TODO: Include this as part of the measure pass
@@ -73,9 +69,8 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
                 pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default));
         colWidths = columnWidthCalculator.calculate();
 
-        final GridRenderer gridRenderer = new GridRenderer(availableWidth, availableHeight);
-
         // Add the header
+        final GridRowRenderer headerRow;
         if (printHeaders) {
             final List<TextRenderer> headerColumns = new ArrayList<>();
             for (int i = 0; i < colCount; i++) {
@@ -89,9 +84,11 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
                 textRenderer.getRenderingConstraints().addConstraint(new WidthConstraint(colWidths[i]));
                 headerColumns.add(textRenderer);
             }
-            final GridRowRenderer headerRow = new GridRowRenderer(headerColumns);
+            headerRow = new GridRowRenderer(headerColumns);
             headerRow.getRenderingFormatting().addFormatting(new BackgroundColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.TableHeader)));
-            gridRenderer.addHeader(headerRow);
+            gridRows.add(headerRow);
+        } else {
+            headerRow = null;
         }
 
         if (!list.isEmpty()) {
@@ -117,7 +114,8 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
                     if (j % 2 == 0) {
                         rowRenderer.getRenderingFormatting().addFormatting(new BackgroundColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.TableCell)));
                     }
-                    gridRenderer.addRow(rowRenderer);
+                    rowRenderer.associateHeaderRow(headerRow);
+                    gridRows.add(rowRenderer);
                 }
             }
         }
@@ -136,11 +134,12 @@ public class PdfBoxTableGenerator2<DataType> implements TableGenerator<GridRende
                 textRenderer.getRenderingConstraints().addConstraint(new WidthConstraint(colWidths[i]));
             }
             final GridRowRenderer footerRow = new GridRowRenderer(footerColumns);
+            footerRow.associateHeaderRow(headerRow);
             footerRow.getRenderingFormatting().addFormatting(new BackgroundColor(pdfBoxContext.getColorManager().getColor(PdfColorStyle.TableCell)));
-            gridRenderer.addHeader(footerRow);
+            gridRows.add(footerRow);
         }
 
-        return gridRenderer;
+        return gridRows;
     }
 
 }

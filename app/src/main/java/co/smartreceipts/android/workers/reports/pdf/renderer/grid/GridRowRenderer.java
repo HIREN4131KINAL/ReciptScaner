@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.grid;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
@@ -16,12 +17,14 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightC
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.XPositionConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
+import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Alignment;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.BackgroundColor;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
 
 public class GridRowRenderer extends Renderer {
 
     private final List<? extends Renderer> columns;
+    private GridRowRenderer header;
 
     public GridRowRenderer(@NonNull Renderer renderer) {
         this(Collections.singletonList(Preconditions.checkNotNull(renderer)));
@@ -51,6 +54,15 @@ public class GridRowRenderer extends Renderer {
         this.getRenderingFormatting().setFormatting(copy.getRenderingFormatting());
     }
 
+    public void associateHeaderRow(@Nullable GridRowRenderer header) {
+        this.header = header;
+    }
+
+    @Nullable
+    public GridRowRenderer getAssociatedHeader() {
+        return header;
+    }
+
     @Override
     public void measure() throws IOException {
         final float x = Preconditions.checkNotNull(getRenderingConstraints().getConstraint(XPositionConstraint.class, 0f));
@@ -72,6 +84,12 @@ public class GridRowRenderer extends Renderer {
             }
         }
 
+        final Alignment.Type alignment = getRenderingFormatting().getFormatting(Alignment.class);
+        if (alignment != null) {
+            for (final Renderer renderer : columns) {
+                renderer.getRenderingFormatting().addFormatting(new Alignment(alignment));
+            }
+        }
 
         float unconstrainedWidth = widthConstraint;
         int constrainedByWidthColumnCount = 0;

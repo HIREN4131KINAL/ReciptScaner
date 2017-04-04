@@ -24,8 +24,6 @@ public class GridRenderer extends Renderer {
 
     private final List<GridRowRenderer> rowRenderers = new ArrayList<>();
     private final List<GridRowRenderer> newLineRows = new ArrayList<>();
-    private GridRowRenderer headerRow;
-    private GridRowRenderer footerRow;
 
     public GridRenderer(float width, float height) {
         this(new WidthConstraint(width), new HeightConstraint(height));
@@ -36,18 +34,12 @@ public class GridRenderer extends Renderer {
         this.getRenderingConstraints().addConstraint(heightConstraint);
     }
 
-    public void addHeader(@NonNull GridRowRenderer headerRow) {
-        this.headerRow = headerRow;
-        rowRenderers.add(0, headerRow);
-    }
-
     public void addRow(@NonNull GridRowRenderer rowRenderer) {
         rowRenderers.add(rowRenderer);
     }
 
-    public void addFooter(@NonNull GridRowRenderer footerRow) {
-        this.footerRow = footerRow;
-        rowRenderers.add(footerRow);
+    public void addRows(@NonNull List<GridRowRenderer> rows) {
+        rowRenderers.addAll(rows);
     }
 
     @Override
@@ -78,7 +70,6 @@ public class GridRenderer extends Renderer {
         }
 
         // Next - split the remaining space evenly between the remaining rows
-        Preconditions.checkArgument(heightConstraint >= heightOfRowsWithoutMatchParent, "All rows cannot be rendered with current constraints. Insufficient height");
         final float matchParentSpacePerItem = (heightConstraint - heightOfRowsWithoutMatchParent) / matchParentRowCount;
         for (final GridRowRenderer rowRenderer : rowRenderers) {
             if (rowRenderer.getHeight() == MATCH_PARENT) {
@@ -100,8 +91,8 @@ public class GridRenderer extends Renderer {
             if (y > heightConstraint && listIterator.hasNext()) {
                 Logger.info(this, "Identified a page breaking table. Marking it as such");
                 y = 0;
-                if (headerRow != null) {
-                    final GridRowRenderer newPageHeader = new GridRowRenderer(headerRow);
+                if (rowRenderer.getAssociatedHeader() != null) {
+                    final GridRowRenderer newPageHeader = new GridRowRenderer(rowRenderer.getAssociatedHeader());
                     newPageHeader.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
                     newPageHeader.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
                     newPageHeader.measure();

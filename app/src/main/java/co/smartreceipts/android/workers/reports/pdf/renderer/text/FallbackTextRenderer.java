@@ -66,10 +66,7 @@ class FallbackTextRenderer extends Renderer {
     public void measure() throws IOException {
         final PdfFontSpec fontSpec = Preconditions.checkNotNull(getRenderingFormatting().getFormatting(Font.class));
         final Float widthConstraint = getRenderingConstraints().getConstraint(WidthConstraint.class);
-        final Alignment.Type alignment = getRenderingFormatting().getFormatting(Alignment.class, Alignment.Type.Centered);
         final float padding = getRenderingFormatting().getFormatting(Padding.class, 0f);
-
-        Preconditions.checkArgument(alignment == Alignment.Type.Centered, "Only center alignment is currently supported");
 
         final TextView unscaledTextView = createTextView(fontSpec.getSize());
 
@@ -178,12 +175,17 @@ class FallbackTextRenderer extends Renderer {
     private TextView createTextView(int fontSizePx) {
         final AWTColor color = Preconditions.checkNotNull(getRenderingFormatting().getFormatting(Color.class));
         final AWTColor backgroundColor = getRenderingFormatting().getFormatting(BackgroundColor.class);
+        final Alignment.Type alignment = getRenderingFormatting().getFormatting(Alignment.class, Alignment.Type.Centered);
 
         final TextView textView = new TextView(context);
         textView.setText(string);
         textView.setTextColor(color.color);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSizePx);
-        textView.setGravity(Gravity.CENTER);
+        if (alignment == Alignment.Type.Centered) {
+            textView.setGravity(Gravity.CENTER);
+        } else {
+            textView.setGravity(Gravity.START);
+        }
         if (backgroundColor != null) {
             textView.setBackgroundColor(backgroundColor.color);
         }

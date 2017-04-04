@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 public class Alignment extends AbstractFormatting<Alignment.Type> {
 
     public enum Type {
-        Centered
+        Left, Centered
     }
 
     public Alignment(@NonNull Type alignment) {

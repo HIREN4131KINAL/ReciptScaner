@@ -113,13 +113,17 @@ public class TextRenderer extends Renderer {
             final float padding = getRenderingFormatting().getFormatting(Padding.class, 0f);
 
             final Alignment.Type alignment = getRenderingFormatting().getFormatting(Alignment.class, Alignment.Type.Centered);
-            Preconditions.checkArgument(alignment == Alignment.Type.Centered, "Only center alignment is currently supported");
 
             final List<String> lines = new FixedWidthTextCell(width, padding, string, fontSpec, color).getLines();
 
             for (final String line : lines) {
                 final float stringWidth = PdfBoxUtils.getStringWidth(line, fontSpec);
-                final float dx = (width - stringWidth) / 2.0f;
+                final float dx;
+                if (alignment == Alignment.Type.Centered) {
+                    dx = (width - stringWidth) / 2.0f;
+                } else {
+                    dx = 0;
+                }
 
                 // Move our cursor down
                 y += PdfBoxUtils.getFontHeight(fontSpec);

@@ -23,10 +23,15 @@ import co.smartreceipts.android.model.converters.DistanceToReceiptsConverter;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.workers.reports.pdf.colors.PdfColorStyle;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontStyle;
 import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.YPositionConstraint;
+import co.smartreceipts.android.workers.reports.pdf.renderer.empty.EmptyRenderer;
+import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Alignment;
 import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRenderer;
+import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRowRenderer;
+import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTable;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator;
 import co.smartreceipts.android.workers.reports.pdf.tables.PdfBoxTableGenerator2;
@@ -40,9 +45,9 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
 
     private final List<Distance> mDistances;
     private final List<Column<Distance>> mDistanceColumns;
+    private final UserPreferenceManager mPreferences;
 
     private PdfBoxWriter mWriter;
-    private final UserPreferenceManager mPreferences;
 
     protected PdfBoxReceiptsTablePdfSection(@NonNull PdfBoxContext context,
                                             @NonNull Trip trip,
@@ -75,17 +80,22 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         mWriter = writer;
         mWriter.newPage();
 
-        writeHeader(trip, totals);
+        final float availableWidth = pdfBoxContext.getPageSize().getWidth() - 2 * pdfBoxContext.getPageMarginHorizontal();
+        final float availableHeight = pdfBoxContext.getPageSize().getHeight() - 2 * pdfBoxContext.getPageMarginVertical()
+                - pageDecorations.getHeaderHeight() - pageDecorations.getFooterHeight();
 
-        mWriter.verticalJump(40);
-
-        writeReceiptsTable(mReceipts, doc, pageDecorations);
+        final GridRenderer gridRenderer = new GridRenderer(availableWidth, availableHeight);
+        gridRenderer.addRows(writeHeader(trip, doc, totals));
+        gridRenderer.addRow(new GridRowRenderer(new EmptyRenderer(0, 40)));
+        gridRenderer.addRows(writeReceiptsTable(mReceipts, doc));
 
         if (mPreferences.get(UserPreference.Distance.PrintDistanceTableInReports) && !mDistances.isEmpty()) {
-            mWriter.verticalJump(60);
-
-            writeDistancesTable(mDistances, doc, pageDecorations);
+            gridRenderer.addRow(new GridRowRenderer(new EmptyRenderer(0, 40)));
+            gridRenderer.addRows(writeDistancesTable(mDistances, doc));
         }
+
+        gridRenderer.measure();
+        gridRenderer.render(mWriter);
 
         // reset the page size if necessary
         if (mPreferences.get(UserPreference.ReportOutput.PrintReceiptsTableInLandscape)) {
@@ -94,31 +104,66 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         }
     }
 
-    private void writeHeader(@NonNull Trip trip, @NonNull ReceiptsTotals data) throws IOException {
+    private List<GridRowRenderer> writeHeader(@NonNull Trip trip, @NonNull PDDocument pdDocument, @NonNull ReceiptsTotals data) throws IOException {
 
-        mWriter.openTextBlock();
-        mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Title), trip.getName());
+        final List<GridRowRenderer> headerRows = new ArrayList<>();
+        headerRows.add(new GridRowRenderer(new TextRenderer(
+                pdfBoxContext.getAndroidContext(),
+                pdDocument,
+                trip.getName(),
+                pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                pdfBoxContext.getFontManager().getFont(PdfFontStyle.Title))));
         
         if (!data.receiptsPrice.equals(data.netPrice)) {
-            mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total, data.receiptsPrice.getCurrencyFormattedPrice());
+            headerRows.add(new GridRowRenderer(new TextRenderer(
+                    pdfBoxContext.getAndroidContext(),
+                    pdDocument,
+                    pdfBoxContext.getAndroidContext().getString(R.string.report_header_receipts_total, data.receiptsPrice.getCurrencyFormattedPrice()),
+                    pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
         }
 
         if (mPreferences.get(UserPreference.Receipts.IncludeTaxField)) {
             if (mPreferences.get(UserPreference.Receipts.UsePreTaxPrice) && data.taxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_tax, data.taxPrice.getCurrencyFormattedPrice());
+                headerRows.add(new GridRowRenderer(new TextRenderer(
+                        pdfBoxContext.getAndroidContext(),
+                        pdDocument,
+                        pdfBoxContext.getAndroidContext().getString(R.string.report_header_receipts_total_tax, data.taxPrice.getCurrencyFormattedPrice()),
+                        pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                        pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
             } else if (!data.noTaxPrice.equals(data.receiptsPrice) && data.noTaxPrice.getPriceAsFloat() > EPSILON) {
-                mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_no_tax, data.noTaxPrice.getCurrencyFormattedPrice());
+                headerRows.add(new GridRowRenderer(new TextRenderer(
+                        pdfBoxContext.getAndroidContext(),
+                        pdDocument,
+                        pdfBoxContext.getAndroidContext().getString(R.string.report_header_receipts_total_no_tax, data.noTaxPrice.getCurrencyFormattedPrice()),
+                        pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                        pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
             }
         }
 
         if (!mPreferences.get(UserPreference.Receipts.OnlyIncludeReimbursable) && !data.reimbursablePrice.equals(data.receiptsPrice)) {
-            mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_receipts_total_reimbursable, data.reimbursablePrice.getCurrencyFormattedPrice());
+            headerRows.add(new GridRowRenderer(new TextRenderer(
+                    pdfBoxContext.getAndroidContext(),
+                    pdDocument,
+                    pdfBoxContext.getAndroidContext().getString(R.string.report_header_receipts_total_reimbursable, data.reimbursablePrice.getCurrencyFormattedPrice()),
+                    pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
         }
         if (!mDistances.isEmpty()) {
-            mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_distance_total, data.distancePrice.getCurrencyFormattedPrice());
+            headerRows.add(new GridRowRenderer(new TextRenderer(
+                    pdfBoxContext.getAndroidContext(),
+                    pdDocument,
+                    pdfBoxContext.getAndroidContext().getString(R.string.report_header_distance_total, data.distancePrice.getCurrencyFormattedPrice()),
+                    pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
         }
 
-        mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default), R.string.report_header_gross_total, data.netPrice.getCurrencyFormattedPrice());
+        headerRows.add(new GridRowRenderer(new TextRenderer(
+                pdfBoxContext.getAndroidContext(),
+                pdDocument,
+                pdfBoxContext.getAndroidContext().getString(R.string.report_header_gross_total, data.netPrice.getCurrencyFormattedPrice()),
+                pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
 
         String fromToPeriod = pdfBoxContext.getString(R.string.report_header_from,
                 trip.getFormattedStartDate(pdfBoxContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)))
@@ -126,29 +171,38 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
                 + pdfBoxContext.getString(R.string.report_header_to,
                 trip.getFormattedEndDate(pdfBoxContext.getAndroidContext(), mPreferences.get(UserPreference.General.DateSeparator)));
 
-        mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default),
-                fromToPeriod);
+        headerRows.add(new GridRowRenderer(new TextRenderer(
+                pdfBoxContext.getAndroidContext(),
+                pdDocument,
+                fromToPeriod,
+                pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
 
 
         if (mPreferences.get(UserPreference.General.IncludeCostCenter) && !TextUtils.isEmpty(trip.getCostCenter())) {
-            mWriter.writeNewLine(pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default),
-                    R.string.report_header_cost_center,
-                    trip.getCostCenter()
-            );
+            headerRows.add(new GridRowRenderer(new TextRenderer(
+                    pdfBoxContext.getAndroidContext(),
+                    pdDocument,
+                    pdfBoxContext.getAndroidContext().getString(R.string.report_header_cost_center, trip.getCostCenter()),
+                    pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
         }
         if (!TextUtils.isEmpty(trip.getComment())) {
-            mWriter.writeNewLine(
-                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default),
-                    R.string.report_header_comment,
-                    trip.getComment()
-            );
+            headerRows.add(new GridRowRenderer(new TextRenderer(
+                    pdfBoxContext.getAndroidContext(),
+                    pdDocument,
+                    pdfBoxContext.getAndroidContext().getString(R.string.report_header_comment, trip.getComment()),
+                    pdfBoxContext.getColorManager().getColor(PdfColorStyle.Default),
+                    pdfBoxContext.getFontManager().getFont(PdfFontStyle.Default))));
         }
 
-        mWriter.closeTextBlock();
+        for (final GridRowRenderer headerRow : headerRows) {
+            headerRow.getRenderingFormatting().addFormatting(new Alignment(Alignment.Type.Left));
+        }
+        return headerRows;
     }
 
-    private void writeReceiptsTable(@NonNull List<Receipt> receipts, @NonNull PDDocument pdDocument,
-                                    @NonNull PdfBoxPageDecorations pageDecorations) throws IOException {
+    private List<GridRowRenderer>  writeReceiptsTable(@NonNull List<Receipt> receipts, @NonNull PDDocument pdDocument) throws IOException {
 
         final List<Receipt> receiptsTableList = new ArrayList<>(receipts);
         if (mPreferences.get(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports)) {
@@ -157,29 +211,15 @@ public class PdfBoxReceiptsTablePdfSection extends PdfBoxSection {
         }
 
         final PdfBoxTableGenerator2<Receipt> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mReceiptColumns,
-                pdDocument, pageDecorations, new LegacyReceiptFilter(mPreferences), true, false);
+                pdDocument, new LegacyReceiptFilter(mPreferences), true, false);
 
-        final GridRenderer table = pdfTableGenerator.generate(receiptsTableList);
-        table.getRenderingConstraints().addConstraint(new YPositionConstraint(mWriter.getCurrentYPosition()));
-
-        Logger.debug(this, "Performing measure of Receipts Table at {}.", System.currentTimeMillis());
-        table.measure();
-
-        Logger.debug(this, "Performing render of Receipts Table at {}.", System.currentTimeMillis());
-        table.render(mWriter);
+        return pdfTableGenerator.generate(receiptsTableList);
     }
 
-    private void writeDistancesTable(@NonNull List<Distance> distances, @NonNull PDDocument pdDocument,
-                                     @NonNull PdfBoxPageDecorations pageDecorations) throws IOException {
+    private List<GridRowRenderer> writeDistancesTable(@NonNull List<Distance> distances, @NonNull PDDocument pdDocument) throws IOException {
         final PdfBoxTableGenerator2<Distance> pdfTableGenerator = new PdfBoxTableGenerator2<>(pdfBoxContext, mDistanceColumns,
-                pdDocument, pageDecorations, null, true, true);
-        final GridRenderer table = pdfTableGenerator.generate(distances);
-
-        Logger.debug(this, "Performing measure of Distance Table at {}.", System.currentTimeMillis());
-        table.measure();
-
-        Logger.debug(this, "Performing render of Distance Table at {}.", System.currentTimeMillis());
-        table.render(mWriter);
+                pdDocument, null, true, true);
+        return pdfTableGenerator.generate(distances);
     }
 
 

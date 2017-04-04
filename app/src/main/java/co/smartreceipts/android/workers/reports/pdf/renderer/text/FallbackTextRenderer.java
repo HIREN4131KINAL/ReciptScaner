@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -19,8 +20,6 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.tom_roush.pdfbox.util.awt.AWTColor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,7 +36,6 @@ import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Backgrou
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Color;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Font;
 import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Padding;
-import co.smartreceipts.android.workers.reports.pdf.renderer.grid.GridRowRenderer;
 import wb.android.image.ImageUtils;
 
 /**
@@ -46,10 +44,12 @@ import wb.android.image.ImageUtils;
  * character glyph (common amongst non-Western languages, since we preset Roboto and not the Noto
  * fonts).
  */
-class FallbackTextRenderer extends Renderer {
+public class FallbackTextRenderer extends Renderer {
 
     private static final int WIDTH_SCALE_FACTOR = 3;
     private static final int UI_THREAD_WAITING_TIME_SECONDS = 5;
+
+    private static int HEIGHT_MEASURE_SPEC = ViewGroup.LayoutParams.WRAP_CONTENT;
 
     private final Context context;
     private final PDDocument pdDocument;
@@ -95,7 +95,7 @@ class FallbackTextRenderer extends Renderer {
         synchronouslyRunUiThreadOperation(new Runnable() {
             @Override
             public void run() {
-                unscaledTextView.measure(widthMeasureSpec, ViewGroup.LayoutParams.WRAP_CONTENT);
+                unscaledTextView.measure(widthMeasureSpec, HEIGHT_MEASURE_SPEC);
                 unscaledTextView.layout(0, 0, unscaledTextView.getMeasuredWidth(), unscaledTextView.getMeasuredHeight());
             }
         });
@@ -127,7 +127,7 @@ class FallbackTextRenderer extends Renderer {
             synchronouslyRunUiThreadOperation(new Runnable() {
                 @Override
                 public void run() {
-                    textView.measure(widthMeasureSpec, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    textView.measure(widthMeasureSpec, HEIGHT_MEASURE_SPEC);
                     textView.layout(0, 0, textView.getMeasuredWidth(), textView.getMeasuredHeight());
                     Bitmap bitmap = ImageUtils.drawView(textView);
                     bitmap = ImageUtils.applyWhiteBackground(bitmap);
@@ -204,5 +204,15 @@ class FallbackTextRenderer extends Renderer {
             textView.setBackgroundColor(backgroundColor.color);
         }
         return textView;
+    }
+
+    @VisibleForTesting
+    public static void setHeightMeasureSpec(int measureSpec) {
+        HEIGHT_MEASURE_SPEC = measureSpec;
+    }
+
+    @VisibleForTesting
+    public static void resetHeightMeasureSpec() {
+        HEIGHT_MEASURE_SPEC = ViewGroup.LayoutParams.WRAP_CONTENT;
     }
 }

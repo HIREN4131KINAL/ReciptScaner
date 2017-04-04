@@ -2,6 +2,7 @@ package co.smartreceipts.android.report;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.tom_roush.pdfbox.cos.COSName;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -14,7 +15,6 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -27,11 +27,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import co.smartreceipts.android.BuildConfig;
 import co.smartreceipts.android.TestResourceReader;
 import co.smartreceipts.android.model.Column;
 import co.smartreceipts.android.model.Distance;
@@ -47,8 +45,6 @@ import co.smartreceipts.android.model.impl.columns.distance.DistancePriceColumn;
 import co.smartreceipts.android.model.impl.columns.distance.DistanceRateColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptCategoryNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptDateColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsPicturedColumn;
-import co.smartreceipts.android.model.impl.columns.receipts.ReceiptIsReimbursableColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptNameColumn;
 import co.smartreceipts.android.model.impl.columns.receipts.ReceiptPriceColumn;
 import co.smartreceipts.android.persistence.PersistenceManager;
@@ -59,6 +55,7 @@ import co.smartreceipts.android.utils.ReceiptUtils;
 import co.smartreceipts.android.utils.TripUtils;
 import co.smartreceipts.android.utils.shadows.ShadowFontFileFinder;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxReportFile;
+import co.smartreceipts.android.workers.reports.pdf.renderer.text.FallbackTextRenderer;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -115,11 +112,14 @@ public class InteractivePdfBoxTest {
         when(userPreferenceManager.get(UserPreference.Distance.PrintDistanceTableInReports)).thenReturn(true);
         when(userPreferenceManager.get(UserPreference.Distance.PrintDistanceAsDailyReceiptInReports)).thenReturn(false);
         when(userPreferenceManager.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("Report generated using Smart Receipts for Android");
+
+        FallbackTextRenderer.setHeightMeasureSpec(View.MeasureSpec.makeMeasureSpec(25, View.MeasureSpec.EXACTLY));
     }
 
     @After
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void tearDown() {
+        FallbackTextRenderer.resetHeightMeasureSpec();
         if (outputFile.exists()) {
            outputFile.delete();
         }
@@ -167,7 +167,7 @@ public class InteractivePdfBoxTest {
         verifyImageCount(pdDocument, count);
     }
 
-    @Ignore("Still a WIP")
+    @Test
     public void createReportWithOtherNonWesternCharacters() throws Exception {
 
         // Configure test data
@@ -180,12 +180,42 @@ public class InteractivePdfBoxTest {
         when(userPreferenceManager.get(UserPreference.PlusSubscription.PdfFooterString)).thenReturn("Footer with Various Currencies: $£€ \u20A3\u20A4\u20A6\u20A7\u20A8\u20A9\u20AA\u20AB\u20AC\u20B1\u20B9\u20BA\u20BC\u20BD)");
 
         // Write the file
-        writeFullReport(TripUtils.newDefaultTrip(), Collections.singletonList(factory.build()));
+        writeFullReport(TripUtils.newDefaultTripBuilderFactory().setDirectory(new File("Name with Non-Western Characters: \uCD9C \uFFE5 \u7172")).build(), Collections.singletonList(factory.build()));
+
+        // Verify the results
+        final int expectedNonWesternCharactersConvertedToImageCount = 3;
+        final PDDocument pdDocument = PDDocument.load(outputFile);
+        assertEquals(2, pdDocument.getNumberOfPages());
+        verifyImageCount(pdDocument, count + expectedNonWesternCharactersConvertedToImageCount);
+    }
+
+    @Test
+    public void createTableAndImageGridWithVarietyOfImagesToVerifyTableSplitting() throws Exception {
+
+        // Configure test data
+        final File normalReceiptImg = testResourceReader.openFile(TestResourceReader.RECEIPT_JPG);
+        final File longReceiptImg = testResourceReader.openFile(TestResourceReader.LONG_RECEIPT_JPG);
+        final File wideReceiptImg = testResourceReader.openFile(TestResourceReader.WIDE_RECEIPT_JPG);
+
+        final List<Receipt> receipts = new ArrayList<>();
+        receipts.addAll(createReceiptsWithFile(normalReceiptImg, 1));
+        receipts.addAll(createReceiptsWithFile(longReceiptImg, 2));
+        receipts.addAll(createReceiptsWithFile(wideReceiptImg, 2));
+        receipts.addAll(createReceiptsWithFile(wideReceiptImg, 1, true));
+        receipts.addAll(createReceiptsWithFile(longReceiptImg, 3));
+        receipts.addAll(createReceiptsWithFile(normalReceiptImg, 1, true));
+        receipts.addAll(createReceiptsWithFile(longReceiptImg, 4));
+        receipts.addAll(createReceiptsWithFile(longReceiptImg, 6));
+        receipts.addAll(createReceiptsWithFile(wideReceiptImg, 2, true));
+        receipts.addAll(createReceiptsWithFile(wideReceiptImg, 15));
+
+        // Write the file
+        writeFullReport(TripUtils.newDefaultTrip(), receipts);
 
         // Verify the results
         final PDDocument pdDocument = PDDocument.load(outputFile);
-        assertEquals(2, pdDocument.getNumberOfPages());
-        verifyImageCount(pdDocument, count);
+        assertEquals(16, pdDocument.getNumberOfPages());
+        verifyImageCount(pdDocument, receipts.size());
     }
 
     @Test
@@ -554,18 +584,5 @@ public class InteractivePdfBoxTest {
         assertEquals("An incorrect amount of PDF images was rendered.", actualImageCount, expectedImageCount);
     }
 
-    private String getReceiptTitle(int i) {
-        if (i == 2) {
-            return "Receipt with a long long long long long long long long description " + (i + 1);
-        } else if (i == 4) {
-            return "Recibo en español con tildes: éó?¿¡" + (i + 1);
-        } else if (i == 7) {
-            return "Απόδειξη ελληνική. Κεφαλαίο Όνομα" + (i + 1);
-//       } else if (i == 8) {
-//            return "Korean: ㅇㅋㅊ";
-        } else {
-            return "Receipt " + (i + 1);
-        }
-    }
 
 }

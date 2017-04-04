@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import co.smartreceipts.android.utils.log.Logger;
+import co.smartreceipts.android.workers.reports.pdf.utils.HeavyHandedReplaceIllegalCharacters;
 import co.smartreceipts.android.workers.reports.pdf.utils.PdfBoxUtils;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;
@@ -45,7 +46,7 @@ public class TextRenderer extends Renderer {
                         @NonNull Color color, @NonNull Font font) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.pdDocument = Preconditions.checkNotNull(pdDocument);
-        this.string = Preconditions.checkNotNull(string);
+        this.string = HeavyHandedReplaceIllegalCharacters.getSafeString(Preconditions.checkNotNull(string));
 
         this.width = WRAP_CONTENT;
         this.height = WRAP_CONTENT;

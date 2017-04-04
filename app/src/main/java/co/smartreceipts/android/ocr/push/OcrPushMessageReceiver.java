@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.concurrent.TimeUnit;
+
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.push.PushMessageReceiver;
 import rx.Observable;
@@ -16,6 +18,8 @@ import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 public class OcrPushMessageReceiver implements PushMessageReceiver {
+
+    private static final int TIMEOUT_SECONDS = 10;
 
     private final Subject<OcrResponse, OcrResponse> pushResultSubject = PublishSubject.create();
     private final Scheduler subscribeOnScheduler;
@@ -43,7 +47,15 @@ public class OcrPushMessageReceiver implements PushMessageReceiver {
                     @Override
                     public void call(OcrResponse ocrResponse) {
                         pushResultSubject.onNext(ocrResponse);
+                        pushResultSubject.onCompleted();
                     }
                 });
     }
+
+    public Observable<OcrResponse> getOcrPushResponse() {
+        return pushResultSubject.asObservable()
+                .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+
 }

@@ -2,14 +2,17 @@ package co.smartreceipts.android.ocr;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
@@ -74,26 +77,33 @@ public class OcrInteractor {
         if (ocrFeature.isEnabled() && identityManager.isLoggedIn() && ocrPurchaseTracker.hasAvailableScans()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
             return s3Manager.upload(file, OCR_FOLDER)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(Schedulers.io())
-                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
-                        @Override
-                        public Observable<RecognitionResponse> call(@NonNull String s3Url) {
-                            return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
-                        }
-                    })
                     .doOnSubscribe(new Action0() {
                         @Override
                         public void call() {
                             pushManager.registerReceiver(pushMessageReceiver);
                         }
                     })
+                    .subscribeOn(Schedulers.io())
+                    .flatMap(new Func1<String, Observable<String>>() {
+                        @Override
+                        public Observable<String> call(@Nullable String s3Url) {
+                            if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
+                                return Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
+                            } else {
+                                return Observable.error(new ApiValidationException("Failed to receive a valid url: " + s3Url));
+                            }
+                        }
+                    })
+                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
+                        @Override
+                        public Observable<RecognitionResponse> call(@NonNull String s3Url) {
+                            return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
+                        }
+                    })
                     .flatMap(new Func1<RecognitionResponse, Observable<OcrResponse>>() {
                         @Override
                         public Observable<OcrResponse> call(RecognitionResponse recognitionResponse) {
-                            // TODO: Here's where we should wait for the push result to come in to validate everything
-                            // TODO: Also include a timeout here so it doesn't take more than say 7 seconds or so
-                            return Observable.just(new OcrResponse());
+                            return pushMessageReceiver.getOcrPushResponse();
                         }
                     })
                     .onErrorReturn(new Func1<Throwable, OcrResponse>() {

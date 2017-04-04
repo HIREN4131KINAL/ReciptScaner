@@ -1,6 +1,7 @@
 package co.smartreceipts.android.utils;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,6 +13,16 @@ public class UriUtils {
 
     private UriUtils() {
 
+    }
+
+    @Nullable
+    public static String getExtension(@NonNull File file, @NonNull Context context) {
+        return getExtension(Uri.fromFile(file), context);
+    }
+
+    @Nullable
+    public static String getExtension(@NonNull Uri uri, @NonNull Context context) {
+        return getExtension(uri, context.getContentResolver());
     }
 
     @Nullable

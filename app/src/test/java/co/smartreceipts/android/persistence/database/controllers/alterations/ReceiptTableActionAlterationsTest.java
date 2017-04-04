@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 import java.util.Arrays;
@@ -100,7 +101,7 @@ public class ReceiptTableActionAlterationsTest {
             }
         }).when(mReceiptBuilderFactory).setIndex(anyInt());
 
-        mReceiptTableActionAlterations = new ReceiptTableActionAlterations(mReceiptsTable, mStorageManager, mReceiptBuilderFactoryFactory);
+        mReceiptTableActionAlterations = new ReceiptTableActionAlterations(RuntimeEnvironment.application, mReceiptsTable, mStorageManager, mReceiptBuilderFactoryFactory);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -259,6 +260,7 @@ public class ReceiptTableActionAlterationsTest {
         final Receipt result = onNextResults.get(0);
         assertNotNull(result.getFile());
         assertEquals("1_name.pdf", result.getFile().getName());
+        assertTrue(result.getFile().delete());
     }
 
     @Test

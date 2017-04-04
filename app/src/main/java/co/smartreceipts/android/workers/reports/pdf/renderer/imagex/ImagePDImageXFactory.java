@@ -1,5 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.imagex;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
@@ -16,21 +17,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import co.smartreceipts.android.utils.UriUtils;
 import wb.android.storage.StorageManager;
 
 public class ImagePDImageXFactory implements PDImageXFactory {
 
+    private final Context context;
     private final PDDocument pdDocument;
     private final File file;
 
-    public ImagePDImageXFactory(@NonNull PDDocument pdDocument, @NonNull File file) {
+    public ImagePDImageXFactory(@NonNull Context context, @NonNull PDDocument pdDocument, @NonNull File file) {
+        this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.pdDocument = Preconditions.checkNotNull(pdDocument);
         this.file = Preconditions.checkNotNull(file);
     }
 
     @NonNull
     public PDImageXObject get() throws IOException {
-        final String fileExtension = StorageManager.getExtension(file);
+        final String fileExtension = UriUtils.getExtension(file, context);
         Preconditions.checkNotNull(fileExtension, "This file does not have a valid extension: " + file);
 
         FileInputStream fileInputStream = null;

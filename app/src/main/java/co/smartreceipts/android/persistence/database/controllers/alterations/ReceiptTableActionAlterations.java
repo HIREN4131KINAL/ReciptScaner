@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.controllers.alterations;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -21,6 +22,7 @@ import co.smartreceipts.android.model.factory.ReceiptBuilderFactoryFactory;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
+import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Subscriber;
@@ -29,18 +31,22 @@ import wb.android.storage.StorageManager;
 
 public class ReceiptTableActionAlterations extends StubTableActionAlterations<Receipt> {
 
-
+    private final Context context;
     private final ReceiptsTable mReceiptsTable;
     private final StorageManager mStorageManager;
     private final BuilderFactory1<Receipt, ReceiptBuilderFactory> mReceiptBuilderFactoryFactory;
 
-    public ReceiptTableActionAlterations(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager) {
+    public ReceiptTableActionAlterations(@NonNull Context context, @NonNull ReceiptsTable receiptsTable,
+                                         @NonNull StorageManager storageManager) {
+        this.context = Preconditions.checkNotNull(context);
         mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mStorageManager = Preconditions.checkNotNull(storageManager);
         mReceiptBuilderFactoryFactory = new ReceiptBuilderFactoryFactory();
     }
 
-    ReceiptTableActionAlterations(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @Nullable BuilderFactory1<Receipt, ReceiptBuilderFactory> receiptBuilderFactoryFactory) {
+    ReceiptTableActionAlterations(@NonNull Context context, @NonNull ReceiptsTable receiptsTable,
+                                  @NonNull StorageManager storageManager, @Nullable BuilderFactory1<Receipt, ReceiptBuilderFactory> receiptBuilderFactoryFactory) {
+        this.context = Preconditions.checkNotNull(context);
         mReceiptsTable = Preconditions.checkNotNull(receiptsTable);
         mStorageManager = Preconditions.checkNotNull(storageManager);
         mReceiptBuilderFactoryFactory = Preconditions.checkNotNull(receiptBuilderFactoryFactory);
@@ -68,8 +74,8 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
                         // If we changed the receipt file, replace the old file name
                         if (oldReceipt.getFile() != null) {
                             final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
-                            final String oldExtension = "." + StorageManager.getExtension(oldReceipt.getFile());
-                            final String newExtension = "." + StorageManager.getExtension(newReceipt.getFile());
+                            final String oldExtension = "." + UriUtils.getExtension(oldReceipt.getFile(), context);
+                            final String newExtension = "." + UriUtils.getExtension(newReceipt.getFile(), context);
                             if (newExtension.equals(oldExtension)) {
                                 if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
                                     // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
@@ -213,7 +219,8 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
         stringBuilder.append(FileUtils.omitIllegalCharactersFromFileName(receipt.getName().trim()));
         final File file = receipt.getFile();
         if (file != null) {
-            stringBuilder.append('.').append(StorageManager.getExtension(receipt.getFile()));
+            final String extension = UriUtils.getExtension(file, context);
+            stringBuilder.append('.').append(extension);
             final String newName = stringBuilder.toString();
             final File renamedFile = mStorageManager.getFile(receipt.getTrip().getDirectory(), newName);
             if (!renamedFile.exists()) {

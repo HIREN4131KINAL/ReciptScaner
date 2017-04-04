@@ -978,10 +978,12 @@ public class StorageManager {
 	 * 
 	 * @param file
 	 *            - the file to get the extension from
+     * @deprecated in favor of {@link UriUtils}
 	 * @return the extension as a string
 	 */
     @Nullable
-	public static final String getExtension(File file) {
+    @Deprecated
+	public static String getExtension(File file) {
 		if (file == null || TextUtils.isEmpty(file.getName()) || file.isDirectory()) {
 			return null;
 		}

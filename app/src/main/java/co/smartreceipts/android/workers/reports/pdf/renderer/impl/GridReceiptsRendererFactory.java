@@ -83,7 +83,7 @@ public class GridReceiptsRendererFactory {
 
                     labelRows.add(new ReceiptLabelTextRenderer(receipt, context, pdDocument, userPreferenceManager, color, fontSpec));
                     if (receipt.hasImage()) {
-                        imageRows.add(new PDImageXRenderer(new ImagePDImageXFactory(pdDocument, receipt.getFile())));
+                        imageRows.add(new PDImageXRenderer(new ImagePDImageXFactory(context, pdDocument, receipt.getFile())));
                     } else {
                         throw new IllegalArgumentException("Unsupported file type: " + receipt.getFile());
                     }

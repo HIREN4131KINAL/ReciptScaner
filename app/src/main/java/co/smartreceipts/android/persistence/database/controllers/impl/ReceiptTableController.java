@@ -1,5 +1,6 @@
 package co.smartreceipts.android.persistence.database.controllers.impl;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
@@ -40,14 +41,14 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
     private final CopyOnWriteArrayList<ReceiptTableEventsListener> mReceiptTableEventsListeners = new CopyOnWriteArrayList<>();
 
     @Inject
-    public ReceiptTableController(PersistenceManager persistenceManager, Analytics analytics,
+    public ReceiptTableController(Context context, PersistenceManager persistenceManager, Analytics analytics,
                                   TripTableController tripTableController) {
-        this(persistenceManager.getDatabase().getReceiptsTable(), persistenceManager.getStorageManager(),
+        this(context, persistenceManager.getDatabase().getReceiptsTable(), persistenceManager.getStorageManager(),
                 analytics, tripTableController);
     }
 
-    private ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
-        this(receiptsTable, new ReceiptTableActionAlterations(receiptsTable, storageManager), analytics, tripTableController);
+    private ReceiptTableController(@NonNull Context context, @NonNull ReceiptsTable receiptsTable, @NonNull StorageManager storageManager, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {
+        this(receiptsTable, new ReceiptTableActionAlterations(context, receiptsTable, storageManager), analytics, tripTableController);
     }
 
     private ReceiptTableController(@NonNull ReceiptsTable receiptsTable, @NonNull ReceiptTableActionAlterations receiptTableActionAlterations, @NonNull Analytics analytics, @NonNull TripTableController tripTableController) {

@@ -1,4 +1,4 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.receipts;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -34,6 +34,9 @@ import co.smartreceipts.android.adapters.ReceiptCardAdapter;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.config.ConfigurationManager;
+import co.smartreceipts.android.fragments.ImportPhotoPdfDialogFragment;
+import co.smartreceipts.android.fragments.ReceiptMoveCopyDialogFragment;
+import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.AttachmentSendFileImporter;

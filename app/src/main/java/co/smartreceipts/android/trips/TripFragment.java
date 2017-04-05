@@ -31,7 +31,7 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.adapters.TripCardAdapter;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.fragments.ReceiptsFragment;
+import co.smartreceipts.android.receipts.ReceiptsFragment;
 import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.LastTripController;

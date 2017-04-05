@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import java.io.File;
 
-import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
+import co.smartreceipts.android.receipts.editor.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.identity.widget.LoginFragment;

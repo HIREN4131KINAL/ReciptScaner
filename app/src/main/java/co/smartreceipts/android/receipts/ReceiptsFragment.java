@@ -1,8 +1,9 @@
-package co.smartreceipts.android.fragments;
+package co.smartreceipts.android.receipts;
 
 import android.support.v7.app.ActionBar;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;

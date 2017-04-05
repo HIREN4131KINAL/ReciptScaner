@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.util.Vector;
 
 import co.smartreceipts.android.model.TaxItem;
-import co.smartreceipts.android.settings.UserPreferenceManager;
 
 public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements TextWatcher, View.OnFocusChangeListener {
 
@@ -30,7 +29,8 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	private final TaxItem mDefaultValue;
 	private final WeakReference<TextView> mPriceBox;
 	private final WeakReference<AutoCompleteTextView> mTaxBox;
-	private final UserPreferenceManager mPreferences;
+
+	private final boolean usePreTaxPrice;
 	
 	/**
 	 * The internal {@link java.util.List} that the {@link ArrayAdapter} uses to track entries caused
@@ -38,17 +38,18 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 	 */
 	private final Vector<TaxItem> mData;
 	
-	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox, UserPreferenceManager preferences, float defaultValue) {
+	public TaxAutoCompleteAdapter(Context context, TextView priceBox, AutoCompleteTextView taxBox,
+								  boolean usePreTaxPrice, float defaultValue) {
 		super(context, android.R.layout.two_line_list_item);
 		mInflater = LayoutInflater.from(context);
 		mData = new Vector<>();
 		mListItemId = android.R.layout.two_line_list_item;
-		mDefaultValue = new TaxItem(defaultValue, preferences);
+		mDefaultValue = new TaxItem(defaultValue, usePreTaxPrice);
 		mPriceBox = new WeakReference<>(priceBox);
 		mTaxBox = new WeakReference<>(taxBox);
-		mPreferences = preferences;
 		priceBox.addTextChangedListener(this);
 		taxBox.setOnFocusChangeListener(this);
+		this.usePreTaxPrice = usePreTaxPrice;
 	}
 	
 	@Override
@@ -119,10 +120,10 @@ public class TaxAutoCompleteAdapter extends ArrayAdapter<TaxItem> implements Tex
 				if (this.hasDefaultValue()) {
 					mData.add(mDefaultValue);
 				}
-                mData.add(new TaxItem(VAT_0, mPreferences));
-				mData.add(new TaxItem(VAT_5_5, mPreferences));
-				mData.add(new TaxItem(VAT_10, mPreferences));
-				mData.add(new TaxItem(VAT_20, mPreferences));
+                mData.add(new TaxItem(VAT_0, usePreTaxPrice));
+				mData.add(new TaxItem(VAT_5_5, usePreTaxPrice));
+				mData.add(new TaxItem(VAT_10, usePreTaxPrice));
+				mData.add(new TaxItem(VAT_20, usePreTaxPrice));
 			}
 			TextView taxBox = mTaxBox.get();
 			if (this.hasDefaultValue() && taxBox != null) {

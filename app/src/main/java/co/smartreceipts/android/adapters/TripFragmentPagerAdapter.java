@@ -10,7 +10,7 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.fragments.DistanceFragment;
 import co.smartreceipts.android.fragments.GenerateReportFragment;
-import co.smartreceipts.android.fragments.ReceiptsListFragment;
+import co.smartreceipts.android.receipts.ReceiptsListFragment;
 
 public class TripFragmentPagerAdapter extends FragmentPagerAdapter {
 

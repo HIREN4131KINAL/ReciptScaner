@@ -1,6 +1,5 @@
 package co.smartreceipts.android.receipts.editor;
 
-import java.io.File;
 import java.sql.Date;
 
 import javax.inject.Inject;
@@ -20,6 +19,7 @@ import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
+import co.smartreceipts.android.utils.log.Logger;
 
 @FragmentScope
 public class ReceiptCreateEditFragmentPresenter {
@@ -36,91 +36,94 @@ public class ReceiptCreateEditFragmentPresenter {
     ReceiptTableController receiptTableController;
 
     @Inject
-    public ReceiptCreateEditFragmentPresenter() {
+    ReceiptCreateEditFragmentPresenter() {
     }
 
-    public boolean isIncludeTaxField() {
+    boolean isIncludeTaxField() {
         return preferenceManager.get(UserPreference.Receipts.IncludeTaxField);
     }
 
-    public boolean isUsePreTaxPrice() {
+    boolean isUsePreTaxPrice() {
         return preferenceManager.get(UserPreference.Receipts.UsePreTaxPrice);
     }
 
-    public float getDefaultTaxPercentage() {
+    float getDefaultTaxPercentage() {
         return preferenceManager.get(UserPreference.Receipts.DefaultTaxPercentage);
     }
 
-    public boolean isReceiptDateDefaultsToReportStartDate() {
+    boolean isReceiptDateDefaultsToReportStartDate() {
         return preferenceManager.get(UserPreference.Receipts.ReceiptDateDefaultsToReportStartDate);
     }
 
-    public boolean isReceiptsDefaultAsReimbursable() {
+    boolean isReceiptsDefaultAsReimbursable() {
         return preferenceManager.get(UserPreference.Receipts.ReceiptsDefaultAsReimbursable);
     }
 
-    public boolean isMatchReceiptCommentToCategory() {
+    boolean isMatchReceiptCommentToCategory() {
         return preferenceManager.get(UserPreference.Receipts.MatchReceiptCommentToCategory);
     }
 
-    public boolean isMatchReceiptNameToCategory() {
+    boolean isMatchReceiptNameToCategory() {
         return preferenceManager.get(UserPreference.Receipts.MatchReceiptNameToCategory);
     }
 
-    public String getDefaultCurrency() {
+    String getDefaultCurrency() {
         return preferenceManager.get(UserPreference.General.DefaultCurrency);
     }
 
-    public boolean isDefaultToFullPage() {
+    boolean isDefaultToFullPage() {
         return preferenceManager.get(UserPreference.Receipts.DefaultToFullPage);
     }
 
-    public String getDateSeparator() {
+    String getDateSeparator() {
         return preferenceManager.get(UserPreference.General.DateSeparator);
     }
 
-    public boolean isPredictCategories() {
+    boolean isPredictCategories() {
         return preferenceManager.get(UserPreference.Receipts.PredictCategories);
     }
 
-    public boolean isUsePaymentMethods() {
+    boolean isUsePaymentMethods() {
         return preferenceManager.get(UserPreference.Receipts.UsePaymentMethods);
     }
 
-    public boolean isShowReceiptId() {
+    boolean isShowReceiptId() {
         return preferenceManager.get(UserPreference.Receipts.ShowReceiptID);
     }
 
-    public boolean isEnableAutoCompleteSuggestions() {
+    boolean isEnableAutoCompleteSuggestions() {
         return preferenceManager.get(UserPreference.Receipts.EnableAutoCompleteSuggestions);
     }
 
-    public void initiatePurchase() {
+    void initiatePurchase() {
         purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.ExchangeRate);
     }
 
-    public boolean hasActivePlusPurchase() {
+    boolean hasActivePlusPurchase() {
         return purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus);
     }
 
-    public boolean checkReceipt(Date date, Trip parentTrip) {
+    boolean checkReceipt(Date date) {
         if (date == null) {
             fragment.showDateError();
             return false;
         }
 
-        if (!parentTrip.isDateInsideTripBounds(date)) {
+        if (!fragment.getParentTrip().isDateInsideTripBounds(date)) {
             fragment.showDateWarning();
         }
 
         return true;
     }
 
-    public void saveReceipt(Receipt receipt, Trip parentTrip, Date date, String price, String tax,
+    void saveReceipt(Date date, String price, String tax,
                             String exchangeRate, String comment, PaymentMethod paymentMethod,
                             boolean isReimursable, boolean isFullpage,
                             String name, Category category, String currency,
-                            String extraText1, String extraText2, String extraText3, File file) {
+                            String extraText1, String extraText2, String extraText3) {
+
+        final Receipt receipt = fragment.getReceipt();
+        final Trip parentTrip = fragment.getParentTrip();
 
         final ReceiptBuilderFactory builderFactory = (receipt == null) ? new ReceiptBuilderFactory(-1) : new ReceiptBuilderFactory(receipt);
         builderFactory.setName(name)
@@ -142,9 +145,17 @@ public class ReceiptCreateEditFragmentPresenter {
                 .setExtraEditText3(extraText3);
 
         if (receipt == null) {
-            receiptTableController.insert(builderFactory.setFile(file).build(), new DatabaseOperationMetadata());
+            receiptTableController.insert(builderFactory.setFile(fragment.getFile()).build(), new DatabaseOperationMetadata());
         } else {
             receiptTableController.update(receipt, builderFactory.build(), new DatabaseOperationMetadata());
+        }
+    }
+
+    void deleteReceiptFileIfUnused() {
+        if (fragment.getReceipt() == null && fragment.getFile() != null) {
+            if (fragment.getFile().delete()) {
+                Logger.info(this, "Deleting receipt file as we're not saving it");
+            }
         }
     }
 }

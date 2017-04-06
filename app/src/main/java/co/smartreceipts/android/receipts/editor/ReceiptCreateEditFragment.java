@@ -103,9 +103,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     ReceiptCreateEditFragmentPresenter presenter;
 
     // Metadata
-    private Trip trip;
-    private Receipt receipt;
-    private File file;
     private OcrResponse ocrResponse;
 
     // Views
@@ -186,9 +183,6 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        trip = getArguments().getParcelable(Trip.PARCEL_KEY);
-        receipt = getArguments().getParcelable(Receipt.PARCEL_KEY);
-        file = (File) getArguments().getSerializable(ARG_FILE);
         ocrResponse = (OcrResponse) getArguments().getSerializable(ARG_OCR);
         receiptInputCache = new ReceiptInputCache(getFragmentManager());
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
@@ -199,6 +193,18 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         categoriesAdpater = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<Category>emptyList());
         paymentMethodsAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, Collections.<PaymentMethod>emptyList());
         setHasOptionsMenu(true);
+    }
+
+    Trip getParentTrip() {
+        return getArguments().getParcelable(Trip.PARCEL_KEY);
+    }
+
+    Receipt getReceipt() {
+        return getArguments().getParcelable(Receipt.PARCEL_KEY);
+    }
+
+    File getFile() {
+        return (File) getArguments().getSerializable(ARG_FILE);
     }
 
     @Nullable
@@ -212,7 +218,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         super.onViewCreated(rootView, savedInstanceState);
 
         if (savedInstanceState == null) {
-            if (receipt == null) {
+            if (getReceipt() == null) {
                 new ChildFragmentNavigationHandler(this).addChild(new OcrInformationalTooltipFragment(), R.id.update_receipt_tooltip);
             }
         }
@@ -311,8 +317,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         dateBox.setOnClickListener(dateManager.getDateEditTextListener());
 
         // Lastly, preset adapters for "new" receipts
-        final boolean isNewReceipt = receipt == null;
-        if (isNewReceipt) {
+        if (getReceipt() == null) {
             if (presenter.isIncludeTaxField()) {
                 taxBox.setAdapter(new TaxAutoCompleteAdapter(getActivity(), priceBox, taxBox,
                         presenter.isUsePreTaxPrice(),
@@ -327,14 +332,13 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
         // Configure things if it's not a restored fragment
         if (savedInstanceState == null) {
-            final boolean isNewReceipt = receipt == null;
-            if (isNewReceipt) {
+            if (getReceipt() == null) { // new receipt
 
                 final Time now = new Time();
                 now.setToNow();
                 if (receiptInputCache.getCachedDate() == null) {
                     if (presenter.isReceiptDateDefaultsToReportStartDate()) {
-                        dateBox.date = trip.getStartDate();
+                        dateBox.date = getParentTrip().getStartDate();
                     } else {
                         dateBox.date = new Date(now.toMillis(false));
                     }
@@ -354,15 +358,17 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     }
                 }
 
-                int idx = currenciesAdapter.getPosition((trip != null) ?
-                        trip.getDefaultCurrencyCode() : presenter.getDefaultCurrency());
+                final Trip parentTrip = getParentTrip();
+
+                int idx = currenciesAdapter.getPosition((parentTrip != null) ?
+                        parentTrip.getDefaultCurrencyCode() : presenter.getDefaultCurrency());
                 int cachedIdx = (receiptInputCache.getCachedCurrency() != null) ?
                         currenciesAdapter.getPosition(receiptInputCache.getCachedCurrency()) : -1;
                 idx = (cachedIdx >= 0) ? cachedIdx : idx;
                 if (idx >= 0) {
                     currencySpinner.setSelection(idx);
                 }
-                if (!trip.getDefaultCurrencyCode().equals(receiptInputCache.getCachedCurrency())) {
+                if (!parentTrip.getDefaultCurrencyCode().equals(receiptInputCache.getCachedCurrency())) {
                     configureExchangeRateField(receiptInputCache.getCachedCurrency());
                 }
                 fullpage.setChecked(presenter.isDefaultToFullPage());
@@ -392,7 +398,10 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     }
                 }
 
-            } else {
+            } else { // edit receipt
+                final Receipt receipt = getReceipt();
+                final Trip parentTrip = getParentTrip();
+
                 nameBox.setText(receipt.getName());
                 priceBox.setText(receipt.getPrice().getDecimalFormattedPrice());
                 dateBox.setText(receipt.getFormattedDate(getActivity(),
@@ -402,8 +411,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 taxBox.setText(receipt.getTax().getDecimalFormattedPrice());
 
                 final ExchangeRate exchangeRate = receipt.getPrice().getExchangeRate();
-                if (exchangeRate.supportsExchangeRateFor(trip.getDefaultCurrencyCode())) {
-                    exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(trip.getDefaultCurrencyCode()));
+                if (exchangeRate.supportsExchangeRateFor(parentTrip.getDefaultCurrencyCode())) {
+                    exchangeRateBox.setText(exchangeRate.getDecimalFormattedExchangeRate(parentTrip.getDefaultCurrencyCode()));
                 }
 
                 int idx = currenciesAdapter.getPosition(receipt.getPrice().getCurrencyCode());
@@ -411,7 +420,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     currencySpinner.setSelection(idx);
                 }
 
-                if (receipt.getPrice().getCurrency().equals(trip.getPrice().getCurrency())) {
+                if (receipt.getPrice().getCurrency().equals(parentTrip.getPrice().getCurrency())) {
                     exchangeRateContainer.setVisibility(View.GONE);
                 } else {
                     exchangeRateContainer.setVisibility(View.VISIBLE);
@@ -448,7 +457,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     categoriesAdpater.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     categoriesSpinner.setAdapter(categoriesAdpater);
 
-                    if (receipt == null) {
+                    if (getReceipt() == null) { // new receipt
                         if (presenter.isMatchReceiptCommentToCategory() || presenter.isMatchReceiptNameToCategory()) {
                             categoriesSpinner.setOnItemSelectedListener(new SpinnerSelectionListener());
                         }
@@ -481,7 +490,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                             }
                         }
                     } else {
-                        categoriesSpinner.setSelection(categoriesAdpater.getPosition(receipt.getCategory()));
+                        categoriesSpinner.setSelection(categoriesAdpater.getPosition(getReceipt().getCategory()));
                     }
                 }
             }
@@ -495,8 +504,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                     paymentMethodsSpinner.setAdapter(paymentMethodsAdapter);
                     if (presenter.isUsePaymentMethods()) {
                         paymentMethodsContainer.setVisibility(View.VISIBLE);
-                        if (receipt != null) {
-                            final PaymentMethod oldPaymentMethod = receipt.getPaymentMethod();
+                        if (getReceipt() != null) {
+                            final PaymentMethod oldPaymentMethod = getReceipt().getPaymentMethod();
                             if (oldPaymentMethod != null) {
                                 final int paymentIdx = paymentMethodsAdapter.getPosition(oldPaymentMethod);
                                 if (paymentIdx > 0) {
@@ -518,14 +527,14 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     public void onResume() {
         super.onResume();
 
-        final boolean isNewReceipt = receipt == null;
+        final boolean isNewReceipt = getReceipt() == null;
 
         final String title;
         if (isNewReceipt) {
             title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW);
         } else {
             if (presenter.isShowReceiptId()) {
-                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), receipt.getId());
+                title = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT_ID), getReceipt().getId());
             } else {
                 title = getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_EDIT);
             }
@@ -593,8 +602,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            navigationHandler.navigateToReportInfoFragment(trip);
-            deleteReceiptFileIfUnused();
+            navigationHandler.navigateToReportInfoFragment(getParentTrip());
+            presenter.deleteReceiptFileIfUnused();
             return true;
         }
         if (item.getItemId() == R.id.action_save) {
@@ -607,7 +616,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         focusedView = hasFocus ? v : null;
-        if (receipt == null && hasFocus) {
+        if (getReceipt() == null && hasFocus) {
             // Only launch if we have focus and it's a new receipt
             SoftKeyboardManager.showKeyboard(v);
         }
@@ -688,7 +697,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     }
 
     private void configureExchangeRateField(@Nullable String baseCurrencyCode) {
-        final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
+        final String exchangeRateCurrencyCode = getParentTrip().getDefaultCurrencyCode();
         if (exchangeRateCurrencyCode.equals(baseCurrencyCode) || baseCurrencyCode == null) {
             exchangeRateContainer.setVisibility(View.GONE);
             exchangeRateBox.setText(""); // Clear out if we're hiding the box
@@ -703,7 +712,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (presenter.hasActivePlusPurchase()) {
             Logger.info(this, "Submitting exchange rate request");
             analytics.record(Events.Receipts.RequestExchangeRate);
-            final String exchangeRateCurrencyCode = trip.getDefaultCurrencyCode();
+            final String exchangeRateCurrencyCode = getParentTrip().getDefaultCurrencyCode();
             exchangeRateBox.setCurrentState(NetworkRequestAwareEditText.State.Loading);
             if (lastExchangeRateFetchCallback != null) {
                 // Ignore any outstanding results to not confuse ourselves
@@ -744,7 +753,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
 
     private void saveReceipt() {
 
-        if (presenter.checkReceipt(dateBox.date, trip)) {
+        if (presenter.checkReceipt(dateBox.date)) {
 
             final String name = TextUtils.isEmpty(nameBox.getText().toString()) ? "" : nameBox.getText().toString();
             final Category category = categoriesAdpater.getItem(categoriesSpinner.getSelectedItemPosition());
@@ -762,23 +771,15 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
             receiptInputCache.setCachedCategory(category);
             receiptInputCache.setCachedCurrency(currency);
 
-            presenter.saveReceipt(receipt, trip, dateBox.date, price, tax, exchangeRate, comment,
+            presenter.saveReceipt(dateBox.date, price, tax, exchangeRate, comment,
                     paymentMethod, reimbursable.isChecked(), fullpage.isChecked(), name, category, currency,
-                    extraText1, extraText2, extraText3, file);
+                    extraText1, extraText2, extraText3);
 
-            analytics.record(receipt == null ? Events.Receipts.PersistNewReceipt : Events.Receipts.PersistUpdateReceipt);
+            analytics.record(getReceipt() == null ? Events.Receipts.PersistNewReceipt : Events.Receipts.PersistUpdateReceipt);
             dateManager.setDateEditTextListenerDialogHolder(null);
 
 
-            navigationHandler.navigateToReportInfoFragment(trip);
-        }
-    }
-
-    private void deleteReceiptFileIfUnused() {
-        if (receipt == null && file != null) {
-            if (file.delete()) {
-                Logger.info(this, "Deleting receipt file as we're not saving it");
-            }
+            navigationHandler.navigateToReportInfoFragment(getParentTrip());
         }
     }
 

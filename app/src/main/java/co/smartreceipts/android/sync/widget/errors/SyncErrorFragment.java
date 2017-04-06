@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.DataPoint;
 import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
@@ -47,7 +46,6 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final SmartReceiptsApplication application = (SmartReceiptsApplication) getActivity().getApplication();
         mSyncErrorInteractor = new SyncErrorInteractor(getActivity(), backupProvidersManager, analytics);
     }
 

@@ -87,6 +87,7 @@ public class OcrInteractor {
                     .flatMap(new Func1<String, Observable<String>>() {
                         @Override
                         public Observable<String> call(@Nullable String s3Url) {
+                            Logger.debug(OcrInteractor.this, "S3 upload completed. Preparing url for delivery to our APIs.");
                             if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
                                 return Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
                             } else {
@@ -97,13 +98,59 @@ public class OcrInteractor {
                     .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
                         @Override
                         public Observable<RecognitionResponse> call(@NonNull String s3Url) {
+                            Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
                             return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
+                        }
+                    })
+                    .flatMap(new Func1<RecognitionResponse, Observable<String>>() {
+                        @Override
+                        public Observable<String> call(RecognitionResponse recognitionResponse) {
+                            if (recognitionResponse != null && recognitionResponse.getRecognition() != null && recognitionResponse.getRecognition().getId() != null) {
+                                return Observable.just(recognitionResponse.getRecognition().getId());
+                            } else {
+                                return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
+                            }
+                        }
+                    })
+                    .flatMap(new Func1<String, Observable<String>>() {
+                        @Override
+                        public Observable<String> call(@NonNull final String recognitionId) {
+                            Logger.debug(OcrInteractor.this, "Awaiting completion of recognition request {}.", recognitionId);
+                            return pushMessageReceiver.getOcrPushResponse()
+                                    .onErrorReturn(new Func1<Throwable, Object>() {
+                                        @Override
+                                        public Object call(Throwable throwable) {
+                                            Logger.warn(OcrInteractor.this, "Ocr request timed out. Attempting to get response as is");
+                                            return new Object();
+                                        }
+                                    })
+                                    .map(new Func1<Object, String>() {
+                                        @Override
+                                        public String call(Object o) {
+                                            return recognitionId;
+                                        }
+                                    });
+                        }
+                    })
+                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
+                        @Override
+                        public Observable<RecognitionResponse> call(String recognitionId) {
+                            Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
+                            return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
                         }
                     })
                     .flatMap(new Func1<RecognitionResponse, Observable<OcrResponse>>() {
                         @Override
                         public Observable<OcrResponse> call(RecognitionResponse recognitionResponse) {
-                            return pushMessageReceiver.getOcrPushResponse();
+                            Logger.debug(OcrInteractor.this, "Parsing OCR Response");
+                            if (recognitionResponse != null &&
+                                    recognitionResponse.getRecognition() != null &&
+                                    recognitionResponse.getRecognition().getData() != null &&
+                                    recognitionResponse.getRecognition().getData().getRecognitionData() != null) {
+                                return Observable.just(recognitionResponse.getRecognition().getData().getRecognitionData());
+                            } else {
+                                return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
+                            }
                         }
                     })
                     .onErrorReturn(new Func1<Throwable, OcrResponse>() {
@@ -118,6 +165,7 @@ public class OcrInteractor {
                             pushManager.unregisterReceiver(pushMessageReceiver);
                         }
                     });
+            // TODO: Handle subsequent deletion of s3 file
         } else {
             Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
             return Observable.just(new OcrResponse());

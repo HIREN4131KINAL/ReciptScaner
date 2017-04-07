@@ -19,9 +19,9 @@ import rx.subjects.Subject;
 
 public class OcrPushMessageReceiver implements PushMessageReceiver {
 
-    private static final int TIMEOUT_SECONDS = 10;
+    private static final int TIMEOUT_SECONDS = 30;
 
-    private final Subject<OcrResponse, OcrResponse> pushResultSubject = PublishSubject.create();
+    private final Subject<Object, Object> pushResultSubject = PublishSubject.create();
     private final Scheduler subscribeOnScheduler;
 
     public OcrPushMessageReceiver() {
@@ -36,23 +36,23 @@ public class OcrPushMessageReceiver implements PushMessageReceiver {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Observable.just(remoteMessage)
                 .subscribeOn(subscribeOnScheduler)
-                .map(new Func1<RemoteMessage, OcrResponse>() {
+                .map(new Func1<RemoteMessage, Object>() {
                     @Override
-                    public OcrResponse call(RemoteMessage remoteMessage) {
+                    public Object call(RemoteMessage remoteMessage) {
                         // TODO: Map me
-                        return null;
+                        return new Object();
                     }
                 })
-                .subscribe(new Action1<OcrResponse>() {
+                .subscribe(new Action1<Object>() {
                     @Override
-                    public void call(OcrResponse ocrResponse) {
-                        pushResultSubject.onNext(ocrResponse);
+                    public void call(Object next) {
+                        pushResultSubject.onNext(next);
                         pushResultSubject.onCompleted();
                     }
                 });
     }
 
-    public Observable<OcrResponse> getOcrPushResponse() {
+    public Observable<Object> getOcrPushResponse() {
         return pushResultSubject.asObservable()
                 .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }

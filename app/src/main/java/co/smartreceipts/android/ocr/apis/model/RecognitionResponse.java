@@ -16,7 +16,7 @@ public class RecognitionResponse {
         private String id;
         private String status;
         private String s3_path;
-        private String data;
+        private RecognitionData data;
         private long created_at;
 
         @Nullable
@@ -35,7 +35,7 @@ public class RecognitionResponse {
         }
 
         @Nullable
-        public String getData() {
+        public RecognitionData getData() {
             return data;
         }
 
@@ -44,5 +44,15 @@ public class RecognitionResponse {
             return created_at;
         }
 
+    }
+
+    public static class RecognitionData {
+
+        private OcrResponse recognition_data;
+
+        @Nullable
+        public OcrResponse getRecognitionData() {
+            return recognition_data;
+        }
     }
 }

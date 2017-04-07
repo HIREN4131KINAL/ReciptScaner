@@ -2,14 +2,20 @@ package co.smartreceipts.android.ocr.apis;
 
 import android.support.annotation.NonNull;
 
+import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 import rx.Observable;
 
 public interface OcrService {
 
     @POST("api/recognitions")
     Observable<RecognitionResponse> scanReceipt(@NonNull @Body RecongitionRequest request);
+
+    @GET("api/recognitions/{id}")
+    Observable<RecognitionResponse> getRecognitionResult(@Path("id") String id);
 }

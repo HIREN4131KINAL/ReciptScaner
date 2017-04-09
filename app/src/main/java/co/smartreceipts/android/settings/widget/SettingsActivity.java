@@ -348,13 +348,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         universal.findPreference(R.string.pref_help_send_feedback_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_send_love_key).setOnPreferenceClickListener(this);
         universal.findPreference(R.string.pref_help_support_email_key).setOnPreferenceClickListener(this);
-        universal.findPreference(R.string.pref_about_privacy_policy_key).setOnPreferenceClickListener(this);
     }
 
     public void configurePreferencesAbout(UniversalPreferences universal) {
         // Set up Version Summary
         Preference versionPreference = universal.findPreference(R.string.pref_about_version_key);
         versionPreference.setSummary(getAppVersion());
+        universal.findPreference(R.string.pref_about_privacy_policy_key).setOnPreferenceClickListener(this);
     }
 
     @Override

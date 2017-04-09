@@ -31,7 +31,7 @@ public class OcrInformationalTooltipInteractor {
     }
 
     public Observable<Boolean> getShowQuestionTooltipStream() {
-        return mStateTracker.shouldShowPreReleaseQuestions()
+        return mStateTracker.shouldShowOcrInfo()
                 .subscribeOn(Schedulers.io())
                 .filter(new Func1<Boolean, Boolean>() {
                     @Override
@@ -42,21 +42,21 @@ public class OcrInformationalTooltipInteractor {
                 .doOnNext(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean aBoolean) {
-                        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipShown);
+                        mAnalytics.record(Events.Ocr.OcrInfoTooltipShown);
                     }
                 });
     }
 
     public void dismissTooltip() {
         Logger.info(this, "Dismissing OCR Tooltip");
-        mStateTracker.setShouldShowPreReleaseQuestions(false);
-        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipDismiss);
+        mStateTracker.setShouldShowOcrInfo(false);
+        mAnalytics.record(Events.Ocr.OcrInfoTooltipDismiss);
     }
 
     public void showOcrInformation() {
         Logger.info(this, "Displaying OCR Fragment");
         mNavigationHandler.navigateToOcrInfomationFragment();
-        mAnalytics.record(Events.Ocr.OcrQuestionnaireTooltipOpen);
-        mStateTracker.setShouldShowPreReleaseQuestions(false);
+        mAnalytics.record(Events.Ocr.OcrInfoTooltipOpen);
+        mStateTracker.setShouldShowOcrInfo(false);
     }
 }

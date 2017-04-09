@@ -20,8 +20,8 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Inject
     Analytics analytics;
 
-    private OcrInformationalTooltipInteractor mInteractor;
-    private OcrInformationalTooltipPresenter mPresenter;
+    private OcrInformationalTooltipInteractor interactor;
+    private OcrInformationalTooltipPresenter presenter;
 
 
     @Override
@@ -33,8 +33,7 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mInteractor = new OcrInformationalTooltipInteractor(getActivity(),
-                new NavigationHandler(getActivity()), analytics);
+        interactor = new OcrInformationalTooltipInteractor(getActivity(), new NavigationHandler(getActivity()), analytics);
     }
 
     @Nullable
@@ -46,18 +45,18 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mPresenter = new OcrInformationalTooltipPresenter(mInteractor, (Tooltip) view);
+        presenter = new OcrInformationalTooltipPresenter(interactor, (Tooltip) view);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mPresenter.onResume();
+        presenter.onResume();
     }
 
     @Override
     public void onPause() {
-        mPresenter.onPause();
+        presenter.onPause();
         super.onPause();
     }
 }

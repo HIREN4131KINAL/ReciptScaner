@@ -95,9 +95,9 @@ public final class Events {
     }
 
     public static final class Ocr {
-        public static final Event OcrQuestionnaireTooltipShown = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipShown");
-        public static final Event OcrQuestionnaireTooltipOpen = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipOpen");
-        public static final Event OcrQuestionnaireTooltipDismiss = new DefaultEvent(Category.Ocr, "OcrQuestionnaireTooltipDismiss");
+        public static final Event OcrInfoTooltipShown = new DefaultEvent(Category.Ocr, "OcrInfoTooltipShown");
+        public static final Event OcrInfoTooltipOpen = new DefaultEvent(Category.Ocr, "OcrInfoTooltipOpen");
+        public static final Event OcrInfoTooltipDismiss = new DefaultEvent(Category.Ocr, "OcrInfoTooltipDismiss");
         public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Ocr, "OcrQuestionnaireSubmit");
         public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Ocr, "OcrQuestionnaireDismiss");
         public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Ocr, "OcrQuestionnaireEmailUs");

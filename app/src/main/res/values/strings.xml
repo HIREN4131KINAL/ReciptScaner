@@ -104,7 +104,7 @@
     <string name="report_pdf_error_go_to_settings">Go to settings</string>
 
     <!-- ===================== ocr ======================== -->
-    <string name="ocr_informational_tooltip_text">Interested in Automatic Scans? Tap here.</string>
+    <string name="ocr_informational_tooltip_text">Configure Automatic Scans? Tap here.</string>
     <string name="ocr_questionnaire">OCR</string>
     <string name="ocr_questionnaire_info_title">Automatic Scans (ie OCR):</string>
     <string name="ocr_questionnaire_info_message">We\'re creating tools to scan your receipts (ie OCR) to allow you to take a photo of your receipt and automatically populate some receipt metadata fields (eg price). If you\'re interested in this, we\'d greatly appreciate if you could answer two questions below to help us get this right!</string>

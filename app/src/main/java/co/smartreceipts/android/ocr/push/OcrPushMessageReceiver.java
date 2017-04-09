@@ -19,7 +19,7 @@ import rx.subjects.Subject;
 
 public class OcrPushMessageReceiver implements PushMessageReceiver {
 
-    private static final int TIMEOUT_SECONDS = 30;
+    private static final int TIMEOUT_SECONDS = 10;
 
     private final Subject<Object, Object> pushResultSubject = PublishSubject.create();
     private final Scheduler subscribeOnScheduler;
@@ -39,7 +39,6 @@ public class OcrPushMessageReceiver implements PushMessageReceiver {
                 .map(new Func1<RemoteMessage, Object>() {
                     @Override
                     public Object call(RemoteMessage remoteMessage) {
-                        // TODO: Map me
                         return new Object();
                     }
                 })

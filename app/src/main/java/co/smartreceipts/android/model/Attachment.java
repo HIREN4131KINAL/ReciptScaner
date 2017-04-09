@@ -82,6 +82,10 @@ public class Attachment {
 	}
 	
 	private Uri resolveUri(Uri uri, ContentResolver resolver, String column) {
+        if (uri == null) {
+            return null;
+        }
+
 		Cursor cursor = null;
 		try {
 	        cursor = resolver.query(uri, null, null, null, null); 

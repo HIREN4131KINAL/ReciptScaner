@@ -21,6 +21,7 @@ import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
+import co.smartreceipts.android.ocr.push.OcrPushMessageReceiverFactory;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
 import rx.Observable;
@@ -60,6 +61,9 @@ public class OcrInteractorTest {
     OcrPurchaseTracker ocrPurchaseTracker;
 
     @Mock
+    OcrPushMessageReceiverFactory ocrPushMessageReceiverFactory;
+
+    @Mock
     OcrPushMessageReceiver pushMessageReceiver;
 
     @Mock
@@ -93,6 +97,7 @@ public class OcrInteractorTest {
         when(ocrFeature.isEnabled()).thenReturn(true);
         when(identityManager.isLoggedIn()).thenReturn(true);
         when(ocrPurchaseTracker.hasAvailableScans()).thenReturn(true);
+        when(ocrPushMessageReceiverFactory.get()).thenReturn(pushMessageReceiver);
         when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.just("https://aws.amazon.com/smartreceipts/ocr/" + IMG_NAME));
         when(ocrServiceManager.getService(OcrService.class)).thenReturn(ocrService);
         when(recognitionResponse.getRecognition()).thenReturn(recognition);
@@ -103,7 +108,7 @@ public class OcrInteractorTest {
         when(pushMessageReceiver.getOcrPushResponse()).thenReturn(Observable.just(new Object()));
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.just(recognitionResponse));
 
-        ocrInteractor = new OcrInteractor(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, pushMessageReceiver, ocrFeature);
+        ocrInteractor = new OcrInteractor(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, ocrPushMessageReceiverFactory, ocrFeature);
     }
 
     @Test

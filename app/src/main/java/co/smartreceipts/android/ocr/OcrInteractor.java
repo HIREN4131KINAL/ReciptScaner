@@ -8,7 +8,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -23,6 +22,7 @@ import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
+import co.smartreceipts.android.ocr.push.OcrPushMessageReceiverFactory;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.utils.Feature;
 import co.smartreceipts.android.utils.FeatureFlags;
@@ -43,26 +43,26 @@ public class OcrInteractor {
     private final ServiceManager ocrServiceManager;
     private final PushManager pushManager;
     private final OcrPurchaseTracker ocrPurchaseTracker;
-    private final OcrPushMessageReceiver pushMessageReceiver;
+    private final OcrPushMessageReceiverFactory pushMessageReceiverFactory;
     private final Feature ocrFeature;
 
     @Inject
     public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                          @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker) {
-        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, new OcrPushMessageReceiver(), FeatureFlags.Ocr);
+        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
     OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                   @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-                  @NonNull OcrPushMessageReceiver pushMessageReceiver, @NonNull Feature ocrFeature) {
+                  @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory, @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
         this.identityManager = Preconditions.checkNotNull(identityManager);
         this.ocrServiceManager = Preconditions.checkNotNull(serviceManager);
         this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
         this.pushManager = Preconditions.checkNotNull(pushManager);
-        this.pushMessageReceiver = Preconditions.checkNotNull(pushMessageReceiver);
+        this.pushMessageReceiverFactory = Preconditions.checkNotNull(pushMessageReceiverFactory);
         this.ocrFeature = Preconditions.checkNotNull(ocrFeature);
     }
 
@@ -76,11 +76,12 @@ public class OcrInteractor {
 
         if (ocrFeature.isEnabled() && identityManager.isLoggedIn() && ocrPurchaseTracker.hasAvailableScans()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
+            final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
             return s3Manager.upload(file, OCR_FOLDER)
                     .doOnSubscribe(new Action0() {
                         @Override
                         public void call() {
-                            pushManager.registerReceiver(pushMessageReceiver);
+                            pushManager.registerReceiver(ocrPushMessageReceiver);
                         }
                     })
                     .subscribeOn(Schedulers.io())
@@ -116,7 +117,7 @@ public class OcrInteractor {
                         @Override
                         public Observable<String> call(@NonNull final String recognitionId) {
                             Logger.debug(OcrInteractor.this, "Awaiting completion of recognition request {}.", recognitionId);
-                            return pushMessageReceiver.getOcrPushResponse()
+                            return ocrPushMessageReceiver.getOcrPushResponse()
                                     .onErrorReturn(new Func1<Throwable, Object>() {
                                         @Override
                                         public Object call(Throwable throwable) {
@@ -162,7 +163,7 @@ public class OcrInteractor {
                     .doOnTerminate(new Action0() {
                         @Override
                         public void call() {
-                            pushManager.unregisterReceiver(pushMessageReceiver);
+                            pushManager.unregisterReceiver(ocrPushMessageReceiver);
                         }
                     });
             // TODO: Handle subsequent deletion of s3 file

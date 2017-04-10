@@ -374,8 +374,8 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
                 fullpage.setChecked(presenter.isDefaultToFullPage());
 
                 if (ocrResponse != null) {
-                    if (ocrResponse.getMerchant() != null && ocrResponse.getMerchant().getName() != null) {
-                        nameBox.setText(ocrResponse.getMerchant().getName());
+                    if (ocrResponse.getMerchant() != null && ocrResponse.getMerchant().getData() != null) {
+                        nameBox.setText(ocrResponse.getMerchant().getData());
                     }
                     if (ocrResponse.getTotalAmount() != null && ocrResponse.getTotalAmount().getData() != null) {
                         priceBox.setText(ModelUtils.getDecimalFormattedValue(new BigDecimal(ocrResponse.getTotalAmount().getData())));

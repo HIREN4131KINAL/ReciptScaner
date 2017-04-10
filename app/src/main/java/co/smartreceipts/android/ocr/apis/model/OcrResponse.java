@@ -3,6 +3,7 @@ package co.smartreceipts.android.ocr.apis.model;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class OcrResponse implements Serializable {
 
@@ -10,19 +11,12 @@ public class OcrResponse implements Serializable {
     private OcrResponseField<Double> taxAmount;
     private OcrResponseField<String> currency;
     private OcrResponseField<String> date;
-    private OcrMerchantField merchant;
+    private OcrResponseField<String> merchantName;
+    private OcrResponseField<List<String>> merchantTypes;
     private Double confidenceLevel;
     private String error;
 
-    public OcrResponse() {
-        this.totalAmount = null;
-        this.taxAmount = null;
-        this.currency = null;
-        this.date = null;
-        this.merchant = null;
-        this.confidenceLevel = null;
-        this.error = null;
-    }
+    public OcrResponse() {}
 
     @Nullable
     public OcrResponseField<Double> getTotalAmount() {
@@ -45,8 +39,13 @@ public class OcrResponse implements Serializable {
     }
 
     @Nullable
-    public OcrMerchantField getMerchant() {
-        return merchant;
+    public OcrResponseField<String> getMerchant() {
+        return merchantName;
+    }
+
+    @Nullable
+    public OcrResponseField<List<String>> getMerchantTypes() {
+        return merchantTypes;
     }
 
     @Nullable
@@ -73,7 +72,9 @@ public class OcrResponse implements Serializable {
         if (currency != null ? !currency.equals(that.currency) : that.currency != null)
             return false;
         if (date != null ? !date.equals(that.date) : that.date != null) return false;
-        if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null)
+        if (merchantName != null ? !merchantName.equals(that.merchantName) : that.merchantName != null)
+            return false;
+        if (merchantTypes != null ? !merchantTypes.equals(that.merchantTypes) : that.merchantTypes != null)
             return false;
         if (confidenceLevel != null ? !confidenceLevel.equals(that.confidenceLevel) : that.confidenceLevel != null)
             return false;
@@ -87,7 +88,8 @@ public class OcrResponse implements Serializable {
         result = 31 * result + (taxAmount != null ? taxAmount.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (date != null ? date.hashCode() : 0);
-        result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
+        result = 31 * result + (merchantName != null ? merchantName.hashCode() : 0);
+        result = 31 * result + (merchantTypes != null ? merchantTypes.hashCode() : 0);
         result = 31 * result + (confidenceLevel != null ? confidenceLevel.hashCode() : 0);
         result = 31 * result + (error != null ? error.hashCode() : 0);
         return result;

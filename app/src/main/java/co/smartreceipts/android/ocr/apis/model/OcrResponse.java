@@ -2,18 +2,35 @@ package co.smartreceipts.android.ocr.apis.model;
 
 import android.support.annotation.Nullable;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class OcrResponse implements Serializable {
 
+    @SerializedName("totalAmount")
     private OcrResponseField<Double> totalAmount;
+
+    @SerializedName("taxAmount")
     private OcrResponseField<Double> taxAmount;
+
+    @SerializedName("currency")
     private OcrResponseField<String> currency;
+
+    @SerializedName("date")
     private OcrResponseField<String> date;
+
+    @SerializedName("merchantName")
     private OcrResponseField<String> merchantName;
+
+    @SerializedName("merchantTypes")
     private OcrResponseField<List<String>> merchantTypes;
+
+    @SerializedName("confidenceLevel")
     private Double confidenceLevel;
+
+    @SerializedName("error")
     private String error;
 
     public OcrResponse() {}

@@ -34,7 +34,7 @@ public class OcrInformationalTooltipPresenter{
         this.tooltip.setTooltipClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                OcrInformationalTooltipPresenter.this.interactor.showOcrInformation();
+                OcrInformationalTooltipPresenter.this.interactor.showOcrConfiguration();
                 OcrInformationalTooltipPresenter.this.tooltip.setVisibility(GONE);
             }
         });

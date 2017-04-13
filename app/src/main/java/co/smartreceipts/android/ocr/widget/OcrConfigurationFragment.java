@@ -21,16 +21,16 @@ import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 
-public class OcrInformationalFragment extends Fragment {
+public class OcrConfigurationFragment extends Fragment {
 
     @Inject
     Analytics analytics;
 
-    private OcrInformationalInteractor mInteractor;
-    private OcrInformationalPresenter mPresenter;
+    private OcrConfigurationInteractor mInteractor;
+    private OcrConfigurationPresenter mPresenter;
 
-    public static OcrInformationalFragment newInstance() {
-        return new OcrInformationalFragment();
+    public static OcrConfigurationFragment newInstance() {
+        return new OcrConfigurationFragment();
     }
 
     @Override
@@ -45,7 +45,7 @@ public class OcrInformationalFragment extends Fragment {
         Logger.debug(this, "onCreate");
         setHasOptionsMenu(true);
 
-        mInteractor = new OcrInformationalInteractor(analytics, getActivity());
+        mInteractor = new OcrConfigurationInteractor(analytics, getActivity());
     }
 
     @Nullable
@@ -57,7 +57,7 @@ public class OcrInformationalFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mPresenter = new OcrInformationalPresenter(view, mInteractor);
+        mPresenter = new OcrConfigurationPresenter(view, mInteractor);
     }
 
     @Override

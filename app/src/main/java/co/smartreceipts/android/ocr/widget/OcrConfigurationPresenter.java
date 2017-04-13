@@ -10,15 +10,15 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.R;
 
-public class OcrInformationalPresenter implements RadioGroup.OnCheckedChangeListener, View.OnClickListener {
+public class OcrConfigurationPresenter implements RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
-    private final OcrInformationalInteractor mInteractor;
+    private final OcrConfigurationInteractor mInteractor;
 
     private final RadioGroup mQuestion1Group;
     private final RadioGroup mQuestion2Group;
     private final Button mEmailUsButton;
 
-    public OcrInformationalPresenter(@NonNull View view, @NonNull OcrInformationalInteractor interactor) {
+    public OcrConfigurationPresenter(@NonNull View view, @NonNull OcrConfigurationInteractor interactor) {
         mInteractor = Preconditions.checkNotNull(interactor);
 
         mQuestion1Group = Preconditions.checkNotNull((RadioGroup) view.findViewById(R.id.ocr_questionnaire_q1));

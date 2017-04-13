@@ -116,11 +116,11 @@ public class NavigationHandler {
 
 
 
-    public void navigateToOcrInfomationFragment() {
+    public void navigateToOcrConfigurationFragment() {
         if (mIsDualPane) {
-            replaceFragment(mFragmentProvider.newOcrInformationalFragment(), R.id.content_details);
+            replaceFragment(mFragmentProvider.newOcrConfigurationFragment(), R.id.content_details);
         } else {
-            replaceFragment(mFragmentProvider.newOcrInformationalFragment(), R.id.content_list);
+            replaceFragment(mFragmentProvider.newOcrConfigurationFragment(), R.id.content_list);
         }
     }
 

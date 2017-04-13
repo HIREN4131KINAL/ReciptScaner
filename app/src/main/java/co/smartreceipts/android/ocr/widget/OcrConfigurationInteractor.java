@@ -15,7 +15,7 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 
-public class OcrInformationalInteractor {
+public class OcrConfigurationInteractor {
 
     private final Analytics mAnalytics;
     private final FragmentActivity mActivity;
@@ -24,11 +24,11 @@ public class OcrInformationalInteractor {
     private Event mQuestion1Event = null;
     private Event mQuestion2Event = null;
 
-    public OcrInformationalInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity) {
+    public OcrConfigurationInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity) {
         this(analytics, activity, new NavigationHandler(activity));
     }
 
-    public OcrInformationalInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity, @NonNull NavigationHandler navigationHandler) {
+    public OcrConfigurationInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity, @NonNull NavigationHandler navigationHandler) {
         mAnalytics = Preconditions.checkNotNull(analytics);
         mActivity = Preconditions.checkNotNull(activity);
         mNavigationHandler = Preconditions.checkNotNull(navigationHandler);

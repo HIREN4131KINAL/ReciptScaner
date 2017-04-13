@@ -19,7 +19,7 @@ import co.smartreceipts.android.di.subcomponents.ImportLocalBackupWorkerProgress
 import co.smartreceipts.android.di.subcomponents.ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.InformAboutPdfImageAttachmentDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.LoginFragmentSubcomponent;
-import co.smartreceipts.android.ocr.widget.di.OcrInformationalFragmentSubcomponent;
+import co.smartreceipts.android.ocr.widget.di.OcrConfigurationFragmentSubcomponent;
 import co.smartreceipts.android.ocr.widget.di.OcrInformationalTooltipFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PDFColumnsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PaymentMethodsListFragmentSubcomponent;
@@ -46,7 +46,7 @@ import co.smartreceipts.android.receipts.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.identity.widget.LoginFragment;
-import co.smartreceipts.android.ocr.widget.OcrInformationalFragment;
+import co.smartreceipts.android.ocr.widget.OcrConfigurationFragment;
 import co.smartreceipts.android.ocr.widget.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;
@@ -97,7 +97,7 @@ import dagger.multibindings.IntoMap;
                 SyncErrorFragmentSubcomponent.class,
                 FeedbackDialogFragmentSubcomponent.class,
                 LoginFragmentSubcomponent.class,
-                OcrInformationalFragmentSubcomponent.class,
+                OcrConfigurationFragmentSubcomponent.class,
                 OcrInformationalTooltipFragmentSubcomponent.class,
                 RatingDialogFragmentSubcomponent.class,
                 PaymentMethodsListFragmentSubcomponent.class,
@@ -250,9 +250,9 @@ public abstract class GlobalBindingModule {
 
     @Binds
     @IntoMap
-    @FragmentKey(OcrInformationalFragment.class)
+    @FragmentKey(OcrConfigurationFragment.class)
     public abstract AndroidInjector.Factory<? extends Fragment> ocrInformationalFragmentBuilder(
-            OcrInformationalFragmentSubcomponent.Builder builder);
+            OcrConfigurationFragmentSubcomponent.Builder builder);
 
     @Binds
     @IntoMap

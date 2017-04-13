@@ -12,15 +12,18 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.widget.Tooltip;
 import dagger.android.support.AndroidSupportInjection;
 
 public class OcrInformationalTooltipFragment extends Fragment {
 
     @Inject
-    Analytics analytics;
+    OcrInformationalTooltipInteractor interactor;
 
-    private OcrInformationalTooltipInteractor interactor;
+    @Inject
+    OcrPurchaseTracker ocrPurchaseTracker;
+
     private OcrInformationalTooltipPresenter presenter;
 
 
@@ -33,7 +36,6 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        interactor = new OcrInformationalTooltipInteractor(getActivity(), new NavigationHandler(getActivity()), analytics);
     }
 
     @Nullable
@@ -45,7 +47,7 @@ public class OcrInformationalTooltipFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        presenter = new OcrInformationalTooltipPresenter(interactor, (Tooltip) view);
+        presenter = new OcrInformationalTooltipPresenter(interactor, (Tooltip) view, ocrPurchaseTracker);
     }
 
     @Override

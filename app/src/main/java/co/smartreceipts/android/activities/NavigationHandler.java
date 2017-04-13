@@ -19,6 +19,8 @@ import com.google.common.base.Preconditions;
 import java.io.File;
 import java.lang.ref.WeakReference;
 
+import javax.inject.Inject;
+
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
@@ -39,6 +41,11 @@ public class NavigationHandler {
     private final FragmentProvider mFragmentProvider;
     private final WeakReference<FragmentActivity> mFragmentActivityWeakReference;
     private final boolean mIsDualPane;
+
+    @Inject
+    public NavigationHandler(Fragment fragment) {
+        this(fragment.getActivity());
+    }
 
     public NavigationHandler(@NonNull FragmentActivity activity) {
         this(activity, new FragmentProvider());

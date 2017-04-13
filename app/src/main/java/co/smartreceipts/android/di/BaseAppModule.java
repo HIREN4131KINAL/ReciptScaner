@@ -61,6 +61,7 @@ public class BaseAppModule {
     }
 
     @Provides
+    @ApplicationScope
     public static DatabaseHelper provideDatabaseHelper(Context context, StorageManager storageManager,
                                                        UserPreferenceManager preferences,
                                                        ReceiptColumnDefinitions receiptColumnDefinitions,

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -29,6 +30,7 @@ public class SelectAutomaticBackupProviderDialogFragment extends DialogFragment 
         super.onAttach(context);
     }
 
+    @SuppressLint("InflateParams")
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

@@ -7,14 +7,11 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.concurrent.TimeUnit;
 
-import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.push.PushMessageReceiver;
 import rx.Observable;
-import rx.Observer;
 import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.observables.AsyncOnSubscribe;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;

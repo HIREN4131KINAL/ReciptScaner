@@ -3,8 +3,6 @@ package co.smartreceipts.android.purchases.apis;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 

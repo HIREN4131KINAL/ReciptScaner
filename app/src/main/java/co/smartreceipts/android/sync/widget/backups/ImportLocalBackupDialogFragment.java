@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.widget.backups;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -38,6 +39,7 @@ public class ImportLocalBackupDialogFragment extends DialogFragment implements D
         Preconditions.checkNotNull(mUri, "ImportBackupDialogFragment requires a valid SMR Uri");
     }
 
+    @SuppressLint("InflateParams")
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

@@ -147,6 +147,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
                     }
                 }
             } catch (SDCardStateException e) {
+                Logger.warn(this, "Caught sd card exception", e);
             }
         }
     }

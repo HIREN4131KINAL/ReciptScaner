@@ -23,10 +23,9 @@ public abstract class NotFilter<T> implements Filter<T> {
 	private final Filter<T> mFilter;
 
 	/**
-	 * A preset list of logical NOT filters may be added to this constructor so
-	 * that chaining via the {@link #not(Filter)} method is not required
+	 * A logical "NOT" filter
 	 * 
-	 * @param filters - the {@link List} of {@link Filter} to add
+	 * @param filter - the {@link Filter} to not
 	 */
 	public NotFilter(Filter<T> filter) {
 		mFilter = filter;
@@ -69,7 +68,7 @@ public abstract class NotFilter<T> implements Filter<T> {
 
 	@Override
 	public List<Filter<T>> getChildren() {
-		final ArrayList<Filter<T>> children = new ArrayList<Filter<T>>();
+		final ArrayList<Filter<T>> children = new ArrayList<>();
 		children.add(mFilter);
 		return children;
 	}

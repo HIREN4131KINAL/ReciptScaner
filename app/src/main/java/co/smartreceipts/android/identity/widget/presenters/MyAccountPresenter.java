@@ -4,12 +4,10 @@ import android.support.annotation.NonNull;
 import android.view.View;
 
 import com.google.common.base.Preconditions;
-import com.jakewharton.rxbinding.view.RxView;
 
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import rx.Observable;
-import rx.functions.Action1;
 
 public class MyAccountPresenter {
 

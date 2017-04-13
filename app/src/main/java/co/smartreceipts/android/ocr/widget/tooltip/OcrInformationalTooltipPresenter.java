@@ -59,7 +59,8 @@ public class OcrInformationalTooltipPresenter{
                     if (ocrTooltipMessageType == OcrTooltipMessageType.NotConfigured) {
                         tooltip.setInfoMessage(R.string.ocr_informational_tooltip_configure_text);
                     } else if (ocrTooltipMessageType == OcrTooltipMessageType.LimitedScansRemaining || ocrTooltipMessageType == OcrTooltipMessageType.NoScansRemaining) {
-                        tooltip.setInfoMessage(tooltip.getContext().getString(R.string.ocr_informational_tooltip_limited_scans_text, ocrPurchaseTracker.getRemainingScans()));
+                        final int remainingScans = ocrPurchaseTracker.getRemainingScans();
+                        tooltip.setInfoMessage(tooltip.getContext().getResources().getQuantityString(R.plurals.ocr_informational_tooltip_limited_scans_text, remainingScans, remainingScans));
                     } else {
                         throw new IllegalArgumentException("Unknown message type" + ocrTooltipMessageType);
                     }

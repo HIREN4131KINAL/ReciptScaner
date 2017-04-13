@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -138,6 +139,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         suggestedDate = new Date(getArguments().getLong(ARG_SUGGESTED_DATE, now.toMillis(false)));
     }
 
+    @SuppressLint("InflateParams")
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -154,7 +156,7 @@ public class DistanceDialogFragment extends DialogFragment implements OnClickLis
         DatabaseHelper databaseHelper = persistenceManager.getDatabase();
         UserPreferenceManager prefs = persistenceManager.getPreferenceManager();
 
-        final ArrayAdapter<CharSequence> currencies = new ArrayAdapter<CharSequence>(getActivity(),
+        final ArrayAdapter<CharSequence> currencies = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_item, databaseHelper.getCurrenciesList());
         currencies.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         currency.setAdapter(currencies);

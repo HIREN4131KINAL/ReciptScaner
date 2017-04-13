@@ -63,7 +63,7 @@ public final class ImmutableLegacyNetPriceImpl extends AbstractPriceImpl {
 
     private static List<Price> restorePricesFromParcel(Parcel in) {
         final int size = in.readInt();
-        final List<Price> prices = new ArrayList<Price>(size);
+        final List<Price> prices = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             final Price price = in.readParcelable(Price.class.getClassLoader());
             prices.add(price);
@@ -91,7 +91,7 @@ public final class ImmutableLegacyNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public String getCurrencyFormattedPrice() {
-        final List<String> currencyStrings = new ArrayList<String>();
+        final List<String> currencyStrings = new ArrayList<>();
         for (PriceCurrency currency : mCurrencyToPriceMap.keySet()) {
             currencyStrings.add(ModelUtils.getCurrencyFormattedValue(mCurrencyToPriceMap.get(currency), currency));
         }
@@ -101,7 +101,7 @@ public final class ImmutableLegacyNetPriceImpl extends AbstractPriceImpl {
     @NonNull
     @Override
     public String getCurrencyCodeFormattedPrice() {
-        final List<String> currencyStrings = new ArrayList<String>();
+        final List<String> currencyStrings = new ArrayList<>();
         for (PriceCurrency currency : mCurrencyToPriceMap.keySet()) {
             currencyStrings.add(ModelUtils.getCurrencyCodeFormattedValue(mCurrencyToPriceMap.get(currency), currency));
         }

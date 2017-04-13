@@ -32,7 +32,7 @@ public class MinimumPriceEditTextPreference extends FloatSummaryEditTextPreferen
 		try {
     		float value = Float.parseFloat(text);
     		if (Math.abs(value - INCLUDE_ALL) < EPISILON) { // We're including all
-    			return new String();
+    			return "";
     		}
     		else {
     			return text;

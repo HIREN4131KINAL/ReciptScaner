@@ -137,7 +137,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setSyncState(syncState);
 
 
-        /**
+        /*
          * Please note that a very frustrating bug exists here. Android cursors only return the first 6
          * characters of a price string if that string contains a '.' character. It returns all of them
          * if not. This means we'll break for prices over 5 digits unless we are using a comma separator, 

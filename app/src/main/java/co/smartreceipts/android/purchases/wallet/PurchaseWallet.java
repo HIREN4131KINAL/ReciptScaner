@@ -3,7 +3,6 @@ package co.smartreceipts.android.purchases.wallet;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.util.Collection;
 import java.util.Set;
 
 import co.smartreceipts.android.purchases.model.InAppPurchase;

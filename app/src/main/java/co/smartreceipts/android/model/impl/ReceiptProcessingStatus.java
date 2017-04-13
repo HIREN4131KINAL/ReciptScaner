@@ -31,7 +31,7 @@ public enum ReceiptProcessingStatus implements ProcessingStatus {
 
     private final String mStatus;
 
-    private ReceiptProcessingStatus(final String status) {
+    ReceiptProcessingStatus(final String status) {
         mStatus = status;
     }
 

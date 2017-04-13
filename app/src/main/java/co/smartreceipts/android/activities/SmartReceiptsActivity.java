@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -40,25 +41,32 @@ import rx.functions.Action1;
 import rx.subscriptions.CompositeSubscription;
 import wb.android.flex.Flex;
 
-public class SmartReceiptsActivity extends WBActivity implements Attachable, PurchaseEventsListener {
+public class SmartReceiptsActivity extends AppCompatActivity implements Attachable, PurchaseEventsListener {
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @Inject
     AdManager adManager;
+
     @Inject
     Flex flex;
+
     @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     PurchaseWallet purchaseWallet;
+
     @Inject
     ConfigurationManager configurationManager;
+
     @Inject
     Analytics analytics;
+
     @Inject
     PurchaseManager purchaseManager;
+
     @Inject
     BackupProvidersManager backupProvidersManager;
 

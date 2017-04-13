@@ -55,7 +55,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
     @NonNull
     public List<Receipt> convert(@NonNull List<Distance> distances) {
         final int size = distances.size();
-        final HashMap<String, List<Distance>> distancesPerDay = new HashMap<String, List<Distance>>();
+        final HashMap<String, List<Distance>> distancesPerDay = new HashMap<>();
         // First, let's separate our distances to find what occurs each day
         for (int i = 0; i < size; i++) {
             final Distance distance = distances.get(i);
@@ -64,13 +64,13 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
                 distancesPerDay.get(formattedDate).add(distance);
             }
             else {
-                final List<Distance> distanceList = new ArrayList<Distance>();
+                final List<Distance> distanceList = new ArrayList<>();
                 distanceList.add(distance);
                 distancesPerDay.put(formattedDate, distanceList);
             }
         }
 
-        final List<Receipt> receipts = new ArrayList<Receipt>(distancesPerDay.keySet().size());
+        final List<Receipt> receipts = new ArrayList<>(distancesPerDay.keySet().size());
         for (Map.Entry<String, List<Distance>> entry : distancesPerDay.entrySet()) {
             if (!entry.getValue().isEmpty()) {
                 receipts.add(generateReceipt(entry.getValue()));
@@ -88,7 +88,7 @@ public class DistanceToReceiptsConverter implements ModelConverter<Distance, Rec
         // Set up default values for everything
         final Distance distance0 = distancesThisDay.get(0);
         final ReceiptBuilderFactory factory = new ReceiptBuilderFactory(-1); // Randomize the id
-        final ArrayList<String> names = new ArrayList<String>();
+        final ArrayList<String> names = new ArrayList<>();
         for (int i = 0; i < distancesThisDay.size(); i++) {
             final Distance distance = distancesThisDay.get(i);
             if (!names.contains(distance.getLocation())) {

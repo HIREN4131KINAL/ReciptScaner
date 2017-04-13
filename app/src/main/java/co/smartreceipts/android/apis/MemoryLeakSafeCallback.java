@@ -7,7 +7,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Extends the {@link retrofit.Callback} interface to protect against memory leaks
+ * Extends the {@link Callback} interface to protect against memory leaks
  *
  * @param <Data> the return data type
  * @param <Leakable> the object type that might lead to memory leaks

@@ -23,7 +23,7 @@ public class CurrencyUtils {
      */
     @NonNull
     public static List<String> getIso4217CurrencyCodes() {
-        final ArrayList<String> iso4217Currencies = new ArrayList<String>();
+        final ArrayList<String> iso4217Currencies = new ArrayList<>();
         iso4217Currencies.add("AED");
         iso4217Currencies.add("AFN");
         iso4217Currencies.add("ALL");
@@ -215,7 +215,7 @@ public class CurrencyUtils {
      */
     @NonNull
     public static List<String> getNonIso4217CurrencyCodes() {
-        final ArrayList<String> nonIso4217Currencies = new ArrayList<String>();
+        final ArrayList<String> nonIso4217Currencies = new ArrayList<>();
         nonIso4217Currencies.add("BSF");
         nonIso4217Currencies.add("BTC"); // Bitcoin
         nonIso4217Currencies.add("BYN"); // New Belarus Currency

@@ -2,7 +2,6 @@ package co.smartreceipts.android.ocr.apis;
 
 import android.support.annotation.NonNull;
 
-import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import retrofit2.http.Body;

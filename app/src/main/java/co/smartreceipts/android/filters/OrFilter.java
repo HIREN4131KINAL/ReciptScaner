@@ -29,7 +29,7 @@ public abstract class OrFilter<T> implements Filter<T> {
 	 * the {@link #or(Filter)} method.
 	 */
 	public OrFilter() {
-		mFilters = new CopyOnWriteArrayList<Filter<T>>();
+		mFilters = new CopyOnWriteArrayList<>();
 	}
 	
 	/**
@@ -39,7 +39,7 @@ public abstract class OrFilter<T> implements Filter<T> {
 	 * @param filters - the {@link List} of {@link Filter} to add
 	 */
 	public OrFilter(List<Filter<T>> filters) {
-		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
+		mFilters = new CopyOnWriteArrayList<>(filters);
 	}
 	
 	/**
@@ -50,12 +50,12 @@ public abstract class OrFilter<T> implements Filter<T> {
 	 * @throws JSONException - throw if our provide {@link JSONObject} is invalid
 	 */
 	protected OrFilter(JSONObject json) throws JSONException {
-		final List<Filter<T>> filters = new ArrayList<Filter<T>>();
+		final List<Filter<T>> filters = new ArrayList<>();
 		final JSONArray filtersArray = json.getJSONArray(OR_FILTERS);
 		for (int i=0; i < filtersArray.length(); i++) {
 			filters.add(getFilter(filtersArray.getJSONObject(i)));
 		}
-		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
+		mFilters = new CopyOnWriteArrayList<>(filters);
 	}
 
 	
@@ -105,7 +105,7 @@ public abstract class OrFilter<T> implements Filter<T> {
 
 	@Override
 	public List<Filter<T>> getChildren() {
-		return new ArrayList<Filter<T>>(mFilters);
+		return new ArrayList<>(mFilters);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package co.smartreceipts.android.sync.widget.backups;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ public class ImportRemoteBackupDialogFragment extends DialogFragment implements 
         Preconditions.checkNotNull(mBackupMetadata, "This class requires that a RemoteBackupMetadata instance be provided");
     }
 
+    @SuppressLint("InflateParams")
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

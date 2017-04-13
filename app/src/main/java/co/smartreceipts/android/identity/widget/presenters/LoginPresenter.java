@@ -15,7 +15,6 @@ import com.jakewharton.rxbinding.widget.RxTextView;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
 import rx.Observable;
 import rx.functions.Action1;

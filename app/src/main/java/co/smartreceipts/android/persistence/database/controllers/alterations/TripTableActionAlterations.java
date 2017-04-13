@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.controllers.alterations;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 

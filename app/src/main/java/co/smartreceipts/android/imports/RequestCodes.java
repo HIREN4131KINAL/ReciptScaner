@@ -1,6 +1,7 @@
 package co.smartreceipts.android.imports;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class RequestCodes {
@@ -17,7 +18,7 @@ public class RequestCodes {
             IMPORT_GALLERY_IMAGE,
             NATIVE_RETAKE_PHOTO_CAMERA_REQUEST);
 
-    public static final List<Integer> PDF_REQUESTS = Arrays.asList(IMPORT_GALLERY_PDF);
+    public static final List<Integer> PDF_REQUESTS = Collections.singletonList(IMPORT_GALLERY_PDF);
 
     private RequestCodes() { }
 }

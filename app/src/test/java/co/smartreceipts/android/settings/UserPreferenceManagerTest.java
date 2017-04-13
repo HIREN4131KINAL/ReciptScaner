@@ -39,11 +39,10 @@ public class UserPreferenceManagerTest {
         userPreferenceManager = new UserPreferenceManager(RuntimeEnvironment.application, preferences, Schedulers.immediate());
     }
 
-    @SuppressLint("CommitPrefEdits")
     @After
     public void tearDown() {
         Locale.setDefault(defaultLocale);
-        preferences.edit().clear().commit();
+        preferences.edit().clear().apply();
     }
 
     @Test

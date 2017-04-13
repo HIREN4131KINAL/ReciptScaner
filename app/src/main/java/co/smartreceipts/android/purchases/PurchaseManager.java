@@ -419,7 +419,7 @@ public class PurchaseManager {
                                         final ArrayList<String> ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                                         final ArrayList<String> purchaseDataList = ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
                                         final ArrayList<String> signatureList = ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE_LIST");
-                                        final Set<ManagedProduct> purchasedProducts = new HashSet<ManagedProduct>();
+                                        final Set<ManagedProduct> purchasedProducts = new HashSet<>();
                                         for (int i = 0; i < purchaseDataList.size(); ++i) {
                                             final String purchaseDataString = purchaseDataList.get(i);
                                             final JSONObject purchaseData = new JSONObject(purchaseDataString);

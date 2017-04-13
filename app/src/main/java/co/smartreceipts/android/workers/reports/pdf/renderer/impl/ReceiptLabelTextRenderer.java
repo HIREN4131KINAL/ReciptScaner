@@ -13,8 +13,6 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.workers.reports.pdf.fonts.PdfFontSpec;
-import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Color;
-import co.smartreceipts.android.workers.reports.pdf.renderer.formatting.Font;
 import co.smartreceipts.android.workers.reports.pdf.renderer.text.TextRenderer;
 
 public class ReceiptLabelTextRenderer extends TextRenderer {

@@ -1,11 +1,12 @@
 package co.smartreceipts.android.settings.widget;
 
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.WBActivity;
 
-public class SettingsViewerActivity extends WBActivity {
+public class SettingsViewerActivity extends AppCompatActivity {
 	
 	static final String KEY_FLAG = "KeyFlag";
 	
@@ -47,7 +48,11 @@ public class SettingsViewerActivity extends WBActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		enableUpNavigation(true);
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 	}
 	
 }

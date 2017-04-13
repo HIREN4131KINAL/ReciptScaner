@@ -63,7 +63,7 @@ public interface Price extends Parcelable {
     PriceCurrency getCurrency();
 
     /**
-     * Gets the currency code representation for this price or {@link PriceCurrency#MISSING_CURRENCY_CODE}
+     * Gets the currency code representation for this price or {@link PriceCurrency#MISSING_CURRENCY}
      * if it cannot be found
      *
      * @return the currency code {@link String} for this price

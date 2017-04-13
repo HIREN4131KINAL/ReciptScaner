@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info;
+package co.smartreceipts.android.ocr.widget;
 
 import android.content.Intent;
 import android.support.annotation.IdRes;

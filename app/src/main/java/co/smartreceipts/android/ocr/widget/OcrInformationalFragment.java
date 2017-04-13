@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info;
+package co.smartreceipts.android.ocr.widget;
 
 import android.content.Context;
 import android.os.Bundle;

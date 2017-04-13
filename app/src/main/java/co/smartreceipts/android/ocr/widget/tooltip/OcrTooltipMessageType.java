@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info.tooltip;
+package co.smartreceipts.android.ocr.widget.tooltip;
 
 public enum OcrTooltipMessageType {
 

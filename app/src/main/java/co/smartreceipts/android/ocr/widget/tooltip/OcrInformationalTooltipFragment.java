@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info.tooltip;
+package co.smartreceipts.android.ocr.widget.tooltip;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -10,8 +10,6 @@ import android.view.ViewGroup;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.widget.Tooltip;
 import dagger.android.support.AndroidSupportInjection;

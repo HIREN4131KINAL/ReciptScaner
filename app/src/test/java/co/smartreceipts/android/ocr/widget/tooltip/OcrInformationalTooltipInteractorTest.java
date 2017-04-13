@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.info.tooltip;
+package co.smartreceipts.android.ocr.widget.tooltip;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,6 @@ import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;

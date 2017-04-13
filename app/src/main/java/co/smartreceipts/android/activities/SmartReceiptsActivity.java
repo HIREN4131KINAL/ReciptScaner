@@ -180,8 +180,8 @@ public class SmartReceiptsActivity extends AppCompatActivity implements Attachab
             menu.removeItem(R.id.menu_main_settings);
         }
 
-        if (!FeatureFlags.SmartReceiptsLogin.isEnabled()) {
-            menu.removeItem(R.id.menu_main_my_account);
+        if (!FeatureFlags.Ocr.isEnabled()) {
+            menu.removeItem(R.id.menu_main_ocr_configuration);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -201,9 +201,9 @@ public class SmartReceiptsActivity extends AppCompatActivity implements Attachab
             purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             analytics.record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
-        } else if (item.getItemId() == R.id.menu_main_my_account) {
-            navigationHandler.navigateToLoginScreen();
-            analytics.record(Events.Navigation.BackupOverflow);
+        } else if (item.getItemId() == R.id.menu_main_ocr_configuration) {
+            navigationHandler.navigateToOcrConfigurationFragment();
+            analytics.record(Events.Navigation.OcrConfiguration);
             return true;
         } else {
             return super.onOptionsItemSelected(item);

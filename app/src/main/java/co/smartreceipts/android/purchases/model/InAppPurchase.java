@@ -9,15 +9,17 @@ import java.util.ArrayList;
 
 public enum InAppPurchase {
 
-    SmartReceiptsPlus(Subscription.class, "pro_sku_3"),
-    OcrScans50(ConsumablePurchase.class, "ocr_purchase_1");
+    SmartReceiptsPlus(Subscription.class, "pro_sku_3", PurchaseFamily.SmartReceiptsPlus),
+    OcrScans50(ConsumablePurchase.class, "ocr_purchase_1", PurchaseFamily.Ocr);
 
     private final Class<? extends ManagedProduct> type;
     private final String sku;
+    private final PurchaseFamily purchaseFamily;
 
-    InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku) {
+    InAppPurchase(@NonNull Class<? extends ManagedProduct> type, @NonNull String sku, @NonNull PurchaseFamily purchaseFamily) {
         this.type = Preconditions.checkNotNull(type);
         this.sku = Preconditions.checkNotNull(sku);
+        this.purchaseFamily = Preconditions.checkNotNull(purchaseFamily);
     }
 
     /**
@@ -34,6 +36,14 @@ public enum InAppPurchase {
     @NonNull
     public Class<? extends ManagedProduct> getType() {
         return type;
+    }
+
+    /**
+     * @return the {@link PurchaseFamily} for this purchase type
+     */
+    @NonNull
+    public PurchaseFamily getPurchaseFamily() {
+        return purchaseFamily;
     }
 
     /**

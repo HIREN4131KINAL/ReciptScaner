@@ -32,6 +32,7 @@ import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.BehaviorSubject;
 
 @ApplicationScope
 public class OcrPurchaseTracker implements PurchaseEventsListener {
@@ -168,6 +169,17 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     }
 
     /**
+     * @return the remaining Ocr scan count that is allowed for this user. Please note that is
+     * this not the authority for this (ie it's not the server), this may not be fully accurate, so we
+     * may still get a remote error after a scan. Additionally, please note that this {@link Observable}
+     * will only call {@link Subscriber#onNext(Object)} with the latest value (and never onComplete or
+     * onError) to allow us to continually get the updated value
+     */
+    public Observable<Integer> getRemainingScansStream() {
+        return localOcrScansTracker.getRemainingScansStream();
+    }
+
+    /**
      * @return {@code true} if we have OCR scans remaining. {@code false} otherwise. Please note that is
      * this not the authority for this (ie it's not the server), this may not be fully accurate, so we
      * may still get a remote error after a scan
@@ -225,6 +237,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
                     public void call(Integer recognitionsAvailable) {
                         if (recognitionsAvailable != null) {
                             localOcrScansTracker.setRemainingScans(recognitionsAvailable);
+
                         }
                     }
                 })

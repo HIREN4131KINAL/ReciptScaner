@@ -109,6 +109,7 @@ public class LoginFragment extends WBFragment {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.login_toolbar_title);
+            actionBar.setSubtitle("");
         }
         if (this.compositeSubscription == null) {
             this.compositeSubscription = new CompositeSubscription();

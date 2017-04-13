@@ -17,17 +17,15 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 
 public class OcrConfigurationFragment extends Fragment {
 
     @Inject
-    Analytics analytics;
+    OcrConfigurationInteractor interactor;
 
-    private OcrConfigurationInteractor mInteractor;
-    private OcrConfigurationPresenter mPresenter;
+    private OcrConfigurationPresenter presenter;
 
     public static OcrConfigurationFragment newInstance() {
         return new OcrConfigurationFragment();
@@ -41,23 +39,22 @@ public class OcrConfigurationFragment extends Fragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         Logger.debug(this, "onCreate");
+        super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
-        mInteractor = new OcrConfigurationInteractor(analytics, getActivity());
+        interactor.routeToProperLocation(savedInstanceState);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.ocr_questionnaire, container, false);
+        return inflater.inflate(R.layout.ocr_configuration_fragment, container, false);
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mPresenter = new OcrConfigurationPresenter(view, mInteractor);
+        presenter = new OcrConfigurationPresenter(interactor, view);
     }
 
     @Override
@@ -69,15 +66,14 @@ public class OcrConfigurationFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_ocr_questionnaire, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            return mInteractor.dismissQuestionnaire();
-        } else if (item.getItemId() == R.id.action_save) {
-            return mInteractor.submitQuestionnaire();
+            return interactor.navigateBack();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -85,23 +81,28 @@ public class OcrConfigurationFragment extends Fragment {
 
     @Override
     public void onResume() {
-        super.onResume();
         Logger.debug(this, "onResume");
+        super.onResume();
         final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(R.drawable.ic_action_cancel);
-            actionBar.setTitle(R.string.ocr_questionnaire);
+            actionBar.setTitle(R.string.ocr_configuration_title);
             actionBar.setSubtitle("");
         }
-        mPresenter.onResume();
+        presenter.onResume();
     }
 
     @Override
     public void onPause() {
-        mPresenter.onPause();
         Logger.debug(this, "onPause");
+        presenter.onPause();
         super.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        presenter.onDestroyView();
+        super.onDestroyView();
     }
 }

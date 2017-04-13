@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
+import rx.observers.TestSubscriber;
+
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -33,26 +35,53 @@ public class LocalOcrScansTrackerTest {
 
     @Test
     public void getRemainingScans() {
+        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        localOcrScansTracker.getRemainingScansStream().subscribe(subscriber);
         assertEquals(0, localOcrScansTracker.getRemainingScans());
+
+        subscriber.assertValues(0);
+        subscriber.assertNotCompleted();
+        subscriber.assertNoErrors();
     }
 
     @Test
     public void setRemainingScans() {
+        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        localOcrScansTracker.getRemainingScansStream().subscribe(subscriber);
+
         localOcrScansTracker.setRemainingScans(50);
         assertEquals(50, localOcrScansTracker.getRemainingScans());
+
+        subscriber.assertValues(0, 50);
+        subscriber.assertNotCompleted();
+        subscriber.assertNoErrors();
     }
 
     @Test
     public void decrementRemainingScans() {
+        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        localOcrScansTracker.getRemainingScansStream().subscribe(subscriber);
+
         localOcrScansTracker.setRemainingScans(50);
         localOcrScansTracker.decrementRemainingScans();
         assertEquals(49, localOcrScansTracker.getRemainingScans());
+
+        subscriber.assertValues(0, 50, 49);
+        subscriber.assertNotCompleted();
+        subscriber.assertNoErrors();
     }
 
     @Test
     public void decrementRemainingDoesntGoNegative() {
+        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        localOcrScansTracker.getRemainingScansStream().subscribe(subscriber);
+
         localOcrScansTracker.decrementRemainingScans();
         assertEquals(0, localOcrScansTracker.getRemainingScans());
+
+        subscriber.assertValues(0);
+        subscriber.assertNotCompleted();
+        subscriber.assertNoErrors();
     }
 
 }

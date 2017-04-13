@@ -17,10 +17,12 @@ public class InAppPurchaseTest {
         assertEquals(InAppPurchase.SmartReceiptsPlus.getSku(), "pro_sku_3");
         assertEquals(InAppPurchase.SmartReceiptsPlus.getType(), Subscription.class);
         assertEquals(InAppPurchase.SmartReceiptsPlus.getProductType(), "subs");
+        assertEquals(InAppPurchase.SmartReceiptsPlus.getPurchaseFamily(), PurchaseFamily.SmartReceiptsPlus);
 
         assertEquals(InAppPurchase.OcrScans50.getSku(), "ocr_purchase_1");
         assertEquals(InAppPurchase.OcrScans50.getType(), ConsumablePurchase.class);
         assertEquals(InAppPurchase.OcrScans50.getProductType(), "inapp");
+        assertEquals(InAppPurchase.OcrScans50.getPurchaseFamily(), PurchaseFamily.Ocr);
     }
 
     @Test

@@ -1,82 +1,73 @@
 package co.smartreceipts.android.ocr.widget;
 
-import android.content.Intent;
-import android.support.annotation.IdRes;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
-import co.smartreceipts.android.R;
+import javax.inject.Inject;
+
 import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
-import co.smartreceipts.android.analytics.events.Event;
-import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.di.scopes.FragmentScope;
+import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.identity.store.EmailAddress;
+import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.workers.EmailAssistant;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 
+@FragmentScope
 public class OcrConfigurationInteractor {
 
-    private final Analytics mAnalytics;
-    private final FragmentActivity mActivity;
-    private final NavigationHandler mNavigationHandler;
+    private final NavigationHandler navigationHandler;
+    private final IdentityManager identityManager;
+    private final OcrPurchaseTracker ocrPurchaseTracker;
+    private final Analytics analytics;
 
-    private Event mQuestion1Event = null;
-    private Event mQuestion2Event = null;
-
-    public OcrConfigurationInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity) {
-        this(analytics, activity, new NavigationHandler(activity));
+    @Inject
+    public OcrConfigurationInteractor(OcrConfigurationFragment fragment, IdentityManager identityManager, OcrPurchaseTracker ocrPurchaseTracker,
+                                      Analytics analytics) {
+        this(new NavigationHandler(fragment), identityManager, ocrPurchaseTracker, analytics);
     }
 
-    public OcrConfigurationInteractor(@NonNull Analytics analytics, @NonNull FragmentActivity activity, @NonNull NavigationHandler navigationHandler) {
-        mAnalytics = Preconditions.checkNotNull(analytics);
-        mActivity = Preconditions.checkNotNull(activity);
-        mNavigationHandler = Preconditions.checkNotNull(navigationHandler);
+    @VisibleForTesting
+    OcrConfigurationInteractor(@NonNull NavigationHandler navigationHandler, @NonNull IdentityManager identityManager,
+                               @NonNull OcrPurchaseTracker ocrPurchaseTracker, @NonNull Analytics analytics) {
+        this.navigationHandler = Preconditions.checkNotNull(navigationHandler);
+        this.identityManager = Preconditions.checkNotNull(identityManager);
+        this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
+        this.analytics = Preconditions.checkNotNull(analytics);
     }
 
-    public boolean submitQuestionnaire() {
-        Logger.info(this, "Submitting OCR Questionnaire");
-        mAnalytics.record(Events.Ocr.OcrQuestionnaireSubmit);
-        if (mQuestion1Event != null) {
-            mAnalytics.record(mQuestion1Event);
+    @Nullable
+    public EmailAddress getEmail() {
+        return identityManager.getEmail();
+    }
+
+    @NonNull
+    public Observable<Integer> getRemainingScansStream() {
+        return ocrPurchaseTracker.getRemainingScansStream()
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public void routeToProperLocation(@Nullable Bundle savedInstanceState) {
+        if (!identityManager.isLoggedIn()) {
+            if (savedInstanceState == null) {
+                Logger.info(this, "User not logged in. Sending to the log in screen");
+            } else {
+                Logger.info(this, "Returning to this fragment after not signing in. Navigating back rather than looping back to the log in screen");
+                navigateBack();
+            }
+        } else {
+            Logger.debug(this, "User is already logged in. Doing nothing and remaining on this screen");
         }
-        if (mQuestion2Event != null) {
-            mAnalytics.record(mQuestion2Event);
-        }
-        return mNavigationHandler.navigateBack();
     }
 
-    public boolean dismissQuestionnaire() {
-        Logger.info(this, "Dismissing OCR Questionnaire");
-        mAnalytics.record(Events.Ocr.OcrQuestionnaireDismiss);
-        return mNavigationHandler.navigateBack();
-    }
-
-    public void toggleQuestionnaireResponse(@IdRes int questionaireRes) {
-        if (questionaireRes == R.id.ocr_questionnaire_q1_option1) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerReceipt20;
-        } else if (questionaireRes == R.id.ocr_questionnaire_q1_option2) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1PerReceipt15;
-        } else if (questionaireRes == R.id.ocr_questionnaire_q1_option3) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1TooMuch;
-        } else if (questionaireRes == R.id.ocr_questionnaire_q1_option4) {
-            mQuestion1Event = Events.Ocr.OcrQuestionnaireQuestion1NotInterested;
-        }
-
-
-        if (questionaireRes == R.id.ocr_questionnaire_q2_option1) {
-            mQuestion2Event = Events.Ocr.OcrQuestionnaireQuestion2DelaysOkay;
-        } else if (questionaireRes == R.id.ocr_questionnaire_q2_option2) {
-            mQuestion2Event = Events.Ocr.OcrQuestionnaireQuestion2NotInterested;
-        }
-        Logger.info(this, "OCR Answers are currently set as {} and {}", mQuestion1Event, mQuestion2Event);
-    }
-
-    public void emailAboutOcr() {
-        Logger.info(this, "Emailing about OCR Questionnaire");
-        mAnalytics.record(Events.Ocr.OcrQuestionnaireEmailUs);
-        final Intent intent = EmailAssistant.getEmailDeveloperIntent("Automatic Scanning (ie OCR) Feedback");
-        mActivity.startActivity(intent);
+    public boolean navigateBack() {
+        return this.navigationHandler.navigateBack();
     }
 
 }

@@ -18,6 +18,7 @@ public final class Events {
     public static final class Navigation {
         public static final Event SettingsOverflow = new DefaultEvent(Category.Navigation, "SettingsOverflow");
         public static final Event BackupOverflow = new DefaultEvent(Category.Navigation, "BackupOverflow");
+        public static final Event OcrConfiguration = new DefaultEvent(Category.Navigation, "OcrConfiguration");
         public static final Event SmartReceiptsPlusOverflow = new DefaultEvent(Category.Navigation, "SmartReceiptsPlusOverflow");
     }
 
@@ -101,15 +102,7 @@ public final class Events {
         public static final Event OcrInfoTooltipShown = new DefaultEvent(Category.Ocr, "OcrInfoTooltipShown");
         public static final Event OcrInfoTooltipOpen = new DefaultEvent(Category.Ocr, "OcrInfoTooltipOpen");
         public static final Event OcrInfoTooltipDismiss = new DefaultEvent(Category.Ocr, "OcrInfoTooltipDismiss");
-        public static final Event OcrQuestionnaireSubmit = new DefaultEvent(Category.Ocr, "OcrQuestionnaireSubmit");
-        public static final Event OcrQuestionnaireDismiss = new DefaultEvent(Category.Ocr, "OcrQuestionnaireDismiss");
-        public static final Event OcrQuestionnaireEmailUs = new DefaultEvent(Category.Ocr, "OcrQuestionnaireEmailUs");
-        public static final Event OcrQuestionnaireQuestion1PerReceipt20 = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1PerReceipt20");
-        public static final Event OcrQuestionnaireQuestion1PerReceipt15 = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1PerReceipt15");
-        public static final Event OcrQuestionnaireQuestion1TooMuch = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1TooMuch");
-        public static final Event OcrQuestionnaireQuestion1NotInterested = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion1NotInterested");
-        public static final Event OcrQuestionnaireQuestion2DelaysOkay = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion2DelaysOkay");
-        public static final Event OcrQuestionnaireQuestion2NotInterested = new DefaultEvent(Category.Ocr, "OcrQuestionnaireQuestion2NotInterested");
+
     }
 
 }

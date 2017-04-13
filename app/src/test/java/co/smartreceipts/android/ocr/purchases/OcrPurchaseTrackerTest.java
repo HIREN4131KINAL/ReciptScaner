@@ -24,7 +24,9 @@ import co.smartreceipts.android.purchases.model.ManagedProduct;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import rx.Observable;
+import rx.observers.TestSubscriber;
 import rx.schedulers.Schedulers;
+import rx.subjects.BehaviorSubject;
 import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.*;
@@ -326,6 +328,18 @@ public class OcrPurchaseTrackerTest {
     public void getRemainingScans() {
         when(localOcrScansTracker.getRemainingScans()).thenReturn(50);
         assertEquals(50, ocrPurchaseTracker.getRemainingScans());
+    }
+
+    @Test
+    public void getRemainingScansStream() {
+        final BehaviorSubject<Integer> scansStream = BehaviorSubject.create(50);
+        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        when(localOcrScansTracker.getRemainingScansStream()).thenReturn(scansStream);
+        ocrPurchaseTracker.getRemainingScansStream().subscribe(subscriber);
+
+        subscriber.assertValue(50);
+        subscriber.assertNotCompleted();
+        subscriber.assertNoErrors();
     }
 
     @Test

@@ -70,16 +70,22 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     @Inject
     Flex flex;
+
     @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     ConfigurationManager configurationManager;
+
     @Inject
     Analytics analytics;
+
     @Inject
     ReceiptTableController receiptTableController;
+
     @Inject
     BackupProvidersManager backupProvidersManager;
+
     @Inject
     OcrInteractor ocrInteractor;
 
@@ -121,6 +127,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         if (savedInstanceState != null) {
             imageUri = savedInstanceState.getParcelable(OUT_IMAGE_URI);
             highlightedReceipt = savedInstanceState.getParcelable(OUT_HIGHLIGHTED_RECEIPT);
+
         }
     }
 
@@ -300,7 +307,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
 
     private void importReceipt() {
         final ImportPhotoPdfDialogFragment fragment = new ImportPhotoPdfDialogFragment();
-        fragment.show(getFragmentManager(), ImportPhotoPdfDialogFragment.TAG);
+        fragment.show(getChildFragmentManager(), ImportPhotoPdfDialogFragment.TAG);
     }
 
     public final boolean showReceiptMenu(final Receipt receipt) {

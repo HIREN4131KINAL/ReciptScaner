@@ -89,13 +89,11 @@ public class ReportInfoFragment extends WBFragment {
         mActionBarTitleUpdatesListener = new ActionBarTitleUpdatesListener();
     }
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.report_info_view_pager, container, false);
     }
-
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -111,32 +109,11 @@ public class ReportInfoFragment extends WBFragment {
         mPagerSlidingTabStrip.setViewPager(mViewPager);
     }
 
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        for (final Fragment fragment : getChildFragmentManager().getFragments()) {
-            if (fragment != null) {
-                fragment.onActivityResult(requestCode, resultCode, data);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (final Fragment fragment : getChildFragmentManager().getFragments()) {
-            if (fragment != null) {
-                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            }
-        }
     }
 
     @Override

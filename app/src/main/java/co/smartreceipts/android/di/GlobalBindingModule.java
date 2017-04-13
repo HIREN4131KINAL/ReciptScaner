@@ -19,8 +19,8 @@ import co.smartreceipts.android.di.subcomponents.ImportLocalBackupWorkerProgress
 import co.smartreceipts.android.di.subcomponents.ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.InformAboutPdfImageAttachmentDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.LoginFragmentSubcomponent;
-import co.smartreceipts.android.di.subcomponents.OcrInformationalFragmentSubcomponent;
-import co.smartreceipts.android.di.subcomponents.OcrInformationalTooltipFragmentSubcomponent;
+import co.smartreceipts.android.ocr.widget.di.OcrInformationalFragmentSubcomponent;
+import co.smartreceipts.android.ocr.widget.di.OcrInformationalTooltipFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PDFColumnsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PaymentMethodsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.RatingDialogFragmentSubcomponent;

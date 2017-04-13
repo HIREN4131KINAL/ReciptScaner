@@ -1,4 +1,4 @@
-package co.smartreceipts.android.di.subcomponents;
+package co.smartreceipts.android.ocr.widget.di;
 
 import co.smartreceipts.android.di.scopes.FragmentScope;
 import co.smartreceipts.android.ocr.widget.tooltip.OcrInformationalTooltipFragment;

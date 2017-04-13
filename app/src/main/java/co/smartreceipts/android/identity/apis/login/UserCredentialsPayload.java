@@ -5,28 +5,33 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
+
 import java.io.Serializable;
 
-public abstract class LoginParams implements Serializable, Parcelable {
+public abstract class UserCredentialsPayload implements Serializable, Parcelable {
 
     private final String type;
     private final String email;
     private final String password;
     private final String token;
+    private final transient LoginType loginType;
 
-    protected LoginParams(@NonNull String type, @Nullable String email, @Nullable String password, @Nullable String token) {
+    protected UserCredentialsPayload(@Nullable String type, @Nullable String email, @Nullable String password, @Nullable String token,
+                                     @NonNull LoginType loginType) {
         this.type = type;
         this.email = email;
         this.password = password;
         this.token = token;
+        this.loginType = Preconditions.checkNotNull(loginType);
     }
 
-    protected LoginParams(Parcel in) {
-        this(in.readString(), in.readString(), in.readString(), in.readString());
+    protected UserCredentialsPayload(Parcel in) {
+        this(in.readString(), in.readString(), in.readString(), in.readString(), (LoginType) in.readSerializable());
     }
 
     @Nullable
-    public String getType() {
+    public String getTypeString() {
         return type;
     }
 
@@ -45,18 +50,24 @@ public abstract class LoginParams implements Serializable, Parcelable {
         return token;
     }
 
+    @NonNull
+    public LoginType getLoginType() {
+        return loginType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof LoginParams)) return false;
+        if (!(o instanceof UserCredentialsPayload)) return false;
 
-        LoginParams that = (LoginParams) o;
+        UserCredentialsPayload that = (UserCredentialsPayload) o;
 
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (password != null ? !password.equals(that.password) : that.password != null)
             return false;
-        return token != null ? token.equals(that.token) : that.token == null;
+        if (token != null ? !token.equals(that.token) : that.token != null) return false;
+        return loginType == that.loginType;
 
     }
 
@@ -66,9 +77,9 @@ public abstract class LoginParams implements Serializable, Parcelable {
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (token != null ? token.hashCode() : 0);
+        result = 31 * result + (loginType != null ? loginType.hashCode() : 0);
         return result;
     }
-
 
     @Override
     public int describeContents() {
@@ -81,6 +92,7 @@ public abstract class LoginParams implements Serializable, Parcelable {
         dest.writeString(this.email);
         dest.writeString(this.password);
         dest.writeString(this.token);
+        dest.writeSerializable(this.loginType);
     }
 
 }

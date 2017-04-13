@@ -15,15 +15,18 @@ import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.LoginPayload;
-import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.LoginService;
+import co.smartreceipts.android.identity.apis.login.LoginType;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
+import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.MeService;
 import co.smartreceipts.android.identity.apis.organizations.OrganizationsResponse;
+import co.smartreceipts.android.identity.apis.signup.SignUpPayload;
+import co.smartreceipts.android.identity.apis.signup.SignUpService;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.identity.store.IdentityStore;
 import co.smartreceipts.android.identity.store.MutableIdentityStore;
@@ -36,6 +39,7 @@ import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 import rx.subjects.AsyncSubject;
 import rx.subjects.BehaviorSubject;
 import rx.subjects.Subject;
@@ -48,7 +52,7 @@ public class IdentityManager implements IdentityStore {
     private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
     private final BehaviorSubject<Boolean> isLoggedInBehaviorSubject;
-    private final Map<LoginParams, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
+    private final Map<UserCredentialsPayload, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
     private Subject<LogoutResponse, LogoutResponse> logoutSubject;
 
@@ -102,24 +106,33 @@ public class IdentityManager implements IdentityStore {
         return isLoggedInBehaviorSubject.asObservable();
     }
 
-    public synchronized Observable<LoginResponse> logIn(@NonNull final LoginParams login) {
-        Preconditions.checkNotNull(login.getEmail(), "A valid email must be provided to log-in");
+    public synchronized Observable<LoginResponse> logInOrSignUp(@NonNull final UserCredentialsPayload credentials) {
+        Preconditions.checkNotNull(credentials.getEmail(), "A valid email must be provided to log-in");
 
-        Logger.info(this, "Initiating user log-in");
-        this.analytics.record(Events.Identity.UserLogin);
-
-        final LoginService loginService = serviceManager.getService(LoginService.class);
-        final LoginPayload request = new LoginPayload(login);
-
-        Subject<LoginResponse, LoginResponse> loginSubject = loginMap.get(login);
+        Subject<LoginResponse, LoginResponse> loginSubject = loginMap.get(credentials);
         if (loginSubject == null) {
             loginSubject = AsyncSubject.create();
-            loginService.logIn(request)
+
+            final Observable<LoginResponse> loginResponseObservable;
+            if (credentials.getLoginType() == LoginType.LogIn) {
+                loginResponseObservable = serviceManager.getService(LoginService.class).logIn(new LoginPayload(credentials));
+                Logger.info(this, "Initiating user log in");
+                this.analytics.record(Events.Identity.UserLogin);
+            } else if (credentials.getLoginType() == LoginType.SignUp) {
+                loginResponseObservable = serviceManager.getService(SignUpService.class).signUp(new SignUpPayload(credentials));
+                Logger.info(this, "Initiating user sign up");
+                this.analytics.record(Events.Identity.UserSignUp);
+            } else {
+                throw new IllegalArgumentException("Unsupported log in type");
+            }
+
+
+            loginResponseObservable
                     .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
                         @Override
                         public Observable<LoginResponse> call(LoginResponse loginResponse) {
                             if (loginResponse.getToken() != null) {
-                                mutableIdentityStore.setEmailAndToken(login.getEmail(), loginResponse.getToken());
+                                mutableIdentityStore.setEmailAndToken(credentials.getEmail(), loginResponse.getToken());
                                 return Observable.just(loginResponse);
                             } else {
                                 return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
@@ -141,25 +154,35 @@ public class IdentityManager implements IdentityStore {
                     .doOnError(new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-                            Logger.error(this, "Failed to complete the log-in request", throwable);
-                            analytics.record(Events.Identity.UserLoginFailure);
+                            if (credentials.getLoginType() == LoginType.LogIn) {
+                                Logger.error(this, "Failed to complete the log in request", throwable);
+                                analytics.record(Events.Identity.UserLoginFailure);
+                            } else if (credentials.getLoginType() == LoginType.SignUp) {
+                                Logger.error(this, "Failed to complete the sign up request", throwable);
+                                analytics.record(Events.Identity.UserSignUpFailure);
+                            }
                         }
                     })
                     .doOnCompleted(new Action0() {
                         @Override
                         public void call() {
-                            Logger.info(this, "Successfully completed the log-in request");
                             isLoggedInBehaviorSubject.onNext(true);
-                            analytics.record(Events.Identity.UserLoginSuccess);
+                            if (credentials.getLoginType() == LoginType.LogIn) {
+                                Logger.info(this, "Successfully completed the log in request");
+                                analytics.record(Events.Identity.UserLoginSuccess);
+                            } else if (credentials.getLoginType() == LoginType.SignUp) {
+                                Logger.info(this, "Successfully completed the sign up request");
+                                analytics.record(Events.Identity.UserSignUpSuccess);
+                            }
                         }
                     })
                     .subscribe(loginSubject);
-            loginMap.put(login, loginSubject);
+            loginMap.put(credentials, loginSubject);
         }
         return loginSubject;
     }
 
-    public synchronized void markLoginComplete(@NonNull final LoginParams login) {
+    public synchronized void markLoginComplete(@NonNull final UserCredentialsPayload login) {
         loginMap.remove(login);
     }
 

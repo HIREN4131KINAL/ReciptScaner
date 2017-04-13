@@ -10,14 +10,14 @@ import java.io.Serializable;
 public class LoginPayload implements Serializable {
 
     @SerializedName("login_params")
-    private final LoginParams loginParams;
+    private final UserCredentialsPayload userCredentialsPayload;
 
-    public LoginPayload(@NonNull LoginParams loginParams) {
-        this.loginParams = loginParams;
+    public LoginPayload(@NonNull UserCredentialsPayload userCredentialsPayload) {
+        this.userCredentialsPayload = userCredentialsPayload;
     }
 
     @Nullable
-    public LoginParams getLoginParams() {
-        return loginParams;
+    public UserCredentialsPayload getUserCredentialsPayload() {
+        return userCredentialsPayload;
     }
 }

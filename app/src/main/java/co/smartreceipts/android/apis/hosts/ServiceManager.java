@@ -7,9 +7,9 @@ import com.google.common.base.Preconditions;
 import java.util.HashMap;
 import java.util.Map;
 
+import co.smartreceipts.android.apis.SmartReceiptsApisRxJavaCallAdapterFactory;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.schedulers.Schedulers;
 
@@ -30,7 +30,7 @@ public class ServiceManager {
         builder.baseUrl(defaultHostConfiguration.getBaseUrl());
         builder.client(defaultHostConfiguration.getClient());
         builder.addConverterFactory(GsonConverterFactory.create(defaultHostConfiguration.getGson()));
-        builder.addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
+        builder.addCallAdapterFactory(SmartReceiptsApisRxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()));
 
         mRetrofit = builder.build();
     }

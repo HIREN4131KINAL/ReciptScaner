@@ -1,91 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <RelativeLayout
+    <include layout="@layout/toolbar"
+        android:id="@+id/toolbar"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/default_margin_size"
+        android:padding="@dimen/default_margin_size"
+        android:layout_below="@+id/toolbar" >
 
-        <include layout="@layout/toolbar"
-            android:id="@+id/toolbar"/>
+        <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_margin_size"
+            android:gravity="center"
+            android:text="@string/login_title"/>
+
+        <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+            android:id="@+id/login_fields_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:ellipsize="end"
+            android:text="@string/login_fields_hint_email"/>
+
+        <EditText
+            android:id="@+id/login_field_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_field_email_hint"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/login_field_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/login_field_password_hint"
+            android:inputType="textPassword"
+            android:layout_marginBottom="@dimen/default_margin_size" />
 
         <LinearLayout
-            android:id="@+id/no_active_user_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="@dimen/default_margin_size"
-            android:layout_below="@+id/toolbar" >
-
-            <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
-                      android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/default_margin_item_separator"
-                android:text="Lorem ipsum"/>
-
-            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-                android:id="@+id/login_fields_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/default_margin_item_separator" />
-
-            <EditText
-                android:id="@+id/login_field_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/login_field_email_hint"
-                android:inputType="textEmailAddress" />
-
-            <EditText
-                android:id="@+id/login_field_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/login_field_password_hint"
-                android:inputType="textPassword" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
 
             <Button style="@style/Widget.SmartReceipts.Button"
-                android:id="@+id/login_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/login_button_text" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/existing_user_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="@dimen/default_margin_size"
-            android:layout_below="@+id/toolbar"
-            android:visibility="gone" >
-
-            <TextView style="@style/Widget.SmartReceipts.TextView.Title"
-                android:id="@+id/my_account_welcome"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:lines="1"
-                android:layout_marginBottom="@dimen/default_margin_item_separator"
-                android:text="@string/my_account_welcome"/>
-
-            <TextView style="@style/Widget.SmartReceipts.TextView.Subhead"
-                      android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/default_margin_item_separator"
-                android:text="@string/my_account_info_message"/>
-
-            <Button style="@style/Widget.SmartReceipts.Button"
-                    android:id="@+id/logout_button"
-                    android:layout_width="match_parent"
+                    android:id="@+id/login_button"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="@string/logout_button_text" />
+                    android:layout_weight="1"
+                    android:text="@string/login_button_text" />
+
+            <View
+                android:layout_width="@dimen/default_margin_item_separator"
+                android:layout_height="0dp" />
+
+            <Button style="@style/Widget.SmartReceipts.Button"
+                    android:id="@+id/sign_up_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:text="@string/sign_up_button_text" />
 
         </LinearLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
 
-</ScrollView>
+</RelativeLayout>

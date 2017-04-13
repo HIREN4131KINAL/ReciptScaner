@@ -3,10 +3,10 @@ package co.smartreceipts.android.identity.apis.login;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
 
-public class SmartReceiptsUserLogin extends LoginParams {
+public class SmartReceiptsUserLogin extends UserCredentialsPayload {
 
     public SmartReceiptsUserLogin(@NonNull String email, @NonNull String password) {
-        super("login", email, password, null);
+        super("login", email, password, null, LoginType.LogIn);
     }
 
     private SmartReceiptsUserLogin(Parcel in) {

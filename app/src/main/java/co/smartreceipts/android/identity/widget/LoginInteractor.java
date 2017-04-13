@@ -1,68 +1,61 @@
 package co.smartreceipts.android.identity.widget;
 
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentManager;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
+import javax.inject.Inject;
+
+import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.login.LoginParams;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
-import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
-import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class LoginInteractor {
 
-    private static final String TAG = LoginInteractor.class.getName();
-
     private final IdentityManager identityManager;
+    private final NavigationHandler navigationHandler;
     private final Analytics analytics;
 
-    public LoginInteractor(@NonNull FragmentManager fragmentManager, @NonNull IdentityManager identityManager, @NonNull Analytics analytics) {
+    @Inject
+    public LoginInteractor(IdentityManager identityManager, LoginFragment loginFragment, Analytics analytics) {
+        this(identityManager, new NavigationHandler(loginFragment), analytics);
+    }
+
+    @VisibleForTesting
+    LoginInteractor(@NonNull IdentityManager identityManager, @NonNull NavigationHandler navigationHandler,
+                    @NonNull Analytics analytics) {
         this.identityManager = Preconditions.checkNotNull(identityManager);
+        this.navigationHandler = Preconditions.checkNotNull(navigationHandler);
         this.analytics = Preconditions.checkNotNull(analytics);
-        Preconditions.checkNotNull(fragmentManager);
     }
 
     @NonNull
-    public Observable<EmailAddress> isLoggedIn() {
-        return Observable.create(new Observable.OnSubscribe<EmailAddress>() {
-            @Override
-            public void call(Subscriber<? super EmailAddress> subscriber) {
-                if (identityManager.isLoggedIn()) {
-                    subscriber.onNext(identityManager.getEmail());
-                } else {
-                    subscriber.onNext(null);
-                }
-                subscriber.onCompleted();
-            }
-        });
+    public Observable<LoginResponse> loginOrSignUp(@NonNull UserCredentialsPayload userCredentialsPayload) {
+        Logger.info(this, "Initiating user login (or sign up)");
+        return this.identityManager.logInOrSignUp(userCredentialsPayload)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        analytics.record(new ErrorEvent(throwable));
+                    }
+                });
     }
 
-    @NonNull
-    public Observable<LoginResponse> login(@NonNull LoginParams loginParams) {
-        Logger.info(this, "Initiating user login");
-        return this.identityManager.logIn(loginParams)
-                .observeOn(AndroidSchedulers.mainThread());
+    public void onLoginResultsConsumed(@NonNull UserCredentialsPayload userCredentialsPayload) {
+        this.identityManager.markLoginComplete(userCredentialsPayload);
     }
 
-    public void onLoginResultsConsumed(@NonNull LoginParams loginParams) {
-        this.identityManager.markLoginComplete(loginParams);
-    }
-
-    @NonNull
-    public Observable<LogoutResponse> logOut() {
-        return this.identityManager.logOut()
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    public void onLogoutResultsConsumed() {
-        this.identityManager.markLogoutComplete();
+    public boolean navigateBack() {
+        return this.navigationHandler.navigateBack();
     }
 
 }

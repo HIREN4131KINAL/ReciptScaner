@@ -1,11 +1,13 @@
 package co.smartreceipts.android.ocr.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -45,16 +47,17 @@ public class OcrConfigurationFragment extends Fragment {
         interactor.routeToProperLocation(savedInstanceState);
     }
 
+    @SuppressLint("InflateParams")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.ocr_configuration_fragment, container, false);
-    }
+        final View rootView = inflater.inflate(R.layout.simple_recycler_view, container, false);
+        final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        presenter = new OcrConfigurationPresenter(interactor, view);
+        final View headerView = inflater.inflate(R.layout.ocr_configuration_fragment, null);
+        this.presenter = new OcrConfigurationPresenter(interactor, headerView, recyclerView);
+
+        return rootView;
     }
 
     @Override

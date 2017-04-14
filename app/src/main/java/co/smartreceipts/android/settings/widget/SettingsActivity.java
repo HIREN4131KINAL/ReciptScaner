@@ -159,7 +159,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(purchaseManager.getAllAvailablePurchases()
+        compositeSubscription.add(purchaseManager.getAllAvailablePurchaseSkus()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Set<InAppPurchase>>() {
                     @Override

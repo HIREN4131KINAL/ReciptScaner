@@ -101,7 +101,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     @SuppressLint("InflateParams")
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.backups_list, container, false);
+        final View rootView = inflater.inflate(R.layout.simple_recycler_view, container, false);
         recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
 
         headerView = inflater.inflate(R.layout.backups_header, null);

@@ -3,43 +3,45 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
 
-    <include layout="@layout/toolbar"
-             android:id="@+id/toolbar"/>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="@dimen/default_margin_size"
-        android:layout_below="@+id/toolbar" >
+        android:layout_alignParentTop="true" >
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
-        android:id="@+id/ocr_configuration_scans_remaining"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/ocr_configuration_scans_remaining" />
+        <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+            android:id="@+id/ocr_configuration_scans_remaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ocr_configuration_scans_remaining" />
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-        android:id="@+id/ocr_configuration_welcome"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/ocr_configuration_welcome" />
+        <TextView style="@style/Widget.SmartReceipts.TextView.Subhead"
+            android:id="@+id/ocr_configuration_welcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ocr_configuration_welcome" />
 
-    <View style="@style/Widget.View.Divider.Horizontal"
-        android:layout_marginTop="@dimen/default_margin_size"
-        android:layout_marginBottom="@dimen/default_margin_size"/>
+        <View style="@style/Widget.View.Divider.Horizontal"
+            android:layout_marginTop="@dimen/default_margin_size"
+            android:layout_marginBottom="@dimen/default_margin_size"/>
 
-    <!-- TODO: Add how this works information -->
+        <!-- TODO: Add how this works information -->
+        <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginBottom="@dimen/default_margin_item_separator"
+                  android:text="Information" />
 
-    <View style="@style/Widget.View.Divider.Horizontal"
-        android:layout_marginTop="@dimen/default_margin_size"
-        android:layout_marginBottom="@dimen/default_margin_size"/>
+        <View style="@style/Widget.View.Divider.Horizontal"
+            android:layout_marginTop="@dimen/default_margin_size"
+            android:layout_marginBottom="@dimen/default_margin_size"/>
 
-    <TextView style="@style/Widget.SmartReceipts.TextView.Body2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin_item_separator"
-        android:text="@string/ocr_configuration_available_purchases" />
+        <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_margin_item_separator"
+            android:text="@string/ocr_configuration_available_purchases" />
 
     </LinearLayout>
 

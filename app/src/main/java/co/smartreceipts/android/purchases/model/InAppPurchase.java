@@ -59,7 +59,7 @@ public enum InAppPurchase {
     }
 
     @Nullable
-    public static InAppPurchase from(@NonNull String sku) {
+    public static InAppPurchase from(@Nullable String sku) {
         for (final InAppPurchase inAppPurchase : values()) {
             if (inAppPurchase.getSku().equals(sku)) {
                 return inAppPurchase;

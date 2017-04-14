@@ -137,7 +137,7 @@ public class SmartReceiptsActivity extends AppCompatActivity implements Attachab
         adManager.onResume();
 
         compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(purchaseManager.getAllAvailablePurchases()
+        compositeSubscription.add(purchaseManager.getAllAvailablePurchaseSkus()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Set<InAppPurchase>>() {
                     @Override

@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.android.vending.billing.IInAppBillingService;
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +36,7 @@ import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.purchases.lifecycle.PurchaseManagerActivityLifecycleCallbacks;
+import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
@@ -83,6 +85,7 @@ public class PurchaseManager {
     private final Scheduler subscribeOnScheduler;
     private final Scheduler observeOnScheduler;
     private final AtomicReference<WeakReference<Activity>> activityReference = new AtomicReference<>(new WeakReference<Activity>(null));
+    private final Gson gson = new Gson();
 
     private CompositeSubscription compositeSubscription;
     private volatile PurchaseSource mPurchaseSource;
@@ -288,31 +291,46 @@ public class PurchaseManager {
     }
 
     @NonNull
-    public Observable<Set<InAppPurchase>> getAllAvailablePurchases() {
-        return Observable.combineLatest(getAvailableConsumablePurchases(), getAvailableSubscriptions(), new Func2<Set<InAppPurchase>, Set<InAppPurchase>, Set<InAppPurchase>>() {
+    public Observable<Set<AvailablePurchase>> getAllAvailablePurchases() {
+        return Observable.combineLatest(getAvailableConsumablePurchases(), getAvailableSubscriptions(), new Func2<Set<AvailablePurchase>, Set<AvailablePurchase>, Set<AvailablePurchase>>() {
                     @Override
-                    public Set<InAppPurchase> call(@NonNull Set<InAppPurchase> consumablePurchases, @NonNull Set<InAppPurchase> subscriptions) {
-                        final HashSet<InAppPurchase> combinedSet = new HashSet<>();
+                    public Set<AvailablePurchase> call(@NonNull Set<AvailablePurchase> consumablePurchases, @NonNull Set<AvailablePurchase> subscriptions) {
+                        final HashSet<AvailablePurchase> combinedSet = new HashSet<>();
                         combinedSet.addAll(consumablePurchases);
                         combinedSet.addAll(subscriptions);
                         return combinedSet;
                     }
                 })
-                .map(new Func1<Set<InAppPurchase>, Set<InAppPurchase>>() {
+                .map(new Func1<Set<AvailablePurchase>, Set<AvailablePurchase>>() {
                     @Override
-                    public Set<InAppPurchase> call(@NonNull Set<InAppPurchase> inAppPurchases) {
-                        final Set<InAppPurchase> trimmedInAppPurchase = new HashSet<>();
-                        for (final InAppPurchase inAppPurchase : inAppPurchases) {
-                            if (!purchaseWallet.hasActivePurchase(inAppPurchase)) {
-                                trimmedInAppPurchase.add(inAppPurchase);
+                    public Set<AvailablePurchase> call(@NonNull Set<AvailablePurchase> inAppPurchases) {
+                        final Set<AvailablePurchase> trimmedInAppPurchases = new HashSet<>();
+                        for (final AvailablePurchase availablePurchase : inAppPurchases) {
+                            if (availablePurchase.getInAppPurchase() != null && !purchaseWallet.hasActivePurchase(availablePurchase.getInAppPurchase())) {
+                                trimmedInAppPurchases.add(availablePurchase);
                             } else {
-                                Logger.debug(PurchaseManager.this, "Omitting {} from available purchases as we're tracking it as owned.", inAppPurchase);
+                                Logger.debug(PurchaseManager.this, "Omitting {} from available purchases as we're tracking it as owned.", availablePurchase.getInAppPurchase());
                             }
                         }
-                        return trimmedInAppPurchase;
+                        return trimmedInAppPurchases;
                     }
                 })
                 .subscribeOn(subscribeOnScheduler);
+    }
+
+    @NonNull
+    public Observable<Set<InAppPurchase>> getAllAvailablePurchaseSkus() {
+        return getAllAvailablePurchases()
+                .map(new Func1<Set<AvailablePurchase>, Set<InAppPurchase>>() {
+                    @Override
+                    public Set<InAppPurchase> call(Set<AvailablePurchase> availablePurchases) {
+                        final Set<InAppPurchase> inAppPurchases = new HashSet<>();
+                        for (final AvailablePurchase availablePurchase : availablePurchases) {
+                            inAppPurchases.add(availablePurchase.getInAppPurchase());
+                        }
+                        return inAppPurchases;
+                    }
+                });
     }
 
     /**
@@ -394,13 +412,13 @@ public class PurchaseManager {
 
     @NonNull
     @VisibleForTesting
-    Observable<Set<InAppPurchase>> getAvailableConsumablePurchases() {
+    Observable<Set<AvailablePurchase>> getAvailableConsumablePurchases() {
         return getAvailablePurchases(InAppPurchase.getConsumablePurchaseSkus(), ConsumablePurchase.GOOGLE_PRODUCT_TYPE);
     }
 
     @NonNull
     @VisibleForTesting
-    Observable<Set<InAppPurchase>> getAvailableSubscriptions() {
+    Observable<Set<AvailablePurchase>> getAvailableSubscriptions() {
         return getAvailablePurchases(InAppPurchase.getSubscriptionSkus(), Subscription.GOOGLE_PRODUCT_TYPE);
     }
     
@@ -454,35 +472,30 @@ public class PurchaseManager {
     }
 
     @NonNull
-    private Observable<Set<InAppPurchase>> getAvailablePurchases(@NonNull final ArrayList<String> skus, @NonNull final String googleProductType) {
+    private Observable<Set<AvailablePurchase>> getAvailablePurchases(@NonNull final ArrayList<String> skus, @NonNull final String googleProductType) {
         return rxInAppBillingServiceConnection.bindToInAppBillingService()
-                .flatMap(new Func1<IInAppBillingService, Observable<Set<InAppPurchase>>>() {
+                .flatMap(new Func1<IInAppBillingService, Observable<Set<AvailablePurchase>>>() {
                     @Override
-                    public Observable<Set<InAppPurchase>> call(final @NonNull IInAppBillingService inAppBillingService) {
-                        return Observable.create(new Observable.OnSubscribe<Set<InAppPurchase>>() {
+                    public Observable<Set<AvailablePurchase>> call(final @NonNull IInAppBillingService inAppBillingService) {
+                        return Observable.create(new Observable.OnSubscribe<Set<AvailablePurchase>>() {
                             @Override
-                            public void call(Subscriber<? super Set<InAppPurchase>> subscriber) {
+                            public void call(Subscriber<? super Set<AvailablePurchase>> subscriber) {
                                 try {
                                     // Next, let's figure out what is available for purchase
-                                    final Set<InAppPurchase> availablePurchases = new HashSet<>();
+                                    final Set<AvailablePurchase> availablePurchases = new HashSet<>();
                                     final Bundle subscriptionsQueryBundle = new Bundle();
-                                    // TODO: Fix me to use the actual query
+
                                     subscriptionsQueryBundle.putStringArrayList("ITEM_ID_LIST", skus);
                                     final Bundle skuDetails = inAppBillingService.getSkuDetails(3, context.getPackageName(), googleProductType, subscriptionsQueryBundle);
                                     if (skuDetails.getInt("RESPONSE_CODE") == BILLING_RESPONSE_CODE_OK) {
                                         final ArrayList<String> responseList = skuDetails.getStringArrayList("DETAILS_LIST");
                                         for (final String response : responseList) {
-                                            try {
-                                                final JSONObject object = new JSONObject(response);
-                                                final String sku = object.getString("productId");
-                                                final InAppPurchase inAppPurchase = InAppPurchase.from(sku);
-                                                if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasActivePurchase(inAppPurchase)) {
-                                                    availablePurchases.add(inAppPurchase);
-                                                } else {
-                                                    Logger.warn(PurchaseManager.this, "Unknown or already owned sku returned from the available subscriptions query: {}.", sku);
-                                                }
-                                            } catch (JSONException e) {
-                                                Logger.error(PurchaseManager.this, "Failed to parse JSON about available skus for purchase", e);
+                                            final AvailablePurchase availablePurchase = gson.fromJson(response, AvailablePurchase.class);
+                                            final InAppPurchase inAppPurchase = availablePurchase.getInAppPurchase();
+                                            if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasActivePurchase(inAppPurchase)) {
+                                                availablePurchases.add(availablePurchase);
+                                            } else {
+                                                Logger.warn(PurchaseManager.this, "Unknown or already owned sku returned from the available subscriptions query: {}.", availablePurchase.getInAppPurchase());
                                             }
                                         }
                                         subscriber.onNext(availablePurchases);

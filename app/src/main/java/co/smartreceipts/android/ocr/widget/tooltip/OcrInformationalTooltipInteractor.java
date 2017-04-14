@@ -94,6 +94,5 @@ public class OcrInformationalTooltipInteractor {
         Logger.info(this, "Displaying OCR Configuration Fragment");
         navigationHandler.navigateToOcrConfigurationFragment();
         analytics.record(Events.Ocr.OcrInfoTooltipOpen);
-        stateTracker.setShouldShowOcrInfo(false);
     }
 }

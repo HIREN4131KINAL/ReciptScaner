@@ -88,7 +88,8 @@ public class OcrConfigurationInteractor {
                         });
                         return ocrPurchases;
                     }
-                });
+                })
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
     public void startOcrPurchase(@NonNull AvailablePurchase availablePurchase) {
@@ -103,6 +104,7 @@ public class OcrConfigurationInteractor {
         if (!identityManager.isLoggedIn()) {
             if (savedInstanceState == null) {
                 Logger.info(this, "User not logged in. Sending to the log in screen");
+                navigationHandler.navigateToLoginScreen();
             } else {
                 Logger.info(this, "Returning to this fragment after not signing in. Navigating back rather than looping back to the log in screen");
                 navigateBack();

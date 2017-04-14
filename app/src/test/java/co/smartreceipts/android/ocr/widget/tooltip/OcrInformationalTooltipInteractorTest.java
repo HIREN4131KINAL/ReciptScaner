@@ -151,7 +151,6 @@ public class OcrInformationalTooltipInteractorTest {
     @Test
     public void showOcrInformation() {
         interactor.showOcrConfiguration();
-        verify(stateTracker).setShouldShowOcrInfo(false);
         verify(navigationHandler).navigateToOcrConfigurationFragment();
     }
 }

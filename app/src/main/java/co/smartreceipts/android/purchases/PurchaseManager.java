@@ -495,7 +495,7 @@ public class PurchaseManager {
                                             if (inAppPurchase != null && !PurchaseManager.this.purchaseWallet.hasActivePurchase(inAppPurchase)) {
                                                 availablePurchases.add(availablePurchase);
                                             } else {
-                                                Logger.warn(PurchaseManager.this, "Unknown or already owned sku returned from the available subscriptions query: {}.", availablePurchase.getInAppPurchase());
+                                                Logger.warn(PurchaseManager.this, "Unknown or already owned sku returned from the available purchases query: {}.", availablePurchase.getInAppPurchase());
                                             }
                                         }
                                         subscriber.onNext(availablePurchases);

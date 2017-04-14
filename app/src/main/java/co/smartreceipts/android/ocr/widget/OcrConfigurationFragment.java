@@ -19,6 +19,9 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
@@ -27,6 +30,9 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
 
     @Inject
     OcrConfigurationInteractor interactor;
+
+    @Inject
+    Analytics analytics;
 
     private OcrConfigurationPresenter presenter;
 
@@ -46,6 +52,9 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         interactor.routeToProperLocation(savedInstanceState);
+        if (savedInstanceState == null) {
+            analytics.record(Events.Ocr.OcrViewConfigurationPage);
+        }
     }
 
     @SuppressLint("InflateParams")

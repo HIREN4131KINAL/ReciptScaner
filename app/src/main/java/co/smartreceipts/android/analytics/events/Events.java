@@ -102,7 +102,7 @@ public final class Events {
         public static final Event OcrInfoTooltipShown = new DefaultEvent(Category.Ocr, "OcrInfoTooltipShown");
         public static final Event OcrInfoTooltipOpen = new DefaultEvent(Category.Ocr, "OcrInfoTooltipOpen");
         public static final Event OcrInfoTooltipDismiss = new DefaultEvent(Category.Ocr, "OcrInfoTooltipDismiss");
-
+        public static final Event OcrViewConfigurationPage = new DefaultEvent(Category.Ocr, "OcrViewConfigurationPage");
     }
 
 }

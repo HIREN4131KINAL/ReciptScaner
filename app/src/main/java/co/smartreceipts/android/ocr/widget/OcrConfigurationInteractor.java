@@ -17,7 +17,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.di.scopes.FragmentScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.store.EmailAddress;

@@ -24,6 +24,8 @@ import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiverFactory;
 import co.smartreceipts.android.push.PushManager;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.Feature;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
@@ -42,26 +44,30 @@ public class OcrInteractor {
     private final IdentityManager identityManager;
     private final ServiceManager ocrServiceManager;
     private final PushManager pushManager;
+    private final UserPreferenceManager userPreferenceManager;
     private final OcrPurchaseTracker ocrPurchaseTracker;
     private final OcrPushMessageReceiverFactory pushMessageReceiverFactory;
     private final Feature ocrFeature;
 
     @Inject
     public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
-                         @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker) {
-        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
+                         @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
+                         @NonNull UserPreferenceManager userPreferenceManager) {
+        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
     OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                   @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-                  @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory, @NonNull Feature ocrFeature) {
+                  @NonNull UserPreferenceManager userPreferenceManager, @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory,
+                  @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
         this.identityManager = Preconditions.checkNotNull(identityManager);
         this.ocrServiceManager = Preconditions.checkNotNull(serviceManager);
-        this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
         this.pushManager = Preconditions.checkNotNull(pushManager);
+        this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
+        this.userPreferenceManager = Preconditions.checkNotNull(userPreferenceManager);
         this.pushMessageReceiverFactory = Preconditions.checkNotNull(pushMessageReceiverFactory);
         this.ocrFeature = Preconditions.checkNotNull(ocrFeature);
     }
@@ -100,6 +106,8 @@ public class OcrInteractor {
                         @Override
                         public Observable<RecognitionResponse> call(@NonNull String s3Url) {
                             Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
+                            final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
+                            // TODO: incognito
                             return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
                         }
                     })

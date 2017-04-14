@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
@@ -24,33 +26,41 @@ import rx.subscriptions.CompositeSubscription;
 public class OcrConfigurationPresenter implements Presenter {
 
     private final OcrConfigurationInteractor interactor;
+    private final OcrConfigurationToolbarView ocrConfigurationToolbarView;
     private final Unbinder unbinder;
 
     private OcrPurchasesListAdapter ocrPurchasesListAdapter;
     private CompositeSubscription compositeSubscription;
 
-    @BindView(R.id.ocr_configuration_welcome) TextView welcomeText;
-    @BindView(R.id.ocr_configuration_scans_remaining) TextView scansRemaining;
+    @BindView(R.id.ocr_save_scans_to_improve_results) CheckBox allowUsToSaveImagesRemotelyCheckbox;
 
     public OcrConfigurationPresenter(@NonNull OcrConfigurationInteractor interactor, @NonNull View headerView,
-                                     @NonNull RecyclerView recyclerView) {
+                                     @NonNull RecyclerView recyclerView, @NonNull OcrConfigurationToolbarView ocrConfigurationToolbarView) {
         this.interactor = Preconditions.checkNotNull(interactor);
+        this.ocrConfigurationToolbarView = Preconditions.checkNotNull(ocrConfigurationToolbarView);
         this.unbinder = ButterKnife.bind(this, headerView);
         this.ocrPurchasesListAdapter = new OcrPurchasesListAdapter(headerView);
 
         recyclerView.setAdapter(this.ocrPurchasesListAdapter);
-        present(interactor.getEmail());
+        allowUsToSaveImagesRemotelyCheckbox.setChecked(this.interactor.getAllowUsToSaveImagesRemotely());
+        allowUsToSaveImagesRemotelyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                OcrConfigurationPresenter.this.interactor.setAllowUsToSaveImagesRemotely(isChecked);
+            }
+        });
     }
 
     @Override
     public void onResume() {
-        compositeSubscription = new CompositeSubscription();
+        ocrConfigurationToolbarView.present(interactor.getEmail());
 
+        compositeSubscription = new CompositeSubscription();
         compositeSubscription.add(interactor.getRemainingScansStream()
             .subscribe(new Action1<Integer>() {
                 @Override
                 public void call(@NonNull Integer remainingScans) {
-                    present(remainingScans);
+                    ocrConfigurationToolbarView.present(remainingScans);
                 }
             }));
 
@@ -91,11 +101,4 @@ public class OcrConfigurationPresenter implements Presenter {
         ocrPurchasesListAdapter = null;
     }
 
-    private void present(@Nullable EmailAddress emailAddress) {
-        welcomeText.setText(welcomeText.getContext().getString(R.string.ocr_configuration_welcome, emailAddress));
-    }
-
-    private void present(int remainingScans) {
-        scansRemaining.setText(scansRemaining.getContext().getString(R.string.ocr_configuration_scans_remaining, remainingScans));
-    }
 }

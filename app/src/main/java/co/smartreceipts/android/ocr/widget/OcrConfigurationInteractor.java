@@ -26,6 +26,8 @@ import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.purchases.model.PurchaseFamily;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -38,23 +40,23 @@ public class OcrConfigurationInteractor {
     private final IdentityManager identityManager;
     private final OcrPurchaseTracker ocrPurchaseTracker;
     private final PurchaseManager purchaseManager;
-    private final Analytics analytics;
+    private final UserPreferenceManager userPreferenceManager;
 
     @Inject
     public OcrConfigurationInteractor(OcrConfigurationFragment fragment, IdentityManager identityManager, OcrPurchaseTracker ocrPurchaseTracker,
-                                      PurchaseManager purchaseManager, Analytics analytics) {
-        this(new NavigationHandler(fragment), identityManager, ocrPurchaseTracker, purchaseManager, analytics);
+                                      PurchaseManager purchaseManager, UserPreferenceManager userPreferenceManager) {
+        this(new NavigationHandler(fragment), identityManager, ocrPurchaseTracker, purchaseManager, userPreferenceManager);
     }
 
     @VisibleForTesting
     OcrConfigurationInteractor(@NonNull NavigationHandler navigationHandler, @NonNull IdentityManager identityManager,
                                @NonNull OcrPurchaseTracker ocrPurchaseTracker, @NonNull PurchaseManager purchaseManager,
-                               @NonNull Analytics analytics) {
+                               @NonNull UserPreferenceManager userPreferenceManager) {
         this.navigationHandler = Preconditions.checkNotNull(navigationHandler);
         this.identityManager = Preconditions.checkNotNull(identityManager);
         this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
         this.purchaseManager = Preconditions.checkNotNull(purchaseManager);
-        this.analytics = Preconditions.checkNotNull(analytics);
+        this.userPreferenceManager = Preconditions.checkNotNull(userPreferenceManager);
     }
 
     @Nullable
@@ -98,6 +100,14 @@ public class OcrConfigurationInteractor {
         } else {
             Logger.error(this, "Unexpected state in which the in app purchase is null");
         }
+    }
+
+    public boolean getAllowUsToSaveImagesRemotely() {
+        return !userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
+    }
+
+    public void setAllowUsToSaveImagesRemotely(boolean saveImagesRemotely) {
+        userPreferenceManager.set(UserPreference.Misc.OcrIncognitoMode, !saveImagesRemotely);
     }
 
     public void routeToProperLocation(@Nullable Bundle savedInstanceState) {

@@ -60,6 +60,7 @@ public class UserPreferenceTest {
         Assert.assertTrue(userPreferences.contains(UserPreference.Distance.ShowDistanceAsPriceInSubtotal));
         Assert.assertTrue(userPreferences.contains(UserPreference.PlusSubscription.PdfFooterString));
         Assert.assertTrue(userPreferences.contains(UserPreference.Misc.AutoBackupOnWifiOnly));
+        Assert.assertTrue(userPreferences.contains(UserPreference.Misc.OcrIncognitoMode));
     }
 
     @Test
@@ -239,6 +240,10 @@ public class UserPreferenceTest {
         Assert.assertEquals(UserPreference.Misc.AutoBackupOnWifiOnly.getType(), Boolean.class);
         Assert.assertEquals(name(UserPreference.Misc.AutoBackupOnWifiOnly), "AutoBackupWifiOnly");
         Assert.assertEquals(UserPreference.Misc.AutoBackupOnWifiOnly.getDefaultValue(), R.bool.pref_no_category_auto_backup_wifi_only_defaultValue);
+
+        Assert.assertEquals(UserPreference.Misc.OcrIncognitoMode.getType(), Boolean.class);
+        Assert.assertEquals(name(UserPreference.Misc.OcrIncognitoMode), "OcrIncognitoMode");
+        Assert.assertEquals(UserPreference.Misc.OcrIncognitoMode.getDefaultValue(), R.bool.pref_no_category_ocr_incognito_mode_defaultValue);
     }
 
     @NonNull

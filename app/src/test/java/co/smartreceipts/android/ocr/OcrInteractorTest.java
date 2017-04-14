@@ -23,6 +23,8 @@ import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiverFactory;
 import co.smartreceipts.android.push.PushManager;
+import co.smartreceipts.android.settings.UserPreferenceManager;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.Feature;
 import rx.Observable;
 import rx.observers.TestSubscriber;
@@ -67,6 +69,9 @@ public class OcrInteractorTest {
     OcrPushMessageReceiver pushMessageReceiver;
 
     @Mock
+    UserPreferenceManager userPreferenceManager;
+
+    @Mock
     Feature ocrFeature;
 
     @Mock
@@ -107,8 +112,9 @@ public class OcrInteractorTest {
         when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME))).thenReturn(Observable.just(recognitionResponse));
         when(pushMessageReceiver.getOcrPushResponse()).thenReturn(Observable.just(new Object()));
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.just(recognitionResponse));
+        when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(false);
 
-        ocrInteractor = new OcrInteractor(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, ocrPushMessageReceiverFactory, ocrFeature);
+        ocrInteractor = new OcrInteractor(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, ocrPushMessageReceiverFactory, ocrFeature);
     }
 
     @Test

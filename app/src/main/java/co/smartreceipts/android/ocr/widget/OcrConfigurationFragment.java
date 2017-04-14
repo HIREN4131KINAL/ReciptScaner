@@ -19,10 +19,11 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 
-public class OcrConfigurationFragment extends Fragment {
+public class OcrConfigurationFragment extends Fragment implements OcrConfigurationToolbarView {
 
     @Inject
     OcrConfigurationInteractor interactor;
@@ -55,7 +56,7 @@ public class OcrConfigurationFragment extends Fragment {
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
 
         final View headerView = inflater.inflate(R.layout.ocr_configuration_fragment, null);
-        this.presenter = new OcrConfigurationPresenter(interactor, headerView, recyclerView);
+        this.presenter = new OcrConfigurationPresenter(interactor, headerView, recyclerView, this);
 
         return rootView;
     }
@@ -90,8 +91,6 @@ public class OcrConfigurationFragment extends Fragment {
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(R.string.ocr_configuration_title);
-            actionBar.setSubtitle("");
         }
         presenter.onResume();
     }
@@ -107,5 +106,21 @@ public class OcrConfigurationFragment extends Fragment {
     public void onDestroyView() {
         presenter.onDestroyView();
         super.onDestroyView();
+    }
+
+    @Override
+    public void present(@Nullable EmailAddress emailAddress) {
+        final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setSubtitle(getContext().getString(R.string.ocr_configuration_my_account, emailAddress));
+        }
+    }
+
+    @Override
+    public void present(int remainingScans) {
+        final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(getContext().getString(R.string.ocr_configuration_scans_remaining, remainingScans));
+        }
     }
 }

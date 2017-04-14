@@ -23,6 +23,7 @@ import co.smartreceipts.android.purchases.apis.PurchaseResponse;
 import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
+import co.smartreceipts.android.purchases.model.PurchaseFamily;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
@@ -92,7 +93,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
                     @Override
                     public Observable<?> call(Set<ManagedProduct> managedProducts) {
                         for (final ManagedProduct managedProduct : managedProducts) {
-                            if (InAppPurchase.OcrScans50 == managedProduct.getInAppPurchase()) {
+                            if (PurchaseFamily.Ocr.equals(managedProduct.getInAppPurchase().getPurchaseFamily())) {
                                 if (managedProduct instanceof ConsumablePurchase) {
                                     return uploadOcrPurchase((ConsumablePurchase) managedProduct);
                                 }
@@ -116,8 +117,8 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
 
     @Override
     public void onPurchaseSuccess(@NonNull InAppPurchase inAppPurchase, @NonNull PurchaseSource purchaseSource) {
-        if (inAppPurchase == InAppPurchase.OcrScans50) {
-            final ManagedProduct managedProduct = purchaseWallet.getManagedProduct(InAppPurchase.OcrScans50);
+        if (PurchaseFamily.Ocr.equals(inAppPurchase.getPurchaseFamily())) {
+            final ManagedProduct managedProduct = purchaseWallet.getManagedProduct(inAppPurchase);
             if (managedProduct instanceof ConsumablePurchase) {
                 final ConsumablePurchase consumablePurchase = (ConsumablePurchase) managedProduct;
                 this.identityManager.isLoggedInStream()
@@ -197,7 +198,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
 
     @NonNull
     private Observable<Object> uploadOcrPurchase(@NonNull final ConsumablePurchase consumablePurchase) {
-        if (consumablePurchase.getInAppPurchase() != InAppPurchase.OcrScans50) {
+        if (consumablePurchase.getInAppPurchase().getPurchaseFamily() != PurchaseFamily.Ocr) {
             throw new IllegalArgumentException("Unsupported purchase type: " + consumablePurchase.getInAppPurchase());
         }
         Logger.info(this, "Uploading purchase: {}", consumablePurchase.getInAppPurchase());

@@ -271,6 +271,22 @@ public class OcrPurchaseTrackerTest {
     }
 
     @Test
+    public void onPurchaseSuccessSucceedsForOtherPurchaseType() {
+        // Configure
+        when(consumablePurchase.getInAppPurchase()).thenReturn(InAppPurchase.OcrScans10);
+        when(purchaseWallet.getManagedProduct(InAppPurchase.OcrScans10)).thenReturn(consumablePurchase);
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.<Void>just(null));
+        when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
+
+        // Test
+        ocrPurchaseTracker.onPurchaseSuccess(InAppPurchase.OcrScans10, PurchaseSource.Unknown);
+
+        // Verify
+        verify(purchaseManager).consumePurchase(consumablePurchase);
+        verify(localOcrScansTracker).setRemainingScans(REMAINING_SCANS);
+    }
+
+    @Test
     public void onPurchaseSuccessSucceedsButFailsToFetchMe() {
         // Configure
         when(identityManager.getMe()).thenReturn(Observable.<MeResponse>error(new Exception("test")));

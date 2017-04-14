@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public enum InAppPurchase {
 
     SmartReceiptsPlus(Subscription.class, "pro_sku_3", PurchaseFamily.SmartReceiptsPlus),
+    OcrScans10(ConsumablePurchase.class, "ocr_purchase_10", PurchaseFamily.Ocr),
     OcrScans50(ConsumablePurchase.class, "ocr_purchase_1", PurchaseFamily.Ocr);
 
     private final Class<? extends ManagedProduct> type;

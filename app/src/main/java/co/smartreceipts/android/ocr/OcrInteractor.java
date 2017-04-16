@@ -23,6 +23,7 @@ import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiverFactory;
+import co.smartreceipts.android.ocr.widget.alert.OcrProcessingStatus;
 import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -33,6 +34,7 @@ import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import rx.subjects.BehaviorSubject;
 
 @ApplicationScope
 public class OcrInteractor {
@@ -48,6 +50,7 @@ public class OcrInteractor {
     private final OcrPurchaseTracker ocrPurchaseTracker;
     private final OcrPushMessageReceiverFactory pushMessageReceiverFactory;
     private final Feature ocrFeature;
+    private final BehaviorSubject<OcrProcessingStatus> ocrProcessingStatusSubject = BehaviorSubject.create(OcrProcessingStatus.Idle);
 
     @Inject
     public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
@@ -79,10 +82,11 @@ public class OcrInteractor {
     @NonNull
     public Observable<OcrResponse> scan(@NonNull File file) {
         Preconditions.checkNotNull(file);
-
+        ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
         if (ocrFeature.isEnabled() && identityManager.isLoggedIn() && ocrPurchaseTracker.hasAvailableScans()) {
             Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
             final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
+            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.UploadingImage);
             return s3Manager.upload(file, OCR_FOLDER)
                     .doOnSubscribe(new Action0() {
                         @Override
@@ -108,6 +112,7 @@ public class OcrInteractor {
                             Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
                             final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
                             // TODO: incognito
+                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.PerformingScan);
                             return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
                         }
                     })
@@ -145,6 +150,7 @@ public class OcrInteractor {
                         @Override
                         public Observable<RecognitionResponse> call(String recognitionId) {
                             Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
+                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.RetrievingResults);
                             return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
                         }
                     })
@@ -171,6 +177,7 @@ public class OcrInteractor {
                     .doOnTerminate(new Action0() {
                         @Override
                         public void call() {
+                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
                             pushManager.unregisterReceiver(ocrPushMessageReceiver);
                         }
                     });
@@ -179,5 +186,11 @@ public class OcrInteractor {
             Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
             return Observable.just(new OcrResponse());
         }
+    }
+
+    @NonNull
+    public Observable<OcrProcessingStatus> getOcrProcessingStatus() {
+        return ocrProcessingStatusSubject.asObservable()
+                .subscribeOn(Schedulers.computation());
     }
 }

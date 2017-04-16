@@ -47,6 +47,7 @@ import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.widget.alert.OcrStatusAlerterPresenter;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
@@ -104,6 +105,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     private NavigationHandler navigationHandler;
     private CompositeSubscription compositeSubscription;
 
+    private OcrStatusAlerterPresenter ocrStatusAlerterPresenter;
 
     @Override
     public void onAttach(Context context) {
@@ -134,7 +136,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Logger.debug(this, "onCreateView");
-        final View rootView = inflater.inflate(getLayoutId(), container, false);
+        final View rootView = inflater.inflate(R.layout.receipt_fragment_layout, container, false);
         loadingProgress = (ProgressBar) rootView.findViewById(R.id.progress);
         updatingDataProgress = (ProgressBar) rootView.findViewById(R.id.progress_adding_new);
         noDataAlert = (TextView) rootView.findViewById(R.id.no_data);
@@ -180,6 +182,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                 }
             }
         });
+
+        ocrStatusAlerterPresenter = new OcrStatusAlerterPresenter(getActivity(), ocrInteractor);
+
         return rootView;
     }
 
@@ -192,10 +197,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(),
                 mTrip, persistenceManager, analytics, ocrInteractor);
         setListAdapter(adapter); // Set this here to ensure this has been laid out already
-    }
-
-    public int getLayoutId() {
-        return R.layout.receipt_fragment_layout;
     }
 
     @Override
@@ -238,6 +239,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
                         activityFileResultImporter.dispose();
                     }
                 }));
+        ocrStatusAlerterPresenter.onResume();
     }
 
     @Override
@@ -252,6 +254,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
+        ocrStatusAlerterPresenter.onPause();
         floatingActionMenu.close(false);
         receiptTableController.unsubscribe(this);
         compositeSubscription.unsubscribe();
@@ -290,6 +293,12 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         if (resultCode != Activity.RESULT_OK) {
             updatingDataProgress.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        ocrStatusAlerterPresenter.onDestroyView();
+        super.onDestroyView();
     }
 
     @Override

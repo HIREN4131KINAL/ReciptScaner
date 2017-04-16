@@ -67,6 +67,7 @@ android {
         compile "com.jakewharton:butterknife:$BUTTERKNIFE_VERSION"
         annotationProcessor "com.jakewharton:butterknife-compiler:$BUTTERKNIFE_VERSION"
 
+        compile "com.tapadoo.android:alerter:$ALERTER_VERSION"
         compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
         compile "com.github.clans:fab:$FAB_MENU_VERSION"
 

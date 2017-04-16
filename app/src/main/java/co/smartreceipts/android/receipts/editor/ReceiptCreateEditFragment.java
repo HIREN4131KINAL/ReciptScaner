@@ -183,6 +183,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Logger.debug(this, "onCreate");
         ocrResponse = (OcrResponse) getArguments().getSerializable(ARG_OCR);
         receiptInputCache = new ReceiptInputCache(getFragmentManager());
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
@@ -526,6 +527,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     @Override
     public void onResume() {
         super.onResume();
+        Logger.debug(this, "onResume");
 
         final boolean isNewReceipt = getReceipt() == null;
 

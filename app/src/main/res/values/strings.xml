@@ -12,7 +12,7 @@
     <string name="menu_main_categories">Categories</string>
     <string name="menu_main_csv">Customize CSV Output</string>
     <string name="menu_main_pdf">Customize PDF Output</string>
-    <string name="menu_main_ocr_configuration">Automatic Scans (Ocr)</string>
+    <string name="menu_main_ocr_configuration">Automatic Scans (OCR)</string>
     <string name="menu_main_export">Backup</string>
 
     <!-- ================ General Strings ================== -->
@@ -89,6 +89,9 @@
         <item quantity="one">%d Scan Remaining. Tap for more.</item>
         <item quantity="other">%d Scans Remaining. Tap for more.</item>
     </plurals>
+    <string name="ocr_status_title">Performing Scan (OCR):</string>
+    <string name="ocr_status_message_uploading_image">Uploading Receipt&#8230;</string>
+    <string name="ocr_status_message_performing_scan">Scanning for Receipt Metadata&#8230;</string>
     <string name="ocr_configuration_title">Automatic Scans (OCR)</string>
     <string name="ocr_configuration_scans_remaining">OCR Scans Remaining: %d</string>
     <string name="ocr_configuration_my_account">%s</string>

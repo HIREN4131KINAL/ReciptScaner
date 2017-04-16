@@ -46,7 +46,7 @@ import co.smartreceipts.android.receipts.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.identity.widget.LoginFragment;
-import co.smartreceipts.android.ocr.widget.OcrConfigurationFragment;
+import co.smartreceipts.android.ocr.widget.configuration.OcrConfigurationFragment;
 import co.smartreceipts.android.ocr.widget.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;

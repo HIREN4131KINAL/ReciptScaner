@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.widget;
+package co.smartreceipts.android.ocr.widget.configuration;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;

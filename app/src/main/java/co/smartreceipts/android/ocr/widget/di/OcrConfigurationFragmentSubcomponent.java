@@ -1,7 +1,7 @@
 package co.smartreceipts.android.ocr.widget.di;
 
 import co.smartreceipts.android.di.scopes.FragmentScope;
-import co.smartreceipts.android.ocr.widget.OcrConfigurationFragment;
+import co.smartreceipts.android.ocr.widget.configuration.OcrConfigurationFragment;
 import dagger.Subcomponent;
 import dagger.android.AndroidInjector;
 

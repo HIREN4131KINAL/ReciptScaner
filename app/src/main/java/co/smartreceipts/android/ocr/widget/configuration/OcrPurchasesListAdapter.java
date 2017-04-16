@@ -1,4 +1,4 @@
-package co.smartreceipts.android.ocr.widget;
+package co.smartreceipts.android.ocr.widget.configuration;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;

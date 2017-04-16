@@ -1,7 +1,6 @@
-package co.smartreceipts.android.ocr.widget;
+package co.smartreceipts.android.ocr.widget.configuration;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +18,7 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
+import co.smartreceipts.android.ocr.widget.configuration.OcrConfigurationInteractor;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;

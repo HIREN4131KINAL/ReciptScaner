@@ -1,12 +1,10 @@
-package co.smartreceipts.android.ocr.widget;
+package co.smartreceipts.android.ocr.widget.configuration;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import com.google.common.base.Preconditions;
 
@@ -16,7 +14,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Presenter;

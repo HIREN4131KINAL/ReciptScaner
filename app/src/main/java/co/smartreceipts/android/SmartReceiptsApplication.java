@@ -62,6 +62,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Override
     public void onCreate() {
         super.onCreate();
+        configureLog();
 
         appComponent = DaggerAppComponent.builder()
                 .baseAppModule(new BaseAppModule(this))
@@ -69,7 +70,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 
         appComponent.inject(this);
 
-        configureLog();
         WBUncaughtExceptionHandler.initialize();
 
         Logger.debug(this, "\n\n\n\n Launching App...");

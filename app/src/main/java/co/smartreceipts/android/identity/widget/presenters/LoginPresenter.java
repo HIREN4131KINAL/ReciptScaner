@@ -10,9 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jakewharton.rxbinding.widget.RxTextView;
-
-import java.util.List;
+import com.google.common.base.Preconditions;
+import com.jakewharton.rxbinding2.widget.RxTextView;
 
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -24,16 +23,11 @@ import co.smartreceipts.android.apis.SmartReceiptsApiErrorResponse;
 import co.smartreceipts.android.apis.SmartReceiptsApiException;
 import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserSignUp;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
-import co.smartreceipts.android.utils.butterknife.ButterKnifeActions;
-import co.smartreceipts.android.widget.Presenter;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.subjects.PublishSubject;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.subjects.PublishSubject;
 
 public class LoginPresenter implements Presenter {
 
@@ -84,9 +78,9 @@ public class LoginPresenter implements Presenter {
 
     @Override
     public void onPause() {
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
-            compositeSubscription = null;
+        if (compositeDisposable != null) {
+            compositeDisposable.dispose();
+            compositeDisposable = null;
         }
     }
 
@@ -142,21 +136,16 @@ public class LoginPresenter implements Presenter {
     @NonNull
     private Observable<Boolean> simpleEmailFieldValidator() {
         return RxTextView.textChanges(emailInput)
-                .map(new Func1<CharSequence, Boolean>() {
-                    @Override
-                    public Boolean call(CharSequence emailCharSequence) {
-                        if (emailCharSequence != null && emailCharSequence.length() >= MINIMUM_EMAIL_LENGTH) {
-                            final String email = emailCharSequence.toString();
-                            return email.contains("@") && email.contains(".");
-                        } else {
-                            return false;
-                        }
+                .map(emailCharSequence -> {
+                    if (emailCharSequence != null && emailCharSequence.length() >= MINIMUM_EMAIL_LENGTH) {
+                        final String email = emailCharSequence.toString();
+                        return email.contains("@") && email.contains(".");
+                    } else {
+                        return false;
                     }
                 })
-                .doOnNext(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean isEmailValid) {
-                        if (isEmailValid) {
+                .doOnNext(isEmailValid -> {
+                    if (isEmailValid) {
                             validInputHighlight(emailInput);
                         } else {
                             loginFieldsHintMessage.setText(R.string.login_fields_hint_email);
@@ -169,21 +158,13 @@ public class LoginPresenter implements Presenter {
     @NonNull
     private Observable<Boolean> simplePasswordFieldValidator() {
         return RxTextView.textChanges(passwordInput)
-                .map(new Func1<CharSequence, Boolean>() {
-                    @Override
-                    public Boolean call(CharSequence password) {
-                        return password != null && password.length() >= MINIMUM_PASSWORD_LENGTH;
-                    }
-                })
-                .doOnNext(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean isPasswordValid) {
-                        if (isPasswordValid) {
+                .map(password -> password != null && password.length() >= MINIMUM_PASSWORD_LENGTH)
+                .doOnNext(isPasswordValid -> {
+                    if (isPasswordValid) {
                             validInputHighlight(passwordInput);
-                        } else {
-                            loginFieldsHintMessage.setText(R.string.login_fields_hint_password);
-                            errorInputHighlight(passwordInput);
-                        }
+                    } else {
+                        loginFieldsHintMessage.setText(R.string.login_fields_hint_password);
+                        errorInputHighlight(passwordInput);
                     }
                 });
     }

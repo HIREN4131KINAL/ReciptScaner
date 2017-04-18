@@ -7,7 +7,7 @@ import java.util.List;
 
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import rx.Observable;
+import io.reactivex.Single;
 
 /**
  * Acts as a standard contract for the methods that all database tables should support, such as CRUD operations
@@ -51,29 +51,29 @@ public interface Table<ModelType, PrimaryKeyType> {
     /**
      * Retrieves list of all objects that are stored within this table. Please note that this is a blocking operation
      *
-     * @return an {@link Observable} with: a {@link List} of all objects of type {@link ModelType} that are stored within this table
+     * @return a {@link Single} with: a {@link List} of all objects of type {@link ModelType} that are stored within this table
      */
     @NonNull
-    Observable<List<ModelType>> get();
+    Single<List<ModelType>> get();
 
     /**
      * Attempts to look up an object based on it's {@link PrimaryKeyType} value for it's primary key column
      *
      * @param primaryKeyType the primary key for this object
-     * @return an {@link Observable} with: the {@link ModelType} object or {@code null} if none was found
+     * @return a {@link Single} with: the {@link ModelType} object or {@link Exception}
      */
     @NonNull
-    Observable<ModelType> findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType);
+    Single<ModelType> findByPrimaryKey(@NonNull PrimaryKeyType primaryKeyType);
 
     /**
      * Inserts a new object of type {@link ModelType} into this table. Please note that this is a blocking operation
      *
      * @param modelType the object to insert
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return an {@link Observable} with: the inserted object of type {@link ModelType} or {@code null} if the insert failed
+     * @return a {@link Single} with: the inserted object of type {@link ModelType} or {@link Exception} if the insert failed
      */
     @NonNull
-    Observable<ModelType> insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    Single<ModelType> insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Updates an existing object of type {@link ModelType} in this table. Please note that this is a blocking operation
@@ -81,19 +81,19 @@ public interface Table<ModelType, PrimaryKeyType> {
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return an {@link Observable} with: the updated object of type {@link ModelType} or {@code null} if the update failed
+     * @return a {@link Single} with: the updated object of type {@link ModelType} or {@link Exception} if the update failed
      */
     @NonNull
-    Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    Single<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Removes an existing object of type {@link ModelType} from this table. Please note that this is a blocking operation
      * @param modelType the object to remove
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return an {@link Observable} with: the deleted {@link ModelType} if successful, {@code null} otherwise
+     * @return a {@link Single} with: the deleted {@link ModelType} if successful, {@link Exception} otherwise
      */
     @NonNull
-    Observable<ModelType> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    Single<ModelType> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Clears any cached data in our table

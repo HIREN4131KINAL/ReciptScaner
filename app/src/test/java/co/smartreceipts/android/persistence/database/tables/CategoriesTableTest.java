@@ -25,7 +25,6 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -67,8 +66,8 @@ public class CategoriesTableTest {
 
         // Now create the table and insert some defaults
         mCategoriesTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mCategory1 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build(), new DatabaseOperationMetadata()).toBlocking().first();
-        mCategory2 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mCategory1 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME1).setCode(CODE1).build(), new DatabaseOperationMetadata()).blockingGet();
+        mCategory2 = mCategoriesTable.insert(new CategoryBuilderFactory().setName(NAME2).setCode(CODE2).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(mCategory1);
         assertNotNull(mCategory2);
     }
@@ -146,30 +145,32 @@ public class CategoriesTableTest {
 
     @Test
     public void get() {
-        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> categories = mCategoriesTable.get().blockingGet();
         assertEquals(categories, Arrays.asList(mCategory1, mCategory2));
     }
 
     @Test
     public void getMaintainsAlphabeticalSortingOrder() {
-        final Category zCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("zz").setCode("zz").build(), new DatabaseOperationMetadata()).toBlocking().first();
-        final Category aCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("aa").setCode("aa").build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Category zCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("zz").setCode("zz").build(), new DatabaseOperationMetadata()).blockingGet();
+        final Category aCategory = mCategoriesTable.insert(new CategoryBuilderFactory().setName("aa").setCode("aa").build(), new DatabaseOperationMetadata()).blockingGet();
 
-        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> categories = mCategoriesTable.get().blockingGet();
         assertEquals(categories, Arrays.asList(aCategory, mCategory1, mCategory2, zCategory));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Category foundCategory = mCategoriesTable.findByPrimaryKey(mCategory1.getName()).toBlocking().first();
-        assertNotNull(foundCategory);
-        assertEquals(mCategory1, foundCategory);
+        mCategoriesTable.findByPrimaryKey(mCategory1.getName())
+                .test()
+                .assertNoErrors()
+                .assertResult(mCategory1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Category foundCategory = mCategoriesTable.findByPrimaryKey("xxx").toBlocking().first();
-        assertNull(foundCategory);
+        mCategoriesTable.findByPrimaryKey("xxx")
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
@@ -177,9 +178,9 @@ public class CategoriesTableTest {
         final String name = "abc";
         final String code = "abc";
         final Category insertCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(insertCategory, mCategoriesTable.insert(insertCategory, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> categories = mCategoriesTable.get().blockingGet();
         assertEquals(categories, Arrays.asList(insertCategory, mCategory1, mCategory2));
     }
     
@@ -188,23 +189,23 @@ public class CategoriesTableTest {
         final String name = "NewName";
         final String code = "NewCode";
         final Category updateCategory = new CategoryBuilderFactory().setName(name).setCode(code).build();
-        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(updateCategory, mCategoriesTable.update(mCategory1, updateCategory, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Category> categories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> categories = mCategoriesTable.get().blockingGet();
         assertTrue(categories.contains(updateCategory));
         assertTrue(categories.contains(mCategory2));
     }
 
     @Test
     public void delete() {
-        final List<Category> oldCategories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> oldCategories = mCategoriesTable.get().blockingGet();
         assertTrue(oldCategories.contains(mCategory1));
         assertTrue(oldCategories.contains(mCategory2));
 
-        assertEquals(mCategory1, mCategoriesTable.delete(mCategory1, new DatabaseOperationMetadata()).toBlocking().first());
-        assertEquals(mCategory2, mCategoriesTable.delete(mCategory2, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mCategory1, mCategoriesTable.delete(mCategory1, new DatabaseOperationMetadata()).blockingGet());
+        assertEquals(mCategory2, mCategoriesTable.delete(mCategory2, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Category> newCategories = mCategoriesTable.get().toBlocking().first();
+        final List<Category> newCategories = mCategoriesTable.get().blockingGet();
         assertTrue(newCategories.isEmpty());
     }
 

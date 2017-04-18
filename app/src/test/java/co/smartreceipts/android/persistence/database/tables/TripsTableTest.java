@@ -32,7 +32,6 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import wb.android.storage.StorageManager;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -117,8 +116,8 @@ public class TripsTableTest {
         mTripsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
         mBuilder = new TripBuilderFactory();
         mBuilder.setStartTimeZone(START_TIMEZONE).setEndTimeZone(END_TIMEZONE).setComment(COMMENT).setCostCenter(COST_CENTER).setDefaultCurrency(CURRENCY_CODE, mPreferences.get(UserPreference.General.DefaultCurrency));
-        mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build(), new DatabaseOperationMetadata()).toBlocking().first();
-        mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mTrip1 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_1).setEndDate(END_DATE_1).setDirectory(mStorageManager.getFile(NAME_1)).build(), new DatabaseOperationMetadata()).blockingGet();
+        mTrip2 = mTripsTable.insert(mBuilder.setStartDate(START_DATE_2).setEndDate(END_DATE_2).setDirectory(mStorageManager.getFile(NAME_2)).build(), new DatabaseOperationMetadata()).blockingGet();
     }
 
     @After
@@ -269,48 +268,50 @@ public class TripsTableTest {
 
     @Test
     public void get() {
-        final List<Trip> trips = mTripsTable.get().toBlocking().first();
+        final List<Trip> trips = mTripsTable.get().blockingGet();
         assertEquals(trips, Arrays.asList(mTrip1, mTrip2));
     }
 
     @Test
     public void insert() {
-        final Trip trip = mTripsTable.insert(mBuilder.setStartDate(START_DATE_3).setEndDate(END_DATE_3).setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Trip trip = mTripsTable.insert(mBuilder.setStartDate(START_DATE_3).setEndDate(END_DATE_3).setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(trip);
 
-        final List<Trip> trips = mTripsTable.get().toBlocking().first();
+        final List<Trip> trips = mTripsTable.get().blockingGet();
         // Also confirm the new one is first b/c of date ordering
         assertEquals(trips, Arrays.asList(trip, mTrip1, mTrip2));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Trip trip = mTripsTable.findByPrimaryKey(NAME_1).toBlocking().first();
-        assertNotNull(trip);
-        assertEquals(mTrip1, trip);
+        mTripsTable.findByPrimaryKey(NAME_1)
+                .test()
+                .assertNoErrors()
+                .assertResult(mTrip1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Trip trip = mTripsTable.findByPrimaryKey("").toBlocking().first();
-        assertNull(trip);
+        mTripsTable.findByPrimaryKey("")
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
     public void update() {
-        final Trip updatedTrip = mTripsTable.update(mTrip1, mBuilder.setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Trip updatedTrip = mTripsTable.update(mTrip1, mBuilder.setDirectory(mStorageManager.getFile(NAME_3)).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(updatedTrip);
         assertFalse(mTrip1.equals(updatedTrip));
 
-        final List<Trip> trips = mTripsTable.get().toBlocking().first();
+        final List<Trip> trips = mTripsTable.get().blockingGet();
         assertEquals(trips, Arrays.asList(updatedTrip, mTrip2));
     }
 
     @Test
     public void delete() {
-        assertEquals(mTrip1, mTripsTable.delete(mTrip1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mTrip1, mTripsTable.delete(mTrip1, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Trip> trips = mTripsTable.get().toBlocking().first();
+        final List<Trip> trips = mTripsTable.get().blockingGet();
         assertEquals(trips, Collections.singletonList(mTrip2));
     }
 

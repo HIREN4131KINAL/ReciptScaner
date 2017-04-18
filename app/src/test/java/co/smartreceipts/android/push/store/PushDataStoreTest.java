@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
-import rx.observers.TestSubscriber;
+import io.reactivex.observers.TestObserver;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
@@ -37,22 +37,20 @@ public class PushDataStoreTest {
     @Test
     public void isRemoteRefreshRequiredDefaultsToTrue() throws Exception {
         assertTrue(pushDataStore.isRemoteRefreshRequired());
-        final TestSubscriber<Boolean> testSubscriber1 = new TestSubscriber<>();
-        pushDataStore.isRemoteRefreshRequiredObservable().subscribe(testSubscriber1);
-        testSubscriber1.onNext(true);
-        testSubscriber1.assertCompleted();
-        testSubscriber1.assertNoErrors();
+        final TestObserver<Boolean> testObserver = pushDataStore.isRemoteRefreshRequiredSingle().test();
+        testObserver.onNext(true);
+        testObserver.assertComplete()
+                .assertNoErrors();
     }
 
     @Test
     public void setRemoteRefreshRequired() throws Exception {
         pushDataStore.setRemoteRefreshRequired(false);
         assertFalse(pushDataStore.isRemoteRefreshRequired());
-        final TestSubscriber<Boolean> testSubscriber1 = new TestSubscriber<>();
-        pushDataStore.isRemoteRefreshRequiredObservable().subscribe(testSubscriber1);
-        testSubscriber1.onNext(false);
-        testSubscriber1.assertCompleted();
-        testSubscriber1.assertNoErrors();
+        final TestObserver<Boolean> testObserver = pushDataStore.isRemoteRefreshRequiredSingle().test();
+        testObserver.onNext(false);
+        testObserver.assertComplete()
+                .assertNoErrors();
     }
 
 }

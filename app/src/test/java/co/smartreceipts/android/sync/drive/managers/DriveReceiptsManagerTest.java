@@ -28,8 +28,8 @@ import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -131,12 +131,12 @@ public class DriveReceiptsManagerTest {
         when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
 
         mDriveReceiptsManager = new DriveReceiptsManager(mReceiptTableController, mReceiptsTable, mDriveTaskManager,
-                mDriveDatabaseManager, mNetworkManager, mAnalytics, mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.immediate(), Schedulers.immediate());
+                mDriveDatabaseManager, mNetworkManager, mAnalytics, mDriveStreamMappings, mReceiptBuilderFactoryFactory, Schedulers.trampoline(), Schedulers.trampoline());
     }
 
     @Test
     public void handleDelete() {
-        when(mDriveTaskManager.deleteDriveFile(mSyncState1, true)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.deleteDriveFile(mSyncState1, true)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(true);
 
@@ -150,7 +150,7 @@ public class DriveReceiptsManagerTest {
 
     @Test
     public void handleDeleteWithoutNetwork() {
-        when(mDriveTaskManager.deleteDriveFile(mSyncState1, true)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.deleteDriveFile(mSyncState1, true)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(true);
         when(mNetworkManager.isNetworkAvailable()).thenReturn(false);
@@ -174,7 +174,7 @@ public class DriveReceiptsManagerTest {
 
     @Test
     public void handleInsertOrUpdateWithoutNetwork() {
-        when(mDriveTaskManager.uploadFileToDrive(mSyncState1, mFile)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.uploadFileToDrive(mSyncState1, mFile)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -189,7 +189,7 @@ public class DriveReceiptsManagerTest {
 
     @Test
     public void handleInsertOrUpdateForNewFile() {
-        when(mDriveTaskManager.uploadFileToDrive(mSyncState1, mFile)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.uploadFileToDrive(mSyncState1, mFile)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.getSyncId(SyncProvider.GoogleDrive)).thenReturn(null);
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -243,7 +243,7 @@ public class DriveReceiptsManagerTest {
     @Test
     public void handleUpdateWithNewFile() {
         final Identifier identifier = new Identifier("id");
-        when(mDriveTaskManager.updateDriveFile(mSyncState1, mFile)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.updateDriveFile(mSyncState1, mFile)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.getSyncId(SyncProvider.GoogleDrive)).thenReturn(identifier);
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -262,7 +262,7 @@ public class DriveReceiptsManagerTest {
     @Test
     public void handleUpdateToDeleteExistingFile() {
         final Identifier identifier = new Identifier("id");
-        when(mDriveTaskManager.deleteDriveFile(mSyncState1, false)).thenReturn(Observable.just(mNewSyncState1));
+        when(mDriveTaskManager.deleteDriveFile(mSyncState1, false)).thenReturn(Single.just(mNewSyncState1));
         when(mSyncState1.getSyncId(SyncProvider.GoogleDrive)).thenReturn(identifier);
         when(mSyncState1.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
@@ -299,7 +299,7 @@ public class DriveReceiptsManagerTest {
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState2.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState2.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(true);
-        when(mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)).thenReturn(Observable.just(Arrays.asList(mReceipt1, mReceipt2)));
+        when(mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)).thenReturn(Single.just(Arrays.asList(mReceipt1, mReceipt2)));
 
         spiedManager.initialize();
 
@@ -318,7 +318,7 @@ public class DriveReceiptsManagerTest {
         when(mSyncState1.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState2.isSynced(SyncProvider.GoogleDrive)).thenReturn(false);
         when(mSyncState2.isMarkedForDeletion(SyncProvider.GoogleDrive)).thenReturn(true);
-        when(mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)).thenReturn(Observable.just(Arrays.asList(mReceipt1, mReceipt2)));
+        when(mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)).thenReturn(Single.just(Arrays.asList(mReceipt1, mReceipt2)));
         when(mNetworkManager.isNetworkAvailable()).thenReturn(false);
 
         spiedManager.initialize();

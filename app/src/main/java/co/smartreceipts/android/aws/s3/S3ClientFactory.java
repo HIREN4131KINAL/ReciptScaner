@@ -10,11 +10,9 @@ import com.google.common.base.Preconditions;
 import com.hadisatrio.optional.Optional;
 
 import co.smartreceipts.android.aws.cognito.CognitoManager;
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Func1;
-import rx.subjects.ReplaySubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.ReplaySubject;
+
 
 class S3ClientFactory {
 
@@ -72,7 +70,7 @@ class S3ClientFactory {
                         }
                     });
         }
-        return amazonS3ReplaySubject.asObservable();
+        return amazonS3ReplaySubject;
     }
 
 

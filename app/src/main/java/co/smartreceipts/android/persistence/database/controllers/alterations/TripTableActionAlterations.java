@@ -19,10 +19,9 @@ import co.smartreceipts.android.persistence.database.tables.DistanceTable;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
 public class TripTableActionAlterations extends StubTableActionAlterations<Trip> {
@@ -52,124 +51,87 @@ public class TripTableActionAlterations extends StubTableActionAlterations<Trip>
 
     @NonNull
     @Override
-    public Observable<List<Trip>> postGet(@NonNull final List<Trip> trips) {
+    public Single<List<Trip>> postGet(@NonNull final List<Trip> trips) {
         return Observable.just(trips)
-                .flatMapIterable(new Func1<List<Trip>, Iterable<Trip>>() {
-                    @Override
-                    public Iterable<Trip> call(List<Trip> trips) {
-                        return trips;
-                    }
-                })
-                .doOnNext(new Action1<Trip>() {
-                    @Override
-                    public void call(Trip trip) {
-                        mDatabaseHelper.getTripPriceAndDailyPrice(trip);
-                    }
-                })
+                .flatMapIterable(trips1 -> trips1)
+                .doOnNext(mDatabaseHelper::getTripPriceAndDailyPrice)
                 .toList();
     }
 
     @NonNull
     @Override
-    public Observable<Trip> postInsert(@Nullable final Trip postInsertTrip)  {
-        if (postInsertTrip == null) {
-            return Observable.error(new Exception("Post insert failed due to a null trip"));
-        } else {
+    public Single<Trip> postInsert(@NonNull final Trip postInsertTrip)  {
+            if (postInsertTrip == null) {
+                return Single.error(new Exception("Post insert failed due to a null trip"));
+            }
+
             return makeTripDirectory(postInsertTrip)
-                    .flatMap(new Func1<File, Observable<Trip>>() {
-                        @Override
-                        public Observable<Trip> call(@Nullable File directory) {
-                            if (directory == null) {
-                                return mTripsTable.delete(postInsertTrip, new DatabaseOperationMetadata(OperationFamilyType.Rollback))
-                                        .flatMap(new Func1<Trip, Observable<Trip>>() {
-                                            @Override
-                                            public Observable<Trip> call(Trip trip) {
-                                                return Observable.error(new IOException("Failed to create a trip directory... Rolling back and throwing an exception"));
-                                            }
-                                        });
-                            } else {
-                                return Observable.just(postInsertTrip);
-                            }
-                        }
+                    .doOnError(throwable -> {
+                        mTripsTable.delete(postInsertTrip, new DatabaseOperationMetadata(OperationFamilyType.Rollback))
+                                .subscribe();
                     })
-                    .doOnNext(new Action1<Trip>() {
-                        @Override
-                        public void call(@Nullable Trip trip) {
-                            backUpDatabase();
-                        }
-                    });
-        }
+                    .andThen(Single.just(postInsertTrip))
+                    .doOnSuccess(trip -> backUpDatabase());
     }
 
 
     @NonNull
-    private Observable<File> makeTripDirectory(@NonNull final Trip trip) {
-        return Observable.create(new Observable.OnSubscribe<File>() {
-            @Override
-            public void call(Subscriber<? super File> subscriber) {
-                final File dir = mStorageManager.mkdir(trip.getName());
-                subscriber.onNext(dir);
-                subscriber.onCompleted();
+    private Completable makeTripDirectory(@NonNull final Trip trip) {
+        return Completable.fromAction(() -> {
+            File directory = mStorageManager.mkdir(trip.getName());
+
+            if (directory == null) {
+                throw new IOException("Make trip directory failed");
             }
         });
     }
 
     @NonNull
     @Override
-    public Observable<Trip> postUpdate(@NonNull final Trip oldTrip, @Nullable final Trip newTrip) {
-        if (newTrip == null) {
-            return Observable.error(new Exception("Post update failed due to a null trip"));
-        } else {
-            return Observable.create(new Observable.OnSubscribe<Trip>() {
-                        @Override
-                        public void call(Subscriber<? super Trip> subscriber) {
-                            newTrip.setPrice(oldTrip.getPrice());
-                            newTrip.setDailySubTotal(oldTrip.getDailySubTotal());
-                            subscriber.onNext(newTrip);
-                            subscriber.onCompleted();
-                        }
-                    })
-                    .flatMap(new Func1<Trip, Observable<Trip>>() {
-                        @Override
-                        public Observable<Trip> call(@NonNull Trip postUpdateNewTrip) {
-                            if (!oldTrip.getDirectory().equals(postUpdateNewTrip.getDirectory())) {
-                                mReceiptsTable.updateParentBlocking(oldTrip, postUpdateNewTrip);
-                                mDistanceTable.updateParentBlocking(oldTrip, postUpdateNewTrip);
-                                final File dir = mStorageManager.rename(oldTrip.getDirectory(), postUpdateNewTrip.getName());
-                                if (dir.equals(oldTrip.getDirectory())) {
-                                    Logger.error(this, "Failed to re-name the trip directory... Rolling back and throwing an exception");
-                                    mTripsTable.update(postUpdateNewTrip, oldTrip, new DatabaseOperationMetadata()).toBlocking().first();
-                                    mReceiptsTable.updateParentBlocking(postUpdateNewTrip, oldTrip);
-                                    mDistanceTable.updateParentBlocking(postUpdateNewTrip, oldTrip);
-                                    return Observable.error(new IOException("Failed to create trip directory"));
-                                }
-                            }
-                            return Observable.just(postUpdateNewTrip);
-                        }
-                    });
-        }
+    public Single<Trip> postUpdate(@NonNull final Trip oldTrip, @Nullable final Trip newTrip) {
+        return Single.fromCallable(() -> {
+            if (newTrip == null) {
+                throw new Exception("Post update failed due to a null trip");
+            }
+
+            newTrip.setPrice(oldTrip.getPrice());
+            newTrip.setDailySubTotal(oldTrip.getDailySubTotal());
+
+            return newTrip;
+        }).doOnSuccess(trip -> {
+            if (!oldTrip.getDirectory().equals(trip.getDirectory())) {
+
+                mReceiptsTable.updateParentBlocking(oldTrip, trip);
+                mDistanceTable.updateParentBlocking(oldTrip, trip);
+                final File dir = mStorageManager.rename(oldTrip.getDirectory(), trip.getName());
+                if (dir.equals(oldTrip.getDirectory())) {
+                    Logger.error(this, "Failed to re-name the trip directory... Rolling back and throwing an exception");
+                    mTripsTable.update(trip, oldTrip, new DatabaseOperationMetadata()).blockingGet();
+                    mReceiptsTable.updateParentBlocking(trip, oldTrip);
+                    mDistanceTable.updateParentBlocking(trip, oldTrip);
+
+                    throw new IOException("Failed to create trip directory");
+                }
+            }
+        });
     }
 
     @NonNull
     @Override
-    public Observable<Trip> postDelete(@Nullable final Trip trip) {
-        if (trip == null) {
-            return Observable.error(new Exception("Post delete failed due to a null trip"));
-        } else {
-            return Observable.create(new Observable.OnSubscribe<Trip>() {
-                @Override
-                public void call(Subscriber<? super Trip> subscriber) {
-                    mReceiptsTable.deleteParentBlocking(trip);
-                    mDistanceTable.deleteParentBlocking(trip);
-                    if (!mStorageManager.deleteRecursively(trip.getDirectory())) {
-                        // TODO: Create clean up script
-                        Logger.error(this, "Failed to fully delete the underlying data. Create a clean up script to fix this later");
-                    }
-                    subscriber.onNext(trip);
-                    subscriber.onCompleted();
-                }
-            });
-        }
+    public Single<Trip> postDelete(@Nullable final Trip trip) {
+        return Single.fromCallable(() -> {
+            if (trip == null) {
+                throw new Exception("Post delete failed due to a null trip");
+            }
+
+            mReceiptsTable.deleteParentBlocking(trip);
+            mDistanceTable.deleteParentBlocking(trip);
+            if (!mStorageManager.deleteRecursively(trip.getDirectory())) {
+                // TODO: Create clean up script
+                Logger.error(this, "Failed to fully delete the underlying data. Create a clean up script to fix this later");
+            }
+            return trip;
+        });
     }
 
     /**

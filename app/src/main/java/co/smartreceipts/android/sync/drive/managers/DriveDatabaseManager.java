@@ -16,11 +16,10 @@ import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class DriveDatabaseManager {
 
@@ -62,24 +61,14 @@ public class DriveDatabaseManager {
                         getSyncDatabaseObservable(dbFile)
                                 .observeOn(mObserveOnScheduler)
                                 .subscribeOn(mSubscribeOnScheduler)
-                                .subscribe(new Action1<Identifier>() {
-                                    @Override
-                                    public void call(Identifier identifier) {
-                                        Logger.info(DriveDatabaseManager.this, "Successfully synced our database");
-                                        mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
-                                    }
-                                }, new Action1<Throwable>() {
-                                    @Override
-                                    public void call(Throwable throwable) {
-                                        mIsSyncInProgress.set(false);
-                                        mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this, throwable));
-                                        Logger.error(DriveDatabaseManager.this, "Failed to synced our database", throwable);
-                                    }
-                                }, new Action0() {
-                                    @Override
-                                    public void call() {
-                                        mIsSyncInProgress.set(false);
-                                    }
+                                .subscribe(identifier -> {
+                                    Logger.info(DriveDatabaseManager.this, "Successfully synced our database");
+                                    mGoogleDriveSyncMetadata.setDatabaseSyncIdentifier(identifier);
+                                    mIsSyncInProgress.set(false);
+                                }, throwable -> {
+                                    mIsSyncInProgress.set(false);
+                                    mAnalytics.record(new ErrorEvent(DriveDatabaseManager.this, throwable));
+                                    Logger.error(DriveDatabaseManager.this, "Failed to synced our database", throwable);
                                 });
                     } else {
                         Logger.debug(DriveDatabaseManager.this, "A sync is already in progress. Ignoring subsequent one for now");
@@ -96,7 +85,7 @@ public class DriveDatabaseManager {
     }
 
     @NonNull
-    private Observable<Identifier> getSyncDatabaseObservable(@NonNull final File dbFile) {
+    private Single<Identifier> getSyncDatabaseObservable(@NonNull final File dbFile) {
         final Identifier driveDatabaseId = mGoogleDriveSyncMetadata.getDatabaseSyncIdentifier();
         if (driveDatabaseId != null) {
             return mDriveTaskManager.updateDriveFile(driveDatabaseId, dbFile);

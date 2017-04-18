@@ -25,13 +25,11 @@ import co.smartreceipts.android.persistence.database.controllers.alterations.Rec
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscription;
-import rx.exceptions.Exceptions;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.exceptions.Exceptions;
 import wb.android.storage.StorageManager;
 
 @ApplicationScope
@@ -82,249 +80,148 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
 
     public synchronized void move(@NonNull final Receipt receiptToMove, @NonNull Trip toTrip) {
         Logger.info(this, "#move: {}; {}", receiptToMove, toTrip);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mReceiptTableActionAlterations.preMove(receiptToMove, toTrip)
-                .flatMap(new Func1<Receipt, Observable<Receipt>>() {
-                    @Override
-                    public Observable<Receipt> call(Receipt receipt) {
-                        return mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata());
-                    }
-                })
+        final AtomicReference<Disposable> disposableRef = new AtomicReference<>();
+        final Disposable disposable = mReceiptTableActionAlterations.preMove(receiptToMove, toTrip)
+                .flatMap(receipt -> mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata()))
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
-                .doOnNext(new Action1<Receipt>() {
-                    @Override
-                    public void call(Receipt newReceipt) {
-                        try {
-                            mReceiptTableActionAlterations.postMove(receiptToMove, newReceipt);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+                .doOnSuccess(receipt -> {
+                    try {
+                        mReceiptTableActionAlterations.postMove(receiptToMove, receipt);
+                    } catch (Exception e) {
+                        throw Exceptions.propagate(e);
                     }
                 })
-                .subscribe(new Action1<Receipt>() {
-                    @Override
-                    public void call(Receipt newReceipt) {
-                        if (newReceipt != null) {
-                            Logger.debug(this, "#onMoveSuccess - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onMoveSuccess(receiptToMove, newReceipt);
-                            }
-                        } else {
-                            Logger.debug(this, "#onMoveFailure - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onMoveFailure(receiptToMove, null);
-                            }
-                        }
+                .subscribe(receipt -> {
+                    Logger.debug(this, "#onMoveSuccess - onSuccess");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onMoveSuccess(receiptToMove, receipt);
                     }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Logger.debug(this, "#onMoveFailure - onError");
-                        for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                            tableEventsListener.onMoveFailure(receiptToMove, throwable);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                    unsubscribeReference(disposableRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
+                    Logger.debug(this, "#onMoveFailure - onError");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onMoveFailure(receiptToMove, throwable);
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(this, "#move - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
+                    unsubscribeReference(disposableRef);
                 });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+
+        disposableRef.set(disposable);
+        compositeDisposable.add(disposable);
     }
 
     public synchronized void copy(@NonNull final Receipt receiptToCopy, @NonNull Trip toTrip) {
         Logger.info(this, "#move: {}; {}", receiptToCopy, toTrip);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mReceiptTableActionAlterations.preCopy(receiptToCopy, toTrip)
-                .flatMap(new Func1<Receipt, Observable<Receipt>>() {
-                    @Override
-                    public Observable<Receipt> call(Receipt receipt) {
-                        return mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata());
-                    }
-                })
-                .doOnNext(new Action1<Receipt>() {
-                    @Override
-                    public void call(Receipt newReceipt) {
-                        try {
-                            mReceiptTableActionAlterations.postCopy(receiptToCopy, newReceipt);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
+        final AtomicReference<Disposable> disposableRef = new AtomicReference<>();
+        final Disposable disposable = mReceiptTableActionAlterations.preCopy(receiptToCopy, toTrip)
+                .flatMap(receipt -> mTripForeignKeyTable.insert(receipt, new DatabaseOperationMetadata()))
+                .doOnSuccess(newReceipt -> {
+                    try {
+                        mReceiptTableActionAlterations.postCopy(receiptToCopy, newReceipt);
+                    } catch (Exception e) {
+                        throw Exceptions.propagate(e);
                     }
                 })
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<Receipt>() {
-                    @Override
-                    public void call(Receipt newReceipt) {
-                        if (newReceipt != null) {
-                            Logger.debug(this, "#onCopySuccess - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onCopySuccess(receiptToCopy, newReceipt);
-                            }
-                        } else {
-                            Logger.debug(this, "#onCopyFailure - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onCopyFailure(receiptToCopy, null);
-                            }
-                        }
+                .subscribe(newReceipt -> {
+                    Logger.debug(this, "#onCopySuccess - onSuccess");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onCopySuccess(receiptToCopy, newReceipt);
                     }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Logger.debug(this, "#onCopyFailure - onError");
-                        for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                            tableEventsListener.onCopyFailure(receiptToCopy, throwable);
-                        }
-                        unsubscribeReference(subscriptionRef);
+                    unsubscribeReference(disposableRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
+                    Logger.debug(this, "#onCopyFailure - onError");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onCopyFailure(receiptToCopy, throwable);
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(this, "#move - onComplete");
-                        unsubscribeReference(subscriptionRef);
-                    }
+                    unsubscribeReference(disposableRef);
                 });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+        disposableRef.set(disposable);
+        compositeDisposable.add(disposable);
     }
 
     public synchronized void swapUp(@NonNull final Receipt receiptToSwapUp) {
         Logger.info(TAG, "#swapUp: {}", receiptToSwapUp);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTripForeignKeyTable.get(receiptToSwapUp.getTrip())
-                .flatMap(new Func1<List<Receipt>, Observable<List<? extends Map.Entry<Receipt, Receipt>>>>() {
-                    @Override
-                    public Observable<List<? extends Map.Entry<Receipt, Receipt>>> call(List<Receipt> receipts) {
-                        return mReceiptTableActionAlterations.getReceiptsToSwapUp(receiptToSwapUp, receipts);
-                    }
-                })
-                .flatMap(new Func1<List<? extends Map.Entry<Receipt, Receipt>>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(final List<? extends Map.Entry<Receipt, Receipt>> entries) {
-                        return swapReceiptsObservable(entries);
-                    }
-                })
+        final AtomicReference<Disposable> disposableRef = new AtomicReference<>();
+        final Disposable disposable = mTripForeignKeyTable.get(receiptToSwapUp.getTrip())
+                .flatMapObservable(receipts -> mReceiptTableActionAlterations.getReceiptsToSwapUp(receiptToSwapUp, receipts))
+                .flatMapSingle(this::swapReceiptsSingle)
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean success) {
-                        if (success) {
-                            Logger.debug(this, "#onSwapUpSuccess - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onSwapSuccess();
-                            }
-                        } else {
-                            Logger.debug(this, "#onSwapUpFailure - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onSwapFailure(null);
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Logger.debug(this, "#onSwapUpFailure - onError");
+                .subscribe(success -> {
+                    if (success) {
+                        Logger.debug(this, "#onSwapUpSuccess - onNext");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                            tableEventsListener.onSwapFailure(throwable);
+                            tableEventsListener.onSwapSuccess();
                         }
-                        unsubscribeReference(subscriptionRef);
+                    } else {
+                        Logger.debug(this, "#onSwapUpFailure - onNext");
+                        for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                            tableEventsListener.onSwapFailure(null);
+                        }
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(this, "#swapUp - onComplete");
-                        unsubscribeReference(subscriptionRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
+                    Logger.debug(this, "#onSwapUpFailure - onError");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onSwapFailure(throwable);
                     }
+                    unsubscribeReference(disposableRef);
+                }, () -> {
+                    Logger.debug(this, "#swapUp - onComplete");
+                    unsubscribeReference(disposableRef);
                 });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+
+        disposableRef.set(disposable);
+        compositeDisposable.add(disposable);
     }
 
     public synchronized void swapDown(@NonNull final Receipt receiptToSwapDown) {
         Logger.info(this, "#swapDown: {}", receiptToSwapDown);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTripForeignKeyTable.get(receiptToSwapDown.getTrip())
-                .flatMap(new Func1<List<Receipt>, Observable<List<? extends Map.Entry<Receipt, Receipt>>>>() {
-                    @Override
-                    public Observable<List<? extends Map.Entry<Receipt, Receipt>>> call(List<Receipt> receipts) {
-                        return mReceiptTableActionAlterations.getReceiptsToSwapDown(receiptToSwapDown, receipts);
-                    }
-                })
-                .flatMap(new Func1<List<? extends Map.Entry<Receipt, Receipt>>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(List<? extends Map.Entry<Receipt, Receipt>> entries) {
-                        return swapReceiptsObservable(entries);
-                    }
-                })
+        final AtomicReference<Disposable> disposableRef = new AtomicReference<>();
+        final Disposable disposable = mTripForeignKeyTable.get(receiptToSwapDown.getTrip())
+                .flatMapObservable(receipts -> mReceiptTableActionAlterations.getReceiptsToSwapDown(receiptToSwapDown, receipts))
+                .flatMapSingle(this::swapReceiptsSingle)
                 .subscribeOn(mSubscribeOnScheduler)
                 .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean success) {
-                        if (success) {
-                            Logger.debug(this, "#onSwapDownSuccess - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onSwapSuccess();
-                            }
-                        } else {
-                            Logger.debug(this, "#onSwapDownFailure - onNext");
-                            for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                                tableEventsListener.onSwapFailure(null);
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
-                        Logger.debug(this, "#onSwapDownFailure - onError");
+                .subscribe(success -> {
+                    if (success) {
+                        Logger.debug(this, "#onSwapDownSuccess - onNext");
                         for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
-                            tableEventsListener.onSwapFailure(throwable);
+                            tableEventsListener.onSwapSuccess();
                         }
-                        unsubscribeReference(subscriptionRef);
+                    } else {
+                        Logger.debug(this, "#onSwapDownFailure - onNext");
+                        for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                            tableEventsListener.onSwapFailure(null);
+                        }
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(this, "#swapDown - onComplete");
-                        unsubscribeReference(subscriptionRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(ReceiptTableController.this, throwable));
+                    Logger.debug(this, "#onSwapDownFailure - onError");
+                    for (final ReceiptTableEventsListener tableEventsListener : mReceiptTableEventsListeners) {
+                        tableEventsListener.onSwapFailure(throwable);
                     }
+                    unsubscribeReference(disposableRef);
+                }, () -> {
+                    Logger.debug(this, "#swapDown - onComplete");
+                    unsubscribeReference(disposableRef);
                 });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+
+        disposableRef.set(disposable);
+        compositeDisposable.add(disposable);
     }
 
-    private Observable<Boolean> swapReceiptsObservable(final List<? extends Map.Entry<Receipt, Receipt>> entries) {
-        return Observable.from(entries)
-                .flatMap(new Func1<Map.Entry<Receipt, Receipt>, Observable<Receipt>>() {
-                    @Override
-                    public Observable<Receipt> call(Map.Entry<Receipt, Receipt> entry) {
-                        return update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata());
-                    }
-                })
-                .filter(new Func1<Receipt, Boolean>() {
-                    @Override
-                    public Boolean call(Receipt receipt) {
-                        return receipt != null;
-                    }
-                })
+    private Single<Boolean> swapReceiptsSingle(final List<? extends Map.Entry<Receipt, Receipt>> entries) {
+        return Observable.fromIterable(entries)
+                .flatMap(entry -> update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata()))
+                .filter(receipt -> receipt != null)
                 .toList()
-                .flatMap(new Func1<List<Receipt>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(List<Receipt> updatedReceipts) {
-                        return Observable.just(entries.size() == updatedReceipts.size());
-                    }
-                }).delay(100, TimeUnit.MILLISECONDS);
+                .flatMap(updatedReceipts -> Single.just(entries.size() == updatedReceipts.size()))
+                .delay(100, TimeUnit.MILLISECONDS);
         // TODO: Refactor this to actually fix the timing issue w/o the delay
         // TODO: A real solution should use proper sorting indices instead of relying in the dates (hence why I'm allowing this hack)
     }

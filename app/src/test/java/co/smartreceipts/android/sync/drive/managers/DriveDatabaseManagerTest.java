@@ -18,8 +18,8 @@ import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
 import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
-import rx.Observable;
-import rx.schedulers.Schedulers;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
@@ -57,7 +57,7 @@ public class DriveDatabaseManagerTest {
 
         when(mNetworkManager.isNetworkAvailable()).thenReturn(true);
 
-        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, mNetworkManager, mAnalytics, Schedulers.immediate(), Schedulers.immediate());
+        mDriveDatabaseManager = new DriveDatabaseManager(RuntimeEnvironment.application, mDriveStreamsManager, mGoogleDriveSyncMetadata, mNetworkManager, mAnalytics, Schedulers.trampoline(), Schedulers.trampoline());
     }
 
     @After
@@ -70,7 +70,7 @@ public class DriveDatabaseManagerTest {
     public void syncDatabaseWithoutNetwork() {
         when(mNetworkManager.isNetworkAvailable()).thenReturn(false);
         final Identifier identifier = new Identifier("newId");
-        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Observable.just(identifier));
+        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Single.just(identifier));
 
         mDriveDatabaseManager.syncDatabase();
         verify(mGoogleDriveSyncMetadata, never()).setDatabaseSyncIdentifier(identifier);
@@ -79,7 +79,7 @@ public class DriveDatabaseManagerTest {
     @Test
     public void syncDatabaseForTheFirstTime() {
         final Identifier identifier = new Identifier("newId");
-        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Observable.just(identifier));
+        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Single.just(identifier));
 
         mDriveDatabaseManager.syncDatabase();
         verify(mGoogleDriveSyncMetadata).setDatabaseSyncIdentifier(identifier);
@@ -89,7 +89,7 @@ public class DriveDatabaseManagerTest {
     public void syncExistingDatabase() {
         final Identifier identifier = new Identifier("oldId");
         when(mGoogleDriveSyncMetadata.getDatabaseSyncIdentifier()).thenReturn(identifier);
-        when(mDriveStreamsManager.updateDriveFile(identifier, mDatabaseFile)).thenReturn(Observable.just(identifier));
+        when(mDriveStreamsManager.updateDriveFile(identifier, mDatabaseFile)).thenReturn(Single.just(identifier));
 
         mDriveDatabaseManager.syncDatabase();
         verify(mGoogleDriveSyncMetadata).setDatabaseSyncIdentifier(identifier);
@@ -98,7 +98,7 @@ public class DriveDatabaseManagerTest {
     @Test
     public void syncDatabaseError() {
         final Exception e = new Exception();
-        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Observable.<Identifier>error(e));
+        when(mDriveStreamsManager.uploadFileToDrive(mDatabaseFile)).thenReturn(Single.error(e));
 
         mDriveDatabaseManager.syncDatabase();
         verify(mGoogleDriveSyncMetadata, never()).setDatabaseSyncIdentifier(any(Identifier.class));

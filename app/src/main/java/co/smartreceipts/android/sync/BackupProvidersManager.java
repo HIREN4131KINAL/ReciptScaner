@@ -25,7 +25,8 @@ import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.sync.provider.SyncProviderFactory;
 import co.smartreceipts.android.sync.provider.SyncProviderStore;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * A global manager for whatever our current backup provider may (or may not) be
@@ -95,7 +96,7 @@ public class BackupProvidersManager implements BackupProvider {
 
     @NonNull
     @Override
-    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
+    public Single<List<RemoteBackupMetadata>> getRemoteBackups() {
         return backupProvider.getRemoteBackups();
     }
 
@@ -113,30 +114,30 @@ public class BackupProvidersManager implements BackupProvider {
 
     @NonNull
     @Override
-    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+    public Single<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
         return backupProvider.restoreBackup(remoteBackupMetadata, overwriteExistingData);
     }
 
     @NonNull
     @Override
-    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+    public Single<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         return backupProvider.deleteBackup(remoteBackupMetadata);
     }
 
     @Override
-    public Observable<Boolean> clearCurrentBackupConfiguration() {
+    public Single<Boolean> clearCurrentBackupConfiguration() {
         return backupProvider.clearCurrentBackupConfiguration();
     }
 
     @NonNull
     @Override
-    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+    public Single<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return backupProvider.downloadAllData(remoteBackupMetadata, downloadLocation);
     }
 
     @NonNull
     @Override
-    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+    public Single<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return backupProvider.debugDownloadAllData(remoteBackupMetadata, downloadLocation);
     }
 

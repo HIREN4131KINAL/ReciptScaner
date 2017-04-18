@@ -20,11 +20,10 @@ import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.persistence.SharedPreferenceDefinitions;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+
 
 @ApplicationScope
 public class UserPreferenceManager {
@@ -53,62 +52,56 @@ public class UserPreferenceManager {
     public void initialize() {
         getUserPreferencesObservable()
                 .subscribeOn(this.initializationScheduler)
-                .subscribe(new Action1<List<UserPreference<?>>>() {
-                    @Override
-                    public void call(List<UserPreference<?>> userPreferences) {
-                        for (final UserPreference<?> userPreference : userPreferences) {
-                            final String preferenceName = getName(userPreference);
-                            if (!preferences.contains(preferenceName)) {
-                                // In here - we assign values that don't allow for preference_defaults.xml definitions (e.g. Locale Based Setings)
-                                // Additionally, we set all float fields, which don't don't allow for 'android:defaultValue' settings
-                                if (UserPreference.General.DateSeparator.equals(userPreference)) {
-                                    final String assignedDateSeparator = context.getString(UserPreference.General.DateSeparator.getDefaultValue());
-                                    if (TextUtils.isEmpty(assignedDateSeparator)) {
-                                        final String localeDefaultDateSeparator = DateUtils.getDateSeparator(context);
-                                        preferences.edit().putString(preferenceName, localeDefaultDateSeparator).apply();
-                                        Logger.debug(UserPreferenceManager.this, "Assigned locale default date separator {}", localeDefaultDateSeparator);
-                                    }
-                                } else if (UserPreference.General.DefaultCurrency.equals(userPreference)) {
-                                    final String assignedCurrencyCode = context.getString(UserPreference.General.DefaultCurrency.getDefaultValue());
-                                    if (TextUtils.isEmpty(assignedCurrencyCode)) {
-                                        try {
-                                            final String currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
-                                            preferences.edit().putString(preferenceName, currencyCode).apply();
-                                            Logger.debug(UserPreferenceManager.this, "Assigned locale default currency code {}", currencyCode);
-                                        } catch (IllegalArgumentException e) {
-                                            preferences.edit().putString(preferenceName, "USD").apply();
-                                            Logger.warn(UserPreferenceManager.this, "Failed to find this Locale's currency code. Defaulting to USD", e);
-                                        }
-                                    }
-                                } else if (UserPreference.Receipts.MinimumReceiptPrice.equals(userPreference)) {
-                                    final TypedValue typedValue = new TypedValue();
-                                    context.getResources().getValue(userPreference.getDefaultValue(), typedValue, true);
-                                    if (typedValue.getFloat() < 0) {
-                                        final float defaultMinimumReceiptPrice = -Float.MAX_VALUE;
-                                        preferences.edit().putFloat(preferenceName, defaultMinimumReceiptPrice).apply();
-                                        Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, defaultMinimumReceiptPrice);
-                                    }
-                                } else if (Float.class.equals(userPreference.getType())) {
-                                    final TypedValue typedValue = new TypedValue();
-                                    context.getResources().getValue(userPreference.getDefaultValue(), typedValue, true);
-                                    preferences.edit().putFloat(preferenceName, typedValue.getFloat()).apply();
-                                    Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, typedValue.getFloat());
+                .subscribe(userPreferences -> {
+                    for (final UserPreference<?> userPreference : userPreferences) {
+                        final String preferenceName = getName(userPreference);
+                        if (!preferences.contains(preferenceName)) {
+                            // In here - we assign values that don't allow for preference_defaults.xml definitions (e.g. Locale Based Setings)
+                            // Additionally, we set all float fields, which don't don't allow for 'android:defaultValue' settings
+                            if (UserPreference.General.DateSeparator.equals(userPreference)) {
+                                final String assignedDateSeparator = context.getString(UserPreference.General.DateSeparator.getDefaultValue());
+                                if (TextUtils.isEmpty(assignedDateSeparator)) {
+                                    final String localeDefaultDateSeparator = DateUtils.getDateSeparator(context);
+                                    preferences.edit().putString(preferenceName, localeDefaultDateSeparator).apply();
+                                    Logger.debug(UserPreferenceManager.this, "Assigned locale default date separator {}", localeDefaultDateSeparator);
                                 }
+                            } else if (UserPreference.General.DefaultCurrency.equals(userPreference)) {
+                                final String assignedCurrencyCode = context.getString(UserPreference.General.DefaultCurrency.getDefaultValue());
+                                if (TextUtils.isEmpty(assignedCurrencyCode)) {
+                                    try {
+                                        final String currencyCode = Currency.getInstance(Locale.getDefault()).getCurrencyCode();
+                                        preferences.edit().putString(preferenceName, currencyCode).apply();
+                                        Logger.debug(UserPreferenceManager.this, "Assigned locale default currency code {}", currencyCode);
+                                    } catch (IllegalArgumentException e) {
+                                        preferences.edit().putString(preferenceName, "USD").apply();
+                                        Logger.warn(UserPreferenceManager.this, "Failed to find this Locale's currency code. Defaulting to USD", e);
+                                    }
+                                }
+                            } else if (UserPreference.Receipts.MinimumReceiptPrice.equals(userPreference)) {
+                                final TypedValue typedValue = new TypedValue();
+                                context.getResources().getValue(userPreference.getDefaultValue(), typedValue, true);
+                                if (typedValue.getFloat() < 0) {
+                                    final float defaultMinimumReceiptPrice = -Float.MAX_VALUE;
+                                    preferences.edit().putFloat(preferenceName, defaultMinimumReceiptPrice).apply();
+                                    Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, defaultMinimumReceiptPrice);
+                                }
+                            } else if (Float.class.equals(userPreference.getType())) {
+                                final TypedValue typedValue = new TypedValue();
+                                context.getResources().getValue(userPreference.getDefaultValue(), typedValue, true);
+                                preferences.edit().putFloat(preferenceName, typedValue.getFloat()).apply();
+                                Logger.debug(UserPreferenceManager.this, "Assigned default float value for {} as {}", preferenceName, typedValue.getFloat());
                             }
                         }
-                        Logger.debug(UserPreferenceManager.this, "Completed user preference initialization");
                     }
+                    Logger.debug(UserPreferenceManager.this, "Completed user preference initialization");
                 });
     }
 
     @NonNull
     public <T> Observable<T> getObservable(final UserPreference<T> preference) {
-        return Observable.create(new Observable.OnSubscribe<T>() {
-            @Override
-            public void call(Subscriber<? super T> subscriber) {
-                subscriber.onNext(get(preference));
-                subscriber.onCompleted();
-            }
+        return Observable.create(emitter -> {
+            emitter.onNext(get(preference));
+            emitter.onComplete();
         });
     }
 
@@ -133,13 +126,10 @@ public class UserPreferenceManager {
 
     @NonNull
     public <T> Observable<T> setObservable(final UserPreference<T> preference, final T t) {
-        return Observable.create(new Observable.OnSubscribe<T>() {
-            @Override
-            public void call(Subscriber<? super T> subscriber) {
-                set(preference, t);
-                subscriber.onNext(t);
-                subscriber.onCompleted();
-            }
+        return Observable.create(emitter -> {
+            set(preference, t);
+            emitter.onNext(t);
+            emitter.onComplete();
         });
     }
 
@@ -160,13 +150,10 @@ public class UserPreferenceManager {
 
     @NonNull
     public Observable<List<UserPreference<?>>> getUserPreferencesObservable() {
-        return Observable.create(new Observable.OnSubscribe<List<UserPreference<?>>>() {
-                    @Override
-                    public void call(Subscriber<? super List<UserPreference<?>>> subscriber) {
-                        subscriber.onNext(UserPreference.values());
-                        subscriber.onCompleted();
-                    }
-                });
+        return Observable.create(emitter -> {
+            emitter.onNext(UserPreference.values());
+            emitter.onComplete();
+        });
     }
 
     @NonNull

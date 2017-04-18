@@ -5,12 +5,12 @@ import android.support.annotation.NonNull;
 
 import java.io.File;
 
-import rx.Observable;
+import io.reactivex.Single;
 
 public class AutoFailImportProcessor implements FileImportProcessor {
     @NonNull
     @Override
-    public Observable<File> process(@NonNull Uri uri) {
-        return Observable.error(new UnsupportedOperationException());
+    public Single<File> process(@NonNull Uri uri) {
+        return Single.error(new UnsupportedOperationException());
     }
 }

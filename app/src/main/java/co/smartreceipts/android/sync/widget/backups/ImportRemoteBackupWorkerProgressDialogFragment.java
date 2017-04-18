@@ -23,11 +23,10 @@ import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import dagger.android.support.AndroidSupportInjection;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragment {
 
@@ -46,7 +45,7 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     BackupProvidersManager backupProvidersManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private Subscription subscription;
+    private Disposable disposable;
 
     private RemoteBackupMetadata backupMetadata;
     private boolean overwrite;
@@ -95,43 +94,34 @@ public class ImportRemoteBackupWorkerProgressDialogFragment extends DialogFragme
     @Override
     public void onResume() {
         super.onResume();
-        subscription = remoteBackupsDataCache.restoreBackup(backupMetadata, overwrite)
+        disposable = remoteBackupsDataCache.restoreBackup(backupMetadata, overwrite)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(@Nullable Boolean success) {
-                        if (success != null && success) {
-                            Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : database.getTables()) {
-                                table.clearCache();
-                            }
-                            tripTableController.get();
-                            getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
-                        } else {
-                            Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                .subscribe(success -> {
+                    if (success != null && success) {
+                        Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
+                        for (final Table table : database.getTables()) {
+                            table.clearCache();
                         }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
+                        tripTableController.get();
+                        getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
+                    } else {
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
-                        remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
-                        dismiss();
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
-                        dismiss();
-                    }
+                }, throwable -> {
+                    analytics.record(new ErrorEvent(ImportRemoteBackupWorkerProgressDialogFragment.this, throwable));
+                    Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                    remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
+                    dismiss();
+                }, () -> {
+                    remoteBackupsDataCache.removeCachedRestoreBackupFor(backupMetadata);
+                    dismiss();
                 });
     }
 
     @Override
     public void onPause() {
-        subscription.unsubscribe();
+        disposable.dispose();
         super.onPause();
     }
 }

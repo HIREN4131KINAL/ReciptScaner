@@ -5,8 +5,9 @@ import org.mockito.Mockito;
 
 import co.smartreceipts.android.rating.data.AppRatingModel;
 import co.smartreceipts.android.rating.data.AppRatingStorage;
-import rx.Single;
-import rx.observers.TestSubscriber;
+import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
+
 
 public class AppRatingManagerShould {
 
@@ -39,14 +40,11 @@ public class AppRatingManagerShould {
         AppRatingManager manager = new AppRatingManager(mockedStorage);
 
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -59,14 +57,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -79,14 +74,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -99,14 +91,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -119,14 +108,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -139,14 +125,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(true);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(true);
     }
 
     @Test
@@ -159,14 +142,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -179,14 +159,11 @@ public class AppRatingManagerShould {
 
         AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(true);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(true);
     }
 
 

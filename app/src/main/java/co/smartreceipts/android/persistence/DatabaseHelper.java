@@ -41,8 +41,7 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.utils.sorting.AlphabeticalCaseInsensitiveCharSequenceComparator;
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Single;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.storage.StorageManager;
 
@@ -75,7 +74,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
     private final Context mContext;
     private final TableDefaultsCustomizer mCustomizations;
     private final UserPreferenceManager mPreferences;
-    private final StorageManager mStorageManager;
 
     // Listeners
     private ReceiptAutoCompleteListener mReceiptAutoCompleteListener;
@@ -109,9 +107,8 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
 
         mContext = context;
         mPreferences = preferences;
-        mStorageManager = storageManager;
-        mReceiptColumnDefinitions = receiptColumnDefinitions; //new ReceiptColumnDefinitions(mContext, mPersistenceManager.getPreferenceManager(), tmpFlex);
-        mCustomizations = tableDefaultsCustomizer; //new WhiteLabelFriendlyTableDefaultsCustomizer(application, new TableDefaultCustomizerImpl(mContext, mReceiptColumnDefinitions));
+        mReceiptColumnDefinitions = receiptColumnDefinitions;
+        mCustomizations = tableDefaultsCustomizer;
 
         // Tables:
         mTables = new ArrayList<>();
@@ -285,26 +282,22 @@ public class DatabaseHelper extends SQLiteOpenHelper implements AutoCompleteAdap
         trip.setDailySubTotal(new PriceBuilderFactory().setPriceables(prices, trip.getTripCurrency()).build());
     }
 
-    public Observable<Integer> getNextReceiptAutoIncremenetIdHelper() {
-        return Observable.create(new Observable.OnSubscribe<Integer>() {
-            @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-                SQLiteDatabase db = getReadableDatabase();
-                Cursor cursor = null;
-                try {
-                    cursor = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[]{ReceiptsTable.TABLE_NAME});
-                    if (cursor != null && cursor.moveToFirst() && cursor.getColumnCount() > 0) {
-                        subscriber.onNext(cursor.getInt(0) + 1);
-                    } else {
-                        subscriber.onNext(0);
-                    }
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                } finally {
-                    if (cursor != null) {
-                        cursor.close();
-                    }
+    public Single<Integer> getNextReceiptAutoIncremenetIdHelper() {
+        return Single.fromCallable(() -> {
+            SQLiteDatabase db = getReadableDatabase();
+            Cursor cursor = null;
+
+            try {
+                cursor = db.rawQuery("SELECT seq FROM SQLITE_SEQUENCE WHERE name=?", new String[]{ReceiptsTable.TABLE_NAME});
+                if (cursor != null && cursor.moveToFirst() && cursor.getColumnCount() > 0) {
+                    return cursor.getInt(0) + 1;
+                } else {
+                    return 0;
+                }
+
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
                 }
             }
         });

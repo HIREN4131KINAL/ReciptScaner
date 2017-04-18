@@ -16,11 +16,11 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import co.smartreceipts.android.SameThreadExecutorService;
+import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

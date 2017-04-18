@@ -13,11 +13,10 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import co.smartreceipts.android.aws.cognito.CognitoManager;
-import rx.Observable;
-import rx.observers.TestSubscriber;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
@@ -41,11 +40,9 @@ public class S3ClientFactoryTest {
 
     @Test
     public void getAmazonS3() {
-        final TestSubscriber<Optional<AmazonS3Client>> subscriber = new TestSubscriber<>();
-        s3ClientFactory.getAmazonS3().subscribe(subscriber);
-
-        subscriber.assertCompleted();
-        subscriber.assertNoErrors();
+        s3ClientFactory.getAmazonS3().test()
+                .assertComplete()
+                .assertNoErrors();
 
         final Optional<AmazonS3Client> s3Client = s3ClientFactory.getAmazonS3().toBlocking().first();
         assertTrue(s3Client.isPresent());

@@ -15,11 +15,10 @@ import org.robolectric.RuntimeEnvironment;
 
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.Cognito;
-import rx.Observable;
-import rx.Single;
-import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.verify;

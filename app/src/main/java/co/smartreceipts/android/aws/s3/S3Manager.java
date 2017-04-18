@@ -14,10 +14,8 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.aws.cognito.CognitoManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+
 
 @ApplicationScope
 public class S3Manager {

@@ -14,6 +14,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -41,10 +42,10 @@ import co.smartreceipts.android.sync.model.impl.Identifier;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.NetworkStateChangeListener;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.subjects.BehaviorSubject;
+
 
 public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, NetworkStateChangeListener {
 
@@ -128,7 +129,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
     @NonNull
     @Override
-    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
+    public Single<List<RemoteBackupMetadata>> getRemoteBackups() {
         return mDriveTaskManager.getRemoteBackups();
     }
 
@@ -146,82 +147,69 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
 
     @NonNull
     @Override
-    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+    public Single<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
         return mDriveRestoreDataManager.restoreBackup(remoteBackupMetadata, overwriteExistingData);
     }
 
     @NonNull
     @Override
-    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+    public Single<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
         Preconditions.checkNotNull(remoteBackupMetadata);
 
         if (remoteBackupMetadata.getSyncDeviceId().equals(mGoogleDriveSyncMetadata.getDeviceIdentifier())) {
             mGoogleDriveSyncMetadata.clear();
             mDriveReceiptsManager.disable();
         }
+
         return mDriveTaskManager.delete(remoteBackupMetadata.getId())
-                .doOnNext(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean success) {
-                        mDriveReceiptsManager.enable();
-                        if (success) {
-                            mDriveReceiptsManager.initialize();
-                        }
+                .doOnSuccess(success -> {
+                    mDriveReceiptsManager.enable();
+                    if (success) {
+                        mDriveReceiptsManager.initialize();
                     }
                 });
     }
 
     @Override
-    public Observable<Boolean> clearCurrentBackupConfiguration() {
+    public Single<Boolean> clearCurrentBackupConfiguration() {
         mDriveReceiptsManager.disable();
         mGoogleDriveSyncMetadata.clear();
         mDriveTaskManager.clearCachedData();
         // Note: We added a stupid delay hack here to allow things to clear out of their buffers
-        return Observable.just(true)
+        return Single.just(true)
                 .delay(500, TimeUnit.MILLISECONDS)
-                .doOnNext(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean success) {
+                .doOnSuccess(success -> {
                         mDriveReceiptsManager.enable();
                         if (success) {
                             mDriveReceiptsManager.initialize();
                         }
-                    }
                 });
     }
 
     @NonNull
     @Override
-    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+    public Single<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mDriveRestoreDataManager.downloadAllBackupMetadataImages(remoteBackupMetadata, downloadLocation);
     }
 
     @NonNull
     @Override
-    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+    public Single<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
         return mDriveRestoreDataManager.downloadAllFilesInDriveFolder(remoteBackupMetadata, downloadLocation);
     }
 
     @NonNull
     @Override
     public Observable<CriticalSyncError> getCriticalSyncErrorStream() {
-        return mSyncErrorStream.asObservable()
-                .map(new Func1<Throwable, CriticalSyncError>() {
-                    @Override
-                    public CriticalSyncError call(Throwable throwable) {
-                        if (throwable instanceof CriticalSyncError) {
-                            return (CriticalSyncError) throwable;
-                        } else {
-                            return null;
-                        }
+        return mSyncErrorStream.<Optional<CriticalSyncError>>map(throwable -> {
+                    if (throwable instanceof CriticalSyncError) {
+                        return Optional.of((CriticalSyncError) throwable);
+                    } else {
+                        return Optional.absent();
                     }
                 })
-                .filter(new Func1<CriticalSyncError, Boolean>() {
-                    @Override
-                    public Boolean call(CriticalSyncError criticalSyncError) {
-                        return criticalSyncError != null;
-                    }
-                });
+                .filter(Optional::isPresent)
+                .map(Optional::get);
     }
 
     @Override

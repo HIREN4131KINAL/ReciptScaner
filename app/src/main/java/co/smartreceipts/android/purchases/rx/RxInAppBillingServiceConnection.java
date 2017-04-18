@@ -12,9 +12,9 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import rx.Observable;
-import rx.functions.Func1;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
+
 
 public class RxInAppBillingServiceConnection implements ServiceConnection {
 
@@ -45,13 +45,7 @@ public class RxInAppBillingServiceConnection implements ServiceConnection {
         }
 
         return inAppBillingServiceSubject
-                .filter(new Func1<IInAppBillingService, Boolean>() {
-                    @Override
-                    public Boolean call(IInAppBillingService inAppBillingService) {
-                        return inAppBillingService != null;
-                    }
-                })
-                .take(1)
-                .asObservable();
+                .filter(inAppBillingService -> inAppBillingService != null)
+                .take(1);
     }
 }

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import javax.inject.Inject;
 
@@ -14,9 +15,10 @@ import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+
 
 public class LoginInteractor {
 

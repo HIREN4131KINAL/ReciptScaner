@@ -16,7 +16,8 @@ import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * A no-op implementation of the {@link BackupProvider} contract to help us to avoid dealing with nulls
@@ -41,8 +42,8 @@ public class NoOpBackupProvider implements BackupProvider {
 
     @NonNull
     @Override
-    public Observable<List<RemoteBackupMetadata>> getRemoteBackups() {
-        return Observable.just(Collections.<RemoteBackupMetadata>emptyList());
+    public Single<List<RemoteBackupMetadata>> getRemoteBackups() {
+        return Single.just(Collections.<RemoteBackupMetadata>emptyList());
     }
 
     @Nullable
@@ -59,31 +60,31 @@ public class NoOpBackupProvider implements BackupProvider {
 
     @NonNull
     @Override
-    public Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
-        return Observable.just(false);
+    public Single<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData) {
+        return Single.just(false);
     }
 
     @NonNull
     @Override
-    public Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
-        return Observable.just(false);
+    public Single<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata) {
+        return Single.just(false);
     }
 
     @Override
-    public Observable<Boolean> clearCurrentBackupConfiguration() {
-        return Observable.just(false);
-    }
-
-    @NonNull
-    @Override
-    public Observable<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
-        return Observable.just(Collections.<File>emptyList());
+    public Single<Boolean> clearCurrentBackupConfiguration() {
+        return Single.just(false);
     }
 
     @NonNull
     @Override
-    public Observable<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
-        return Observable.just(Collections.<File>emptyList());
+    public Single<List<File>> downloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return Single.just(Collections.<File>emptyList());
+    }
+
+    @NonNull
+    @Override
+    public Single<List<File>> debugDownloadAllData(@NonNull RemoteBackupMetadata remoteBackupMetadata, @NonNull File downloadLocation) {
+        return Single.just(Collections.<File>emptyList());
     }
 
     @NonNull

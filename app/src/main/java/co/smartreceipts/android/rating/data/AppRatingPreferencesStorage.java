@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import rx.Single;
+import io.reactivex.Single;
 
 @ApplicationScope
 public class AppRatingPreferencesStorage implements AppRatingStorage {

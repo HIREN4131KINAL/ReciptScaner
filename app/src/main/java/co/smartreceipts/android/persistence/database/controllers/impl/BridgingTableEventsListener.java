@@ -6,13 +6,9 @@ import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.persistence.database.controllers.TableController;
 import co.smartreceipts.android.persistence.database.controllers.TableEventsListener;
-import co.smartreceipts.android.persistence.database.controllers.results.DeleteResult;
-import co.smartreceipts.android.persistence.database.controllers.results.GetResult;
-import co.smartreceipts.android.persistence.database.controllers.results.InsertResult;
-import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
-import rx.Scheduler;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.Scheduler;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 /**
  * A temporary class to bridge our refactoring work and avoid breaking changes while we get this all in place
@@ -23,7 +19,7 @@ public class BridgingTableEventsListener<ModelType> {
     private final TableController<ModelType> tableController;
     private final TableEventsListener<ModelType> listener;
     private final Scheduler observeOnScheduler;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     public BridgingTableEventsListener(@NonNull TableController<ModelType> tableController, @NonNull TableEventsListener<ModelType> listener,
                                        @NonNull Scheduler observeOnScheduler) {
@@ -33,61 +29,52 @@ public class BridgingTableEventsListener<ModelType> {
     }
 
     public final void subscribe() {
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(this.tableController.getStream()
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(this.tableController.getStream()
                 .observeOn(observeOnScheduler)
-                .subscribe(new Action1<GetResult<ModelType>>() {
-                    @Override
-                    public void call(GetResult<ModelType> getResult) {
-                        if (getResult.getThrowable() == null) {
-                            listener.onGetSuccess(getResult.get());
-                        } else {
-                            listener.onGetFailure(getResult.getThrowable());
-                        }
+                .subscribe(modelTypeGetResult -> {
+                    if (modelTypeGetResult.getThrowable() == null) {
+                        listener.onGetSuccess(modelTypeGetResult.get());
+                    } else {
+                        listener.onGetFailure(modelTypeGetResult.getThrowable());
                     }
                 }));
-        compositeSubscription.add(this.tableController.insertStream()
+
+        compositeDisposable.add(this.tableController.insertStream()
                 .observeOn(observeOnScheduler)
-                .subscribe(new Action1<InsertResult<ModelType>>() {
-                    @Override
-                    public void call(InsertResult<ModelType> insertResult) {
-                        if (insertResult.getThrowable() == null) {
-                            listener.onInsertSuccess(insertResult.get(), insertResult.getDatabaseOperationMetadata());
-                        } else {
-                            listener.onInsertFailure(insertResult.get(), insertResult.getThrowable(), insertResult.getDatabaseOperationMetadata());
-                        }
+                .subscribe(modelTypeInsertResult -> {
+                    if (modelTypeInsertResult.getThrowable() == null) {
+                        listener.onInsertSuccess(modelTypeInsertResult.get(), modelTypeInsertResult.getDatabaseOperationMetadata());
+                    } else {
+                        listener.onInsertFailure(modelTypeInsertResult.get(), modelTypeInsertResult.getThrowable(), modelTypeInsertResult.getDatabaseOperationMetadata());
                     }
                 }));
-        compositeSubscription.add(this.tableController.updateStream()
+
+        compositeDisposable.add(this.tableController.updateStream()
                 .observeOn(observeOnScheduler)
-                .subscribe(new Action1<UpdateResult<ModelType>>() {
-                    @Override
-                    public void call(UpdateResult<ModelType> updateResult) {
-                        if (updateResult.getThrowable() == null) {
-                            listener.onUpdateSuccess(updateResult.getOld(), updateResult.getNew(), updateResult.getDatabaseOperationMetadata());
-                        } else {
-                            listener.onUpdateFailure(updateResult.getOld(), updateResult.getThrowable(), updateResult.getDatabaseOperationMetadata());
-                        }
+                .subscribe(modelTypeUpdateResult -> {
+                    if (modelTypeUpdateResult.getThrowable() == null) {
+                        listener.onUpdateSuccess(modelTypeUpdateResult.getOld(), modelTypeUpdateResult.getNew(), modelTypeUpdateResult.getDatabaseOperationMetadata());
+                    } else {
+                        listener.onUpdateFailure(modelTypeUpdateResult.getOld(), modelTypeUpdateResult.getThrowable(), modelTypeUpdateResult.getDatabaseOperationMetadata());
                     }
                 }));
-        compositeSubscription.add(this.tableController.deleteStream()
+
+        compositeDisposable.add(this.tableController.deleteStream()
                 .observeOn(observeOnScheduler)
-                .subscribe(new Action1<DeleteResult<ModelType>>() {
-                    @Override
-                    public void call(DeleteResult<ModelType> deleteResult) {
-                        if (deleteResult.getThrowable() == null) {
-                            listener.onDeleteSuccess(deleteResult.get(), deleteResult.getDatabaseOperationMetadata());
-                        } else {
-                            listener.onDeleteFailure(deleteResult.get(), deleteResult.getThrowable(), deleteResult.getDatabaseOperationMetadata());
-                        }
+                .subscribe(modelTypeDeleteResult -> {
+                    if (modelTypeDeleteResult.getThrowable() == null) {
+                        listener.onDeleteSuccess(modelTypeDeleteResult.get(), modelTypeDeleteResult.getDatabaseOperationMetadata());
+                    } else {
+                        listener.onDeleteFailure(modelTypeDeleteResult.get(), modelTypeDeleteResult.getThrowable(), modelTypeDeleteResult.getDatabaseOperationMetadata());
                     }
                 }));
     }
 
     public void unsubscribe() {
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
+        if (compositeDisposable != null) {
+            compositeDisposable.clear();
         }
-        compositeSubscription = null;
+        compositeDisposable = null;
     }
 }

@@ -5,7 +5,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import com.hadisatrio.optional.Optional;
 
 import java.io.File;
 import java.sql.Date;
@@ -216,9 +217,8 @@ public class ReceiptsTable extends TripForeignKeyAbstractSqlTable<Receipt, Integ
         return receipt.getTrip();
     }
 
-    @Nullable
     @Override
-    public synchronized Receipt deleteBlocking(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    public synchronized Optional<Receipt> deleteBlocking(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
             return super.deleteBlocking(receipt, databaseOperationMetadata);
         } else {

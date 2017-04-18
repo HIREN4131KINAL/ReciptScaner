@@ -22,10 +22,9 @@ import co.smartreceipts.android.persistence.database.controllers.impl.TripTableC
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.sync.manual.ManualBackupAndRestoreTaskCache;
 import dagger.android.support.AndroidSupportInjection;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+
 
 public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragment {
 
@@ -40,7 +39,7 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     TripTableController tripTableController;
 
     private ManualBackupAndRestoreTaskCache manualBackupAndRestoreTaskCache;
-    private Subscription subscription;
+    private Disposable disposable;
 
     private Uri uri;
     private boolean overwrite;
@@ -88,39 +87,28 @@ public class ImportLocalBackupWorkerProgressDialogFragment extends DialogFragmen
     @Override
     public void onResume() {
         super.onResume();
-        subscription = manualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(uri, overwrite).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(@Nullable Boolean success) {
-                        if (success != null && success) {
-                            Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
-                            for (final Table table : persistenceManager.getDatabase().getTables()) {
-                                table.clearCache();
-                            }
-                            tripTableController.get();
-                            getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
-                        } else {
-                            Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+        disposable = manualBackupAndRestoreTaskCache.getManualRestoreTask().restoreData(uri, overwrite).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(success -> {
+                    if (success != null && success) {
+                        Toast.makeText(getActivity(), R.string.toast_import_complete, Toast.LENGTH_LONG).show();
+                        for (final Table table : persistenceManager.getDatabase().getTables()) {
+                            table.clearCache();
                         }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
+                        tripTableController.get();
+                        getActivity().finishAffinity(); // TODO: Fix this hack (for the settings import)
+                    } else {
                         Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
-                        dismiss();
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        dismiss();
-                    }
-                });
+                }, throwable -> {
+                    analytics.record(new ErrorEvent(ImportLocalBackupWorkerProgressDialogFragment.this, throwable));
+                    Toast.makeText(getActivity(), getString(R.string.IMPORT_ERROR), Toast.LENGTH_LONG).show();
+                    dismiss();
+                }, this::dismiss);
     }
 
     @Override
     public void onPause() {
-        subscription.unsubscribe();
+        disposable.dispose();
         super.onPause();
     }
 }

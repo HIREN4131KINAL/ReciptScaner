@@ -24,10 +24,9 @@ import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+
 
 public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
 
@@ -43,7 +42,7 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     BackupProvidersManager backupProvidersManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private Subscription subscription;
+    private Disposable disposable;
 
     private RemoteBackupMetadata backupMetadata;
 
@@ -102,57 +101,47 @@ public class DeleteRemoteBackupProgressDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        subscription = remoteBackupsDataCache.deleteBackup(backupMetadata).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean deleteSuccess) {
-                        if (deleteSuccess) {
-                            Logger.info(DeleteRemoteBackupProgressDialogFragment.this, "Successfully handled delete of {}", backupMetadata);
-                            if (backupMetadata != null) {
-                                Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_success), Toast.LENGTH_LONG).show();
-                                backupProvidersManager.markErrorResolved(SyncErrorType.UserDeletedRemoteData);
-                            }
-
-                            // Note: this is kind of hacky but should work
-                            remoteBackupsDataCache.clearGetBackupsResults();;
-                            final Fragment uncastedBackupsFragment = getFragmentManager().findFragmentByTag(BackupsFragment.class.getName());
-                            if (uncastedBackupsFragment instanceof BackupsFragment) {
-                                // If we're active, kick off a refresh directly in the fragment
-                                final BackupsFragment backupsFragment = (BackupsFragment) uncastedBackupsFragment;
-                                backupsFragment.updateViewsForProvider(SyncProvider.GoogleDrive);
-                            } else {
-                                // Kick off a refresh, so we catch it next time
-                                remoteBackupsDataCache.getBackups(SyncProvider.GoogleDrive);
-                            }
-                        } else {
-                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        analyticsManager.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
+        disposable = remoteBackupsDataCache.deleteBackup(backupMetadata)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(deleteSuccess -> {
+                    if (deleteSuccess) {
+                        Logger.info(DeleteRemoteBackupProgressDialogFragment.this, "Successfully handled delete of {}", backupMetadata);
                         if (backupMetadata != null) {
-                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_success), Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_failure), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_success), Toast.LENGTH_LONG).show();
+                            backupProvidersManager.markErrorResolved(SyncErrorType.UserDeletedRemoteData);
                         }
 
-                        dismiss();
+                        // Note: this is kind of hacky but should work
+                        remoteBackupsDataCache.clearGetBackupsResults();;
+                        final Fragment uncastedBackupsFragment = getFragmentManager().findFragmentByTag(BackupsFragment.class.getName());
+                        if (uncastedBackupsFragment instanceof BackupsFragment) {
+                            // If we're active, kick off a refresh directly in the fragment
+                            final BackupsFragment backupsFragment = (BackupsFragment) uncastedBackupsFragment;
+                            backupsFragment.updateViewsForProvider(SyncProvider.GoogleDrive);
+                        } else {
+                            // Kick off a refresh, so we catch it next time
+                            remoteBackupsDataCache.getBackups(SyncProvider.GoogleDrive);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        dismiss();
+                }, throwable -> {
+                    analyticsManager.record(new ErrorEvent(DeleteRemoteBackupProgressDialogFragment.this, throwable));
+                    if (backupMetadata != null) {
+                        Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_delete_toast_failure), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getContext(), getString(R.string.dialog_remote_backup_restore_toast_failure), Toast.LENGTH_LONG).show();
                     }
-                });
+
+                    dismiss();
+                }, this::dismiss);
     }
 
     @Override
     public void onPause() {
-        subscription.unsubscribe();
+        disposable.dispose();
         super.onPause();
     }
 }

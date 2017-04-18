@@ -42,10 +42,9 @@ import co.smartreceipts.android.sync.model.impl.IdentifierMap;
 import co.smartreceipts.android.sync.model.impl.MarkedForDeletionMap;
 import co.smartreceipts.android.sync.model.impl.SyncStatusMap;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import rx.Observable;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -141,12 +140,12 @@ public class ReceiptsTableTest {
         when(mTrip2.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
         when(mTrip3.getTripCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
 
-        when(mTripsTable.findByPrimaryKey(TRIP_1)).thenReturn(Observable.just(mTrip1));
-        when(mTripsTable.findByPrimaryKey(TRIP_2)).thenReturn(Observable.just(mTrip2));
-        when(mTripsTable.findByPrimaryKey(TRIP_3)).thenReturn(Observable.just(mTrip3));
+        when(mTripsTable.findByPrimaryKey(TRIP_1)).thenReturn(Single.just(mTrip1));
+        when(mTripsTable.findByPrimaryKey(TRIP_2)).thenReturn(Single.just(mTrip2));
+        when(mTripsTable.findByPrimaryKey(TRIP_3)).thenReturn(Single.just(mTrip3));
 
-        when(mCategoryTable.findByPrimaryKey(anyString())).thenReturn(Observable.just(mCategory));
-        when(mPaymentMethodTable.findByPrimaryKey(anyInt())).thenReturn(Observable.just(mPaymentMethod));
+        when(mCategoryTable.findByPrimaryKey(anyString())).thenReturn(Single.just(mCategory));
+        when(mPaymentMethodTable.findByPrimaryKey(anyInt())).thenReturn(Single.just(mPaymentMethod));
 
         when(mPersistenceManager.getPreferenceManager()).thenReturn(mPreferences);
         when(mPersistenceManager.getStorageManager()).thenReturn(mStorageManager);
@@ -168,8 +167,8 @@ public class ReceiptsTableTest {
                 .setCurrency(CURRENCY_CODE)
                 .setIsFullPage(false)
                 .setPaymentMethod(mPaymentMethod);
-        mReceipt1 = mReceiptsTable.insert(mBuilder.setName(NAME_1).setPrice(PRICE_1).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
-        mReceipt2 = mReceiptsTable.insert(mBuilder.setName(NAME_2).setPrice(PRICE_2).setTrip(mTrip2).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mReceipt1 = mReceiptsTable.insert(mBuilder.setName(NAME_1).setPrice(PRICE_1).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).blockingGet();
+        mReceipt2 = mReceiptsTable.insert(mBuilder.setName(NAME_2).setPrice(PRICE_2).setTrip(mTrip2).build(), new DatabaseOperationMetadata()).blockingGet();
     }
 
     @After
@@ -416,19 +415,19 @@ public class ReceiptsTableTest {
 
     @Test
     public void get() {
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2));
     }
 
     @Test
     public void getForTrip() {
         // Note: We're adding this one to trip 1
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(receipt);
 
-        final List<Receipt> list1 = mReceiptsTable.get(mTrip1).toBlocking().first();
-        final List<Receipt> list2 = mReceiptsTable.get(mTrip2).toBlocking().first();
-        final List<Receipt> list3 = mReceiptsTable.get(mTrip3).toBlocking().first();
+        final List<Receipt> list1 = mReceiptsTable.get(mTrip1).blockingGet();
+        final List<Receipt> list2 = mReceiptsTable.get(mTrip2).blockingGet();
+        final List<Receipt> list3 = mReceiptsTable.get(mTrip3).blockingGet();
         assertEquals(list1, Arrays.asList(mReceipt1, receipt));
         assertEquals(list2, Collections.singletonList(mReceipt2));
         assertEquals(list3, Collections.<Receipt>emptyList());
@@ -440,68 +439,70 @@ public class ReceiptsTableTest {
                 new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
                 new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
                 new Date(System.currentTimeMillis()));
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).setSyncState(syncStateForSyncedReceipt).build(), new DatabaseOperationMetadata(OperationFamilyType.Sync)).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip1).setSyncState(syncStateForSyncedReceipt).build(), new DatabaseOperationMetadata(OperationFamilyType.Sync)).blockingGet();
         assertNotNull(receipt);
 
-        final List<Receipt> list1 = mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive).toBlocking().first();
+        final List<Receipt> list1 = mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive).blockingGet();
         assertEquals(list1, Arrays.asList(mReceipt1, mReceipt2));
     }
 
     @Test
     public void insert() {
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(receipt);
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2, receipt));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Receipt receipt = mReceiptsTable.findByPrimaryKey(mReceipt1.getId()).toBlocking().first();
-        assertNotNull(receipt);
-        assertEquals(mReceipt1, receipt);
+        mReceiptsTable.findByPrimaryKey(mReceipt1.getId())
+                .test()
+                .assertNoErrors()
+                .assertResult(mReceipt1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Receipt receipt = mReceiptsTable.findByPrimaryKey(-1).toBlocking().first();
-        assertNull(receipt);
+        mReceiptsTable.findByPrimaryKey(-1)
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
     public void update() {
-        final Receipt updatedReceipt = mReceiptsTable.update(mReceipt1, mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Receipt updatedReceipt = mReceiptsTable.update(mReceipt1, mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(updatedReceipt);
         assertFalse(mReceipt1.equals(updatedReceipt));
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Arrays.asList(updatedReceipt, mReceipt2));
     }
 
     @Test
     public void deleteUnmarkedReceipt() {
-        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Collections.singletonList(mReceipt2));
 
-        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).blockingGet();
         assertEquals(tripReceipts, Collections.<Receipt>emptyList());
     }
 
     @Test
     public void deleteUnmarkedReceiptAfterCaching() {
-        mReceiptsTable.get(mTrip1).toBlocking().first();
-        mReceiptsTable.get(mTrip2).toBlocking().first();
-        mReceiptsTable.get(mTrip3).toBlocking().first();
+        mReceiptsTable.get(mTrip1).blockingGet();
+        mReceiptsTable.get(mTrip2).blockingGet();
+        mReceiptsTable.get(mTrip3).blockingGet();
 
-        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mReceipt1, mReceiptsTable.delete(mReceipt1, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Collections.singletonList(mReceipt2));
 
-        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        final List<Receipt> tripReceipts = mReceiptsTable.get(mTrip1).blockingGet();
         assertEquals(tripReceipts, Collections.<Receipt>emptyList());
     }
 
@@ -511,43 +512,43 @@ public class ReceiptsTableTest {
                 new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
                 new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
                 new Date(System.currentTimeMillis()));
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(receipt);
 
-        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2));
 
-        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).blockingGet();
         assertEquals(trip1Receipts, Collections.singletonList(mReceipt1));
 
-        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).toBlocking().first();
+        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).blockingGet();
         assertEquals(trip3Receipts, Collections.<Receipt>emptyList());
     }
 
     @Test
     public void deleteMarkedReceiptAfterCaching() {
-        mReceiptsTable.get(mTrip1).toBlocking().first();
-        mReceiptsTable.get(mTrip2).toBlocking().first();
-        mReceiptsTable.get(mTrip3).toBlocking().first();
+        mReceiptsTable.get(mTrip1).blockingGet();
+        mReceiptsTable.get(mTrip2).blockingGet();
+        mReceiptsTable.get(mTrip3).blockingGet();
 
         final SyncState syncState = new DefaultSyncState(new IdentifierMap(Collections.singletonMap(SyncProvider.GoogleDrive, new Identifier("id"))),
                 new SyncStatusMap(Collections.singletonMap(SyncProvider.GoogleDrive, false)),
                 new MarkedForDeletionMap(Collections.singletonMap(SyncProvider.GoogleDrive, true)),
                 new Date(System.currentTimeMillis()));
-        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Receipt receipt = mReceiptsTable.insert(mBuilder.setName(NAME_3).setPrice(PRICE_3).setTrip(mTrip3).setSyncState(syncState).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(receipt);
 
-        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(receipt, mReceiptsTable.delete(receipt, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Receipt> receipts = mReceiptsTable.get().toBlocking().first();
+        final List<Receipt> receipts = mReceiptsTable.get().blockingGet();
         assertEquals(receipts, Arrays.asList(mReceipt1, mReceipt2));
 
-        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).toBlocking().first();
+        final List<Receipt> trip1Receipts = mReceiptsTable.get(mTrip1).blockingGet();
         assertEquals(trip1Receipts, Collections.singletonList(mReceipt1));
 
-        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).toBlocking().first();
+        final List<Receipt> trip3Receipts = mReceiptsTable.get(mTrip3).blockingGet();
         assertEquals(trip3Receipts, Collections.<Receipt>emptyList());
     }
 

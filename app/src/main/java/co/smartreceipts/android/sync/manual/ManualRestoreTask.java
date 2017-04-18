@@ -16,11 +16,10 @@ import java.util.Map;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
-import rx.schedulers.Schedulers;
-import rx.subjects.ReplaySubject;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.ReplaySubject;
 import wb.android.storage.SDCardFileManager;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
@@ -50,85 +49,78 @@ public class ManualRestoreTask {
         ReplaySubject<Boolean> restoreReplaySubject = mRestoreSubjectMap.get(restoreRequest);
         if (restoreReplaySubject == null) {
             restoreReplaySubject = ReplaySubject.create();
-            restoreDataToObservable(uri, overwrite)
+            restoreDataToSingle(uri, overwrite)
                     .observeOn(mObserveOnScheduler)
                     .subscribeOn(mSubscribeOnScheduler)
+                    .toObservable()
                     .subscribe(restoreReplaySubject);
             mRestoreSubjectMap.put(restoreRequest, restoreReplaySubject);
         }
         return restoreReplaySubject;
     }
 
-    public Observable<Boolean> restoreDataToObservable(@NonNull final Uri uri, final boolean overwrite) {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                Logger.debug(this, "Starting log task at {}", System.currentTimeMillis());
-                Logger.debug(this, "Uri: {}", uri);
-                try {
-                    SDCardFileManager external = mPersistenceManager.getExternalStorageManager();
-                    if (external.getFile(ManualBackupTask.DATABASE_EXPORT_NAME).delete()); {
-                        Logger.debug(this, "Deleting existing backup database");
-                    }
-                    String scheme = uri.getScheme();
-                    if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
-                        Logger.debug(this, "Processing URI with accepted scheme.");
-                        InputStream is = null;
-                        try {
-                            ContentResolver cr = mContext.getContentResolver();
-                            is = cr.openInputStream(uri);
-                            File dest = external.getFile("smart.zip");
-                            external.delete(dest);
-                            if (!external.copy(is, dest, true)) {
-                                Logger.debug(this, "Copy failed.");
-                                subscriber.onNext(false);
-                                subscriber.onCompleted();
-                            } else {
-                                final boolean importResult = importAll(external, dest, overwrite);
-                                external.delete(dest);
-                                subscriber.onNext(importResult);
-                                subscriber.onCompleted();
-                            }
-                        }
-                        catch (IOException e) {
-                            Logger.error(ManualRestoreTask.this, "Caught exception during import at [1]", e);
-                            subscriber.onError(e);
-                        }
-                        finally {
-                            StorageManager.closeQuietly(is);
-                        }
-                    }
-                    else {
-                        Logger.debug(this, "Processing URI with unknown scheme.");
-                        File src = null;
+    public Single<Boolean> restoreDataToSingle(@NonNull final Uri uri, final boolean overwrite) {
+        return Single.create(emitter -> {
+            Logger.debug(this, "Starting log task at {}", System.currentTimeMillis());
+            Logger.debug(this, "Uri: {}", uri);
+            try {
+                SDCardFileManager external = mPersistenceManager.getExternalStorageManager();
+                if (external.getFile(ManualBackupTask.DATABASE_EXPORT_NAME).delete()); {
+                    Logger.debug(this, "Deleting existing backup database");
+                }
+                String scheme = uri.getScheme();
+                if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
+                    Logger.debug(this, "Processing URI with accepted scheme.");
+                    InputStream is = null;
+                    try {
+                        ContentResolver cr = mContext.getContentResolver();
+                        is = cr.openInputStream(uri);
                         File dest = external.getFile("smart.zip");
                         external.delete(dest);
-                        if (uri.getPath() != null) {
-                            src = new File(uri.getPath());
-                        }
-                        else if (uri.getEncodedPath() != null) {
-                            src = new File(uri.getEncodedPath());
-                        }
-                        if (src == null || !src.exists()) {
-                            Logger.debug(ManualRestoreTask.this, "Unknown source.");
-                            subscriber.onNext(false);
-                            subscriber.onCompleted();
-                        }
-                        if (!external.copy(src, dest, true)) {
-                            Logger.debug(ManualRestoreTask.this, "Copy failed.");
-                            subscriber.onNext(false);
-                            subscriber.onCompleted();
+                        if (!external.copy(is, dest, true)) {
+                            Logger.debug(this, "Copy failed.");
+                            emitter.onSuccess(false);
                         } else {
                             final boolean importResult = importAll(external, dest, overwrite);
                             external.delete(dest);
-                            subscriber.onNext(importResult);
-                            subscriber.onCompleted();
+                            emitter.onSuccess(importResult);
                         }
                     }
-                } catch (IOException | SDCardStateException e) {
-                    Logger.error(ManualRestoreTask.this, "Caught exception during import at [2]", e);
-                    subscriber.onError(e);
+                    catch (IOException e) {
+                        Logger.error(ManualRestoreTask.this, "Caught exception during import at [1]", e);
+                        emitter.onError(e);
+                    }
+                    finally {
+                        StorageManager.closeQuietly(is);
+                    }
                 }
+                else {
+                    Logger.debug(this, "Processing URI with unknown scheme.");
+                    File src = null;
+                    File dest = external.getFile("smart.zip");
+                    external.delete(dest);
+                    if (uri.getPath() != null) {
+                        src = new File(uri.getPath());
+                    }
+                    else if (uri.getEncodedPath() != null) {
+                        src = new File(uri.getEncodedPath());
+                    }
+                    if (src == null || !src.exists()) {
+                        Logger.debug(ManualRestoreTask.this, "Unknown source.");
+                        emitter.onSuccess(false);
+                    }
+                    if (!external.copy(src, dest, true)) {
+                        Logger.debug(ManualRestoreTask.this, "Copy failed.");
+                        emitter.onSuccess(false);
+                    } else {
+                        final boolean importResult = importAll(external, dest, overwrite);
+                        external.delete(dest);
+                        emitter.onSuccess(importResult);
+                    }
+                }
+            } catch (IOException | SDCardStateException e) {
+                Logger.error(ManualRestoreTask.this, "Caught exception during import at [2]", e);
+                emitter.onError(e);
             }
         });
     }

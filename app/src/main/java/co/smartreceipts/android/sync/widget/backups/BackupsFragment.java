@@ -23,8 +23,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
@@ -39,13 +37,12 @@ import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
-import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import dagger.android.support.AndroidSupportInjection;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
@@ -67,7 +64,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     PurchaseManager purchaseManager;
 
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
     private NavigationHandler navigationHandler;
 
     private Toolbar toolbar;
@@ -184,7 +181,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
         }
-        compositeSubscription = new CompositeSubscription();
+        compositeDisposable = new CompositeDisposable();
         updateViewsForProvider(backupProvidersManager.getSyncProvider());
         backupProvidersManager.registerChangeListener(this);
     }
@@ -213,15 +210,15 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onPause() {
         backupProvidersManager.unregisterChangeListener(this);
-        compositeSubscription.unsubscribe();
+        compositeDisposable.dispose();
         super.onPause();
     }
 
     @Override
     public void onProviderChanged(@NonNull SyncProvider newProvider) {
         // Clear out any existing subscriptions when we change providers
-        compositeSubscription.unsubscribe();
-        compositeSubscription = new CompositeSubscription();
+        compositeDisposable.dispose();
+        compositeDisposable = new CompositeDisposable();
         remoteBackupsDataCache.clearGetBackupsResults();
 
         updateViewsForProvider(newProvider);
@@ -243,21 +240,19 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 throw new IllegalArgumentException("Unsupported sync provider type was specified");
             }
 
-            compositeSubscription.add(remoteBackupsDataCache.getBackups(syncProvider)
-                    .subscribe(new Action1<List<RemoteBackupMetadata>>() {
-                        @Override
-                        public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
-                            if (remoteBackupMetadatas.isEmpty()) {
-                                existingBackupsSection.setVisibility(View.GONE);
-                            } else {
-                                existingBackupsSection.setVisibility(View.VISIBLE);
-                            }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter =
-                                    new RemoteBackupsListAdapter(headerView, getActivity(),
-                                            backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager, remoteBackupMetadatas);
-                            recyclerView.setAdapter(remoteBackupsListAdapter);
+            compositeDisposable.add(remoteBackupsDataCache.getBackups(syncProvider)
+                    .subscribe(remoteBackupMetadatas -> {
+                        if (remoteBackupMetadatas.isEmpty()) {
+                            existingBackupsSection.setVisibility(View.GONE);
+                        } else {
+                            existingBackupsSection.setVisibility(View.VISIBLE);
                         }
-                    }));
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter =
+                                new RemoteBackupsListAdapter(headerView, getActivity(),
+                                        backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager, remoteBackupMetadatas);
+                        recyclerView.setAdapter(remoteBackupsListAdapter);
+                    })
+            );
         }
     }
 

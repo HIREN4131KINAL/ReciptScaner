@@ -1,6 +1,7 @@
 package co.smartreceipts.android.aws.cognito;
 
 import com.amazonaws.regions.Regions;
+import com.hadisatrio.optional.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class SmartReceiptsAuthenticationProviderTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(cognitoIdentityProvider.getCachedCognitoToken()).thenReturn(cognitoToken);
+        when(cognitoIdentityProvider.getCachedCognitoToken()).thenReturn(Optional.of(cognitoToken));
         when(cognitoIdentityProvider.synchronouslyRefreshCognitoToken()).thenReturn(cognitoToken);
         when(cognitoToken.getCognitoToken()).thenReturn(TOKEN);
         when(cognitoToken.getIdentityId()).thenReturn(IDENTITY_ID);
@@ -54,7 +55,7 @@ public class SmartReceiptsAuthenticationProviderTest {
 
     @Test
     public void getNullIdentityId() {
-        when(cognitoIdentityProvider.getCachedCognitoToken()).thenReturn(null);
+        when(cognitoIdentityProvider.getCachedCognitoToken()).thenReturn(Optional.absent());
         assertEquals(null, authenticationProvider.getIdentityId());
     }
 

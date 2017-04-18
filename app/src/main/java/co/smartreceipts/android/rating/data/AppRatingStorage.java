@@ -1,6 +1,6 @@
 package co.smartreceipts.android.rating.data;
 
-import rx.Single;
+import io.reactivex.Single;
 
 public interface AppRatingStorage {
 

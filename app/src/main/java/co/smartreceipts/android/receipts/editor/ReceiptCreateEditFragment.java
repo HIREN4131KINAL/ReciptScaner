@@ -72,11 +72,11 @@ import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.NetworkRequestAwareEditText;
 import co.smartreceipts.android.widget.UserSelectionTrackingOnItemSelectedListener;
 import dagger.android.support.AndroidSupportInjection;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Response;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import wb.android.autocomplete.AutoCompleteAdapter;
 import wb.android.flex.Flex;
 
@@ -126,7 +126,7 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
     private View focusedView;
 
     // Rx
-    private rx.Subscription idSubscription;
+    private Disposable idDisposable;
     private TableEventsListener<Category> categoryTableEventsListener;
     private TableEventsListener<PaymentMethod> paymentMethodTableEventsListener;
 
@@ -552,18 +552,15 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         }
 
         if (isNewReceipt && presenter.isShowReceiptId()) {
-            idSubscription = database.getNextReceiptAutoIncremenetIdHelper()
+            idDisposable = database.getNextReceiptAutoIncremenetIdHelper()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<Integer>() {
-                        @Override
-                        public void call(Integer integer) {
-                            if (isResumed()) {
-                                final ActionBar actionBar = getSupportActionBar();
-                                if (actionBar != null) {
-                                    final String titleWithId = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), integer);
-                                    actionBar.setTitle(titleWithId);
-                                }
+                    .subscribe(receiptId -> {
+                        if (isResumed()) {
+                            final ActionBar bar = getSupportActionBar();
+                            if (bar != null) {
+                                final String titleWithId = String.format(getFlexString(R.string.DIALOG_RECEIPTMENU_TITLE_NEW_ID), receiptId);
+                                bar.setTitle(titleWithId);
                             }
                         }
                     });
@@ -668,9 +665,9 @@ public class ReceiptCreateEditFragment extends WBFragment implements View.OnFocu
         if (receiptsCommentAutoCompleteAdapter != null) {
             receiptsCommentAutoCompleteAdapter.onPause();
         }
-        if (idSubscription != null) {
-            idSubscription.unsubscribe();
-            idSubscription = null;
+        if (idDisposable != null) {
+            idDisposable.dispose();
+            idDisposable = null;
         }
 
         // Dismiss the soft keyboard

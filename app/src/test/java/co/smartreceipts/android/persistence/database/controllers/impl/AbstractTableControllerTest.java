@@ -18,9 +18,10 @@ import co.smartreceipts.android.persistence.database.controllers.TableEventsList
 import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
-import rx.Observable;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
+import io.reactivex.Completable;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -66,7 +67,7 @@ public class AbstractTableControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mAbstractTableController = new AbstractTableControllerTestImpl(mTable, mTableActionAlterations, mAnalytics, Schedulers.immediate(), Schedulers.immediate());
+        mAbstractTableController = new AbstractTableControllerTestImpl(mTable, mTableActionAlterations, mAnalytics, Schedulers.trampoline(), Schedulers.trampoline());
         mAbstractTableController.subscribe(mListener1);
         mAbstractTableController.subscribe(mListener2);
         mAbstractTableController.subscribe(mListener3);
@@ -75,9 +76,9 @@ public class AbstractTableControllerTest {
     @Test
     public void onGetSuccess() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
-        when(mTable.get()).thenReturn(Observable.just(objects));
-        when(mTableActionAlterations.postGet(objects)).thenReturn(Observable.just(objects));
+        when(mTableActionAlterations.preGet()).thenReturn(Completable.complete());
+        when(mTable.get()).thenReturn(Single.just(objects));
+        when(mTableActionAlterations.postGet(objects)).thenReturn(Single.just(objects));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
@@ -91,9 +92,9 @@ public class AbstractTableControllerTest {
     public void onPreGetException() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
         final Exception e = new Exception();
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>error(e));
-        when(mTable.get()).thenReturn(Observable.just(objects));
-        when(mTableActionAlterations.postGet(objects)).thenReturn(Observable.just(objects));
+        when(mTableActionAlterations.preGet()).thenReturn(Completable.error(e));
+        when(mTable.get()).thenReturn(Single.just(objects));
+        when(mTableActionAlterations.postGet(objects)).thenReturn(Single.just(objects));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
@@ -108,9 +109,9 @@ public class AbstractTableControllerTest {
     public void onGetException() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
         final Exception e = new Exception();
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
-        when(mTable.get()).thenReturn(Observable.<List<Object>>error(e));
-        when(mTableActionAlterations.postGet(objects)).thenReturn(Observable.just(objects));
+        when(mTableActionAlterations.preGet()).thenReturn(Completable.complete());
+        when(mTable.get()).thenReturn(Single.error(e));
+        when(mTableActionAlterations.postGet(objects)).thenReturn(Single.just(objects));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
@@ -124,9 +125,9 @@ public class AbstractTableControllerTest {
     @Test
     public void onPostGetException() throws Exception {
         final List<Object> objects = Arrays.asList(new Object(), new Object(), new Object());
-        when(mTableActionAlterations.preGet()).thenReturn(Observable.<Void>just(null));
-        when(mTable.get()).thenReturn(Observable.just(objects));
-        when(mTableActionAlterations.postGet(objects)).thenReturn(Observable.<List<Object>>error(new Exception("")));
+        when(mTableActionAlterations.preGet()).thenReturn(Completable.complete());
+        when(mTable.get()).thenReturn(Single.just(objects));
+        when(mTableActionAlterations.postGet(objects)).thenReturn(Single.error(new Exception("")));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.get();
@@ -141,9 +142,9 @@ public class AbstractTableControllerTest {
     public void onInsertSuccess() throws Exception {
         final Object insertItem = new Object();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.just(insertItem));
-        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Observable.just(insertItem));
-        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Observable.just(insertItem));
+        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Single.just(insertItem));
+        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Single.just(insertItem));
+        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Single.just(insertItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
@@ -158,9 +159,9 @@ public class AbstractTableControllerTest {
         final Object insertItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.error(e));
-        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Observable.just(insertItem));
-        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Observable.just(insertItem));
+        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Single.error(e));
+        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Single.just(insertItem));
+        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Single.just(insertItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
@@ -176,9 +177,9 @@ public class AbstractTableControllerTest {
         final Object insertItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.just(insertItem));
-        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Observable.error(e));
-        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Observable.just(insertItem));
+        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Single.just(insertItem));
+        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Single.error(e));
+        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Single.just(insertItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
@@ -194,9 +195,9 @@ public class AbstractTableControllerTest {
         final Object insertItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Observable.just(insertItem));
-        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Observable.just(insertItem));
-        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Observable.error(e));
+        when(mTableActionAlterations.preInsert(insertItem)).thenReturn(Single.just(insertItem));
+        when(mTable.insert(insertItem, databaseOperationMetadata)).thenReturn(Single.just(insertItem));
+        when(mTableActionAlterations.postInsert(insertItem)).thenReturn(Single.error(e));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.insert(insertItem, databaseOperationMetadata);
@@ -213,9 +214,9 @@ public class AbstractTableControllerTest {
         final Object oldItem = new Object();
         final Object newItem = new Object();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
-        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Observable.just(newItem));
-        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
+        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
+        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Single.just(newItem));
+        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
@@ -231,9 +232,9 @@ public class AbstractTableControllerTest {
         final Object newItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.error(e));
-        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Observable.just(newItem));
-        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
+        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Single.error(e));
+        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Single.just(newItem));
+        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
@@ -250,9 +251,9 @@ public class AbstractTableControllerTest {
         final Object newItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
-        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Observable.error(e));
-        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
+        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
+        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Single.error(e));
+        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
@@ -269,9 +270,9 @@ public class AbstractTableControllerTest {
         final Object newItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Observable.just(newItem));
-        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Observable.just(newItem));
-        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Observable.error(e));
+        when(mTableActionAlterations.preUpdate(oldItem, newItem)).thenReturn(Single.just(newItem));
+        when(mTable.update(oldItem, newItem, databaseOperationMetadata)).thenReturn(Single.just(newItem));
+        when(mTableActionAlterations.postUpdate(oldItem, newItem)).thenReturn(Single.error(e));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.update(oldItem, newItem, databaseOperationMetadata);
@@ -288,9 +289,9 @@ public class AbstractTableControllerTest {
         final Object deleteCandidateItem = new Object();
         final Object deletedItem = new Object();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
-        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
-        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Observable.just(deletedItem));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Single.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Single.just(deletedItem));
+        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Single.just(deletedItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
@@ -306,9 +307,9 @@ public class AbstractTableControllerTest {
         final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.error(e));
-        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
-        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Observable.just(deletedItem));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Single.error(e));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Single.just(deletedItem));
+        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Single.just(deletedItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
@@ -325,9 +326,9 @@ public class AbstractTableControllerTest {
         final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
-        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.error(e));
-        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Observable.just(deletedItem));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Single.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Single.error(e));
+        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Single.just(deletedItem));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);
@@ -344,9 +345,9 @@ public class AbstractTableControllerTest {
         final Object deletedItem = new Object();
         final Exception e = new Exception();
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Observable.just(deleteCandidateItem));
-        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Observable.just(deletedItem));
-        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Observable.error(e));
+        when(mTableActionAlterations.preDelete(deleteCandidateItem)).thenReturn(Single.just(deleteCandidateItem));
+        when(mTable.delete(deleteCandidateItem, databaseOperationMetadata)).thenReturn(Single.just(deletedItem));
+        when(mTableActionAlterations.postDelete(deletedItem)).thenReturn(Single.error(e));
 
         mAbstractTableController.unsubscribe(mListener2);
         mAbstractTableController.delete(deleteCandidateItem, databaseOperationMetadata);

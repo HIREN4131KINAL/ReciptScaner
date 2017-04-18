@@ -6,20 +6,16 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
-import java.util.Set;
-
 import javax.inject.Inject;
 
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.purchases.PurchaseEventsListener;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.apis.MobileAppPurchasesService;
 import co.smartreceipts.android.purchases.apis.PurchaseRequest;
-import co.smartreceipts.android.purchases.apis.PurchaseResponse;
 import co.smartreceipts.android.purchases.model.ConsumablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
@@ -27,13 +23,10 @@ import co.smartreceipts.android.purchases.model.PurchaseFamily;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+
 
 @ApplicationScope
 public class OcrPurchaseTracker implements PurchaseEventsListener {
@@ -68,51 +61,27 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
     public void initialize() {
         Logger.info(this, "Initializing...");
         this.purchaseManager.addEventListener(this);
+
         this.identityManager.isLoggedInStream()
                 .subscribeOn(subscribeOnScheduler)
-                .filter(new Func1<Boolean, Boolean>() {
-                    @Override
-                    public Boolean call(Boolean isLoggedIn) {
-                        return isLoggedIn;
-                    }
+                .filter(isLoggedIn -> isLoggedIn)
+                .flatMap(aBoolean -> {
+                    // Attempt to update our latest scan count
+                    return fetchAndPersistAvailableRecognitions();
                 })
-                .flatMap(new Func1<Boolean, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(Boolean aBoolean) {
-                        // Attempt to update our latest scan count
-                        return fetchAndPersistAvailableRecognitions();
-                    }
-                })
-                .flatMap(new Func1<Object, Observable<Set<ManagedProduct>>>() {
-                    @Override
-                    public Observable<Set<ManagedProduct>> call(Object next) {
-                        return purchaseManager.getAllOwnedPurchases();
-                    }
-                })
-                .flatMap(new Func1<Set<ManagedProduct>, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(Set<ManagedProduct> managedProducts) {
-                        for (final ManagedProduct managedProduct : managedProducts) {
+                .flatMap(integer -> purchaseManager.getAllOwnedPurchases())
+                .flatMap(managedProducts -> {
+                     for (final ManagedProduct managedProduct : managedProducts) {
                             if (PurchaseFamily.Ocr.equals(managedProduct.getInAppPurchase().getPurchaseFamily())) {
-                                if (managedProduct instanceof ConsumablePurchase) {
-                                    return uploadOcrPurchase((ConsumablePurchase) managedProduct);
-                                }
+                            if (managedProduct instanceof ConsumablePurchase) {
+                                return uploadOcrPurchase((ConsumablePurchase) managedProduct);
                             }
                         }
-                        return Observable.empty();
                     }
+                    return Observable.empty();
                 })
-                .subscribe(new Action1<Object>() {
-                    @Override
-                    public void call(Object next) {
-                        Logger.info(OcrPurchaseTracker.this, "Successfully initialized");
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.error(OcrPurchaseTracker.this, "Failed to initialize.", throwable);
-                    }
-                });
+                .subscribe(o -> Logger.info(OcrPurchaseTracker.this, "Successfully initialized"),
+                        throwable -> Logger.error(OcrPurchaseTracker.this, "Failed to initialize.", throwable));
     }
 
     @Override
@@ -123,34 +92,12 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
                 final ConsumablePurchase consumablePurchase = (ConsumablePurchase) managedProduct;
                 this.identityManager.isLoggedInStream()
                         .subscribeOn(subscribeOnScheduler)
-                        .filter(new Func1<Boolean, Boolean>() {
-                            @Override
-                            public Boolean call(Boolean isLoggedIn) {
-                                return isLoggedIn;
-                            }
-                        })
-                        .flatMap(new Func1<Boolean, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Boolean aBoolean) {
-                                return uploadOcrPurchase(consumablePurchase);
-                            }
-                        })
-                        .subscribe(new Subscriber<Object>() {
-                            @Override
-                            public void onCompleted() {
-                                Logger.info(OcrPurchaseTracker.this, "Successfully uploaded and consumed purchase of {}.", consumablePurchase.getInAppPurchase());
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                Logger.error(OcrPurchaseTracker.this, "Failed to upload purchase of " + consumablePurchase.getInAppPurchase(), e);
-                            }
-
-                            @Override
-                            public void onNext(Object o) {
-
-                            }
-                        });
+                        .filter(isLoggedIn -> isLoggedIn)
+                        .flatMap(aBoolean -> uploadOcrPurchase(consumablePurchase))
+                        .subscribe(o -> { /*onNext*/ },
+                                throwable -> Logger.error(OcrPurchaseTracker.this, "Failed to upload purchase of " + consumablePurchase.getInAppPurchase(), throwable),
+                                () -> Logger.info(OcrPurchaseTracker.this, "Successfully uploaded and consumed purchase of {}.", consumablePurchase.getInAppPurchase())
+                        );
             }
         }
     }
@@ -202,58 +149,38 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
             throw new IllegalArgumentException("Unsupported purchase type: " + consumablePurchase.getInAppPurchase());
         }
         Logger.info(this, "Uploading purchase: {}", consumablePurchase.getInAppPurchase());
-        return serviceManager.getService(MobileAppPurchasesService.class).addPurchase(new PurchaseRequest(consumablePurchase, GOAL))
-                .flatMap(new Func1<PurchaseResponse, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(PurchaseResponse purchaseResponse) {
-                        Logger.debug(OcrPurchaseTracker.this, "Received purchase response of {}", purchaseResponse);
-                        return purchaseManager.consumePurchase(consumablePurchase)
-                                .toObservable();
-                    }
-                })
-                .flatMap(new Func1<Object, Observable<?>>() {
-                    @Override
-                    public Observable<?> call(Object next) {
-                        return fetchAndPersistAvailableRecognitions();
-                    }
-                });
 
+        return serviceManager.getService(MobileAppPurchasesService.class).addPurchase(new PurchaseRequest(consumablePurchase, GOAL))
+                .flatMapCompletable(purchaseResponse -> {
+                    Logger.debug(OcrPurchaseTracker.this, "Received purchase response of {}", purchaseResponse);
+                    return purchaseManager.consumePurchase(consumablePurchase);
+                })
+                .toObservable()
+                .flatMap(o -> fetchAndPersistAvailableRecognitions());
     }
 
     @NonNull
     private Observable<Integer> fetchAndPersistAvailableRecognitions() {
         return this.identityManager.getMe()
                 .subscribeOn(subscribeOnScheduler)
-                .flatMap(new Func1<MeResponse, Observable<Integer>>() {
-                    @Override
-                    public Observable<Integer> call(MeResponse meResponse) {
-                        if (meResponse != null && meResponse.getUser() != null) {
-                            return Observable.just(meResponse.getUser().getRecognitionsAvailable());
-                        } else {
-                            return Observable.error(new ApiValidationException("Failed to get a user response back"));
-                        }
+                .flatMap(meResponse -> {
+                    if (meResponse != null && meResponse.getUser() != null) {
+                        return Observable.just(meResponse.getUser().getRecognitionsAvailable());
+                    } else {
+                        return Observable.error(new ApiValidationException("Failed to get a user response back"));
                     }
                 })
-                .doOnNext(new Action1<Integer>() {
-                    @Override
-                    public void call(Integer recognitionsAvailable) {
-                        if (recognitionsAvailable != null) {
-                            localOcrScansTracker.setRemainingScans(recognitionsAvailable);
-
-                        }
+                .doOnNext(recognitionsAvailable -> {
+                    if (recognitionsAvailable != null) {
+                        localOcrScansTracker.setRemainingScans(recognitionsAvailable);
                     }
                 })
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
+                .doOnError(throwable -> {
                         Logger.error(OcrPurchaseTracker.this, "Failed to get the available OCR scans", throwable);
                     }
                 })
-                .onErrorReturn(new Func1<Throwable, Integer>() {
-                    @Override
-                    public Integer call(Throwable throwable) {
-                        return 0; // ignore errors and keep moving to get the owned purchases
-                    }
+                .onErrorReturn(throwable -> {
+                    return 0; // ignore errors and keep moving to get the owned purchases
                 });
     }
 }

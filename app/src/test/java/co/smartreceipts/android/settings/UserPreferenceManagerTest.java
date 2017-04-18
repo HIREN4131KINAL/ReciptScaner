@@ -16,8 +16,7 @@ import java.util.Locale;
 
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.TestUtils;
-import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -36,7 +35,7 @@ public class UserPreferenceManagerTest {
     public void setUp() {
         defaultLocale = Locale.getDefault();
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
-        userPreferenceManager = new UserPreferenceManager(RuntimeEnvironment.application, preferences, Schedulers.immediate());
+        userPreferenceManager = new UserPreferenceManager(RuntimeEnvironment.application, preferences, Schedulers.trampoline());
     }
 
     @After
@@ -72,11 +71,11 @@ public class UserPreferenceManagerTest {
         final int intVal = RuntimeEnvironment.application.getResources().getInteger(intPreference.getDefaultValue());
         assertEquals(intVal, (long) userPreferenceManager.get(intPreference));
 
-        final TestSubscriber<Integer> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.getObservable(intPreference).subscribe(testSubscriber);
-        testSubscriber.assertValue(intVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.getObservable(intPreference)
+                .test()
+                .assertValue(intVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -85,11 +84,11 @@ public class UserPreferenceManagerTest {
         final boolean boolVal = RuntimeEnvironment.application.getResources().getBoolean(booleanPreference.getDefaultValue());
         assertEquals(boolVal, userPreferenceManager.get(booleanPreference));
 
-        final TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.getObservable(booleanPreference).subscribe(testSubscriber);
-        testSubscriber.assertValue(boolVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.getObservable(booleanPreference)
+                .test()
+                .assertValue(boolVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -98,11 +97,11 @@ public class UserPreferenceManagerTest {
         final String stringVal = RuntimeEnvironment.application.getString(stringPreference.getDefaultValue());
         assertEquals(stringVal, userPreferenceManager.get(stringPreference));
 
-        final TestSubscriber<String> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.getObservable(stringPreference).subscribe(testSubscriber);
-        testSubscriber.assertValue(stringVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.getObservable(stringPreference)
+                .test()
+                .assertValue(stringVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -114,11 +113,11 @@ public class UserPreferenceManagerTest {
 
         assertEquals(floatVal, userPreferenceManager.get(floatPreference), TestUtils.EPSILON);
 
-        final TestSubscriber<Float> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.getObservable(floatPreference).subscribe(testSubscriber);
-        testSubscriber.assertValue(floatVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.getObservable(floatPreference)
+                .test()
+                .assertValue(floatVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -129,11 +128,11 @@ public class UserPreferenceManagerTest {
         userPreferenceManager.set(intPreference, 999);
         assertEquals(intVal, (long) userPreferenceManager.get(intPreference));
 
-        final TestSubscriber<Integer> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.setObservable(intPreference, intVal).subscribe(testSubscriber);
-        testSubscriber.assertValue(intVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.setObservable(intPreference, intVal)
+                .test()
+                .assertValue(intVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -144,11 +143,11 @@ public class UserPreferenceManagerTest {
         userPreferenceManager.set(booleanPreference, boolVal);
         assertEquals(boolVal, userPreferenceManager.get(booleanPreference));
 
-        final TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.setObservable(booleanPreference, boolVal).subscribe(testSubscriber);
-        testSubscriber.assertValue(boolVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.setObservable(booleanPreference, boolVal)
+                .test()
+                .assertValue(boolVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -159,11 +158,11 @@ public class UserPreferenceManagerTest {
         userPreferenceManager.set(stringPreference, stringVal);
         assertEquals(stringVal, userPreferenceManager.get(stringPreference));
 
-        final TestSubscriber<String> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.setObservable(stringPreference, stringVal).subscribe(testSubscriber);
-        testSubscriber.assertValue(stringVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.setObservable(stringPreference, stringVal)
+                .test()
+                .assertValue(stringVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -174,11 +173,11 @@ public class UserPreferenceManagerTest {
         userPreferenceManager.set(floatPreference, floatVal);
         assertEquals(floatVal, userPreferenceManager.get(floatPreference), TestUtils.EPSILON);
 
-        final TestSubscriber<Float> testSubscriber = new TestSubscriber<>();
-        userPreferenceManager.setObservable(floatPreference, floatVal).subscribe(testSubscriber);
-        testSubscriber.assertValue(floatVal);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        userPreferenceManager.setObservable(floatPreference, floatVal)
+                .test()
+                .assertValue(floatVal)
+                .assertComplete()
+                .assertNoErrors();
     }
 
 }

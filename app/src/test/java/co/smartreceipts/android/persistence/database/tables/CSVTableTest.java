@@ -34,7 +34,6 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -84,8 +83,8 @@ public class CSVTableTest {
 
         // Now create the table and insert some defaults
         mCSVTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
-        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
+        mColumn1 = mCSVTable.insert(new ReceiptNameColumn(-1, "Name", new DefaultSyncState()), new DatabaseOperationMetadata()).blockingGet();
+        mColumn2 = mCSVTable.insert(new ReceiptPriceColumn(-1, "Price", new DefaultSyncState()), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(mColumn1);
         assertNotNull(mColumn2);
     }
@@ -165,69 +164,75 @@ public class CSVTableTest {
 
     @Test
     public void get() {
-        final List<Column<Receipt>> columns = mCSVTable.get().toBlocking().first();
+        final List<Column<Receipt>> columns = mCSVTable.get().blockingGet();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Column<Receipt> foundColumn = mCSVTable.findByPrimaryKey(mColumn1.getId()).toBlocking().first();
-        assertNotNull(foundColumn);
-        assertEquals(mColumn1, foundColumn);
+        mCSVTable.findByPrimaryKey(mColumn1.getId())
+                .test()
+                .assertNoErrors()
+                .assertResult(mColumn1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Column<Receipt> foundColumn = mCSVTable.findByPrimaryKey(-1).toBlocking().first();
-        assertNull(foundColumn);
+        mCSVTable.findByPrimaryKey(-1)
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
     public void insert() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.insert(new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
-        final List<Column<Receipt>> columns = mCSVTable.get().toBlocking().first();
+        final List<Column<Receipt>> columns = mCSVTable.get().blockingGet();
         assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
     }
 
     @Test
     public void insertDefaultColumn() {
-        final Column<Receipt> column = mCSVTable.insertDefaultColumn().toBlocking().first();
+        final Column<Receipt> column = mCSVTable.insertDefaultColumn().blockingGet();
+
         assertNotNull(column);
         assertEquals(column, mDefaultColumn);
 
-        final List<Column<Receipt>> columns = mCSVTable.get().toBlocking().first();
-        assertEquals(columns, Arrays.asList(mColumn1, mColumn2, column));
+        final List<Column<Receipt>> columns = mCSVTable.get().blockingGet();
+        assertEquals(Arrays.asList(mColumn1, mColumn2, column), columns);
     }
 
     @Test
     public void update() {
         final String name = "Code";
-        final Column<Receipt> column = mCSVTable.update(mColumn1, new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()), new DatabaseOperationMetadata()).toBlocking().first();
+        final Column<Receipt> column = mCSVTable.update(mColumn1,
+                new ReceiptCategoryNameColumn(-1, name, new DefaultSyncState()),
+                new DatabaseOperationMetadata())
+                .blockingGet();
         assertNotNull(column);
         assertEquals(name, column.getName());
 
-        final List<Column<Receipt>> columns = mCSVTable.get().toBlocking().first();
+        final List<Column<Receipt>> columns = mCSVTable.get().blockingGet();
         assertEquals(columns, Arrays.asList(column, mColumn2));
     }
 
     @Test
     public void delete() {
-        assertEquals(mColumn1, mCSVTable.delete(mColumn1, new DatabaseOperationMetadata()).toBlocking().first());
-        assertEquals(mCSVTable.get().toBlocking().first(), Collections.singletonList(mColumn2));
+        assertEquals(mColumn1, mCSVTable.delete(mColumn1, new DatabaseOperationMetadata()).blockingGet());
+        assertEquals(mCSVTable.get().blockingGet(), Collections.singletonList(mColumn2));
     }
 
     @Test
     public void deleteLast() {
         final DatabaseOperationMetadata databaseOperationMetadata = new DatabaseOperationMetadata();
-        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
-        assertEquals(mCSVTable.get().toBlocking().first(), Collections.singletonList(mColumn1));
-        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
-        assertEquals(mCSVTable.get().toBlocking().first(), Collections.emptyList());
-        assertFalse(mCSVTable.deleteLast(databaseOperationMetadata).toBlocking().first());
+        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).blockingGet());
+        assertEquals(mCSVTable.get().blockingGet(), Collections.singletonList(mColumn1));
+        assertTrue(mCSVTable.deleteLast(databaseOperationMetadata).blockingGet());
+        assertEquals(mCSVTable.get().blockingGet(), Collections.emptyList());
+        assertFalse(mCSVTable.deleteLast(databaseOperationMetadata).blockingGet());
     }
 
 }

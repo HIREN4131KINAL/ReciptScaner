@@ -5,11 +5,9 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.di.scopes.ApplicationScope;
-import co.smartreceipts.android.rating.data.AppRatingModel;
 import co.smartreceipts.android.rating.data.AppRatingStorage;
-import rx.Single;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
 @ApplicationScope
 public class AppRatingManager {
@@ -30,20 +28,18 @@ public class AppRatingManager {
 
     public Single<Boolean> checkIfNeedToAskRating() {
         return appRatingStorage.readAppRatingData()
-                .map(new Func1<AppRatingModel, Boolean>() {
-                    @Override
-                    public Boolean call(AppRatingModel appRatingModel) {
-                        if (appRatingModel.canShow() && !appRatingModel.isCrashOccurred()) {
-                            // Check if we've reached a rating event
-                            final long daysToMillis = TimeUnit.DAYS.toMillis(1);
-                            if (appRatingModel.getLaunchCount() >= LAUNCHES_UNTIL_PROMPT + appRatingModel.getAdditionalLaunchThreshold() &&
-                                    (System.currentTimeMillis() - appRatingModel.getInstallTime()) / daysToMillis >= DAYS_UNTIL_PROMPT) {
-                                return true;
-                            }
+                .map(appRatingModel -> {
+                    if (appRatingModel.canShow() && !appRatingModel.isCrashOccurred()) {
+                        // Check if we've reached a rating event
+                        final long daysToMillis = TimeUnit.DAYS.toMillis(1);
+                        if (appRatingModel.getLaunchCount() >= LAUNCHES_UNTIL_PROMPT + appRatingModel.getAdditionalLaunchThreshold() &&
+                                (System.currentTimeMillis() - appRatingModel.getInstallTime()) / daysToMillis >= DAYS_UNTIL_PROMPT) {
+                            return true;
                         }
-                        return false;
                     }
-                }).subscribeOn(Schedulers.io());
+                    return false;
+                })
+                .subscribeOn(Schedulers.io());
     }
 
     public void dontShowRatingPromptAgain() {

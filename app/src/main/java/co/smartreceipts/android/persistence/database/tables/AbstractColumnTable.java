@@ -17,8 +17,7 @@ import co.smartreceipts.android.persistence.database.tables.adapters.ColumnDatab
 import co.smartreceipts.android.persistence.database.tables.keys.ColumnPrimaryKey;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Single;
 
 /**
  * Since our CSV and PDF tables share almost all of the same logic, this class purely acts as a wrapper around
@@ -77,10 +76,10 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
     /**
      * Inserts the default column as defined by {@link ColumnDefinitions#getDefaultInsertColumn()}
      *
-     * @return the inserted {@link Column} or {@code null} if the insert failed
+     * @return {@link Single} with the inserted {@link Column} or {@link Exception} if the insert failed
      */
     @NonNull
-    public final Observable<Column<Receipt>> insertDefaultColumn() {
+    public final Single<Column<Receipt>> insertDefaultColumn() {
         return insert(mReceiptColumnDefinitions.getDefaultInsertColumn(), new DatabaseOperationMetadata());
     }
 
@@ -90,13 +89,8 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
      * @return {@code true} if it could be delete. {@code false} otherwise (e.g. there are no more columns)
      */
     @NonNull
-    public final Observable<Boolean> deleteLast(@NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return get().flatMap(new Func1<List<Column<Receipt>>, Observable<? extends Boolean>>() {
-            @Override
-            public Observable<? extends Boolean> call(List<Column<Receipt>> columns) {
-                return AbstractColumnTable.this.removeLastColumnIfPresent(columns, databaseOperationMetadata);
-            }
-        });
+    public final Single<Boolean> deleteLast(@NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return get().flatMap(columns -> AbstractColumnTable.this.removeLastColumnIfPresent(columns, databaseOperationMetadata));
     }
 
     /**
@@ -107,12 +101,12 @@ public abstract class AbstractColumnTable extends AbstractSqlTable<Column<Receip
     protected abstract void insertDefaults(@NonNull TableDefaultsCustomizer customizer);
 
     @NonNull
-    private Observable<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    private Single<Boolean> removeLastColumnIfPresent(@NonNull List<Column<Receipt>> columns, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final Column<Receipt> lastColumn = ListUtils.removeLast(columns);
         if (lastColumn != null) {
-            return Observable.just(deleteBlocking(lastColumn, databaseOperationMetadata) != null);
+            return Single.just(deleteBlocking(lastColumn, databaseOperationMetadata) != null);
         } else {
-            return Observable.just(false);
+            return Single.just(false);
         }
     }
 

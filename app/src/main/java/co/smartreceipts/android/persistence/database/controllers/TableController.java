@@ -9,8 +9,8 @@ import co.smartreceipts.android.persistence.database.controllers.results.GetResu
 import co.smartreceipts.android.persistence.database.controllers.results.InsertResult;
 import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * Provides an asynchronous way for us to easily interact with our database layer
@@ -32,8 +32,8 @@ public interface TableController<ModelType> {
     /**
      * Retrieves list of all objects that are stored within this table.
      */
-    @NonNull
-    Observable<List<ModelType>> get();
+    // TODO: 11.04.2017 return type is void
+    /*Single<List<ModelType>>*/void get();
 
     /**
      * Returns a stream of all get requests submitted to {@link #get()}
@@ -51,10 +51,9 @@ public interface TableController<ModelType> {
      *
      * @param modelType the object to insert
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return a hot {@link Observable} that will return the result of this operation
+//     * @return a hot {@link Observable} that will return the result of this operation
      */
-    @NonNull
-    Observable<ModelType> insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    /*Observable<ModelType>*/void insert(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Returns a stream of all insertions submitted to {@link #insert(Object, DatabaseOperationMetadata)}
@@ -73,10 +72,9 @@ public interface TableController<ModelType> {
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return a hot {@link Observable} that will return the updated {@link ModelType} as the result of this operation
+//     * @return a hot {@link Observable} that will return the updated {@link ModelType} as the result of this operation
      */
-    @NonNull
-    Observable<ModelType> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    /*Observable<ModelType>*/void update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Returns a stream of all updates submitted to {@link #update(Object, Object, DatabaseOperationMetadata)}
@@ -94,10 +92,9 @@ public interface TableController<ModelType> {
      *
      * @param modelType the object to remove
      * @param databaseOperationMetadata metadata about this particular database operation
-     * @return a hot {@link Observable} that will return the result of this operation
+//     * @return a hot {@link Observable} that will return the result of this operation
      */
-    @NonNull
-    Observable<ModelType> delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    /*Observable<ModelType>*/ void delete(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Returns a stream of all deletions submitted to {@link #delete(Object, DatabaseOperationMetadata)}

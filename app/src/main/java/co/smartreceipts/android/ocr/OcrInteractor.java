@@ -2,7 +2,6 @@ package co.smartreceipts.android.ocr;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
@@ -18,7 +17,6 @@ import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.ocr.apis.OcrService;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
-import co.smartreceipts.android.ocr.apis.model.RecognitionResponse;
 import co.smartreceipts.android.ocr.apis.model.RecongitionRequest;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.ocr.push.OcrPushMessageReceiver;
@@ -30,11 +28,8 @@ import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.Feature;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Action0;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 
 @ApplicationScope
 public class OcrInteractor {
@@ -88,22 +83,14 @@ public class OcrInteractor {
             final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
             ocrProcessingStatusSubject.onNext(OcrProcessingStatus.UploadingImage);
             return s3Manager.upload(file, OCR_FOLDER)
-                    .doOnSubscribe(new Action0() {
-                        @Override
-                        public void call() {
-                            pushManager.registerReceiver(ocrPushMessageReceiver);
-                        }
-                    })
+                    .doOnSubscribe(disposable -> pushManager.registerReceiver(pushMessageReceiver))
                     .subscribeOn(Schedulers.io())
-                    .flatMap(new Func1<String, Observable<String>>() {
-                        @Override
-                        public Observable<String> call(@Nullable String s3Url) {
-                            Logger.debug(OcrInteractor.this, "S3 upload completed. Preparing url for delivery to our APIs.");
-                            if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
-                                return Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
-                            } else {
-                                return Observable.error(new ApiValidationException("Failed to receive a valid url: " + s3Url));
-                            }
+                    .flatMap(s3Url -> {
+                        Logger.debug(OcrInteractor.this, "S3 upload completed. Preparing url for delivery to our APIs.");
+                        if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
+                            return  Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
+                        } else {
+                            return Observable.error(new ApiValidationException("Failed to receive a valid url: " + s3Url));
                         }
                     })
                     .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
@@ -151,36 +138,26 @@ public class OcrInteractor {
                         public Observable<RecognitionResponse> call(String recognitionId) {
                             Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
                             ocrProcessingStatusSubject.onNext(OcrProcessingStatus.RetrievingResults);
-                            return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
+                    })
+                    .flatMap(recognitionId -> {
+                        Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
+                        return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
+                    })
+                    .flatMap(recognitionResponse -> {
+                        Logger.debug(OcrInteractor.this, "Parsing OCR Response");
+                        if (recognitionResponse != null &&
+                                recognitionResponse.getRecognition() != null &&
+                                recognitionResponse.getRecognition().getData() != null &&
+                                recognitionResponse.getRecognition().getData().getRecognitionData() != null) {
+                            return Observable.just(recognitionResponse.getRecognition().getData().getRecognitionData());
+                        } else {
+                            return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
                         }
                     })
-                    .flatMap(new Func1<RecognitionResponse, Observable<OcrResponse>>() {
-                        @Override
-                        public Observable<OcrResponse> call(RecognitionResponse recognitionResponse) {
-                            Logger.debug(OcrInteractor.this, "Parsing OCR Response");
-                            if (recognitionResponse != null &&
-                                    recognitionResponse.getRecognition() != null &&
-                                    recognitionResponse.getRecognition().getData() != null &&
-                                    recognitionResponse.getRecognition().getData().getRecognitionData() != null) {
-                                return Observable.just(recognitionResponse.getRecognition().getData().getRecognitionData());
-                            } else {
-                                return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
-                            }
-                        }
-                    })
-                    .onErrorReturn(new Func1<Throwable, OcrResponse>() {
-                        @Override
-                        public OcrResponse call(Throwable throwable) {
-                            return new OcrResponse();
-                        }
-                    })
-                    .doOnTerminate(new Action0() {
-                        @Override
-                        public void call() {
-                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
-                            pushManager.unregisterReceiver(ocrPushMessageReceiver);
-                        }
-                    });
+                    .onErrorReturnItem(new OcrResponse())
+                    .doOnTerminate(() -> {
+                        ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
+                        pushManager.unregisterReceiver(ocrPushMessageReceiver);});
             // TODO: Handle subsequent deletion of s3 file
         } else {
             Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());

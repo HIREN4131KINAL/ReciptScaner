@@ -6,8 +6,9 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+
 
 class NetworkStateChangeListenerTracker {
 
@@ -16,7 +17,7 @@ class NetworkStateChangeListenerTracker {
 
     @NonNull
     public final Observable<Boolean> getNetworkStateChangeObservable() {
-        return mSubject.asObservable();
+        return mSubject;
     }
 
     public final void registerListener(@NonNull NetworkStateChangeListener listener) {

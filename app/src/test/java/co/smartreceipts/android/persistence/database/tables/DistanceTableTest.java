@@ -27,9 +27,8 @@ import co.smartreceipts.android.model.factory.DistanceBuilderFactory;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
-import rx.Observable;
+import io.reactivex.Single;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -100,9 +99,9 @@ public class DistanceTableTest {
         when(mTrip2.getName()).thenReturn(TRIP_2);
         when(mTrip3.getName()).thenReturn(TRIP_3);
 
-        when(mTripsTable.findByPrimaryKey(TRIP_1)).thenReturn(Observable.just(mTrip1));
-        when(mTripsTable.findByPrimaryKey(TRIP_2)).thenReturn(Observable.just(mTrip2));
-        when(mTripsTable.findByPrimaryKey(TRIP_3)).thenReturn(Observable.just(mTrip3));
+        when(mTripsTable.findByPrimaryKey(TRIP_1)).thenReturn(Single.just(mTrip1));
+        when(mTripsTable.findByPrimaryKey(TRIP_2)).thenReturn(Single.just(mTrip2));
+        when(mTripsTable.findByPrimaryKey(TRIP_3)).thenReturn(Single.just(mTrip3));
 
         mSQLiteOpenHelper = new TestSQLiteOpenHelper(RuntimeEnvironment.application);
         mDistanceTable = new DistanceTable(mSQLiteOpenHelper, mTripsTable, CURRENCY_CODE);
@@ -111,8 +110,8 @@ public class DistanceTableTest {
         mDistanceTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
         mBuilder = new DistanceBuilderFactory();
         mBuilder.setDate(DATE).setTimezone(TIMEZONE).setComment(COMMENT).setRate(RATE).setCurrency(CURRENCY_CODE);
-        mDistance1 = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_1).setLocation(LOCATION_1).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
-        mDistance2 = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_2).setLocation(LOCATION_2).setTrip(mTrip2).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mDistance1 = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_1).setLocation(LOCATION_1).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).blockingGet();
+        mDistance2 = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_2).setLocation(LOCATION_2).setTrip(mTrip2).build(), new DatabaseOperationMetadata()).blockingGet();
     }
 
     @After
@@ -213,19 +212,19 @@ public class DistanceTableTest {
 
     @Test
     public void get() {
-        final List<Distance> distances = mDistanceTable.get().toBlocking().first();
+        final List<Distance> distances = mDistanceTable.get().blockingGet();
         assertEquals(distances, Arrays.asList(mDistance1, mDistance2));
     }
 
     @Test
     public void getForTrip() {
         // Note: We're adding this one to trip 1
-        final Distance distance = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Distance distance = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip1).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(distance);
 
-        final List<Distance> list1 = mDistanceTable.get(mTrip1).toBlocking().first();
-        final List<Distance> list2 = mDistanceTable.get(mTrip2).toBlocking().first();
-        final List<Distance> list3 = mDistanceTable.get(mTrip3).toBlocking().first();
+        final List<Distance> list1 = mDistanceTable.get(mTrip1).blockingGet();
+        final List<Distance> list2 = mDistanceTable.get(mTrip2).blockingGet();
+        final List<Distance> list3 = mDistanceTable.get(mTrip3).blockingGet();
         assertEquals(list1, Arrays.asList(mDistance1, distance));
         assertEquals(list2, Collections.singletonList(mDistance2));
         assertEquals(list3, Collections.<Distance>emptyList());
@@ -233,41 +232,43 @@ public class DistanceTableTest {
 
     @Test
     public void insert() {
-        final Distance distance = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Distance distance = mDistanceTable.insert(mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(distance);
 
-        final List<Distance> distances = mDistanceTable.get().toBlocking().first();
+        final List<Distance> distances = mDistanceTable.get().blockingGet();
         assertEquals(distances, Arrays.asList(mDistance1, mDistance2, distance));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final Distance distance = mDistanceTable.findByPrimaryKey(mDistance1.getId()).toBlocking().first();
-        assertNotNull(distance);
-        assertEquals(mDistance1, distance);
+        mDistanceTable.findByPrimaryKey(mDistance1.getId())
+                .test()
+                .assertNoErrors()
+                .assertResult(mDistance1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final Distance distance = mDistanceTable.findByPrimaryKey(-1).toBlocking().first();
-        assertNull(distance);
+        mDistanceTable.findByPrimaryKey(-1)
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
     public void update() {
-        final Distance updatedDistance = mDistanceTable.update(mDistance1, mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final Distance updatedDistance = mDistanceTable.update(mDistance1, mBuilder.setDistance(DISTANCE_3).setLocation(LOCATION_3).setTrip(mTrip3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(updatedDistance);
         assertFalse(mDistance1.equals(updatedDistance));
 
-        final List<Distance> distances = mDistanceTable.get().toBlocking().first();
+        final List<Distance> distances = mDistanceTable.get().blockingGet();
         assertEquals(distances, Arrays.asList(updatedDistance, mDistance2));
     }
 
     @Test
     public void delete() {
-        Assert.assertEquals(mDistance1, mDistanceTable.delete(mDistance1, new DatabaseOperationMetadata()).toBlocking().first());
+        Assert.assertEquals(mDistance1, mDistanceTable.delete(mDistance1, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<Distance> distances = mDistanceTable.get().toBlocking().first();
+        final List<Distance> distances = mDistanceTable.get().blockingGet();
         assertEquals(distances, Collections.singletonList(mDistance2));
     }
 

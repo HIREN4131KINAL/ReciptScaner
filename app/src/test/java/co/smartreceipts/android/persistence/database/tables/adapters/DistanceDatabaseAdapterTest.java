@@ -24,7 +24,7 @@ import co.smartreceipts.android.persistence.database.operations.OperationFamilyT
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
-import rx.Observable;
+import io.reactivex.Single;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -121,7 +121,7 @@ public class DistanceDatabaseAdapterTest {
         when(mPrice.getCurrencyCode()).thenReturn(CURRENCY_CODE);
         when(mPrice.getCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
 
-        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));
+        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Single.just(mTrip));
         when(mPrimaryKey.getPrimaryKeyValue(mDistance)).thenReturn(PRIMARY_KEY_ID);
 
         when(mSyncStateAdapter.read(mCursor)).thenReturn(mSyncState);

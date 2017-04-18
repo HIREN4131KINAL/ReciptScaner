@@ -22,9 +22,9 @@ import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
 import dagger.android.support.AndroidSupportInjection;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class SyncErrorFragment extends Fragment implements BackupProviderChangeListener {
 
@@ -35,7 +35,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
 
     private SyncErrorInteractor mSyncErrorInteractor;
     private SyncErrorPresenter mSyncErrorPresenter;
-    private CompositeSubscription mCompositeSubscription;
+    private CompositeDisposable mCompositeDisposable;
 
     @Override
     public void onAttach(Context context) {
@@ -58,21 +58,16 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mSyncErrorPresenter = new SyncErrorPresenter((Tooltip)view);
+        mSyncErrorPresenter = new SyncErrorPresenter((Tooltip) view);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mCompositeSubscription = new CompositeSubscription();
+        mCompositeDisposable = new CompositeDisposable();
 
-        mCompositeSubscription.add(mSyncErrorPresenter.getClickStream()
-            .subscribe(new Action1<SyncErrorType>() {
-                @Override
-                public void call(SyncErrorType syncErrorType) {
-                    mSyncErrorInteractor.handleClick(syncErrorType);
-                }
-            }));
+        mCompositeDisposable.add(mSyncErrorPresenter.getClickStream()
+                .subscribe(syncErrorType -> mSyncErrorInteractor.handleClick(syncErrorType)));
 
         backupProvidersManager.registerChangeListener(this);
         updateForProvider(backupProvidersManager.getSyncProvider());
@@ -81,7 +76,7 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
     @Override
     public void onPause() {
         backupProvidersManager.unregisterChangeListener(this);
-        mCompositeSubscription.unsubscribe();
+        mCompositeDisposable.dispose();
         super.onPause();
     }
 
@@ -92,20 +87,12 @@ public class SyncErrorFragment extends Fragment implements BackupProviderChangeL
 
     private void updateForProvider(@NonNull SyncProvider provider) {
         mSyncErrorPresenter.present(provider);
-        mCompositeSubscription.add(mSyncErrorInteractor.getErrorStream()
-            .doOnNext(new Action1<SyncErrorType>() {
-                @Override
-                public void call(SyncErrorType syncErrorType) {
+        mCompositeDisposable.add(mSyncErrorInteractor.getErrorStream()
+                .doOnNext(syncErrorType -> {
                     analytics.record(new DefaultDataPointEvent(Events.Sync.DisplaySyncError).addDataPoint(new DataPoint(SyncErrorType.class.getName(), syncErrorType)));
                     Logger.info(this, "Received sync error: {}.", syncErrorType);
-                }
-            })
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<SyncErrorType>() {
-                @Override
-                public void call(SyncErrorType syncErrorType) {
-                    mSyncErrorPresenter.present(syncErrorType);
-                }
-            }));
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(syncErrorType -> mSyncErrorPresenter.present(syncErrorType)));
     }
 }

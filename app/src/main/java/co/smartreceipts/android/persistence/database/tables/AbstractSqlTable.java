@@ -5,9 +5,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,14 +24,13 @@ import co.smartreceipts.android.persistence.database.tables.ordering.DefaultOrde
 import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import co.smartreceipts.android.sync.model.Syncable;
 import co.smartreceipts.android.sync.provider.SyncProvider;
-import rx.Observable;
-import rx.functions.Func0;
+import io.reactivex.Single;
 
 /**
  * Abstracts out the core CRUD database operations in order to ensure that each of our core table instances
  * operate in a standard manner.
  *
- * @param <ModelType> the model object that CRUD operations here should return
+ * @param <ModelType>      the model object that CRUD operations here should return
  * @param <PrimaryKeyType> the primary key type (e.g. Integer, String) that is used by the primary key column
  */
 public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Table<ModelType, PrimaryKeyType> {
@@ -118,77 +117,70 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     }
 
     @NonNull
-    public final Observable<List<ModelType>> get() {
-        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
-            @Override
-            public Observable<List<ModelType>> call() {
-                return Observable.just(AbstractSqlTable.this.getBlocking());
-            }
-        });
+    public final Single<List<ModelType>> get() {
+        return Single.fromCallable(this::getBlocking);
     }
 
     @NonNull
-    public synchronized Observable<List<ModelType>> getUnsynced(@NonNull final SyncProvider syncProvider) {
-        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
-            @Override
-            public Observable<List<ModelType>> call() {
-                return Observable.just(getUnsyncedBlocking(syncProvider));
-            }
-        });
+    public synchronized Single<List<ModelType>> getUnsynced(@NonNull final SyncProvider syncProvider) {
+        return Single.fromCallable(() -> getUnsyncedBlocking(syncProvider));
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> findByPrimaryKey(@NonNull final PrimaryKeyType primaryKeyType) {
-        return Observable.defer(new Func0<Observable<ModelType>>() {
-            @Override
-            public Observable<ModelType> call() {
-                return Observable.just(AbstractSqlTable.this.findByPrimaryKeyBlocking(primaryKeyType));
-            }
-        });
+    public final Single<ModelType> findByPrimaryKey(@NonNull final PrimaryKeyType primaryKeyType) {
+        return Single.fromCallable(() -> AbstractSqlTable.this.findByPrimaryKeyBlocking(primaryKeyType))
+                .map(modelTypeOptional -> {
+                    if (modelTypeOptional.isPresent()) {
+                        return modelTypeOptional.get();
+                    } else {
+                        throw new Exception("Find by primary key failed. No such key");
+                    }
+                });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> insert(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return Observable.defer(new Func0<Observable<ModelType>>() {
-            @Override
-            public Observable<ModelType> call() {
-                return Observable.just(AbstractSqlTable.this.insertBlocking(modelType, databaseOperationMetadata));
-            }
-        });
+    public final Single<ModelType> insert(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return Single.fromCallable(() -> AbstractSqlTable.this.insertBlocking(modelType, databaseOperationMetadata))
+                .map(modelTypeOptional -> {
+                    if (modelTypeOptional.isPresent()) {
+                        return modelTypeOptional.get();
+                    } else {
+                        throw new Exception("Insert failed.");
+                    }
+                });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> update(@NonNull final ModelType oldModelType, @NonNull final ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return Observable.defer(new Func0<Observable<ModelType>>() {
-            @Override
-            public Observable<ModelType> call() {
-                return Observable.just(AbstractSqlTable.this.updateBlocking(oldModelType, newModelType, databaseOperationMetadata));
-            }
-        });
+    public final Single<ModelType> update(@NonNull final ModelType oldModelType, @NonNull final ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return Single.fromCallable(() -> AbstractSqlTable.this.updateBlocking(oldModelType, newModelType, databaseOperationMetadata))
+                .map(modelTypeOptional -> {
+                    if (modelTypeOptional.isPresent()) {
+                        return modelTypeOptional.get();
+                    } else {
+                        throw new Exception("Update failed.");
+                    }
+                });
     }
 
     @NonNull
     @Override
-    public final Observable<ModelType> delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        return Observable.defer(new Func0<Observable<ModelType>>() {
-            @Override
-            public Observable<ModelType> call() {
-                return Observable.just(AbstractSqlTable.this.deleteBlocking(modelType, databaseOperationMetadata));
-            }
-        });
+    public final Single<ModelType> delete(@NonNull final ModelType modelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+        return Single.fromCallable(() -> AbstractSqlTable.this.deleteBlocking(modelType, databaseOperationMetadata))
+                .map(modelTypeOptional -> {
+                    if (modelTypeOptional.isPresent()) {
+                        return modelTypeOptional.get();
+                    } else {
+                        throw new Exception("Delete failed.");
+                    }
+                });
     }
 
     @NonNull
-    public Observable<Boolean> deleteSyncData(@NonNull final SyncProvider syncProvider) {
-        return Observable.defer(new Func0<Observable<Boolean>>() {
-            @Override
-            public Observable<Boolean> call() {
-                return Observable.just(AbstractSqlTable.this.deleteSyncDataBlocking(syncProvider));
-            }
-        });
+    public Single<Boolean> deleteSyncData(@NonNull final SyncProvider syncProvider) {
+        return Single.fromCallable(() -> AbstractSqlTable.this.deleteSyncDataBlocking(syncProvider));
     }
 
     @NonNull
@@ -200,7 +192,7 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
         Cursor cursor = null;
         try {
             mCachedResults = new ArrayList<>();
-            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[] { Integer.toString(0) }, null, null, mOrderBy.getOrderByPredicate());
+            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{Integer.toString(0)}, null, null, mOrderBy.getOrderByPredicate());
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     mCachedResults.add(mDatabaseAdapter.read(cursor));
@@ -217,12 +209,12 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
 
     @NonNull
     public synchronized List<ModelType> getUnsyncedBlocking(@NonNull SyncProvider syncProvider) {
-        Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
+        Preconditions.checkArgument(syncProvider == SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
 
         final ArrayList<ModelType> results = new ArrayList<>();
         Cursor cursor = null;
         try {
-            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[] { Integer.toString(0) }, null, null, null);
+            cursor = getReadableDatabase().query(getTableName(), null, COLUMN_DRIVE_IS_SYNCED + " = ?", new String[]{Integer.toString(0)}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     results.add(mDatabaseAdapter.read(cursor));
@@ -237,23 +229,21 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
         }
     }
 
-    @Nullable
-    public ModelType findByPrimaryKeyBlocking(@NonNull PrimaryKeyType primaryKeyType) {
+    private Optional<ModelType> findByPrimaryKeyBlocking(@NonNull PrimaryKeyType primaryKeyType) {
         // TODO: Consider using a Map/Cache/"SELECT" here to improve performance. The #get() call belong is overkill for a single item
         final List<ModelType> entries = new ArrayList<>(getBlocking());
         final int size = entries.size();
         for (int i = 0; i < size; i++) {
             final ModelType modelType = entries.get(i);
             if (mPrimaryKey.getPrimaryKeyValue(modelType).equals(primaryKeyType)) {
-                return modelType;
+                return Optional.of(modelType);
             }
         }
-        return null;
+        return Optional.absent();
     }
 
     @SuppressWarnings("unchecked")
-    @Nullable
-    public synchronized ModelType insertBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    public synchronized Optional<ModelType> insertBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = mDatabaseAdapter.write(modelType, databaseOperationMetadata);
         if (getWritableDatabase().insertOrThrow(getTableName(), null, values) != -1) {
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
@@ -275,10 +265,10 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                     if (mCachedResults != null) {
                         mCachedResults.add(insertedItem);
                         if (insertedItem instanceof Comparable<?>) {
-                            Collections.sort((List<? extends Comparable>)mCachedResults);
+                            Collections.sort((List<? extends Comparable>) mCachedResults);
                         }
                     }
-                    return insertedItem;
+                    return Optional.of(insertedItem);
                 } finally { // Close the cursor and db to avoid memory leaks
                     if (cursor != null) {
                         cursor.close();
@@ -290,20 +280,18 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                 if (mCachedResults != null) {
                     mCachedResults.add(insertedItem);
                     if (insertedItem instanceof Comparable<?>) {
-                        Collections.sort((List<? extends Comparable>)mCachedResults);
+                        Collections.sort((List<? extends Comparable>) mCachedResults);
                     }
                 }
-                return insertedItem;
+                return Optional.of(insertedItem);
             }
         } else {
-            return null;
+            return Optional.absent();
         }
-
     }
 
     @SuppressWarnings("unchecked")
-    @Nullable
-    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    public synchronized Optional<ModelType> updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = mDatabaseAdapter.write(newModelType, databaseOperationMetadata);
         final String oldPrimaryKeyValue = mPrimaryKey.getPrimaryKeyValue(oldModelType).toString();
 
@@ -337,34 +325,33 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
                     mCachedResults.add(updatedItem);
                 }
                 if (updatedItem instanceof Comparable<?>) {
-                    Collections.sort((List<? extends Comparable>)mCachedResults);
+                    Collections.sort((List<? extends Comparable>) mCachedResults);
                 }
             }
-            return updatedItem;
+            return Optional.of(updatedItem);
         } else {
-            return null;
+            return Optional.absent();
         }
 
     }
 
-    @Nullable
-    public synchronized ModelType deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+    public synchronized Optional<ModelType> deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final String primaryKeyValue = mPrimaryKey.getPrimaryKeyValue(modelType).toString();
-        if (getWritableDatabase().delete(getTableName(), mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ primaryKeyValue }) > 0) {
+        if (getWritableDatabase().delete(getTableName(), mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{primaryKeyValue}) > 0) {
             if (mCachedResults != null) {
                 mCachedResults.remove(modelType);
             }
-            return modelType;
+            return Optional.of(modelType);
         } else {
-            return null;
+            return Optional.absent();
         }
     }
 
     public synchronized boolean deleteSyncDataBlocking(@NonNull SyncProvider syncProvider) {
-        Preconditions.checkArgument(syncProvider ==  SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
+        Preconditions.checkArgument(syncProvider == SyncProvider.GoogleDrive, "Google Drive is the only supported provider at the moment");
 
         // First - remove all that are marked for deletion but haven't been actually deleted
-        getWritableDatabase().delete(getTableName(), COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{ Integer.toString(1) });
+        getWritableDatabase().delete(getTableName(), COLUMN_DRIVE_MARKED_FOR_DELETION + " = ?", new String[]{Integer.toString(1)});
 
         // Next - update all items that currently contain sync data (to remove it)
         final ContentValues contentValues = new SyncStateAdapter().deleteSyncData(syncProvider);

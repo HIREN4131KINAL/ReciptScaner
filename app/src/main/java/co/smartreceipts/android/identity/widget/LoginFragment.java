@@ -18,15 +18,14 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
-import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
-import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.IdentityManager;
+import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.widget.presenters.LoginPresenter;
+import co.smartreceipts.android.identity.widget.presenters.MyAccountPresenter;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class LoginFragment extends WBFragment {
 
@@ -40,7 +39,7 @@ public class LoginFragment extends WBFragment {
     private LoginPresenter loginPresenter;
 
     private UserCredentialsPayload cachedUserCredentialsPayload;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     @NonNull
     public static LoginFragment newInstance() {
@@ -111,8 +110,8 @@ public class LoginFragment extends WBFragment {
             actionBar.setTitle(R.string.login_toolbar_title);
             actionBar.setSubtitle("");
         }
-        if (this.compositeSubscription == null) {
-            this.compositeSubscription = new CompositeSubscription();
+        if (this.compositeDisposable == null) {
+            this.compositeDisposable = new CompositeDisposable();
         }
         this.loginPresenter.onResume();
 
@@ -128,10 +127,10 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        this.loginPresenter.onPause();
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
-            compositeSubscription = null;
+        this.myAccountPresenter.onPause();
+        if (compositeDisposable != null) {
+            compositeDisposable.dispose();
+            compositeDisposable = null;
         }
         super.onPause();
     }
@@ -152,8 +151,8 @@ public class LoginFragment extends WBFragment {
 
     private void logInOrSignUp(@NonNull UserCredentialsPayload userCredentialsPayload) {
         this.cachedUserCredentialsPayload = userCredentialsPayload;
-        if (this.compositeSubscription == null) {
-            this.compositeSubscription = new CompositeSubscription();
+        if (this.compositeDisposable == null) {
+            this.compositeDisposable = new CompositeDisposable();
         }
         this.compositeSubscription.add(this.loginInteractor.loginOrSignUp(userCredentialsPayload)
                 .subscribe(new Action1<LoginResponse>() {

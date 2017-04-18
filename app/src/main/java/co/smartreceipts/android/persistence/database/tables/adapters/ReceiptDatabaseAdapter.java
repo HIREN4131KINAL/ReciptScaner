@@ -56,7 +56,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
     @Override
     public Receipt read(@NonNull Cursor cursor) {
         final int parentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
-        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
+        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).blockingGet();
         return readForSelection(cursor, trip, true);
     }
 
@@ -111,7 +111,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final SyncState syncState = mSyncStateAdapter.read(cursor);
 
         // TODO: How to use JOINs w/o blocking
-        Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).toBlocking().first();
+        Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).blockingGet();
         if (categoryImpl == null) {
             categoryImpl = new ImmutableCategoryImpl(category, category);
         }
@@ -130,7 +130,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setCurrency(currency)
                 .setIsFullPage(fullpage)
                 .setIndex(index)
-                .setPaymentMethod(mPaymentMethodTable.findByPrimaryKey(paymentMethodId).toBlocking().first())
+                .setPaymentMethod(mPaymentMethodTable.findByPrimaryKey(paymentMethodId).blockingGet())
                 .setExtraEditText1(extra_edittext_1)
                 .setExtraEditText2(extra_edittext_2)
                 .setExtraEditText3(extra_edittext_3)

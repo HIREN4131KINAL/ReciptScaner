@@ -7,17 +7,16 @@ import co.smartreceipts.android.fragments.WBListFragment;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public abstract class ReceiptsFragment extends WBListFragment {
 
     public static final String TAG = "ReceiptsFragment";
 
-    protected Trip mTrip;
-    private Subscription mIdSubscription;
+    protected Trip trip;
+    private Disposable disposable;
 
     public static ReceiptsListFragment newListInstance() {
         return new ReceiptsListFragment();
@@ -25,15 +24,15 @@ public abstract class ReceiptsFragment extends WBListFragment {
 
     @Override
     public void onPause() {
-        if (mIdSubscription != null) {
-            mIdSubscription.unsubscribe();
-            mIdSubscription = null;
+        if (disposable != null) {
+            disposable.dispose();
+            disposable = null;
         }
         super.onPause();
     }
 
     protected void updateActionBarTitle(boolean updateSubtitle) {
-        if (mTrip == null) {
+        if (trip == null) {
             return;
         }
 
@@ -42,22 +41,19 @@ public abstract class ReceiptsFragment extends WBListFragment {
             if (updateSubtitle) {
                 PersistenceManager persistenceManager = getPersistenceManager();
                 if (persistenceManager.getPreferenceManager().get(UserPreference.Receipts.ShowReceiptID)) {
-                    mIdSubscription = persistenceManager.getDatabase().getNextReceiptAutoIncremenetIdHelper()
+                    disposable = persistenceManager.getDatabase().getNextReceiptAutoIncremenetIdHelper()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action1<Integer>() {
-                                @Override
-                                public void call(Integer integer) {
+                            .subscribe(receiptId ->  {
                                     if (isResumed()) {
-                                        final ActionBar actionBar = getSupportActionBar();
-                                        if (actionBar != null) {
-                                            actionBar.setSubtitle(getString(R.string.next_id, integer));
+                                        final ActionBar bar = getSupportActionBar();
+                                        if (bar != null) {
+                                            bar.setSubtitle(getString(R.string.next_id, receiptId));
                                         }
                                     }
-                                }
                             });
                 } else {
-                    actionBar.setSubtitle(getString(R.string.daily_total, mTrip.getDailySubTotal().getCurrencyFormattedPrice()));
+                    actionBar.setSubtitle(getString(R.string.daily_total, trip.getDailySubTotal().getCurrencyFormattedPrice()));
                 }
             }
         }

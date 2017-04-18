@@ -38,9 +38,9 @@ import co.smartreceipts.android.analytics.events.DefaultDataPointEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseEventsListener;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
@@ -49,9 +49,8 @@ import co.smartreceipts.android.utils.log.LogConstants;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.workers.EmailAssistant;
 import dagger.android.AndroidInjection;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import wb.android.flex.Flex;
 import wb.android.preferences.SummaryEditTextPreference;
 
@@ -71,7 +70,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     PurchaseManager purchaseManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
     private boolean isUsingHeaders;
 
     /**
@@ -158,21 +157,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
             actionBar.setTitle(R.string.menu_main_settings);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(purchaseManager.getAllAvailablePurchaseSkus()
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(purchaseManager.getAllAvailablePurchaseSkus()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Set<InAppPurchase>>() {
-                    @Override
-                    public void call(Set<InAppPurchase> inAppPurchases) {
-                        Logger.info(SettingsActivity.this, "The following purchases are available: {}", availablePurchases);
-                        availablePurchases = inAppPurchases;
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.warn(SettingsActivity.this, "Failed to retrieve purchases for this session.", throwable);
-                    }
-                }));
+                .subscribe(inAppPurchases -> {
+                    Logger.info(SettingsActivity.this, "The following purchases are available: {}", availablePurchases);
+                    availablePurchases = inAppPurchases;
+                }, throwable -> Logger.warn(SettingsActivity.this, "Failed to retrieve purchases for this session.", throwable)));
     }
 
     // Called only on Honeycomb and later

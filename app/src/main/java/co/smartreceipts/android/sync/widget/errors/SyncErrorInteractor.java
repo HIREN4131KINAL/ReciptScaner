@@ -15,8 +15,8 @@ import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+
 
 public class SyncErrorInteractor {
 
@@ -33,12 +33,7 @@ public class SyncErrorInteractor {
     @NonNull
     public Observable<SyncErrorType> getErrorStream() {
         return mBackupProvidersManager.getCriticalSyncErrorStream()
-                .map(new Func1<CriticalSyncError, SyncErrorType>() {
-                    @Override
-                    public SyncErrorType call(@NonNull CriticalSyncError criticalSyncError) {
-                        return criticalSyncError.getSyncErrorType();
-                    }
-                });
+                .map(CriticalSyncError::getSyncErrorType);
     }
 
     public void handleClick(@NonNull SyncErrorType syncErrorType) {

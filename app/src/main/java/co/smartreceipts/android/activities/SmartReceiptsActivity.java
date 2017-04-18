@@ -36,9 +36,8 @@ import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragm
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.AndroidInjection;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import wb.android.flex.Flex;
 
 public class SmartReceiptsActivity extends AppCompatActivity implements Attachable, PurchaseEventsListener {
@@ -73,7 +72,7 @@ public class SmartReceiptsActivity extends AppCompatActivity implements Attachab
     private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
     private Attachment attachment;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,22 +135,14 @@ public class SmartReceiptsActivity extends AppCompatActivity implements Attachab
         }
         adManager.onResume();
 
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(purchaseManager.getAllAvailablePurchaseSkus()
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(purchaseManager.getAllAvailablePurchaseSkus()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Set<InAppPurchase>>() {
-                    @Override
-                    public void call(Set<InAppPurchase> inAppPurchases) {
-                        Logger.info(this, "The following purchases are available: {}", availablePurchases);
-                        availablePurchases = inAppPurchases;
-                        invalidateOptionsMenu(); // To show the subscription option
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.warn(SmartReceiptsActivity.this, "Failed to retrieve purchases for this session.", throwable);
-                    }
-                }));
+                .subscribe(inAppPurchases -> {
+                    Logger.info(this, "The following purchases are available: {}", availablePurchases);
+                    availablePurchases = inAppPurchases;
+                    invalidateOptionsMenu(); // To show the subscription option
+                }, throwable -> Logger.warn(SmartReceiptsActivity.this, "Failed to retrieve purchases for this session.", throwable)));
     }
 
     @Override

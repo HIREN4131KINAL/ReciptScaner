@@ -5,7 +5,8 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
-import rx.Observable;
+import io.reactivex.Completable;
+import io.reactivex.Single;
 
 /**
  * A stub implementation of the {@link TableActionAlterations} contract that allows us to selectively override methods (if needed)
@@ -16,61 +17,66 @@ public class StubTableActionAlterations<T> implements TableActionAlterations<T> 
 
     @NonNull
     @Override
-    public Observable<Void> preGet() {
-        return Observable.just(null);
+    public Completable preGet() {
+        return Completable.complete();
     }
 
     @NonNull
     @Override
-    public Observable<List<T>> postGet(@NonNull List<T> list) {
-        return Observable.just(list);
+    public Single<List<T>> postGet(@NonNull List<T> list) {
+        return Single.just(list);
     }
 
     @NonNull
     @Override
-    public Observable<T> preInsert(@NonNull T t) {
-        return Observable.just(t);
+    public Single<T> preInsert(@NonNull T t) {
+        return Single.just(t);
     }
 
     @NonNull
     @Override
-    public Observable<T> postInsert(@Nullable T t) {
-        if (t != null) {
-            return Observable.just(t);
-        } else {
-            return Observable.error(new Exception("Post insert failed due to a null value"));
-        }
+    public Single<T> postInsert(@NonNull T t) {
+        return Single.fromCallable(() -> {
+            if (t == null) {
+                throw new Exception("Post insert failed due to a null value");
+            }
+            return t;
+        });
     }
 
     @NonNull
     @Override
-    public Observable<T> preUpdate(@NonNull T oldT, @NonNull T newT) {
-        return Observable.just(newT);
+    public Single<T> preUpdate(@NonNull T oldT, @NonNull T newT) {
+        return Single.just(newT);
     }
 
     @NonNull
     @Override
-    public Observable<T> postUpdate(@NonNull T oldT, @Nullable T newT) {
-        if (newT != null) {
-            return Observable.just(newT);
-        } else {
-            return Observable.error(new Exception("Post update failed due to a null value"));
-        }
+    public Single<T> postUpdate(@NonNull T oldT, @Nullable T newT) {
+        return Single.fromCallable(() -> {
+            if (newT == null) {
+                throw new Exception("Post update failed due to a null value");
+            }
+
+            return newT;
+        });
     }
 
     @NonNull
     @Override
-    public Observable<T> preDelete(@NonNull T t) {
-        return Observable.just(t);
+    public Single<T> preDelete(@NonNull T t) {
+        return Single.just(t);
     }
 
     @NonNull
     @Override
-    public Observable<T> postDelete(@Nullable T t) {
-        if (t != null) {
-            return Observable.just(t);
-        } else {
-            return Observable.error(new Exception("Post delete failed due to a null value"));
-        }
+    public Single<T> postDelete(@Nullable T t) {
+        return Single.fromCallable(() -> {
+            if (t == null) {
+                throw new Exception("Post delete failed due to a null value");
+            }
+
+            return t;
+        });
     }
 }

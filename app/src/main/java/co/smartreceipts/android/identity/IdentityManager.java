@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
+import org.reactivestreams.Subscriber;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,15 +36,11 @@ import co.smartreceipts.android.identity.store.Token;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subjects.AsyncSubject;
-import rx.subjects.BehaviorSubject;
-import rx.subjects.Subject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.AsyncSubject;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
+
 
 @ApplicationScope
 public class IdentityManager implements IdentityStore {
@@ -54,7 +52,7 @@ public class IdentityManager implements IdentityStore {
     private final BehaviorSubject<Boolean> isLoggedInBehaviorSubject;
     private final Map<UserCredentialsPayload, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
-    private Subject<LogoutResponse, LogoutResponse> logoutSubject;
+    private Subject<LogoutResponse> logoutSubject;
 
     @Inject
     public IdentityManager(Analytics analytics,
@@ -66,7 +64,7 @@ public class IdentityManager implements IdentityStore {
         this.analytics = analytics;
         this.mutableIdentityStore = mutableIdentityStore;
         this.organizationManager = new OrganizationManager(serviceManager, mutableIdentityStore, userPreferenceManager);
-        this.isLoggedInBehaviorSubject = BehaviorSubject.create(isLoggedIn());
+        this.isLoggedInBehaviorSubject = BehaviorSubject.createDefault(isLoggedIn());
 
     }
 
@@ -89,7 +87,7 @@ public class IdentityManager implements IdentityStore {
 
     /**
      * @return an {@link Observable} relay that will only emit {@link Subscriber#onNext(Object)} calls
-     * (and never {@link Subscriber#onCompleted()} or {@link Subscriber#onError(Throwable)} calls) under
+     * (and never {@link Subscriber#onComplete()} or {@link Subscriber#onError(Throwable)} calls) under
      * the following circumstances:
      * <ul>
      * <li>When the app launches, it will emit {@code true} if logged in and {@code false} if not</li>
@@ -103,7 +101,7 @@ public class IdentityManager implements IdentityStore {
      */
     @NonNull
     public Observable<Boolean> isLoggedInStream() {
-        return isLoggedInBehaviorSubject.asObservable();
+        return isLoggedInBehaviorSubject;
     }
 
     public synchronized Observable<LoginResponse> logInOrSignUp(@NonNull final UserCredentialsPayload credentials) {
@@ -195,26 +193,15 @@ public class IdentityManager implements IdentityStore {
         if (logoutSubject == null) {
             logoutSubject = BehaviorSubject.create();
             logoutService.logOut()
-                    .doOnNext(new Action1<LogoutResponse>() {
-                        @Override
-                        public void call(LogoutResponse logoutResponse) {
-                            mutableIdentityStore.setEmailAndToken(null, null);
-                        }
+                    .doOnNext(logoutResponse -> mutableIdentityStore.setEmailAndToken(null, null))
+                    .doOnError(throwable -> {
+                        Logger.error(this, "Failed to complete the log-out request", throwable);
+                        analytics.record(Events.Identity.UserLogoutFailure);
                     })
-                    .doOnError(new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            Logger.error(this, "Failed to complete the log-out request", throwable);
-                            analytics.record(Events.Identity.UserLogoutFailure);
-                        }
-                    })
-                    .doOnCompleted(new Action0() {
-                        @Override
-                        public void call() {
-                            Logger.info(this, "Successfully completed the log-out request");
-                            isLoggedInBehaviorSubject.onNext(false);
-                            analytics.record(Events.Identity.UserLogoutSuccess);
-                        }
+                    .doOnComplete(() -> {
+                        Logger.info(this, "Successfully completed the log-out request");
+                        isLoggedInBehaviorSubject.onNext(false);
+                        analytics.record(Events.Identity.UserLogoutSuccess);
                     })
                     .subscribe(logoutSubject);
         }

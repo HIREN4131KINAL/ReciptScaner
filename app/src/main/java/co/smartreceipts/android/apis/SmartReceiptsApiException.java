@@ -17,12 +17,12 @@ public class SmartReceiptsApiException extends Exception {
     private final Response response;
     private final SmartReceiptsApiErrorResponse errorResponse;
 
-    public SmartReceiptsApiException(@Nullable Response response, @NonNull Exception exception, @NonNull Retrofit retrofit) {
+    public SmartReceiptsApiException(@NonNull Response response, @NonNull Exception exception, @NonNull Retrofit retrofit) {
         super(exception);
 
         // Map the response to our error type
         SmartReceiptsApiErrorResponse errorResponse = null;
-        if (response != null && response.errorBody() != null) {
+        if (response.errorBody() != null) {
             try {
                 final Converter<ResponseBody, SmartReceiptsApiErrorResponse> converter = retrofit.responseBodyConverter(SmartReceiptsApiErrorResponse.class, new Annotation[0]);
                 errorResponse = converter.convert(response.errorBody());
@@ -34,7 +34,7 @@ public class SmartReceiptsApiException extends Exception {
         this.errorResponse = errorResponse;
     }
 
-    @Nullable
+    @NonNull
     public Response getResponse() {
         return response;
     }

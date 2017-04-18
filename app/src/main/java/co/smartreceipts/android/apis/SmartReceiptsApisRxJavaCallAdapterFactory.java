@@ -62,7 +62,12 @@ public class SmartReceiptsApisRxJavaCallAdapterFactory extends CallAdapter.Facto
             if (throwable instanceof HttpException) {
                 final HttpException httpException = (HttpException) throwable;
                 final Response response = httpException.response();
-                return new SmartReceiptsApiException(response, httpException, retrofit);
+                if (response != null && response.errorBody() != null && response.errorBody().contentLength() > 0) {
+                    // Only bother mapping if we saw an error response with actual content
+                    return new SmartReceiptsApiException(response, httpException, retrofit);
+                } else {
+                    return throwable;
+                }
             } else {
                 // Network errors get returned as IO Exceptions, so pass those along
                 return throwable;

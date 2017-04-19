@@ -120,7 +120,13 @@ public class DefaultPurchaseWallet implements PurchaseWallet {
         final Set<InAppPurchase> ownedInAppPurchases = new HashSet<>(ownedInAppPurchasesMap.keySet());
         final Set<String> skusSet = new HashSet<>();
         final SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear(); // Clear our our existing set before calling the new ones
+
+        // Note per: https://developer.android.com/reference/android/content/SharedPreferences.Editor.html#remove(java.lang.String)
+        // All removals are done first, regardless of whether you called remove before or after put methods on this editor.
+        for (final InAppPurchase inAppPurchase : InAppPurchase.values()) {
+            editor.remove(getKeyForPurchaseData(inAppPurchase));
+            editor.remove(getKeyForInAppDataSignature(inAppPurchase));
+        }
 
         for (final InAppPurchase inAppPurchase : ownedInAppPurchases) {
             final ManagedProduct managedProduct = ownedInAppPurchasesMap.get(inAppPurchase);

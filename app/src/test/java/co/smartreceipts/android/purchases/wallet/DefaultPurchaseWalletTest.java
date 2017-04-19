@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 public class DefaultPurchaseWalletTest {
 
+    private static final String TEST = "test";
     private static final String PURCHASE_TOKEN = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689";
     private static final String IN_APP_DATA_SIGNATURE = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689==";
     private String purchaseData;
@@ -57,11 +58,14 @@ public class DefaultPurchaseWalletTest {
         managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, this.purchaseData, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        preferences.edit().putString(TEST, TEST).apply();
         defaultPurchaseWallet = new DefaultPurchaseWallet(preferences);
     }
 
     @After
     public void tearDown() {
+        // Verify that we don't clear out everything then remove our test values
+        assertEquals(TEST, preferences.getString(TEST, null));
         preferences.edit().clear().apply();
     }
 

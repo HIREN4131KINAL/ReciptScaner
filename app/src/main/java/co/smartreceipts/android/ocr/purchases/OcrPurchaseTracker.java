@@ -207,7 +207,8 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
                     @Override
                     public Observable<?> call(PurchaseResponse purchaseResponse) {
                         Logger.debug(OcrPurchaseTracker.this, "Received purchase response of {}", purchaseResponse);
-                        return purchaseManager.consumePurchase(consumablePurchase);
+                        return purchaseManager.consumePurchase(consumablePurchase)
+                                .toObservable();
                     }
                 })
                 .flatMap(new Func1<Object, Observable<?>>() {

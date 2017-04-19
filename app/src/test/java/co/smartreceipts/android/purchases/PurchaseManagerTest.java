@@ -646,7 +646,7 @@ public class PurchaseManagerTest {
         when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenThrow(new RemoteException());
 
         // Test
-        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        final TestSubscriber<Object> testSubscriber = new TestSubscriber<>();
         purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
 
         // Verify
@@ -662,7 +662,7 @@ public class PurchaseManagerTest {
         when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_ERROR);
 
         // Test
-        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        final TestSubscriber<Object> testSubscriber = new TestSubscriber<>();
         purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
 
         // Verify
@@ -678,11 +678,11 @@ public class PurchaseManagerTest {
         when(inAppBillingService.consumePurchase(3, packageName, PURCHASE_TOKEN)).thenReturn(RESULT_OK);
 
         // Test
-        final TestSubscriber<Void> testSubscriber = new TestSubscriber<>();
+        final TestSubscriber<Object> testSubscriber = new TestSubscriber<>();
         purchaseManager.consumePurchase(consumablePurchase).subscribe(testSubscriber);
 
         // Verify
-        testSubscriber.assertNoValues();
+        testSubscriber.assertValueCount(1);
         testSubscriber.assertCompleted();
         testSubscriber.assertNoErrors();
     }
@@ -692,7 +692,7 @@ public class PurchaseManagerTest {
         assertNotNull(intent);
         assertEquals(intent.getAction(), "com.android.vending.billing.InAppBillingService.BIND");
         assertFalse(shadowApplication.getBoundServiceConnections().isEmpty());
-        // TODO: Verify activity lifecylce callbacks are working with custom shadow
+        // TODO: Verify activity life-cycle callbacks are working with custom shadow
     }
 
     @NonNull

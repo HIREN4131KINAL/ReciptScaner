@@ -48,6 +48,7 @@ import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
+import rx.Single;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -338,23 +339,23 @@ public class PurchaseManager {
      *
      * @param consumablePurchase the product to consume
      *
-     * @return an {@link Observable}, which will pass {@link Subscriber#onCompleted()} or {@link Subscriber#onError(Throwable)}
-     *  calls back to the subscription. No values will be emitted.
+     * @return an {@link Single} to indicate whether this was successful or not
      */
     @NonNull
-    public Observable<Void> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
+    public Single<Object> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
         Logger.info(PurchaseManager.this, "Consuming the purchase of {}", consumablePurchase.getInAppPurchase());
         return rxInAppBillingServiceConnection.bindToInAppBillingService()
-                .flatMap(new Func1<IInAppBillingService, Observable<Void>>() {
+                .flatMap(new Func1<IInAppBillingService, Observable<Object>>() {
                     @Override
-                    public Observable<Void> call(@NonNull final IInAppBillingService inAppBillingService) {
-                        return Observable.create(new Observable.OnSubscribe<Void>() {
+                    public Observable<Object> call(@NonNull final IInAppBillingService inAppBillingService) {
+                        return Observable.create(new Observable.OnSubscribe<Object>() {
                             @Override
-                            public void call(Subscriber<? super Void> subscriber) {
+                            public void call(Subscriber<? super Object> subscriber) {
                                 try {
                                     final int responseCode = inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken());
                                     if (BILLING_RESPONSE_CODE_OK == responseCode) {
                                         Logger.info(PurchaseManager.this, "Successfully consumed the purchase of {}", consumablePurchase.getInAppPurchase());
+                                        subscriber.onNext(new Object());
                                         subscriber.onCompleted();
                                     } else {
                                         Logger.warn(PurchaseManager.this, "Received an unexpected response code, {}, for the consumption of this product.", responseCode);
@@ -366,7 +367,8 @@ public class PurchaseManager {
                             }
                         });
                     }
-                });
+                })
+                .toSingle();
     }
 
     @VisibleForTesting

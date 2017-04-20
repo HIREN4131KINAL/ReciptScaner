@@ -15,6 +15,7 @@ import java.util.List;
 
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.persistence.database.tables.adapters.DatabaseAdapter;
 import co.smartreceipts.android.persistence.database.tables.adapters.SyncStateAdapter;
 import co.smartreceipts.android.persistence.database.tables.keys.AutoIncrementIdPrimaryKey;
@@ -305,7 +306,17 @@ public abstract class AbstractSqlTable<ModelType, PrimaryKeyType> implements Tab
     public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         final ContentValues values = mDatabaseAdapter.write(newModelType, databaseOperationMetadata);
         final String oldPrimaryKeyValue = mPrimaryKey.getPrimaryKeyValue(oldModelType).toString();
-        if (getWritableDatabase().update(getTableName(), values, mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ oldPrimaryKeyValue }) > 0) {
+
+        final boolean updateSuccess;
+        if (databaseOperationMetadata.getOperationFamilyType() == OperationFamilyType.Sync && oldModelType instanceof Syncable) {
+            // For sync operations, ensure that this only succeeds if we haven't already updated this item more recently
+            final Syncable syncableOldModel = (Syncable) oldModelType;
+            updateSuccess = getWritableDatabase().update(getTableName(), values, mPrimaryKey.getPrimaryKeyColumn() + " = ? AND " + AbstractSqlTable.COLUMN_LAST_LOCAL_MODIFICATION_TIME + " >= ?", new String[]{ oldPrimaryKeyValue, Long.toString(syncableOldModel.getSyncState().getLastLocalModificationTime().getTime()) }) > 0;
+        } else {
+            updateSuccess = getWritableDatabase().update(getTableName(), values, mPrimaryKey.getPrimaryKeyColumn() + " = ?", new String[]{ oldPrimaryKeyValue }) > 0;
+        }
+
+        if (updateSuccess) {
             final ModelType updatedItem;
             if (Integer.class.equals(mPrimaryKey.getPrimaryKeyClass())) {
                 // If it's an auto-increment key, ensure we're re-using the same id as the old key

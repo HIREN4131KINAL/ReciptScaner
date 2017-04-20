@@ -309,7 +309,7 @@ public class ReceiptTableController extends TripForeignKeyAbstractTableControlle
                 .flatMap(new Func1<Map.Entry<Receipt, Receipt>, Observable<Receipt>>() {
                     @Override
                     public Observable<Receipt> call(Map.Entry<Receipt, Receipt> entry) {
-                        return updateObservable(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata());
+                        return update(entry.getKey(), entry.getValue(), new DatabaseOperationMetadata());
                     }
                 })
                 .filter(new Func1<Receipt, Boolean>() {

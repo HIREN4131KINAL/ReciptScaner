@@ -7,6 +7,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -21,6 +22,7 @@ import co.smartreceipts.android.persistence.database.controllers.results.InsertR
 import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.persistence.database.tables.Table;
+import co.smartreceipts.android.utils.PreFixedThreadFactory;
 import co.smartreceipts.android.utils.log.Logger;
 import rx.Observable;
 import rx.Scheduler;
@@ -45,7 +47,7 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
 
     private final Table<ModelType, ?> mTable;
     private final ConcurrentHashMap<TableEventsListener<ModelType>, BridgingTableEventsListener<ModelType>> mBridgingTableEventsListeners = new ConcurrentHashMap<>();
-    protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners;
+    protected final CopyOnWriteArrayList<TableEventsListener<ModelType>> mTableEventsListeners = new CopyOnWriteArrayList<>();
     protected final TableActionAlterations<ModelType> mTableActionAlterations;
     protected final Analytics mAnalytics;
     protected final Scheduler mSubscribeOnScheduler;
@@ -63,7 +65,11 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     }
 
     public AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations, @NonNull Analytics analytics) {
-        this(table, tableActionAlterations, analytics, Schedulers.io(), AndroidSchedulers.mainThread());
+        mTable = Preconditions.checkNotNull(table);
+        mTableActionAlterations = Preconditions.checkNotNull(tableActionAlterations);
+        mAnalytics = Preconditions.checkNotNull(analytics);
+        mSubscribeOnScheduler = Schedulers.from(Executors.newSingleThreadExecutor(new PreFixedThreadFactory(getClass().getSimpleName())));
+        mObserveOnScheduler = AndroidSchedulers.mainThread();
     }
 
     AbstractTableController(@NonNull Table<ModelType, ?> table, @NonNull TableActionAlterations<ModelType> tableActionAlterations,
@@ -73,7 +79,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
         mAnalytics = Preconditions.checkNotNull(analytics);
         mSubscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
         mObserveOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
-        mTableEventsListeners = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -222,10 +227,6 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
     @Override
     public Observable<UpdateResult<ModelType>> updateStream() {
         return updateStreamSubject.asObservable();
-    }
-
-    protected synchronized Observable<ModelType> updateObservable(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
-        throw new UnsupportedOperationException("Fix me");
     }
 
     @NonNull

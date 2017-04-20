@@ -142,19 +142,25 @@ public class DriveReceiptsManager {
 
         if (mNetworkManager.isNetworkAvailable()) {
             onInsertOrUpdateObservable(receipt)
-                    .flatMap(new Func1<SyncState, Observable<Receipt>>() {
-                        @Override
-                        public Observable<Receipt> call(SyncState syncState) {
-                            return Observable.just(mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build());
-                        }
-                    })
                     .observeOn(mObserveOnScheduler)
                     .subscribeOn(mSubscribeOnScheduler)
+                    .map(new Func1<SyncState, Receipt>() {
+                        @Override
+                        public Receipt call(SyncState syncState) {
+                            return (mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build());
+                        }
+                    })
+                    .flatMap(new Func1<Receipt, Observable<Receipt>>() {
+                        @Override
+                        public Observable<Receipt> call(Receipt newReceipt) {
+                            Logger.info(DriveReceiptsManager.this, "Updating receipt " + receipt.getId() + " to reflect its sync state");
+                            return mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                        }
+                    })
                     .subscribe(new Action1<Receipt>() {
                         @Override
                         public void call(Receipt newReceipt) {
-                            Logger.info(DriveReceiptsManager.this, "Updating receipt " + receipt.getId() + " to reflect its sync state");
-                            mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                            Logger.info(DriveReceiptsManager.this, "Successfully updated receipt " + receipt.getId() + " to reflect its sync state");
                         }
                     }, new Action1<Throwable>() {
                         @Override

@@ -154,8 +154,9 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
 
     @NonNull
     @Override
-    public void update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
+    public Observable<Optional<ModelType>> update(@NonNull final ModelType oldModelType, @NonNull ModelType newModelType, @NonNull final DatabaseOperationMetadata databaseOperationMetadata) {
         Logger.info(this, "#update: {}; {}", oldModelType, newModelType);
+        final Subject<Optional<ModelType>> updateSubject = PublishSubject.create();
 
         mTableActionAlterations.preUpdate(oldModelType, newModelType)
                 .flatMap(updatedItem -> mTable.update(oldModelType, updatedItem, databaseOperationMetadata))
@@ -171,7 +172,10 @@ abstract class AbstractTableController<ModelType> implements TableController<Mod
                 })
                 .map(Optional::of)
                 .onErrorReturnItem(Optional.absent())
-                .subscribe();
+                .toObservable()
+                .subscribe(updateSubject);
+
+        return updateSubject;
     }
 
     @NonNull

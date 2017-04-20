@@ -129,7 +129,7 @@ public class DriveReceiptsManager {
                     .observeOn(mObserveOnScheduler)
                     .subscribeOn(mSubscribeOnScheduler)
                     .map(syncState -> mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build())
-                    .flatMap(newReceipt -> {
+                    .flatMapObservable(newReceipt -> {
                             Logger.info(DriveReceiptsManager.this, "Updating receipt " + receipt.getId() + " to reflect its sync state");
                             return mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
                     })

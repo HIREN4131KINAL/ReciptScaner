@@ -2,7 +2,9 @@ package co.smartreceipts.android.persistence.database.controllers;
 
 import android.support.annotation.NonNull;
 
-import java.util.List;
+import com.hadisatrio.optional.Optional;
+
+import org.reactivestreams.Subscriber;
 
 import co.smartreceipts.android.persistence.database.controllers.results.DeleteResult;
 import co.smartreceipts.android.persistence.database.controllers.results.GetResult;
@@ -10,7 +12,6 @@ import co.smartreceipts.android.persistence.database.controllers.results.InsertR
 import co.smartreceipts.android.persistence.database.controllers.results.UpdateResult;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 
 /**
  * Provides an asynchronous way for us to easily interact with our database layer
@@ -38,7 +39,7 @@ public interface TableController<ModelType> {
     /**
      * Returns a stream of all get requests submitted to {@link #get()}
      * <p>
-     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onCompleted()},
+     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()},
      * since we want to ensure that this stream never ends in order to allow listeners to observe this for the app lifetime
      * </p>
      * @return an {@link Observable} that will emit all {@link GetResult}s of this {@link ModelType}
@@ -58,7 +59,7 @@ public interface TableController<ModelType> {
     /**
      * Returns a stream of all insertions submitted to {@link #insert(Object, DatabaseOperationMetadata)}
      * <p>
-     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onCompleted()},
+     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()},
      * since we want to ensure that this stream never ends in order to allow listeners to observe this for the app lifetime
      * </p>
      * @return an {@link Observable} that will emit all {@link InsertResult}s of this {@link ModelType}
@@ -72,14 +73,14 @@ public interface TableController<ModelType> {
      * @param oldModelType the old object that will be replaced
      * @param newModelType the new object that will take the place of the old one
      * @param databaseOperationMetadata metadata about this particular database operation
-//     * @return a hot {@link Observable} that will return the updated {@link ModelType} as the result of this operation
+     * @return a hot {@link Observable} that will return the updated {@link ModelType} as the result of this operation
      */
-    /*Observable<ModelType>*/void update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
+    Observable<Optional<ModelType>> update(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata);
 
     /**
      * Returns a stream of all updates submitted to {@link #update(Object, Object, DatabaseOperationMetadata)}
      * <p>
-     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onCompleted()},
+     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()},
      * since we want to ensure that this stream never ends in order to allow listeners to observe this for the app lifetime
      * </p>
      * @return an {@link Observable} that will emit all {@link UpdateResult}s of this {@link ModelType}
@@ -99,7 +100,7 @@ public interface TableController<ModelType> {
     /**
      * Returns a stream of all deletions submitted to {@link #delete(Object, DatabaseOperationMetadata)}
      * <p>
-     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onCompleted()},
+     * Please note that this will never call {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()},
      * since we want to ensure that this stream never ends in order to allow listeners to observe this for the app lifetime
      * </p>
      * @return an {@link Observable} that will emit all {@link DeleteResult}s of this {@link ModelType}

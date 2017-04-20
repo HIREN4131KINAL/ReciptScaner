@@ -16,11 +16,11 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 
-import co.smartreceipts.android.SameThreadExecutorService;
 import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,13 +70,12 @@ public class S3ManagerTest {
     public void uploadWithoutS3InstanceFails() {
         when(s3ClientFactory.getAmazonS3()).thenReturn(Observable.just(Optional.<AmazonS3Client>absent()));
 
-        final TestSubscriber<String> subscriber = new TestSubscriber<>();
-        s3Manager.upload(file, PATH).subscribe(subscriber);
+        TestObserver<String> testObserver = s3Manager.upload(file, PATH).test();
 
         verify(amazonS3Client, never()).putObject("smartreceipts", FULL_KEY_PATH, file);
-        subscriber.assertNoValues();
-        subscriber.assertNotCompleted();
-        subscriber.assertError(Exception.class);
+        testObserver.assertNoValues();
+        testObserver.assertNotComplete();
+        testObserver.assertError(Exception.class);
     }
 
     @Test
@@ -84,24 +83,22 @@ public class S3ManagerTest {
         final AmazonClientException exception = new AmazonClientException("test");
         when(amazonS3Client.putObject("smartreceipts", FULL_KEY_PATH, file)).thenThrow(exception);
 
-        final TestSubscriber<String> subscriber = new TestSubscriber<>();
-        s3Manager.upload(file, PATH).subscribe(subscriber);
+        TestObserver<String> testObserver = s3Manager.upload(file, PATH).test();
 
         verify(amazonS3Client).putObject("smartreceipts", FULL_KEY_PATH, file);
-        subscriber.assertNoValues();
-        subscriber.assertNotCompleted();
-        subscriber.assertError(exception);
+        testObserver.assertNoValues();
+        testObserver.assertNotComplete();
+        testObserver.assertError(exception);
     }
 
     @Test
     public void uploadSuccess() {
-        final TestSubscriber<String> subscriber = new TestSubscriber<>();
-        s3Manager.upload(file, PATH).subscribe(subscriber);
+        TestObserver<String> testObserver = s3Manager.upload(file, PATH).test();
 
         verify(amazonS3Client).putObject("smartreceipts", FULL_KEY_PATH, file);
-        subscriber.assertValue(URL);
-        subscriber.assertCompleted();
-        subscriber.assertNoErrors();
+        testObserver.assertValue(URL);
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
 }

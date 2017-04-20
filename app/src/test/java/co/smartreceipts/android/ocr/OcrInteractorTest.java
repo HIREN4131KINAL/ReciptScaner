@@ -26,8 +26,8 @@ import co.smartreceipts.android.push.PushManager;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.Feature;
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -92,12 +92,12 @@ public class OcrInteractorTest {
     @Mock
     OcrResponse ocrResponse;
 
-    TestSubscriber<OcrResponse> testSubscriber;
+    TestObserver<OcrResponse> testObserver;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        testSubscriber = new TestSubscriber<>();
+        testObserver = new TestObserver<>();
 
         when(ocrFeature.isEnabled()).thenReturn(true);
         when(identityManager.isLoggedIn()).thenReturn(true);
@@ -120,48 +120,48 @@ public class OcrInteractorTest {
     @Test
     public void scanWhenFeatureIsDisabled() {
         when(ocrFeature.isEnabled()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verifyZeroInteractions(s3Manager, ocrServiceManager, pushManager, pushMessageReceiver);
     }
 
     @Test
     public void scanWhenNotLoggedIn() {
         when(identityManager.isLoggedIn()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verifyZeroInteractions(s3Manager, ocrServiceManager, pushManager, pushMessageReceiver);
     }
 
     @Test
     public void scanWithNoAvailableScans() {
         when(ocrPurchaseTracker.hasAvailableScans()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verifyZeroInteractions(s3Manager, ocrServiceManager, pushManager, pushMessageReceiver);
     }
 
     @Test
     public void scanButS3UploadFails() {
         when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.<String>error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
@@ -174,12 +174,12 @@ public class OcrInteractorTest {
     @Test
     public void scanButS3ReturnsUnexpectedUrl() {
         when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.just("https://test.com"));
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
@@ -192,12 +192,12 @@ public class OcrInteractorTest {
     @Test
     public void scanButRecognitionRequestFails() {
         when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME))).thenReturn(Observable.<RecognitionResponse>error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
         verify(pushManager).registerReceiver(pushMessageReceiver);
@@ -209,12 +209,12 @@ public class OcrInteractorTest {
     @Test
     public void scanButRecognitionResponseIsInvalidWithNullId() {
         when(recognition.getId()).thenReturn(null);
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
         verify(pushManager).registerReceiver(pushMessageReceiver);
@@ -226,12 +226,12 @@ public class OcrInteractorTest {
     @Test
     public void scanButGetRecognitionResult() {
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.<RecognitionResponse>error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(new OcrResponse());
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(new OcrResponse());
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
         verify(pushManager).registerReceiver(pushMessageReceiver);
@@ -240,12 +240,12 @@ public class OcrInteractorTest {
 
     @Test
     public void scanCompletes() {
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(ocrResponse);
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(ocrResponse);
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
         verify(pushManager).registerReceiver(pushMessageReceiver);
@@ -255,12 +255,12 @@ public class OcrInteractorTest {
     @Test
     public void scanCompletesEvenIfPushMessageTimesOutStillContinuesProcessing() {
         when(pushMessageReceiver.getOcrPushResponse()).thenReturn(Observable.error(new Exception("timeout")));
-        ocrInteractor.scan(file).subscribe(testSubscriber);
+        ocrInteractor.scan(file).subscribe(testObserver);
 
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(ocrResponse);
-        testSubscriber.onCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(ocrResponse);
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
         verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
         verify(pushManager).registerReceiver(pushMessageReceiver);

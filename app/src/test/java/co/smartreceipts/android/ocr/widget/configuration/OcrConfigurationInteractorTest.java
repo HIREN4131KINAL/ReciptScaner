@@ -18,18 +18,19 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
-import co.smartreceipts.android.ocr.widget.configuration.OcrConfigurationInteractor;
 import co.smartreceipts.android.purchases.PurchaseManager;
 import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import rx.Observable;
-import rx.observers.TestSubscriber;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.subjects.PublishSubject;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -75,13 +76,12 @@ public class OcrConfigurationInteractorTest {
         final PublishSubject<Integer> scanSubject = PublishSubject.create();
         when(ocrPurchaseTracker.getRemainingScansStream()).thenReturn(scanSubject);
 
-        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
-        interactor.getRemainingScansStream().subscribe(subscriber);
+        TestObserver<Integer> testObserver = interactor.getRemainingScansStream().test();
         scanSubject.onNext(61);
 
-        subscriber.assertValue(61);
-        subscriber.assertNotCompleted();
-        subscriber.assertNoErrors();
+        testObserver.assertValue(61);
+        testObserver.assertNotComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test
@@ -94,13 +94,12 @@ public class OcrConfigurationInteractorTest {
         final Set<AvailablePurchase> purchaseSet = new HashSet<>(Arrays.asList(availablePurchase, availablePurchase2));
         when(purchaseManager.getAllAvailablePurchases()).thenReturn(Observable.just(purchaseSet));
 
-        final TestSubscriber<List<AvailablePurchase>> subscriber = new TestSubscriber<>();
-        interactor.getAvailableOcrPurchases().subscribe(subscriber);
+        TestObserver<List<AvailablePurchase>> testObserver = interactor.getAvailableOcrPurchases().test();
 
-        subscriber.awaitTerminalEvent();
-        subscriber.assertValue(Arrays.asList(availablePurchase2, availablePurchase));
-        subscriber.assertCompleted();
-        subscriber.assertNoErrors();
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(Arrays.asList(availablePurchase2, availablePurchase));
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
     @Test

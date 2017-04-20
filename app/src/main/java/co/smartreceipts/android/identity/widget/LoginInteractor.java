@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
-import com.hadisatrio.optional.Optional;
 
 import javax.inject.Inject;
 
@@ -12,11 +11,10 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.identity.apis.login.LoginResponse;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.utils.log.Logger;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 
 
@@ -44,12 +42,7 @@ public class LoginInteractor {
         Logger.info(this, "Initiating user login (or sign up)");
         return this.identityManager.logInOrSignUp(userCredentialsPayload)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        analytics.record(new ErrorEvent(throwable));
-                    }
-                });
+                .doOnError(throwable -> analytics.record(new ErrorEvent(throwable)));
     }
 
     public void onLoginResultsConsumed(@NonNull UserCredentialsPayload userCredentialsPayload) {

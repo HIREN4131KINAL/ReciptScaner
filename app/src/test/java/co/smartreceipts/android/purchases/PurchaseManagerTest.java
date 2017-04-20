@@ -494,7 +494,7 @@ public class PurchaseManagerTest {
         purchaseManager.getAvailableSubscriptions().test()
 
                 // Verify
-                assertValue(Collections.singleton(getSkuDetailsAsAvailablePurchase(InAppPurchase.SmartReceiptsPlus)));                .assertComplete()
+                .assertValue(Collections.singleton(getSkuDetailsAsAvailablePurchase(InAppPurchase.SmartReceiptsPlus)))
                 .assertComplete()
                 .assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
@@ -594,12 +594,10 @@ public class PurchaseManagerTest {
         when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenReturn(getConsumablePurchasesResponse);
 
         // Test
-        final TestSubscriber<Set<AvailablePurchase>> testSubscriber = new TestSubscriber<>();
-        purchaseManager.getAllAvailablePurchases().subscribe(testSubscriber);
-
-        testSubscriber.assertValue(new HashSet<>(Arrays.asList(getSkuDetailsAsAvailablePurchase(InAppPurchase.SmartReceiptsPlus), getSkuDetailsAsAvailablePurchase(InAppPurchase.OcrScans50))));
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        purchaseManager.getAllAvailablePurchases().test()
+                .assertValue(new HashSet<>(Arrays.asList(getSkuDetailsAsAvailablePurchase(InAppPurchase.SmartReceiptsPlus), getSkuDetailsAsAvailablePurchase(InAppPurchase.OcrScans50))))
+                .assertComplete()
+                .assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
         verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
         verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));
@@ -618,12 +616,10 @@ public class PurchaseManagerTest {
         when(inAppBillingService.getSkuDetails(eq(3), eq(packageName), eq("inapp"), bundleCaptor.capture())).thenReturn(getConsumablePurchasesResponse);
 
         // Test
-        final TestSubscriber<Set<InAppPurchase>> testSubscriber = new TestSubscriber<>();
-        purchaseManager.getAllAvailablePurchaseSkus().subscribe(testSubscriber);
-
-        testSubscriber.assertValue(new HashSet<>(Arrays.asList(InAppPurchase.SmartReceiptsPlus, InAppPurchase.OcrScans50)));
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        purchaseManager.getAllAvailablePurchaseSkus().test()
+                .assertValue(new HashSet<>(Arrays.asList(InAppPurchase.SmartReceiptsPlus, InAppPurchase.OcrScans50)))
+                .assertComplete()
+                .assertNoErrors();
         verify(purchaseWallet, never()).addPurchaseToWallet(any(ManagedProduct.class));
         verify(purchaseWallet, never()).updatePurchasesInWallet(anySetOf(ManagedProduct.class));
         verify(purchaseWallet, never()).removePurchaseFromWallet(any(InAppPurchase.class));

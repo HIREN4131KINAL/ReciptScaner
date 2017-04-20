@@ -18,10 +18,10 @@ import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.apis.login.LoginPayload;
+import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.LoginService;
 import co.smartreceipts.android.identity.apis.login.LoginType;
 import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
-import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
 import co.smartreceipts.android.identity.apis.logout.LogoutService;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
@@ -50,7 +50,7 @@ public class IdentityManager implements IdentityStore {
     private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
     private final BehaviorSubject<Boolean> isLoggedInBehaviorSubject;
-    private final Map<UserCredentialsPayload, Subject<LoginResponse, LoginResponse>> loginMap = new ConcurrentHashMap<>();
+    private final Map<UserCredentialsPayload, Subject<LoginResponse>> loginMap = new ConcurrentHashMap<>();
 
     private Subject<LogoutResponse> logoutSubject;
 
@@ -107,7 +107,7 @@ public class IdentityManager implements IdentityStore {
     public synchronized Observable<LoginResponse> logInOrSignUp(@NonNull final UserCredentialsPayload credentials) {
         Preconditions.checkNotNull(credentials.getEmail(), "A valid email must be provided to log-in");
 
-        Subject<LoginResponse, LoginResponse> loginSubject = loginMap.get(credentials);
+        Subject<LoginResponse> loginSubject = loginMap.get(credentials);
         if (loginSubject == null) {
             loginSubject = AsyncSubject.create();
 
@@ -126,32 +126,17 @@ public class IdentityManager implements IdentityStore {
 
 
             loginResponseObservable
-                    .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
-                        @Override
-                        public Observable<LoginResponse> call(LoginResponse loginResponse) {
+                    .flatMap(loginResponse -> {
                             if (loginResponse.getToken() != null) {
                                 mutableIdentityStore.setEmailAndToken(credentials.getEmail(), loginResponse.getToken());
                                 return Observable.just(loginResponse);
                             } else {
                                 return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
                             }
-                        }
                     })
-                    .flatMap(new Func1<LoginResponse, Observable<LoginResponse>>() {
-                        @Override
-                        public Observable<LoginResponse> call(final LoginResponse loginResponse) {
-                            return organizationManager.getOrganizations()
-                                    .flatMap(new Func1<OrganizationsResponse, Observable<LoginResponse>>() {
-                                        @Override
-                                        public Observable<LoginResponse> call(OrganizationsResponse response) {
-                                            return Observable.just(loginResponse);
-                                        }
-                                    });
-                        }
-                    })
-                    .doOnError(new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
+                    .flatMap(loginResponse -> organizationManager.getOrganizations()
+                            .flatMap(response -> Observable.just(loginResponse)))
+                    .doOnError(throwable -> {
                             if (credentials.getLoginType() == LoginType.LogIn) {
                                 Logger.error(this, "Failed to complete the log in request", throwable);
                                 analytics.record(Events.Identity.UserLoginFailure);
@@ -159,11 +144,8 @@ public class IdentityManager implements IdentityStore {
                                 Logger.error(this, "Failed to complete the sign up request", throwable);
                                 analytics.record(Events.Identity.UserSignUpFailure);
                             }
-                        }
                     })
-                    .doOnCompleted(new Action0() {
-                        @Override
-                        public void call() {
+                    .doOnComplete(() -> {
                             isLoggedInBehaviorSubject.onNext(true);
                             if (credentials.getLoginType() == LoginType.LogIn) {
                                 Logger.info(this, "Successfully completed the log in request");
@@ -172,7 +154,6 @@ public class IdentityManager implements IdentityStore {
                                 Logger.info(this, "Successfully completed the sign up request");
                                 analytics.record(Events.Identity.UserSignUpSuccess);
                             }
-                        }
                     })
                     .subscribe(loginSubject);
             loginMap.put(credentials, loginSubject);

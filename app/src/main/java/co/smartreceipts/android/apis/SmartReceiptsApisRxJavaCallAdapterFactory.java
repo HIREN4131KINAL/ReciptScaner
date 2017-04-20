@@ -5,15 +5,15 @@ import android.support.annotation.NonNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.HttpException;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Func1;
+import retrofit2.adapter.rxjava2.HttpException;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+
 
 public class SmartReceiptsApisRxJavaCallAdapterFactory extends CallAdapter.Factory {
 
@@ -24,19 +24,19 @@ public class SmartReceiptsApisRxJavaCallAdapterFactory extends CallAdapter.Facto
     }
 
     public static SmartReceiptsApisRxJavaCallAdapterFactory createWithScheduler(@NonNull Scheduler scheduler) {
-        return new SmartReceiptsApisRxJavaCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(scheduler));
+        return new SmartReceiptsApisRxJavaCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(scheduler));
     }
 
     @Override
-    public CallAdapter<?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
+    public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
         return new RxCallAdapterWrapper(retrofit, original.get(returnType, annotations, retrofit));
     }
 
-    private static class RxCallAdapterWrapper implements CallAdapter<Observable<?>> {
+    private static class RxCallAdapterWrapper<R> implements CallAdapter<R, Observable<?>> {
         private final Retrofit retrofit;
-        private final CallAdapter<?> wrapped;
+        private final CallAdapter<R, Observable<?>> wrapped;
 
-        public RxCallAdapterWrapper(Retrofit retrofit, CallAdapter<?> wrapped) {
+        public RxCallAdapterWrapper(Retrofit retrofit, CallAdapter<R, Observable<?>> wrapped) {
             this.retrofit = retrofit;
             this.wrapped = wrapped;
         }
@@ -46,15 +46,12 @@ public class SmartReceiptsApisRxJavaCallAdapterFactory extends CallAdapter.Facto
             return wrapped.responseType();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public <R> Observable<?> adapt(Call<R> call) {
-            return ((Observable) wrapped.adapt(call)).onErrorResumeNext(new Func1<Throwable, Observable>() {
-                @Override
-                public Observable call(Throwable throwable) {
-                    return Observable.error(asPossiblyMappedException(throwable));
-                }
-            });
+        public Observable<?> adapt(Call<R> call) {
+            return ((Observable) wrapped.adapt(call)).onErrorResumeNext((Object throwable) -> {
+                        return Observable.error(asPossiblyMappedException((Throwable) throwable));
+                    }
+            );
         }
 
         private Throwable asPossiblyMappedException(Throwable throwable) {

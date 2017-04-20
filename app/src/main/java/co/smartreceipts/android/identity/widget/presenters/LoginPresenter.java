@@ -3,15 +3,15 @@ package co.smartreceipts.android.identity.widget.presenters;
 import android.graphics.PorterDuff;
 import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.common.base.Preconditions;
 import com.jakewharton.rxbinding2.widget.RxTextView;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -21,12 +21,14 @@ import butterknife.Unbinder;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.apis.SmartReceiptsApiErrorResponse;
 import co.smartreceipts.android.apis.SmartReceiptsApiException;
-import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
+import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserSignUp;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
+import co.smartreceipts.android.utils.butterknife.ButterKnifeActions;
+import co.smartreceipts.android.widget.Presenter;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
 public class LoginPresenter implements Presenter {
@@ -39,12 +41,16 @@ public class LoginPresenter implements Presenter {
     private final Unbinder unbinder;
     private final PublishSubject<UserCredentialsPayload> loginParamsSubject = PublishSubject.create();
 
-    @BindView(R.id.login_fields_hint) TextView loginFieldsHintMessage;
-    @BindView(R.id.login_field_email) EditText emailInput;
-    @BindView(R.id.login_field_password) EditText passwordInput;
-    @BindViews({R.id.login_button, R.id.sign_up_button}) List<Button> buttons;
+    @BindView(R.id.login_fields_hint)
+    TextView loginFieldsHintMessage;
+    @BindView(R.id.login_field_email)
+    EditText emailInput;
+    @BindView(R.id.login_field_password)
+    EditText passwordInput;
+    @BindViews({R.id.login_button, R.id.sign_up_button})
+    List<Button> buttons;
 
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     public LoginPresenter(@NonNull View view) {
         this.unbinder = ButterKnife.bind(this, view);
@@ -55,25 +61,15 @@ public class LoginPresenter implements Presenter {
 
     @Override
     public void onResume() {
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(Observable.combineLatest(
-                simplePasswordFieldValidator(),
-                simpleEmailFieldValidator(),
-                new Func2<Boolean, Boolean, Boolean>() {
-                    @Override
-                    public Boolean call(Boolean isPasswordValid, Boolean isEmailValid) {
-                        return isEmailValid && isPasswordValid;
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(Observable.combineLatest(simpleEmailFieldValidator(), simplePasswordFieldValidator(),
+                (isEmailValid, isPasswordValid) -> isEmailValid && isPasswordValid)
+                .subscribe(enableLoginButton -> {
+                    if (enableLoginButton) {
+                        loginFieldsHintMessage.setText(R.string.login_fields_hint_valid);
                     }
-                }).subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean enableLoginButton) {
-                        if (enableLoginButton) {
-                            loginFieldsHintMessage.setText(R.string.login_fields_hint_valid);
-                        }
-                        ButterKnife.apply(buttons, ButterKnifeActions.setEnabled(enableLoginButton));
-                    }
-                })
-        );
+                    ButterKnife.apply(buttons, ButterKnifeActions.setEnabled(enableLoginButton));
+                }));
     }
 
     @Override
@@ -92,7 +88,7 @@ public class LoginPresenter implements Presenter {
 
     @NonNull
     public Observable<UserCredentialsPayload> getLoginOrSignUpParamsStream() {
-        return loginParamsSubject.asObservable();
+        return loginParamsSubject;
     }
 
     public void presentLoginSuccess() {
@@ -146,14 +142,13 @@ public class LoginPresenter implements Presenter {
                 })
                 .doOnNext(isEmailValid -> {
                     if (isEmailValid) {
-                            validInputHighlight(emailInput);
-                        } else {
-                            loginFieldsHintMessage.setText(R.string.login_fields_hint_email);
-                            errorInputHighlight(emailInput);
-                        }
+                        validInputHighlight(emailInput);
+                    } else {
+                        loginFieldsHintMessage.setText(R.string.login_fields_hint_email);
+                        errorInputHighlight(emailInput);
                     }
                 });
-    }
+}
 
     @NonNull
     private Observable<Boolean> simplePasswordFieldValidator() {
@@ -161,7 +156,7 @@ public class LoginPresenter implements Presenter {
                 .map(password -> password != null && password.length() >= MINIMUM_PASSWORD_LENGTH)
                 .doOnNext(isPasswordValid -> {
                     if (isPasswordValid) {
-                            validInputHighlight(passwordInput);
+                        validInputHighlight(passwordInput);
                     } else {
                         loginFieldsHintMessage.setText(R.string.login_fields_hint_password);
                         errorInputHighlight(passwordInput);

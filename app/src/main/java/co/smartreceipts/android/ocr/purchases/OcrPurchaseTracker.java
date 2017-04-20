@@ -6,6 +6,8 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
+import org.reactivestreams.Subscriber;
+
 import javax.inject.Inject;
 
 import co.smartreceipts.android.apis.ApiValidationException;
@@ -151,11 +153,10 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
         Logger.info(this, "Uploading purchase: {}", consumablePurchase.getInAppPurchase());
 
         return serviceManager.getService(MobileAppPurchasesService.class).addPurchase(new PurchaseRequest(consumablePurchase, GOAL))
-                .flatMapCompletable(purchaseResponse -> {
+                .flatMap(purchaseResponse -> {
                     Logger.debug(OcrPurchaseTracker.this, "Received purchase response of {}", purchaseResponse);
                     return purchaseManager.consumePurchase(consumablePurchase);
                 })
-                .toObservable()
                 .flatMap(o -> fetchAndPersistAvailableRecognitions());
     }
 
@@ -175,10 +176,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
                         localOcrScansTracker.setRemainingScans(recognitionsAvailable);
                     }
                 })
-                .doOnError(throwable -> {
-                        Logger.error(OcrPurchaseTracker.this, "Failed to get the available OCR scans", throwable);
-                    }
-                })
+                .doOnError(throwable -> Logger.error(OcrPurchaseTracker.this, "Failed to get the available OCR scans", throwable))
                 .onErrorReturn(throwable -> {
                     return 0; // ignore errors and keep moving to get the owned purchases
                 });

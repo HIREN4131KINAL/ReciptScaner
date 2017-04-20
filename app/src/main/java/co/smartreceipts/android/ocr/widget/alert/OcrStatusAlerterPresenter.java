@@ -12,10 +12,9 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Presenter;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class OcrStatusAlerterPresenter implements Presenter {
 
@@ -23,7 +22,7 @@ public class OcrStatusAlerterPresenter implements Presenter {
     private Alerter alerter;
     private Alert alert;
 
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     public OcrStatusAlerterPresenter(@NonNull Activity activity, @NonNull OcrInteractor ocrInteractor) {
         this.ocrInteractor = Preconditions.checkNotNull(ocrInteractor);
@@ -35,20 +34,15 @@ public class OcrStatusAlerterPresenter implements Presenter {
 
     @Override
     public void onResume() {
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(ocrInteractor.getOcrProcessingStatus()
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnUnsubscribe(new Action0() {
-                @Override
-                public void call() {
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(ocrInteractor.getOcrProcessingStatus()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnDispose(() -> {
                     if (alert != null) {
                         alert.hide();
                     }
-                }
-            })
-            .subscribe(new Action1<OcrProcessingStatus>() {
-                @Override
-                public void call(OcrProcessingStatus ocrProcessingStatus) {
+                })
+                .subscribe(ocrProcessingStatus -> {
                     Logger.debug(OcrStatusAlerterPresenter.this, "Displaying OCR Status: {}", ocrProcessingStatus);
                     if (ocrProcessingStatus == OcrProcessingStatus.UploadingImage) {
                         setTextAndShow(R.string.ocr_status_message_uploading_image);
@@ -61,15 +55,14 @@ public class OcrStatusAlerterPresenter implements Presenter {
                             alert.hide();
                         }
                     }
-                }
-            }));
+                }));
     }
 
     @Override
     public void onPause() {
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
-            compositeSubscription = null;
+        if (compositeDisposable != null) {
+            compositeDisposable.dispose();
+            compositeDisposable = null;
         }
     }
 

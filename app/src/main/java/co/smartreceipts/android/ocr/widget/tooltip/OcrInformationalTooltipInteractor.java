@@ -17,10 +17,9 @@ import co.smartreceipts.android.di.scopes.FragmentScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
+
 
 @FragmentScope
 public class OcrInformationalTooltipInteractor {
@@ -53,35 +52,29 @@ public class OcrInformationalTooltipInteractor {
     public Observable<OcrTooltipMessageType> getShowOcrTooltip() {
         return stateTracker.shouldShowOcrInfo()
                 .subscribeOn(Schedulers.computation())
-                .flatMap(new Func1<Boolean, Observable<OcrTooltipMessageType>>() {
-                    @Override
-                    public Observable<OcrTooltipMessageType> call(Boolean shouldShowTooltip) {
-                        if (ocrPurchaseTracker.getRemainingScans() > 0 && ocrPurchaseTracker.getRemainingScans() <= SCANS_LEFT_TO_INFORM) {
-                            return Observable.just(OcrTooltipMessageType.LimitedScansRemaining);
-                        } else if (shouldShowTooltip) {
-                            if (identityManager.isLoggedIn()) {
-                                if (ocrPurchaseTracker.hasAvailableScans()) {
-                                    return Observable.empty();
-                                } else {
-                                    return Observable.just(OcrTooltipMessageType.NoScansRemaining);
-                                }
+                .flatMapObservable(shouldShowTooltip -> {
+                    if (ocrPurchaseTracker.getRemainingScans() > 0 && ocrPurchaseTracker.getRemainingScans() <= SCANS_LEFT_TO_INFORM) {
+                        return Observable.just(OcrTooltipMessageType.LimitedScansRemaining);
+                    } else if (shouldShowTooltip) {
+                        if (identityManager.isLoggedIn()) {
+                            if (ocrPurchaseTracker.hasAvailableScans()) {
+                                return Observable.empty();
                             } else {
-                                return Observable.just(OcrTooltipMessageType.NotConfigured);
+                                return Observable.just(OcrTooltipMessageType.NoScansRemaining);
                             }
                         } else {
-                            return Observable.empty();
+                            return Observable.just(OcrTooltipMessageType.NotConfigured);
                         }
+                    } else {
+                        return Observable.empty();
                     }
                 })
-                .doOnNext(new Action1<OcrTooltipMessageType>() {
-                    @Override
-                    public void call(OcrTooltipMessageType ocrTooltipMessageType) {
+                .doOnNext(ocrTooltipMessageType -> {
                         analytics.record(new DefaultDataPointEvent(Events.Ocr.OcrInfoTooltipShown).addDataPoint(new DataPoint("type", ocrTooltipMessageType)));
                         if (ocrTooltipMessageType == OcrTooltipMessageType.LimitedScansRemaining) {
                             stateTracker.setShouldShowOcrInfo(true);
                         }
-                    }
-                });
+                    });
     }
 
     public void dismissTooltip() {

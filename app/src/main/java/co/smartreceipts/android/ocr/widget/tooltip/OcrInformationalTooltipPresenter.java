@@ -9,9 +9,8 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Tooltip;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 
 import static android.view.View.GONE;
 import static android.view.View.OnClickListener;
@@ -23,7 +22,7 @@ public class OcrInformationalTooltipPresenter{
     private final Tooltip tooltip;
     private final OcrPurchaseTracker ocrPurchaseTracker;
 
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     public OcrInformationalTooltipPresenter(@NonNull OcrInformationalTooltipInteractor interactor, @NonNull Tooltip tooltip,
                                             @NonNull OcrPurchaseTracker ocrPurchaseTracker) {
@@ -38,23 +37,18 @@ public class OcrInformationalTooltipPresenter{
                 OcrInformationalTooltipPresenter.this.tooltip.setVisibility(GONE);
             }
         });
-        this.tooltip.showCloseIcon(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                OcrInformationalTooltipPresenter.this.interactor.dismissTooltip();
-                OcrInformationalTooltipPresenter.this.tooltip.setVisibility(GONE);
-            }
+        this.tooltip.showCloseIcon(v -> {
+            OcrInformationalTooltipPresenter.this.interactor.dismissTooltip();
+            OcrInformationalTooltipPresenter.this.tooltip.setVisibility(GONE);
         });
         this.tooltip.setVisibility(GONE);
     }
 
     public void onResume() {
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(interactor.getShowOcrTooltip()
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(interactor.getShowOcrTooltip()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Action1<OcrTooltipMessageType>() {
-                @Override
-                public void call(OcrTooltipMessageType ocrTooltipMessageType) {
+            .subscribe(ocrTooltipMessageType -> {
                     Logger.info(OcrInformationalTooltipPresenter.this, "Showing OCR Tooltip for {}", ocrTooltipMessageType);
                     if (ocrTooltipMessageType == OcrTooltipMessageType.NotConfigured) {
                         tooltip.setInfoMessage(R.string.ocr_informational_tooltip_configure_text);
@@ -65,12 +59,11 @@ public class OcrInformationalTooltipPresenter{
                         throw new IllegalArgumentException("Unknown message type" + ocrTooltipMessageType);
                     }
                     tooltip.setVisibility(VISIBLE);
-                }
-            }));
+                }));
     }
 
     public void onPause() {
-        compositeSubscription.unsubscribe();
-        compositeSubscription = null;
+        compositeDisposable.dispose();
+        compositeDisposable = null;
     }
 }

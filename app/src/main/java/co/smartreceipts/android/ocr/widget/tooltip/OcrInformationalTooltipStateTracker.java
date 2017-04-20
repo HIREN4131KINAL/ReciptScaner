@@ -8,8 +8,8 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Preconditions;
 
 import co.smartreceipts.android.di.scopes.FragmentScope;
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Single;
+
 
 @FragmentScope
 public class OcrInformationalTooltipStateTracker {
@@ -27,13 +27,9 @@ public class OcrInformationalTooltipStateTracker {
         preferences = Preconditions.checkNotNull(sharedPreferences);
     }
 
-    public Observable<Boolean> shouldShowOcrInfo() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                subscriber.onNext(preferences.getBoolean(KEY_SHOW_OCR_RELEASE_INFO, true));
-                subscriber.onCompleted();
-            }
+    public Single<Boolean> shouldShowOcrInfo() {
+        return Single.fromCallable(() -> {
+            return preferences.getBoolean(KEY_SHOW_OCR_RELEASE_INFO, true);
         });
     }
 

@@ -14,9 +14,11 @@ import org.robolectric.RuntimeEnvironment;
 
 import co.smartreceipts.android.aws.cognito.CognitoManager;
 import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.subjects.BehaviorSubject;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
@@ -44,7 +46,7 @@ public class S3ClientFactoryTest {
                 .assertComplete()
                 .assertNoErrors();
 
-        final Optional<AmazonS3Client> s3Client = s3ClientFactory.getAmazonS3().toBlocking().first();
+        final Optional<AmazonS3Client> s3Client = s3ClientFactory.getAmazonS3().blockingFirst();
         assertTrue(s3Client.isPresent());
     }
 
@@ -54,23 +56,22 @@ public class S3ClientFactoryTest {
         when(cognitoManager.getCognitoCachingCredentialsProvider()).thenReturn(subject);
 
         subject.onNext(Optional.<CognitoCachingCredentialsProvider>absent());
-        final TestSubscriber<Optional<AmazonS3Client>> subscriber = new TestSubscriber<>();
-        s3ClientFactory.getAmazonS3().subscribe(subscriber);
+        TestObserver<Optional<AmazonS3Client>> testObserver = s3ClientFactory.getAmazonS3().test();
+        testObserver
+                .assertValueCount(1)
+                .assertNotComplete()
+                .assertNoErrors();
 
-        subscriber.assertValueCount(1);
-        subscriber.assertNotCompleted();
-        subscriber.assertNoErrors();
-
-        final Optional<AmazonS3Client> s3Client1 = s3ClientFactory.getAmazonS3().toBlocking().first();
+        final Optional<AmazonS3Client> s3Client1 = s3ClientFactory.getAmazonS3().blockingFirst();
         assertFalse(s3Client1.isPresent());
 
         // Now re-drive with an actual value:
         subject.onNext(Optional.of(cognitoCachingCredentialsProvider));
 
-        subscriber.assertCompleted();
-        subscriber.assertNoErrors();
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
 
-        final Optional<AmazonS3Client> s3Client2 = s3ClientFactory.getAmazonS3().toBlocking().first();
+        final Optional<AmazonS3Client> s3Client2 = s3ClientFactory.getAmazonS3().blockingFirst();
         assertTrue(s3Client2.isPresent());
     }
 }

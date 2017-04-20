@@ -30,6 +30,7 @@ import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 
 @ApplicationScope
 public class OcrInteractor {
@@ -45,7 +46,7 @@ public class OcrInteractor {
     private final OcrPurchaseTracker ocrPurchaseTracker;
     private final OcrPushMessageReceiverFactory pushMessageReceiverFactory;
     private final Feature ocrFeature;
-    private final BehaviorSubject<OcrProcessingStatus> ocrProcessingStatusSubject = BehaviorSubject.create(OcrProcessingStatus.Idle);
+    private final BehaviorSubject<OcrProcessingStatus> ocrProcessingStatusSubject = BehaviorSubject.createDefault(OcrProcessingStatus.Idle);
 
     @Inject
     public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
@@ -83,64 +84,42 @@ public class OcrInteractor {
             final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
             ocrProcessingStatusSubject.onNext(OcrProcessingStatus.UploadingImage);
             return s3Manager.upload(file, OCR_FOLDER)
-                    .doOnSubscribe(disposable -> pushManager.registerReceiver(pushMessageReceiver))
+                    .doOnSubscribe(disposable -> pushManager.registerReceiver(ocrPushMessageReceiver))
                     .subscribeOn(Schedulers.io())
                     .flatMap(s3Url -> {
                         Logger.debug(OcrInteractor.this, "S3 upload completed. Preparing url for delivery to our APIs.");
                         if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
-                            return  Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
+                            return Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
                         } else {
                             return Observable.error(new ApiValidationException("Failed to receive a valid url: " + s3Url));
                         }
                     })
-                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
-                        @Override
-                        public Observable<RecognitionResponse> call(@NonNull String s3Url) {
-                            Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
-                            final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
-                            // TODO: incognito
-                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.PerformingScan);
-                            return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
+                    .flatMap(s3Url -> {
+                        Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
+                        final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
+                        // TODO: incognito
+                        ocrProcessingStatusSubject.onNext(OcrProcessingStatus.PerformingScan);
+                        return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
+                    })
+                    .flatMap(recognitionResponse -> {
+                        if (recognitionResponse != null && recognitionResponse.getRecognition() != null && recognitionResponse.getRecognition().getId() != null) {
+                            return Observable.just(recognitionResponse.getRecognition().getId());
+                        } else {
+                            return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
                         }
                     })
-                    .flatMap(new Func1<RecognitionResponse, Observable<String>>() {
-                        @Override
-                        public Observable<String> call(RecognitionResponse recognitionResponse) {
-                            if (recognitionResponse != null && recognitionResponse.getRecognition() != null && recognitionResponse.getRecognition().getId() != null) {
-                                return Observable.just(recognitionResponse.getRecognition().getId());
-                            } else {
-                                return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
-                            }
-                        }
-                    })
-                    .flatMap(new Func1<String, Observable<String>>() {
-                        @Override
-                        public Observable<String> call(@NonNull final String recognitionId) {
-                            Logger.debug(OcrInteractor.this, "Awaiting completion of recognition request {}.", recognitionId);
-                            return ocrPushMessageReceiver.getOcrPushResponse()
-                                    .onErrorReturn(new Func1<Throwable, Object>() {
-                                        @Override
-                                        public Object call(Throwable throwable) {
-                                            Logger.warn(OcrInteractor.this, "Ocr request timed out. Attempting to get response as is");
-                                            return new Object();
-                                        }
-                                    })
-                                    .map(new Func1<Object, String>() {
-                                        @Override
-                                        public String call(Object o) {
-                                            return recognitionId;
-                                        }
-                                    });
-                        }
-                    })
-                    .flatMap(new Func1<String, Observable<RecognitionResponse>>() {
-                        @Override
-                        public Observable<RecognitionResponse> call(String recognitionId) {
-                            Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
-                            ocrProcessingStatusSubject.onNext(OcrProcessingStatus.RetrievingResults);
+                    .flatMap(recognitionId -> {
+                        Logger.debug(OcrInteractor.this, "Awaiting completion of recognition request {}.", recognitionId);
+                        return ocrPushMessageReceiver.getOcrPushResponse()
+                                .onErrorReturn(throwable -> {
+                                    Logger.warn(OcrInteractor.this, "Ocr request timed out. Attempting to get response as is");
+                                    return new Object();
+                                })
+                                .map(o -> recognitionId);
                     })
                     .flatMap(recognitionId -> {
                         Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
+                        ocrProcessingStatusSubject.onNext(OcrProcessingStatus.RetrievingResults);
                         return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
                     })
                     .flatMap(recognitionResponse -> {
@@ -157,7 +136,8 @@ public class OcrInteractor {
                     .onErrorReturnItem(new OcrResponse())
                     .doOnTerminate(() -> {
                         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
-                        pushManager.unregisterReceiver(ocrPushMessageReceiver);});
+                        pushManager.unregisterReceiver(ocrPushMessageReceiver);
+                    });
             // TODO: Handle subsequent deletion of s3 file
         } else {
             Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
@@ -167,7 +147,7 @@ public class OcrInteractor {
 
     @NonNull
     public Observable<OcrProcessingStatus> getOcrProcessingStatus() {
-        return ocrProcessingStatusSubject.asObservable()
+        return ocrProcessingStatusSubject
                 .subscribeOn(Schedulers.computation());
     }
 }

@@ -8,17 +8,13 @@ import android.widget.CompoundButton;
 
 import com.google.common.base.Preconditions;
 
-import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.Presenter;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
 
 public class OcrConfigurationPresenter implements Presenter {
 
@@ -27,7 +23,7 @@ public class OcrConfigurationPresenter implements Presenter {
     private final Unbinder unbinder;
 
     private OcrPurchasesListAdapter ocrPurchasesListAdapter;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     @BindView(R.id.ocr_save_scans_to_improve_results) CheckBox allowUsToSaveImagesRemotelyCheckbox;
 
@@ -52,43 +48,25 @@ public class OcrConfigurationPresenter implements Presenter {
     public void onResume() {
         ocrConfigurationToolbarView.present(interactor.getEmail());
 
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(interactor.getRemainingScansStream()
-            .subscribe(new Action1<Integer>() {
-                @Override
-                public void call(@NonNull Integer remainingScans) {
-                    ocrConfigurationToolbarView.present(remainingScans);
-                }
-            }));
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(interactor.getRemainingScansStream()
+            .subscribe(ocrConfigurationToolbarView::present));
 
-        compositeSubscription.add(interactor.getAvailableOcrPurchases()
-            .subscribe(new Action1<List<AvailablePurchase>>() {
-                @Override
-                public void call(List<AvailablePurchase> availablePurchases) {
+        compositeDisposable.add(interactor.getAvailableOcrPurchases()
+            .subscribe(availablePurchases -> {
                     Logger.info(OcrConfigurationPresenter.this, "Presenting list of purchases: {}.", availablePurchases);
                     ocrPurchasesListAdapter.setAvailablePurchases(availablePurchases);
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    Logger.warn(OcrConfigurationPresenter.this, "Failed to get available purchases.", throwable);
-                }
-            }));
+            }, throwable -> Logger.warn(OcrConfigurationPresenter.this, "Failed to get available purchases.", throwable)));
 
-        compositeSubscription.add(ocrPurchasesListAdapter.getAvailablePurchaseClicks()
-            .subscribe(new Action1<AvailablePurchase>() {
-                @Override
-                public void call(AvailablePurchase availablePurchase) {
-                    interactor.startOcrPurchase(availablePurchase);
-                }
-            }));
+        compositeDisposable.add(ocrPurchasesListAdapter.getAvailablePurchaseClicks()
+            .subscribe(availablePurchase -> interactor.startOcrPurchase(availablePurchase)));
     }
 
     @Override
     public void onPause() {
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
-            compositeSubscription = null;
+        if (compositeDisposable != null) {
+            compositeDisposable.dispose();
+            compositeDisposable = null;
         }
     }
 

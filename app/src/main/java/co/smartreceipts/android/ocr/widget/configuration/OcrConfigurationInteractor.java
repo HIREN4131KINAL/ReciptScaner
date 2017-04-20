@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -28,9 +27,9 @@ import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+
 
 @FragmentScope
 public class OcrConfigurationInteractor {
@@ -72,9 +71,7 @@ public class OcrConfigurationInteractor {
     @NonNull
     public Observable<List<AvailablePurchase>> getAvailableOcrPurchases() {
         return purchaseManager.getAllAvailablePurchases()
-                .map(new Func1<Set<AvailablePurchase>, List<AvailablePurchase>>() {
-                    @Override
-                    public List<AvailablePurchase> call(Set<AvailablePurchase> availablePurchases) {
+                .map(availablePurchases -> {
                         final List<AvailablePurchase> ocrPurchases = new ArrayList<>();
                         for (final AvailablePurchase availablePurchase : availablePurchases) {
                             if (availablePurchase.getInAppPurchase() != null && PurchaseFamily.Ocr.equals(availablePurchase.getInAppPurchase().getPurchaseFamily())) {
@@ -88,7 +85,6 @@ public class OcrConfigurationInteractor {
                             }
                         });
                         return ocrPurchases;
-                    }
                 })
                 .observeOn(AndroidSchedulers.mainThread());
     }

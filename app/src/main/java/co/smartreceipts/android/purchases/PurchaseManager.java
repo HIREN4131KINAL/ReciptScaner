@@ -47,7 +47,6 @@ import co.smartreceipts.android.purchases.rx.RxInAppBillingServiceConnection;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -268,12 +267,12 @@ public class PurchaseManager {
     }
 
     @NonNull
-    public Observable<Set<InAppPurchase>> getAllAvailablePurchases() {
+    public Observable<Set<AvailablePurchase>> getAllAvailablePurchases() {
         return Observable.combineLatest(getAvailableConsumablePurchases(), getAvailableSubscriptions(),
                 new BiFunction<Set<AvailablePurchase>, Set<AvailablePurchase>, Set<AvailablePurchase>>() {
                     @Override
-                    public Set<AvailablePurchase> apply(@io.reactivex.annotations.NonNull Set<InAppPurchase> consumablePurchases,
-                                                    @io.reactivex.annotations.NonNull Set<InAppPurchase> subscriptions) throws Exception {
+                    public Set<AvailablePurchase> apply(@io.reactivex.annotations.NonNull Set<AvailablePurchase> consumablePurchases,
+                                                    @io.reactivex.annotations.NonNull Set<AvailablePurchase> subscriptions) throws Exception {
                         final HashSet<AvailablePurchase> combinedSet = new HashSet<>();
                         combinedSet.addAll(consumablePurchases);
                         combinedSet.addAll(subscriptions);
@@ -289,7 +288,7 @@ public class PurchaseManager {
                                 Logger.debug(PurchaseManager.this, "Omitting {} from available purchases as we're tracking it as owned.", availablePurchase.getInAppPurchase());
                             }
                         }
-                    return trimmedInAppPurchase;
+                    return trimmedInAppPurchases;
                 })
                 .subscribeOn(subscribeOnScheduler);
     }
@@ -297,15 +296,12 @@ public class PurchaseManager {
     @NonNull
     public Observable<Set<InAppPurchase>> getAllAvailablePurchaseSkus() {
         return getAllAvailablePurchases()
-                .map(new Func1<Set<AvailablePurchase>, Set<InAppPurchase>>() {
-                    @Override
-                    public Set<InAppPurchase> call(Set<AvailablePurchase> availablePurchases) {
+                .map(availablePurchases ->{
                         final Set<InAppPurchase> inAppPurchases = new HashSet<>();
                         for (final AvailablePurchase availablePurchase : availablePurchases) {
                             inAppPurchases.add(availablePurchase.getInAppPurchase());
                         }
                         return inAppPurchases;
-                    }
                 });
     }
 
@@ -314,16 +310,16 @@ public class PurchaseManager {
      *
      * @param consumablePurchase the product to consume
      *
-     * @return an {@link Completable}, which will pass {@link Subscriber#onComplete()} or {@link Subscriber#onError(Throwable)}
+     * @return an {@link Observable}, which will pass {@link Subscriber#onComplete()} or {@link Subscriber#onError(Throwable)}
      *  calls back to the subscription. No values will be emitted.
      */
     @NonNull
-    public Completable consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
+    public Observable<Object> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
         Logger.info(PurchaseManager.this, "Consuming the purchase of {}", consumablePurchase.getInAppPurchase());
 
-        return
-                rxInAppBillingServiceConnection.bindToInAppBillingService()
-                .flatMapCompletable(inAppBillingService -> Completable.create(emitter -> {
+        return rxInAppBillingServiceConnection.bindToInAppBillingService()
+//                .firstOrError() // hack. bindToInAppBillingService emits always 1 element
+                .flatMap(inAppBillingService -> Observable.create(emitter -> {
                     try {
                         final int responseCode = inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken());
                         if (BILLING_RESPONSE_CODE_OK == responseCode) {

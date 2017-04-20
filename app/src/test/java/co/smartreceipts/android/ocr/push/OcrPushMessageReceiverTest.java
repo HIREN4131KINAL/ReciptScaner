@@ -11,8 +11,9 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Constructor;
 
-import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.Schedulers;
+
 
 @RunWith(RobolectricTestRunner.class)
 public class OcrPushMessageReceiverTest {
@@ -22,22 +23,21 @@ public class OcrPushMessageReceiverTest {
 
     @Before
     public void setUp() throws Exception {
-        ocrPushMessageReceiver = new OcrPushMessageReceiver(Schedulers.immediate());
+        ocrPushMessageReceiver = new OcrPushMessageReceiver(Schedulers.trampoline());
     }
 
     @Test
     public void onMessageReceivedTriggersObservable() throws Exception {
-        final TestSubscriber<Object> testSubscriber = new TestSubscriber<>();
-        ocrPushMessageReceiver.getOcrPushResponse().subscribe(testSubscriber);
+        TestObserver<Object> testObserver = ocrPushMessageReceiver.getOcrPushResponse().test();
 
         final Constructor<RemoteMessage> constructor = RemoteMessage.class.getDeclaredConstructor(Bundle.class);
         constructor.setAccessible(true);
         final RemoteMessage message = constructor.newInstance(new Bundle());
         ocrPushMessageReceiver.onMessageReceived(message);
 
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.assertValueCount(1);
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
     }
 
 }

@@ -8,10 +8,12 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
+import org.reactivestreams.Subscriber;
+
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.subjects.BehaviorSubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
+
 
 class LocalOcrScansTracker {
 
@@ -27,7 +29,7 @@ class LocalOcrScansTracker {
     @VisibleForTesting
     LocalOcrScansTracker(@NonNull SharedPreferences sharedPreferences) {
         this.sharedPreferences = Preconditions.checkNotNull(sharedPreferences);
-        this.remainingScansSubject = BehaviorSubject.create(getRemainingScans());
+        this.remainingScansSubject = BehaviorSubject.createDefault(getRemainingScans());
     }
 
     /**
@@ -38,7 +40,7 @@ class LocalOcrScansTracker {
      * onError) to allow us to continually get the updated value
      */
     public Observable<Integer> getRemainingScansStream() {
-        return remainingScansSubject.asObservable();
+        return remainingScansSubject;
     }
 
     /**

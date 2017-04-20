@@ -23,9 +23,9 @@ import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.model.ManagedProduct;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
@@ -125,7 +125,7 @@ public class OcrPurchaseTrackerTest {
     @Test
     public void initializeUploadFails() {
         // Configure
-        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct)consumablePurchase)));
+        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct) consumablePurchase)));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.<PurchaseResponse>error(new Exception("test")));
 
         // Test
@@ -140,7 +140,7 @@ public class OcrPurchaseTrackerTest {
     @Test
     public void initializeSucceeds() {
         // Configure
-        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct)consumablePurchase)));
+        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct) consumablePurchase)));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -156,7 +156,7 @@ public class OcrPurchaseTrackerTest {
     public void initializeFailsToFetchMe() {
         // Configure
         when(identityManager.getMe()).thenReturn(Observable.<MeResponse>error(new Exception("test")));
-        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct)consumablePurchase)));
+        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct) consumablePurchase)));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -172,7 +172,7 @@ public class OcrPurchaseTrackerTest {
     public void initializeReturnsInvalidMeResponse() {
         // Configure
         when(meResponse.getUser()).thenReturn(null);
-        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct)consumablePurchase)));
+        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct) consumablePurchase)));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -190,7 +190,7 @@ public class OcrPurchaseTrackerTest {
         final PublishSubject<Boolean> loggedInStream = PublishSubject.create();
         loggedInStream.onNext(false);
         when(identityManager.isLoggedInStream()).thenReturn(loggedInStream);
-        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct)consumablePurchase)));
+        when(purchaseManager.getAllOwnedPurchases()).thenReturn(Observable.just(Collections.singleton((ManagedProduct) consumablePurchase)));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -246,7 +246,7 @@ public class OcrPurchaseTrackerTest {
     @Test
     public void onPurchaseSuccessSucceedsButConsumeFails() {
         // Configure
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Completable.error(new Exception("test")));
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.error(new Exception("test")));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -260,7 +260,7 @@ public class OcrPurchaseTrackerTest {
     @Test
     public void onPurchaseSuccessSucceeds() {
         // Configure
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Completable.complete());
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.just(new Object()));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -276,7 +276,7 @@ public class OcrPurchaseTrackerTest {
         // Configure
         when(consumablePurchase.getInAppPurchase()).thenReturn(InAppPurchase.OcrScans10);
         when(purchaseWallet.getManagedProduct(InAppPurchase.OcrScans10)).thenReturn(consumablePurchase);
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Single.just(new Object()));
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.just(new Object()));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -291,7 +291,7 @@ public class OcrPurchaseTrackerTest {
     public void onPurchaseSuccessSucceedsButFailsToFetchMe() {
         // Configure
         when(identityManager.getMe()).thenReturn(Observable.<MeResponse>error(new Exception("test")));
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Completable.complete());
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.just(new Object()));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -306,7 +306,7 @@ public class OcrPurchaseTrackerTest {
     public void onPurchaseSuccessSucceedsButReturnsInvalidMeResponse() {
         // Configure
         when(meResponse.getUser()).thenReturn(null);
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Completable.complete());
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.just(new Object()));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -323,7 +323,7 @@ public class OcrPurchaseTrackerTest {
         final PublishSubject<Boolean> loggedInStream = PublishSubject.create();
         loggedInStream.onNext(false);
         when(identityManager.isLoggedInStream()).thenReturn(loggedInStream);
-        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Completable.complete());
+        when(purchaseManager.consumePurchase(consumablePurchase)).thenReturn(Observable.just(new Object()));
         when(mobileAppPurchasesService.addPurchase(any(PurchaseRequest.class))).thenReturn(Observable.just(purchaseResponse));
 
         // Test
@@ -349,14 +349,13 @@ public class OcrPurchaseTrackerTest {
 
     @Test
     public void getRemainingScansStream() {
-        final BehaviorSubject<Integer> scansStream = BehaviorSubject.create(50);
-        final TestSubscriber<Integer> subscriber = new TestSubscriber<>();
+        final BehaviorSubject<Integer> scansStream = BehaviorSubject.createDefault(50);
         when(localOcrScansTracker.getRemainingScansStream()).thenReturn(scansStream);
-        ocrPurchaseTracker.getRemainingScansStream().subscribe(subscriber);
 
-        subscriber.assertValue(50);
-        subscriber.assertNotCompleted();
-        subscriber.assertNoErrors();
+        ocrPurchaseTracker.getRemainingScansStream().test()
+                .assertValue(50)
+                .assertNotComplete()
+                .assertNoErrors();
     }
 
     @Test

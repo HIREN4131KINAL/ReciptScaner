@@ -17,8 +17,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.purchases.model.AvailablePurchase;
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+
 
 public class OcrPurchasesListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -81,7 +82,7 @@ public class OcrPurchasesListAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     @NonNull
     public Observable<AvailablePurchase> getAvailablePurchaseClicks() {
-        return availablePurchaseClickSubject.asObservable();
+        return availablePurchaseClickSubject;
     }
 
     private static class HeaderViewHolder extends RecyclerView.ViewHolder {

@@ -15,6 +15,7 @@ import org.robolectric.RuntimeEnvironment;
 
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.Cognito;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -44,57 +45,53 @@ public class CognitoManagerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.just(cognito));
+        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.just(Optional.of(cognito)));
         when(identityManager.isLoggedInStream()).thenReturn(Observable.just(true));
-        cognitoManager = new CognitoManager(context, identityManager, cognitoIdentityProvider, Schedulers.immediate());
+        cognitoManager = new CognitoManager(context, identityManager, cognitoIdentityProvider, Schedulers.trampoline());
     }
 
     @Test
     public void initializeAndGetCognitoCachingCredentialsProviderWhenNotLoggedIn() {
-        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.create(false);
+        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.createDefault(false);
         when(identityManager.isLoggedInStream()).thenReturn(isLoggedInStream);
         cognitoManager.initialize();
 
-        final TestSubscriber<Optional<CognitoCachingCredentialsProvider>> testSubscriber = new TestSubscriber<>();
-        cognitoManager.getCognitoCachingCredentialsProvider().subscribe(testSubscriber);
-
-        testSubscriber.assertValue(Optional.<CognitoCachingCredentialsProvider>absent());
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertNoErrors();
+        cognitoManager.getCognitoCachingCredentialsProvider().test()
+                .assertValue(Optional.<CognitoCachingCredentialsProvider>absent())
+                .assertNotComplete()
+                .assertNoErrors();
     }
 
     @Test
     public void initializeAndGetCognitoCachingCredentialsProviderWhenLoggedIn() {
-        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.create(true);
+        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.createDefault(true);
         when(identityManager.isLoggedInStream()).thenReturn(isLoggedInStream);
         cognitoManager.initialize();
 
-        final TestSubscriber<Optional<CognitoCachingCredentialsProvider>> testSubscriber = new TestSubscriber<>();
-        cognitoManager.getCognitoCachingCredentialsProvider().subscribe(testSubscriber);
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
-        assertTrue(cognitoManager.getCognitoCachingCredentialsProvider().toBlocking().first().isPresent());
+        cognitoManager.getCognitoCachingCredentialsProvider().test()
+                .assertValueCount(1)
+                .assertComplete()
+                .assertNoErrors();
+        assertTrue(cognitoManager.getCognitoCachingCredentialsProvider().blockingFirst().isPresent());
     }
 
     @Test
     public void initializeAndGetCognitoCachingCredentialsProviderWhenLoggedInAfter() {
-        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.create(false);
+        final BehaviorSubject<Boolean> isLoggedInStream = BehaviorSubject.createDefault(false);
         when(identityManager.isLoggedInStream()).thenReturn(isLoggedInStream);
         cognitoManager.initialize();
 
-        final TestSubscriber<Optional<CognitoCachingCredentialsProvider>> testSubscriber = new TestSubscriber<>();
-        cognitoManager.getCognitoCachingCredentialsProvider().subscribe(testSubscriber);
-        testSubscriber.assertValue(Optional.<CognitoCachingCredentialsProvider>absent());
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertNoErrors();
+        TestObserver<Optional<CognitoCachingCredentialsProvider>> testObserver = cognitoManager.getCognitoCachingCredentialsProvider().test();
+        testObserver.assertValue(Optional.<CognitoCachingCredentialsProvider>absent());
+        testObserver.assertNotComplete();
+        testObserver.assertNoErrors();
 
         isLoggedInStream.onNext(true);
 
-        testSubscriber.assertValueCount(2);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
-        assertTrue(cognitoManager.getCognitoCachingCredentialsProvider().toBlocking().first().isPresent());
+        testObserver.assertValueCount(2);
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
+        assertTrue(cognitoManager.getCognitoCachingCredentialsProvider().blockingFirst().isPresent());
     }
 
     @Test
@@ -106,12 +103,11 @@ public class CognitoManagerTest {
     @Test
     public void getCognitoCachingCredentialsProviderReDrivesCallsPrefetchCognitoTokenOnFailure() {
         cognitoManager.initialize();
-        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.<Cognito>error(new Exception("Test")));
+        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.error(new Exception("Test")));
         verify(cognitoIdentityProvider).prefetchCognitoTokenIfNeeded();
 
-        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.just(cognito));
-        final TestSubscriber<Optional<CognitoCachingCredentialsProvider>> testSubscriber = new TestSubscriber<>();
-        cognitoManager.getCognitoCachingCredentialsProvider().subscribe(testSubscriber);
+        when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.just(Optional.of(cognito)));
+        cognitoManager.getCognitoCachingCredentialsProvider().test();
         verify(cognitoIdentityProvider).prefetchCognitoTokenIfNeeded();
     }
 

@@ -18,10 +18,9 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.fragments.WBFragment;
-import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.login.LoginParams;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.widget.presenters.MyAccountPresenter;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
+import co.smartreceipts.android.identity.widget.presenters.LoginPresenter;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.disposables.CompositeDisposable;
@@ -115,19 +114,14 @@ public class LoginFragment extends WBFragment {
         }
         this.loginPresenter.onResume();
 
-        this.compositeSubscription.add(loginPresenter.getLoginOrSignUpParamsStream()
-            .subscribe(new Action1<UserCredentialsPayload>() {
-                @Override
-                public void call(UserCredentialsPayload userCredentialsPayload) {
-                    logInOrSignUp(userCredentialsPayload);
-                }
-            }));
+        this.compositeDisposable.add(loginPresenter.getLoginOrSignUpParamsStream()
+                .subscribe(this::logInOrSignUp));
     }
 
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        this.myAccountPresenter.onPause();
+        this.loginPresenter.onPause();
         if (compositeDisposable != null) {
             compositeDisposable.dispose();
             compositeDisposable = null;
@@ -154,26 +148,18 @@ public class LoginFragment extends WBFragment {
         if (this.compositeDisposable == null) {
             this.compositeDisposable = new CompositeDisposable();
         }
-        this.compositeSubscription.add(this.loginInteractor.loginOrSignUp(userCredentialsPayload)
-                .subscribe(new Action1<LoginResponse>() {
-                    @Override
-                    public void call(LoginResponse org) {
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        loginPresenter.presentLoginFailure(throwable);
-                        loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
-                        cachedUserCredentialsPayload = null;
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        loginPresenter.presentLoginSuccess();
-                        loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
-                        cachedUserCredentialsPayload = null;
-                        loginInteractor.navigateBack();
-                    }
+        this.compositeDisposable.add(this.loginInteractor.loginOrSignUp(userCredentialsPayload)
+                .subscribe(loginResponse -> {
+
+                }, throwable -> {
+                    loginPresenter.presentLoginFailure(throwable);
+                    loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
+                    cachedUserCredentialsPayload = null;
+                }, () -> {
+                    loginPresenter.presentLoginSuccess();
+                    loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
+                    cachedUserCredentialsPayload = null;
+                    loginInteractor.navigateBack();
                 }));
     }
 }

@@ -4,9 +4,11 @@ import android.os.Bundle;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
 
 import co.smartreceipts.android.activities.DaggerFragmentNavigationHandler;
 import co.smartreceipts.android.identity.IdentityManager;
@@ -15,6 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(RobolectricTestRunner.class)
 public class OcrConfigurationRouterTest {
 
     @InjectMocks

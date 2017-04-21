@@ -2,11 +2,11 @@ package co.smartreceipts.android.ocr.widget.configuration;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
 
@@ -15,11 +15,13 @@ import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(RobolectricTestRunner.class)
 public class OcrConfigurationPresenterTest {
 
     private static final boolean SAVE_IMAGES_REMOTELY = true;

@@ -47,6 +47,7 @@ import co.smartreceipts.android.purchases.rx.RxInAppBillingServiceConnection;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.utils.log.Logger;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -310,16 +311,14 @@ public class PurchaseManager {
      *
      * @param consumablePurchase the product to consume
      *
-     * @return an {@link Observable}, which will pass {@link Subscriber#onComplete()} or {@link Subscriber#onError(Throwable)}
-     *  calls back to the subscription. No values will be emitted.
+     * @return an {@link io.reactivex.Completable} with the success/error result
      */
     @NonNull
-    public Observable<Object> consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
+    public Completable consumePurchase(@NonNull final ConsumablePurchase consumablePurchase) {
         Logger.info(PurchaseManager.this, "Consuming the purchase of {}", consumablePurchase.getInAppPurchase());
 
         return rxInAppBillingServiceConnection.bindToInAppBillingService()
-//                .firstOrError() // hack. bindToInAppBillingService emits always 1 element
-                .flatMap(inAppBillingService -> Observable.create(emitter -> {
+                .flatMapCompletable(inAppBillingService -> Completable.create(emitter -> {
                     try {
                         final int responseCode = inAppBillingService.consumePurchase(API_VERSION, context.getPackageName(), consumablePurchase.getPurchaseToken());
                         if (BILLING_RESPONSE_CODE_OK == responseCode) {

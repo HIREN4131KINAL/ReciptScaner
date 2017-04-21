@@ -155,7 +155,7 @@ public class OcrPurchaseTracker implements PurchaseEventsListener {
         return serviceManager.getService(MobileAppPurchasesService.class).addPurchase(new PurchaseRequest(consumablePurchase, GOAL))
                 .flatMap(purchaseResponse -> {
                     Logger.debug(OcrPurchaseTracker.this, "Received purchase response of {}", purchaseResponse);
-                    return purchaseManager.consumePurchase(consumablePurchase);
+                    return purchaseManager.consumePurchase(consumablePurchase).andThen(Observable.just(new Object()));
                 })
                 .flatMap(o -> fetchAndPersistAvailableRecognitions());
     }

@@ -29,7 +29,7 @@ public abstract class AndFilter<T> implements Filter<T> {
 	 * {@link Filter} via the {@link #and(Filter)} method.
 	 */
 	public AndFilter() {
-		mFilters = new CopyOnWriteArrayList<Filter<T>>();
+		mFilters = new CopyOnWriteArrayList<>();
 	}
 
 	/**
@@ -40,7 +40,7 @@ public abstract class AndFilter<T> implements Filter<T> {
 	 *            - the {@link List} of {@link Filter} to add
 	 */
 	public AndFilter(List<Filter<T>> filters) {
-		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
+		mFilters = new CopyOnWriteArrayList<>(filters);
 	}
 
 
@@ -54,12 +54,12 @@ public abstract class AndFilter<T> implements Filter<T> {
 	 *             - throw if our provide {@link JSONObject} is invalid
 	 */
 	protected AndFilter(JSONObject json) throws JSONException {
-		final List<Filter<T>> filters = new ArrayList<Filter<T>>();
+		final List<Filter<T>> filters = new ArrayList<>();
 		final JSONArray filtersArray = json.getJSONArray(AND_FILTERS);
 		for (int i = 0; i < filtersArray.length(); i++) {
 			filters.add(getFilter(filtersArray.getJSONObject(i)));
 		}
-		mFilters = new CopyOnWriteArrayList<Filter<T>>(filters);
+		mFilters = new CopyOnWriteArrayList<>(filters);
 	}
 
 	/**
@@ -113,7 +113,7 @@ public abstract class AndFilter<T> implements Filter<T> {
 
 	@Override
 	public List<Filter<T>> getChildren() {
-		return new ArrayList<Filter<T>>(mFilters);
+		return new ArrayList<>(mFilters);
 	}
 
 	@Override

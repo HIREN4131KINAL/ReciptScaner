@@ -13,7 +13,8 @@ import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.Identifier;
-import rx.Observable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /**
  * A top level interface to track the core behaviors that are shared by all automatic backup providers
@@ -43,10 +44,10 @@ public interface BackupProvider {
     boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data);
 
     /**
-     * @return an {@link Observable} containing all of our remote backups
+     * @return an {@link Single} containing all of our remote backups
      */
     @NonNull
-    Observable<List<RemoteBackupMetadata>> getRemoteBackups();
+    Single<List<RemoteBackupMetadata>> getRemoteBackups();
 
     /**
      * @return the sync {@link Identifier} for the current device or {@code null} if none is defined
@@ -65,47 +66,47 @@ public interface BackupProvider {
      *
      * @param remoteBackupMetadata the metadata to restore
      * @param overwriteExistingData if we should overwrite the existing data
-     * @return an {@link Observable} for the restore operation with a success boolean
+     * @return a {@link Single} for the restore operation with a success boolean
      */
     @NonNull
-    Observable<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData);
+    Single<Boolean> restoreBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata, boolean overwriteExistingData);
 
     /**
      * Deletes an existing backup
      *
      * @param remoteBackupMetadata the metadata to delete
-     * @return an {@link Observable} for the delete operation with a success boolean
+     * @return an {@link Single} for the delete operation with a success boolean
      */
     @NonNull
-    Observable<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
+    Single<Boolean> deleteBackup(@NonNull RemoteBackupMetadata remoteBackupMetadata);
 
 
     /**
      * Attempts to clear out the current backup configuration
      *
-     * @return an {@link Observable} for the delete operation with a success boolean
+     * @return an {@link Single} for the delete operation with a success boolean
      */
-    Observable<Boolean> clearCurrentBackupConfiguration();
+    Single<Boolean> clearCurrentBackupConfiguration();
 
     /**
      * Downloads an existing backup to a specific location
      *
      * @param remoteBackupMetadata the metadata to download
      * @param downloadLocation the {@link File} location to download it to
-     * @return an {@link Observable} that contains the downloaded images
+     * @return a {@link Single} that contains the downloaded images
      */
     @NonNull
-    Observable<List<File>> downloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+    Single<List<File>> downloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
 
     /**
      * Downloads an existing backup to a specific location in a debug friendly manner
      *
      * @param remoteBackupMetadata the metadata to download
      * @param downloadLocation the {@link File} location to download it to
-     * @return an {@link Observable} that contains the downloaded images
+     * @return an {@link Single} that contains the downloaded images
      */
     @NonNull
-    Observable<List<File>> debugDownloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
+    Single<List<File>> debugDownloadAllData(@NonNull final RemoteBackupMetadata remoteBackupMetadata, @NonNull final File downloadLocation);
 
     /**
      * @return an {@link Observable} that emits {@link CriticalSyncError} instances whenever they occur,

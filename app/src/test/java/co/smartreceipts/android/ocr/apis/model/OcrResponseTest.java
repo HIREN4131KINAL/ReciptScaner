@@ -7,6 +7,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.Arrays;
+import java.util.List;
+
 import co.smartreceipts.android.utils.TestUtils;
 
 import static org.junit.Assert.assertEquals;
@@ -16,11 +19,6 @@ import static org.junit.Assert.assertNotNull;
 public class OcrResponseTest {
 
     private static final String JSON = "{\n" +
-            "  \"location\": {\n" +
-            "    \"country\": \"NZ\",\n" +
-            "    \"state\": \"Auckland\",\n" +
-            "    \"city\": \"Auckland\"\n" +
-            "  },\n" +
             "  \"totalAmount\": {\n" +
             "    \"data\": 23.3,\n" +
             "    \"confidenceLevel\": 0.7216666666666667\n" +
@@ -37,9 +35,19 @@ public class OcrResponseTest {
             "    \"data\": \"2016-12-22T12:00:00.000Z\",\n" +
             "    \"confidenceLevel\": 0.7216666666666667\n" +
             "  },\n" +
-            "  \"merchant\": {\n" +
-            "    \"name\": \"Adina Apartment Hotel Auckland Britomart\",\n" +
-            "    \"address\": \"2 Tapora St, Auckland, 1010, New Zealand\",\n" +
+            "  \"merchantName\": {\n" +
+            "    \"data\": \"Adina Apartment Hotel Auckland Britomart\",\n" +
+            "    \"confidenceLevel\": 0.7216666666666667\n" +
+            "  },\n" +
+            "  \"merchantAddress\": {\n" +
+            "    \"data\": \"2 Tapora St, Auckland, 1010, New Zealand\",\n" +
+            "    \"confidenceLevel\": 0.7216666666666667\n" +
+            "  },\n" +
+            "  \"merchantTypes\": {\n" +
+            "    \"data\": [\n" +
+            "      \"restaurant\",\n" +
+            "      \"food\"\n" +
+            "    ],\n" +
             "    \"confidenceLevel\": 0.7216666666666667\n" +
             "  },\n" +
             "  \"confidenceLevel\": 0.7216666666666667,\n" +
@@ -97,14 +105,22 @@ public class OcrResponseTest {
 
     @Test
     public void merchant() {
-        final OcrMerchantField merchant = response.getMerchant();
+        final OcrResponseField<String> merchant = response.getMerchant();
         assertNotNull(merchant);
-        assertNotNull(merchant.getName());
-        assertNotNull(merchant.getAddress());
+        assertNotNull(merchant.getData());
         assertNotNull(merchant.getConfidenceLevel());
-        assertEquals("Adina Apartment Hotel Auckland Britomart", merchant.getName());
-        assertEquals("2 Tapora St, Auckland, 1010, New Zealand", merchant.getAddress());
+        assertEquals("Adina Apartment Hotel Auckland Britomart", merchant.getData());
         assertEquals(0.7216666666666667, merchant.getConfidenceLevel(), TestUtils.EPSILON);
+    }
+
+    @Test
+    public void merchantTypes() {
+        final OcrResponseField<List<String>> merchantTypes = response.getMerchantTypes();
+        assertNotNull(merchantTypes);
+        assertNotNull(merchantTypes.getData());
+        assertNotNull(merchantTypes.getConfidenceLevel());
+        assertEquals(Arrays.asList("restaurant", "food"), merchantTypes.getData());
+        assertEquals(0.7216666666666667, merchantTypes.getConfidenceLevel(), TestUtils.EPSILON);
     }
 
     @Test

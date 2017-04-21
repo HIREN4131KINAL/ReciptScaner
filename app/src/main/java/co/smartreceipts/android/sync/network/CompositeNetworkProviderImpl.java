@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import rx.Observable;
+import io.reactivex.Observable;
+
 
 /**
  * This class provides a simple mechanism to determine whether or not we're currently connected to one or more network

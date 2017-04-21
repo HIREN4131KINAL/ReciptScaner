@@ -24,9 +24,8 @@ import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.utils.FileUtils;
 import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Func0;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
 public class ReceiptTableActionAlterations extends StubTableActionAlterations<Receipt> {
@@ -54,114 +53,84 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
 
     @NonNull
     @Override
-    public Observable<Receipt> preInsert(@NonNull final Receipt receipt) {
-        return Observable.defer(new Func0<Observable<Receipt>>() {
-            @Override
-            public Observable<Receipt> call() {
-                return Observable.just(updateReceiptFileNameBlocking(mReceiptBuilderFactoryFactory.build(receipt).setIndex(getNextReceiptIndex(receipt)).build()));
-            }
-        });
+    public Single<Receipt> preInsert(@NonNull final Receipt receipt) {
+        return Single.fromCallable(() ->
+                updateReceiptFileNameBlocking(mReceiptBuilderFactoryFactory.build(receipt).setIndex(getNextReceiptIndex(receipt)).build()));
     }
 
     @NonNull
     @Override
-    public Observable<Receipt> preUpdate(@NonNull final Receipt oldReceipt, @NonNull final Receipt newReceipt) {
-        return Observable.create(new Observable.OnSubscribe<Receipt>() {
-            @Override
-            public void call(Subscriber<? super Receipt> subscriber) {
-                if (newReceipt.getFile() != null) {
-                    if (!newReceipt.getFile().equals(oldReceipt.getFile())) {
-                        // If we changed the receipt file, replace the old file name
-                        if (oldReceipt.getFile() != null) {
-                            final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
-                            final String oldExtension = "." + UriUtils.getExtension(oldReceipt.getFile(), context);
-                            final String newExtension = "." + UriUtils.getExtension(newReceipt.getFile(), context);
-                            if (newExtension.equals(oldExtension)) {
-                                if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
-                                    // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
-                                    factory.setFile(oldReceipt.getFile());
-                                }
-                            } else {
-                                final String renamedNewFileName = oldReceipt.getFile().getName().replace(oldExtension, newExtension);
-                                final String renamedNewFilePath = newReceipt.getFile().getAbsolutePath().replace(newReceipt.getFile().getName(), renamedNewFileName);
-                                final File renamedNewFile = new File(renamedNewFilePath);
-                                if (newReceipt.getFile().renameTo(renamedNewFile)) {
-                                    factory.setFile(renamedNewFile);
-                                }
+    public Single<Receipt> preUpdate(@NonNull final Receipt oldReceipt, @NonNull final Receipt newReceipt) {
+        return Single.fromCallable(() -> {
+            if (newReceipt.getFile() != null) {
+                if (!newReceipt.getFile().equals(oldReceipt.getFile())) {
+                    // If we changed the receipt file, replace the old file name
+                    if (oldReceipt.getFile() != null) {
+                        final ReceiptBuilderFactory factory = mReceiptBuilderFactoryFactory.build(newReceipt);
+                        final String oldExtension = "." + UriUtils.getExtension(oldReceipt.getFile(), context);
+                        final String newExtension = "." + UriUtils.getExtension(newReceipt.getFile(), context);
+                        if (newExtension.equals(oldExtension)) {
+                            if (newReceipt.getFile().renameTo(oldReceipt.getFile())) {
+                                // Note: Keep 'oldReceipt' here, since File is immutable (and renamedTo doesn't change it)
+                                factory.setFile(oldReceipt.getFile());
                             }
-                            subscriber.onNext(factory.build());
-                            subscriber.onCompleted();
                         } else {
-                            subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
-                            subscriber.onCompleted();
+                            final String renamedNewFileName = oldReceipt.getFile().getName().replace(oldExtension, newExtension);
+                            final String renamedNewFilePath = newReceipt.getFile().getAbsolutePath().replace(newReceipt.getFile().getName(), renamedNewFileName);
+                            final File renamedNewFile = new File(renamedNewFilePath);
+                            if (newReceipt.getFile().renameTo(renamedNewFile)) {
+                                factory.setFile(renamedNewFile);
+                            }
                         }
-                    } else if (newReceipt.getIndex() != oldReceipt.getIndex()) {
-                        subscriber.onNext(updateReceiptFileNameBlocking(newReceipt));
-                        subscriber.onCompleted();
+                        return factory.build();
                     } else {
-                        subscriber.onNext(newReceipt);
-                        subscriber.onCompleted();
+                        return updateReceiptFileNameBlocking(newReceipt);
                     }
+                } else if (newReceipt.getIndex() != oldReceipt.getIndex()) {
+                    return updateReceiptFileNameBlocking(newReceipt);
                 } else {
-                    subscriber.onNext(newReceipt);
-                    subscriber.onCompleted();
+                    return newReceipt;
                 }
+            } else {
+                return newReceipt;
             }
         });
-
     }
 
     @NonNull
     @Override
-    public Observable<Receipt> postUpdate(@NonNull final Receipt oldReceipt, @Nullable final Receipt newReceipt) {
-        if (newReceipt == null) {
-            return Observable.error(new Exception("Post update failed due to a null receipt"));
-        } else {
-            return Observable.create(new Observable.OnSubscribe<Receipt>() {
-                @Override
-                public void call(Subscriber<? super Receipt> subscriber) {
-                    if (oldReceipt.getFile() != null && newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
-                        // Only delete the old file if we have a new one now...
-                        mStorageManager.delete(oldReceipt.getFile());
-                    }
-                    subscriber.onNext(newReceipt);
-                    subscriber.onCompleted();
-                }
-            });
-        }
+    public Single<Receipt> postUpdate(@NonNull final Receipt oldReceipt, @Nullable final Receipt newReceipt) {
+        return Single.fromCallable(() -> {
+            if (newReceipt == null) {
+                throw new Exception("Post update failed due to a null receipt");
+            }
+
+            if (oldReceipt.getFile() != null && newReceipt.getFile() != null && !newReceipt.getFile().equals(oldReceipt.getFile())) {
+                // Only delete the old file if we have a new one now...
+                mStorageManager.delete(oldReceipt.getFile());
+            }
+            return newReceipt;
+        });
     }
 
     @NonNull
     @Override
-    public Observable<Receipt> postDelete(@Nullable final Receipt receipt) {
-        if (receipt == null) {
-            return Observable.error(new Exception("Post delete failed due to a null receipt"));
-        } else {
-            return Observable.create(new Observable.OnSubscribe<Receipt>() {
-                @Override
-                public void call(Subscriber<? super Receipt> subscriber) {
-                    if (receipt.getFile() != null) {
-                        mStorageManager.delete(receipt.getFile());
-                    }
-                    subscriber.onNext(receipt);
-                    subscriber.onCompleted();
-                }
-            });
-        }
+    public Single<Receipt> postDelete(@Nullable final Receipt receipt) {
+        return Single.fromCallable(() -> {
+            if (receipt == null) {
+                throw new Exception("Post delete failed due to a null receipt");
+            }
+
+            if (receipt.getFile() != null) {
+                mStorageManager.delete(receipt.getFile());
+            }
+            return receipt;
+        });
     }
 
     @NonNull
-    public Observable<Receipt> preCopy(@NonNull final Receipt receipt, @NonNull final Trip toTrip) {
-        return Observable.defer(new Func0<Observable<Receipt>>() {
-            @Override
-            public Observable<Receipt> call() {
-                try {
-                    return Observable.just(copyReceiptFileBlocking(receipt, toTrip));
-                } catch (final IOException e) {
-                    return Observable.error(e);
-                }
-            }
-        });
+    public Single<Receipt> preCopy(@NonNull final Receipt receipt, @NonNull final Trip toTrip) {
+        return Single.fromCallable(() -> copyReceiptFileBlocking(receipt, toTrip));
     }
 
     public void postCopy(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
@@ -169,7 +138,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     @NonNull
-    public Observable<Receipt> preMove(@NonNull final Receipt receipt, @NonNull final Trip toTrip) {
+    public Single<Receipt> preMove(@NonNull final Receipt receipt, @NonNull final Trip toTrip) {
         // Move = Copy + Delete
         return preCopy(receipt, toTrip);
     }
@@ -177,7 +146,7 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     public void postMove(@NonNull Receipt oldReceipt, @Nullable Receipt newReceipt) throws Exception {
         if (newReceipt != null) { // i.e. - the move succeeded (delete the old data)
             Logger.info(this, "Completed the move procedure");
-            if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).toBlocking().first() != null) {
+            if (mReceiptsTable.delete(oldReceipt, new DatabaseOperationMetadata()).blockingGet() != null) {
                 if (oldReceipt.hasFile()) {
                     if (!mStorageManager.delete(oldReceipt.getFile())) {
                         Logger.error(this, "Failed to delete the moved receipt's file");
@@ -266,6 +235,6 @@ public class ReceiptTableActionAlterations extends StubTableActionAlterations<Re
     }
 
     private int getNextReceiptIndex(@NonNull Receipt receipt) {
-        return mReceiptsTable.get(receipt.getTrip()).toBlocking().first().size() + 1;
+        return mReceiptsTable.get(receipt.getTrip()).blockingGet().size() + 1;
     }
 }

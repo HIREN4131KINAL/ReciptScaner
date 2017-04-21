@@ -14,17 +14,14 @@ import javax.inject.Inject;
 
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.push.apis.me.UpdateUserPushTokens;
 import co.smartreceipts.android.push.internal.FcmTokenRetriever;
 import co.smartreceipts.android.push.store.PushDataStore;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+
 
 @ApplicationScope
 public class PushManager {
@@ -52,49 +49,22 @@ public class PushManager {
     public void initialize() {
         identityManager.isLoggedInStream()
                 .subscribeOn(subscribeOnScheduler)
-                .flatMap(new Func1<Boolean, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(final Boolean isLoggedIn) {
-                        return pushDataStore.isRemoteRefreshRequiredObservable()
-                                .map(new Func1<Boolean, Boolean>() {
-                                    @Override
-                                    public Boolean call(Boolean isRefreshRequired) {
-                                        return isRefreshRequired && isLoggedIn;
-                                    }
-                                });
-                    }
+                .flatMapSingle(isLoggedIn -> pushDataStore.isRemoteRefreshRequiredSingle()
+                        .map(isRefreshRequired -> isRefreshRequired && isLoggedIn))
+                .filter(shouldPushTokenBeUploaded -> {
+                    Logger.debug(PushManager.this, "Is a push token update required? {}.", shouldPushTokenBeUploaded);
+                    return shouldPushTokenBeUploaded;
                 })
-                .filter(new Func1<Boolean, Boolean>() {
-                    @Override
-                    public Boolean call(Boolean shouldPushTokenBeUploaded) {
-                        Logger.debug(PushManager.this, "Is a push token update required? {}.", shouldPushTokenBeUploaded);
-                        return shouldPushTokenBeUploaded;
-                    }
+                .flatMap(aBoolean -> fcmTokenRetriever.getFcmTokenObservable())
+                .flatMap(token -> {
+                    final UpdatePushTokensRequest request = new UpdatePushTokensRequest(new UpdateUserPushTokens(Collections.singletonList(Preconditions.checkNotNull(token))));
+                    return identityManager.updateMe(request);
                 })
-                .flatMap(new Func1<Boolean, Observable<String>>() {
-                    @Override
-                    public Observable<String> call(Boolean aBoolean) {
-                        return fcmTokenRetriever.getFcmTokenObservable();
-                    }
-                })
-                .flatMap(new Func1<String, Observable<MeResponse>>() {
-                    @Override
-                    public Observable<MeResponse> call(@NonNull String token) {
-                        final UpdatePushTokensRequest request = new UpdatePushTokensRequest(new UpdateUserPushTokens(Collections.singletonList(Preconditions.checkNotNull(token))));
-                        return identityManager.updateMe(request);
-                    }
-                })
-                .subscribe(new Action1<MeResponse>() {
-                    @Override
-                    public void call(MeResponse meResponse) {
-                        Logger.info(PushManager.this, "Successfully uploaded our push notification token");
-                        pushDataStore.setRemoteRefreshRequired(false);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.error(PushManager.this, "Failed to upload our push notification token", throwable);
-                    }
+                .subscribe(meResponse -> {
+                    Logger.info(PushManager.this, "Successfully uploaded our push notification token");
+                    pushDataStore.setRemoteRefreshRequired(false);
+                }, throwable -> {
+                    Logger.error(PushManager.this, "Failed to upload our push notification token", throwable);
                 });
     }
 

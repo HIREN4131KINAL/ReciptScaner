@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'me.tatarka.retrolambda'
+
 android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -56,13 +58,20 @@ android {
         compile "com.squareup.okhttp3:logging-interceptor:$OK_HTTP_VERSION"
         compile "com.squareup.retrofit2:retrofit:$RETROFIT_VERSION"
         compile "com.squareup.retrofit2:converter-gson:$RETROFIT_VERSION"
-        compile "com.squareup.retrofit2:adapter-rxjava:$RETROFIT_VERSION"
-        compile "io.reactivex:rxjava:$RX_JAVA_VERSION"
-        compile "io.reactivex:rxandroid:$RX_ANDROID_VERSION"
-        compile "com.jakewharton.rxbinding:rxbinding:$RX_BINDING_VERSION"
+
+        //Rx2
+        compile "io.reactivex.rxjava2:rxjava:$RX2_JAVA_VERSION"
+        compile "io.reactivex.rxjava2:rxandroid:$RX2_ANDROID_VERSION"
+        compile "com.jakewharton.rxbinding2:rxbinding:$RX2_BINDING_VERSION"
+        compile "com.squareup.retrofit2:adapter-rxjava2:$RETROFIT_VERSION"
 
         compile "commons-io:commons-io:$IO_UTILS_VERSION"
+        compile "com.hadisatrio:Optional:$OPTIONAL_VERSION"
 
+        compile "com.jakewharton:butterknife:$BUTTERKNIFE_VERSION"
+        annotationProcessor "com.jakewharton:butterknife-compiler:$BUTTERKNIFE_VERSION"
+
+        compile "com.tapadoo.android:alerter:$ALERTER_VERSION"
         compile "com.jpardogo.materialtabstrip:library:$MATERIAL_TAB_STRIP_VERSION"
         compile "com.github.clans:fab:$FAB_MENU_VERSION"
 
@@ -102,6 +111,10 @@ android {
     }
 
     apply plugin: 'com.google.gms.google-services'
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 dependencies {
 }

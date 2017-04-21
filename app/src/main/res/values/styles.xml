@@ -95,22 +95,22 @@
     <!-- Text Styles go below -->
     <style name="Widget.SmartReceipts.TextView.Display4">
         <item name="android:textSize">112sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_secondary_color</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Display3">
         <item name="android:textSize">56sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_secondary_color</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Display2">
         <item name="android:textSize">45sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_secondary_color</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Display1">
         <item name="android:textSize">34sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_secondary_color</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Headline">
@@ -142,7 +142,7 @@
 
     <style name="Widget.SmartReceipts.TextView.Caption">
         <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_secondary_color</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Button">
@@ -166,7 +166,7 @@
         <item name="android:focusable">true</item> 
         <item name="android:clickable">true</item> 
         <item name="android:textAppearance">@style/Widget.SmartReceipts.TextView.Button</item>
-        <item name="android:background">@drawable/button_background</item>
+        <item name="android:background">@drawable/button_background_ripple</item>
     </style>
 
     <style name="Widget.SmartReceipts.TextView.Button.Secondary">

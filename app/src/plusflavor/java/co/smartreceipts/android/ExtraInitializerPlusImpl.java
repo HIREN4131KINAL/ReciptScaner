@@ -2,8 +2,6 @@ package co.smartreceipts.android;
 
 import javax.inject.Inject;
 
-import co.smartreceipts.android.analytics.AnalyticsManager;
-
 public class ExtraInitializerPlusImpl implements ExtraInitializer {
     
     @Inject

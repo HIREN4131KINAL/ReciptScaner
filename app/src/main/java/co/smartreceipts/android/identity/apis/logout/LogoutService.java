@@ -1,7 +1,7 @@
 package co.smartreceipts.android.identity.apis.logout;
 
+import io.reactivex.Observable;
 import retrofit2.http.POST;
-import rx.Observable;
 
 public interface LogoutService {
 

@@ -128,7 +128,7 @@ public class EmailAssistant {
     }
 
     public void onAttachmentsCreated(File[] attachments) {
-        List<File> files = new ArrayList<File>();
+        List<File> files = new ArrayList<>();
         StringBuilder bodyBuilder = new StringBuilder();
         String path = "";
         if (attachments[EmailOptions.PDF_FULL.getIndex()] != null) {
@@ -296,7 +296,7 @@ public class EmailAssistant {
             if (mOptions.contains(EmailOptions.CSV)) {
                 mStorageManager.delete(dir, dir.getName() + ".csv");
 
-                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().toBlocking().first();
+                final List<Column<Receipt>> csvColumns = mDB.getCSVTable().get().blockingGet();
                 final CsvTableGenerator<Receipt> csvTableGenerator = new CsvTableGenerator<Receipt>(csvColumns, new LegacyReceiptFilter(mPreferenceManager), true, false);
                 String data = csvTableGenerator.generate(receipts);
                 if (mPreferenceManager.get(UserPreference.Distance.PrintDistanceTableInReports)) {

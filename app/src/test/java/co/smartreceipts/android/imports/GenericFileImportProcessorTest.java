@@ -15,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import co.smartreceipts.android.model.Trip;
-import rx.observers.TestSubscriber;
 import wb.android.storage.StorageManager;
 
 import static org.mockito.Matchers.any;
@@ -60,12 +59,11 @@ public class GenericFileImportProcessorTest {
     public void processThrowsFileNotFoundException() throws Exception {
         when(contentResolver.openInputStream(uri)).thenThrow(new FileNotFoundException("Test"));
 
-        final TestSubscriber<File> testSubscriber = new TestSubscriber<>();
-        importProcessor.process(uri).subscribe(testSubscriber);
-
-        testSubscriber.assertNoValues();
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertError(FileNotFoundException.class);
+        importProcessor.process(uri)
+                .test()
+                .assertNoValues()
+                .assertNotComplete()
+                .assertError(FileNotFoundException.class);
     }
 
     @Test
@@ -73,12 +71,11 @@ public class GenericFileImportProcessorTest {
         when(contentResolver.openInputStream(uri)).thenReturn(inputStream);
         when(storageManner.copy(inputStream, file, true)).thenReturn(false);
 
-        final TestSubscriber<File> testSubscriber = new TestSubscriber<>();
-        importProcessor.process(uri).subscribe(testSubscriber);
-
-        testSubscriber.assertNoValues();
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertError(FileNotFoundException.class);
+        importProcessor.process(uri)
+                .test()
+                .assertNoValues()
+                .assertNotComplete()
+                .assertError(FileNotFoundException.class);
     }
 
     @Test
@@ -86,12 +83,11 @@ public class GenericFileImportProcessorTest {
         when(contentResolver.openInputStream(uri)).thenReturn(inputStream);
         when(storageManner.copy(inputStream, file, true)).thenReturn(true);
 
-        final TestSubscriber<File> testSubscriber = new TestSubscriber<>();
-        importProcessor.process(uri).subscribe(testSubscriber);
-
-        testSubscriber.assertValue(file);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        importProcessor.process(uri)
+                .test()
+                .assertValue(file)
+                .assertComplete()
+                .assertNoErrors();
     }
 
 }

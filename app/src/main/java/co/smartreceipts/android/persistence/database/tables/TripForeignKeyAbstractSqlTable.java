@@ -4,9 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,8 +21,7 @@ import co.smartreceipts.android.persistence.database.tables.ordering.OrderBy;
 import co.smartreceipts.android.sync.model.Syncable;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.functions.Func0;
+import io.reactivex.Single;
 
 /**
  * Extends the {@link AbstractColumnTable} class to provide support for an extra method, {@link #get(Trip)}. We may
@@ -51,10 +50,10 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
      * Fetches all model objects with a foreign key reference to the parameter object
      *
      * @param trip the {@link Trip} parameter that should be treated as a foreign key
-     * @return an {@link Observable} with: all objects assigned to this foreign key in descending order
+     * @return a {@link Single} with: all objects assigned to this foreign key in descending order
      */
     @NonNull
-    public Observable<List<ModelType>> get(@NonNull Trip trip) {
+    public Single<List<ModelType>> get(@NonNull Trip trip) {
         return get(trip, true);
     }
 
@@ -63,16 +62,11 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
      *
      * @param trip the {@link Trip} parameter that should be treated as a foreign key
      * @param isDescending {@code true} for descending order, {@code false} for ascending
-     * @return an {@link Observable} with: all objects assigned to this foreign key in the desired order
+     * @return a {@link Single} with: all objects assigned to this foreign key in the desired order
      */
     @NonNull
-    public synchronized Observable<List<ModelType>> get(@NonNull final Trip trip, final  boolean isDescending) {
-        return Observable.defer(new Func0<Observable<List<ModelType>>>() {
-            @Override
-            public Observable<List<ModelType>> call() {
-                return Observable.just(TripForeignKeyAbstractSqlTable.this.getBlocking(trip, isDescending));
-            }
-        });
+    public synchronized Single<List<ModelType>> get(@NonNull final Trip trip, final  boolean isDescending) {
+        return Single.fromCallable(() -> TripForeignKeyAbstractSqlTable.this.getBlocking(trip, isDescending));
     }
 
     @NonNull
@@ -128,16 +122,15 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @SuppressWarnings("unchecked")
-    @Nullable
     @Override
-    public synchronized ModelType insertBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        final ModelType insertedItem = super.insertBlocking(modelType, databaseOperationMetadata);
-        if (insertedItem != null) {
-            final Trip trip = getTripFor(insertedItem);
+    public synchronized Optional<ModelType> insertBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final Optional<ModelType> insertedItem = super.insertBlocking(modelType, databaseOperationMetadata);
+        if (insertedItem.isPresent()) {
+            final Trip trip = getTripFor(insertedItem.get());
             if (mPerTripCache.containsKey(trip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(trip);
-                perTripResults.add(insertedItem);
-                if (insertedItem instanceof Comparable<?>) {
+                perTripResults.add(insertedItem.get());
+                if (insertedItem.get() instanceof Comparable<?>) {
                     Collections.sort((List<? extends Comparable>)perTripResults);
                 }
             }
@@ -146,11 +139,10 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
     }
 
     @SuppressWarnings("unchecked")
-    @Nullable
     @Override
-    public synchronized ModelType updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        final ModelType updatedItem = super.updateBlocking(oldModelType, newModelType, databaseOperationMetadata);
-        if (updatedItem != null) {
+    public synchronized Optional<ModelType> updateBlocking(@NonNull ModelType oldModelType, @NonNull ModelType newModelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final Optional<ModelType> updatedItem = super.updateBlocking(oldModelType, newModelType, databaseOperationMetadata);
+        if (updatedItem.isPresent()) {
             Logger.debug(this, "Successfully updated this item in our table");
             final Trip oldTrip = getTripFor(oldModelType);
             if (mPerTripCache.containsKey(oldTrip)) {
@@ -160,19 +152,19 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
             }
 
             boolean isMarkedForDeletion = false;
-            if (updatedItem instanceof Syncable) {
+            if (updatedItem.get() instanceof Syncable) {
                 final Syncable syncable = (Syncable) newModelType;
                 if (syncable.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
                     isMarkedForDeletion = true;
                 }
             }
 
-            final Trip newTrip = getTripFor(updatedItem);
+            final Trip newTrip = getTripFor(updatedItem.get());
             if (!isMarkedForDeletion && mPerTripCache.containsKey(newTrip)) {
                 Logger.debug(this, "This item is not marked for deletion. Adding it to our cache");
                 final List<ModelType> perTripResults = mPerTripCache.get(newTrip);
-                perTripResults.add(updatedItem);
-                if (updatedItem instanceof Comparable<?>) {
+                perTripResults.add(updatedItem.get());
+                if (updatedItem.get() instanceof Comparable<?>) {
                     Collections.sort((List<? extends Comparable>)perTripResults);
                 }
             }
@@ -187,11 +179,10 @@ public abstract class TripForeignKeyAbstractSqlTable<ModelType, PrimaryKeyType> 
         mPerTripCache.remove(oldTrip);
     }
 
-    @Nullable
     @Override
-    public synchronized ModelType deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
-        final ModelType deleteResult = super.deleteBlocking(modelType, databaseOperationMetadata);
-        if (deleteResult != null) {
+    public synchronized Optional<ModelType> deleteBlocking(@NonNull ModelType modelType, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
+        final Optional<ModelType> deleteResult = super.deleteBlocking(modelType, databaseOperationMetadata);
+        if (deleteResult.isPresent()) {
             final Trip trip = getTripFor(modelType);
             if (mPerTripCache.containsKey(trip)) {
                 final List<ModelType> perTripResults = mPerTripCache.get(trip);

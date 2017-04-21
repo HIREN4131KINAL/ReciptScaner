@@ -140,7 +140,7 @@ public interface Trip extends Parcelable, Priceable, Comparable<Trip>, Syncable 
     PriceCurrency getTripCurrency();
 
     /**
-     * Gets the default currency code representation for this trip or {@link PriceCurrency#MISSING_CURRENCY_CODE}
+     * Gets the default currency code representation for this trip or {@link PriceCurrency#MISSING_CURRENCY}
      * if it cannot be found
      *
      * @return the default currency code {@link String} for this trip

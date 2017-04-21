@@ -8,17 +8,13 @@
     <string name="menu_main_csv">Personnaliser le CSV</string>
     <string name="menu_main_pdf">Personnaliser le PDF</string>
     <string name="menu_main_export">Sauvegarde</string>
-    <string name="menu_main_about">A propos</string>
-    
+
     <!-- ============== Start Error Messages ================= -->
     <string name="SD_ERROR">Erreur: Vérifier que votre carte SD est présente et pas utilisée par votre ordinateur.</string>
     <string name="SD_WARNING">Attention: Votre carte SD n\'est pas disponible ou est utilisée par votre ordinateur. Certaines photos ne seront pas accessible. Utilisation de la mémoire interne&#8230;</string>
     <string name="database_error">Erreur: Une autre application utilise la base SQLite.</string>
     <string name="IMG_OPEN_ERROR">Erreur: La photo n\'est pas accesible ou corronpue. Votre carte SD est indisponible ou toujours utilisée par votre ordinateur. Dans le cas contraire, presser le bouton menu pour prendre à nouveau une photo.</string>
-    <string name="toast_pdf_open_error">Erreur: Le fichier PDF n\'est pas accesible ou corrompu. Votre carte SD ests indisponible ou toujours utilisée par votre ordinateur.</string>
     <string name="IMG_SAVE_ERROR">Erreur: Impossible d\'enregistrer la photo.</string>
-    <string name="toast_pdf_save_error">Erreur: Impossible d\'enregistrer le fichier PDF.</string>
-    <string name="IMG_SEND_ERROR">Error: The Image was not properly sent to this app</string>
     <string name="ILLEGAL_CHAR_ERROR">Erreur: Le nom contient un mauvais charactere</string>
     <string name="SPACE_ERROR">Erreur: Le nom ne doit pas débuter par un espace</string>
     <string name="CALENDAR_TAB_ERROR">Erreur: Merci de mettre une date</string>
@@ -29,30 +25,20 @@
     <string name="COPY_ERROR">Erreur: Impossible de copier le ticket</string>
     <string name="toast_error_trip_exists">Erreur: Une note de frais avec ce nom existe déjà</string>
     <string name="toast_error_category_exists">Erreur: Une catégorie avec le même nom existe déjà</string>
-    <string name="toast_error_invalid_input">Invalid Input</string>
-    
+
     <!-- ================== Trip Adapter ===================== -->
-    <string name="trip_adapter_new_trip">Note de Frais</string>
-    
+
     <!-- ================= Receipt Adapter =================== -->
-    <string name="receipt_adapter_picture_receipt">Reçu avec photo</string>
-    <string name="receipt_adapter_text_receipt">Reçu sans photo</string>
-    <string name="receipt_adapter_email">Rapport par mail</string>
-    
+
     <!-- ================= DIALOG_TRIPMENU =================== -->
     <string name="DIALOG_TRIPMENU_HINT_NAME">Nom</string>
     <string name="DIALOG_TRIPMENU_HINT_START">Date de Début</string>
     <string name="DIALOG_TRIPMENU_HINT_END">Date de Fin</string>
     <string name="DIALOG_TRIPMENU_TITLE_NEW">Nouvelle Note de Frais</string>
     <string name="DIALOG_TRIPMENU_TITLE_EDIT">Modifier</string>
-    <string name="DIALOG_TRIPMENU_POSITIVE_BUTTON_CREATE">Créer</string>
-    <string name="DIALOG_TRIPMENU_POSITIVE_BUTTON_UPDATE">Modifier</string>
-    <string name="DIALOG_TRIPMENU_NEGATIVE_BUTTON">Annuler</string>
     <string name="DIALOG_TRIPMENU_TOAST_MISSING_FIELD">Merci de remplir tous les champs</string>
     
     <!-- =============== DIALOG_TRIP_DELETE ================== -->
-    <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_START">Effaçer </string>
-    <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON_TITLE_END">\?</string>
     <string name="DIALOG_TRIP_DELETE_POSITIVE_BUTTON">Effaçer</string>
     
     <!-- ================= DIALOG_RECEIPTMENU =================== -->
@@ -68,30 +54,19 @@
     <string name="DIALOG_RECEIPTMENU_HINT_FULLPAGE"> Full-Page Image?</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_NEW">Nouvelle Note de Frais</string>
     <string name="DIALOG_RECEIPTMENU_TITLE_EDIT">Editer</string>
-    <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_CREATE">Créer</string>
-    <string name="DIALOG_RECEIPTMENU_POSITIVE_BUTTON_UPDATE">Editer</string>
-    <string name="DIALOG_RECEIPTMENU_NEGATIVE_BUTTON">Annuler</string>
 
     <!-- ==================== DIALOG_ABOUT ====================== -->
-    <string name="DIALOG_ABOUT_TITLE">A Propos</string>
-    
+
     <string name="receipt_dialog_action_edit">Editer la note de frais</string>
     <string name="receipt_dialog_action_view">Voir note de frais %s</string>
     <string name="receipt_dialog_action_camera">Photographier la note de frais</string>
     <string name="receipt_dialog_action_delete">Effaçer la note de frais</string>
     
     <!-- ================== Preference Dialog ==================== -->
-	<string name="dialog_custom_csv_title">Personnaliser le CSV</string>
-	<string name="dialog_custom_pdf_title">Personnaliser le PDF</string>
-	<string name="dialog_custom_csv_positive">Ajouter une colonne</string>
-	<string name="dialog_custom_csv_negative">Retirer une colonne</string>
-	<string name="dialog_custom_csv_checkbox">Include Header Columns</string>
-	<string name="dialog_custom_csv_spinner">Column Type</string>
+    <string name="dialog_custom_csv_spinner">Column Type</string>
 	<string name="dialog_category_add">Ajouter une Catégorie</string>
 	<string name="dialog_category_edit">Editer une Catégorie</string>
-	<string name="dialog_category_select">Choisir une Catégorie</string>
-    
+
     <!-- ================== CSV Table ==================== -->
-    <string name="csv_table_title">Personnaliser le CSV</string>
 
 </resources>

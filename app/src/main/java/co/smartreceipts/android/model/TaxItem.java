@@ -6,8 +6,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import co.smartreceipts.android.settings.UserPreferenceManager;
-import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.log.Logger;
 
 public class TaxItem {
@@ -18,27 +16,7 @@ public class TaxItem {
 	private BigDecimal mPercent;
 	private BigDecimal mPrice, mTax;
 	private boolean mUsePreTaxPrice;
-	
-	public TaxItem(String percent, UserPreferenceManager preferences) {
-		try {
-			mPercent = new BigDecimal(percent);
-		}
-		catch (NumberFormatException e) {
-			mPercent = null;
-		}
-		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
-	}
-	
-	public TaxItem(float percent, UserPreferenceManager preferences) {
-		mPercent = new BigDecimal(percent);
-		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
-	}
-	
-	public TaxItem(BigDecimal percent, UserPreferenceManager preferences) {
-		mPercent = percent;
-		mUsePreTaxPrice = preferences.get(UserPreference.Receipts.UsePreTaxPrice);
-	}
-	
+
 	public TaxItem(BigDecimal percent, boolean usePreTaxPrice) {
 		mPercent = percent;
 		mUsePreTaxPrice = usePreTaxPrice;

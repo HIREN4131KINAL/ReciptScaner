@@ -35,7 +35,7 @@ public class ReceiptFilterTest {
     private static final Date FUTURE = new Date(MILLIS + 1000);
     private static final Date PAST = new Date(MILLIS - 1000);
 
-    private static Context context;
+    private Context context;
 
     @Before
     public void setUp() {
@@ -216,7 +216,7 @@ public class ReceiptFilterTest {
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)
-        final ArrayList<Filter<Receipt>> filters = new ArrayList<Filter<Receipt>>();
+        final ArrayList<Filter<Receipt>> filters = new ArrayList<>();
         filters.add(filter1);
         filters.add(filter2);
         final ReceiptOrFilter orFilter1 = new ReceiptOrFilter(filters);
@@ -240,7 +240,7 @@ public class ReceiptFilterTest {
         final ReceiptCategoryFilter filter2 = new ReceiptCategoryFilter("Just another category");
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)
-        final ArrayList<Filter<Receipt>> filters = new ArrayList<Filter<Receipt>>();
+        final ArrayList<Filter<Receipt>> filters = new ArrayList<>();
         filters.add(filter1);
         filters.add(filter2);
         final ReceiptAndFilter andFilter1 = new ReceiptAndFilter(filters);

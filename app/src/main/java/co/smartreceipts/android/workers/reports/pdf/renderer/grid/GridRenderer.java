@@ -1,7 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.grid;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.common.base.Preconditions;
 

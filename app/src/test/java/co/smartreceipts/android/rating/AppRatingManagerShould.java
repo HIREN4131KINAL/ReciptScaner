@@ -3,11 +3,11 @@ package co.smartreceipts.android.rating;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import co.smartreceipts.android.rating.data.AppRatingManager;
 import co.smartreceipts.android.rating.data.AppRatingModel;
 import co.smartreceipts.android.rating.data.AppRatingStorage;
-import rx.Single;
-import rx.observers.TestSubscriber;
+import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
+
 
 public class AppRatingManagerShould {
 
@@ -37,17 +37,14 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
-        // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
 
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        // when
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -58,17 +55,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CANT_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -79,17 +72,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_LESS, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -100,17 +89,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, RECENT_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        final TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -121,17 +106,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -142,17 +123,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, NO_ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(true);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(true);
     }
 
     @Test
@@ -163,17 +140,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(false);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(false);
     }
 
     @Test
@@ -184,17 +157,13 @@ public class AppRatingManagerShould {
         AppRatingModel appRatingModel = new AppRatingModel(CAN_SHOW, NO_CRASH, LAUNCHES_MACH_MORE, ADDITIONAL_THRESHOLD, OLD_TIME);
         Mockito.when(mockedStorage.readAppRatingData()).thenReturn(Single.just(appRatingModel));
 
+        AppRatingManager manager = new AppRatingManager(mockedStorage);
         // when
-        AppRatingManager.clearStateForTesting();
-        AppRatingManager manager = AppRatingManager.getInstance(mockedStorage);
-        TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
-
-        manager.checkIfNeedToAskRating()
-                .subscribe(testSubscriber);
+        TestObserver<Boolean> testObserver = manager.checkIfNeedToAskRating().test();
 
         // then
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValue(true);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(true);
     }
 
 

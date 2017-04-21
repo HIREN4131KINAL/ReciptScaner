@@ -2,7 +2,6 @@ package co.smartreceipts.android.persistence.database.controllers.impl;
 
 import android.support.annotation.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -15,13 +14,10 @@ import co.smartreceipts.android.persistence.database.controllers.TripForeignKeyT
 import co.smartreceipts.android.persistence.database.controllers.alterations.TableActionAlterations;
 import co.smartreceipts.android.persistence.database.tables.TripForeignKeyAbstractSqlTable;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscription;
-import rx.exceptions.Exceptions;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.Scheduler;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.exceptions.Exceptions;
+
 
 /**
  * Provides a top-level implementation of the {@link TableController} contract for {@link TripForeignKeyAbstractSqlTable}
@@ -83,60 +79,42 @@ public class TripForeignKeyAbstractTableController<ModelType> extends AbstractTa
     public synchronized void get(@NonNull final Trip trip, final  boolean isDescending) {
         // TODO: #preGet should really have the foreign key param... Which means all tables should be foreign key friendly...
         Logger.info(this, "#get: {}", trip);
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mTableActionAlterations.preGet()
-                .flatMap(new Func1<Void, Observable<List<ModelType>>>() {
-                    @Override
-                    public Observable<List<ModelType>> call(Void oVoid) {
-                        return mTripForeignKeyTable.get(trip, isDescending);
-                    }
-                })
-                .doOnNext(new Action1<List<ModelType>>() {
-                    @Override
-                    public void call(List<ModelType> modelTypes) {
-                        try {
-                            mTableActionAlterations.postGet(modelTypes);
-                        } catch (Exception e) {
-                            throw Exceptions.propagate(e);
-                        }
-                    }
-                })
+        final AtomicReference<Disposable> subscriptionRef = new AtomicReference<>();
+        final Disposable disposable = mTableActionAlterations.preGet()
+                .andThen(mTripForeignKeyTable.get(trip, isDescending))
                 .subscribeOn(mSubscribeOnScheduler)
+                .doOnSuccess(modelTypes -> {
+                    try {
+                        mTableActionAlterations.postGet(modelTypes);
+                    } catch (Exception e) {
+                        throw Exceptions.propagate(e);
+                    }
+                })
                 .observeOn(mObserveOnScheduler)
-                .subscribe(new Action1<List<ModelType>>() {
-                    @Override
-                    public void call(List<ModelType> modelTypes) {
-                        if (modelTypes != null) {
-                            Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetSuccess - onNext");
-                            for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
-                                foreignTableEventsListener.onGetSuccess(modelTypes, trip);
-                            }
-                        }
-                        else {
-                            Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetFailure - onNext");
-                            for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
-                                foreignTableEventsListener.onGetFailure(null, trip);
-                            }
-                        }
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(TripForeignKeyAbstractTableController.this, throwable));
-                        Logger.error(TripForeignKeyAbstractTableController.this, "#onGetFailure - onError");
+                .subscribe(modelTypes -> {
+                    if (modelTypes != null) {
+                        Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetSuccess - onSuccess");
                         for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
-                            foreignTableEventsListener.onGetFailure(throwable, trip);
+                            foreignTableEventsListener.onGetSuccess(modelTypes, trip);
                         }
-                        unsubscribeReference(subscriptionRef);
                     }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(TripForeignKeyAbstractTableController.this, "#get - onComplete");
-                        unsubscribeReference(subscriptionRef);
+                    else {
+                        Logger.debug(TripForeignKeyAbstractTableController.this, "#onGetFailure - onSuccess");
+                        for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
+                            foreignTableEventsListener.onGetFailure(null, trip);
+                        }
                     }
+                    unsubscribeReference(subscriptionRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(TripForeignKeyAbstractTableController.this, throwable));
+                    Logger.error(TripForeignKeyAbstractTableController.this, "#onGetFailure - onError");
+                    for (final TripForeignKeyTableEventsListener<ModelType> foreignTableEventsListener : mForeignTableEventsListeners) {
+                        foreignTableEventsListener.onGetFailure(throwable, trip);
+                    }
+                    unsubscribeReference(subscriptionRef);
                 });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+
+        subscriptionRef.set(disposable);
+        compositeDisposable.add(disposable);
     }
 }

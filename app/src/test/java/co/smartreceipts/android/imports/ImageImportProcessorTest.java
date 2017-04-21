@@ -27,8 +27,8 @@ import co.smartreceipts.android.TestResourceReader;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertEquals;
@@ -62,7 +62,7 @@ public class ImageImportProcessorTest {
 
     Context mContext;
 
-    TestSubscriber<File> mTestSubscriber;
+    TestObserver<File> mTestObserver;
 
     File mDestination;
 
@@ -86,7 +86,7 @@ public class ImageImportProcessorTest {
         MockitoAnnotations.initMocks(this);
 
         mContext = RuntimeEnvironment.application;
-        mTestSubscriber = new TestSubscriber<>();
+        mTestObserver = new TestObserver<>();
         mDestination = new File(mContext.getCacheDir(), "test.jpg");
 
         when(mTrip.getDirectory()).thenReturn(mContext.getCacheDir());
@@ -101,9 +101,9 @@ public class ImageImportProcessorTest {
         final Uri uri = mock(Uri.class);
         when(mContentResolver.openInputStream(uri)).thenReturn(null);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertError(FileNotFoundException.class);
+        final Single<File> resultSingle = mImportProcessor.process(uri);
+        resultSingle.subscribe(mTestObserver);
+        mTestObserver.assertError(FileNotFoundException.class);
     }
 
     @Test
@@ -111,9 +111,9 @@ public class ImageImportProcessorTest {
         final Uri uri = mock(Uri.class);
         when(mContentResolver.openInputStream(uri)).thenThrow(new FileNotFoundException("test"));
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertError(FileNotFoundException.class);
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertError(FileNotFoundException.class);
     }
 
     @Test
@@ -123,9 +123,9 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(false);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertError(IOException.class);
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertError(IOException.class);
     }
 
     @Test
@@ -135,10 +135,10 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertValue(mDestination);
-        mTestSubscriber.assertCompleted();
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertValue(mDestination);
+        mTestObserver.assertComplete();
 
         final Bitmap bitmap = mBitmapCaptor.getValue();
         assertNotNull(bitmap);
@@ -153,10 +153,10 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertValue(mDestination);
-        mTestSubscriber.assertCompleted();
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertValue(mDestination);
+        mTestObserver.assertComplete();
 
         final Bitmap bitmap = mBitmapCaptor.getValue();
         assertNotNull(bitmap);
@@ -173,10 +173,10 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(false);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertValue(mDestination);
-        mTestSubscriber.assertCompleted();
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertValue(mDestination);
+        mTestObserver.assertComplete();
 
         // Note: we only scale down til one dimension is < 1024
         final Bitmap bitmap = mBitmapCaptor.getValue();
@@ -192,10 +192,10 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(true);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertValue(mDestination);
-        mTestSubscriber.assertCompleted();
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertValue(mDestination);
+        mTestObserver.assertComplete();
 
         final Bitmap bitmap = mBitmapCaptor.getValue();
         assertNotNull(bitmap);
@@ -210,10 +210,10 @@ public class ImageImportProcessorTest {
         when(mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)).thenReturn(true);
         when(mStorageManner.writeBitmap(any(Uri.class), mBitmapCaptor.capture(), eq(Bitmap.CompressFormat.JPEG), eq(85))).thenReturn(true);
 
-        final Observable<File> resultObservable = mImportProcessor.process(uri);
-        resultObservable.subscribe(mTestSubscriber);
-        mTestSubscriber.assertValue(mDestination);
-        mTestSubscriber.assertCompleted();
+        final Single<File> resultObservable = mImportProcessor.process(uri);
+        resultObservable.subscribe(mTestObserver);
+        mTestObserver.assertValue(mDestination);
+        mTestObserver.assertComplete();
 
         final Bitmap bitmap = mBitmapCaptor.getValue();
         assertNotNull(bitmap);

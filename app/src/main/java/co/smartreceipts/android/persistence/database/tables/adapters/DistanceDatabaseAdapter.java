@@ -40,7 +40,7 @@ public final class DistanceDatabaseAdapter implements SelectionBackedDatabaseAda
     @Override
     public Distance read(@NonNull Cursor cursor) {
         final int parentIndex = cursor.getColumnIndex(ReceiptsTable.COLUMN_PARENT);
-        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).toBlocking().first();
+        final Trip trip = mTripsTable.findByPrimaryKey(cursor.getString(parentIndex)).blockingGet();
         return readForSelection(cursor, trip, true);
     }
 

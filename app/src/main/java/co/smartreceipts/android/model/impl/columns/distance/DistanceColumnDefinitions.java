@@ -26,7 +26,7 @@ import wb.android.flex.Flex;
 public final class DistanceColumnDefinitions implements ColumnDefinitions<Distance> {
 
 
-    private static enum ActualDefinition {
+    private enum ActualDefinition {
         LOCATION(R.string.distance_location_field),
         PRICE(R.string.distance_price_field),
         DISTANCE(R.string.distance_distance_field),
@@ -37,7 +37,7 @@ public final class DistanceColumnDefinitions implements ColumnDefinitions<Distan
 
         private final int mStringResId;
 
-        private ActualDefinition(int stringResId) {
+        ActualDefinition(int stringResId) {
             mStringResId = stringResId;
         }
 
@@ -84,7 +84,7 @@ public final class DistanceColumnDefinitions implements ColumnDefinitions<Distan
     @NonNull
     @Override
     public List<Column<Distance>> getAllColumns() {
-        final ArrayList<AbstractColumnImpl<Distance>> columns = new ArrayList<AbstractColumnImpl<Distance>>(mActualDefinitions.length);
+        final ArrayList<AbstractColumnImpl<Distance>> columns = new ArrayList<>(mActualDefinitions.length);
         for (int i = 0; i < mActualDefinitions.length; i++) {
             final ActualDefinition definition = mActualDefinitions[i];
             final AbstractColumnImpl<Distance> column = getColumnFromClass(Column.UNKNOWN_ID, definition, getColumnNameFromStringResId(definition.getStringResId()), new DefaultSyncState());

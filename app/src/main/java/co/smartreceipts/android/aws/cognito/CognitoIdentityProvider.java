@@ -6,18 +6,14 @@ import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.Cognito;
-import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.User;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Single;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.Single;
+
 
 class CognitoIdentityProvider {
 
@@ -35,74 +31,62 @@ class CognitoIdentityProvider {
     }
 
     @NonNull
-    public Single<Cognito> prefetchCognitoTokenIfNeeded() {
-        return Observable.create(new Observable.OnSubscribe<Cognito>() {
-                    @Override
-                    public void call(Subscriber<? super Cognito> subscriber) {
-                        subscriber.onNext(localCognitoTokenStore.getCognitoToken());
-                        subscriber.onCompleted();
+    public Single<Optional<Cognito>> prefetchCognitoTokenIfNeeded() {
+        return Single.fromCallable(this::getCachedCognitoToken)
+                .flatMap(cognitoOptional -> {
+                    if (!cognitoOptional.isPresent()
+                            || cognitoOptional.get().getCognitoToken() == null
+                            || cognitoOptional.get().getIdentityId() == null) {
+                        Logger.debug(CognitoIdentityProvider.this, "Existing cognito token is invalid. Pre-fetching...");
+                        return refreshCognitoToken();
+                    } else {
+                        Logger.debug(CognitoIdentityProvider.this, "Existing cognito token is valid");
+                        return Single.just(cognitoOptional);
                     }
-                })
-                .flatMap(new Func1<Cognito, Observable<Cognito>>() {
-                    @Override
-                    public Observable<Cognito> call(Cognito cognito) {
-                        if (cognito == null || cognito.getCognitoToken() == null || cognito.getIdentityId() == null) {
-                            Logger.debug(CognitoIdentityProvider.this, "Existing cognito token is invalid. Pre-fetching...");
-                            return refreshCognitoToken().toObservable();
-                        } else {
-                            Logger.debug(CognitoIdentityProvider.this, "Existing cognito token is valid");
-                            return Observable.just(cognito);
-                        }
-                    }
-                })
-                .toSingle();
+                });
     }
 
     @NonNull
-    public Single<Cognito> refreshCognitoToken() {
+    public Single<Optional<Cognito>> refreshCognitoToken() {
         return this.identityManager.getMe()
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        Logger.debug(CognitoIdentityProvider.this, "Clearing the cached cognito token to refresh");
+                .doOnSubscribe(disposable -> {
+                    Logger.debug(CognitoIdentityProvider.this, "Clearing the cached cognito token to refresh");
+                    localCognitoTokenStore.persist(null);
+                })
+                .<Optional<Cognito>>map(meResponse -> {
+                    if (meResponse != null && meResponse.getUser() != null) {
+                        Logger.debug(CognitoIdentityProvider.this, "Retrieve a valid token response");
+                        final User user = meResponse.getUser();
+                        return Optional.of(new Cognito(user.getCognitoToken(), user.getIdentityId(), user.getCognitoTokenExpiresAt()));
+                    } else {
+                        Logger.warn(CognitoIdentityProvider.this, "Failed to fetch a valid token");
+                        return Optional.absent();
+                    }
+                })
+                .doOnNext(optionalCognito -> {
+                    if (optionalCognito.isPresent()) {
+                        localCognitoTokenStore.persist(optionalCognito.get());
+                    }else {
                         localCognitoTokenStore.persist(null);
                     }
                 })
-                .map(new Func1<MeResponse, Cognito>() {
-                    @Override
-                    public Cognito call(@Nullable MeResponse meResponse) {
-                        if (meResponse != null && meResponse.getUser() != null) {
-                            Logger.debug(CognitoIdentityProvider.this, "Retrieve a valid token response");
-                            final User user = meResponse.getUser();
-                            return new Cognito(user.getCognitoToken(), user.getIdentityId(), user.getCognitoTokenExpiresAt());
-                        } else {
-                            Logger.warn(CognitoIdentityProvider.this, "Failed to fetch a valid token");
-                            return null;
-                        }
-                    }
-                })
-                .doOnNext(new Action1<Cognito>() {
-                    @Override
-                    public void call(@Nullable Cognito cognito) {
-                        localCognitoTokenStore.persist(cognito);
-                    }
-                })
-                .toSingle();
+                .singleOrError();
     }
 
     @Nullable
     public Cognito synchronouslyRefreshCognitoToken() {
-        return refreshCognitoToken().onErrorReturn(new Func1<Throwable, Cognito>() {
-                    @Override
-                    public Cognito call(Throwable throwable) {
-                        return null;
-                    }
-                })
-                .toBlocking().value();
+        try {
+            return refreshCognitoToken()
+                    .onErrorReturn(throwable -> Optional.absent())
+                    .blockingGet().get();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    @Nullable
-    public Cognito getCachedCognitoToken() {
-        return localCognitoTokenStore.getCognitoToken();
+    @NonNull
+    public Optional<Cognito> getCachedCognitoToken() {
+        Cognito cognitoToken = localCognitoTokenStore.getCognitoToken();
+        return cognitoToken != null ? Optional.of(cognitoToken) : Optional.absent();
     }
 }

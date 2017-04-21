@@ -44,7 +44,7 @@ public class TripFilterTest {
         tripHigh.setPrice(PRICE_HIGH);
         tripLow.setPrice(PRICE_LOW);
 
-        final TripMinimumPriceFilter filter = new TripMinimumPriceFilter((float) PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMinimumPriceFilter filter = new TripMinimumPriceFilter(PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
 
         assertTrue(filter.accept(tripNormal));
         assertTrue(filter.accept(tripHigh));
@@ -63,7 +63,7 @@ public class TripFilterTest {
         tripHigh.setPrice(PRICE_HIGH);
         tripLow.setPrice(PRICE_LOW);
 
-        final TripMaximumPriceFilter filter = new TripMaximumPriceFilter((float) PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter filter = new TripMaximumPriceFilter(PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
 
         assertTrue(filter.accept(tripNormal));
         assertFalse(filter.accept(tripHigh));
@@ -145,8 +145,8 @@ public class TripFilterTest {
         tripHigh.setPrice(PRICE_HIGH);
         tripLow.setPrice(PRICE_LOW);
 
-        final TripMinimumPriceFilter minPrice = new TripMinimumPriceFilter((float) PRICE_HIGH.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
-        final TripMaximumPriceFilter maxPrice = new TripMaximumPriceFilter((float) PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMinimumPriceFilter minPrice = new TripMinimumPriceFilter(PRICE_HIGH.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter maxPrice = new TripMaximumPriceFilter(PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
         final TripOrFilter orFilter = new TripOrFilter();
         orFilter.or(minPrice);
         orFilter.or(maxPrice);
@@ -179,7 +179,7 @@ public class TripFilterTest {
         tripFutureLow.setPrice(PRICE_LOW);
 
         final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, TripUtils.Constants.START_TIMEZONE);
-        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
         final TripAndFilter andFilter = new TripAndFilter();
         andFilter.and(dateFilter);
         andFilter.and(priceFilter);
@@ -209,7 +209,7 @@ public class TripFilterTest {
         tripHigh.setPrice(PRICE_HIGH);
         tripLow.setPrice(PRICE_LOW);
 
-        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(PRICE_NORMAL.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
         final TripNotFilter notFilter = new TripNotFilter(priceFilter);
 
         assertFalse(notFilter.accept(tripNormal));
@@ -227,10 +227,10 @@ public class TripFilterTest {
         // filters constructed with same data but different method should be equal
 
         final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, TripUtils.Constants.START_TIMEZONE);
-        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)
-        final ArrayList<Filter<Trip>> filters = new ArrayList<Filter<Trip>>();
+        final ArrayList<Filter<Trip>> filters = new ArrayList<>();
         filters.add(dateFilter);
         filters.add(priceFilter);
         final TripAndFilter filter1 = new TripAndFilter(filters);
@@ -251,10 +251,10 @@ public class TripFilterTest {
         // filters constructed with same data but different method should be equal
 
         final TripStartsOnOrBeforeDayFilter dateFilter = new TripStartsOnOrBeforeDayFilter(PAST, TripUtils.Constants.START_TIMEZONE);
-        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter((float) PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
+        final TripMaximumPriceFilter priceFilter = new TripMaximumPriceFilter(PRICE_LOW.getPriceAsFloat(), TripUtils.Constants.CURRENCY_CODE);
 
         // filter 1 -- composited filters added in object instantiation (i.e. constructor)
-        final ArrayList<Filter<Trip>> filters = new ArrayList<Filter<Trip>>();
+        final ArrayList<Filter<Trip>> filters = new ArrayList<>();
         filters.add(dateFilter);
         filters.add(priceFilter);
         final TripOrFilter filter1 = new TripOrFilter(filters);

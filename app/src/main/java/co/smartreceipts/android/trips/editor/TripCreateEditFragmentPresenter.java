@@ -2,17 +2,23 @@ package co.smartreceipts.android.trips.editor;
 
 import java.io.File;
 import java.sql.Date;
+import java.util.ArrayList;
 
 import javax.inject.Inject;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
+import co.smartreceipts.android.di.scopes.FragmentScope;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.TripBuilderFactory;
+import co.smartreceipts.android.persistence.DatabaseHelper;
+import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
+import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.FileUtils;
 
+@FragmentScope
 public class TripCreateEditFragmentPresenter {
 
     @Inject
@@ -21,6 +27,8 @@ public class TripCreateEditFragmentPresenter {
     Analytics analytics;
     @Inject
     TripTableController tripTableController;
+    @Inject
+    PersistenceManager persistenceManager;
 
     @Inject
     public TripCreateEditFragmentPresenter() {
@@ -53,8 +61,10 @@ public class TripCreateEditFragmentPresenter {
         return true;
     }
 
-    public Trip saveTrip(File file, Date startDate, Date endDate, String defaultCurrency,
+    public Trip saveTrip(String name, Date startDate, Date endDate, String defaultCurrency,
                          String comment, String costCenter) {
+
+        File file = persistenceManager.getStorageManager().getFile(name);
 
         if (fragment.getTrip() == null) { // Insert
             analytics.record(Events.Reports.PersistNewReport);
@@ -82,5 +92,33 @@ public class TripCreateEditFragmentPresenter {
             tripTableController.update(fragment.getTrip(), updateTrip, new DatabaseOperationMetadata());
             return updateTrip;
         }
+    }
+
+    public boolean isIncludeCostCenter() {
+        return persistenceManager.getPreferenceManager().get(UserPreference.General.IncludeCostCenter);
+    }
+
+    public ArrayList<CharSequence> getCurrenciesList() {
+        return persistenceManager.getDatabase().getCurrenciesList();
+    }
+
+    public boolean isEnableAutoCompleteSuggestions() {
+        return persistenceManager.getPreferenceManager().get(UserPreference.Receipts.EnableAutoCompleteSuggestions);
+    }
+
+    public DatabaseHelper getDatabaseHelper() {
+        return persistenceManager.getDatabase();
+    }
+
+    public int getDefaultTripDuration() {
+        return persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultReportDuration);
+    }
+
+    public String getDefaultCurrency() {
+        return persistenceManager.getPreferenceManager().get(UserPreference.General.DefaultCurrency);
+    }
+
+    public String getDateSeparator() {
+        return persistenceManager.getPreferenceManager().get(UserPreference.General.DateSeparator);
     }
 }

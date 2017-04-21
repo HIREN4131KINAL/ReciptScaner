@@ -2,24 +2,11 @@
 <resources>
 
     <!-- Table -->
-    <dimen name="table_border">1dp</dimen>
-    <dimen name="table_border_radius">4dp</dimen>
-    <dimen name="table_padding">6dp</dimen>
-    <dimen name="table_col1_side_padding">15dp</dimen>
-    <dimen name="table_header_textSize">20dp</dimen>
-    <dimen name="table_textSize">20dp</dimen>
-    
-    
-    <dimen name="preference_fragment_padding_bottom">0dp</dimen>
-    
+
+
     <!-- List -->
-    <dimen name="list_border">12dp</dimen>
-    <dimen name="image_overlay">60dp</dimen>
     <dimen name="no_data_textSize">16sp</dimen>
     <dimen name="no_data_padding">22dp</dimen>
-    
-    <!-- Receipts -->
-    <dimen name="receipt_action_size">13dp</dimen>
     
     <!-- Cards -->
     <dimen name="card_divider_padding">6dp</dimen>
@@ -28,16 +15,11 @@
     <dimen name="card_date_size">14sp</dimen>
     <dimen name="card_name_date_separator">2dp</dimen>
     <dimen name="card_name_date_margin">16dp</dimen>
-    <dimen name="card_thumbnail_size">72dp</dimen>
     <dimen name="card_padding">2dp</dimen>
     <dimen name="card_thumbnail_margins">4dp</dimen>
     
     <!-- Charts -->
-    <dimen name="chart_axis_size">16sp</dimen>
-    <dimen name="chart_title_size">20sp</dimen>
-    <dimen name="chart_labels_size">14sp</dimen>
-    <dimen name="chart_legend_size">14sp</dimen>
-    
+
     <!-- Action Bar -->
     <dimen name="action_bar_border_stroke_inverted">-2dp</dimen>
     <dimen name="action_bar_border_stroke">2dp</dimen>

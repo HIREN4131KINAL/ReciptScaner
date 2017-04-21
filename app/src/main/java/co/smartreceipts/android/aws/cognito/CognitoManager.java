@@ -7,19 +7,20 @@ import android.support.annotation.VisibleForTesting;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import javax.inject.Inject;
 
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.me.Cognito;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
-import rx.subjects.ReplaySubject;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.ReplaySubject;
+
 
 @ApplicationScope
 public class CognitoManager {
@@ -29,7 +30,8 @@ public class CognitoManager {
     private final CognitoIdentityProvider cognitoIdentityProvider;
     private final Scheduler subscribeOnScheduler;
     private final PublishSubject<Object> retryErrorsOnSubscribePredicate = PublishSubject.create();
-    private final ReplaySubject<CognitoCachingCredentialsProvider> cachingCredentialsProviderReplaySubject = ReplaySubject.create(1);
+    private final ReplaySubject<Optional<CognitoCachingCredentialsProvider>> cachingCredentialsProviderReplaySubject = ReplaySubject.createWithSize(1);
+    private Disposable cachingCredentialsProviderDisposable;
 
     @Inject
     public CognitoManager(Context context, IdentityManager identityManager) {
@@ -46,52 +48,48 @@ public class CognitoManager {
     }
 
     public void initialize() {
-        identityManager.isLoggedInStream()
+        cachingCredentialsProviderDisposable = identityManager.isLoggedInStream()
                 .subscribeOn(subscribeOnScheduler)
-                .filter(new Func1<Boolean, Boolean>() {
-                    @Override
-                    public Boolean call(Boolean isLoggedIn) {
-                        return isLoggedIn;
-                    }
-                })
-                .flatMap(new Func1<Boolean, Observable<CognitoCachingCredentialsProvider>>() {
-                    @Override
-                    public Observable<CognitoCachingCredentialsProvider> call(Boolean isLoggedIn) {
+                .flatMap(isLoggedIn -> {
+                    if (isLoggedIn) {
                         return cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()
-                                .retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
-                                    @Override
-                                    public Observable<?> call(Observable<? extends Throwable> errors) {
-                                        return errors.flatMap(new Func1<Throwable, Observable<?>>() {
-                                            @Override
-                                            public Observable<?> call(Throwable throwable) {
-                                                return retryErrorsOnSubscribePredicate;
-                                            }
-                                        });
-                                    }
+                                .retryWhen(throwableFlowable -> throwableFlowable
+                                        .flatMap(throwable -> retryErrorsOnSubscribePredicate.toFlowable( BackpressureStrategy.MISSING)))
+                                .map(cognitoOptional -> {
+                                    final SmartReceiptsAuthenticationProvider authenticationProvider = new SmartReceiptsAuthenticationProvider(cognitoIdentityProvider, getRegions());
+                                    return Optional.of(new CognitoCachingCredentialsProvider(context, authenticationProvider, getRegions()));
                                 })
-                                .map(new Func1<Cognito, CognitoCachingCredentialsProvider>() {
-                                    @Override
-                                    public CognitoCachingCredentialsProvider call(Cognito cognito) {
-                                        final SmartReceiptsAuthenticationProvider authenticationProvider = new SmartReceiptsAuthenticationProvider(cognitoIdentityProvider, getRegions());
-                                        return new CognitoCachingCredentialsProvider(context, authenticationProvider, getRegions());
-                                    }
-                                })
+                                .onErrorReturn(throwable -> Optional.absent())
                                 .toObservable();
+                    } else {
+                        return Observable.just(Optional.<CognitoCachingCredentialsProvider>absent());
                     }
                 })
-                .subscribe(cachingCredentialsProviderReplaySubject);
+                .subscribe(cognitoCachingCredentialsProviderOptional -> {
+                            cachingCredentialsProviderReplaySubject.onNext(cognitoCachingCredentialsProviderOptional);
+                            if (cognitoCachingCredentialsProviderOptional.isPresent()) {
+                                cachingCredentialsProviderReplaySubject.onComplete();
+                                if (cachingCredentialsProviderDisposable != null) {
+                                    cachingCredentialsProviderDisposable.dispose();
+                                }
+                            }
+                        },
+                        cachingCredentialsProviderReplaySubject::onError,
+                        cachingCredentialsProviderReplaySubject::onComplete);
     }
 
+    /**
+     * @return an {@link Optional} instance of the {@link CognitoCachingCredentialsProvider}. Once we
+     * fetch a valid entry, this should be treated as a singleton for the lifetime of the parent
+     * {@link CognitoManager} object, since we use a replay subject
+     */
     @NonNull
-    public Observable<CognitoCachingCredentialsProvider> getCognitoCachingCredentialsProvider() {
-        return cachingCredentialsProviderReplaySubject.asObservable()
-                .doOnSubscribe(new Action0() {
-                    @Override
-                    public void call() {
-                        // Any time we subscribe, let's see if we can resolve any latent errors
-                        retryErrorsOnSubscribePredicate.onNext(new Object());
-                    }
-                }).take(1);
+    public Observable<Optional<CognitoCachingCredentialsProvider>> getCognitoCachingCredentialsProvider() {
+        return cachingCredentialsProviderReplaySubject
+                .doOnSubscribe(disposable -> {
+                    // Any time we subscribe, let's see if we can resolve any latent errors
+                    retryErrorsOnSubscribePredicate.onNext(new Object());
+                });
     }
 
     @NonNull

@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -36,37 +36,43 @@ import co.smartreceipts.android.sync.widget.backups.ImportLocalBackupDialogFragm
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.AndroidInjection;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import wb.android.flex.Flex;
 
-public class SmartReceiptsActivity extends WBActivity implements Attachable, PurchaseEventsListener {
+public class SmartReceiptsActivity extends AppCompatActivity implements Attachable, PurchaseEventsListener {
 
     private static final int STORAGE_PERMISSION_REQUEST = 33;
     private static final String READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     @Inject
     AdManager adManager;
+
     @Inject
     Flex flex;
+
     @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     PurchaseWallet purchaseWallet;
+
     @Inject
     ConfigurationManager configurationManager;
+
     @Inject
     Analytics analytics;
+
     @Inject
     PurchaseManager purchaseManager;
+
     @Inject
     BackupProvidersManager backupProvidersManager;
 
     private volatile Set<InAppPurchase> availablePurchases;
     private NavigationHandler navigationHandler;
     private Attachment attachment;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,22 +135,14 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
         }
         adManager.onResume();
 
-        compositeSubscription = new CompositeSubscription();
-        compositeSubscription.add(purchaseManager.getAllAvailablePurchases()
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(purchaseManager.getAllAvailablePurchaseSkus()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Set<InAppPurchase>>() {
-                    @Override
-                    public void call(Set<InAppPurchase> inAppPurchases) {
-                        Logger.info(this, "The following purchases are available: {}", availablePurchases);
-                        availablePurchases = inAppPurchases;
-                        invalidateOptionsMenu(); // To show the subscription option
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Logger.warn(SmartReceiptsActivity.this, "Failed to retrieve purchases for this session.", throwable);
-                    }
-                }));
+                .subscribe(inAppPurchases -> {
+                    Logger.info(this, "The following purchases are available: {}", availablePurchases);
+                    availablePurchases = inAppPurchases;
+                    invalidateOptionsMenu(); // To show the subscription option
+                }, throwable -> Logger.warn(SmartReceiptsActivity.this, "Failed to retrieve purchases for this session.", throwable)));
     }
 
     @Override
@@ -173,8 +171,8 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
             menu.removeItem(R.id.menu_main_settings);
         }
 
-        if (!FeatureFlags.SmartReceiptsLogin.isEnabled()) {
-            menu.removeItem(R.id.menu_main_my_account);
+        if (!FeatureFlags.Ocr.isEnabled()) {
+            menu.removeItem(R.id.menu_main_ocr_configuration);
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -194,9 +192,9 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
             purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.OverflowMenu);
             analytics.record(Events.Navigation.SmartReceiptsPlusOverflow);
             return true;
-        } else if (item.getItemId() == R.id.menu_main_my_account) {
-            navigationHandler.navigateToLoginScreen();
-            analytics.record(Events.Navigation.BackupOverflow);
+        } else if (item.getItemId() == R.id.menu_main_ocr_configuration) {
+            navigationHandler.navigateToOcrConfigurationFragment();
+            analytics.record(Events.Navigation.OcrConfiguration);
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -266,10 +264,5 @@ public class SmartReceiptsActivity extends WBActivity implements Attachable, Pur
                 Toast.makeText(SmartReceiptsActivity.this, R.string.purchase_failed, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    @Nullable
-    public PurchaseManager getSubscriptionManager() {
-        return purchaseManager;
     }
 }

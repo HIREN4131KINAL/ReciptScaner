@@ -8,7 +8,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -24,14 +23,13 @@ import co.smartreceipts.android.purchases.model.Subscription;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 public class PlusPurchaseWalletTest {
 
+    private static final String TEST = "test";
     private static final String PURCHASE_TOKEN = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689";
     private static final String IN_APP_DATA_SIGNATURE = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689==";
     private String purchaseData;
@@ -65,11 +63,14 @@ public class PlusPurchaseWalletTest {
         plusManagedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, "", "", "");
 
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        preferences.edit().putString(TEST, TEST).apply();
         plusPurchaseWallet = new PlusPurchaseWallet(preferences);
     }
 
     @After
     public void tearDown() {
+        // Verify that we don't clear out everything then remove our test values
+        assertEquals(TEST, preferences.getString(TEST, null));
         preferences.edit().clear().apply();
     }
 

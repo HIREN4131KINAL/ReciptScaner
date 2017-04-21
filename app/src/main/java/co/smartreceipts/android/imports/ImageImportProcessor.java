@@ -24,8 +24,7 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.UriUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Single;
 import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
 
@@ -54,75 +53,72 @@ public class ImageImportProcessor implements FileImportProcessor {
 
     @NonNull
     @Override
-    public Observable<File> process(@NonNull final Uri uri) {
-        return Observable.create(new Observable.OnSubscribe<File>() {
-            @Override
-            public void call(Subscriber<? super File> subscriber) {
-                InputStream inputStream = null;
-                try {
-                    inputStream = mContentResolver.openInputStream(uri);
-                    if (inputStream != null) {
-                        final int scale = getImageScaleFactor(uri);
+    public Single<File> process(@NonNull final Uri uri) {
+        return Single.create(emitter -> {
+            InputStream inputStream = null;
+            try {
+                inputStream = mContentResolver.openInputStream(uri);
+                if (inputStream != null) {
+                    final int scale = getImageScaleFactor(uri);
 
-                        // Get scaled bitmap
-                        final BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
-                        smallerOpts.inSampleSize = scale;
-                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, smallerOpts);
+                    // Get scaled bitmap
+                    final BitmapFactory.Options smallerOpts = new BitmapFactory.Options();
+                    smallerOpts.inSampleSize = scale;
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, smallerOpts);
 
-                        // Perform image processing
-                        if (mPreferences.get(UserPreference.Camera.SaveImagesInGrayScale)) {
-                            bitmap = ImageUtils.convertToGrayScale(bitmap);
-                        }
+                    // Perform image processing
+                    if (mPreferences.get(UserPreference.Camera.SaveImagesInGrayScale)) {
+                        bitmap = ImageUtils.convertToGrayScale(bitmap);
+                    }
 
-                        if (mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)) {
-                            Logger.debug(ImageImportProcessor.this, "Configured for auto-rotation. Attempting to determine the orientation");
-                            int orientation = getOrientationFromMediaStore(uri);
+                    if (mPreferences.get(UserPreference.Camera.AutomaticallyRotateImages)) {
+                        Logger.debug(ImageImportProcessor.this, "Configured for auto-rotation. Attempting to determine the orientation");
+                        int orientation = getOrientationFromMediaStore(uri);
 
-                            if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
-                                Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store. Trying from Exif.");
-                                InputStream exifInputStream = null; // Note: Re-open to avoid issues with #reset()
-                                try {
-                                    exifInputStream = mContentResolver.openInputStream(uri);
-                                    if (exifInputStream != null) {
-                                        final ExifInterface exif = new ExifInterface(exifInputStream);
-                                        orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                                        Logger.info(ImageImportProcessor.this, "Read exif orientation as {}", orientation);
-                                    }
-                                } catch (IOException e) {
-                                    Logger.error(ImageImportProcessor.this, "An Exif parsing exception occurred", e);
-                                } finally {
-                                    StorageManager.closeQuietly(exifInputStream);
+                        if (orientation == ExifInterface.ORIENTATION_UNDEFINED) {
+                            Logger.warn(ImageImportProcessor.this, "Failed to fetch orientation information from the content store. Trying from Exif.");
+                            InputStream exifInputStream = null; // Note: Re-open to avoid issues with #reset()
+                            try {
+                                exifInputStream = mContentResolver.openInputStream(uri);
+                                if (exifInputStream != null) {
+                                    final ExifInterface exif = new ExifInterface(exifInputStream);
+                                    orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                                    Logger.info(ImageImportProcessor.this, "Read exif orientation as {}", orientation);
                                 }
+                            } catch (IOException e) {
+                                Logger.error(ImageImportProcessor.this, "An Exif parsing exception occurred", e);
+                            } finally {
+                                StorageManager.closeQuietly(exifInputStream);
                             }
-
-                            if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
-                                Logger.info(ImageImportProcessor.this, "Image orientation determined as {}. Rotating...", orientation);
-                                bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
-                            } else {
-                                Logger.warn(ImageImportProcessor.this, "Indeterminate orientation. Skipping rotation");
-                            }
-                        } else {
-                            Logger.info(ImageImportProcessor.this, "Image import rotation is disabled. Ignoring...");
                         }
 
-                        final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
-                        if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
-                            Logger.error(ImageImportProcessor.this, "Failed to write the image data. Aborting");
-                            subscriber.onError(new IOException("Failed to write the image data. Aborting"));
+                        if (orientation != ExifInterface.ORIENTATION_UNDEFINED) {
+                            Logger.info(ImageImportProcessor.this, "Image orientation determined as {}. Rotating...", orientation);
+                            bitmap = ImageUtils.rotateBitmap(bitmap, orientation);
                         } else {
-                            Logger.info(ImageImportProcessor.this, "Successfully saved the image to {}.", destination);
-                            subscriber.onNext(destination);
-                            subscriber.onCompleted();
+                            Logger.warn(ImageImportProcessor.this, "Indeterminate orientation. Skipping rotation");
                         }
                     } else {
-                        subscriber.onError(new FileNotFoundException());
+                        Logger.info(ImageImportProcessor.this, "Image import rotation is disabled. Ignoring...");
                     }
-                } catch (IOException e) {
-                    subscriber.onError(e);
-                } finally {
-                    StorageManager.closeQuietly(inputStream);
+
+                    final File destination = mStorageManner.getFile(mTrip.getDirectory(), System.currentTimeMillis() + "." + UriUtils.getExtension(uri, mContentResolver));
+                    if (!mStorageManner.writeBitmap(Uri.fromFile(destination), bitmap, Bitmap.CompressFormat.JPEG, 85)) {
+                        Logger.error(ImageImportProcessor.this, "Failed to write the image data. Aborting");
+                        emitter.onError(new IOException("Failed to write the image data. Aborting"));
+                    } else {
+                        Logger.info(ImageImportProcessor.this, "Successfully saved the image to {}.", destination);
+                        emitter.onSuccess(destination);
+                    }
+                } else {
+                    emitter.onError(new FileNotFoundException());
                 }
+            } catch (IOException e) {
+                emitter.onError(e);
+            } finally {
+                StorageManager.closeQuietly(inputStream);
             }
+
         });
     }
 

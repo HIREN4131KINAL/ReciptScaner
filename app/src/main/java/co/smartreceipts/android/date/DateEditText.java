@@ -5,12 +5,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
 import java.sql.Date;
 
-public class DateEditText extends EditText {
+public class DateEditText extends AppCompatEditText {
 
 	public Date date;	
 	

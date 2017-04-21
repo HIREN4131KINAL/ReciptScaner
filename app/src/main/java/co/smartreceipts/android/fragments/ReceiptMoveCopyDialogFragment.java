@@ -1,5 +1,6 @@
 package co.smartreceipts.android.fragments;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -63,6 +64,7 @@ public class ReceiptMoveCopyDialogFragment extends DialogFragment implements Dia
         mTripTableEventsListener = new UpdateAdapterTrips();
     }
 
+    @SuppressLint("InflateParams")
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

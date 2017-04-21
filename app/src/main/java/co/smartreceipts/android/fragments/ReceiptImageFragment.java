@@ -35,7 +35,6 @@ import co.smartreceipts.android.activities.NavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.imports.ActivityFileResultImporter;
-import co.smartreceipts.android.imports.ActivityFileResultImporterResponse;
 import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
@@ -47,9 +46,7 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.operations.OperationFamilyType;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
 import wb.android.flex.Flex;
 import wb.android.image.ImageUtils;
 import wb.android.storage.StorageManager;
@@ -82,7 +79,7 @@ public class ReceiptImageFragment extends WBFragment {
     private ActivityFileResultImporter activityFileResultImporter;
     private NavigationHandler navigationHandler;
     private ImageUpdatedListener imageUpdatedListener;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
     private boolean isRotateOngoing;
     private Uri imageUri;
 
@@ -185,7 +182,7 @@ public class ReceiptImageFragment extends WBFragment {
     @Override
     public void onResume() {
         super.onResume();
-        compositeSubscription = new CompositeSubscription();
+        compositeDisposable = new CompositeDisposable();
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -194,33 +191,24 @@ public class ReceiptImageFragment extends WBFragment {
             actionBar.setTitle(receipt.getName());
         }
         receiptTableController.subscribe(imageUpdatedListener);
-        compositeSubscription.add(activityFileResultImporter.getResultStream()
-                .subscribe(new Action1<ActivityFileResultImporterResponse>() {
-                    @Override
-                    public void call(ActivityFileResultImporterResponse response) {
-                        final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(response.getFile()).build();
-                        receiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
-                        progress.setVisibility(View.GONE);
-                        activityFileResultImporter.dispose();
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        progress.setVisibility(View.GONE);
-                        activityFileResultImporter.dispose();
-                    }
+        compositeDisposable.add(activityFileResultImporter.getResultStream()
+                .subscribe(response -> {
+                    final Receipt retakeReceipt = new ReceiptBuilderFactory(receipt).setFile(response.getFile()).build();
+                    receiptTableController.update(receipt, retakeReceipt, new DatabaseOperationMetadata());
+                }, throwable -> {
+                    Toast.makeText(getActivity(), getFlexString(R.string.IMG_SAVE_ERROR), Toast.LENGTH_SHORT).show();
+                    progress.setVisibility(View.GONE);
+                    activityFileResultImporter.dispose();
+                }, () -> {
+                    progress.setVisibility(View.GONE);
+                    activityFileResultImporter.dispose();
                 }));
     }
 
     @Override
     public void onPause() {
-        compositeSubscription.unsubscribe();
-        compositeSubscription = null;
+        compositeDisposable.dispose();
+        compositeDisposable = null;
         receiptTableController.unsubscribe(imageUpdatedListener);
         super.onPause();
     }

@@ -8,6 +8,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,24 +17,14 @@ import android.view.ViewGroup;
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.FragmentProvider;
-import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.fragments.WBFragment;
-import co.smartreceipts.android.identity.IdentityManager;
-import co.smartreceipts.android.identity.apis.login.LoginParams;
-import co.smartreceipts.android.identity.apis.login.LoginResponse;
 import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserLogin;
-import co.smartreceipts.android.identity.apis.logout.LogoutResponse;
-import co.smartreceipts.android.identity.store.EmailAddress;
-import co.smartreceipts.android.identity.widget.presenters.MyAccountPresenter;
+import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
+import co.smartreceipts.android.identity.widget.presenters.LoginPresenter;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
-import rx.Observable;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class LoginFragment extends WBFragment {
 
@@ -41,16 +33,12 @@ public class LoginFragment extends WBFragment {
     private static final String OUT_LOGIN_PARAMS = "out_login_params";
 
     @Inject
-    Analytics analytics;
-    @Inject
-    IdentityManager identityManager;
+    LoginInteractor loginInteractor;
 
-    private MyAccountPresenter myAccountPresenter;
-    private LoginInteractor loginInteractor;
-    private NavigationHandler navigationHandler;
+    private LoginPresenter loginPresenter;
 
-    private LoginParams cachedLoginParams;
-    private CompositeSubscription compositeSubscription;
+    private UserCredentialsPayload cachedUserCredentialsPayload;
+    private CompositeDisposable compositeDisposable;
 
     @NonNull
     public static LoginFragment newInstance() {
@@ -67,12 +55,10 @@ public class LoginFragment extends WBFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        this.navigationHandler = new NavigationHandler(getActivity(), getFragmentManager(), new FragmentProvider());
-        this.loginInteractor = new LoginInteractor(getFragmentManager(), identityManager, analytics);
         if (savedInstanceState != null) {
             final SmartReceiptsUserLogin loginParams = savedInstanceState.getParcelable(OUT_LOGIN_PARAMS);
             if (loginParams != null) {
-                logIn(loginParams);
+                logInOrSignUp(loginParams);
             }
         }
     }
@@ -86,7 +72,7 @@ public class LoginFragment extends WBFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        this.myAccountPresenter = new MyAccountPresenter(view);
+        this.loginPresenter = new LoginPresenter(view);
     }
 
     @Override
@@ -97,10 +83,15 @@ public class LoginFragment extends WBFragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            this.navigationHandler.navigateUpToTripsFragment();
-            return true;
+            return loginInteractor.navigateBack();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -115,64 +106,25 @@ public class LoginFragment extends WBFragment {
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(R.string.login_toolbar_title);
+            actionBar.setSubtitle("");
         }
-        if (this.compositeSubscription == null) {
-            this.compositeSubscription = new CompositeSubscription();
+        if (this.compositeDisposable == null) {
+            this.compositeDisposable = new CompositeDisposable();
         }
-        this.myAccountPresenter.onResume();
+        this.loginPresenter.onResume();
 
-        this.compositeSubscription.add(myAccountPresenter.getLoginParamsStream()
-            .subscribe(new Action1<LoginParams>() {
-                @Override
-                public void call(LoginParams loginParams) {
-                    logIn(loginParams);
-                }
-            }));
-        this.compositeSubscription.add(myAccountPresenter.getLogoutStream()
-            .flatMap(new Func1<Void, Observable<LogoutResponse>>() {
-                @Override
-                public Observable<LogoutResponse> call(Void aVoid) {
-                    return loginInteractor.logOut();
-                }
-            })
-            // TODO: Handle rotation stuff here?
-            .subscribe(new Action1<LogoutResponse>() {
-                @Override
-                public void call(LogoutResponse logoutResponse) {
-                    // TODO: onSuccess
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    // TODO: onError
-                }
-            }));
-        this.compositeSubscription.add(this.loginInteractor.isLoggedIn()
-            .subscribe(new Action1<EmailAddress>() {
-                @Override
-                public void call(EmailAddress emailAddress) {
-                    if (emailAddress != null) {
-                        if (actionBar != null) {
-                            actionBar.setTitle(R.string.my_account_toolbar_title);
-                        }
-                        myAccountPresenter.presentExistingUserSignedIn(emailAddress);
-                    } else {
-                        if (actionBar != null) {
-                            actionBar.setTitle(R.string.login_toolbar_title);
-                        }
-                        myAccountPresenter.presentNoUserSignedIn();
-                    }
-                }
-            }));
+        this.compositeDisposable.add(loginPresenter.getLoginOrSignUpParamsStream()
+                .subscribe(this::logInOrSignUp));
     }
 
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        this.myAccountPresenter.onPause();
-        if (compositeSubscription != null) {
-            compositeSubscription.unsubscribe();
-            compositeSubscription = null;
+        this.loginPresenter.onPause();
+        if (compositeDisposable != null) {
+            compositeDisposable.dispose();
+            compositeDisposable = null;
         }
         super.onPause();
     }
@@ -181,33 +133,33 @@ public class LoginFragment extends WBFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Logger.debug(this, "onSaveInstanceState");
-        outState.putParcelable(OUT_LOGIN_PARAMS, this.cachedLoginParams);
+        outState.putParcelable(OUT_LOGIN_PARAMS, this.cachedUserCredentialsPayload);
     }
 
-    private void logIn(@NonNull LoginParams loginParams) {
-        this.cachedLoginParams = loginParams;
-        if (this.compositeSubscription == null) {
-            this.compositeSubscription = new CompositeSubscription();
+    @Override
+    public void onDestroyView() {
+        Logger.debug(this, "onDestroyView");
+        this.loginPresenter.onDestroyView();
+        super.onDestroyView();
+    }
+
+    private void logInOrSignUp(@NonNull UserCredentialsPayload userCredentialsPayload) {
+        this.cachedUserCredentialsPayload = userCredentialsPayload;
+        if (this.compositeDisposable == null) {
+            this.compositeDisposable = new CompositeDisposable();
         }
-        this.compositeSubscription.add(this.loginInteractor.login(loginParams)
-                .subscribe(new Action1<LoginResponse>() {
-                    @Override
-                    public void call(LoginResponse org) {
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        myAccountPresenter.presentLoginFailure();
-                        loginInteractor.onLoginResultsConsumed(cachedLoginParams);
-                        cachedLoginParams = null;
-                    }
-                }, new Action0() {
-                    @Override
-                    public void call() {
-                        myAccountPresenter.presentLoginSuccess();
-                        loginInteractor.onLoginResultsConsumed(cachedLoginParams);
-                        cachedLoginParams = null;
-                    }
+        this.compositeDisposable.add(this.loginInteractor.loginOrSignUp(userCredentialsPayload)
+                .subscribe(loginResponse -> {
+
+                }, throwable -> {
+                    loginPresenter.presentLoginFailure(throwable);
+                    loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
+                    cachedUserCredentialsPayload = null;
+                }, () -> {
+                    loginPresenter.presentLoginSuccess();
+                    loginInteractor.onLoginResultsConsumed(cachedUserCredentialsPayload);
+                    cachedUserCredentialsPayload = null;
+                    loginInteractor.navigateBack();
                 }));
     }
 }

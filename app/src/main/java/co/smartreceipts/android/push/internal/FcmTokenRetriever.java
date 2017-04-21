@@ -5,8 +5,8 @@ import android.support.annotation.Nullable;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Observable;
+
 
 public class FcmTokenRetriever {
 
@@ -17,15 +17,12 @@ public class FcmTokenRetriever {
 
     @NonNull
     public Observable<String> getFcmTokenObservable() {
-        return Observable.create(new Observable.OnSubscribe<String>() {
-            @Override
-            public void call(Subscriber<? super String> subscriber) {
-                final String token = getToken();
-                if (token != null) {
-                    subscriber.onNext(token);
-                }
-                subscriber.onCompleted();
+        return Observable.create(emitter -> {
+            final String token = getToken();
+            if (token != null) {
+                emitter.onNext(token);
             }
+            emitter.onComplete();
         });
     }
 }

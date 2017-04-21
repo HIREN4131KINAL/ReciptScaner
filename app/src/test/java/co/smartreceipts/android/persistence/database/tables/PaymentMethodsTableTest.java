@@ -24,7 +24,6 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.database.defaults.TableDefaultsCustomizer;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 
-import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -68,8 +67,8 @@ public class PaymentMethodsTableTest {
 
         // Now create the table and insert some defaults
         mPaymentMethodsTable.onCreate(mSQLiteOpenHelper.getWritableDatabase(), mTableDefaultsCustomizer);
-        mPaymentMethod1 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD1).build(), new DatabaseOperationMetadata()).toBlocking().first();
-        mPaymentMethod2 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD2).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        mPaymentMethod1 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD1).build(), new DatabaseOperationMetadata()).blockingGet();
+        mPaymentMethod2 = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD2).build(), new DatabaseOperationMetadata()).blockingGet();
     }
 
     @After
@@ -147,49 +146,51 @@ public class PaymentMethodsTableTest {
 
     @Test
     public void get() {
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().blockingGet();
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2));
     }
 
     @Test
     public void insert() {
-        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final PaymentMethod paymentMethod = mPaymentMethodsTable.insert(new PaymentMethodBuilderFactory().setMethod(METHOD3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(paymentMethod);
         assertEquals(METHOD3, paymentMethod.getMethod());
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().blockingGet();
         assertEquals(paymentMethods, Arrays.asList(mPaymentMethod1, mPaymentMethod2, paymentMethod));
     }
 
     @Test
     public void findByPrimaryKey() {
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(mPaymentMethod1.getId()).toBlocking().first();
-        assertNotNull(foundMethod);
-        assertEquals(mPaymentMethod1, foundMethod);
+        mPaymentMethodsTable.findByPrimaryKey(mPaymentMethod1.getId())
+                .test()
+                .assertNoErrors()
+                .assertResult(mPaymentMethod1);
     }
 
     @Test
     public void findByPrimaryMissingKey() {
-        final PaymentMethod foundMethod = mPaymentMethodsTable.findByPrimaryKey(-1).toBlocking().first();
-        assertNull(foundMethod);
+        mPaymentMethodsTable.findByPrimaryKey(-1)
+                .test()
+                .assertError(Exception.class);
     }
 
     @Test
     public void update() {
-        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, new PaymentMethodBuilderFactory().setMethod(METHOD3).build(), new DatabaseOperationMetadata()).toBlocking().first();
+        final PaymentMethod updatedPaymentMethod = mPaymentMethodsTable.update(mPaymentMethod1, new PaymentMethodBuilderFactory().setMethod(METHOD3).build(), new DatabaseOperationMetadata()).blockingGet();
         assertNotNull(updatedPaymentMethod);
         assertEquals(METHOD3, updatedPaymentMethod.getMethod());
         assertFalse(mPaymentMethod1.equals(updatedPaymentMethod));
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().blockingGet();
         assertEquals(paymentMethods, Arrays.asList(updatedPaymentMethod, mPaymentMethod2));
     }
 
     @Test
     public void delete() {
-        assertEquals(mPaymentMethod1, mPaymentMethodsTable.delete(mPaymentMethod1, new DatabaseOperationMetadata()).toBlocking().first());
+        assertEquals(mPaymentMethod1, mPaymentMethodsTable.delete(mPaymentMethod1, new DatabaseOperationMetadata()).blockingGet());
 
-        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().toBlocking().first();
+        final List<PaymentMethod> paymentMethods = mPaymentMethodsTable.get().blockingGet();
         assertEquals(paymentMethods, Collections.singletonList(mPaymentMethod2));
     }
 

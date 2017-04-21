@@ -2,14 +2,12 @@ package co.smartreceipts.android.purchases.wallet;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -25,11 +23,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 public class DefaultPurchaseWalletTest {
 
+    private static final String TEST = "test";
     private static final String PURCHASE_TOKEN = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689";
     private static final String IN_APP_DATA_SIGNATURE = "012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689012345689ABCDEF012345689ABCDEF012345689ABCDEF012345689==";
     private String purchaseData;
@@ -60,11 +58,14 @@ public class DefaultPurchaseWalletTest {
         managedProduct = new Subscription(InAppPurchase.SmartReceiptsPlus, this.purchaseData, PURCHASE_TOKEN, IN_APP_DATA_SIGNATURE);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        preferences.edit().putString(TEST, TEST).apply();
         defaultPurchaseWallet = new DefaultPurchaseWallet(preferences);
     }
 
     @After
     public void tearDown() {
+        // Verify that we don't clear out everything then remove our test values
+        assertEquals(TEST, preferences.getString(TEST, null));
         preferences.edit().clear().apply();
     }
 

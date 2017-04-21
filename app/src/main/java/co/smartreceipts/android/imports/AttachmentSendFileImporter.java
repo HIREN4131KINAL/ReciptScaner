@@ -17,8 +17,7 @@ import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.settings.UserPreferenceManager;
-import rx.Observable;
-import rx.functions.Action1;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
 public class AttachmentSendFileImporter {
@@ -49,7 +48,7 @@ public class AttachmentSendFileImporter {
     }
 
     @NonNull
-    public Observable<File> importAttachment(@NonNull Attachment attachment, @NonNull final Receipt receipt) {
+    public Single<File> importAttachment(@NonNull Attachment attachment, @NonNull final Receipt receipt) {
         Preconditions.checkNotNull(attachment);
 
         final FileImportProcessor importProcessor;
@@ -62,19 +61,9 @@ public class AttachmentSendFileImporter {
         }
 
         return importProcessor.process(attachment.getUri())
-                .doOnNext(new Action1<File>() {
-                    @Override
-                    public void call(File file) {
-                        Preconditions.checkNotNull(file);
-                        mReceiptTableController.update(receipt, new ReceiptBuilderFactory(receipt).setFile(file).build(), new DatabaseOperationMetadata());
-                    }
-                })
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        mAnalytics.record(new ErrorEvent(AttachmentSendFileImporter.this, throwable));
-                    }
-                });
+                .doOnSuccess(file -> mReceiptTableController.update(receipt,
+                        new ReceiptBuilderFactory(receipt).setFile(file).build(), new DatabaseOperationMetadata()))
+                .doOnError(throwable -> mAnalytics.record(new ErrorEvent(AttachmentSendFileImporter.this, throwable)));
     }
 
 }

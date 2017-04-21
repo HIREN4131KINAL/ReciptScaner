@@ -20,8 +20,7 @@ import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.BuilderFactory1;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
 import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
 import static junit.framework.Assert.assertEquals;
@@ -77,19 +76,19 @@ public class ReceiptTableActionAlterationsTest {
         doAnswer(new Answer() {
             @Override
             public File answer(InvocationOnMock invocation) throws Throwable {
-                return new File((String)invocation.getArguments()[1]);
+                return new File((String) invocation.getArguments()[1]);
             }
         }).when(mStorageManager).getFile(any(File.class), anyString());
         doAnswer(new Answer() {
             @Override
             public File answer(InvocationOnMock invocation) throws Throwable {
-                return new File((String)invocation.getArguments()[1]);
+                return new File((String) invocation.getArguments()[1]);
             }
         }).when(mStorageManager).rename(any(File.class), anyString());
         doAnswer(new Answer() {
             @Override
             public ReceiptBuilderFactory answer(InvocationOnMock invocation) throws Throwable {
-                when(mReceipt.getFile()).thenReturn((File)invocation.getArguments()[0]);
+                when(mReceipt.getFile()).thenReturn((File) invocation.getArguments()[0]);
                 return mReceiptBuilderFactory;
             }
         }).when(mReceiptBuilderFactory).setFile(any(File.class));
@@ -119,15 +118,15 @@ public class ReceiptTableActionAlterationsTest {
     public void preInsertWithoutFile() {
         final String name = "name";
         final List<Receipt> receiptsInTrip = Arrays.asList(mock(Receipt.class), mock(Receipt.class), mock(Receipt.class));
-        when(mReceiptsTable.get(mTrip)).thenReturn(Observable.just(receiptsInTrip));
+        when(mReceiptsTable.get(mTrip)).thenReturn(Single.just(receiptsInTrip));
         when(mReceipt.hasFile()).thenReturn(false);
         when(mReceipt.getName()).thenReturn(name);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        mReceiptTableActionAlterations.preInsert(mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.preInsert(mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
 
         assertNull(mReceipt.getFile());
         verify(mReceiptBuilderFactory).setIndex(4);
@@ -137,16 +136,16 @@ public class ReceiptTableActionAlterationsTest {
     public void preInsertWithFile() {
         final String name = "name";
         final List<Receipt> receiptsInTrip = Arrays.asList(mock(Receipt.class), mock(Receipt.class), mock(Receipt.class));
-        when(mReceiptsTable.get(mTrip)).thenReturn(Observable.just(receiptsInTrip));
+        when(mReceiptsTable.get(mTrip)).thenReturn(Single.just(receiptsInTrip));
         when(mReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        mReceiptTableActionAlterations.preInsert(mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.preInsert(mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
 
         assertEquals(new File("4_name.jpg"), mReceipt.getFile());
         verify(mReceiptBuilderFactory).setIndex(4);
@@ -156,16 +155,16 @@ public class ReceiptTableActionAlterationsTest {
     public void preInsertWithIllegalCharactersInName() {
         final String name = "before_|\\\\?*<\\:>+[]/'\n\r\t\0\f_after";
         final List<Receipt> receiptsInTrip = Arrays.asList(mock(Receipt.class), mock(Receipt.class), mock(Receipt.class));
-        when(mReceiptsTable.get(mTrip)).thenReturn(Observable.just(receiptsInTrip));
+        when(mReceiptsTable.get(mTrip)).thenReturn(Single.just(receiptsInTrip));
         when(mReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        mReceiptTableActionAlterations.preInsert(mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.preInsert(mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
 
         assertEquals(new File("4_before__after.jpg"), mReceipt.getFile());
         verify(mReceiptBuilderFactory).setIndex(4);
@@ -175,12 +174,12 @@ public class ReceiptTableActionAlterationsTest {
     public void preUpdateWithoutFile() {
         final Receipt oldReceipt = mock(Receipt.class);
         when(mReceipt.getFile()).thenReturn(null);
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
 
-        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -191,17 +190,18 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getIndex()).thenReturn(4);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("12345.jpg"));
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
 
-        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        final List<Receipt> result = mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt)
+                .test()
+                .assertComplete()
+                .assertNoErrors()
+                .values();
 
-        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
-        assertNotNull(onNextResults);
-        assertTrue(onNextResults.size() == 1);
-        final Receipt result = onNextResults.get(0);
-        assertEquals(new File("4_name.jpg"), result.getFile());
+//        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
+//        assertNotNull(onNextResults);
+        assertTrue(result.size() == 1);
+        final Receipt receipt = result.get(0);
+        assertEquals(new File("4_name.jpg"), receipt.getFile());
     }
 
     @Test
@@ -219,13 +219,14 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getIndex()).thenReturn(1);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(file2);
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
 
-        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        final List<Receipt> onNextResults =
+                mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt)
+                        .test()
+                        .assertComplete()
+                        .assertNoErrors()
+                        .values();
 
-        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
         assertNotNull(onNextResults);
         assertTrue(onNextResults.size() == 1);
         final Receipt result = onNextResults.get(0);
@@ -248,13 +249,14 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getIndex()).thenReturn(1);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(file2);
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
 
-        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        final List<Receipt> onNextResults =
+                mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt)
+                        .test()
+                        .assertComplete()
+                        .assertNoErrors()
+                        .values();
 
-        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
         assertNotNull(onNextResults);
         assertTrue(onNextResults.size() == 1);
         final Receipt result = onNextResults.get(0);
@@ -273,13 +275,14 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getIndex()).thenReturn(4);
         when(mReceipt.getName()).thenReturn(name);
         when(mReceipt.getFile()).thenReturn(new File("1_name.jpg"));
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
 
-        mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt).subscribe(testSubscriber);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        final List<Receipt> onNextResults =
+                mReceiptTableActionAlterations.preUpdate(oldReceipt, mReceipt)
+                        .test()
+                        .assertComplete()
+                        .assertNoErrors()
+                        .values();
 
-        final List<Receipt> onNextResults = testSubscriber.getOnNextEvents();
         assertNotNull(onNextResults);
         assertTrue(onNextResults.size() == 1);
         final Receipt result = onNextResults.get(0);
@@ -288,12 +291,11 @@ public class ReceiptTableActionAlterationsTest {
 
     @Test
     public void postUpdateNull() throws Exception {
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        mReceiptTableActionAlterations.postUpdate(mReceipt, null).subscribe(testSubscriber);
-
-        testSubscriber.assertNoValues();
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertError(Exception.class);
+        mReceiptTableActionAlterations.postUpdate(mReceipt, null)
+                .test()
+                .assertNoValues()
+                .assertNotComplete()
+                .assertError(Exception.class);
 
         verifyZeroInteractions(mStorageManager);
     }
@@ -302,14 +304,13 @@ public class ReceiptTableActionAlterationsTest {
     public void postUpdateSuccessWithoutFile() throws Exception {
         when(mReceipt.hasFile()).thenReturn(false);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
         final Receipt updatedReceipt = mock(Receipt.class);
-        final Observable<Receipt> observable = mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt);
-        assertNotNull(observable);
-        observable.subscribe(testSubscriber);
-        testSubscriber.assertValue(updatedReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt)
+                .test()
+                .assertValue(updatedReceipt)
+                .assertComplete()
+                .assertNoErrors();
+
         verifyZeroInteractions(mStorageManager);
     }
 
@@ -322,13 +323,12 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getFile()).thenReturn(file);
         when(updatedReceipt.getFile()).thenReturn(file);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        final Observable<Receipt> observable = mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt);
-        assertNotNull(observable);
-        observable.subscribe(testSubscriber);
-        testSubscriber.assertValue(updatedReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt)
+                .test()
+                .assertValue(updatedReceipt)
+                .assertComplete()
+                .assertNoErrors();
+
         verify(mStorageManager, never()).delete(file);
     }
 
@@ -342,24 +342,22 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.getFile()).thenReturn(file);
         when(updatedReceipt.getFile()).thenReturn(newFile);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        final Observable<Receipt> observable = mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt);
-        assertNotNull(observable);
-        observable.subscribe(testSubscriber);
-        testSubscriber.assertValue(updatedReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.postUpdate(mReceipt, updatedReceipt)
+                .test()
+                .assertValue(updatedReceipt)
+                .assertComplete()
+                .assertNoErrors();
+
         verify(mStorageManager).delete(file);
     }
 
     @Test
     public void postDeleteNull() throws Exception {
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        mReceiptTableActionAlterations.postDelete(null).subscribe(testSubscriber);
-
-        testSubscriber.assertNoValues();
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertError(Exception.class);
+        mReceiptTableActionAlterations.postDelete(null)
+                .test()
+                .assertNoValues()
+                .assertNotComplete()
+                .assertError(Exception.class);
 
         verifyZeroInteractions(mStorageManager);
     }
@@ -368,13 +366,12 @@ public class ReceiptTableActionAlterationsTest {
     public void postDeleteSuccessWithoutFile() throws Exception {
         when(mReceipt.hasFile()).thenReturn(false);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        final Observable<Receipt> observable = mReceiptTableActionAlterations.postDelete(mReceipt);
-        assertNotNull(observable);
-        observable.subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.postDelete(mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
+
         verifyZeroInteractions(mStorageManager);
     }
 
@@ -384,13 +381,12 @@ public class ReceiptTableActionAlterationsTest {
         when(mReceipt.hasFile()).thenReturn(true);
         when(mReceipt.getFile()).thenReturn(file);
 
-        final TestSubscriber<Receipt> testSubscriber = new TestSubscriber<>();
-        final Observable<Receipt> observable = mReceiptTableActionAlterations.postDelete(mReceipt);
-        assertNotNull(observable);
-        observable.subscribe(testSubscriber);
-        testSubscriber.assertValue(mReceipt);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        mReceiptTableActionAlterations.postDelete(mReceipt)
+                .test()
+                .assertValue(mReceipt)
+                .assertComplete()
+                .assertNoErrors();
+
         verify(mStorageManager).delete(file);
     }
 

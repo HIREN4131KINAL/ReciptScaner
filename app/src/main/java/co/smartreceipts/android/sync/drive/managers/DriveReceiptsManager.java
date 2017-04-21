@@ -6,7 +6,6 @@ import android.support.annotation.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import co.smartreceipts.android.analytics.Analytics;
@@ -23,12 +22,11 @@ import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class DriveReceiptsManager {
 
@@ -74,39 +72,25 @@ public class DriveReceiptsManager {
                 if (!mIsIntializing.getAndSet(true)) {
                     Logger.info(this, "Performing initialization of drive receipts");
                     mReceiptsTable.getUnsynced(SyncProvider.GoogleDrive)
-                            .flatMap(new Func1<List<Receipt>, Observable<Receipt>>() {
-                                @Override
-                                public Observable<Receipt> call(List<Receipt> receipts) {
-                                    return Observable.from(receipts);
-                                }
-                            })
+                            .flatMapObservable(Observable::fromIterable)
                             .subscribeOn(mSubscribeOnScheduler)
                             .observeOn(mObserveOnScheduler)
-                            .subscribe(new Action1<Receipt>() {
-                                @Override
-                                public void call(Receipt receipt) {
-                                    Logger.info(DriveReceiptsManager.this, "Performing found unsynced receipt " + receipt.getId());
-                                    if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
-                                        Logger.info(DriveReceiptsManager.this, "Handling delete action during initialization");
-                                        handleDeleteInternal(receipt);
-                                    } else {
-                                        Logger.info(DriveReceiptsManager.this, "Handling insert/update action during initialization");
-                                        handleInsertOrUpdateInternal(receipt);
-                                    }
+                            .subscribe(receipt -> {
+                                Logger.info(DriveReceiptsManager.this, "Performing found unsynced receipt " + receipt.getId());
+                                if (receipt.getSyncState().isMarkedForDeletion(SyncProvider.GoogleDrive)) {
+                                    Logger.info(DriveReceiptsManager.this, "Handling delete action during initialization");
+                                    handleDeleteInternal(receipt);
+                                } else {
+                                    Logger.info(DriveReceiptsManager.this, "Handling insert/update action during initialization");
+                                    handleInsertOrUpdateInternal(receipt);
                                 }
-                            }, new Action1<Throwable>() {
-                                @Override
-                                public void call(Throwable throwable) {
-                                    mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
-                                    Logger.error(DriveReceiptsManager.this, "Failed to fetch our unsynced receipt data", throwable);
-                                    mIsIntializing.set(false);
-                                }
-                            }, new Action0() {
-                                @Override
-                                public void call() {
-                                    mDriveDatabaseManager.syncDatabase();
-                                    mIsIntializing.set(false);
-                                }
+                            }, throwable -> {
+                                mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
+                                Logger.error(DriveReceiptsManager.this, "Failed to fetch our unsynced receipt data", throwable);
+                                mIsIntializing.set(false);
+                            }, () -> {
+                                mDriveDatabaseManager.syncDatabase();
+                                mIsIntializing.set(false);
                             });
                 }
             }
@@ -142,26 +126,18 @@ public class DriveReceiptsManager {
 
         if (mNetworkManager.isNetworkAvailable()) {
             onInsertOrUpdateObservable(receipt)
-                    .flatMap(new Func1<SyncState, Observable<Receipt>>() {
-                        @Override
-                        public Observable<Receipt> call(SyncState syncState) {
-                            return Observable.just(mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build());
-                        }
-                    })
                     .observeOn(mObserveOnScheduler)
                     .subscribeOn(mSubscribeOnScheduler)
-                    .subscribe(new Action1<Receipt>() {
-                        @Override
-                        public void call(Receipt newReceipt) {
+                    .map(syncState -> mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build())
+                    .flatMapObservable(newReceipt -> {
                             Logger.info(DriveReceiptsManager.this, "Updating receipt " + receipt.getId() + " to reflect its sync state");
-                            mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
+                            return mReceiptTableController.update(receipt, newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                    })
+                    .subscribe(newReceipt -> {
+                            Logger.info(DriveReceiptsManager.this, "Successfully updated receipt " + receipt.getId() + " to reflect its sync state");
+                    }, throwable -> {
                             mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
                             Logger.error(DriveReceiptsManager.this, "Failed to handle insert/update for " + receipt.getId() + " to reflect its sync state", throwable);
-                        }
                     });
         } else {
             Logger.warn(this, "No network. Skipping insert/update");
@@ -187,26 +163,15 @@ public class DriveReceiptsManager {
 
         if (mNetworkManager.isNetworkAvailable()) {
             mDriveTaskManager.deleteDriveFile(receipt.getSyncState(), true)
-                    .flatMap(new Func1<SyncState, Observable<Receipt>>() {
-                        @Override
-                        public Observable<Receipt> call(SyncState syncState) {
-                            return Observable.just(mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build());
-                        }
-                    })
+                    .flatMapObservable(syncState -> Observable.just(mReceiptBuilderFactoryFactory.build(receipt).setSyncState(syncState).build()))
                     .observeOn(mObserveOnScheduler)
                     .subscribeOn(mSubscribeOnScheduler)
-                    .subscribe(new Action1<Receipt>() {
-                        @Override
-                        public void call(Receipt newReceipt) {
-                            Logger.info(DriveReceiptsManager.this, "Attempting to fully delete receipt " + newReceipt.getId() + " that is marked for deletion");
-                            mReceiptTableController.delete(newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
-                        }
-                    }, new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
-                            Logger.error(DriveReceiptsManager.this, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
-                        }
+                    .subscribe(newReceipt -> {
+                        Logger.info(DriveReceiptsManager.this, "Attempting to fully delete receipt " + newReceipt.getId() + " that is marked for deletion");
+                        mReceiptTableController.delete(newReceipt, new DatabaseOperationMetadata(OperationFamilyType.Sync));
+                    }, throwable -> {
+                        mAnalytics.record(new ErrorEvent(DriveReceiptsManager.this, throwable));
+                        Logger.error(DriveReceiptsManager.this, "Failed to handle delete for " + receipt.getId() + " to reflect its sync state", throwable);
                     });
         } else {
             Logger.warn(DriveReceiptsManager.this, "No network. Skipping delete");
@@ -214,7 +179,7 @@ public class DriveReceiptsManager {
     }
 
     @NonNull
-    private Observable<SyncState> onInsertOrUpdateObservable(@NonNull final Receipt receipt) {
+    private Single<SyncState> onInsertOrUpdateObservable(@NonNull final Receipt receipt) {
         final SyncState oldSyncState = receipt.getSyncState();
         final File receiptFile = receipt.getFile();
 
@@ -224,7 +189,7 @@ public class DriveReceiptsManager {
                 return mDriveTaskManager.uploadFileToDrive(oldSyncState, receiptFile);
             } else {
                 Logger.info(this, "Found receipt " + receipt.getId() + " without a file. Marking as synced for Drive");
-                return Observable.just(mDriveStreamMappings.postInsertSyncState(oldSyncState, null));
+                return Single.just(mDriveStreamMappings.postInsertSyncState(oldSyncState, null));
             }
         } else {
             if (receiptFile != null) {

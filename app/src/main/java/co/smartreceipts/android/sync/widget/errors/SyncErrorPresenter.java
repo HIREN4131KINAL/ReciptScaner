@@ -9,8 +9,8 @@ import co.smartreceipts.android.R;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import co.smartreceipts.android.widget.Tooltip;
-import rx.Observable;
-import rx.subjects.PublishSubject;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 
 import static android.view.View.GONE;
 import static android.view.View.OnClickListener;
@@ -69,7 +69,7 @@ public class SyncErrorPresenter {
 
     @NonNull
     public Observable<SyncErrorType> getClickStream() {
-        return mClickStream.asObservable();
+        return mClickStream;
     }
 
 }

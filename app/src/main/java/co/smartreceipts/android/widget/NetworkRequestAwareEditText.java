@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -32,7 +33,7 @@ import co.smartreceipts.android.R;
  * attribute. Manually calling any of the setCompoundDrawable methods may break the behavior of this class.
  * </p>
  */
-public class NetworkRequestAwareEditText extends EditText {
+public class NetworkRequestAwareEditText extends AppCompatEditText {
 
     /**
      * Tracks the various network states this layout can exist within. All states must be driven externally
@@ -91,11 +92,6 @@ public class NetworkRequestAwareEditText extends EditText {
 
     public NetworkRequestAwareEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    public NetworkRequestAwareEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }
 

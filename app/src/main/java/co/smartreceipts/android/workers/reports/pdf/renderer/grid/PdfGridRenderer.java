@@ -7,11 +7,8 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import co.smartreceipts.android.workers.reports.pdf.pdfbox.PdfBoxWriter;
-import co.smartreceipts.android.workers.reports.pdf.renderer.Renderer;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.HeightConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.constraints.WidthConstraint;
 import co.smartreceipts.android.workers.reports.pdf.renderer.imagex.PdfPDImageXFactory;

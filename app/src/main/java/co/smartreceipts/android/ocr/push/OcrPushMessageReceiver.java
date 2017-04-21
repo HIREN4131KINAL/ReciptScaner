@@ -7,21 +7,19 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.concurrent.TimeUnit;
 
-import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import co.smartreceipts.android.push.PushMessageReceiver;
-import rx.Observable;
-import rx.Scheduler;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
-import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
+
 
 public class OcrPushMessageReceiver implements PushMessageReceiver {
 
     private static final int TIMEOUT_SECONDS = 10;
 
-    private final Subject<OcrResponse, OcrResponse> pushResultSubject = PublishSubject.create();
+    private final Subject<Object> pushResultSubject = PublishSubject.create();
     private final Scheduler subscribeOnScheduler;
 
     public OcrPushMessageReceiver() {
@@ -36,24 +34,17 @@ public class OcrPushMessageReceiver implements PushMessageReceiver {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Observable.just(remoteMessage)
                 .subscribeOn(subscribeOnScheduler)
-                .map(new Func1<RemoteMessage, OcrResponse>() {
-                    @Override
-                    public OcrResponse call(RemoteMessage remoteMessage) {
-                        // TODO: Map me
-                        return null;
-                    }
+                .map(message -> {
+                    return new Object();
                 })
-                .subscribe(new Action1<OcrResponse>() {
-                    @Override
-                    public void call(OcrResponse ocrResponse) {
-                        pushResultSubject.onNext(ocrResponse);
-                        pushResultSubject.onCompleted();
-                    }
+                .subscribe(next -> {
+                        pushResultSubject.onNext(next);
+                        pushResultSubject.onComplete();
                 });
     }
 
-    public Observable<OcrResponse> getOcrPushResponse() {
-        return pushResultSubject.asObservable()
+    public Observable<Object> getOcrPushResponse() {
+        return pushResultSubject
                 .timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 

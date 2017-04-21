@@ -24,7 +24,7 @@ public class DefaultDurationEditTextPreference extends IntegerSummaryEditTextPre
 	@Override
 	public CharSequence getSummary() {
 		if (TextUtils.isEmpty(getText())) {
-			return new String();
+			return "";
 		}
 		else {
 			try {
@@ -36,7 +36,7 @@ public class DefaultDurationEditTextPreference extends IntegerSummaryEditTextPre
 					return getContext().getString(R.string.days, Integer.toString(days));
 				}
 			} catch (NumberFormatException e) {
-				return new String();
+				return "";
 			}
 		}
 	}

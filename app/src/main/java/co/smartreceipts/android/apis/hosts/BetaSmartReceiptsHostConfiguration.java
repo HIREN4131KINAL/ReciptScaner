@@ -1,5 +1,6 @@
 package co.smartreceipts.android.apis.hosts;
 
+import android.annotation.SuppressLint;
 import android.support.annotation.NonNull;
 
 import java.security.cert.CertificateException;
@@ -44,10 +45,12 @@ public class BetaSmartReceiptsHostConfiguration extends SmartReceiptsHostConfigu
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[] {
                     new X509TrustManager() {
+                        @SuppressLint("TrustAllX509TrustManager")
                         @Override
                         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
                         }
 
+                        @SuppressLint("TrustAllX509TrustManager")
                         @Override
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
                         }

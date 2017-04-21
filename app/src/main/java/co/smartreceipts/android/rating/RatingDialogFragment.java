@@ -15,8 +15,6 @@ import javax.inject.Inject;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
-import co.smartreceipts.android.rating.data.AppRatingManager;
-import co.smartreceipts.android.rating.data.AppRatingPreferencesStorage;
 import co.smartreceipts.android.utils.IntentUtils;
 import dagger.android.support.AndroidSupportInjection;
 
@@ -27,6 +25,8 @@ public class RatingDialogFragment extends DialogFragment {
 
     @Inject
     Analytics analytics;
+    @Inject
+    AppRatingManager appRatingManager;
 
     @Override
     public void onAttach(Context context) {
@@ -74,11 +74,7 @@ public class RatingDialogFragment extends DialogFragment {
     }
 
     private void prorogueRatingPrompt() {
-        Context context = getContext();
-        if (context != null) {
-            AppRatingManager ratingManager = AppRatingManager.getInstance(new AppRatingPreferencesStorage(context));
-            ratingManager.prorogueRatingPrompt();
-        }
+            appRatingManager.prorogueRatingPrompt();
     }
 
     private String getApplicationName() {

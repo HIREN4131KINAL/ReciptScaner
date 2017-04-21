@@ -142,7 +142,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     public List<Column<Receipt>> getCsvDefaults() {
         // TODO: Re-design how these are added
-        final ArrayList<Column<Receipt>> columns = new ArrayList<Column<Receipt>>();
+        final ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(getColumn(ActualDefinition.CATEGORY_CODE));
         columns.add(getColumn(ActualDefinition.NAME));
         columns.add(getColumn(ActualDefinition.PRICE));
@@ -154,7 +154,7 @@ public final class ReceiptColumnDefinitions implements ColumnDefinitions<Receipt
 
     public List<Column<Receipt>> getPdfDefaults() {
         // TODO: Re-design how these are added
-        final ArrayList<Column<Receipt>> columns = new ArrayList<Column<Receipt>>();
+        final ArrayList<Column<Receipt>> columns = new ArrayList<>();
         columns.add(getColumn(ActualDefinition.NAME));
         columns.add(getColumn(ActualDefinition.PRICE));
         columns.add(getColumn(ActualDefinition.DATE));

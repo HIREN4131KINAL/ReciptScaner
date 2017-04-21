@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -56,15 +57,15 @@ public class CardAdapter<T> extends BaseAdapter {
         mInflater = LayoutInflater.from(context);
         mPreferences = preferences;
         mContext = context;
-        mData = new ArrayList<T>(data);
+        mData = new ArrayList<>(data);
         mBackupProvidersManager = Preconditions.checkNotNull(backupProvidersManager);
-        mCloudDisabledDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_off_24dp);
-        mNotSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_queue_24dp);
-        mSyncedDrawable = AppCompatDrawableManager.get().getDrawable(context, R.drawable.ic_cloud_done_24dp);
+        mCloudDisabledDrawable = VectorDrawableCompat.create(context.getResources(), R.drawable.ic_cloud_off_24dp, context.getTheme());
+        mNotSyncedDrawable = VectorDrawableCompat.create(context.getResources(), R.drawable.ic_cloud_queue_24dp, context.getTheme());
+        mSyncedDrawable = VectorDrawableCompat.create(context.getResources(), R.drawable.ic_cloud_done_24dp, context.getTheme());
         final Resources resources = mContext.getResources();
         final DisplayMetrics metrics = resources.getDisplayMetrics();
-        mMaxPriceWidth = (int) (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width
-        mMinPriceWidth = (int) (metrics.widthPixels / MIN_PRICE_WIDTH_DIVIDER); // Set to 1/6 width
+        mMaxPriceWidth = (metrics.widthPixels / MAX_PRICE_WIDTH_DIVIDER); // Set to half width
+        mMinPriceWidth = (metrics.widthPixels / MIN_PRICE_WIDTH_DIVIDER); // Set to 1/6 width
         mCurrentPriceWidth = mMinPriceWidth;
         mCardPriceTextSize = resources.getDimension(getCardPriceTextSizeResouce());
     }
@@ -216,7 +217,7 @@ public class CardAdapter<T> extends BaseAdapter {
 	}
 	
 	public final synchronized void notifyDataSetChanged(List<T> newData) {
-		mData = new ArrayList<T>(newData);
+		mData = new ArrayList<>(newData);
 		getPriceLayoutWidth();
 		super.notifyDataSetChanged();
 	}

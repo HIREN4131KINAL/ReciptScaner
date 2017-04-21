@@ -54,12 +54,15 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     CognitoManager cognitoManager;
     @Inject
     OcrInteractor ocrInteractor;
+    @Inject
+    AppRatingPreferencesStorage appRatingPreferencesStorage;
 
     private AppComponent appComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        configureLog();
 
         appComponent = DaggerAppComponent.builder()
                 .baseAppModule(new BaseAppModule(this))
@@ -67,7 +70,6 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
 
         appComponent.inject(this);
 
-        configureLog();
         WBUncaughtExceptionHandler.initialize();
 
         Logger.debug(this, "\n\n\n\n Launching App...");
@@ -105,7 +107,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         new AppVersionManager(this, persistenceManager.getPreferenceManager()).onLaunch(this);
 
         // Add launch count for rating prompt monitoring
-        new AppRatingPreferencesStorage(getApplicationContext()).incrementLaunchCount();
+        appRatingPreferencesStorage.incrementLaunchCount();
 
         // LeakCanary initialization
         if (LeakCanary.isInAnalyzerProcess(this)) {
@@ -145,6 +147,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
                     }
                 }
             } catch (SDCardStateException e) {
+                Logger.warn(this, "Caught sd card exception", e);
             }
         }
     }

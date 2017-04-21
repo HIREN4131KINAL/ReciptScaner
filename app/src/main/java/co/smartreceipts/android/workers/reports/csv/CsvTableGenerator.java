@@ -54,7 +54,7 @@ public final class CsvTableGenerator<DataType> implements TableGenerator<String,
             }
 
             // Add each row
-            final List<DataType> filteredList = new ArrayList<DataType>(list.size());
+            final List<DataType> filteredList = new ArrayList<>(list.size());
             for (int j = 0; j < list.size(); j++) {
                 final DataType data = list.get(j);
                 if (mFilter == null || mFilter.accept(data)) {

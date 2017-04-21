@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,30 +23,26 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.activities.NavigationHandler;
-import co.smartreceipts.android.activities.SmartReceiptsActivity;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.fragments.WBFragment;
 import co.smartreceipts.android.persistence.PersistenceManager;
-import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.PurchaseManager;
+import co.smartreceipts.android.purchases.model.InAppPurchase;
+import co.smartreceipts.android.purchases.source.PurchaseSource;
 import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.sync.BackupProviderChangeListener;
 import co.smartreceipts.android.sync.BackupProvidersManager;
-import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.network.NetworkManager;
 import co.smartreceipts.android.sync.network.SupportedNetworkType;
 import co.smartreceipts.android.sync.provider.SyncProvider;
 import dagger.android.support.AndroidSupportInjection;
-import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
+
 
 public class BackupsFragment extends WBFragment implements BackupProviderChangeListener {
 
@@ -52,15 +50,21 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
 
     @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     PurchaseWallet purchaseWallet;
+
     @Inject
     NetworkManager networkManager;
+
     @Inject
     BackupProvidersManager backupProvidersManager;
 
+    @Inject
+    PurchaseManager purchaseManager;
+
     private RemoteBackupsDataCache remoteBackupsDataCache;
-    private CompositeSubscription compositeSubscription;
+    private CompositeDisposable compositeDisposable;
     private NavigationHandler navigationHandler;
 
     private Toolbar toolbar;
@@ -94,7 +98,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     @SuppressLint("InflateParams")
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.backups_list, container, false);
+        final View rootView = inflater.inflate(R.layout.simple_recycler_view, container, false);
         recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
 
         headerView = inflater.inflate(R.layout.backups_header, null);
@@ -129,15 +133,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
         backupConfigButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final PurchaseManager purchaseManager;
-                if (getActivity() instanceof SmartReceiptsActivity) {
-                    final SmartReceiptsActivity smartReceiptsActivity = (SmartReceiptsActivity) getActivity();
-                    purchaseManager = smartReceiptsActivity.getSubscriptionManager();
-                } else {
-                    purchaseManager = null;
-                }
-
-                if (purchaseManager != null && backupProvidersManager.getSyncProvider() == SyncProvider.None
+                if (backupProvidersManager.getSyncProvider() == SyncProvider.None
                         && !purchaseWallet.hasActivePurchase(InAppPurchase.SmartReceiptsPlus)) {
                     purchaseManager.initiatePurchase(InAppPurchase.SmartReceiptsPlus, PurchaseSource.AutomaticBackups);
                 } else {
@@ -170,6 +166,12 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
@@ -179,7 +181,7 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.backups);
         }
-        compositeSubscription = new CompositeSubscription();
+        compositeDisposable = new CompositeDisposable();
         updateViewsForProvider(backupProvidersManager.getSyncProvider());
         backupProvidersManager.registerChangeListener(this);
     }
@@ -208,15 +210,15 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
     @Override
     public void onPause() {
         backupProvidersManager.unregisterChangeListener(this);
-        compositeSubscription.unsubscribe();
+        compositeDisposable.dispose();
         super.onPause();
     }
 
     @Override
     public void onProviderChanged(@NonNull SyncProvider newProvider) {
         // Clear out any existing subscriptions when we change providers
-        compositeSubscription.unsubscribe();
-        compositeSubscription = new CompositeSubscription();
+        compositeDisposable.dispose();
+        compositeDisposable = new CompositeDisposable();
         remoteBackupsDataCache.clearGetBackupsResults();
 
         updateViewsForProvider(newProvider);
@@ -238,21 +240,19 @@ public class BackupsFragment extends WBFragment implements BackupProviderChangeL
                 throw new IllegalArgumentException("Unsupported sync provider type was specified");
             }
 
-            compositeSubscription.add(remoteBackupsDataCache.getBackups(syncProvider)
-                    .subscribe(new Action1<List<RemoteBackupMetadata>>() {
-                        @Override
-                        public void call(List<RemoteBackupMetadata> remoteBackupMetadatas) {
-                            if (remoteBackupMetadatas.isEmpty()) {
-                                existingBackupsSection.setVisibility(View.GONE);
-                            } else {
-                                existingBackupsSection.setVisibility(View.VISIBLE);
-                            }
-                            final RemoteBackupsListAdapter remoteBackupsListAdapter =
-                                    new RemoteBackupsListAdapter(headerView, getActivity(),
-                                            backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager, remoteBackupMetadatas);
-                            recyclerView.setAdapter(remoteBackupsListAdapter);
+            compositeDisposable.add(remoteBackupsDataCache.getBackups(syncProvider)
+                    .subscribe(remoteBackupMetadatas -> {
+                        if (remoteBackupMetadatas.isEmpty()) {
+                            existingBackupsSection.setVisibility(View.GONE);
+                        } else {
+                            existingBackupsSection.setVisibility(View.VISIBLE);
                         }
-                    }));
+                        final RemoteBackupsListAdapter remoteBackupsListAdapter =
+                                new RemoteBackupsListAdapter(headerView, getActivity(),
+                                        backupProvidersManager, persistenceManager.getPreferenceManager(), networkManager, remoteBackupMetadatas);
+                        recyclerView.setAdapter(remoteBackupsListAdapter);
+                    })
+            );
         }
     }
 

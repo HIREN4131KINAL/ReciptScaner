@@ -1,7 +1,7 @@
 package co.smartreceipts.android.di.subcomponents;
 
 import co.smartreceipts.android.di.scopes.FragmentScope;
-import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
+import co.smartreceipts.android.receipts.editor.ReceiptCreateEditFragment;
 import dagger.Subcomponent;
 import dagger.android.AndroidInjector;
 

@@ -19,8 +19,8 @@ import co.smartreceipts.android.di.subcomponents.ImportLocalBackupWorkerProgress
 import co.smartreceipts.android.di.subcomponents.ImportRemoteBackupWorkerProgressDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.InformAboutPdfImageAttachmentDialogFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.LoginFragmentSubcomponent;
-import co.smartreceipts.android.di.subcomponents.OcrInformationalFragmentSubcomponent;
-import co.smartreceipts.android.di.subcomponents.OcrInformationalTooltipFragmentSubcomponent;
+import co.smartreceipts.android.ocr.widget.di.OcrConfigurationFragmentSubcomponent;
+import co.smartreceipts.android.ocr.widget.di.OcrInformationalTooltipFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PDFColumnsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.PaymentMethodsListFragmentSubcomponent;
 import co.smartreceipts.android.di.subcomponents.RatingDialogFragmentSubcomponent;
@@ -39,15 +39,15 @@ import co.smartreceipts.android.fragments.DistanceDialogFragment;
 import co.smartreceipts.android.fragments.DistanceFragment;
 import co.smartreceipts.android.fragments.GenerateReportFragment;
 import co.smartreceipts.android.fragments.InformAboutPdfImageAttachmentDialogFragment;
-import co.smartreceipts.android.fragments.ReceiptCreateEditFragment;
+import co.smartreceipts.android.receipts.editor.ReceiptCreateEditFragment;
 import co.smartreceipts.android.fragments.ReceiptImageFragment;
 import co.smartreceipts.android.fragments.ReceiptMoveCopyDialogFragment;
-import co.smartreceipts.android.fragments.ReceiptsListFragment;
+import co.smartreceipts.android.receipts.ReceiptsListFragment;
 import co.smartreceipts.android.fragments.ReportInfoFragment;
 import co.smartreceipts.android.fragments.SelectAutomaticBackupProviderDialogFragment;
 import co.smartreceipts.android.identity.widget.LoginFragment;
-import co.smartreceipts.android.ocr.info.OcrInformationalFragment;
-import co.smartreceipts.android.ocr.info.tooltip.OcrInformationalTooltipFragment;
+import co.smartreceipts.android.ocr.widget.configuration.OcrConfigurationFragment;
+import co.smartreceipts.android.ocr.widget.tooltip.OcrInformationalTooltipFragment;
 import co.smartreceipts.android.rating.FeedbackDialogFragment;
 import co.smartreceipts.android.rating.RatingDialogFragment;
 import co.smartreceipts.android.settings.widget.CSVColumnsListFragment;
@@ -97,7 +97,7 @@ import dagger.multibindings.IntoMap;
                 SyncErrorFragmentSubcomponent.class,
                 FeedbackDialogFragmentSubcomponent.class,
                 LoginFragmentSubcomponent.class,
-                OcrInformationalFragmentSubcomponent.class,
+                OcrConfigurationFragmentSubcomponent.class,
                 OcrInformationalTooltipFragmentSubcomponent.class,
                 RatingDialogFragmentSubcomponent.class,
                 PaymentMethodsListFragmentSubcomponent.class,
@@ -250,9 +250,9 @@ public abstract class GlobalBindingModule {
 
     @Binds
     @IntoMap
-    @FragmentKey(OcrInformationalFragment.class)
+    @FragmentKey(OcrConfigurationFragment.class)
     public abstract AndroidInjector.Factory<? extends Fragment> ocrInformationalFragmentBuilder(
-            OcrInformationalFragmentSubcomponent.Builder builder);
+            OcrConfigurationFragmentSubcomponent.Builder builder);
 
     @Binds
     @IntoMap

@@ -8,8 +8,6 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.identity.apis.organizations.Organization;
@@ -20,10 +18,8 @@ import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.settings.catalog.UserPreference;
 import co.smartreceipts.android.utils.FeatureFlags;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+
 
 public class OrganizationManager {
 
@@ -41,23 +37,10 @@ public class OrganizationManager {
     public Observable<OrganizationsResponse> getOrganizations() {
         if (FeatureFlags.OrganizationSyncing.isEnabled()) {
             return getOrganizationsApiRequest()
-                    .flatMap(new Func1<OrganizationsResponse, Observable<OrganizationsResponse>>() {
-                        @Override
-                        public Observable<OrganizationsResponse> call(final OrganizationsResponse organizationsResponse) {
-                            return applyOrganizationsResponse(organizationsResponse)
-                                    .map(new Func1<Object, OrganizationsResponse>() {
-                                        @Override
-                                        public OrganizationsResponse call(Object o) {
-                                            return organizationsResponse;
-                                        }
-                                    });
-                        }
-                    })
-                    .doOnError(new Action1<Throwable>() {
-                        @Override
-                        public void call(Throwable throwable) {
-                            Logger.error(this, "Failed to complete the organizations request", throwable);
-                        }
+                    .flatMap(organizationsResponse -> applyOrganizationsResponse(organizationsResponse)
+                            .map(o -> organizationsResponse))
+                    .doOnError(throwable -> {
+                        Logger.error(this, "Failed to complete the organizations request", throwable);
                     });
         } else {
             return Observable.empty();
@@ -76,62 +59,36 @@ public class OrganizationManager {
     @NonNull
     private Observable<Object> applyOrganizationsResponse(@NonNull final OrganizationsResponse response) {
         return getPrimaryOrganization(response)
-                .flatMap(new Func1<Organization, Observable<Object>>() {
-                    @Override
-                    public Observable<Object> call(Organization organization) {
-                        return getOrganizationSettings(organization)
-                                .flatMap(new Func1<JsonObject, Observable<Object>>() {
-                                    @Override
-                                    public Observable<Object> call(final JsonObject settings) {
-                                        return userPreferenceManager.getUserPreferencesObservable()
-                                                .flatMapIterable(new Func1<List<UserPreference<?>>, Iterable<UserPreference<?>>>() {
-                                                    @Override
-                                                    public Iterable<UserPreference<?>> call(List<UserPreference<?>> userPreferences) {
-                                                        return userPreferences;
-                                                    }
-                                                })
-                                                .flatMap(new Func1<UserPreference<?>, Observable<?>>() {
-                                                    @Override
-                                                    public Observable<?> call(UserPreference<?> toUserPreference) {
-                                                        return apply(settings, toUserPreference);
-                                                    }
-                                                });
-                                    }
-                                });
-                    }
-                });
+                .flatMap(organization -> getOrganizationSettings(organization)
+                        .flatMap(settings -> userPreferenceManager.getUserPreferencesObservable()
+                                .flatMapIterable(userPreferences -> userPreferences)
+                                .flatMap(userPreference -> apply(settings, userPreference))));
     }
 
     @NonNull
     private Observable<Organization> getPrimaryOrganization(@NonNull final OrganizationsResponse response) {
-        return Observable.create(new Observable.OnSubscribe<Organization>() {
-            @Override
-            public void call(Subscriber<? super Organization> subscriber) {
-                if (response.getOrganizations() != null && !response.getOrganizations().isEmpty()) {
-                    final Organization organization = response.getOrganizations().get(0);
-                    if (organization.getError() != null && organization.getError().hasError()) {
-                        subscriber.onError(new ApiValidationException(TextUtils.join(", ", organization.getError().getErrors())));
-                    } else {
-                        subscriber.onNext(organization);
-                        subscriber.onCompleted();
-                    }
+        return Observable.create(emitter -> {
+            if (response.getOrganizations() != null && !response.getOrganizations().isEmpty()) {
+                final Organization organization = response.getOrganizations().get(0);
+                if (organization.getError() != null && organization.getError().hasError()) {
+                    emitter.onError(new ApiValidationException(TextUtils.join(", ", organization.getError().getErrors())));
                 } else {
-                    subscriber.onCompleted();
+                    emitter.onNext(organization);
+                    emitter.onComplete();
                 }
+            } else {
+                emitter.onComplete();
             }
         });
     }
 
     @NonNull
     private Observable<JsonObject> getOrganizationSettings(@NonNull final Organization organization) {
-        return Observable.create(new Observable.OnSubscribe<JsonObject>() {
-            @Override
-            public void call(Subscriber<? super JsonObject> subscriber) {
-                if (organization.getAppSettings() != null && organization.getAppSettings().getSettings() != null) {
-                    subscriber.onNext(organization.getAppSettings().getSettings());
-                }
-                subscriber.onCompleted();
+        return Observable.create(emitter -> {
+            if (organization.getAppSettings() != null && organization.getAppSettings().getSettings() != null) {
+                emitter.onNext(organization.getAppSettings().getSettings());
             }
+            emitter.onComplete();
         });
     }
 

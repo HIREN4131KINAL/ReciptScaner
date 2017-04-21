@@ -2,11 +2,8 @@ package co.smartreceipts.android.purchases;
 
 import android.support.annotation.NonNull;
 
-import java.util.List;
-
 import co.smartreceipts.android.purchases.model.InAppPurchase;
 import co.smartreceipts.android.purchases.source.PurchaseSource;
-import co.smartreceipts.android.purchases.wallet.PurchaseWallet;
 
 public interface PurchaseEventsListener {
 

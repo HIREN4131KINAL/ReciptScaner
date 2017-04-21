@@ -7,8 +7,8 @@ import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
 
-import rx.Observable;
-import rx.Subscriber;
+import io.reactivex.Single;
+
 
 public class PushDataStore {
 
@@ -25,18 +25,12 @@ public class PushDataStore {
     }
 
     /**
-     * @return an {@link Observable} that will emit {@code true} if a refresh is required and {@code false}
+     * @return a {@link Single} that will emit {@code true} if a refresh is required and {@code false}
      * if one is not
      */
     @NonNull
-    public Observable<Boolean> isRemoteRefreshRequiredObservable() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                subscriber.onNext(isRemoteRefreshRequired());
-                subscriber.onCompleted();
-            }
-        });
+    public Single<Boolean> isRemoteRefreshRequiredSingle() {
+        return Single.fromCallable(this::isRemoteRefreshRequired);
     }
 
     public boolean isRemoteRefreshRequired() {

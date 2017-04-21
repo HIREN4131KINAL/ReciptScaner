@@ -32,7 +32,7 @@ public class PdfBoxFullPdfReport extends PdfBoxAbstractReport {
     @Override
     public void createSections(@NonNull Trip trip, PdfBoxReportFile pdfBoxReportFile) {
         final List<Receipt> receipts = new ArrayList<>(getDatabase().getReceiptsTable().getBlocking(trip, false));
-        final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().toBlocking().first();
+        final List<Column<Receipt>> columns = getDatabase().getPDFTable().get().blockingGet();
 
         final ColumnDefinitions<Distance> distanceColumnDefinitions = new DistanceColumnDefinitions(getContext(), getDatabase(), getPreferences(), getFlex(), true);
         final List<Distance> distances = new ArrayList<>(getDatabase().getDistanceTable().getBlocking(trip, false));

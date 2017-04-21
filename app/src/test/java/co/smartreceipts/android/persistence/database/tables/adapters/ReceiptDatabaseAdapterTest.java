@@ -32,7 +32,7 @@ import co.smartreceipts.android.persistence.database.operations.OperationFamilyT
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
-import rx.Observable;
+import io.reactivex.Single;
 import wb.android.storage.StorageManager;
 
 import static org.junit.Assert.assertEquals;
@@ -205,9 +205,9 @@ public class ReceiptDatabaseAdapterTest {
         when(mTax.getCurrency()).thenReturn(PriceCurrency.getInstance(CURRENCY_CODE));
         when(mTax.getExchangeRate()).thenReturn(EXCHANGE_RATE);
 
-        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Observable.just(mTrip));
-        when(mPaymentMethodsTable.findByPrimaryKey(PAYMENT_METHOD_ID)).thenReturn(Observable.just(PAYMENT_METHOD));
-        when(mCategoriesTable.findByPrimaryKey(CATEGORY_NAME)).thenReturn(Observable.just(CATEGORY));
+        when(mTripsTable.findByPrimaryKey(PARENT)).thenReturn(Single.just(mTrip));
+        when(mPaymentMethodsTable.findByPrimaryKey(PAYMENT_METHOD_ID)).thenReturn(Single.just(PAYMENT_METHOD));
+        when(mCategoriesTable.findByPrimaryKey(CATEGORY_NAME)).thenReturn(Single.just(CATEGORY));
 
         when(mPrimaryKey.getPrimaryKeyValue(mReceipt)).thenReturn(PRIMARY_KEY_ID);
         when(mStorageManager.getFile(new File(PARENT), PATH)).thenReturn(new File(PATH));

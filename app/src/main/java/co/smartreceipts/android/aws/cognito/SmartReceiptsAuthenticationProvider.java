@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import com.amazonaws.auth.AWSAbstractCognitoDeveloperIdentityProvider;
 import com.amazonaws.regions.Regions;
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import java.util.Collections;
 
@@ -59,8 +60,9 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
     @Override
     public String getIdentityId() {
         Logger.info(this, "Requesting Identity Id");
-        final Cognito cognito = cognitoIdentityProvider.getCachedCognitoToken();
-        return cognito != null ? cognito.getIdentityId() : null;
+        Optional<Cognito> cognitoOptional = cognitoIdentityProvider.getCachedCognitoToken();
+
+        return (cognitoOptional != null && cognitoOptional.isPresent()) ? cognitoOptional.get().getIdentityId() : null;
     }
 
 }

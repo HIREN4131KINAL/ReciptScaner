@@ -1,7 +1,6 @@
 package co.smartreceipts.android.workers.reports.pdf.fonts;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;

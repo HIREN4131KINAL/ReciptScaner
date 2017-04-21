@@ -36,7 +36,7 @@ public enum TripProcessingStatus implements ProcessingStatus {
 
     private final String mStatus;
 
-    private TripProcessingStatus(final String status) {
+    TripProcessingStatus(final String status) {
         mStatus = status;
     }
 

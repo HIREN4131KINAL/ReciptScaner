@@ -56,13 +56,4 @@ public class LastTripController {
         mTrip = trip;
     }
 
-    /**
-     * Clears out the last saved trip from this controller
-     */
-    public synchronized void clear() {
-        final SharedPreferences preferences = mContext.getSharedPreferences(PREFERENCES_FILENAME, 0);
-        final SharedPreferences.Editor editor = preferences.edit();
-        editor.clear().apply();
-    }
-
 }

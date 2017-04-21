@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 
 import java.io.File;
 
-import rx.Observable;
+import io.reactivex.Single;
 
 public interface FileImportProcessor {
 
@@ -15,5 +15,5 @@ public interface FileImportProcessor {
      * @return the resultant {@link File}
      */
     @NonNull
-    Observable<File> process(@NonNull Uri uri);
+    Single<File> process(@NonNull Uri uri);
 }

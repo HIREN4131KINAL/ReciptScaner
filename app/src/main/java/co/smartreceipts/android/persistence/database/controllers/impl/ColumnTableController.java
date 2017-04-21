@@ -20,13 +20,11 @@ import co.smartreceipts.android.persistence.database.operations.DatabaseOperatio
 import co.smartreceipts.android.persistence.database.tables.AbstractColumnTable;
 import co.smartreceipts.android.utils.ListUtils;
 import co.smartreceipts.android.utils.log.Logger;
-import rx.Scheduler;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class ColumnTableController extends AbstractTableController<Column<Receipt>> {
 
@@ -65,45 +63,31 @@ public class ColumnTableController extends AbstractTableController<Column<Receip
         // TODO: Reduce code overflow and just chain directly with #delete observables via composition
 
         Logger.info(this, "#deleteLast:");
-        final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-        final Subscription subscription = mAbstractColumnTable.get().map(new Func1<List<Column<Receipt>>, Column<Receipt>>() {
-            @Override
-            public Column<Receipt> call(List<Column<Receipt>> columns) {
-                return removeLastColumnIfPresent(columns);
-            }
-        })
-        .observeOn(mSubscribeOnScheduler)
-        .subscribeOn(mPreprocessingObserveOnScheduler)
-        .subscribe(new Action1<Column<Receipt>>() {
-            @Override
-            public void call(Column<Receipt> column) {
-                if (column != null) {
-                    for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
-                        tableEventsListener.onDeleteSuccess(column, databaseOperationMetadata);
+        final AtomicReference<Disposable> disposableRef = new AtomicReference<>();
+        final Disposable subscription = mAbstractColumnTable.get()
+                .map(this::removeLastColumnIfPresent)
+                .observeOn(mSubscribeOnScheduler)
+                .subscribeOn(mPreprocessingObserveOnScheduler)
+                .subscribe(column -> {
+                    if (column != null) {
+                        for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
+                            tableEventsListener.onDeleteSuccess(column, databaseOperationMetadata);
+                        }
+                    } else {
+                        for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
+                            // TODO: Link this stuff better to fix improper null here :/
+                            tableEventsListener.onDeleteFailure(column, null, databaseOperationMetadata);
+                        }
                     }
-                } else {
-                    for (final TableEventsListener<Column<Receipt>> tableEventsListener : mTableEventsListeners) {
-                        // TODO: Link this stuff better to fix improper null here :/
-                        tableEventsListener.onDeleteFailure(column, null, databaseOperationMetadata);
-                    }
-                }
-            }
-        }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-                mAnalytics.record(new ErrorEvent(ColumnTableController.this, throwable));
-                Logger.debug(this, "#onDeleteLastFailure - onError");
-                unsubscribeReference(subscriptionRef);
-            }
-        }, new Action0() {
-            @Override
-            public void call() {
-                Logger.debug(this, "#deleteLast - onComplete");
-                unsubscribeReference(subscriptionRef);
-            }
-        });
-        subscriptionRef.set(subscription);
-        mCompositeSubscription.add(subscription);
+                    Logger.debug(this, "#deleteLast - onComplete");
+                    unsubscribeReference(disposableRef);
+                }, throwable -> {
+                    mAnalytics.record(new ErrorEvent(ColumnTableController.this, throwable));
+                    Logger.debug(this, "#onDeleteLastFailure - onError");
+                    unsubscribeReference(disposableRef);
+                });
+        disposableRef.set(subscription);
+        compositeDisposable.add(subscription);
     }
 
     @Nullable

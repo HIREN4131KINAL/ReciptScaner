@@ -1,5 +1,7 @@
 package co.smartreceipts.android.aws.cognito;
 
+import com.hadisatrio.optional.Optional;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,8 +15,8 @@ import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.Cognito;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.identity.apis.me.User;
-import rx.Observable;
-import rx.observers.TestSubscriber;
+import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -58,13 +60,13 @@ public class CognitoIdentityProviderTest {
     public void refreshCognitoTokenThrowsException() {
         when(identityManager.getMe()).thenReturn(Observable.<MeResponse>error(new IOException()));
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.refreshCognitoToken().subscribe(testSubscriber);
+        TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.refreshCognitoToken().test();
 
         verify(localCognitoTokenStore).persist(null);
-        testSubscriber.assertNoValues();
-        testSubscriber.assertNotCompleted();
-        testSubscriber.assertError(IOException.class);
+
+        testObserver.assertNoValues()
+                .assertNotComplete()
+                .assertError(IOException.class);
     }
 
     @Test
@@ -72,13 +74,13 @@ public class CognitoIdentityProviderTest {
         when(meResponse.getUser()).thenReturn(null);
         when(identityManager.getMe()).thenReturn(Observable.just(meResponse));
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.refreshCognitoToken().subscribe(testSubscriber);
+        TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.refreshCognitoToken().test();
 
         verify(localCognitoTokenStore, times(2)).persist(null);
-        testSubscriber.assertValue(null);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+
+        testObserver.assertValue(Optional.absent())
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -88,15 +90,15 @@ public class CognitoIdentityProviderTest {
         when(user.getIdentityId()).thenReturn(IDENTITY_ID);
         when(user.getCognitoTokenExpiresAt()).thenReturn(EXPIRES_AT);
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.refreshCognitoToken().subscribe(testSubscriber);
+        final TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.refreshCognitoToken().test();
 
         final Cognito cognito = new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT);
         verify(localCognitoTokenStore).persist(null);
         verify(localCognitoTokenStore).persist(cognito);
-        testSubscriber.assertValue(cognito);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+
+        testObserver.assertValue(Optional.of(cognito))
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -108,15 +110,14 @@ public class CognitoIdentityProviderTest {
         when(user.getIdentityId()).thenReturn(IDENTITY_ID);
         when(user.getCognitoTokenExpiresAt()).thenReturn(EXPIRES_AT);
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().subscribe(testSubscriber);
+        TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().test();
 
         final Cognito cognito = new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT);
         verify(localCognitoTokenStore).persist(null);
         verify(localCognitoTokenStore).persist(cognito);
-        testSubscriber.assertValue(cognito);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.assertValue(Optional.of(cognito))
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -128,15 +129,14 @@ public class CognitoIdentityProviderTest {
         when(user.getIdentityId()).thenReturn(IDENTITY_ID);
         when(user.getCognitoTokenExpiresAt()).thenReturn(EXPIRES_AT);
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().subscribe(testSubscriber);
+        final TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().test();
 
         final Cognito cognito = new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT);
         verify(localCognitoTokenStore).persist(null);
         verify(localCognitoTokenStore).persist(cognito);
-        testSubscriber.assertValue(cognito);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.assertValue(Optional.of(cognito))
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -148,15 +148,14 @@ public class CognitoIdentityProviderTest {
         when(user.getIdentityId()).thenReturn(IDENTITY_ID);
         when(user.getCognitoTokenExpiresAt()).thenReturn(EXPIRES_AT);
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().subscribe(testSubscriber);
+        final TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().test();
 
         final Cognito cognito = new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT);
         verify(localCognitoTokenStore).persist(null);
         verify(localCognitoTokenStore).persist(cognito);
-        testSubscriber.assertValue(cognito);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.assertValue(Optional.of(cognito))
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -164,13 +163,12 @@ public class CognitoIdentityProviderTest {
         final Cognito preCognito = new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT);;
         when(localCognitoTokenStore.getCognitoToken()).thenReturn(preCognito);
 
-        final TestSubscriber<Cognito> testSubscriber = new TestSubscriber<>();
-        cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().subscribe(testSubscriber);
-        
+        final TestObserver<Optional<Cognito>> testObserver = cognitoIdentityProvider.prefetchCognitoTokenIfNeeded().test();
+
         verify(localCognitoTokenStore, never()).persist(any(Cognito.class));
-        testSubscriber.assertValue(preCognito);
-        testSubscriber.assertCompleted();
-        testSubscriber.assertNoErrors();
+        testObserver.assertValue(Optional.of(preCognito))
+                .assertComplete()
+                .assertNoErrors();
     }
 
     @Test
@@ -201,7 +199,7 @@ public class CognitoIdentityProviderTest {
 
     @Test
     public void getCachedCognitoToken() {
-        assertEquals(new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT), cognitoIdentityProvider.getCachedCognitoToken());
+        assertEquals(new Cognito(TOKEN, IDENTITY_ID, EXPIRES_AT), cognitoIdentityProvider.getCachedCognitoToken().get());
         verify(localCognitoTokenStore).getCognitoToken();
     }
 

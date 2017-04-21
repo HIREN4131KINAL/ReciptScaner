@@ -36,23 +36,6 @@ public class WBFragment extends Fragment {
 		mApplication = null;
 	}
 
-    @Override
-    public void startActivityForResult(Intent intent, int requestCode) {
-        if (getParentFragment() != null) {
-            getParentFragment().startActivityForResult(intent, requestCode);
-        } else {
-            super.startActivityForResult(intent, requestCode);
-        }
-    }
-
-    public void requestPermissionsWithPossibleChildFragment(@NonNull String[] permissions, int requestCode) {
-        if (getParentFragment() != null) {
-            getParentFragment().requestPermissions(permissions, requestCode);
-        } else {
-            this.requestPermissions(permissions, requestCode);
-        }
-    }
-
 	protected String getFlexString(Flex flex, int id) {
 		if (isAdded()) {
 			return flex.getString(getActivity(), id);

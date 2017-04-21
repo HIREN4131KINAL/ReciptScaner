@@ -1,6 +1,8 @@
 package co.smartreceipts.android.widget;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -47,49 +49,62 @@ public class Tooltip extends RelativeLayout {
         setVisibility(VISIBLE);
     }
 
-    public void setError(int messageStringId, OnClickListener closeClickListener) {
+    public void setError(@StringRes int messageStringId, @Nullable OnClickListener closeClickListener) {
         setViewStateError();
-
         mMessageText.setText(getContext().getText(messageStringId));
-        mCloseIcon.setOnClickListener(closeClickListener);
+        showCloseIcon(closeClickListener);
     }
 
-    public void setErrorWithoutClose(int messageStringId, OnClickListener tooltipClickListener) {
+    public void setErrorWithoutClose(@StringRes int messageStringId, @Nullable OnClickListener tooltipClickListener) {
         setViewStateError();
         mCloseIcon.setVisibility(GONE);
 
         mMessageText.setText(getContext().getText(messageStringId));
-        setOnClickListener(tooltipClickListener);
+        setTooltipClickListener(tooltipClickListener);
     }
 
-    public void setInfo(int infoStringId, OnClickListener tooltipClickListener, OnClickListener closeClickListener) {
-        setInfoBackground();
-
-        mMessageText.setVisibility(VISIBLE);
-        mCloseIcon.setVisibility(VISIBLE);
+    public void setInfo(@StringRes int infoStringId, @Nullable OnClickListener tooltipClickListener, @Nullable OnClickListener closeClickListener) {
+        setInfoMessage(infoStringId);
+        setTooltipClickListener(tooltipClickListener);
+        showCloseIcon(closeClickListener);
 
         mErrorIcon.setVisibility(GONE);
         mButtonNo.setVisibility(GONE);
         mButtonYes.setVisibility(GONE);
-
-        mMessageText.setText(getContext().getText(infoStringId));
-        setOnClickListener(tooltipClickListener);
-        mCloseIcon.setOnClickListener(closeClickListener);
     }
 
-    public void setQuestion(int questionStringId, OnClickListener noClickListener, OnClickListener yesClickListener) {
-        setInfoBackground();
+    public void setQuestion(@StringRes int questionStringId, @Nullable OnClickListener noClickListener, @Nullable OnClickListener yesClickListener) {
+        setInfoMessage(questionStringId);
 
-        mMessageText.setVisibility(VISIBLE);
         mButtonNo.setVisibility(VISIBLE);
         mButtonYes.setVisibility(VISIBLE);
 
         mCloseIcon.setVisibility(GONE);
         mErrorIcon.setVisibility(GONE);
 
-        mMessageText.setText(getContext().getText(questionStringId));
         mButtonNo.setOnClickListener(noClickListener);
         mButtonYes.setOnClickListener(yesClickListener);
+    }
+
+    public void setInfoMessage(@StringRes int messageStringId) {
+        setInfoBackground();
+        mMessageText.setText(messageStringId);
+        mMessageText.setVisibility(VISIBLE);
+    }
+
+    public void setInfoMessage(@Nullable CharSequence text) {
+        setInfoBackground();
+        mMessageText.setText(text);
+        mMessageText.setVisibility(VISIBLE);
+    }
+    
+    public void setTooltipClickListener(@Nullable OnClickListener tooltipClickListener) {
+        setOnClickListener(tooltipClickListener);
+    }
+    
+    public void showCloseIcon(@Nullable OnClickListener closeClickListener) {
+        mCloseIcon.setVisibility(VISIBLE);
+        mCloseIcon.setOnClickListener(closeClickListener);
     }
 
     private void setErrorBackground() {

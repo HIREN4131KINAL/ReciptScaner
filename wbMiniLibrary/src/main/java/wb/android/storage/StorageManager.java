@@ -35,6 +35,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 //There are a lot of helper methods here to make sure that no functionality is lost if a method is overwritten
+// can be provided by Dagger (BaseAppModule)
 public class StorageManager {
 
 	private static final String TAG = "StorageManager";

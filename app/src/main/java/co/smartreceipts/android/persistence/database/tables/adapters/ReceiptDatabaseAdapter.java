@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.google.common.base.Preconditions;
+import com.hadisatrio.optional.Optional;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ import co.smartreceipts.android.persistence.database.tables.ReceiptsTable;
 import co.smartreceipts.android.persistence.database.tables.Table;
 import co.smartreceipts.android.persistence.database.tables.keys.PrimaryKey;
 import co.smartreceipts.android.sync.model.SyncState;
+import io.reactivex.functions.Function;
 import wb.android.storage.StorageManager;
 
 /**
@@ -111,10 +113,12 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
         final SyncState syncState = mSyncStateAdapter.read(cursor);
 
         // TODO: How to use JOINs w/o blocking
-        Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).blockingGet();
-        if (categoryImpl == null) {
-            categoryImpl = new ImmutableCategoryImpl(category, category);
-        }
+        final Category categoryImpl = mCategoriesTable.findByPrimaryKey(category).onErrorReturn(ignored -> new ImmutableCategoryImpl(category, category)).blockingGet();
+        final Optional<PaymentMethod> paymentMethodOptional =
+                mPaymentMethodTable.findByPrimaryKey(paymentMethodId)
+                        .map(Optional::of)
+                        .onErrorReturn(ignored -> Optional.absent())
+                        .blockingGet();
 
         final int index = isDescending ? cursor.getCount() - cursor.getPosition() : cursor.getPosition() + 1;
 
@@ -130,7 +134,7 @@ public final class ReceiptDatabaseAdapter implements SelectionBackedDatabaseAdap
                 .setCurrency(currency)
                 .setIsFullPage(fullpage)
                 .setIndex(index)
-                .setPaymentMethod(mPaymentMethodTable.findByPrimaryKey(paymentMethodId).blockingGet())
+                .setPaymentMethod(paymentMethodOptional.orNull())
                 .setExtraEditText1(extra_edittext_1)
                 .setExtraEditText2(extra_edittext_2)
                 .setExtraEditText3(extra_edittext_3)

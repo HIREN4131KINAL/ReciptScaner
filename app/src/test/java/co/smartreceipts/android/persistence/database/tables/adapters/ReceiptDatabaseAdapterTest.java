@@ -300,6 +300,64 @@ public class ReceiptDatabaseAdapterTest {
     }
 
     @Test
+    public void readForUnmappedCategory() throws Exception {
+        when(mCategoriesTable.findByPrimaryKey(CATEGORY_NAME)).thenReturn(Single.error(new Exception()));
+
+        // Note: Full page is backwards in the database
+        final Receipt receipt = new ReceiptBuilderFactory(ID)
+                .setTrip(mTrip)
+                .setName(NAME)
+                .setPrice(PRICE)
+                .setTax(TAX)
+                .setExchangeRate(EXCHANGE_RATE)
+                .setCategory(new ImmutableCategoryImpl(CATEGORY_NAME, CATEGORY_NAME))
+                .setFile(new File(PATH))
+                .setDate(DATE)
+                .setTimeZone(TIMEZONE)
+                .setComment(COMMENT)
+                .setIsReimbursable(REIMBURSABLE)
+                .setCurrency(CURRENCY_CODE)
+                .setIsFullPage(!FULL_PAGE)
+                .setIndex(DESCENDING_INDEX)
+                .setPaymentMethod(PAYMENT_METHOD)
+                .setExtraEditText1(EXTRA1)
+                .setExtraEditText2(EXTRA2)
+                .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
+                .build();
+        assertEquals(receipt, mReceiptDatabaseAdapter.read(mCursor));
+    }
+
+    @Test
+    public void readForUnmappedPaymentMethod() throws Exception {
+        when(mPaymentMethodsTable.findByPrimaryKey(PAYMENT_METHOD_ID)).thenReturn(Single.error(new Exception()));
+
+        // Note: Full page is backwards in the database
+        final Receipt receipt = new ReceiptBuilderFactory(ID)
+                .setTrip(mTrip)
+                .setName(NAME)
+                .setPrice(PRICE)
+                .setTax(TAX)
+                .setExchangeRate(EXCHANGE_RATE)
+                .setCategory(CATEGORY)
+                .setFile(new File(PATH))
+                .setDate(DATE)
+                .setTimeZone(TIMEZONE)
+                .setComment(COMMENT)
+                .setIsReimbursable(REIMBURSABLE)
+                .setCurrency(CURRENCY_CODE)
+                .setIsFullPage(!FULL_PAGE)
+                .setIndex(DESCENDING_INDEX)
+                .setPaymentMethod(null)
+                .setExtraEditText1(EXTRA1)
+                .setExtraEditText2(EXTRA2)
+                .setExtraEditText3(EXTRA3)
+                .setSyncState(mSyncState)
+                .build();
+        assertEquals(receipt, mReceiptDatabaseAdapter.read(mCursor));
+    }
+
+    @Test
     public void writeUnsycned() throws Exception {
         final String sync = "sync";
         final ContentValues syncValues = new ContentValues();

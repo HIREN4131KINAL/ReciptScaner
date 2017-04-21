@@ -46,6 +46,7 @@ public class CognitoManagerTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         when(cognitoIdentityProvider.prefetchCognitoTokenIfNeeded()).thenReturn(Single.just(Optional.of(cognito)));
+        when(cognitoIdentityProvider.getCachedCognitoToken()).thenReturn(Optional.of(cognito));
         when(identityManager.isLoggedInStream()).thenReturn(Observable.just(true));
         cognitoManager = new CognitoManager(context, identityManager, cognitoIdentityProvider, Schedulers.trampoline());
     }

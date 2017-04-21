@@ -60,9 +60,9 @@ public class SmartReceiptsAuthenticationProvider extends AWSAbstractCognitoDevel
     @Override
     public String getIdentityId() {
         Logger.info(this, "Requesting Identity Id");
-        Optional<Cognito> cognitoOptional = cognitoIdentityProvider.getCachedCognitoToken();
+        final Optional<Cognito> cognitoOptional = cognitoIdentityProvider.getCachedCognitoToken();
 
-        return (cognitoOptional != null && cognitoOptional.isPresent()) ? cognitoOptional.get().getIdentityId() : null;
+        return cognitoOptional.isPresent() ? cognitoOptional.get().getIdentityId() : null;
     }
 
 }

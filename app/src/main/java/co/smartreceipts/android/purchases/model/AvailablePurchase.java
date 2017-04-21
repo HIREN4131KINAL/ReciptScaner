@@ -92,4 +92,14 @@ public class AvailablePurchase  {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "AvailablePurchase{" +
+                "productId='" + productId + '\'' +
+                ", price='" + price + '\'' +
+                ", price_currency_code='" + price_currency_code + '\'' +
+                ", title='" + title + '\'' +
+                '}';
+    }
 }

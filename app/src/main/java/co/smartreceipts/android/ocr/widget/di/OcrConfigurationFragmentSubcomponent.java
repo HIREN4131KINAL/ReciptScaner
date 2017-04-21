@@ -6,7 +6,7 @@ import dagger.Subcomponent;
 import dagger.android.AndroidInjector;
 
 @FragmentScope
-@Subcomponent
+@Subcomponent(modules = { OcrConfigurationModule.class })
 public interface OcrConfigurationFragmentSubcomponent extends AndroidInjector<OcrConfigurationFragment> {
 
     @Subcomponent.Builder

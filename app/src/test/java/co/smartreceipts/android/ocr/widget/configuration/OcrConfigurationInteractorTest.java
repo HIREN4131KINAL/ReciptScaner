@@ -1,20 +1,17 @@
 package co.smartreceipts.android.ocr.widget.configuration;
 
-import android.os.Bundle;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import co.smartreceipts.android.activities.NavigationHandler;
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.store.EmailAddress;
 import co.smartreceipts.android.ocr.purchases.OcrPurchaseTracker;
@@ -29,19 +26,13 @@ import io.reactivex.observers.TestObserver;
 import io.reactivex.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricTestRunner.class)
 public class OcrConfigurationInteractorTest {
 
+    @InjectMocks
     OcrConfigurationInteractor interactor;
-
-    @Mock
-    NavigationHandler navigationHandler;
 
     @Mock
     IdentityManager identityManager;
@@ -56,12 +47,14 @@ public class OcrConfigurationInteractorTest {
     UserPreferenceManager userPreferenceManager;
 
     @Mock
+    Analytics analytics;
+
+    @Mock
     AvailablePurchase availablePurchase, availablePurchase2;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        interactor = new OcrConfigurationInteractor(navigationHandler, identityManager, ocrPurchaseTracker, purchaseManager, userPreferenceManager);
     }
 
     @Test
@@ -111,11 +104,19 @@ public class OcrConfigurationInteractorTest {
 
     @Test
     public void getAllowUsToSaveImagesRemotely() {
-        when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(true);
-        assertFalse(interactor.getAllowUsToSaveImagesRemotely());
+        when(userPreferenceManager.getObservable(UserPreference.Misc.OcrIncognitoMode)).thenReturn(Observable.just(true));
+        final TestObserver<Boolean> testObserver1 = interactor.getAllowUsToSaveImagesRemotely().test();
+        testObserver1.awaitTerminalEvent();
+        testObserver1.assertValue(false);
+        testObserver1.assertComplete();
+        testObserver1.assertNoErrors();
 
-        when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(false);
-        assertTrue(interactor.getAllowUsToSaveImagesRemotely());
+        when(userPreferenceManager.getObservable(UserPreference.Misc.OcrIncognitoMode)).thenReturn(Observable.just(false));
+        final TestObserver<Boolean> testObserver2 = interactor.getAllowUsToSaveImagesRemotely().test();
+        testObserver2.awaitTerminalEvent();
+        testObserver2.assertValue(true);
+        testObserver2.assertComplete();
+        testObserver2.assertNoErrors();
     }
 
     @Test
@@ -126,40 +127,5 @@ public class OcrConfigurationInteractorTest {
         interactor.setAllowUsToSaveImagesRemotely(true);
         verify(userPreferenceManager).set(UserPreference.Misc.OcrIncognitoMode, false);
     }
-
-    @Test
-    public void routeToProperLocationWhenNotLoggedInForNewSession() {
-        when(identityManager.isLoggedIn()).thenReturn(false);
-        interactor.routeToProperLocation(null);
-        verify(navigationHandler).navigateToLoginScreen();
-    }
-
-    @Test
-    public void routeToProperLocationWhenNotLoggedInForExistingSession() {
-        when(identityManager.isLoggedIn()).thenReturn(false);
-        interactor.routeToProperLocation(new Bundle());
-        verify(navigationHandler).navigateBack();
-    }
-
-    @Test
-    public void routeToProperLocationWhenLoggedInForNewSession() {
-        when(identityManager.isLoggedIn()).thenReturn(true);
-        interactor.routeToProperLocation(null);
-        verifyZeroInteractions(navigationHandler);
-    }
-
-    @Test
-    public void routeToProperLocationWhenLoggedInForExistingSession() {
-        when(identityManager.isLoggedIn()).thenReturn(true);
-        interactor.routeToProperLocation(new Bundle());
-        verifyZeroInteractions(navigationHandler);
-    }
-
-    @Test
-    public void navigateBack() {
-        interactor.navigateBack();
-        verify(navigationHandler).navigateBack();
-    }
-
 
 }

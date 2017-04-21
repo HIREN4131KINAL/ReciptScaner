@@ -1,79 +1,46 @@
 package co.smartreceipts.android.ocr.widget.configuration;
 
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
+import javax.inject.Inject;
 
-import com.google.common.base.Preconditions;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-import co.smartreceipts.android.R;
+import co.smartreceipts.android.di.scopes.FragmentScope;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.widget.Presenter;
-import io.reactivex.disposables.CompositeDisposable;
+import co.smartreceipts.android.widget.viper.BasePresenter;
 
-public class OcrConfigurationPresenter implements Presenter {
+@FragmentScope
+public class OcrConfigurationPresenter extends BasePresenter<OcrConfigurationView, OcrConfigurationInteractor> {
 
-    private final OcrConfigurationInteractor interactor;
-    private final OcrConfigurationToolbarView ocrConfigurationToolbarView;
-    private final Unbinder unbinder;
-
-    private OcrPurchasesListAdapter ocrPurchasesListAdapter;
-    private CompositeDisposable compositeDisposable;
-
-    @BindView(R.id.ocr_save_scans_to_improve_results) CheckBox allowUsToSaveImagesRemotelyCheckbox;
-
-    public OcrConfigurationPresenter(@NonNull OcrConfigurationInteractor interactor, @NonNull View headerView,
-                                     @NonNull RecyclerView recyclerView, @NonNull OcrConfigurationToolbarView ocrConfigurationToolbarView) {
-        this.interactor = Preconditions.checkNotNull(interactor);
-        this.ocrConfigurationToolbarView = Preconditions.checkNotNull(ocrConfigurationToolbarView);
-        this.unbinder = ButterKnife.bind(this, headerView);
-        this.ocrPurchasesListAdapter = new OcrPurchasesListAdapter(headerView);
-
-        recyclerView.setAdapter(this.ocrPurchasesListAdapter);
-        allowUsToSaveImagesRemotelyCheckbox.setChecked(this.interactor.getAllowUsToSaveImagesRemotely());
-        allowUsToSaveImagesRemotelyCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                OcrConfigurationPresenter.this.interactor.setAllowUsToSaveImagesRemotely(isChecked);
-            }
-        });
+    @Inject
+    public OcrConfigurationPresenter(OcrConfigurationView view, OcrConfigurationInteractor interactor) {
+        super(view, interactor);
     }
 
     @Override
     public void onResume() {
-        ocrConfigurationToolbarView.present(interactor.getEmail());
+        view.present(interactor.getEmail());
 
-        compositeDisposable = new CompositeDisposable();
+        // Set the current checkbox value
+        compositeDisposable.add(interactor.getAllowUsToSaveImagesRemotely()
+                .subscribe(view.getAllowUsToSaveImagesRemotelyConsumer()));
+
+        // Persist values from checkbox toggling
+        compositeDisposable.add(view.getAllowUsToSaveImagesRemotelyCheckboxChanged()
+                .doOnNext(saveImagesRemotely -> Logger.debug(OcrConfigurationPresenter.this, "Updating saveImagesRemotely setting: {}", saveImagesRemotely))
+                .subscribe(interactor::setAllowUsToSaveImagesRemotely));
+
+        // Show remaining scans
         compositeDisposable.add(interactor.getRemainingScansStream()
-            .subscribe(ocrConfigurationToolbarView::present));
+                .subscribe(view::present));
 
+        // Show available purchases list
         compositeDisposable.add(interactor.getAvailableOcrPurchases()
-            .subscribe(availablePurchases -> {
-                    Logger.info(OcrConfigurationPresenter.this, "Presenting list of purchases: {}.", availablePurchases);
-                    ocrPurchasesListAdapter.setAvailablePurchases(availablePurchases);
-            }, throwable -> Logger.warn(OcrConfigurationPresenter.this, "Failed to get available purchases.", throwable)));
+                .doOnSuccess(availablePurchases -> Logger.info(OcrConfigurationPresenter.this, "Presenting list of purchases: {}.", availablePurchases))
+                .subscribe(view::present,
+                    throwable -> Logger.warn(OcrConfigurationPresenter.this, "Failed to get available purchases.", throwable)));
 
-        compositeDisposable.add(ocrPurchasesListAdapter.getAvailablePurchaseClicks()
-            .subscribe(availablePurchase -> interactor.startOcrPurchase(availablePurchase)));
-    }
-
-    @Override
-    public void onPause() {
-        if (compositeDisposable != null) {
-            compositeDisposable.dispose();
-            compositeDisposable = null;
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        unbinder.unbind();
-        ocrPurchasesListAdapter = null;
+        // Track user purchase clicks
+        compositeDisposable.add(view.getAvailablePurchaseClicks()
+                .doOnNext(availablePurchase -> Logger.info(OcrConfigurationPresenter.this, "User clicked to buy purchase: {}.", availablePurchase))
+                .subscribe(interactor::startOcrPurchase));
     }
 
 }

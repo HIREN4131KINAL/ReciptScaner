@@ -52,12 +52,7 @@ public class OcrPurchasesListAdapter extends RecyclerView.Adapter<RecyclerView.V
             itemHolder.purchaseName.setText(availablePurchase.getTitle());
             itemHolder.purchaseDescription.setText(availablePurchase.getDescription());
             itemHolder.purchasePrice.setText(availablePurchase.getPrice());
-            itemHolder.parentView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    availablePurchaseClickSubject.onNext(availablePurchase);
-                }
-            });
+            itemHolder.parentView.setOnClickListener(ignored -> availablePurchaseClickSubject.onNext(availablePurchase));
         }
     }
 

@@ -11,12 +11,12 @@ import com.tapadoo.alerter.Alerter;
 import co.smartreceipts.android.R;
 import co.smartreceipts.android.ocr.OcrInteractor;
 import co.smartreceipts.android.utils.log.Logger;
-import co.smartreceipts.android.widget.Presenter;
+import co.smartreceipts.android.widget.OldPresenter;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
 
-public class OcrStatusAlerterPresenter implements Presenter {
+public class OcrStatusAlerterPresenter implements OldPresenter {
 
     private final OcrInteractor ocrInteractor;
     private Alerter alerter;

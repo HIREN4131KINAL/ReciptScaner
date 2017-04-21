@@ -3,6 +3,7 @@ package co.smartreceipts.android.ocr.widget.configuration;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
@@ -15,25 +16,45 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+
+import com.jakewharton.rxbinding2.widget.RxCompoundButton;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import co.smartreceipts.android.R;
+import co.smartreceipts.android.activities.DaggerFragmentNavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.identity.store.EmailAddress;
+import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 
-public class OcrConfigurationFragment extends Fragment implements OcrConfigurationToolbarView {
+public class OcrConfigurationFragment extends Fragment implements OcrConfigurationView {
 
     @Inject
-    OcrConfigurationInteractor interactor;
+    OcrConfigurationPresenter presenter;
+
+    @Inject
+    OcrConfigurationRouter router;
 
     @Inject
     Analytics analytics;
 
-    private OcrConfigurationPresenter presenter;
+    @BindView(R.id.ocr_save_scans_to_improve_results)
+    CheckBox allowUsToSaveImagesRemotelyCheckbox;
+
+    private OcrPurchasesListAdapter ocrPurchasesListAdapter;
+    private Unbinder unbinder;
 
     public static OcrConfigurationFragment newInstance() {
         return new OcrConfigurationFragment();
@@ -50,7 +71,8 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
         Logger.debug(this, "onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        interactor.routeToProperLocation(savedInstanceState);
+
+        router.navigateToProperLocation(savedInstanceState);
         if (savedInstanceState == null) {
             analytics.record(Events.Ocr.OcrViewConfigurationPage);
         }
@@ -62,9 +84,12 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.simple_recycler_view, container, false);
         final RecyclerView recyclerView = (RecyclerView) rootView.findViewById(android.R.id.list);
-
         final View headerView = inflater.inflate(R.layout.ocr_configuration_fragment, null);
-        this.presenter = new OcrConfigurationPresenter(interactor, headerView, recyclerView, this);
+
+        this.ocrPurchasesListAdapter = new OcrPurchasesListAdapter(headerView);
+        this.unbinder = ButterKnife.bind(this, headerView);
+
+        recyclerView.setAdapter(this.ocrPurchasesListAdapter);
 
         return rootView;
     }
@@ -85,7 +110,7 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            return interactor.navigateBack();
+            return router.navigateBack();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -112,7 +137,8 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
 
     @Override
     public void onDestroyView() {
-        presenter.onDestroyView();
+        unbinder.unbind();
+        ocrPurchasesListAdapter = null;
         super.onDestroyView();
     }
 
@@ -130,5 +156,28 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
         if (actionBar != null) {
             actionBar.setTitle(getContext().getString(R.string.ocr_configuration_scans_remaining, remainingScans));
         }
+    }
+
+    @Override
+    public void present(@NonNull List<AvailablePurchase> availablePurchases) {
+        ocrPurchasesListAdapter.setAvailablePurchases(availablePurchases);
+    }
+
+    @NonNull
+    @Override
+    public Observable<Boolean> getAllowUsToSaveImagesRemotelyCheckboxChanged() {
+        return RxCompoundButton.checkedChanges(allowUsToSaveImagesRemotelyCheckbox);
+    }
+
+    @NonNull
+    @Override
+    public Observable<AvailablePurchase> getAvailablePurchaseClicks() {
+        return ocrPurchasesListAdapter.getAvailablePurchaseClicks();
+    }
+
+    @NonNull
+    @Override
+    public Consumer<? super Boolean> getAllowUsToSaveImagesRemotelyConsumer() {
+        return RxCompoundButton.checked(allowUsToSaveImagesRemotelyCheckbox);
     }
 }

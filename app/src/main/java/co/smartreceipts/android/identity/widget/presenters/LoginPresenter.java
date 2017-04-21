@@ -26,12 +26,12 @@ import co.smartreceipts.android.identity.apis.login.SmartReceiptsUserSignUp;
 import co.smartreceipts.android.identity.apis.login.UserCredentialsPayload;
 import co.smartreceipts.android.utils.SoftKeyboardManager;
 import co.smartreceipts.android.utils.butterknife.ButterKnifeActions;
-import co.smartreceipts.android.widget.Presenter;
+import co.smartreceipts.android.widget.OldPresenter;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.PublishSubject;
 
-public class LoginPresenter implements Presenter {
+public class LoginPresenter implements OldPresenter {
 
     private static final int INVALID_CREDENTIALS_CODE = 401;
 

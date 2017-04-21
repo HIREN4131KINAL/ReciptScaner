@@ -38,7 +38,7 @@ public class LocalCognitoTokenStoreTest {
 
     @Test
     public void nothingPersisted() {
-        assertEquals(new Cognito(null, null, -1), localCognitoTokenStore.getCognitoToken());
+        assertEquals(null, localCognitoTokenStore.getCognitoToken());
     }
 
     @Test
@@ -48,7 +48,7 @@ public class LocalCognitoTokenStoreTest {
         assertEquals(cognito, localCognitoTokenStore.getCognitoToken());
 
         localCognitoTokenStore.persist(null);
-        assertEquals(new Cognito(null, null, -1), localCognitoTokenStore.getCognitoToken());
+        assertEquals(null, localCognitoTokenStore.getCognitoToken());
     }
 
 }

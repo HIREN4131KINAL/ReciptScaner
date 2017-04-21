@@ -24,12 +24,16 @@ public class LocalCognitoTokenStore {
         mSharedPreferences = sharedPreferences;
     }
 
-    @NonNull
+    @Nullable
     public Cognito getCognitoToken() {
         final String token = mSharedPreferences.getString(KEY_COGNITO_TOKEN, null);
         final String identityId = mSharedPreferences.getString(KEY_COGNITO_IDENTITY_ID, null);
         final long expirationTimeStamp = mSharedPreferences.getLong(KEY_COGNITO_TOKEN_EXPIRATION, -1);
-        return new Cognito(token, identityId, expirationTimeStamp);
+        if (token == null || identityId == null) {
+            return null;
+        } else {
+            return new Cognito(token, identityId, expirationTimeStamp);
+        }
     }
 
     public void persist(@Nullable Cognito cognito) {

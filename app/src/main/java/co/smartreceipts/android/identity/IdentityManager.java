@@ -50,9 +50,6 @@ public class IdentityManager implements IdentityStore {
     private final MutableIdentityStore mutableIdentityStore;
     private final OrganizationManager organizationManager;
     private final BehaviorSubject<Boolean> isLoggedInBehaviorSubject;
-    private final Map<UserCredentialsPayload, Subject<LoginResponse>> loginMap = new ConcurrentHashMap<>();
-
-    private Subject<LogoutResponse> logoutSubject;
 
     @Inject
     public IdentityManager(Analytics analytics,
@@ -107,90 +104,66 @@ public class IdentityManager implements IdentityStore {
     public synchronized Observable<LoginResponse> logInOrSignUp(@NonNull final UserCredentialsPayload credentials) {
         Preconditions.checkNotNull(credentials.getEmail(), "A valid email must be provided to log-in");
 
-        Subject<LoginResponse> loginSubject = loginMap.get(credentials);
-        if (loginSubject == null) {
-            loginSubject = AsyncSubject.create();
-
-            final Observable<LoginResponse> loginResponseObservable;
-            if (credentials.getLoginType() == LoginType.LogIn) {
-                loginResponseObservable = serviceManager.getService(LoginService.class).logIn(new LoginPayload(credentials));
-                Logger.info(this, "Initiating user log in");
-                this.analytics.record(Events.Identity.UserLogin);
-            } else if (credentials.getLoginType() == LoginType.SignUp) {
-                loginResponseObservable = serviceManager.getService(SignUpService.class).signUp(new SignUpPayload(credentials));
-                Logger.info(this, "Initiating user sign up");
-                this.analytics.record(Events.Identity.UserSignUp);
-            } else {
-                throw new IllegalArgumentException("Unsupported log in type");
-            }
-
-
-            loginResponseObservable
-                    .flatMap(loginResponse -> {
-                            if (loginResponse.getToken() != null) {
-                                mutableIdentityStore.setEmailAndToken(credentials.getEmail(), loginResponse.getToken());
-                                return Observable.just(loginResponse);
-                            } else {
-                                return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
-                            }
-                    })
-                    .flatMap(loginResponse -> organizationManager.getOrganizations()
-                            .flatMap(response -> Observable.just(loginResponse)))
-                    .doOnError(throwable -> {
-                            if (credentials.getLoginType() == LoginType.LogIn) {
-                                Logger.error(this, "Failed to complete the log in request", throwable);
-                                analytics.record(Events.Identity.UserLoginFailure);
-                            } else if (credentials.getLoginType() == LoginType.SignUp) {
-                                Logger.error(this, "Failed to complete the sign up request", throwable);
-                                analytics.record(Events.Identity.UserSignUpFailure);
-                            }
-                    })
-                    .doOnComplete(() -> {
-                            isLoggedInBehaviorSubject.onNext(true);
-                            if (credentials.getLoginType() == LoginType.LogIn) {
-                                Logger.info(this, "Successfully completed the log in request");
-                                analytics.record(Events.Identity.UserLoginSuccess);
-                            } else if (credentials.getLoginType() == LoginType.SignUp) {
-                                Logger.info(this, "Successfully completed the sign up request");
-                                analytics.record(Events.Identity.UserSignUpSuccess);
-                            }
-                    })
-                    .subscribe(loginSubject);
-            loginMap.put(credentials, loginSubject);
+        final Observable<LoginResponse> loginResponseObservable;
+        if (credentials.getLoginType() == LoginType.LogIn) {
+            Logger.info(this, "Initiating user log in");
+            this.analytics.record(Events.Identity.UserLogin);
+            loginResponseObservable = serviceManager.getService(LoginService.class).logIn(new LoginPayload(credentials));
+        } else if (credentials.getLoginType() == LoginType.SignUp) {
+            Logger.info(this, "Initiating user sign up");
+            this.analytics.record(Events.Identity.UserSignUp);
+            loginResponseObservable = serviceManager.getService(SignUpService.class).signUp(new SignUpPayload(credentials));
+        } else {
+            throw new IllegalArgumentException("Unsupported log in type");
         }
-        return loginSubject;
-    }
 
-    public synchronized void markLoginComplete(@NonNull final UserCredentialsPayload login) {
-        loginMap.remove(login);
+        return loginResponseObservable
+                .flatMap(loginResponse -> {
+                        if (loginResponse.getToken() != null) {
+                            mutableIdentityStore.setEmailAndToken(credentials.getEmail(), loginResponse.getToken());
+                            return Observable.just(loginResponse);
+                        } else {
+                            return Observable.error(new ApiValidationException("The response did not contain a valid API token"));
+                        }
+                })
+                .flatMap(loginResponse -> organizationManager.getOrganizations()
+                        .flatMap(response -> Observable.just(loginResponse)))
+                .doOnError(throwable -> {
+                        if (credentials.getLoginType() == LoginType.LogIn) {
+                            Logger.error(this, "Failed to complete the log in request", throwable);
+                            analytics.record(Events.Identity.UserLoginFailure);
+                        } else if (credentials.getLoginType() == LoginType.SignUp) {
+                            Logger.error(this, "Failed to complete the sign up request", throwable);
+                            analytics.record(Events.Identity.UserSignUpFailure);
+                        }
+                })
+                .doOnComplete(() -> {
+                        isLoggedInBehaviorSubject.onNext(true);
+                        if (credentials.getLoginType() == LoginType.LogIn) {
+                            Logger.info(this, "Successfully completed the log in request");
+                            analytics.record(Events.Identity.UserLoginSuccess);
+                        } else if (credentials.getLoginType() == LoginType.SignUp) {
+                            Logger.info(this, "Successfully completed the sign up request");
+                            analytics.record(Events.Identity.UserSignUpSuccess);
+                        }
+                });
     }
 
     public synchronized Observable<LogoutResponse> logOut() {
         Logger.info(this, "Initiating user log-out");
         this.analytics.record(Events.Identity.UserLogout);
 
-        final LogoutService logoutService = serviceManager.getService(LogoutService.class);
-
-        if (logoutSubject == null) {
-            logoutSubject = BehaviorSubject.create();
-            logoutService.logOut()
-                    .doOnNext(logoutResponse -> mutableIdentityStore.setEmailAndToken(null, null))
-                    .doOnError(throwable -> {
-                        Logger.error(this, "Failed to complete the log-out request", throwable);
-                        analytics.record(Events.Identity.UserLogoutFailure);
-                    })
-                    .doOnComplete(() -> {
-                        Logger.info(this, "Successfully completed the log-out request");
-                        isLoggedInBehaviorSubject.onNext(false);
-                        analytics.record(Events.Identity.UserLogoutSuccess);
-                    })
-                    .subscribe(logoutSubject);
-        }
-        return logoutSubject;
-    }
-
-    public synchronized void markLogoutComplete() {
-        logoutSubject = null;
+        return serviceManager.getService(LogoutService.class).logOut()
+                .doOnNext(logoutResponse -> mutableIdentityStore.setEmailAndToken(null, null))
+                .doOnError(throwable -> {
+                    Logger.error(this, "Failed to complete the log-out request", throwable);
+                    analytics.record(Events.Identity.UserLogoutFailure);
+                })
+                .doOnComplete(() -> {
+                    Logger.info(this, "Successfully completed the log-out request");
+                    isLoggedInBehaviorSubject.onNext(false);
+                    analytics.record(Events.Identity.UserLogoutSuccess);
+                });
     }
 
     @NonNull

@@ -5,6 +5,10 @@ import android.support.annotation.NonNull;
 
 public class SmartReceiptsUserSignUp extends UserCredentialsPayload {
 
+    public SmartReceiptsUserSignUp(@NonNull CharSequence email, @NonNull CharSequence password) {
+        this(email.toString(), password.toString());
+    }
+
     public SmartReceiptsUserSignUp(@NonNull String email, @NonNull String password) {
         super(null, email, password, null, LoginType.SignUp);
     }

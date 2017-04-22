@@ -43,7 +43,7 @@ public class OrganizationManager {
                         Logger.error(this, "Failed to complete the organizations request", throwable);
                     });
         } else {
-            return Observable.empty();
+            return Observable.just(new OrganizationsResponse(null));
         }
     }
 

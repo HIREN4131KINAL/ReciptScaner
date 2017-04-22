@@ -18,6 +18,7 @@ import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.model.UiIndicator;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.subjects.ReplaySubject;
 import retrofit2.HttpException;
 
@@ -57,6 +58,7 @@ public class LoginInteractor {
                     .map(loginResponse -> UiIndicator.success(getSuccessMessage(userCredentialsPayload)))
                     .onErrorReturn(throwable -> UiIndicator.error(getErrorMessage(userCredentialsPayload, throwable)))
                     .startWith(UiIndicator.loading())
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(uiIndicatorReplaySubject);
         }
         return uiIndicatorReplaySubject;

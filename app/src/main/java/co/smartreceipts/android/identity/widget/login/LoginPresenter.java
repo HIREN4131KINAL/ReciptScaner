@@ -2,6 +2,7 @@ package co.smartreceipts.android.identity.widget.login;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
@@ -18,7 +19,6 @@ import co.smartreceipts.android.identity.widget.login.model.UiInputValidationInd
 import co.smartreceipts.android.widget.model.UiIndicator;
 import co.smartreceipts.android.widget.viper.BasePresenter;
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiFunction;
 
 @FragmentScope
@@ -40,22 +40,21 @@ public class LoginPresenter extends BasePresenter<LoginView, LoginInteractor> {
         compositeDisposable.add(Observable.concat(
                 interactor.getLastUserCredentialsPayload().toObservable(), // Start by emitting our previous request
                 Observable.merge( // Next, get the stream of clicks as payloads for the ongoing stream
-                        view.getLoginButtonClicks()
-                                .flatMap(ignored -> Observable.combineLatest(
-                                        view.getEmailTextChanges(),
-                                        view.getPasswordTextChanges(),
-                                        (BiFunction<CharSequence, CharSequence, UserCredentialsPayload>) SmartReceiptsUserLogin::new)),
-                        view.getSignUpButtonClicks()
-                                .flatMap(ignored -> Observable.combineLatest(
-                                        view.getEmailTextChanges(),
-                                        view.getPasswordTextChanges(),
-                                        (BiFunction<CharSequence, CharSequence, UserCredentialsPayload>) SmartReceiptsUserSignUp::new))
-                        )
-                        .debounce(200, TimeUnit.MILLISECONDS)
+                        Observable.combineLatest(
+                                view.getEmailTextChanges(),
+                                view.getPasswordTextChanges(),
+                                (BiFunction<CharSequence, CharSequence, UserCredentialsPayload>) SmartReceiptsUserLogin::new)
+                        .flatMap(userCredentialsPayload -> view.getLoginButtonClicks().map(ignored -> userCredentialsPayload)),
+                        Observable.combineLatest(
+                                view.getEmailTextChanges(),
+                                view.getPasswordTextChanges(),
+                                (BiFunction<CharSequence, CharSequence, UserCredentialsPayload>) SmartReceiptsUserSignUp::new)
+                        .flatMap(userCredentialsPayload -> view.getSignUpButtonClicks().map(ignored -> userCredentialsPayload)))
                 )
-                .flatMap(interactor::loginOrSignUp)
+                .flatMap(creds -> {
+                    return interactor.loginOrSignUp(creds);
+                })
                 .startWith(UiIndicator.idle())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(uiIndicator -> {
                     view.present(uiIndicator);
                     if (uiIndicator.getState() == UiIndicator.State.Succcess || uiIndicator.getState() == UiIndicator.State.Error) {
@@ -90,7 +89,7 @@ public class LoginPresenter extends BasePresenter<LoginView, LoginInteractor> {
                         return false;
                     }
                 });
-}
+    }
 
     @NonNull
     private Observable<Boolean> simplePasswordFieldValidator() {

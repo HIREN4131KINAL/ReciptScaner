@@ -49,4 +49,13 @@ public class UiInputValidationIndicator {
         result = 31 * result + (isPasswordValid ? 1 : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "UiInputValidationIndicator{" +
+                "message='" + message + '\'' +
+                ", isEmailValid=" + isEmailValid +
+                ", isPasswordValid=" + isPasswordValid +
+                '}';
+    }
 }

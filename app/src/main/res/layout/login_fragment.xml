@@ -6,80 +6,86 @@
     <include layout="@layout/toolbar"
         android:id="@+id/toolbar"/>
 
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/default_margin_size"
-        android:padding="@dimen/default_margin_size"
+        android:layout_height="match_parent"
         android:layout_below="@+id/toolbar" >
 
-        <ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
-            android:id="@+id/progress"
-            android:layout_centerInParent="true"
-            android:visibility="gone" />
-
-        <TextView style="@style/Widget.SmartReceipts.TextView.Title"
-            android:id="@+id/login_fields_title"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/default_margin_size"
-            android:gravity="center"
-            android:text="@string/login_title"/>
+            android:layout_marginTop="@dimen/default_margin_size"
+            android:padding="@dimen/default_margin_size" >
 
-        <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
-            android:id="@+id/login_fields_hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/login_fields_title"
-            android:lines="1"
-            android:ellipsize="end"
-            android:text="@string/login_fields_hint_email"/>
+            <ProgressBar style="@style/Widget.SmartReceipts.ProgressBar.Loading"
+                android:id="@+id/progress"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
 
-        <EditText
-            android:id="@+id/login_field_email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/login_fields_hint"
-            android:hint="@string/login_field_email_hint"
-            android:inputType="textEmailAddress" />
+            <TextView style="@style/Widget.SmartReceipts.TextView.Title"
+                android:id="@+id/login_fields_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin_size"
+                android:gravity="center"
+                android:text="@string/login_title"/>
 
-        <EditText
-            android:id="@+id/login_field_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/login_field_email"
-            android:hint="@string/login_field_password_hint"
-            android:inputType="textPassword"
-            android:layout_marginBottom="@dimen/default_margin_size" />
+            <TextView style="@style/Widget.SmartReceipts.TextView.Body1"
+                android:id="@+id/login_fields_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/login_fields_title"
+                android:lines="1"
+                android:ellipsize="end"
+                android:text="@string/login_fields_hint_email"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/login_field_password"
-            android:orientation="horizontal" >
+            <EditText
+                android:id="@+id/login_field_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/login_fields_hint"
+                android:hint="@string/login_field_email_hint"
+                android:inputType="textEmailAddress" />
 
-            <Button style="@style/Widget.SmartReceipts.Button"
-                    android:id="@+id/login_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_weight="1"
-                    android:text="@string/login_button_text" />
+            <EditText
+                android:id="@+id/login_field_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/login_field_email"
+                android:hint="@string/login_field_password_hint"
+                android:inputType="textPassword"
+                android:layout_marginBottom="@dimen/default_margin_size" />
 
-            <View
-                android:layout_width="@dimen/default_margin_item_separator"
-                android:layout_height="0dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/login_field_password"
+                android:orientation="horizontal" >
 
-            <Button style="@style/Widget.SmartReceipts.Button"
-                    android:id="@+id/sign_up_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_weight="1"
-                    android:text="@string/sign_up_button_text" />
+                <Button style="@style/Widget.SmartReceipts.Button"
+                        android:id="@+id/login_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:text="@string/login_button_text" />
 
-        </LinearLayout>
+                <View
+                    android:layout_width="@dimen/default_margin_item_separator"
+                    android:layout_height="0dp" />
 
-    </RelativeLayout>
+                <Button style="@style/Widget.SmartReceipts.Button"
+                        android:id="@+id/sign_up_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:text="@string/sign_up_button_text" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </ScrollView>
 
 </RelativeLayout>

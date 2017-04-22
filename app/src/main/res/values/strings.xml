@@ -336,7 +336,7 @@
     <string name="login_fields_hint_password">Passwords must be at least 8 characters:</string>
     <string name="login_fields_hint_valid">Tap below to log in or sign up:</string>
     <string name="login_success_toast">Login Success</string>
-    <string name="sign_up_success_toast">Login Success</string>
+    <string name="sign_up_success_toast">Sign Up Success</string>
     <string name="login_failure_toast">Login Failed</string>
     <string name="sign_up_failure_toast">Sign Up Failed</string>
     <string name="login_failure_credentials_toast">Error: Incorrect Username or Password</string>

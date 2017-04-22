@@ -25,7 +25,6 @@ public class LoginRouterTest {
     @Mock
     DaggerFragmentNavigationHandler<LoginFragment> navigationHandler;
 
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);

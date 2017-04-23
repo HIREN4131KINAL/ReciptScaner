@@ -1,6 +1,7 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.imagex;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;
@@ -27,7 +28,11 @@ public class PdfPDImageXFactoryFactory {
         if (FeatureFlags.CompatPdfRendering.isEnabled()) {
             return new CompatPdfPDImageXFactory(context, pdDocument, file);
         } else {
-            return new LollipopPdfPDImageXFactory(pdDocument, file);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                return new LollipopPdfPDImageXFactory(pdDocument, file);
+            } else {
+                return new CompatPdfPDImageXFactory(context, pdDocument, file);
+            }
         }
     }
 }

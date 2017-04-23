@@ -1,8 +1,10 @@
 package co.smartreceipts.android.workers.reports.pdf.renderer.imagex;
 
+import android.annotation.TargetApi;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 
@@ -23,6 +25,7 @@ import wb.android.image.ImageUtils;
 /**
  * Used to load pdf files via the native Android {@link PdfRenderer} stack
  */
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopPdfPDImageXFactory implements PdfPDImageXFactory {
 
     private static final float IMAGE_QUALITY_SCALING_FACTOR = 2.75f;

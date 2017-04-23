@@ -1,6 +1,7 @@
 package co.smartreceipts.android.ocr.widget.alert;
 
 import android.app.Activity;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
@@ -28,8 +29,10 @@ public class OcrStatusAlerterPresenter implements OldPresenter {
         this.ocrInteractor = Preconditions.checkNotNull(ocrInteractor);
         this.alerter = Alerter.create(activity)
                 .setTitle(R.string.ocr_status_title)
-                .setBackgroundColor(R.color.smart_receipts_colorAccent)
-                .setIcon(R.drawable.ic_receipt_white_24dp);
+                .setBackgroundColor(R.color.smart_receipts_colorAccent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.alerter.setIcon(R.drawable.ic_receipt_white_24dp);
+        }
     }
 
     @Override

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -314,7 +315,7 @@ public final class PdfRendererCompat implements AutoCloseable {
          * </p>
          * <p>
          * <strong>Note: </strong> The optional transformation matrix must be affine as per
-         * {@link android.graphics.Matrix#isAffine() Matrix.isAffine()}. Hence, you can specify
+         * {@link Matrix#isAffine() Matrix.isAffine()}. Hence, you can specify
          * rotation, scaling, translation but not a perspective transformation.
          * </p>
          *
@@ -340,8 +341,10 @@ public final class PdfRendererCompat implements AutoCloseable {
                 }
             }
 
-            if (transform != null && !transform.isAffine()) {
-                throw new IllegalArgumentException("transform not affine");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (transform != null && !transform.isAffine()) {
+                    throw new IllegalArgumentException("transform not affine");
+                }
             }
 
             if (renderMode != RENDER_MODE_FOR_PRINT && renderMode != RENDER_MODE_FOR_DISPLAY) {

@@ -178,9 +178,9 @@ public class PurchaseManager {
                             existingActivity.startIntentSenderForResult(pendingIntent.getIntentSender(), PurchaseManager.REQUEST_CODE, new Intent(), 0, 0, 0);
                         }
                     } catch (IntentSender.SendIntentException e) {
-                        Toast.makeText(context, R.string.purchase_unavailable, Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show();
                     }
-                }, throwable -> Toast.makeText(context, R.string.purchase_unavailable, Toast.LENGTH_LONG)));
+                }, throwable -> Toast.makeText(context, R.string.purchase_unavailable, Toast.LENGTH_SHORT).show()));
     }
 
     @VisibleForTesting

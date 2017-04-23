@@ -1,8 +1,6 @@
 package co.smartreceipts.android.ocr.widget.configuration;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
@@ -26,18 +24,27 @@ public class OcrConfigurationRouter {
         this.identityManager = Preconditions.checkNotNull(identityManager);
     }
 
-    public void navigateToProperLocation(@Nullable Bundle savedInstanceState) {
+    /**
+     * Navigates us to the proper next screen: nowhere if we're logged in, back if the user was previously
+     * navigated away and returned here (eg via the backstack), or to the login screen if not logged in
+     *
+     * @param wasPreviouslyNavigated {@code true} if the user was previously navigated away
+     * @return {@code true} if we are sent to the login screen. {@code false} otherwise
+     */
+    public boolean navigateToProperLocation(boolean wasPreviouslyNavigated) {
         if (!identityManager.isLoggedIn()) {
-            if (savedInstanceState == null) {
+            if (!wasPreviouslyNavigated) {
                 Logger.info(this, "User not logged in. Sending to the log in screen");
                 navigationHandler.navigateToLoginScreen();
+                return true;
             } else {
                 Logger.info(this, "Returning to this fragment after not signing in. Navigating back rather than looping back to the log in screen");
-                this.navigationHandler.navigateBack();
+                this.navigationHandler.navigateBackDelayed();
             }
         } else {
             Logger.debug(this, "User is already logged in. Doing nothing and remaining on this screen");
         }
+        return false;
     }
 
     public boolean navigateBack() {

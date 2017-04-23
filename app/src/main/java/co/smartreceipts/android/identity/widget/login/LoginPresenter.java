@@ -51,9 +51,7 @@ public class LoginPresenter extends BasePresenter<LoginView, LoginInteractor> {
                                 (BiFunction<CharSequence, CharSequence, UserCredentialsPayload>) SmartReceiptsUserSignUp::new)
                         .flatMap(userCredentialsPayload -> view.getSignUpButtonClicks().map(ignored -> userCredentialsPayload)))
                 )
-                .flatMap(creds -> {
-                    return interactor.loginOrSignUp(creds);
-                })
+                .flatMap(interactor::loginOrSignUp)
                 .startWith(UiIndicator.idle())
                 .subscribe(uiIndicator -> {
                     view.present(uiIndicator);

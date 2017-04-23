@@ -196,6 +196,16 @@ public class NavigationHandler {
         }
     }
 
+    public boolean navigateBackDelayed() {
+        try {
+            mFragmentManager.popBackStack();
+            return true;
+        } catch (final IllegalStateException e) {
+            // This exception is always thrown if saveInstanceState was already been called.
+            return false;
+        }
+    }
+
     public void showDialog(@NonNull DialogFragment dialogFragment) {
         final String tag = dialogFragment.getClass().getName();
         try {

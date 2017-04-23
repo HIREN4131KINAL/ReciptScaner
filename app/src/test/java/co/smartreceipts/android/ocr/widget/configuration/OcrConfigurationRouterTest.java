@@ -1,7 +1,5 @@
 package co.smartreceipts.android.ocr.widget.configuration;
 
-import android.os.Bundle;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +11,8 @@ import org.robolectric.RobolectricTestRunner;
 import co.smartreceipts.android.activities.DaggerFragmentNavigationHandler;
 import co.smartreceipts.android.identity.IdentityManager;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -37,28 +37,28 @@ public class OcrConfigurationRouterTest {
     @Test
     public void navigateToProperLocationWhenNotLoggedInForNewSession() {
         when(identityManager.isLoggedIn()).thenReturn(false);
-        router.navigateToProperLocation(null);
+        assertTrue(router.navigateToProperLocation(false));
         verify(navigationHandler).navigateToLoginScreen();
     }
 
     @Test
     public void navigateToProperLocationWhenNotLoggedInForExistingSession() {
         when(identityManager.isLoggedIn()).thenReturn(false);
-        router.navigateToProperLocation(new Bundle());
-        verify(navigationHandler).navigateBack();
+        assertFalse(router.navigateToProperLocation(true));
+        verify(navigationHandler).navigateBackDelayed();
     }
 
     @Test
     public void navigateToProperLocationWhenLoggedInForNewSession() {
         when(identityManager.isLoggedIn()).thenReturn(true);
-        router.navigateToProperLocation(null);
+        assertFalse(router.navigateToProperLocation(false));
         verifyZeroInteractions(navigationHandler);
     }
 
     @Test
     public void navigateToProperLocationWhenLoggedInForExistingSession() {
         when(identityManager.isLoggedIn()).thenReturn(true);
-        router.navigateToProperLocation(new Bundle());
+        assertFalse(router.navigateToProperLocation(true));
         verifyZeroInteractions(navigationHandler);
     }
 

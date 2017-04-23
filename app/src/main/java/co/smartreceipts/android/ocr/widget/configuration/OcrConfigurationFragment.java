@@ -41,6 +41,8 @@ import io.reactivex.functions.Consumer;
 
 public class OcrConfigurationFragment extends Fragment implements OcrConfigurationView {
 
+    private static final String OUT_BOOLEAN_WAS_PREVIOUSLY_SENT_TO_LOGIN_SCREEN = "out_bool_was_previously_sent_to_login_screen";
+
     @Inject
     OcrConfigurationPresenter presenter;
 
@@ -55,6 +57,7 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
 
     private OcrPurchasesListAdapter ocrPurchasesListAdapter;
     private Unbinder unbinder;
+    private boolean wasPreviouslySentToLogin = false;
 
     public static OcrConfigurationFragment newInstance() {
         return new OcrConfigurationFragment();
@@ -72,9 +75,10 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        router.navigateToProperLocation(savedInstanceState);
         if (savedInstanceState == null) {
             analytics.record(Events.Ocr.OcrViewConfigurationPage);
+        } else {
+            wasPreviouslySentToLogin = savedInstanceState.getBoolean(OUT_BOOLEAN_WAS_PREVIOUSLY_SENT_TO_LOGIN_SCREEN, false);
         }
     }
 
@@ -120,6 +124,7 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
     public void onResume() {
         Logger.debug(this, "onResume");
         super.onResume();
+        wasPreviouslySentToLogin = router.navigateToProperLocation(wasPreviouslySentToLogin);
         final ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
@@ -133,6 +138,12 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
         Logger.debug(this, "onPause");
         presenter.onPause();
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(OUT_BOOLEAN_WAS_PREVIOUSLY_SENT_TO_LOGIN_SCREEN, wasPreviouslySentToLogin);
     }
 
     @Override

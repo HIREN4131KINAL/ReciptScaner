@@ -96,6 +96,9 @@ public final class Events {
         public static final Event UserLogout = new DefaultEvent(Category.Identity, "UserLogout");
         public static final Event UserLogoutSuccess = new DefaultEvent(Category.Identity, "UserLogoutSuccess");
         public static final Event UserLogoutFailure = new DefaultEvent(Category.Identity, "UserLogoutFailure");
+        public static final Event PushTokenUploadRequired = new DefaultEvent(Category.Identity, "PushTokenUploadRequired");
+        public static final Event PushTokenSucceeded = new DefaultEvent(Category.Identity, "PushTokenSucceeded");
+        public static final Event PushTokenFailed = new DefaultEvent(Category.Identity, "PushTokenFailed");
     }
 
     public static final class Ocr {
@@ -105,6 +108,11 @@ public final class Events {
         public static final Event OcrViewConfigurationPage = new DefaultEvent(Category.Ocr, "OcrViewConfigurationPage");
         public static final Event OcrPurchaseClicked = new DefaultEvent(Category.Ocr, "OcrPurchaseClicked");
         public static final Event OcrIncognitoModeToggled = new DefaultEvent(Category.Ocr, "OcrIncognitoModeToggled");
+        public static final Event OcrRequestStarted = new DefaultEvent(Category.Ocr, "OcrRequestStarted");
+        public static final Event OcrPushMessageReceived = new DefaultEvent(Category.Ocr, "OcrPushMessageReceived");
+        public static final Event OcrPushMessageTimeOut = new DefaultEvent(Category.Ocr, "OcrPushMessageTimeOut");
+        public static final Event OcrRequestSucceeded = new DefaultEvent(Category.Ocr, "OcrRequestSucceeded");
+        public static final Event OcrRequestFailed = new DefaultEvent(Category.Ocr, "OcrRequestFailed");
     }
 
 }

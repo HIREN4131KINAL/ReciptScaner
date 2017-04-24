@@ -10,6 +10,9 @@ import java.io.File;
 
 import javax.inject.Inject;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
@@ -43,6 +46,7 @@ public class OcrManager {
     private final ServiceManager ocrServiceManager;
     private final PushManager pushManager;
     private final UserPreferenceManager userPreferenceManager;
+    private final Analytics analytics;
     private final OcrPurchaseTracker ocrPurchaseTracker;
     private final OcrPushMessageReceiverFactory pushMessageReceiverFactory;
     private final Feature ocrFeature;
@@ -51,15 +55,15 @@ public class OcrManager {
     @Inject
     public OcrManager(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                       @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-                      @NonNull UserPreferenceManager userPreferenceManager) {
-        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
+                      @NonNull UserPreferenceManager userPreferenceManager, @NonNull Analytics analytics) {
+        this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, analytics, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
     OcrManager(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
                @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-               @NonNull UserPreferenceManager userPreferenceManager, @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory,
-               @NonNull Feature ocrFeature) {
+               @NonNull UserPreferenceManager userPreferenceManager, @NonNull Analytics analytics,
+               @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory, @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
         this.identityManager = Preconditions.checkNotNull(identityManager);
@@ -67,6 +71,7 @@ public class OcrManager {
         this.pushManager = Preconditions.checkNotNull(pushManager);
         this.ocrPurchaseTracker = Preconditions.checkNotNull(ocrPurchaseTracker);
         this.userPreferenceManager = Preconditions.checkNotNull(userPreferenceManager);
+        this.analytics = Preconditions.checkNotNull(analytics);
         this.pushMessageReceiverFactory = Preconditions.checkNotNull(pushMessageReceiverFactory);
         this.ocrFeature = Preconditions.checkNotNull(ocrFeature);
     }
@@ -84,7 +89,10 @@ public class OcrManager {
             final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
             ocrProcessingStatusSubject.onNext(OcrProcessingStatus.UploadingImage);
             return s3Manager.upload(file, OCR_FOLDER)
-                    .doOnSubscribe(disposable -> pushManager.registerReceiver(ocrPushMessageReceiver))
+                    .doOnSubscribe(disposable -> {
+                        pushManager.registerReceiver(ocrPushMessageReceiver);
+                        analytics.record(Events.Ocr.OcrRequestStarted);
+                    })
                     .subscribeOn(Schedulers.io())
                     .flatMap(s3Url -> {
                         Logger.debug(OcrManager.this, "S3 upload completed. Preparing url for delivery to our APIs.");
@@ -110,6 +118,8 @@ public class OcrManager {
                     .flatMap(recognitionId -> {
                         Logger.debug(OcrManager.this, "Awaiting completion of recognition request {}.", recognitionId);
                         return ocrPushMessageReceiver.getOcrPushResponse()
+                                .doOnNext(ignore -> analytics.record(Events.Ocr.OcrPushMessageReceived))
+                                .doOnError(ignore -> analytics.record(Events.Ocr.OcrPushMessageTimeOut))
                                 .onErrorReturn(throwable -> {
                                     Logger.warn(OcrManager.this, "Ocr request timed out. Attempting to get response as is");
                                     return new Object();
@@ -132,12 +142,16 @@ public class OcrManager {
                             return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
                         }
                     })
+                    .doOnNext(ignore -> analytics.record(Events.Ocr.OcrRequestSucceeded))
+                    .doOnError(throwable -> {
+                        analytics.record(Events.Ocr.OcrRequestFailed);
+                        analytics.record(new ErrorEvent(OcrManager.this, throwable));
+                    })
                     .onErrorReturnItem(new OcrResponse())
                     .doOnTerminate(() -> {
                         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
                         pushManager.unregisterReceiver(ocrPushMessageReceiver);
                     });
-            // TODO: Handle subsequent deletion of s3 file
         } else {
             Logger.debug(OcrManager.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
             return Observable.just(new OcrResponse());

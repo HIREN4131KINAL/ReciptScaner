@@ -12,6 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 
 import java.io.File;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
 import co.smartreceipts.android.aws.s3.S3Manager;
 import co.smartreceipts.android.identity.IdentityManager;
@@ -72,6 +73,9 @@ public class OcrManagerTest {
     UserPreferenceManager userPreferenceManager;
 
     @Mock
+    Analytics analytics;
+
+    @Mock
     Feature ocrFeature;
 
     @Mock
@@ -115,7 +119,7 @@ public class OcrManagerTest {
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.just(recognitionResponse));
         when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(false);
 
-        ocrManager = new OcrManager(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, ocrPushMessageReceiverFactory, ocrFeature);
+        ocrManager = new OcrManager(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, analytics, ocrPushMessageReceiverFactory, ocrFeature);
     }
 
     @Test

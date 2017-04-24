@@ -7,12 +7,10 @@ import com.google.common.base.Preconditions;
 
 import org.reactivestreams.Subscriber;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
 
 import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.apis.ApiValidationException;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
@@ -37,9 +35,7 @@ import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
 import co.smartreceipts.android.settings.UserPreferenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import io.reactivex.Observable;
-import io.reactivex.subjects.AsyncSubject;
 import io.reactivex.subjects.BehaviorSubject;
-import io.reactivex.subjects.Subject;
 
 
 @ApplicationScope
@@ -136,6 +132,7 @@ public class IdentityManager implements IdentityStore {
                             Logger.error(this, "Failed to complete the sign up request", throwable);
                             analytics.record(Events.Identity.UserSignUpFailure);
                         }
+                    analytics.record(new ErrorEvent(IdentityManager.this, throwable));
                 })
                 .doOnComplete(() -> {
                         isLoggedInBehaviorSubject.onNext(true);

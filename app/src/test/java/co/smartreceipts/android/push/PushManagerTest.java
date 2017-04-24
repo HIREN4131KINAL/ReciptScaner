@@ -13,6 +13,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Constructor;
 
+import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.identity.apis.me.MeResponse;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
@@ -39,6 +40,9 @@ public class PushManagerTest {
     IdentityManager identityManager;
 
     @Mock
+    Analytics analytics;
+
+    @Mock
     FcmTokenRetriever fcmTokenRetriever;
 
     @Mock
@@ -53,8 +57,7 @@ public class PushManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-
-        pushManager = new PushManager(identityManager, fcmTokenRetriever, pushDataStore, Schedulers.trampoline());
+        pushManager = new PushManager(identityManager, analytics, fcmTokenRetriever, pushDataStore, Schedulers.trampoline());
     }
 
     @Test

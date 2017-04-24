@@ -12,6 +12,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.inject.Inject;
 
+import co.smartreceipts.android.analytics.Analytics;
+import co.smartreceipts.android.analytics.events.ErrorEvent;
+import co.smartreceipts.android.analytics.events.Event;
+import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
 import co.smartreceipts.android.identity.IdentityManager;
 import co.smartreceipts.android.push.apis.me.UpdatePushTokensRequest;
@@ -27,20 +31,22 @@ import io.reactivex.schedulers.Schedulers;
 public class PushManager {
 
     private final IdentityManager identityManager;
+    private final Analytics analytics;
     private final FcmTokenRetriever fcmTokenRetriever;
     private final PushDataStore pushDataStore;
     private final Scheduler subscribeOnScheduler;
     private final CopyOnWriteArrayList<PushMessageReceiver> pushMessageReceivers = new CopyOnWriteArrayList<>();
 
     @Inject
-    public PushManager(Context context, IdentityManager identityManager) {
-        this(identityManager, new FcmTokenRetriever(), new PushDataStore(context), Schedulers.io());
+    public PushManager(@NonNull Context context, @NonNull IdentityManager identityManager, @NonNull Analytics analytics) {
+        this(identityManager, analytics, new FcmTokenRetriever(), new PushDataStore(context), Schedulers.io());
     }
 
     @VisibleForTesting
-    public PushManager(@NonNull IdentityManager identityManager, @NonNull FcmTokenRetriever fcmTokenRetriever,
+    public PushManager(@NonNull IdentityManager identityManager, @NonNull Analytics analytics, @NonNull FcmTokenRetriever fcmTokenRetriever,
                        @NonNull PushDataStore pushDataStore, @NonNull Scheduler subscribeOnScheduler) {
         this.identityManager = Preconditions.checkNotNull(identityManager);
+        this.analytics = Preconditions.checkNotNull(analytics);
         this.fcmTokenRetriever = Preconditions.checkNotNull(fcmTokenRetriever);
         this.pushDataStore = Preconditions.checkNotNull(pushDataStore);
         this.subscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
@@ -55,7 +61,8 @@ public class PushManager {
                     Logger.debug(PushManager.this, "Is a push token update required? {}.", shouldPushTokenBeUploaded);
                     return shouldPushTokenBeUploaded;
                 })
-                .flatMap(aBoolean -> fcmTokenRetriever.getFcmTokenObservable())
+                .doOnNext(ignore -> analytics.record(Events.Identity.PushTokenUploadRequired))
+                .flatMap(ignore -> fcmTokenRetriever.getFcmTokenObservable())
                 .flatMap(token -> {
                     final UpdatePushTokensRequest request = new UpdatePushTokensRequest(new UpdateUserPushTokens(Collections.singletonList(Preconditions.checkNotNull(token))));
                     return identityManager.updateMe(request);
@@ -63,7 +70,10 @@ public class PushManager {
                 .subscribe(meResponse -> {
                     Logger.info(PushManager.this, "Successfully uploaded our push notification token");
                     pushDataStore.setRemoteRefreshRequired(false);
+                    analytics.record(Events.Identity.PushTokenSucceeded);
                 }, throwable -> {
+                    analytics.record(Events.Identity.PushTokenFailed);
+                    analytics.record(new ErrorEvent(PushManager.this, throwable));
                     Logger.error(PushManager.this, "Failed to upload our push notification token", throwable);
                 });
     }

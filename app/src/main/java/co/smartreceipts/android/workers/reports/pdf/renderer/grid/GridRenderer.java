@@ -106,10 +106,7 @@ public class GridRenderer extends Renderer {
         List<GridRowRenderer> gridRowRendererLinkedList = new LinkedList<>(rowRenderers);
         for (ListIterator<GridRowRenderer> listIterator = gridRowRendererLinkedList.listIterator(); listIterator.hasNext(); ) {
             final GridRowRenderer rowRenderer = listIterator.next();
-            rowRenderer.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
-            rowRenderer.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
-            y += rowRenderer.getHeight();
-            if (y > heightConstraint && listIterator.hasNext()) {
+            if (y + rowRenderer.getHeight() >= heightConstraint && listIterator.hasNext()) {
                 Logger.info(this, "Identified a page breaking table. Marking it as such");
                 y = 0;
                 if (rowRenderer.getAssociatedHeader() != null) {
@@ -123,9 +120,10 @@ public class GridRenderer extends Renderer {
                 } else {
                     newLineRows.add(rowRenderer);
                 }
-                rowRenderer.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
-                rowRenderer.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
             }
+            rowRenderer.getRenderingConstraints().addConstraint(new XPositionConstraint(x));
+            rowRenderer.getRenderingConstraints().addConstraint(new YPositionConstraint(y));
+            y += rowRenderer.getHeight();
 
             // Run a final measure pass based on these new coordinates
             rowRenderer.measure();

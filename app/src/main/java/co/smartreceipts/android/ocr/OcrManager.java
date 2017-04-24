@@ -142,7 +142,10 @@ public class OcrManager {
                             return Observable.error(new ApiValidationException("Failed to receive a valid recognition response."));
                         }
                     })
-                    .doOnNext(ignore -> analytics.record(Events.Ocr.OcrRequestSucceeded))
+                    .doOnNext(ignore -> {
+                        ocrPurchaseTracker.decrementRemainingScans();
+                        analytics.record(Events.Ocr.OcrRequestSucceeded);
+                    })
                     .doOnError(throwable -> {
                         analytics.record(Events.Ocr.OcrRequestFailed);
                         analytics.record(new ErrorEvent(OcrManager.this, throwable));

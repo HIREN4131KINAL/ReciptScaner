@@ -38,7 +38,7 @@ import co.smartreceipts.android.imports.ActivityFileResultImporter;
 import co.smartreceipts.android.imports.CameraInteractionController;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
 import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
@@ -67,7 +67,7 @@ public class ReceiptImageFragment extends WBFragment {
     @Inject
     ReceiptTableController receiptTableController;
     @Inject
-    OcrInteractor ocrInteractor;
+    OcrManager ocrManager;
 
 
     private PinchToZoomImageView imageView;
@@ -108,7 +108,7 @@ public class ReceiptImageFragment extends WBFragment {
         }
         isRotateOngoing = false;
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(), receipt.getTrip(),
-                persistenceManager, analytics, ocrInteractor);
+                persistenceManager, analytics, ocrManager);
         navigationHandler = new NavigationHandler(getActivity(), new FragmentProvider());
         imageUpdatedListener = new ImageUpdatedListener();
         setHasOptionsMenu(true);

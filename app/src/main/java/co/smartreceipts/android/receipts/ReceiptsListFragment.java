@@ -44,7 +44,7 @@ import co.smartreceipts.android.model.Attachment;
 import co.smartreceipts.android.model.Receipt;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.model.factory.ReceiptBuilderFactory;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.ocr.widget.alert.OcrStatusAlerterPresenter;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
@@ -84,7 +84,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     BackupProvidersManager backupProvidersManager;
 
     @Inject
-    OcrInteractor ocrInteractor;
+    OcrManager ocrManager;
 
     private ReceiptCardAdapter adapter;
     private ActivityFileResultImporter activityFileResultImporter;
@@ -179,7 +179,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             }
         });
 
-        ocrStatusAlerterPresenter = new OcrStatusAlerterPresenter(getActivity(), ocrInteractor);
+        ocrStatusAlerterPresenter = new OcrStatusAlerterPresenter(getActivity(), ocrManager);
 
         return rootView;
     }
@@ -191,7 +191,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         trip = ((ReportInfoFragment) getParentFragment()).getTrip();
         Preconditions.checkNotNull(trip, "A valid trip is required");
         activityFileResultImporter = new ActivityFileResultImporter(getActivity(), getFragmentManager(),
-                trip, persistenceManager, analytics, ocrInteractor);
+                trip, persistenceManager, analytics, ocrManager);
         setListAdapter(adapter); // Set this here to ensure this has been laid out already
     }
 

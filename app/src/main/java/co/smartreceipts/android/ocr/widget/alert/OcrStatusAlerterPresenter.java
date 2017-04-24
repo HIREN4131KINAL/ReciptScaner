@@ -10,7 +10,7 @@ import com.tapadoo.alerter.Alert;
 import com.tapadoo.alerter.Alerter;
 
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.utils.log.Logger;
 import co.smartreceipts.android.widget.OldPresenter;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -19,14 +19,14 @@ import io.reactivex.disposables.CompositeDisposable;
 
 public class OcrStatusAlerterPresenter implements OldPresenter {
 
-    private final OcrInteractor ocrInteractor;
+    private final OcrManager ocrManager;
     private Alerter alerter;
     private Alert alert;
 
     private CompositeDisposable compositeDisposable;
 
-    public OcrStatusAlerterPresenter(@NonNull Activity activity, @NonNull OcrInteractor ocrInteractor) {
-        this.ocrInteractor = Preconditions.checkNotNull(ocrInteractor);
+    public OcrStatusAlerterPresenter(@NonNull Activity activity, @NonNull OcrManager ocrManager) {
+        this.ocrManager = Preconditions.checkNotNull(ocrManager);
         this.alerter = Alerter.create(activity)
                 .setTitle(R.string.ocr_status_title)
                 .setBackgroundColor(R.color.smart_receipts_colorAccent);
@@ -38,7 +38,7 @@ public class OcrStatusAlerterPresenter implements OldPresenter {
     @Override
     public void onResume() {
         compositeDisposable = new CompositeDisposable();
-        compositeDisposable.add(ocrInteractor.getOcrProcessingStatus()
+        compositeDisposable.add(ocrManager.getOcrProcessingStatus()
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnDispose(() -> {
                     if (alert != null) {

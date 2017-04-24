@@ -18,7 +18,7 @@ import co.smartreceipts.android.aws.cognito.CognitoManager;
 import co.smartreceipts.android.di.AppComponent;
 import co.smartreceipts.android.di.BaseAppModule;
 import co.smartreceipts.android.di.DaggerAppComponent;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.purchases.PurchaseManager;
@@ -55,7 +55,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Inject
     CognitoManager cognitoManager;
     @Inject
-    OcrInteractor ocrInteractor;
+    OcrManager ocrManager;
     @Inject
     AppRatingPreferencesStorage appRatingPreferencesStorage;
 
@@ -104,7 +104,7 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
         pushManager.initialize();
         purchaseManager.initialize(this);
         cognitoManager.initialize();
-        ocrInteractor.initialize();
+        ocrManager.initialize();
 
         PDFBoxResourceLoader.init(getApplicationContext());
 

@@ -20,7 +20,7 @@ import java.io.FileNotFoundException;
 
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.ocr.apis.model.OcrResponse;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -51,7 +51,7 @@ public class ActivityFileResultImporterTest {
     Analytics analytics;
 
     @Mock
-    OcrInteractor ocrInteractor;
+    OcrManager ocrManager;
 
     @Mock
     OcrResponse ocrResponse;
@@ -64,10 +64,10 @@ public class ActivityFileResultImporterTest {
         MockitoAnnotations.initMocks(this);
 
         when(factory.get(anyInt())).thenReturn(processor);
-        when(ocrInteractor.scan(any(File.class))).thenReturn(Observable.just(ocrResponse));
+        when(ocrManager.scan(any(File.class))).thenReturn(Observable.just(ocrResponse));
         FragmentActivity activity = Robolectric.buildActivity(FragmentActivity.class).create().get();
 
-        fileResultImporter = new ActivityFileResultImporter(RuntimeEnvironment.application, activity.getSupportFragmentManager(), factory, analytics, ocrInteractor, Schedulers.trampoline(), Schedulers.trampoline());
+        fileResultImporter = new ActivityFileResultImporter(RuntimeEnvironment.application, activity.getSupportFragmentManager(), factory, analytics, ocrManager, Schedulers.trampoline(), Schedulers.trampoline());
     }
 
     @Test

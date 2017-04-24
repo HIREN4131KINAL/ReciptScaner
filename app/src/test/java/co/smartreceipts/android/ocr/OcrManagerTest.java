@@ -37,13 +37,13 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-public class OcrInteractorTest {
+public class OcrManagerTest {
 
     private static final String IMG_NAME = "123456789.jpg";
     private static final String ID = "id";
 
     // Class under test
-    OcrInteractor ocrInteractor;
+    OcrManager ocrManager;
 
     Context context = RuntimeEnvironment.application;
 
@@ -115,13 +115,13 @@ public class OcrInteractorTest {
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.just(recognitionResponse));
         when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(false);
 
-        ocrInteractor = new OcrInteractor(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, ocrPushMessageReceiverFactory, ocrFeature);
+        ocrManager = new OcrManager(context, s3Manager, identityManager, ocrServiceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, ocrPushMessageReceiverFactory, ocrFeature);
     }
 
     @Test
     public void scanWhenFeatureIsDisabled() {
         when(ocrFeature.isEnabled()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -133,7 +133,7 @@ public class OcrInteractorTest {
     @Test
     public void scanWhenNotLoggedIn() {
         when(identityManager.isLoggedIn()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -145,7 +145,7 @@ public class OcrInteractorTest {
     @Test
     public void scanWithNoAvailableScans() {
         when(ocrPurchaseTracker.hasAvailableScans()).thenReturn(false);
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -157,7 +157,7 @@ public class OcrInteractorTest {
     @Test
     public void scanButS3UploadFails() {
         when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -175,7 +175,7 @@ public class OcrInteractorTest {
     @Test
     public void scanButS3ReturnsUnexpectedUrl() {
         when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.just("https://test.com"));
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -193,7 +193,7 @@ public class OcrInteractorTest {
     @Test
     public void scanButRecognitionRequestFails() {
         when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false))).thenReturn(Observable.error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -210,7 +210,7 @@ public class OcrInteractorTest {
     @Test
     public void scanButRecognitionResponseIsInvalidWithNullId() {
         when(recognition.getId()).thenReturn(null);
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -227,7 +227,7 @@ public class OcrInteractorTest {
     @Test
     public void scanButGetRecognitionResult() {
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.error(new Exception("test")));
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(new OcrResponse());
@@ -241,7 +241,7 @@ public class OcrInteractorTest {
 
     @Test
     public void scanCompletes() {
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(ocrResponse);
@@ -256,7 +256,7 @@ public class OcrInteractorTest {
     @Test
     public void scanCompletesWithIncognitoModeOn() {
         when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(true);
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(ocrResponse);
@@ -271,7 +271,7 @@ public class OcrInteractorTest {
     @Test
     public void scanCompletesEvenIfPushMessageTimesOutStillContinuesProcessing() {
         when(pushMessageReceiver.getOcrPushResponse()).thenReturn(Observable.error(new Exception("timeout")));
-        ocrInteractor.scan(file).subscribe(testObserver);
+        ocrManager.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
         testObserver.assertValue(ocrResponse);

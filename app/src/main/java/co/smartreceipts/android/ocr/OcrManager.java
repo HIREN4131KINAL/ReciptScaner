@@ -33,7 +33,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 
 @ApplicationScope
-public class OcrInteractor {
+public class OcrManager {
 
     private static final String OCR_FOLDER = "ocr/";
 
@@ -49,17 +49,17 @@ public class OcrInteractor {
     private final BehaviorSubject<OcrProcessingStatus> ocrProcessingStatusSubject = BehaviorSubject.createDefault(OcrProcessingStatus.Idle);
 
     @Inject
-    public OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
-                         @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-                         @NonNull UserPreferenceManager userPreferenceManager) {
+    public OcrManager(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
+                      @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
+                      @NonNull UserPreferenceManager userPreferenceManager) {
         this(context, s3Manager, identityManager, serviceManager, pushManager, ocrPurchaseTracker, userPreferenceManager, new OcrPushMessageReceiverFactory(), FeatureFlags.Ocr);
     }
 
     @VisibleForTesting
-    OcrInteractor(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
-                  @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
-                  @NonNull UserPreferenceManager userPreferenceManager, @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory,
-                  @NonNull Feature ocrFeature) {
+    OcrManager(@NonNull Context context, @NonNull S3Manager s3Manager, @NonNull IdentityManager identityManager,
+               @NonNull ServiceManager serviceManager, @NonNull PushManager pushManager, @NonNull OcrPurchaseTracker ocrPurchaseTracker,
+               @NonNull UserPreferenceManager userPreferenceManager, @NonNull OcrPushMessageReceiverFactory pushMessageReceiverFactory,
+               @NonNull Feature ocrFeature) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.s3Manager = Preconditions.checkNotNull(s3Manager);
         this.identityManager = Preconditions.checkNotNull(identityManager);
@@ -80,14 +80,14 @@ public class OcrInteractor {
         Preconditions.checkNotNull(file);
         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.Idle);
         if (ocrFeature.isEnabled() && identityManager.isLoggedIn() && ocrPurchaseTracker.hasAvailableScans()) {
-            Logger.info(OcrInteractor.this, "Initiating scan of {}.", file);
+            Logger.info(OcrManager.this, "Initiating scan of {}.", file);
             final OcrPushMessageReceiver ocrPushMessageReceiver = pushMessageReceiverFactory.get();
             ocrProcessingStatusSubject.onNext(OcrProcessingStatus.UploadingImage);
             return s3Manager.upload(file, OCR_FOLDER)
                     .doOnSubscribe(disposable -> pushManager.registerReceiver(ocrPushMessageReceiver))
                     .subscribeOn(Schedulers.io())
                     .flatMap(s3Url -> {
-                        Logger.debug(OcrInteractor.this, "S3 upload completed. Preparing url for delivery to our APIs.");
+                        Logger.debug(OcrManager.this, "S3 upload completed. Preparing url for delivery to our APIs.");
                         if (s3Url != null && s3Url.indexOf(OCR_FOLDER) > 0) {
                             return Observable.just(s3Url.substring(s3Url.indexOf(OCR_FOLDER)));
                         } else {
@@ -95,7 +95,7 @@ public class OcrInteractor {
                         }
                     })
                     .flatMap(s3Url -> {
-                        Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
+                        Logger.debug(OcrManager.this, "Uploading OCR request for processing");
                         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.PerformingScan);
                         final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
                         return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url, incognito));
@@ -108,21 +108,21 @@ public class OcrInteractor {
                         }
                     })
                     .flatMap(recognitionId -> {
-                        Logger.debug(OcrInteractor.this, "Awaiting completion of recognition request {}.", recognitionId);
+                        Logger.debug(OcrManager.this, "Awaiting completion of recognition request {}.", recognitionId);
                         return ocrPushMessageReceiver.getOcrPushResponse()
                                 .onErrorReturn(throwable -> {
-                                    Logger.warn(OcrInteractor.this, "Ocr request timed out. Attempting to get response as is");
+                                    Logger.warn(OcrManager.this, "Ocr request timed out. Attempting to get response as is");
                                     return new Object();
                                 })
                                 .map(o -> recognitionId);
                     })
                     .flatMap(recognitionId -> {
-                        Logger.debug(OcrInteractor.this, "Scan completed. Fetching results for {}.", recognitionId);
+                        Logger.debug(OcrManager.this, "Scan completed. Fetching results for {}.", recognitionId);
                         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.RetrievingResults);
                         return ocrServiceManager.getService(OcrService.class).getRecognitionResult(recognitionId);
                     })
                     .flatMap(recognitionResponse -> {
-                        Logger.debug(OcrInteractor.this, "Parsing OCR Response");
+                        Logger.debug(OcrManager.this, "Parsing OCR Response");
                         if (recognitionResponse != null &&
                                 recognitionResponse.getRecognition() != null &&
                                 recognitionResponse.getRecognition().getData() != null &&
@@ -139,7 +139,7 @@ public class OcrInteractor {
                     });
             // TODO: Handle subsequent deletion of s3 file
         } else {
-            Logger.debug(OcrInteractor.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
+            Logger.debug(OcrManager.this, "Ignoring ocr scan of as: isFeatureEnabled = {}, isLoggedIn = {}, hasAvailableScans = {}.", ocrFeature.isEnabled(), identityManager.isLoggedIn(), ocrPurchaseTracker.hasAvailableScans());
             return Observable.just(new OcrResponse());
         }
     }

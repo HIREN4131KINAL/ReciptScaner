@@ -17,7 +17,7 @@ import java.io.FileNotFoundException;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.ErrorEvent;
 import co.smartreceipts.android.model.Trip;
-import co.smartreceipts.android.ocr.OcrInteractor;
+import co.smartreceipts.android.ocr.OcrManager;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.utils.log.Logger;
 import io.reactivex.Maybe;
@@ -39,22 +39,22 @@ public class ActivityFileResultImporter {
     private final FileImportProcessorFactory factory;
     private final Analytics analytics;
     private final ActivityImporterHeadlessFragment headlessFragment;
-    private final OcrInteractor ocrInteractor;
+    private final OcrManager ocrManager;
     private final Scheduler subscribeOnScheduler;
     private final Scheduler observeOnScheduler;
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull Trip trip,
-                                      @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull OcrInteractor ocrInteractor) {
-        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, ocrInteractor, Schedulers.io(), AndroidSchedulers.mainThread());
+                                      @NonNull PersistenceManager persistenceManager, @NonNull Analytics analytics, @NonNull OcrManager ocrManager) {
+        this(context, fragmentManager, new FileImportProcessorFactory(context, trip, persistenceManager), analytics, ocrManager, Schedulers.io(), AndroidSchedulers.mainThread());
     }
 
     public ActivityFileResultImporter(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull FileImportProcessorFactory factory,
-                                      @NonNull Analytics analytics, @NonNull OcrInteractor ocrInteractor,
+                                      @NonNull Analytics analytics, @NonNull OcrManager ocrManager,
                                       @NonNull Scheduler subscribeOnScheduler, @NonNull Scheduler observeOnScheduler) {
         this.context = Preconditions.checkNotNull(context.getApplicationContext());
         this.factory = Preconditions.checkNotNull(factory);
         this.analytics = Preconditions.checkNotNull(analytics);
-        this.ocrInteractor = Preconditions.checkNotNull(ocrInteractor);
+        this.ocrManager = Preconditions.checkNotNull(ocrManager);
         this.subscribeOnScheduler = Preconditions.checkNotNull(subscribeOnScheduler);
         this.observeOnScheduler = Preconditions.checkNotNull(observeOnScheduler);
         
@@ -81,7 +81,7 @@ public class ActivityFileResultImporter {
         headlessFragment.localDisposable = getSaveLocation(requestCode, resultCode, data, proposedImageSaveLocation)
                 .subscribeOn(subscribeOnScheduler)
                 .flatMapSingleElement(uri -> factory.get(requestCode).process(uri))
-                .flatMapObservable(file -> ocrInteractor.scan(file)
+                .flatMapObservable(file -> ocrManager.scan(file)
                         .map(ocrResponse -> new ActivityFileResultImporterResponse(file, ocrResponse, requestCode, resultCode)))
                 .doOnError(throwable -> {
                     Logger.error(ActivityFileResultImporter.this, "Failed to save import result", throwable);

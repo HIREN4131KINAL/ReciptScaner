@@ -109,7 +109,8 @@ public class OcrInteractorTest {
         when(recognition.getId()).thenReturn(ID);
         when(recognition.getData()).thenReturn(recognitionData);
         when(recognitionData.getRecognitionData()).thenReturn(ocrResponse);
-        when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME))).thenReturn(Observable.just(recognitionResponse));
+        when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false))).thenReturn(Observable.just(recognitionResponse));
+        when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, true))).thenReturn(Observable.just(recognitionResponse));
         when(pushMessageReceiver.getOcrPushResponse()).thenReturn(Observable.just(new Object()));
         when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.just(recognitionResponse));
         when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(false);
@@ -155,7 +156,7 @@ public class OcrInteractorTest {
 
     @Test
     public void scanButS3UploadFails() {
-        when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.<String>error(new Exception("test")));
+        when(s3Manager.upload(file, "ocr/")).thenReturn(Observable.error(new Exception("test")));
         ocrInteractor.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
@@ -191,7 +192,7 @@ public class OcrInteractorTest {
 
     @Test
     public void scanButRecognitionRequestFails() {
-        when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME))).thenReturn(Observable.<RecognitionResponse>error(new Exception("test")));
+        when(ocrService.scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false))).thenReturn(Observable.error(new Exception("test")));
         ocrInteractor.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
@@ -199,7 +200,7 @@ public class OcrInteractorTest {
         testObserver.onComplete();
         testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
-        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false));
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
         verify(ocrService, never()).getRecognitionResult(anyString());
@@ -216,7 +217,7 @@ public class OcrInteractorTest {
         testObserver.onComplete();
         testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
-        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false));
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
         verify(ocrService, never()).getRecognitionResult(anyString());
@@ -225,7 +226,7 @@ public class OcrInteractorTest {
 
     @Test
     public void scanButGetRecognitionResult() {
-        when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.<RecognitionResponse>error(new Exception("test")));
+        when(ocrService.getRecognitionResult(ID)).thenReturn(Observable.error(new Exception("test")));
         ocrInteractor.scan(file).subscribe(testObserver);
 
         testObserver.awaitTerminalEvent();
@@ -233,7 +234,7 @@ public class OcrInteractorTest {
         testObserver.onComplete();
         testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
-        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false));
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
     }
@@ -247,7 +248,22 @@ public class OcrInteractorTest {
         testObserver.onComplete();
         testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
-        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false));
+        verify(pushManager).registerReceiver(pushMessageReceiver);
+        verify(pushManager).unregisterReceiver(pushMessageReceiver);
+    }
+
+    @Test
+    public void scanCompletesWithIncognitoModeOn() {
+        when(userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode)).thenReturn(true);
+        ocrInteractor.scan(file).subscribe(testObserver);
+
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValue(ocrResponse);
+        testObserver.onComplete();
+        testObserver.assertNoErrors();
+        verify(s3Manager).upload(file, "ocr/");
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, true));
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
     }
@@ -262,7 +278,7 @@ public class OcrInteractorTest {
         testObserver.onComplete();
         testObserver.assertNoErrors();
         verify(s3Manager).upload(file, "ocr/");
-        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME));
+        verify(ocrService).scanReceipt(new RecongitionRequest("ocr/" + IMG_NAME, false));
         verify(pushManager).registerReceiver(pushMessageReceiver);
         verify(pushManager).unregisterReceiver(pushMessageReceiver);
     }

@@ -96,10 +96,9 @@ public class OcrInteractor {
                     })
                     .flatMap(s3Url -> {
                         Logger.debug(OcrInteractor.this, "Uploading OCR request for processing");
-                        final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
-                        // TODO: incognito
                         ocrProcessingStatusSubject.onNext(OcrProcessingStatus.PerformingScan);
-                        return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url));
+                        final boolean incognito = userPreferenceManager.get(UserPreference.Misc.OcrIncognitoMode);
+                        return ocrServiceManager.getService(OcrService.class).scanReceipt(new RecongitionRequest(s3Url, incognito));
                     })
                     .flatMap(recognitionResponse -> {
                         if (recognitionResponse != null && recognitionResponse.getRecognition() != null && recognitionResponse.getRecognition().getId() != null) {

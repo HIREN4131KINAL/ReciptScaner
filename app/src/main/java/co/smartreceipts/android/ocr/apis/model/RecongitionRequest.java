@@ -6,13 +6,15 @@ public class RecongitionRequest {
 
     private Recognition recognition;
 
-    public RecongitionRequest(@NonNull String s3Path) {
+    public RecongitionRequest(@NonNull String s3Path, boolean incognito) {
         this.recognition = new Recognition();
         this.recognition.s3_path = s3Path;
+        this.recognition.incognito = incognito;
     }
 
     public static class Recognition {
         private String s3_path;
+        private boolean incognito;
 
         @Override
         public boolean equals(Object o) {
@@ -21,13 +23,16 @@ public class RecongitionRequest {
 
             Recognition that = (Recognition) o;
 
+            if (incognito != that.incognito) return false;
             return s3_path != null ? s3_path.equals(that.s3_path) : that.s3_path == null;
 
         }
 
         @Override
         public int hashCode() {
-            return s3_path != null ? s3_path.hashCode() : 0;
+            int result = s3_path != null ? s3_path.hashCode() : 0;
+            result = 31 * result + (incognito ? 1 : 0);
+            return result;
         }
     }
 

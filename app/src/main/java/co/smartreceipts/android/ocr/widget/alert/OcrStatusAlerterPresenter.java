@@ -52,7 +52,7 @@ public class OcrStatusAlerterPresenter implements OldPresenter {
                     } else if (ocrProcessingStatus == OcrProcessingStatus.PerformingScan) {
                         setTextAndShow(R.string.ocr_status_message_performing_scan);
                     } else if (ocrProcessingStatus == OcrProcessingStatus.RetrievingResults) {
-                        // Intentional no-op
+                        setTextAndShow(R.string.ocr_status_message_fetching_results);
                     } else {
                         if (alert != null) {
                             alert.hide();
@@ -79,9 +79,9 @@ public class OcrStatusAlerterPresenter implements OldPresenter {
         if (alert == null) {
             alerter.setText(stringResId);
             alert = alerter.show();
+            alert.setEnableInfiniteDuration(true);
         } else {
             alert.setText(stringResId);
-            alert.invalidate();
         }
     }
 }

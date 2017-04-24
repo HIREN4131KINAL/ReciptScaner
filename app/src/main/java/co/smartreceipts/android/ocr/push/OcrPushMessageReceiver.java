@@ -17,7 +17,7 @@ import io.reactivex.subjects.Subject;
 
 public class OcrPushMessageReceiver implements PushMessageReceiver {
 
-    private static final int TIMEOUT_SECONDS = 10;
+    private static final int TIMEOUT_SECONDS = 13;
 
     private final Subject<Object> pushResultSubject = PublishSubject.create();
     private final Scheduler subscribeOnScheduler;
@@ -34,9 +34,7 @@ public class OcrPushMessageReceiver implements PushMessageReceiver {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Observable.just(remoteMessage)
                 .subscribeOn(subscribeOnScheduler)
-                .map(message -> {
-                    return new Object();
-                })
+                .map(message -> new Object())
                 .subscribe(next -> {
                         pushResultSubject.onNext(next);
                         pushResultSubject.onComplete();

@@ -92,6 +92,7 @@
     <string name="ocr_status_title">Performing Scan (OCR):</string>
     <string name="ocr_status_message_uploading_image">Uploading Receipt&#8230;</string>
     <string name="ocr_status_message_performing_scan">Scanning for Receipt Metadata&#8230;</string>
+    <string name="ocr_status_message_fetching_results">Fetching Results&#8230;</string>
     <string name="ocr_configuration_title">Automatic Scans (OCR)</string>
     <string name="ocr_configuration_scans_remaining">OCR Scans Remaining: %d</string>
     <string name="ocr_configuration_my_account">%s</string>

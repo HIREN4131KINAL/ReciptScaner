@@ -1,5 +1,6 @@
 package co.smartreceipts.android.model;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.google.common.base.Preconditions;

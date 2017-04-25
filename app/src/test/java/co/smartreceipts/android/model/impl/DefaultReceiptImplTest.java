@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 import java.sql.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.DefaultObjects;
@@ -21,6 +23,7 @@ import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.utils.TestLocaleToggler;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -67,6 +70,7 @@ public class DefaultReceiptImplTest {
 
     @Before
     public void setUp() throws Exception {
+        TestLocaleToggler.setDefaultLocale(Locale.US);
         mTrip = DefaultObjects.newDefaultTrip();
         mFile = new File(new File("").getAbsolutePath());
         mPaymentMethod = DefaultObjects.newDefaultPaymentMethod();
@@ -75,6 +79,11 @@ public class DefaultReceiptImplTest {
         mTax = DefaultObjects.newDefaultTax();
         mSyncState = DefaultObjects.newDefaultSyncState();
         mReceipt = new DefaultReceiptImpl(ID, INDEX, mTrip, mFile, mPaymentMethod, NAME, mCategory, COMMENT, mPrice, mTax, DATE, TIMEZONE, REIMBURSABLE, FULL_PAGE, IS_SELECTED, Source.Undefined, EXTRA1, EXTRA2, EXTRA3, mSyncState);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TestLocaleToggler.resetDefaultLocale();
     }
 
     @Test

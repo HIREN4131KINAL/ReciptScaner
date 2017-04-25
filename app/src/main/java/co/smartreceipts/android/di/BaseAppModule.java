@@ -4,8 +4,8 @@ import android.content.Context;
 
 import co.smartreceipts.android.SmartReceiptsApplication;
 import co.smartreceipts.android.apis.gson.SmartReceiptsGsonBuilder;
-import co.smartreceipts.android.apis.hosts.BetaSmartReceiptsHostConfiguration;
 import co.smartreceipts.android.apis.hosts.ServiceManager;
+import co.smartreceipts.android.apis.hosts.SmartReceiptsHostConfiguration;
 import co.smartreceipts.android.config.ConfigurationManager;
 import co.smartreceipts.android.config.DefaultConfigurationManager;
 import co.smartreceipts.android.di.scopes.ApplicationScope;
@@ -97,7 +97,7 @@ public class BaseAppModule {
     @ApplicationScope
     public static ServiceManager provideServiceManager(MutableIdentityStore mutableIdentityStore,
                                                        ReceiptColumnDefinitions receiptColumnDefinitions) {
-        return new ServiceManager(new BetaSmartReceiptsHostConfiguration(mutableIdentityStore,
+        return new ServiceManager(new SmartReceiptsHostConfiguration(mutableIdentityStore,
                 new SmartReceiptsGsonBuilder(receiptColumnDefinitions)));
     }
 }

@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
 import java.sql.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +22,7 @@ import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.Source;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.utils.TestLocaleToggler;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -55,8 +58,14 @@ public class DefaultTripImplTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        TestLocaleToggler.setDefaultLocale(Locale.US);
         mSyncState = DefaultObjects.newDefaultSyncState();
         mTrip = new DefaultTripImpl(DIRECTORY, START_DATE, START_TIMEZONE, END_DATE, END_TIMEZONE, CURRENCY, COMMENT, COST_CENTER, Source.Undefined, mSyncState);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TestLocaleToggler.resetDefaultLocale();
     }
 
     @Test

@@ -1,17 +1,31 @@
 package co.smartreceipts.android.model;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
+import co.smartreceipts.android.utils.TestLocaleToggler;
 import co.smartreceipts.android.utils.TestUtils;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
 public class TaxItemTest {
+
+    @Before
+    public void setUp() throws Exception {
+        TestLocaleToggler.setDefaultLocale(Locale.US);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TestLocaleToggler.resetDefaultLocale();
+    }
 
     @Test
     public void constructionTest() {

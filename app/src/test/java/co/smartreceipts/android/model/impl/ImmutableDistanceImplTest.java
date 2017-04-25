@@ -2,6 +2,7 @@ package co.smartreceipts.android.model.impl;
 
 import android.os.Parcel;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import co.smartreceipts.android.DefaultObjects;
@@ -17,6 +19,7 @@ import co.smartreceipts.android.model.Distance;
 import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.Trip;
 import co.smartreceipts.android.sync.model.SyncState;
+import co.smartreceipts.android.utils.TestLocaleToggler;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -49,9 +52,15 @@ public class ImmutableDistanceImplTest {
 
     @Before
     public void setUp() throws Exception {
+        TestLocaleToggler.setDefaultLocale(Locale.US);
         mTrip = DefaultObjects.newDefaultTrip();
         mSyncState = DefaultObjects.newDefaultSyncState();
         mDistance = new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, RATE, CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TestLocaleToggler.resetDefaultLocale();
     }
 
     @Test
@@ -96,12 +105,12 @@ public class ImmutableDistanceImplTest {
 
     @Test
     public void getDecimalFormattedRate() {
-        assertEquals("0.330",mDistance.getDecimalFormattedRate());
+        assertEquals("0.330", mDistance.getDecimalFormattedRate());
     }
 
     @Test
     public void getCurrencyFormattedRate() {
-        assertEquals("$0.33",mDistance.getCurrencyFormattedRate());
+        assertEquals("$0.33", mDistance.getCurrencyFormattedRate());
     }
 
     @Test

@@ -1,7 +1,7 @@
 package co.smartreceipts.android.model;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.common.base.Preconditions;
 
@@ -99,5 +99,10 @@ public final class PriceCurrency {
     @Override
     public int hashCode() {
         return mCurrencyCode.hashCode();
+    }
+
+    @VisibleForTesting
+    public static void clearStaticCachesForTesting() {
+        sCurrencyMap.clear();
     }
 }

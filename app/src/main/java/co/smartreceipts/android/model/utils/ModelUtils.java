@@ -3,6 +3,7 @@ package co.smartreceipts.android.model.utils;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import java.math.BigDecimal;
@@ -150,5 +151,10 @@ public class ModelUtils {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    @VisibleForTesting
+    public static void clearStaticCachesForTesting() {
+        sDecimalFormatCache.clear();
     }
 }

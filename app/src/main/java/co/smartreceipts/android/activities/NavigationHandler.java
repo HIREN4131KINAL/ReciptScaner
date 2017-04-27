@@ -79,6 +79,11 @@ public class NavigationHandler {
         }
     }
 
+    public void navigateToReportInfoFragmentWithoutBackStack(@NonNull Trip trip) {
+        mFragmentManager.popBackStackImmediate();
+        navigateToReportInfoFragment(trip);
+    }
+
     public void navigateToCreateNewReceiptFragment(@NonNull Trip trip, @Nullable File file, @Nullable OcrResponse ocrResponse) {
         if (mIsDualPane) {
             replaceFragmentWithAnimation(mFragmentProvider.newCreateReceiptFragment(trip, file, ocrResponse), R.id.content_details, R.anim.enter_from_bottom, DO_NOT_ANIM);
@@ -241,7 +246,10 @@ public class NavigationHandler {
             if (enterAnimId >= 0 && exitAnimId >= 0) {
                 transaction.setCustomAnimations(enterAnimId, exitAnimId);
             }
-            transaction.replace(layoutResId, fragment, tag).addToBackStack(tag).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
+            transaction.replace(layoutResId, fragment, tag)
+                    .addToBackStack(tag)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
         }
     }
 }

@@ -28,7 +28,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import co.smartreceipts.android.R;
-import co.smartreceipts.android.activities.DaggerFragmentNavigationHandler;
 import co.smartreceipts.android.analytics.Analytics;
 import co.smartreceipts.android.analytics.events.Events;
 import co.smartreceipts.android.identity.store.EmailAddress;
@@ -36,7 +35,6 @@ import co.smartreceipts.android.purchases.model.AvailablePurchase;
 import co.smartreceipts.android.utils.log.Logger;
 import dagger.android.support.AndroidSupportInjection;
 import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 
 public class OcrConfigurationFragment extends Fragment implements OcrConfigurationView {
@@ -130,13 +128,13 @@ public class OcrConfigurationFragment extends Fragment implements OcrConfigurati
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        presenter.onResume();
+        presenter.subscribe();
     }
 
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        presenter.onPause();
+        presenter.unsubscribe();
         super.onPause();
     }
 

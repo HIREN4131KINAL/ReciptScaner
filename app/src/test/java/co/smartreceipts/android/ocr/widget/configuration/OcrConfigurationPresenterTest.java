@@ -63,7 +63,7 @@ public class OcrConfigurationPresenterTest {
 
     @Test
     public void onResume() throws Exception {
-        ocrConfigurationPresenter.onResume();
+        ocrConfigurationPresenter.subscribe();
 
         // Presents Email
         verify(view).present(emailAddress);

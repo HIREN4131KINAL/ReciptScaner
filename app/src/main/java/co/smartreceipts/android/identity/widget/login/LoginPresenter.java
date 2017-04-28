@@ -36,7 +36,7 @@ public class LoginPresenter extends BasePresenter<LoginView, LoginInteractor> {
     }
 
     @Override
-    public void onResume() {
+    public void subscribe() {
         compositeDisposable.add(Observable.concat(
                 interactor.getLastUserCredentialsPayload().toObservable(), // Start by emitting our previous request
                 Observable.merge( // Next, get the stream of clicks as payloads for the ongoing stream

@@ -20,7 +20,7 @@ public abstract class BasePresenter<ViewType, InteractorType> implements Present
 
     @Override
     @CallSuper
-    public void onPause() {
+    public void unsubscribe() {
         compositeDisposable.clear();
     }
 }

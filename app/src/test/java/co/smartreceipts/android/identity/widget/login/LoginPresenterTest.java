@@ -68,7 +68,7 @@ public class LoginPresenterTest {
     @Test
     public void onResumeRestoresCachedPayload() {
         when(interactor.getLastUserCredentialsPayload()).thenReturn(Maybe.just(userCredentialsPayload));
-        presenter.onResume();
+        presenter.subscribe();
 
         verify(view).present(UiIndicator.idle());
         verify(view).present(uiIndicator);
@@ -79,7 +79,7 @@ public class LoginPresenterTest {
     public void onResumeRestoresCachedPayloadAndConsumesResultsOnSuccess() {
         when(uiIndicator.getState()).thenReturn(UiIndicator.State.Succcess);
         when(interactor.getLastUserCredentialsPayload()).thenReturn(Maybe.just(userCredentialsPayload));
-        presenter.onResume();
+        presenter.subscribe();
 
         verify(view).present(UiIndicator.idle());
         verify(view).present(uiIndicator);
@@ -90,7 +90,7 @@ public class LoginPresenterTest {
     public void onResumeRestoresCachedPayloadAndConsumesResultsOnError() {
         when(uiIndicator.getState()).thenReturn(UiIndicator.State.Error);
         when(interactor.getLastUserCredentialsPayload()).thenReturn(Maybe.just(userCredentialsPayload));
-        presenter.onResume();
+        presenter.subscribe();
 
         verify(view).present(UiIndicator.idle());
         verify(view).present(uiIndicator);
@@ -100,7 +100,7 @@ public class LoginPresenterTest {
     @Test
     public void loginClickStartsLogin() {
         when(view.getLoginButtonClicks()).thenReturn(Observable.just(new Object()));
-        presenter.onResume();
+        presenter.subscribe();
 
         verify(interactor).loginOrSignUp(userCredentialsPayloadCaptor.capture());
         verify(view).present(UiIndicator.idle());
@@ -112,7 +112,7 @@ public class LoginPresenterTest {
     @Test
     public void signUpClickStartsSignUp() {
         when(view.getSignUpButtonClicks()).thenReturn(Observable.just(new Object()));
-        presenter.onResume();
+        presenter.subscribe();
 
         verify(interactor).loginOrSignUp(userCredentialsPayloadCaptor.capture());
         verify(view).present(UiIndicator.idle());
@@ -124,27 +124,27 @@ public class LoginPresenterTest {
     @Test
     public void shortPasswordsAreInvalid() {
         when(view.getPasswordTextChanges()).thenReturn(Observable.just("*"));
-        presenter.onResume();
+        presenter.subscribe();
         verify(view).present(new UiInputValidationIndicator(context.getString(R.string.login_fields_hint_password), true, false));
     }
 
     @Test
     public void emailsWithoutAtSymbolAreInvalid() {
         when(view.getEmailTextChanges()).thenReturn(Observable.just(".email."));
-        presenter.onResume();
+        presenter.subscribe();
         verify(view).present(new UiInputValidationIndicator(context.getString(R.string.login_fields_hint_email), false, true));
     }
 
     @Test
     public void emailsWithoutDotSymbolAreInvalid() {
         when(view.getEmailTextChanges()).thenReturn(Observable.just("email@@@email"));
-        presenter.onResume();
+        presenter.subscribe();
         verify(view).present(new UiInputValidationIndicator(context.getString(R.string.login_fields_hint_email), false, true));
     }
 
     @Test
     public void validCredentialsAreHintingForLogin() {
-        presenter.onResume();
+        presenter.subscribe();
         verify(view).present(new UiInputValidationIndicator(context.getString(R.string.login_fields_hint_valid), true, true));
     }
 

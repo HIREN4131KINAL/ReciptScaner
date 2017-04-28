@@ -15,7 +15,7 @@ public class OcrConfigurationPresenter extends BasePresenter<OcrConfigurationVie
     }
 
     @Override
-    public void onResume() {
+    public void subscribe() {
         view.present(interactor.getEmail());
 
         // Set the current checkbox value

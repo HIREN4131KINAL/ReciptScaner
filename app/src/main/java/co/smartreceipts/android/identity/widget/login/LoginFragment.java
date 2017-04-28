@@ -133,13 +133,13 @@ public class LoginFragment extends Fragment implements LoginView {
             actionBar.setSubtitle("");
         }
 
-        this.presenter.onResume();
+        this.presenter.subscribe();
     }
 
     @Override
     public void onPause() {
         Logger.debug(this, "onPause");
-        this.presenter.onPause();
+        this.presenter.unsubscribe();
         super.onPause();
     }
 

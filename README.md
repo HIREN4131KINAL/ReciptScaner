@@ -39,7 +39,7 @@ The free and plus versions versions are identical, except the plus version offer
 - [X] Generate PDF, CSV, & ZIP reports
 - [X] Fully customizable report output
 - [X] Automatic backup support via Google Drive
-- [ ] OCR support for receipt scans
+- [X] OCR support for receipt scans
 - [ ] Graphical breakdowns of spending per category
 
 ## Install 

@@ -46,7 +46,12 @@ public final class PriceCurrency {
 
     @NonNull
     public static PriceCurrency getDefaultCurrency() {
-        return PriceCurrency.getInstance(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+        try {
+            return PriceCurrency.getInstance(Currency.getInstance(Locale.getDefault()).getCurrencyCode());
+        } catch (IllegalArgumentException e) {
+            Logger.warn(PriceCurrency.class, "Unable to find a default currency, since the device has an unsupported ISO 3166 locale. Returning USD instead");
+            return PriceCurrency.getInstance("USD");
+        }
     }
 
     private PriceCurrency(@NonNull String currencyCode) {

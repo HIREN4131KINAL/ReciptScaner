@@ -25,6 +25,7 @@ import co.smartreceipts.android.sync.model.impl.DefaultSyncState;
  */
 public final class ImmutableDistanceImpl implements Distance {
 
+    private static final int DEFAULT_RATE_DECIMAL_PRECISION = 3;
     private static final int ROUNDING_PRECISION = RATE_PRECISION + 2;
 
     private final int mId;
@@ -48,7 +49,9 @@ public final class ImmutableDistanceImpl implements Distance {
         mLocation = location;
         mDistance = distance.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
         mRate = rate.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
-        mPrice = new PriceBuilderFactory().setCurrency(currency).setPrice(distance.multiply(rate)).build();
+
+        final int precision = ModelUtils.getDecimalFormattedValue(distance.multiply(rate), DEFAULT_RATE_DECIMAL_PRECISION).endsWith("0") ? Price.DEFAULT_DECIMAL_PRECISION : DEFAULT_RATE_DECIMAL_PRECISION;
+        mPrice = new PriceBuilderFactory().setCurrency(currency).setPrice(distance.multiply(rate)).setDecimalPrecision(precision).build();
         mDate = date;
         mTimezone = timeZone;
         mComment = comment;
@@ -117,12 +120,13 @@ public final class ImmutableDistanceImpl implements Distance {
 
     @Override
     public String getDecimalFormattedRate() {
-        return ModelUtils.getDecimalFormattedValue(mRate, 3);
+        return ModelUtils.getDecimalFormattedValue(mRate, DEFAULT_RATE_DECIMAL_PRECISION);
     }
 
     @Override
     public String getCurrencyFormattedRate() {
-        return ModelUtils.getCurrencyFormattedValue(mRate, mPrice.getCurrency());
+        final int precision = getDecimalFormattedRate().endsWith("0") ? Price.DEFAULT_DECIMAL_PRECISION : DEFAULT_RATE_DECIMAL_PRECISION;
+        return ModelUtils.getCurrencyFormattedValue(mRate, mPrice.getCurrency(), precision);
     }
 
     @NonNull

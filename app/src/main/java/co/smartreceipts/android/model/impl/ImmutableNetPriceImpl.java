@@ -26,7 +26,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public final class ImmutableNetPriceImpl extends AbstractPriceImpl {
 
-    private static final int ROUNDING_PRECISION = PRECISION + 2;
+    private static final int ROUNDING_PRECISION = Price.ROUNDING_PRECISION + 2;
 
     private final List<Price> mPrices;
     private final Map<PriceCurrency, BigDecimal> mCurrencyToPriceMap;

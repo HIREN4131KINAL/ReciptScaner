@@ -12,7 +12,16 @@ import co.smartreceipts.android.model.gson.ExchangeRate;
  */
 public interface Price extends Parcelable {
 
-    int PRECISION = 5;
+    /**
+     * The default decimal precisions for prices (ie two decimal points) like "$2.22" instead of "$2.22222"
+     */
+    int DEFAULT_DECIMAL_PRECISION = 2;
+
+    /**
+     * Defines the default precision rate that we use for rounding off our multiplied values (in
+     * conjunction with the exchange rates)
+     */
+    int ROUNDING_PRECISION = 5;
 
     /**
      * Gets the float representation of this price

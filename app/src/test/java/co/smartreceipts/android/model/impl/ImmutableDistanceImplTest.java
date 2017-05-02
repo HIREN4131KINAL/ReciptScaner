@@ -114,6 +114,12 @@ public class ImmutableDistanceImplTest {
     }
 
     @Test
+    public void getCurrencyFormattedRateFor3DigitPrecisionRate() {
+        final Distance distance = new ImmutableDistanceImpl(ID, mTrip, LOCATION, DISTANCE, new BigDecimal(0.535), CURRENCY, DATE, TIMEZONE, COMMENT, mSyncState);
+        assertEquals("$0.535", distance.getCurrencyFormattedRate());
+    }
+
+    @Test
     public void getComment() {
         assertEquals(COMMENT, mDistance.getComment());
     }

@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.factory.ExchangeRateBuilderFactory;
 import co.smartreceipts.android.model.gson.ExchangeRate;
@@ -22,7 +23,7 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public class LegacyTripPriceImpl extends AbstractPriceImpl {
 
-    private static final int ROUNDING_PRECISION = PRECISION + 2;
+    private static final int ROUNDING_PRECISION = Price.ROUNDING_PRECISION + 2;
 
     private final BigDecimal mPrice;
     private final PriceCurrency mCurrency;

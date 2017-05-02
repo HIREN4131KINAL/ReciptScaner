@@ -49,6 +49,8 @@ import co.smartreceipts.android.ocr.widget.alert.OcrStatusAlerterPresenter;
 import co.smartreceipts.android.persistence.PersistenceManager;
 import co.smartreceipts.android.persistence.database.controllers.ReceiptTableEventsListener;
 import co.smartreceipts.android.persistence.database.controllers.impl.ReceiptTableController;
+import co.smartreceipts.android.persistence.database.controllers.impl.StubTableEventsListener;
+import co.smartreceipts.android.persistence.database.controllers.impl.TripTableController;
 import co.smartreceipts.android.persistence.database.operations.DatabaseOperationMetadata;
 import co.smartreceipts.android.sync.BackupProvidersManager;
 import co.smartreceipts.android.utils.log.Logger;
@@ -78,6 +80,9 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     Analytics analytics;
 
     @Inject
+    TripTableController tripTableController;
+
+    @Inject
     ReceiptTableController receiptTableController;
 
     @Inject
@@ -102,6 +107,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     private CompositeDisposable compositeDisposable;
 
     private OcrStatusAlerterPresenter ocrStatusAlerterPresenter;
+    private ActionBarSubtitleUpdatesListener actionBarSubtitleUpdatesListener = new ActionBarSubtitleUpdatesListener();
 
     @Override
     public void onAttach(Context context) {
@@ -200,6 +206,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         super.onResume();
         Logger.debug(this, "onResume");
         compositeDisposable = new CompositeDisposable();
+        tripTableController.subscribe(actionBarSubtitleUpdatesListener);
         receiptTableController.subscribe(this);
         receiptTableController.get(trip);
         compositeDisposable.add(activityFileResultImporter.getResultStream()
@@ -244,6 +251,7 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
         ocrStatusAlerterPresenter.onPause();
         floatingActionMenu.close(false);
         receiptTableController.unsubscribe(this);
+        tripTableController.unsubscribe(actionBarSubtitleUpdatesListener);
         compositeDisposable.dispose();
         compositeDisposable = null;
         super.onPause();
@@ -509,7 +517,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
             }
 
             receiptTableController.get(trip);
-            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
 
@@ -524,7 +531,6 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public void onDeleteSuccess(@NonNull Receipt receipt, @NonNull DatabaseOperationMetadata databaseOperationMetadata) {
         if (isAdded()) {
             receiptTableController.get(trip);
-            ReceiptsListFragment.this.updateActionBarTitle(getUserVisibleHint());
         }
     }
 
@@ -572,6 +578,16 @@ public class ReceiptsListFragment extends ReceiptsFragment implements ReceiptTab
     public void onMoveFailure(@NonNull Receipt oldReceipt, @Nullable Throwable e) {
         if (isAdded()) {
             Toast.makeText(getActivity(), getFlexString(R.string.MOVE_ERROR), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class ActionBarSubtitleUpdatesListener extends StubTableEventsListener<Trip> {
+
+        @Override
+        public void onGetSuccess(@NonNull List<Trip> list) {
+            if (isAdded()) {
+                updateActionBarTitle(getUserVisibleHint());
+            }
         }
     }
 

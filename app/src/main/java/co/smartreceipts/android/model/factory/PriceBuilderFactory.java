@@ -23,90 +23,106 @@ import co.smartreceipts.android.model.utils.ModelUtils;
  */
 public final class PriceBuilderFactory implements BuilderFactory<Price> {
 
-    private BigDecimal mPriceDecimal;
-    private ExchangeRate mExchangeRate;
-    private PriceCurrency mCurrency;
-    private List<Priceable> mPriceables;
-    private List<Price> mPrices;
+    private BigDecimal priceDecimal;
+    private ExchangeRate exchangeRate;
+    private PriceCurrency currency;
+    private List<Priceable> priceables;
+    private List<Price> prices;
+    private int decimalPrecision = Price.DEFAULT_DECIMAL_PRECISION;
 
+    @NonNull
     public PriceBuilderFactory setPrice(Price price) {
-        mPriceDecimal = price.getPrice();
-        mCurrency = price.getCurrency();
-        mExchangeRate = price.getExchangeRate();
+        priceDecimal = price.getPrice();
+        currency = price.getCurrency();
+        exchangeRate = price.getExchangeRate();
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setPrice(String price) {
-        mPriceDecimal = ModelUtils.tryParse(price);
+        priceDecimal = ModelUtils.tryParse(price);
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setPrice(double price) {
-        mPriceDecimal = new BigDecimal(price);
+        priceDecimal = new BigDecimal(price);
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setPrice(BigDecimal price) {
-        mPriceDecimal = price;
+        priceDecimal = price;
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setCurrency(PriceCurrency currency) {
-        mCurrency = currency;
+        this.currency = currency;
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setCurrency(String currencyCode) {
-        mCurrency = PriceCurrency.getInstance(currencyCode);
+        currency = PriceCurrency.getInstance(currencyCode);
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setExchangeRate(ExchangeRate exchangeRate) {
-        mExchangeRate = exchangeRate;
+        this.exchangeRate = exchangeRate;
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setPrices(@NonNull List<? extends Price> prices, @Nullable PriceCurrency desiredCurrency) {
-        mPrices = new ArrayList<>(prices);
-        mCurrency = desiredCurrency;
+        this.prices = new ArrayList<>(prices);
+        currency = desiredCurrency;
         return this;
     }
 
+    @NonNull
     public PriceBuilderFactory setPriceables(@NonNull List<? extends Priceable> priceables, @Nullable PriceCurrency desiredCurrency) {
-        mPriceables = new ArrayList<>(priceables);
-        mCurrency = desiredCurrency;
+        this.priceables = new ArrayList<>(priceables);
+        currency = desiredCurrency;
+        return this;
+    }
+
+    @NonNull
+    public PriceBuilderFactory setDecimalPrecision(int decimalPrecision) {
+        this.decimalPrecision = decimalPrecision;
         return this;
     }
 
     @NonNull
     @Override
     public Price build() {
-        if (mPrices != null && !mPrices.isEmpty()) {
-            if (mCurrency != null) {
-                return new ImmutableNetPriceImpl(mCurrency, mPrices);
+        if (prices != null && !prices.isEmpty()) {
+            if (currency != null) {
+                return new ImmutableNetPriceImpl(currency, prices);
             } else {
-                return new ImmutableLegacyNetPriceImpl(mPrices);
+                return new ImmutableLegacyNetPriceImpl(prices);
             }
         }
-        else if (mPriceables != null && !mPriceables.isEmpty()) {
-            final int size = mPriceables.size();
+        else if (priceables != null && !priceables.isEmpty()) {
+            final int size = priceables.size();
             final ArrayList<Price> actualPrices = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                actualPrices.add(mPriceables.get(i).getPrice());
+                actualPrices.add(priceables.get(i).getPrice());
             }
-            if (mCurrency != null) {
-                return new ImmutableNetPriceImpl(mCurrency, actualPrices);
+            if (currency != null) {
+                return new ImmutableNetPriceImpl(currency, actualPrices);
             } else {
                 return new ImmutableLegacyNetPriceImpl(actualPrices);
             }
         }
         else {
-            final BigDecimal price = mPriceDecimal != null ? mPriceDecimal : new BigDecimal(0);
-            if (mCurrency != null) {
-                if (mExchangeRate != null) {
-                    return new ImmutablePriceImpl(price, mCurrency, mExchangeRate);
+            final BigDecimal price = priceDecimal != null ? priceDecimal : new BigDecimal(0);
+            if (currency != null) {
+                if (exchangeRate != null) {
+                    return new ImmutablePriceImpl(price, currency, exchangeRate, decimalPrecision);
                 } else {
-                    return new ImmutablePriceImpl(price, mCurrency, new ExchangeRateBuilderFactory().setBaseCurrency(mCurrency).build());
+                    return new ImmutablePriceImpl(price, currency, new ExchangeRateBuilderFactory().setBaseCurrency(currency).build(), decimalPrecision);
                 }
             }
             else {

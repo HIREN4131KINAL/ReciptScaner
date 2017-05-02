@@ -6,80 +6,87 @@ import android.support.annotation.NonNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.PriceCurrency;
 import co.smartreceipts.android.model.gson.ExchangeRate;
 import co.smartreceipts.android.model.utils.ModelUtils;
 
 /**
  * Defines an immutable implementation of the {@link co.smartreceipts.android.model.Price} interface
- *
- * @author williambaumann
  */
 public final class ImmutablePriceImpl extends AbstractPriceImpl {
 
-    private static final int ROUNDING_PRECISION = PRECISION + 2;
+    private static final int ROUNDING_PRECISION = Price.ROUNDING_PRECISION + 2;
 
-    private final BigDecimal mPrice;
-    private final PriceCurrency mCurrency;
-    private final ExchangeRate mExchangeRate;
+    private final BigDecimal price;
+    private final PriceCurrency currency;
+    private final ExchangeRate exchangeRate;
+    private final int decimalPrecision;
 
     public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull PriceCurrency currency, @NonNull ExchangeRate exchangeRate) {
-        mPrice = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
-        mCurrency = currency;
-        mExchangeRate = exchangeRate;
+        this(price, currency, exchangeRate, Price.DEFAULT_DECIMAL_PRECISION);
+    }
+
+    public ImmutablePriceImpl(@NonNull BigDecimal price, @NonNull PriceCurrency currency, @NonNull ExchangeRate exchangeRate,
+                              int decimalPrecision) {
+        this.price = price.setScale(ROUNDING_PRECISION, RoundingMode.HALF_UP);
+        this.currency = currency;
+        this.exchangeRate = exchangeRate;
+        this.decimalPrecision = decimalPrecision;
     }
 
     private ImmutablePriceImpl(@NonNull Parcel in) {
-        this.mPrice = new BigDecimal(in.readFloat());
-        this.mCurrency = PriceCurrency.getInstance(in.readString());
-        this.mExchangeRate = (ExchangeRate) in.readSerializable();
+        this.price = new BigDecimal(in.readFloat());
+        this.currency = PriceCurrency.getInstance(in.readString());
+        this.exchangeRate = (ExchangeRate) in.readSerializable();
+        this.decimalPrecision = in.readInt();
     }
 
     @Override
     public float getPriceAsFloat() {
-        return mPrice.floatValue();
+        return price.floatValue();
     }
 
     @Override
     @NonNull
     public BigDecimal getPrice() {
-        return mPrice;
+        return price;
     }
 
     @Override
     @NonNull
     public String getDecimalFormattedPrice() {
-        return ModelUtils.getDecimalFormattedValue(mPrice);
+        return ModelUtils.getDecimalFormattedValue(price, decimalPrecision);
     }
 
     @Override
     @NonNull
     public String getCurrencyFormattedPrice() {
-        return ModelUtils.getCurrencyFormattedValue(mPrice, mCurrency);
+        return ModelUtils.getCurrencyFormattedValue(price, currency, decimalPrecision);
     }
 
     @NonNull
     @Override
     public String getCurrencyCodeFormattedPrice() {
-        return ModelUtils.getCurrencyCodeFormattedValue(mPrice, mCurrency);
+        return ModelUtils.getCurrencyCodeFormattedValue(price, currency, decimalPrecision);
     }
 
     @Override
     @NonNull
     public PriceCurrency getCurrency() {
-        return mCurrency;
+        return currency;
     }
 
     @Override
     @NonNull
     public String getCurrencyCode() {
-        return mCurrency.getCurrencyCode();
+        return currency.getCurrencyCode();
     }
 
     @NonNull
     @Override
     public ExchangeRate getExchangeRate() {
-        return mExchangeRate;
+        return exchangeRate;
     }
 
     @Override
@@ -96,7 +103,8 @@ public final class ImmutablePriceImpl extends AbstractPriceImpl {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeFloat(getPriceAsFloat());
         dest.writeString(getCurrencyCode());
-        dest.writeSerializable(mExchangeRate);
+        dest.writeSerializable(exchangeRate);
+        dest.writeInt(decimalPrecision);
     }
 
     public static final Creator<ImmutablePriceImpl> CREATOR = new Creator<ImmutablePriceImpl>() {

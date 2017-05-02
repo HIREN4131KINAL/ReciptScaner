@@ -27,11 +27,19 @@ public class PriceCurrencyTest {
     }
 
     @Test
-    public void testUSDCurrencyI() {
+    public void testUSDCurrency() {
         TestLocaleToggler.setDefaultLocale(Locale.US);
         final PriceCurrency currency = PriceCurrency.getInstance("USD");
         assertEquals("USD", currency.getCurrencyCode());
-        assertEquals("$1.25", currency.format(new BigDecimal(1.25)));
+        assertEquals("$1.25", currency.format(new BigDecimal(1.25123), 2));
+    }
+
+    @Test
+    public void testUSDCurrencyWith3PrecisionPoints() {
+        TestLocaleToggler.setDefaultLocale(Locale.US);
+        final PriceCurrency currency = PriceCurrency.getInstance("USD");
+        assertEquals("USD", currency.getCurrencyCode());
+        assertEquals("$1.251", currency.format(new BigDecimal(1.25123), 3));
     }
 
     @Test
@@ -39,7 +47,7 @@ public class PriceCurrencyTest {
         TestLocaleToggler.setDefaultLocale(Locale.US);
         final PriceCurrency currency = PriceCurrency.getInstance("ZZZ");
         assertEquals("ZZZ", currency.getCurrencyCode());
-        assertEquals("ZZZ1.25", currency.format(new BigDecimal(1.25)));
+        assertEquals("ZZZ1.25", currency.format(new BigDecimal(1.25123), 2));
     }
 
 }

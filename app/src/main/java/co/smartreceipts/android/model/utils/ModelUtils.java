@@ -14,6 +14,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import co.smartreceipts.android.date.DateUtils;
+import co.smartreceipts.android.model.Price;
 import co.smartreceipts.android.model.PriceCurrency;
 
 /**
@@ -69,7 +70,7 @@ public class ModelUtils {
      */
     @NonNull
     public static String getDecimalFormattedValue(@NonNull BigDecimal decimal) {
-        return getDecimalFormattedValue(decimal, 2);
+        return getDecimalFormattedValue(decimal, Price.DEFAULT_DECIMAL_PRECISION);
     }
 
     /**
@@ -96,17 +97,43 @@ public class ModelUtils {
 
     /**
      * The "currency-formatted" value, which would appear as "$25.20" or "$25,20" as determined by the user's locale.
+     * By default, this assumes a decimal precision of {@link Price#DEFAULT_DECIMAL_PRECISION}
      *
      * @param decimal  - the {@link BigDecimal} to format
      * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(BigDecimal)}
      * @return - the currency formatted price {@link String}
      */
     public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
+        return getCurrencyFormattedValue(decimal, currency, Price.DEFAULT_DECIMAL_PRECISION);
+    }
+
+    /**
+     * The "currency-formatted" value, which would appear as "$25.20" or "$25,20" as determined by the user's locale.
+     *
+     * @param decimal  - the {@link BigDecimal} to format
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(BigDecimal)}
+     * @param decimalPrecision - the desired decimal precision to use (eg 2 => "$25.20", 3 => "$25.200")
+     * @return - the currency formatted price {@link String}
+     */
+    public static String getCurrencyFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency,
+                                                   int decimalPrecision) {
         if (currency != null) {
-            return currency.format(decimal);
+            return currency.format(decimal, decimalPrecision);
         } else {
-            return getDecimalFormattedValue(decimal);
+            return getDecimalFormattedValue(decimal, decimalPrecision);
         }
+    }
+
+    /**
+     * The "currency-code-formatted" value, which would appear as "USD25.20" or "USD25,20" as determined by the user's locale.
+     * By default, this assumes a decimal precision of {@link Price#DEFAULT_DECIMAL_PRECISION}
+     *
+     * @param decimal  - the {@link BigDecimal} to format
+     * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(BigDecimal)}
+     * @return - the currency formatted price {@link String}
+     */
+    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
+        return getCurrencyCodeFormattedValue(decimal, currency, Price.DEFAULT_DECIMAL_PRECISION);
     }
 
     /**
@@ -114,14 +141,16 @@ public class ModelUtils {
      *
      * @param decimal  - the {@link BigDecimal} to format
      * @param currency - the {@link PriceCurrency} to use. If this is {@code null}, return {@link #getDecimalFormattedValue(BigDecimal)}
+     * @param decimalPrecision - the desired decimal precision to use (eg 2 => "USD25.20", 3 => "USD25.200")
      * @return - the currency formatted price {@link String}
      */
-    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency) {
+    public static String getCurrencyCodeFormattedValue(@NonNull BigDecimal decimal, @Nullable PriceCurrency currency,
+                                                       int decimalPrecision) {
         final StringBuilder stringBuilder = new StringBuilder();
         if (currency != null) {
             stringBuilder.append(currency.getCurrencyCode());
         }
-        stringBuilder.append(getDecimalFormattedValue(decimal));
+        stringBuilder.append(getDecimalFormattedValue(decimal, decimalPrecision));
         return stringBuilder.toString();
     }
 

@@ -6,6 +6,7 @@ import android.support.annotation.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
@@ -29,7 +30,7 @@ public final class PriceCurrency {
     private Currency mCurrency;
 
     // Saved to reduce Memory Allocs for heavy calls
-    private NumberFormat numberFormat;
+    private final Map<Integer, NumberFormat> numberFormatCache = new ConcurrentHashMap<>();
 
     @NonNull
     public static PriceCurrency getInstance(@NonNull String currencyCode) {
@@ -73,13 +74,17 @@ public final class PriceCurrency {
     }
 
     @NonNull
-    public final String format(@NonNull BigDecimal price) {
+    public final String format(@NonNull BigDecimal price, int decimalPrecision) {
         try {
             if (mCurrency != null) {
+                NumberFormat numberFormat = numberFormatCache.get(decimalPrecision);
                 if (numberFormat == null) {
-                    // Just in time allocation for this member variable
                     numberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
                     numberFormat.setCurrency(mCurrency);
+                    numberFormat.setMaximumFractionDigits(decimalPrecision);
+                    numberFormat.setMinimumFractionDigits(decimalPrecision);
+                    numberFormat.setGroupingUsed(false);
+                    numberFormatCache.put(decimalPrecision, numberFormat);
                 }
                 return numberFormat.format(price.doubleValue());
             } else {

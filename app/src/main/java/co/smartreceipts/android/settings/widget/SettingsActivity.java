@@ -218,6 +218,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
+    protected void onPause() {
+        compositeDisposable.clear();
+        super.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
         purchaseManager.removeEventListener(this);
         super.onDestroy();

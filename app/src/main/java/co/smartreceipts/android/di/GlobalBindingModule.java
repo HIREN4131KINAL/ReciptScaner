@@ -1,6 +1,7 @@
 package co.smartreceipts.android.di;
 
 import android.app.Activity;
+import android.app.Service;
 import android.support.v4.app.Fragment;
 
 import co.smartreceipts.android.activities.SmartReceiptsActivity;
@@ -55,6 +56,8 @@ import co.smartreceipts.android.settings.widget.CategoriesListFragment;
 import co.smartreceipts.android.settings.widget.PDFColumnsListFragment;
 import co.smartreceipts.android.settings.widget.PaymentMethodsListFragment;
 import co.smartreceipts.android.settings.widget.SettingsActivity;
+import co.smartreceipts.android.sync.drive.services.DriveCompletionEventService;
+import co.smartreceipts.android.sync.drive.services.di.DriveCompletionEventServiceSubcomponent;
 import co.smartreceipts.android.sync.widget.backups.BackupsFragment;
 import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupDialogFragment;
 import co.smartreceipts.android.sync.widget.backups.DeleteRemoteBackupProgressDialogFragment;
@@ -69,6 +72,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.android.ActivityKey;
 import dagger.android.AndroidInjector;
+import dagger.android.ServiceKey;
 import dagger.android.support.FragmentKey;
 import dagger.multibindings.IntoMap;
 
@@ -76,6 +80,7 @@ import dagger.multibindings.IntoMap;
         subcomponents = {
                 SmartReceiptsActivitySubcomponent.class,
                 SettingsActivitySubcomponent.class,
+                DriveCompletionEventServiceSubcomponent.class,
                 TripFragmentSubcomponent.class,
                 TripCreateEditFragmentSubcomponent.class,
                 ReceiptCreateEditFragmentSubcomponent.class,
@@ -119,6 +124,12 @@ public abstract class GlobalBindingModule {
     @ActivityKey(SettingsActivity.class)
     public abstract AndroidInjector.Factory<? extends Activity> settingsActivitySubcomponentBuilder(
             SettingsActivitySubcomponent.Builder builder);
+
+    @Binds
+    @IntoMap
+    @ServiceKey(DriveCompletionEventService.class)
+    public abstract AndroidInjector.Factory<? extends Service> driveCompletionEventServiceSubcomponentBuilder(
+            DriveCompletionEventServiceSubcomponent.Builder builder);
 
     @Binds
     @IntoMap

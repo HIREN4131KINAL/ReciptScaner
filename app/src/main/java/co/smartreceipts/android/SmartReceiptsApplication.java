@@ -2,6 +2,7 @@ package co.smartreceipts.android;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Service;
 import android.content.Context;
 import android.support.multidex.MultiDex;
 import android.support.v4.app.Fragment;
@@ -29,33 +30,45 @@ import co.smartreceipts.android.settings.versions.VersionUpgradedListener;
 import co.smartreceipts.android.utils.WBUncaughtExceptionHandler;
 import co.smartreceipts.android.utils.cache.SmartReceiptsTemporaryFileCache;
 import co.smartreceipts.android.utils.log.Logger;
+import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
-import dagger.android.HasDispatchingActivityInjector;
-import dagger.android.support.HasDispatchingSupportFragmentInjector;
+import dagger.android.HasActivityInjector;
+import dagger.android.HasServiceInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import wb.android.storage.SDCardStateException;
 import wb.android.storage.StorageManager;
 
 public class SmartReceiptsApplication extends Application implements VersionUpgradedListener,
-        HasDispatchingActivityInjector, HasDispatchingSupportFragmentInjector {
+        HasActivityInjector, HasSupportFragmentInjector, HasServiceInjector {
 
 
     @Inject
     DispatchingAndroidInjector<Activity> activityInjector;
+
     @Inject
     DispatchingAndroidInjector<Fragment> supportFragmentInjector;
 
     @Inject
+    DispatchingAndroidInjector<Service> serviceInjector;
+
+    @Inject
     PersistenceManager persistenceManager;
+
     @Inject
     ExtraInitializer extraInitializer;
+
     @Inject
     PurchaseManager purchaseManager;
+
     @Inject
     PushManager pushManager;
+
     @Inject
     CognitoManager cognitoManager;
+
     @Inject
     OcrManager ocrManager;
+
     @Inject
     AppRatingPreferencesStorage appRatingPreferencesStorage;
 
@@ -97,6 +110,11 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
     @Override
     public DispatchingAndroidInjector<Fragment> supportFragmentInjector() {
         return supportFragmentInjector;
+    }
+
+    @Override
+    public AndroidInjector<Service> serviceInjector() {
+        return serviceInjector;
     }
 
     private void init() {
@@ -159,4 +177,5 @@ public class SmartReceiptsApplication extends Application implements VersionUpgr
             }
         }
     }
+
 }

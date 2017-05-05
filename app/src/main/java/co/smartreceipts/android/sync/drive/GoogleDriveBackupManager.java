@@ -35,6 +35,7 @@ import co.smartreceipts.android.sync.drive.managers.DriveReceiptsManager;
 import co.smartreceipts.android.sync.drive.managers.DriveRestoreDataManager;
 import co.smartreceipts.android.sync.drive.managers.GoogleDriveTableManager;
 import co.smartreceipts.android.sync.drive.rx.DriveStreamsManager;
+import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
 import co.smartreceipts.android.sync.errors.CriticalSyncError;
 import co.smartreceipts.android.sync.errors.SyncErrorType;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
@@ -65,10 +66,12 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
     private final BehaviorSubject<Throwable> mSyncErrorStream;
 
     @Inject
-    public GoogleDriveBackupManager(Context context, DatabaseHelper databaseHelper,
-                                    GoogleDriveTableManager googleDriveTableManager,
-                                    NetworkManager networkManager, Analytics analytics,
-                                    ReceiptTableController receiptTableController) {
+    public GoogleDriveBackupManager(@NonNull Context context, @NonNull DatabaseHelper databaseHelper,
+                                    @NonNull GoogleDriveTableManager googleDriveTableManager,
+                                    @NonNull NetworkManager networkManager, @NonNull Analytics analytics,
+                                    @NonNull ReceiptTableController receiptTableController,
+                                    @NonNull DriveUploadCompleteManager driveUploadCompleteManager) {
+
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -80,7 +83,7 @@ public class GoogleDriveBackupManager implements BackupProvider, GoogleApiClient
         mGoogleDriveSyncMetadata = new GoogleDriveSyncMetadata(context);
         mNetworkManager = networkManager;
         mSyncErrorStream = BehaviorSubject.create();
-        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata, mSyncErrorStream);
+        mDriveTaskManager = new DriveStreamsManager(context, mGoogleApiClient, mGoogleDriveSyncMetadata, mSyncErrorStream, driveUploadCompleteManager);
         mActivityReference = new AtomicReference<>(new WeakReference<FragmentActivity>(null));
 
         final DriveDatabaseManager driveDatabaseManager = new DriveDatabaseManager(context,

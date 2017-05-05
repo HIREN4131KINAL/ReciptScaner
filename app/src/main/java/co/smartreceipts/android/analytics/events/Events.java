@@ -84,6 +84,9 @@ public final class Events {
     public static final class Sync {
         public static final Event DisplaySyncError = new DefaultEvent(Category.Sync, "DisplaySyncError");
         public static final Event ClickSyncError = new DefaultEvent(Category.Sync, "ClickSyncError");
+        public static final Event DriveCompletionEventHandledWithSuccess = new DefaultEvent(Category.Sync, "DriveCompletionEventHandledWithSuccess");
+        public static final Event DriveCompletionEventHandledWithFailure = new DefaultEvent(Category.Sync, "DriveCompletionEventHandledWithFailure");
+        public static final Event DriveCompletionEventNotHandled = new DefaultEvent(Category.Sync, "DriveCompletionEventNotHandled");
     }
 
     public static final class Identity {

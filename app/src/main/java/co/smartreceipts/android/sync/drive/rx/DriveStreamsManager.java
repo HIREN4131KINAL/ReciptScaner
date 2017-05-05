@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.error.DriveThrowableToSyncErrorTranslator;
+import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.SyncState;
 import co.smartreceipts.android.sync.model.impl.Identifier;
@@ -39,8 +40,8 @@ public class DriveStreamsManager implements GoogleApiClient.ConnectionCallbacks 
     private final AtomicReference<CountDownLatch> mLatchReference;
 
     public DriveStreamsManager(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
-                               @NonNull Subject<Throwable> driveErrorStream) {
-        this(new DriveDataStreams(context, googleApiClient, googleDriveSyncMetadata), new DriveStreamMappings(), driveErrorStream, new DriveThrowableToSyncErrorTranslator());
+                               @NonNull Subject<Throwable> driveErrorStream, @NonNull DriveUploadCompleteManager driveUploadCompleteManager) {
+        this(new DriveDataStreams(context, googleApiClient, googleDriveSyncMetadata, driveUploadCompleteManager), new DriveStreamMappings(), driveErrorStream, new DriveThrowableToSyncErrorTranslator());
     }
 
     public DriveStreamsManager(@NonNull DriveDataStreams driveDataStreams, @NonNull DriveStreamMappings driveStreamMappings,

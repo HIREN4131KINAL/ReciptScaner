@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,6 +43,7 @@ import co.smartreceipts.android.persistence.DatabaseHelper;
 import co.smartreceipts.android.sync.drive.device.DeviceMetadata;
 import co.smartreceipts.android.sync.drive.device.GoogleDriveSyncMetadata;
 import co.smartreceipts.android.sync.drive.services.DriveIdUploadCompleteCallback;
+import co.smartreceipts.android.sync.drive.services.DriveIdUploadMetadata;
 import co.smartreceipts.android.sync.drive.services.DriveUploadCompleteManager;
 import co.smartreceipts.android.sync.model.RemoteBackupMetadata;
 import co.smartreceipts.android.sync.model.impl.DefaultRemoteBackupMetadata;
@@ -66,8 +68,10 @@ class DriveDataStreams {
     private final Executor mExecutor;
     private ReplaySubject<DriveFolder> mSmartReceiptsFolderSubject;
 
-    public DriveDataStreams(@NonNull Context context, @NonNull GoogleApiClient googleApiClient, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata) {
-        this(googleApiClient, context, googleDriveSyncMetadata, new DeviceMetadata(context), new DriveUploadCompleteManager(), Executors.newCachedThreadPool());
+    public DriveDataStreams(@NonNull Context context, @NonNull GoogleApiClient googleApiClient,
+                            @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
+                            @NonNull DriveUploadCompleteManager driveUploadCompleteManager) {
+        this(googleApiClient, context, googleDriveSyncMetadata, new DeviceMetadata(context), driveUploadCompleteManager, Executors.newCachedThreadPool());
     }
 
     public DriveDataStreams(@NonNull GoogleApiClient googleApiClient, @NonNull Context context, @NonNull GoogleDriveSyncMetadata googleDriveSyncMetadata,
@@ -339,13 +343,15 @@ class DriveDataStreams {
                                 builder.setMimeType(mimeType);
                             }
                             final MetadataChangeSet changeSet = builder.build();
-                            folder.createFile(mGoogleApiClient, changeSet, driveContents, new ExecutionOptions.Builder().setNotifyOnCompletion(true).build()).setResultCallback(new ResultCallbacks<DriveFolder.DriveFileResult>() {
+                            final String trackingTag = UUID.randomUUID().toString();
+                            folder.createFile(mGoogleApiClient, changeSet, driveContents, new ExecutionOptions.Builder().setNotifyOnCompletion(true).setTrackingTag(trackingTag).build()).setResultCallback(new ResultCallbacks<DriveFolder.DriveFileResult>() {
                                 @Override
                                 public void onSuccess(@NonNull DriveFolder.DriveFileResult driveFileResult) {
                                     final DriveFile driveFile = driveFileResult.getDriveFile();
                                     final DriveId driveFileId = driveFile.getDriveId();
                                     if (driveFileId.getResourceId() == null) {
-                                        mDriveUploadCompleteManager.registerCallback(driveFileId, new DriveIdUploadCompleteCallback() {
+                                        final DriveIdUploadMetadata uploadMetadata = new DriveIdUploadMetadata(driveFileId, trackingTag);
+                                        mDriveUploadCompleteManager.registerCallback(uploadMetadata, new DriveIdUploadCompleteCallback() {
                                             @Override
                                             public void onSuccess(@NonNull DriveId fetchedDriveId) {
                                                 emitter.onSuccess(fetchedDriveId.asDriveFile());
